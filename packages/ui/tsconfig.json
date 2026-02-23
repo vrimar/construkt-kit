@@ -1,0 +1,8 @@
+{
+  "extends": "@b3/config/typescript",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.stories.tsx", "src/**/*.stories.ts"]
+}

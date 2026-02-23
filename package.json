@@ -1,0 +1,40 @@
+{
+  "name": "b3-frontend-shared",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "typecheck": "turbo run typecheck",
+    "storybook": "pnpm --filter @b3/storybook storybook",
+    "build-storybook": "pnpm --filter @b3/storybook build",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "publish": "changeset publish",
+    "update-deps": "pnpm update -r && pnpm update"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.30.0",
+    "@typescript/native-preview": "7.0.0-dev.20260304.1",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "turbo": "^2.8.13",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.30.3",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "eslint-plugin-import>eslint": "10",
+        "eslint-plugin-react>eslint": "10",
+        "eslint-plugin-react-hooks>eslint": "10"
+      }
+    }
+  }
+}

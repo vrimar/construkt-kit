@@ -1,0 +1,70 @@
+{
+  "name": "@b3/ui",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Shared component library for B3 frontend apps",
+  "author": "Vasil Rimar",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./theme": {
+      "types": "./dist/theme/index.d.ts",
+      "import": "./dist/theme/index.js",
+      "require": "./dist/theme/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint src",
+    "format": "oxfmt src -c ../config/oxfmt/index.jsonc",
+    "test": "vitest run",
+    "typegen": "chakra typegen ./src/theme/index.ts"
+  },
+  "dependencies": {
+    "@ark-ui/react": "^5.34.1",
+    "@b3/utils": "workspace:*",
+    "@chakra-ui/react": "3.34.0",
+    "@emotion/react": "^11.14.0",
+    "@headless-tree/core": "^1.6.3",
+    "@headless-tree/react": "^1.6.3",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@tanstack/react-table": "^8.21.3",
+    "dayjs": "^1.11.19",
+    "react-aria-components": "^1.16.0",
+    "react-use": "^17.6.0",
+    "react-virtuoso": "^4.18.3",
+    "ts-pattern": "^5.9.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "@b3/config": "workspace:*",
+    "@chakra-ui/cli": "^3.34.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "axe-core": "^4.11.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-icons": "^5.6.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

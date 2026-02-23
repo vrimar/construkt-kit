@@ -1,0 +1,48 @@
+{
+  "name": "@b3/testing",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Shared test utilities — custom render, MSW handlers — for B3 apps (devDependency only)",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./handlers": {
+      "types": "./dist/handlers/index.d.ts",
+      "import": "./dist/handlers/index.js",
+      "require": "./dist/handlers/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint src",
+    "format": "oxfmt . -c ../config/oxfmt/index.jsonc"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "@testing-library/react": "^16.3.2",
+    "msw": "^2.12.10"
+  },
+  "devDependencies": {
+    "@b3/config": "workspace:*",
+    "@b3/ui": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@chakra-ui/react": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

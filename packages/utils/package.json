@@ -1,0 +1,36 @@
+{
+  "name": "@b3/utils",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Stateless, framework-agnostic utilities for B3 frontend apps",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint src",
+    "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.19",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@b3/config": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

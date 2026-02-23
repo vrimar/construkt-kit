@@ -1,0 +1,4 @@
+{
+  "extends": "@b3/config/typescript",
+  "include": ["src"]
+}
