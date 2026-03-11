@@ -3,6 +3,7 @@ import { Box } from "@chakra-ui/react";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 interface Props extends BoxProps {
+  type?: ScrollAreaPrimitive.ScrollAreaProps["type"];
   scrollHideDelay?: number;
   horizontalEnabled?: boolean;
   verticalEnabled?: boolean;
@@ -11,6 +12,7 @@ interface Props extends BoxProps {
 export function ScrollArea({
   ref,
   children,
+  type,
   scrollHideDelay,
   verticalEnabled = true,
   horizontalEnabled = true,
@@ -23,7 +25,7 @@ export function ScrollArea({
       overflow="hidden"
       {...props}
     >
-      <ScrollAreaPrimitive.Root scrollHideDelay={scrollHideDelay}>
+      <ScrollAreaPrimitive.Root type={type} scrollHideDelay={scrollHideDelay}>
         <Box
           asChild
           width="100%"
