@@ -19,6 +19,7 @@ export * from "./EditableText";
 export * from "./EmptyState";
 export * from "./FileUpload";
 export * from "./Form";
+export * from "./Highlight";
 export * from "./Image";
 export * from "./Input";
 export * from "./Layout";
