@@ -9,7 +9,21 @@ export interface SearchInputProps extends InputProps {
   hasSearchIcon?: boolean;
 }
 
+type InputSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+type ButtonSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+
+const iconButtonSizeMap: Record<InputSize, ButtonSize> = {
+  "2xs": "2xs",
+  xs: "xs",
+  sm: "xs",
+  md: "xs",
+  lg: "sm",
+  xl: "sm",
+  "2xl": "sm",
+};
+
 export const SearchInput = ({ hasSearchIcon = true, onClear, ...props }: SearchInputProps) => {
+  const iconButtonSize = iconButtonSizeMap[(props.size as InputSize) ?? "md"] ?? "xs";
   return (
     <InputGroup
       startElement={hasSearchIcon && <FiSearch />}
@@ -18,7 +32,7 @@ export const SearchInput = ({ hasSearchIcon = true, onClear, ...props }: SearchI
           <IconButton
             icon={<FiX />}
             variant="ghost"
-            size="xs"
+            size={iconButtonSize}
             onClick={onClear}
           />
         )
