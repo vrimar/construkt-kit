@@ -12,7 +12,7 @@ export const tabsRecipe = defineSlotRecipe({
         trigger: {
           py: "0.5",
           px: "3",
-          textStyle: "sm",
+          textStyle: "xs",
         },
       },
     },
