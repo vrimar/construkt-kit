@@ -1,10 +1,11 @@
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import React, { useMemo, useState } from "react";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiCheckSquare, FiChevronDown, FiChevronRight, FiSquare } from "react-icons/fi";
 
 import { Checkbox } from "../Checkbox";
 import { SearchInput } from "../Input/SearchInput";
 import { ScrollArea } from "../ScrollArea";
+import { Tooltip } from "../Tooltip";
 
 export interface TreeSelectGroup<T> {
   id: string | number;
@@ -114,44 +115,42 @@ export const TreeSelectList = <T,>({
       direction="column"
       height="100%"
     >
-      <Box
-        p="2"
+      <Flex
         borderBottom="1px solid"
         borderColor="border"
+        align="center"
       >
-        <SearchInput
-          size="sm"
-          placeholder={searchPlaceholder}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch("")}
-        />
-      </Box>
-
-      {showToggleAll && showCheckboxes && (
-        <Flex
-          px="3"
-          py="1.5"
-          borderBottom="1px solid"
-          borderColor="border"
-          align="center"
-        >
-          <Checkbox
+        <Box flex="1">
+          <SearchInput
             size="sm"
-            checked={someSelected ? "indeterminate" : allSelected}
-            onCheckedChange={toggleAll}
-          >
-            <Text
-              fontSize="xs"
+            placeholder={searchPlaceholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch("")}
+            variant="flushed"
+          />
+        </Box>
+        {showToggleAll && showCheckboxes && (
+          <Tooltip content={allSelected ? "Deselect all" : "Select all"}>
+            <IconButton
+              aria-label={allSelected ? "Deselect all" : "Select all"}
+              size="xs"
+              variant="ghost"
               color="fg.muted"
+              mr="1"
+              flexShrink={0}
+              onClick={toggleAll}
             >
-              {allSelected ? "Deselect all" : "Select all"}
-            </Text>
-          </Checkbox>
-        </Flex>
-      )}
+              {allSelected || someSelected ? <FiCheckSquare /> : <FiSquare />}
+            </IconButton>
+          </Tooltip>
+        )}
+      </Flex>
 
-      <ScrollArea flex="1">
+      <ScrollArea
+        flex="1"
+        px="3"
+      >
         {filteredGroups.map((group) => {
           const isCollapsed = collapsed.has(group.id);
           return (
@@ -162,9 +161,6 @@ export const TreeSelectList = <T,>({
                 align="center"
                 gap="1"
                 cursor="pointer"
-                bg="bg.subtle"
-                borderBottom="1px solid"
-                borderColor="border"
                 _hover={{ bg: "bg.muted" }}
                 onClick={() => {
                   if (onGroupSelect) {
