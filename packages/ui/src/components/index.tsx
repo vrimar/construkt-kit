@@ -9,6 +9,7 @@ export * from "./Buttons";
 export * from "./Checkbox";
 export * from "./CheckboxCard";
 export * from "./Clipboard";
+export * from "./ColorPicker";
 export * from "./Collapsible";
 export * from "./ContextMenu";
 export * from "./DataTable";
