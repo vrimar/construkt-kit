@@ -37,7 +37,6 @@
     "@storybook/test": "^8.6.17",
     "@types/react": "^19.2.14",
     "storybook": "^10.2.15",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "tsup": "^8.5.1"
   }
 }

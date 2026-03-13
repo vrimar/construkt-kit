@@ -20,21 +20,12 @@
     "@typescript/native-preview": "7.0.0-dev.20260304.1",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
-    "turbo": "^2.8.13",
-    "typescript": "^5.9.3"
+    "oxlint-tsgolint": "^0.16.0",
+    "turbo": "^2.8.13"
   },
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.30.3",
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "eslint-plugin-import>eslint": "10",
-        "eslint-plugin-react>eslint": "10",
-        "eslint-plugin-react-hooks>eslint": "10"
-      }
-    }
-  }
+  "packageManager": "pnpm@10.30.3"
 }

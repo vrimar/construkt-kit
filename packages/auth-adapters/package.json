@@ -42,7 +42,6 @@
     "@auth0/auth0-react": "^2.15.0",
     "@b3/config": "workspace:*",
     "@b3/pages": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "tsup": "^8.5.1"
   }
 }

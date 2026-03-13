@@ -37,8 +37,7 @@
   "devDependencies": {
     "@b3/config": "workspace:*",
     "@b3/ui": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "tsup": "^8.5.1"
   },
   "peerDependencies": {
     "@chakra-ui/react": "^3.0.0",
