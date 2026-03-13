@@ -64,7 +64,6 @@ desktop.ini
 
 # Cache
 .cache/
-.eslintcache
 .oxlintcache
 .parcel-cache/
 

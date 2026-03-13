@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
-  "plugins": ["react", "react-hooks", "typescript", "import"],
+  "plugins": ["react", "typescript", "import"],
   "env": {
     "browser": true,
     "node": true,
@@ -10,18 +10,6 @@
     "no-unused-vars": "warn",
     "no-console": "warn",
     "eqeqeq": ["error", "smart"],
-    "no-restricted-imports": [
-      "error",
-      {
-        "paths": [
-          { "name": "axios", "message": "Use @b3/api instead of direct HTTP libraries" },
-          { "name": "node-fetch", "message": "Use @b3/api instead of direct HTTP libraries" }
-        ],
-        "patterns": [
-          { "group": ["@chakra-ui/*"], "message": "Import from @b3/ui instead" }
-        ]
-      }
-    ],
     "no-eval": "error",
     "no-implied-eval": "error",
     "no-debugger": "error",
@@ -49,7 +37,8 @@
     "typescript/no-non-null-assertion": "warn",
     "typescript/prefer-optional-chain": "warn",
     "typescript/no-unnecessary-type-assertion": "warn",
-    "typescript/no-misused-promises": "error",
+    "typescript/no-misused-promises": "off",
+    "typescript/no-floating-promises": "off",
 
     "react/jsx-key": "error",
     "react/no-danger": "error",

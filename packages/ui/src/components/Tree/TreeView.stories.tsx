@@ -31,9 +31,8 @@ const items: Record<string, Item> = {
   docs: { name: "docs", children: ["readme", "changelog"], isFolder: true },
   readme: { name: "README.md" },
   changelog: { name: "CHANGELOG.md" },
-  config: { name: "config", children: ["tsconfig", "eslint"], isFolder: true },
+  config: { name: "config", children: ["tsconfig"], isFolder: true },
   tsconfig: { name: "tsconfig.json" },
-  eslint: { name: "eslint.config.js" },
 };
 
 const meta: Meta = {

@@ -18,6 +18,10 @@
     "editor.defaultFormatter": "oxc.oxc-vscode",
     "editor.formatOnSave": true
   },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.removeUnusedImports": "explicit"
+  },
   "workbench.editorAssociations": {
     "*.md": "vscode.markdown.preview.editor"
   },

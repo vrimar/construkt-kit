@@ -21,3 +21,7 @@ Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm 
 - Named exports only (no default exports)
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsup.config.ts`
 - Consumed via path aliases (e.g., `@b3/ui` → `packages/ui/src`)
+
+## Ark UI MCP
+
+Use the Ark UI MCP tools to look up Ark UI component props and examples when implementing or customizing `@b3/ui` components. Chakra UI v3 is built on Ark UI primitives, so these tools are relevant for understanding component behavior, props, and theming at the primitive level.
