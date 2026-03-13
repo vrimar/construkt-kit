@@ -13,10 +13,28 @@
     "no-restricted-imports": [
       "error",
       {
-        "patterns": ["axios", "node-fetch"],
-        "message": "Use @b3/api instead of direct HTTP libraries"
+        "paths": [
+          { "name": "axios", "message": "Use @b3/api instead of direct HTTP libraries" },
+          { "name": "node-fetch", "message": "Use @b3/api instead of direct HTTP libraries" }
+        ],
+        "patterns": [
+          { "group": ["@chakra-ui/*"], "message": "Import from @b3/ui instead" }
+        ]
       }
     ],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-debugger": "error",
+    "no-var": "error",
+    "prefer-const": "warn",
+    "no-duplicate-case": "error",
+    "no-fallthrough": "error",
+    "no-self-compare": "error",
+    "no-unsafe-optional-chaining": "error",
+    "no-loss-of-precision": "error",
+    "no-constant-condition": "warn",
+    "no-throw-literal": "error",
+    "no-shadow": "warn",
 
     "typescript/no-explicit-any": "off",
     "typescript/no-unused-vars": "warn",
@@ -28,9 +46,16 @@
       }
     ],
     "typescript/no-empty-object-type": "off",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/prefer-optional-chain": "warn",
+    "typescript/no-unnecessary-type-assertion": "warn",
+    "typescript/no-misused-promises": "error",
 
     "react/jsx-key": "error",
-    "react/jsx-max-props-per-line": ["error", { "maximum": 1 }],
+    "react/no-danger": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-children-prop": "error",
+    "react/no-deprecated": "warn",
     "react/prop-types": "off",
     "react/no-array-index-key": "off",
     "react/button-has-type": "off",
@@ -41,6 +66,10 @@
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
 
-    "import/no-duplicates": "error"
+    "import/no-duplicates": "error",
+    "import/no-cycle": "warn",
+    "import/no-self-import": "error",
+    "import/no-default-export": "warn",
+    "import/first": "error"
   }
 }
