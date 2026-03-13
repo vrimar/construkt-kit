@@ -7,17 +7,24 @@
     "./oxlint": "./oxlint/index.json",
     "./oxfmt": "./oxfmt/index.jsonc",
     "./vite": "./vite/index.ts",
-    "./playwright": "./playwright/index.ts"
+    "./playwright": "./playwright/index.ts",
+    "./kubb": "./kubb/index.ts"
   },
   "files": [
     "typescript",
     "oxlint",
     "oxfmt",
     "vite",
-    "playwright"
+    "playwright",
+    "kubb"
   ],
   "devDependencies": {},
   "dependencies": {
+    "@kubb/core": "^4.31.5",
+    "@kubb/plugin-client": "^4.31.5",
+    "@kubb/plugin-oas": "^4.31.5",
+    "@kubb/plugin-react-query": "^4.31.5",
+    "@kubb/plugin-ts": "^4.31.5",
     "@playwright/test": "^1.58.2",
     "@vitejs/plugin-react": "^5.1.4",
     "vite": "^7.3.1",

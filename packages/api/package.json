@@ -15,7 +15,8 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "scripts": {
     "build": "tsup",
@@ -25,16 +26,19 @@
     "format": "oxfmt src -c ../config/oxfmt/index.jsonc",
     "generate": "orval --config orval.config.ts"
   },
-  "dependencies": {
-    "@tanstack/react-query": "^5.90.21",
-    "ky": "^1.14.3"
+  "bin": {
+    "b3-gen-api": "./bin/gen-api.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0"
   },
+  "dependencies": {
+    "@kubb/core": "^4.31.5",
+    "@kubb/plugin-client": "^4.31.5",
+    "tsx": "^4"
+  },
   "devDependencies": {
     "@b3/config": "workspace:*",
-    "orval": "^8.5.2",
     "tsup": "^8.5.1"
   }
 }

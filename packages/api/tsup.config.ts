@@ -1,10 +1,10 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: { index: 'src/index.ts' },
-  format: ['esm', 'cjs'],
+  entry: { index: "src/index.ts" },
+  format: ["esm", "cjs"],
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['react', '@tanstack/react-query'],
-})
+  external: ["react", "@kubb/plugin-client", "@kubb/core"],
+});
