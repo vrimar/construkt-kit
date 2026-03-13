@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["react", "react-hooks", "typescript", "import"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "eqeqeq": ["error", "smart"],
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": ["axios", "node-fetch"],
+        "message": "Use @b3/api instead of direct HTTP libraries"
+      }
+    ],
+
+    "typescript/no-explicit-any": "off",
+    "typescript/no-unused-vars": "warn",
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false
+      }
+    ],
+    "typescript/no-empty-object-type": "off",
+
+    "react/jsx-key": "error",
+    "react/jsx-max-props-per-line": ["error", { "maximum": 1 }],
+    "react/prop-types": "off",
+    "react/no-array-index-key": "off",
+    "react/button-has-type": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/no-unescaped-entities": "off",
+    "react/require-default-props": "off",
+
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    "import/no-duplicates": "error"
+  }
+}

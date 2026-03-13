@@ -8,7 +8,7 @@ const baseConfig = defineConfig({
     react(),
     tsconfigPaths(),
     checker({
-      typescript: true,
+      oxlint: true,
       overlay: false,
     }),
   ],
