@@ -26,7 +26,7 @@ export const Sizes: Story = {
 
 export const WithColor: Story = {
   args: {
-    color: "primary",
+    color: "brand.fg",
     size: "lg",
   },
 };

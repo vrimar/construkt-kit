@@ -14,7 +14,7 @@ export const DeleteButton = ({
       aria-label="Delete"
       variant="plain"
       size="xs"
-      color="red.500"
+      color="fg.error"
       {...props}
     >
       <Trash2Icon />

@@ -33,7 +33,7 @@ export const LoadingOverlay = ({
       height="100%"
       width="100%"
       alignItems={align}
-      background={fill ? "white/75" : undefined}
+      background={fill ? "bg/75" : undefined}
       transition="opacity .3s ease-in-out,
       visibility 0s ease-in-out .3s,
       background .3s ease-in-out"
@@ -49,10 +49,10 @@ export const LoadingOverlay = ({
         userSelect="none"
       >
         <Spinner
-          color="primary"
+          color="brand.fg"
           size={size}
         />
-        {tip && <Text color="primary">{tip}</Text>}
+        {tip && <Text color="brand.fg">{tip}</Text>}
       </Stack>
     </Flex>
   );

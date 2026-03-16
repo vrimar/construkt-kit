@@ -20,7 +20,7 @@ export const Styled: Story = {
     <p>
       This is a paragraph with a{" "}
       <Span
-        color="primary"
+        color="brand.fg"
         fontWeight="bold"
       >
         highlighted span

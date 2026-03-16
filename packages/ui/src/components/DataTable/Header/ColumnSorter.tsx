@@ -20,8 +20,8 @@ export const ColumnSorter = <TData,>({ header, onSort }: ColumnSorterProps<TData
     <Box
       className={dataTableClasses.columnSorter}
       visibility={sort ? "visible" : "hidden"}
-      color={sort ? "primary" : "fg.subtle"}
-      _hover={{ color: "primary" }}
+      color={sort ? "brand.fg" : "fg.subtle"}
+      _hover={{ color: "brand.fg" }}
       onClick={onSort}
       cursor="pointer"
       css={{
