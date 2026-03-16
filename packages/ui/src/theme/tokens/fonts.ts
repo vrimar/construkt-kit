@@ -1,4 +1,4 @@
-import { defineTokens } from "@chakra-ui/react";
+import { defineTokens } from "@pandacss/dev";
 
 export const fonts = defineTokens.fonts({
   body: {

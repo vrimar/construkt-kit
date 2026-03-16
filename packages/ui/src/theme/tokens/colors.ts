@@ -1,83 +1,35 @@
-import { defineTokens } from "@chakra-ui/react";
+import { defineTokens } from '@pandacss/dev'
 
-export const colors = defineTokens.colors({
-  gray: {
-    "50": {
-      value: "#F7FAFC",
-    },
-    "100": {
-      value: "#EDF2F7",
-    },
-    "200": {
-      value: "#E2E8F0",
-    },
-    "300": {
-      value: "#CBD5E0",
-    },
-    "400": {
-      value: "#A0AEC0",
-    },
-    "500": {
-      value: "#718096",
-    },
-    "600": {
-      value: "#4A5568",
-    },
-    "700": {
-      value: "#2D3748",
-    },
-    "800": {
-      value: "#1A202C",
-    },
-    "900": {
-      value: "#171923",
-    },
-    "950": {
-      value: "#111111",
-    },
-  },
-  brand: {
-    "50": { value: "#e8f1ff" },
-    "100": { value: "#c7dbff" },
-    "200": { value: "#a3c3ff" },
-    "300": { value: "#7faaff" },
-    "400": { value: "#5b92ff" },
-    "500": { value: "#3778ff" }, // primary brand blue
-    "600": { value: "#2f67db" },
-    "700": { value: "#2757b8" },
-    "800": { value: "#1f4794" },
-    "900": { value: "#132c5c" },
-  },
-  brandDark: {
-    "50": {
-      value: "#f2f4f7",
-    },
-    "100": {
-      value: "#d9dde4",
-    },
-    "200": {
-      value: "#b8c1cd",
-    },
-    "300": {
-      value: "#97a5b6",
-    },
-    "400": {
-      value: "#7689a0",
-    },
-    "500": {
-      value: "#5a6d85",
-    },
-    "600": {
-      value: "#455567",
-    },
-    "700": {
-      value: "#323e4d",
-    },
-    "800": {
-      value: "#1f2833",
-    },
-    "900": {
-      value: "#0d1419",
-    },
-  },
-});
+const black = defineTokens.colors({
+  DEFAULT: { value: '#000000' },
+  a1: { value: 'rgba(0, 0, 0, 0.05)' },
+  a2: { value: 'rgba(0, 0, 0, 0.1)' },
+  a3: { value: 'rgba(0, 0, 0, 0.15)' },
+  a4: { value: 'rgba(0, 0, 0, 0.2)' },
+  a5: { value: 'rgba(0, 0, 0, 0.3)' },
+  a6: { value: 'rgba(0, 0, 0, 0.4)' },
+  a7: { value: 'rgba(0, 0, 0, 0.5)' },
+  a8: { value: 'rgba(0, 0, 0, 0.6)' },
+  a9: { value: 'rgba(0, 0, 0, 0.7)' },
+  a10: { value: 'rgba(0, 0, 0, 0.8)' },
+  a11: { value: 'rgba(0, 0, 0, 0.9)' },
+  a12: { value: 'rgba(0, 0, 0, 0.95)' },
+})
+
+const white = defineTokens.colors({
+  DEFAULT: { value: '#ffffff' },
+  a1: { value: 'rgba(255, 255, 255, 0.05)' },
+  a2: { value: 'rgba(255, 255, 255, 0.1)' },
+  a3: { value: 'rgba(255, 255, 255, 0.15)' },
+  a4: { value: 'rgba(255, 255, 255, 0.2)' },
+  a5: { value: 'rgba(255, 255, 255, 0.3)' },
+  a6: { value: 'rgba(255, 255, 255, 0.4)' },
+  a7: { value: 'rgba(255, 255, 255, 0.5)' },
+  a8: { value: 'rgba(255, 255, 255, 0.6)' },
+  a9: { value: 'rgba(255, 255, 255, 0.7)' },
+  a10: { value: 'rgba(255, 255, 255, 0.8)' },
+  a11: { value: 'rgba(255, 255, 255, 0.9)' },
+  a12: { value: 'rgba(255, 255, 255, 0.95)' },
+})
+
+export const colors = { black, white }
