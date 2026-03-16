@@ -17,7 +17,7 @@ export const carousel = defineSlotRecipe({
     control: {
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: "l2",
+      borderRadius: "md",
       display: "flex",
       _vertical: {
         flexDirection: "column",

@@ -14,7 +14,7 @@ export const toggleGroup = defineSlotRecipe({
     variant: {
       outline: {
         root: {
-          borderRadius: "l3",
+          borderRadius: "lg",
           borderWidth: "1px",
           gap: "1",
           p: "1",
@@ -22,7 +22,7 @@ export const toggleGroup = defineSlotRecipe({
       },
       solid: {
         root: {
-          borderRadius: "l3",
+          borderRadius: "lg",
           bg: "gray.subtle.bg",
           gap: "1",
           p: "1",
@@ -30,7 +30,7 @@ export const toggleGroup = defineSlotRecipe({
       },
       subtle: {
         root: {
-          borderRadius: "l3",
+          borderRadius: "lg",
           gap: "1",
           p: "1",
         },

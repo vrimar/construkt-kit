@@ -4,7 +4,7 @@ export const code = defineRecipe({
   className: "code",
   base: {
     alignItems: "center",
-    borderRadius: "l2",
+    borderRadius: "md",
     display: "inline-flex",
     fontVariantNumeric: "tabular-nums",
     fontWeight: "medium",

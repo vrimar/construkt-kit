@@ -11,7 +11,7 @@ export const kbd = defineRecipe({
     whiteSpace: "nowrap",
     wordSpacing: "-0.5em",
     userSelect: "none",
-    borderRadius: "l2",
+    borderRadius: "md",
     justifyContent: "center",
   },
 

@@ -9,7 +9,7 @@ export const actionbar = defineSlotRecipe({
       alignItems: "center",
       gap: "3",
       bg: "bg",
-      borderRadius: "l3",
+      borderRadius: "lg",
       boxShadow: "lg",
       px: "3",
       py: "2.5",

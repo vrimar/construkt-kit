@@ -123,7 +123,7 @@ export const tabs = defineSlotRecipe({
         indicator: {
           bg: "colorPalette.subtle.bg",
           color: "colorPalette.subtle.fg",
-          borderRadius: "l2",
+          borderRadius: "md",
         },
       },
       enclosed: {
@@ -134,7 +134,7 @@ export const tabs = defineSlotRecipe({
           },
           boxShadow: "inset 0 0 0px 1px var(--shadow-color)",
           boxShadowColor: "border",
-          borderRadius: "l3",
+          borderRadius: "lg",
           p: "1",
         },
         trigger: {
@@ -144,7 +144,7 @@ export const tabs = defineSlotRecipe({
           },
         },
         indicator: {
-          borderRadius: "l2",
+          borderRadius: "md",
           boxShadow: {
             _light: "xs",
             _dark: "none",

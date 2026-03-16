@@ -9,7 +9,7 @@ export const menu = defineSlotRecipe({
       "--menu-z-index": "zIndex.dropdown",
 
       bg: "gray.surface.bg",
-      borderRadius: "l3",
+      borderRadius: "lg",
       boxShadow: "md",
       display: "flex",
       flexDirection: "column",
@@ -31,7 +31,7 @@ export const menu = defineSlotRecipe({
     },
     item: {
       alignItems: "center",
-      borderRadius: "l2",
+      borderRadius: "md",
       display: "flex",
       flex: "0 0 auto",
       outline: "0",

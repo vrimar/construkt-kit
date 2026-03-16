@@ -5,7 +5,7 @@ export const textarea = defineRecipe({
   jsx: ["Textarea", "Field.Textarea", "MultiLineInput"],
   base: {
     appearance: "none",
-    borderRadius: "l2",
+    borderRadius: "md",
     minWidth: "0",
     outline: "0",
     position: "relative",

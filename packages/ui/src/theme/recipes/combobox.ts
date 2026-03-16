@@ -26,7 +26,7 @@ export const combobox = defineSlotRecipe({
     },
     content: {
       background: "gray.surface.bg",
-      borderRadius: "l2",
+      borderRadius: "md",
       boxShadow: "md",
       display: "flex",
       flexDirection: "column",
@@ -49,7 +49,7 @@ export const combobox = defineSlotRecipe({
     },
     item: {
       alignItems: "center",
-      borderRadius: "l1",
+      borderRadius: "sm",
       cursor: "pointer",
       display: "flex",
       justifyContent: "space-between",

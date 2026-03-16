@@ -22,7 +22,7 @@ export const checkbox = defineSlotRecipe({
       flexShrink: "0",
       borderWidth: "1px",
       borderColor: "transparent",
-      borderRadius: "l1",
+      borderRadius: "sm",
       cursor: "pointer",
       focusVisibleRing: "outside",
 

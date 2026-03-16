@@ -5,7 +5,7 @@ export const inputAddon = defineRecipe({
   base: {
     alignItems: "center",
     alignSelf: "stretch",
-    borderRadius: "l2",
+    borderRadius: "md",
     color: "fg.muted",
     display: "flex",
     flex: "0 0 auto",

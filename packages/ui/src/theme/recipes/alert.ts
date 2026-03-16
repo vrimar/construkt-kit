@@ -6,7 +6,7 @@ export const alert = defineSlotRecipe({
   base: {
     root: {
       alignItems: "flex-start",
-      borderRadius: "l3",
+      borderRadius: "lg",
       display: "flex",
       position: "relative",
       width: "full",

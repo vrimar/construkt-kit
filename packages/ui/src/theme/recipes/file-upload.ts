@@ -18,7 +18,7 @@ export const fileUpload = defineSlotRecipe({
     dropzone: {
       alignItems: "center",
       background: "gray.surface.bg",
-      borderRadius: "l3",
+      borderRadius: "lg",
       borderStyle: "dashed",
       borderWidth: "2px",
       display: "flex",
@@ -39,7 +39,7 @@ export const fileUpload = defineSlotRecipe({
       animationDuration: "normal",
       animationName: "fade-in",
       background: "gray.surface.bg",
-      borderRadius: "l3",
+      borderRadius: "lg",
       borderWidth: "1px",
       display: "flex",
       pos: "relative",
@@ -65,7 +65,7 @@ export const fileUpload = defineSlotRecipe({
       aspectRatio: "1",
       objectFit: "cover",
       maxW: "20",
-      borderRadius: "l2",
+      borderRadius: "md",
     },
   },
   defaultVariants: {

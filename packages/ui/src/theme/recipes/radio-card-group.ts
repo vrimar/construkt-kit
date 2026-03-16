@@ -13,7 +13,7 @@ export const radioCardGroup = defineSlotRecipe({
     },
     item: {
       alignItems: "center",
-      borderRadius: "l2",
+      borderRadius: "md",
       cursor: "pointer",
       display: "flex",
       justifyContent: "space-between",

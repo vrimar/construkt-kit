@@ -10,7 +10,7 @@ export const popover = defineSlotRecipe({
       "--popover-padding": "spacing.4",
 
       background: "var(--popover-bg)",
-      borderRadius: "l3",
+      borderRadius: "lg",
       boxShadow: "lg",
       display: "flex",
       flexDirection: "column",

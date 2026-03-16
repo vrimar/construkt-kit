@@ -10,7 +10,7 @@ export const checkboxCard = defineSlotRecipe({
       flexDirection: "column",
       borderWidth: "1px",
       borderColor: "border",
-      borderRadius: "l2",
+      borderRadius: "md",
       cursor: "pointer",
       userSelect: "none",
       _hover: { bg: "bg.subtle" },

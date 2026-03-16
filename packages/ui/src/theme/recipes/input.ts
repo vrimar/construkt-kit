@@ -5,7 +5,7 @@ export const input = {
   jsx: ["Input", "Field.Input", "SearchInput", "PasswordInput"],
   base: {
     appearance: "none",
-    borderRadius: "l2",
+    borderRadius: "md",
     height: "var(--input-height)",
     minHeight: "var(--input-height)",
     minW: "var(--input-height)",

@@ -14,7 +14,7 @@ export const editable = defineSlotRecipe({
     },
     preview: {
       alignItems: "center",
-      borderRadius: "l2",
+      borderRadius: "md",
       cursor: "default",
       display: "inline-flex",
       transitionDuration: "normal",
@@ -27,7 +27,7 @@ export const editable = defineSlotRecipe({
       },
     },
     input: {
-      borderRadius: "l2",
+      borderRadius: "md",
 
       focusRingWidth: "2px",
       focusRing: "inside",

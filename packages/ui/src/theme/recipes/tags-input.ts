@@ -23,7 +23,7 @@ export const tagsInput = defineSlotRecipe({
       px: "var(--tags-input-px)",
 
       alignItems: "center",
-      borderRadius: "l2",
+      borderRadius: "md",
       display: "flex",
       flexWrap: "wrap",
       pos: "relative",
@@ -41,7 +41,7 @@ export const tagsInput = defineSlotRecipe({
       boxSize: "calc(var(--tags-input-item-height) / 1.5)",
 
       alignItems: "center",
-      borderRadius: "l1",
+      borderRadius: "sm",
       color: "fg.muted",
       display: "flex",
       focusRingWidth: "2px",
@@ -73,7 +73,7 @@ export const tagsInput = defineSlotRecipe({
     },
     itemDeleteTrigger: {
       display: "flex",
-      borderRadius: "l1",
+      borderRadius: "sm",
       alignItems: "center",
       justifyContent: "center",
       cursor: "pointer",
@@ -86,7 +86,7 @@ export const tagsInput = defineSlotRecipe({
       px: "var(--tags-input-item-px)",
 
       alignItems: "center",
-      borderRadius: "l1",
+      borderRadius: "sm",
       display: "inline-flex",
       userSelect: "none",
     },

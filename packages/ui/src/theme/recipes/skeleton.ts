@@ -7,7 +7,7 @@ export const skeleton = defineRecipe({
   variants: {
     loading: {
       true: {
-        borderRadius: "l2",
+        borderRadius: "md",
         boxShadow: "none",
         backgroundClip: "padding-box",
         cursor: "default",
@@ -31,7 +31,7 @@ export const skeleton = defineRecipe({
         alignItems: "center",
         justifyContent: "center",
         flex: "0 0 auto",
-        borderRadius: "9999px",
+        borderRadius: "full",
       },
     },
 

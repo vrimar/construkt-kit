@@ -4,7 +4,7 @@ export const link = defineRecipe({
   className: "link",
   base: {
     alignItems: "center",
-    borderRadius: "l1",
+    borderRadius: "sm",
     cursor: "pointer",
     display: "inline-flex",
     focusVisibleRing: "outside",

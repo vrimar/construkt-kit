@@ -15,7 +15,7 @@ export const button = defineRecipe({
   base: {
     alignItems: "center",
     appearance: "none",
-    borderRadius: "l2",
+    borderRadius: "md",
     cursor: "pointer",
     display: "inline-flex",
     flexShrink: "0",

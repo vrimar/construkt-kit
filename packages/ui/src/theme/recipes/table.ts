@@ -71,7 +71,7 @@ export const table = defineSlotRecipe({
         row: { bg: "gray.surface.bg" },
       },
       outline: {
-        root: { borderWidth: "1px", borderColor: "border", borderRadius: "l2", overflow: "hidden" },
+        root: { borderWidth: "1px", borderColor: "border", borderRadius: "md", overflow: "hidden" },
         header: { bg: "gray.surface.bg.hover" },
       },
       plain: {},
