@@ -1,23 +1,13 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import type { AuthProvider } from "../types";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { fn } from "storybook/test";
 import { LoginPage } from "./index";
-
-const mockAuthProvider: AuthProvider = {
-  getToken: fn().mockResolvedValue("mock-token"),
-  login: fn().mockResolvedValue(undefined),
-  logout: fn().mockResolvedValue(undefined),
-  isAuthenticated: fn().mockResolvedValue(false),
-  getUser: fn().mockResolvedValue(null),
-};
 
 const meta: Meta<typeof LoginPage> = {
   title: "Pages/LoginPage",
   component: LoginPage,
   tags: ["autodocs"],
   args: {
-    authProvider: mockAuthProvider,
-    onSuccess: fn(),
+    onSubmit: fn(),
     onForgotPassword: fn(),
   },
 };

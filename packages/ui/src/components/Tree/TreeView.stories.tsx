@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
-import { Box } from "styled-system/jsx";
+import { Box } from "../Layout";
 import { createTreeCollection } from "./index";
 import { TreeView } from "./TreeView";
 
@@ -66,107 +66,113 @@ const meta: Meta = {
 export default meta;
 
 function TreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return node.children ? (
-    <TreeView.Branch
-      value={node.id}
+  return (
+    <TreeView.NodeProvider
+      key={node.id}
+      node={node}
       indexPath={indexPath}
     >
-      <TreeView.BranchControl>
-        <TreeView.BranchIndicator />
-        <TreeView.BranchText>{node.name}</TreeView.BranchText>
-      </TreeView.BranchControl>
-      <TreeView.BranchContent>
-        {node.children.map((child, index) => (
-          <TreeNode
-            key={child.id}
-            node={child}
-            indexPath={[...indexPath, index]}
-          />
-        ))}
-      </TreeView.BranchContent>
-    </TreeView.Branch>
-  ) : (
-    <TreeView.Item
-      value={node.id}
-      indexPath={indexPath}
-    >
-      <TreeView.ItemText>{node.name}</TreeView.ItemText>
-    </TreeView.Item>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchIndicator />
+            <TreeView.BranchText>{node.name}</TreeView.BranchText>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            {node.children.map((child, index) => (
+              <TreeNode
+                key={child.id}
+                node={child}
+                indexPath={[...indexPath, index]}
+              />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemText>{node.name}</TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
   );
 }
 
 function CustomTreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return node.children ? (
-    <TreeView.Branch
-      value={node.id}
+  return (
+    <TreeView.NodeProvider
+      key={node.id}
+      node={node}
       indexPath={indexPath}
     >
-      <TreeView.BranchControl>
-        <TreeView.BranchIndicator />
-        <FolderIcon />
-        <TreeView.BranchText>{node.name}</TreeView.BranchText>
-      </TreeView.BranchControl>
-      <TreeView.BranchContent>
-        {node.children.map((child, index) => (
-          <CustomTreeNode
-            key={child.id}
-            node={child}
-            indexPath={[...indexPath, index]}
-          />
-        ))}
-      </TreeView.BranchContent>
-    </TreeView.Branch>
-  ) : (
-    <TreeView.Item
-      value={node.id}
-      indexPath={indexPath}
-    >
-      <FileIcon />
-      <TreeView.ItemText>{node.name}</TreeView.ItemText>
-    </TreeView.Item>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchIndicator />
+            <FolderIcon />
+            <TreeView.BranchText>{node.name}</TreeView.BranchText>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            {node.children.map((child, index) => (
+              <CustomTreeNode
+                key={child.id}
+                node={child}
+                indexPath={[...indexPath, index]}
+              />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <FileIcon />
+          <TreeView.ItemText>{node.name}</TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
   );
 }
 
 function CheckboxTreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return node.children ? (
-    <TreeView.Branch
-      value={node.id}
+  return (
+    <TreeView.NodeProvider
+      key={node.id}
+      node={node}
       indexPath={indexPath}
     >
-      <TreeView.BranchControl>
-        <TreeView.NodeCheckbox>
-          <TreeView.NodeCheckboxIndicator>
-            <CheckIcon />
-          </TreeView.NodeCheckboxIndicator>
-          <TreeView.NodeCheckboxIndicator indeterminate>
-            <MinusIcon />
-          </TreeView.NodeCheckboxIndicator>
-        </TreeView.NodeCheckbox>
-        <TreeView.BranchIndicator />
-        <TreeView.BranchText>{node.name}</TreeView.BranchText>
-      </TreeView.BranchControl>
-      <TreeView.BranchContent>
-        {node.children.map((child, index) => (
-          <CheckboxTreeNode
-            key={child.id}
-            node={child}
-            indexPath={[...indexPath, index]}
-          />
-        ))}
-      </TreeView.BranchContent>
-    </TreeView.Branch>
-  ) : (
-    <TreeView.Item
-      value={node.id}
-      indexPath={indexPath}
-    >
-      <TreeView.NodeCheckbox>
-        <TreeView.NodeCheckboxIndicator>
-          <CheckIcon />
-        </TreeView.NodeCheckboxIndicator>
-      </TreeView.NodeCheckbox>
-      <TreeView.ItemText>{node.name}</TreeView.ItemText>
-    </TreeView.Item>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.NodeCheckbox>
+              <TreeView.NodeCheckboxIndicator>
+                <CheckIcon />
+              </TreeView.NodeCheckboxIndicator>
+              <TreeView.NodeCheckboxIndicator indeterminate>
+                <MinusIcon />
+              </TreeView.NodeCheckboxIndicator>
+            </TreeView.NodeCheckbox>
+            <TreeView.BranchIndicator />
+            <TreeView.BranchText>{node.name}</TreeView.BranchText>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            {node.children.map((child, index) => (
+              <CheckboxTreeNode
+                key={child.id}
+                node={child}
+                indexPath={[...indexPath, index]}
+              />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.NodeCheckbox>
+            <TreeView.NodeCheckboxIndicator>
+              <CheckIcon />
+            </TreeView.NodeCheckboxIndicator>
+          </TreeView.NodeCheckbox>
+          <TreeView.ItemText>{node.name}</TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
   );
 }
 

@@ -1,28 +1,97 @@
+// This file has been automatically migrated to valid ESM format by Storybook.
 import type { StorybookConfig } from "@storybook/react-vite";
+import { createRequire } from "node:module";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
 const config: StorybookConfig = {
   stories: [
     "../../../packages/ui/src/**/*.stories.@(ts|tsx)",
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
   ],
-  addons: ["@storybook/addon-a11y", "msw-storybook-addon"],
+
+  addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("msw-storybook-addon")],
+
   framework: {
-    name: "@storybook/react-vite",
+    name: getAbsolutePath("@storybook/react-vite"),
     options: {},
   },
-  docs: {
-    autodocs: "tag",
-  },
+
   refs: {},
+
+  features: {
+    sidebarOnboardingChecklist: false,
+  },
+
   viteFinal(config: Parameters<NonNullable<StorybookConfig["viteFinal"]>>[0]) {
+    const uiDir = path.resolve(__dirname, "../../../packages/ui");
+
+    // Force a single React instance by resolving from this package's dependencies
+    const reactDir = path.dirname(require.resolve("react/package.json"));
+    const reactDomDir = path.dirname(require.resolve("react-dom/package.json"));
+
+    // @ark-ui/react lives in packages/ui/node_modules but is symlinked to FlexTabs.Spa's
+    // pnpm store instead of frontend-shared's. Tell Vite to resolve it from the correct location.
+    const arkUiDir = path.dirname(
+      require.resolve("@ark-ui/react/package.json", { paths: [uiDir] }),
+    );
+
     return {
       ...config,
+      plugins: [
+        ...(config.plugins ?? []),
+        {
+          name: "resolve-ark-ui",
+          enforce: "pre" as const,
+          resolveId(source) {
+            // Redirect @ark-ui/react imports to the correct pnpm store location
+            if (source === "@ark-ui/react" || source.startsWith("@ark-ui/react/")) {
+              try {
+                // require.resolve gives us .cjs paths; swap to .js for ESM
+                const resolved = require.resolve(source, {
+                  paths: [arkUiDir.replace(/[/\\]@ark-ui[/\\]react$/, "")],
+                });
+                return resolved.replace(/\.cjs$/, ".js");
+              } catch {
+                return null;
+              }
+            }
+            return null;
+          },
+        },
+      ],
+      resolve: {
+        ...config.resolve,
+        alias: [
+          ...(Array.isArray(config.resolve?.alias) ? config.resolve.alias : []),
+          { find: "styled-system", replacement: path.resolve(uiDir, "styled-system") },
+          { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },
+          { find: "react/jsx-dev-runtime", replacement: path.join(reactDir, "jsx-dev-runtime") },
+          { find: /^react-dom($|\/)/, replacement: reactDomDir + "/" },
+          { find: /^react$/, replacement: path.join(reactDir, "index.js") },
+        ],
+        dedupe: ["react", "react-dom"],
+      },
       optimizeDeps: {
         ...config.optimizeDeps,
-        include: [...(config.optimizeDeps?.include ?? []), "@tanstack/react-query"],
+        include: [
+          ...(config.optimizeDeps?.include ?? []),
+          "@tanstack/react-query",
+          "react",
+          "react-dom",
+          "react/jsx-runtime",
+          "react/jsx-dev-runtime",
+        ],
       },
     };
   },
 };
 
 export default config;
+
+function getAbsolutePath(value: string): any {
+  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}
