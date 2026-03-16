@@ -48,7 +48,7 @@ export const progress = defineSlotRecipe({
     variant: {
       solid: {
         track: {
-          bgColor: "gray.subtle.bg",
+          bgColor: "neutral.subtle.bg",
         },
         range: {
           bgColor: "colorPalette.solid.bg",

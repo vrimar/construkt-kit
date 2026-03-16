@@ -124,8 +124,8 @@ export const tagsInput = defineSlotRecipe({
       },
       subtle: {
         control: {
-          bg: "gray.subtle.bg",
-          color: "gray.subtle.fg",
+          bg: "neutral.subtle.bg",
+          color: "neutral.subtle.fg",
           borderWidth: "1px",
           borderColor: "transparent",
           _focus: {
@@ -140,19 +140,19 @@ export const tagsInput = defineSlotRecipe({
           },
         },
         itemPreview: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           borderWidth: "1px",
           _highlighted: {
-            bg: "gray.surface.bg.hover",
-            borderColor: "gray.surface.border.hover",
+            bg: "neutral.surface.bg.hover",
+            borderColor: "neutral.surface.border.hover",
           },
         },
       },
       surface: {
         control: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           borderWidth: "1px",
-          borderColor: "gray.surface.border",
+          borderColor: "neutral.surface.border",
           _focus: {
             outlineWidth: "1px",
             outlineStyle: "solid",

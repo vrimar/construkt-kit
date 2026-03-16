@@ -16,10 +16,10 @@ const trigger = {
     boxSize: "1em",
   },
   _hover: {
-    bg: "gray.surface.bg.hover",
+    bg: "neutral.surface.bg.hover",
   },
   _active: {
-    bg: "gray.surface.bg.active",
+    bg: "neutral.surface.bg.active",
   },
 };
 
@@ -58,11 +58,11 @@ export const numberInput = defineSlotRecipe({
     },
     incrementTrigger: {
       ...trigger,
-      borderTopRightRadius: "l2",
+      borderTopRightRadius: "md",
     },
     decrementTrigger: {
       ...trigger,
-      borderBottomRightRadius: "l2",
+      borderBottomRightRadius: "md",
     },
   },
   defaultVariants: {

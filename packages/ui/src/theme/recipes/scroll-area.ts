@@ -86,7 +86,7 @@ export const scrollArea = defineSlotRecipe({
       auto: {
         scrollbar: {
           "&[data-scrolling], &[data-hover]": {
-            "--thumb-bg": "{colors.gray.subtle.bg.active}",
+            "--thumb-bg": "{colors.neutral.subtle.bg.active}",
           },
         },
       },
@@ -100,11 +100,11 @@ export const scrollArea = defineSlotRecipe({
           },
         },
         scrollbar: {
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
           borderRadius: "full",
         },
         thumb: {
-          "--thumb-bg": "{colors.gray.subtle.bg.active}",
+          "--thumb-bg": "{colors.neutral.subtle.bg.active}",
         },
       },
     },

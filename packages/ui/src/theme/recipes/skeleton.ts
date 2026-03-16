@@ -37,15 +37,15 @@ export const skeleton = defineRecipe({
 
     animation: {
       pulse: {
-        background: "gray.subtle.bg.active",
+        background: "neutral.subtle.bg.active",
         animation: "pulse",
         animationDuration: "var(--duration, 1.2s)",
       },
       shine: {
         "--animate-from": "200%",
         "--animate-to": "-200%",
-        "--start-color": "colors.gray.subtle.bg",
-        "--end-color": "colors.gray.subtle.bg.active",
+        "--start-color": "colors.neutral.subtle.bg",
+        "--end-color": "colors.neutral.subtle.bg.active",
         backgroundImage:
           "linear-gradient(270deg,var(--start-color),var(--end-color),var(--end-color),var(--start-color))",
         backgroundSize: "400% 100%",

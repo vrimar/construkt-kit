@@ -18,7 +18,7 @@ Not every recipe supports all variants — only the ones that make visual sense 
 **Special cases:**
 
 - **Input / Textarea** also have `flushed` (bottom border only) and `colored` (colorPalette-aware outline).
-  Default variants use `gray.*` tokens intentionally (neutral form controls).
+  Default variants use `neutral.*` tokens (swappable neutral palette, defaults to gray).
 - **Skeleton** uses `animation` (not `variant`) with values `pulse`, `shine`, `none`.
 
 ## Size Tiers
@@ -41,4 +41,18 @@ Not every recipe supports all variants — only the ones that make visual sense 
 ## colorPalette
 
 All variant tokens reference `colorPalette.*` so consumers control color via the `colorPalette` prop.
-Form controls (Input, Textarea) default to `gray.*` tokens; use the `colored` variant for colorPalette-aware styling.
+Form controls (Input, Textarea) default to `neutral.*` tokens; use the `colored` variant for colorPalette-aware styling.
+
+## neutral tokens
+
+Recipes use `neutral.*` (not `gray.*`) for default chrome — control surfaces, borders, backgrounds.
+`neutral` is defined in `semantic-tokens/colors.ts` as an alias for a color palette (gray by default).
+To change the neutral hue globally, update the single `neutral: colorPalette("gray")` line to another palette.
+
+| I'm styling…           | Use              |
+| ---------------------- | ---------------- |
+| Page background/layout | `bg.*`           |
+| Body text, headings    | `fg.*`           |
+| Section dividers       | `border.*`       |
+| Component defaults     | `neutral.*`      |
+| Active/branded state   | `colorPalette.*` |

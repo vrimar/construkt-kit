@@ -126,12 +126,44 @@ export const tabs = defineSlotRecipe({
           borderRadius: "md",
         },
       },
+      outline: {
+        list: {
+          _horizontal: {
+            borderBottomWidth: "1px",
+          },
+          _vertical: {
+            borderStartWidth: "1px",
+          },
+        },
+        trigger: {
+          color: "fg.muted",
+          borderWidth: "1px",
+          borderColor: "transparent",
+          borderRadius: "md",
+          borderBottomRadius: "0",
+          _horizontal: {
+            marginBottom: "-1px",
+          },
+          _vertical: {
+            marginStart: "-1px",
+            borderBottomRadius: "md",
+            borderEndRadius: "0",
+          },
+          _selected: {
+            color: "colorPalette.outline.fg",
+            borderColor: "border",
+            _horizontal: {
+              borderBottomColor: "bg",
+            },
+            _vertical: {
+              borderStartColor: "bg",
+            },
+          },
+        },
+      },
       enclosed: {
         list: {
-          bg: {
-            _light: "gray.2",
-            _dark: "gray.1",
-          },
+          bg: "neutral.subtle.bg",
           boxShadow: "inset 0 0 0px 1px var(--shadow-color)",
           boxShadowColor: "border",
           borderRadius: "lg",
@@ -149,9 +181,14 @@ export const tabs = defineSlotRecipe({
             _light: "xs",
             _dark: "none",
           },
-          bg: {
-            _light: "white",
-            _dark: "gray.2",
+          bg: "bg.control",
+        },
+      },
+      plain: {
+        trigger: {
+          color: "fg.muted",
+          _selected: {
+            color: "colorPalette.plain.fg",
           },
         },
       },

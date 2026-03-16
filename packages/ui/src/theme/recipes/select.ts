@@ -12,7 +12,7 @@ export const select = defineSlotRecipe({
       width: "full",
     },
     content: {
-      background: "gray.surface.bg",
+      background: "neutral.surface.bg",
       borderRadius: "md",
       boxShadow: "md",
       display: "flex",
@@ -39,10 +39,10 @@ export const select = defineSlotRecipe({
       justifyContent: "space-between",
       userSelect: "none",
       _hover: {
-        background: "gray.surface.bg.hover",
+        background: "neutral.surface.bg.hover",
       },
       _highlighted: {
-        background: "gray.surface.bg.hover",
+        background: "neutral.surface.bg.hover",
       },
       _selected: {},
       _disabled: {
@@ -73,7 +73,7 @@ export const select = defineSlotRecipe({
         content: '""',
         width: "100%",
         height: "1px",
-        bg: "gray.4",
+        bg: "border.muted",
       },
     },
     itemIndicator: {
@@ -118,16 +118,16 @@ export const select = defineSlotRecipe({
       outline: {
         trigger: {
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
 
           focusVisibleRing: "inside",
         },
       },
       surface: {
         trigger: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           borderWidth: "1px",
-          borderColor: "gray.surface.border",
+          borderColor: "neutral.surface.border",
 
           focusVisibleRing: "inside",
         },

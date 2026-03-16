@@ -85,7 +85,7 @@ export const DataTableBody = <TData,>({
               width="100%"
               onClick={(e) => onRowClick(e, row)}
               borderBottomWidth="1px"
-              borderBottomColor="gray.300"
+              borderBottomColor="border"
               cursor="pointer"
               _last={{
                 borderBottom: "none",

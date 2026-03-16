@@ -26,52 +26,52 @@ export const input = {
     variant: {
       outline: {
         borderWidth: "1px",
-        borderColor: "gray.outline.border",
+        borderColor: "neutral.outline.border",
         focusVisibleRing: "inside",
         _invalid: {
-          focusRingColor: "error",
-          borderColor: "error",
+          focusRingColor: "border.error",
+          borderColor: "border.error",
         },
       },
       surface: {
-        bg: "gray.surface.bg",
+        bg: "neutral.surface.bg",
         borderWidth: "1px",
-        borderColor: "gray.surface.border",
+        borderColor: "neutral.surface.border",
         focusVisibleRing: "inside",
 
         _invalid: {
-          focusRingColor: "error",
-          borderColor: "error",
+          focusRingColor: "border.error",
+          borderColor: "border.error",
         },
       },
       subtle: {
         borderWidth: "1px",
         borderColor: "transparent",
-        bg: "gray.subtle.bg",
-        color: "gray.subtle.fg",
+        bg: "neutral.subtle.bg",
+        color: "neutral.subtle.fg",
         focusVisibleRing: "inside",
 
         _invalid: {
-          focusRingColor: "error",
-          borderColor: "error",
+          focusRingColor: "border.error",
+          borderColor: "border.error",
         },
       },
       flushed: {
         borderBottomWidth: "1px",
-        borderBottomColor: "gray.outline.border",
+        borderBottomColor: "neutral.outline.border",
         borderRadius: "0",
         color: "fg",
         px: "0",
         _invalid: {
-          borderColor: "error",
+          borderColor: "border.error",
         },
         _focus: {
           borderColor: "colorPalette.solid.bg",
           boxShadowColor: "colorPalette.solid.bg",
           boxShadow: "0 1px 0 0 var(--shadow-color)",
           _invalid: {
-            borderColor: "error",
-            boxShadowColor: "error",
+            borderColor: "border.error",
+            boxShadowColor: "border.error",
           },
         },
       },
@@ -81,8 +81,8 @@ export const input = {
         focusVisibleRing: "inside",
         focusRingColor: "colorPalette.solid.bg",
         _invalid: {
-          focusRingColor: "error",
-          borderColor: "error",
+          focusRingColor: "border.error",
+          borderColor: "border.error",
         },
       },
     },

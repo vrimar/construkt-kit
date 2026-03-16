@@ -11,7 +11,7 @@ export const datePicker = defineSlotRecipe({
       gap: "1.5",
     },
     content: {
-      background: "gray.surface.bg",
+      background: "neutral.surface.bg",
       borderRadius: "lg",
       boxShadow: "lg",
       display: "flex",
@@ -65,13 +65,13 @@ export const datePicker = defineSlotRecipe({
       _today: {
         _before: {
           content: "'−'",
-          color: "colorPalette.solid",
+          color: "colorPalette.solid.fg",
           position: "absolute",
           marginTop: "6",
         },
       },
       "&[data-in-range]": {
-        background: "gray.subtle.bg",
+        background: "neutral.subtle.bg",
       },
       _selected: {
         _before: {

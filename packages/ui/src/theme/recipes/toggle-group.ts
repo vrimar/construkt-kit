@@ -23,7 +23,7 @@ export const toggleGroup = defineSlotRecipe({
       solid: {
         root: {
           borderRadius: "lg",
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
           gap: "1",
           p: "1",
         },

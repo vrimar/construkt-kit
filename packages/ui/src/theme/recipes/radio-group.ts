@@ -49,7 +49,7 @@ export const radioGroup = defineSlotRecipe({
       solid: {
         itemControl: {
           boxShadow: "inset 0 0 0 1px var(--shadow-color)",
-          boxShadowColor: "gray.surface.border",
+          boxShadowColor: "neutral.surface.border",
           _checked: {
             bg: "colorPalette.solid.bg",
             color: "colorPalette.solid.fg",

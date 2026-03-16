@@ -67,23 +67,23 @@ export const table = defineSlotRecipe({
   variants: {
     variant: {
       surface: {
-        header: { bg: "gray.surface.bg.hover" },
-        row: { bg: "gray.surface.bg" },
+        header: { bg: "neutral.surface.bg.hover" },
+        row: { bg: "neutral.surface.bg" },
       },
       outline: {
         root: { borderWidth: "1px", borderColor: "border", borderRadius: "md", overflow: "hidden" },
-        header: { bg: "gray.surface.bg.hover" },
+        header: { bg: "neutral.surface.bg.hover" },
       },
       plain: {},
     },
     striped: {
       true: {
-        row: { "&:nth-of-type(odd) td": { bg: "gray.surface.bg.hover" } },
+        row: { "&:nth-of-type(odd) td": { bg: "neutral.surface.bg.hover" } },
       },
     },
     interactive: {
       true: {
-        body: { "& tr": { _hover: { bg: "gray.surface.bg.hover" } } },
+        body: { "& tr": { _hover: { bg: "neutral.surface.bg.hover" } } },
       },
     },
     columnBorder: {

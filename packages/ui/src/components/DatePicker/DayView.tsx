@@ -38,7 +38,7 @@ export const DatePickerDayView = (props: DayViewProps) => {
                     variant="plain"
                     css={{
                       '[aria-selected="true"] &': {
-                        bg: "blue.50",
+                        bg: "brand.50",
                       },
                     }}
                   >

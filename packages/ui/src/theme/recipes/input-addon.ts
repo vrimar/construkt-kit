@@ -20,15 +20,15 @@ export const inputAddon = defineRecipe({
     variant: {
       outline: {
         borderWidth: "1px",
-        borderColor: "gray.outline.border",
+        borderColor: "neutral.outline.border",
       },
       surface: {
-        bg: "gray.surface.bg",
+        bg: "neutral.surface.bg",
         borderWidth: "1px",
-        borderColor: "gray.surface.border",
+        borderColor: "neutral.surface.border",
       },
       subtle: {
-        bg: "gray.subtle.bg",
+        bg: "neutral.subtle.bg",
       },
     },
     size: {

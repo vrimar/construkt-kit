@@ -6,10 +6,7 @@ export const segmentGroup = defineSlotRecipe({
   slots: segmentGroupAnatomy.keys(),
   base: {
     root: {
-      bg: {
-        _light: "gray.2",
-        _dark: "gray.1",
-      },
+      bg: "neutral.subtle.bg",
       borderRadius: "lg",
       boxShadow: "inset 0 0 0px 1px var(--shadow-color)",
       boxShadowColor: "border",
@@ -43,7 +40,7 @@ export const segmentGroup = defineSlotRecipe({
       _before: {
         content: '""',
         position: "absolute",
-        bg: "gray.surface.border",
+        bg: "neutral.surface.border",
         transition: "opacity 0.2s",
       },
 
@@ -71,12 +68,9 @@ export const segmentGroup = defineSlotRecipe({
     },
 
     indicator: {
-      bg: {
-        _light: "white",
-        _dark: "gray.2",
-      },
+      bg: "bg.control",
       borderWidth: "1px",
-      borderColor: "gray.surface.border",
+      borderColor: "neutral.surface.border",
       borderRadius: "lg",
       height: "var(--height)",
       pos: "absolute",

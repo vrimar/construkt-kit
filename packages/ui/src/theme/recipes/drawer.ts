@@ -43,7 +43,7 @@ export const drawer = defineSlotRecipe({
       zIndex: "modal",
       maxH: "100dvh",
       color: "inherit",
-      bg: "gray.surface.bg",
+      bg: "neutral.surface.bg",
       boxShadow: "lg",
       _open: {
         animationDuration: "slowest",

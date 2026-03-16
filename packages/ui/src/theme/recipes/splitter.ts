@@ -12,7 +12,7 @@ export const splitter = defineSlotRecipe({
     panel: {
       borderRadius: "lg",
       display: "flex",
-      background: "gray.surface.bg",
+      background: "neutral.surface.bg",
       borderWidth: "1px",
       p: "4",
     },
@@ -20,7 +20,7 @@ export const splitter = defineSlotRecipe({
       borderRadius: "lg",
       transition: "common",
       outline: "0",
-      background: "gray.subtle.bg",
+      background: "neutral.subtle.bg",
       _horizontal: {
         minWidth: "1.5",
       },

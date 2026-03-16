@@ -8,7 +8,7 @@ export const menu = defineSlotRecipe({
     content: {
       "--menu-z-index": "zIndex.dropdown",
 
-      bg: "gray.surface.bg",
+      bg: "neutral.surface.bg",
       borderRadius: "lg",
       boxShadow: "md",
       display: "flex",
@@ -40,7 +40,7 @@ export const menu = defineSlotRecipe({
       userSelect: "none",
       width: "100%",
       _highlighted: {
-        bg: "gray.surface.bg.hover",
+        bg: "neutral.surface.bg.hover",
       },
       _disabled: {
         layerStyle: "disabled",

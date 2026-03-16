@@ -48,19 +48,19 @@ export const card = defineSlotRecipe({
     variant: {
       elevated: {
         root: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           boxShadow: "lg",
         },
       },
       outline: {
         root: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           borderWidth: "1px",
         },
       },
       subtle: {
         root: {
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
         },
       },
     },

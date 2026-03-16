@@ -60,7 +60,7 @@ export const slider = defineSlotRecipe({
       borderRadius: "full",
       _focusVisible: {
         ring: "2px",
-        ringColor: "colorPalette.solid",
+        ringColor: "colorPalette.solid.bg",
         ringOffset: "2px",
         ringOffsetColor: "bg",
       },
@@ -104,7 +104,7 @@ export const slider = defineSlotRecipe({
     variant: {
       outline: {
         thumb: {
-          bg: "gray.surface.bg",
+          bg: "neutral.surface.bg",
           borderWidth: "2px",
           borderColor: "colorPalette.solid.bg",
           boxShadow: "xs",
@@ -125,7 +125,7 @@ export const slider = defineSlotRecipe({
           bg: "colorPalette.solid.bg",
         },
         track: {
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
         },
       },
       subtle: {
@@ -137,7 +137,7 @@ export const slider = defineSlotRecipe({
           bg: "colorPalette.subtle.bg",
         },
         track: {
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
         },
       },
     },

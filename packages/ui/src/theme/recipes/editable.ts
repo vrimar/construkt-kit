@@ -23,7 +23,7 @@ export const editable = defineSlotRecipe({
         userSelect: "none",
       },
       _hover: {
-        bg: "gray.plain.bg.hover",
+        bg: "neutral.plain.bg.hover",
       },
     },
     input: {

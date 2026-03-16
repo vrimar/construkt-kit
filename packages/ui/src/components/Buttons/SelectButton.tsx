@@ -29,7 +29,8 @@ export const SelectButton = ({
   return (
     <Button
       ref={ref}
-      variant="outline"
+      variant="surface"
+      colorPalette="gray"
       justifyContent="space-between"
       {...props}
     >

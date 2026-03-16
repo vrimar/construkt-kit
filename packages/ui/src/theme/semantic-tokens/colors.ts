@@ -6,52 +6,55 @@ function tv(light: string, dark: string): TokenValue {
   return { value: { _light: light, _dark: dark } };
 }
 
-/** Compound semantic tokens for a chromatic color (blue, red, green, brand, etc.) */
-function chromaticPalette(color: string) {
+/**
+ * Compound semantic tokens for a color palette.
+ */
+function colorPalette(color: string) {
   const c = (shade: number) => `{colors.${color}.${shade}}`;
+
   return {
     solid: {
       bg: {
         DEFAULT: tv(c(600), c(400)),
         hover: tv(c(700), c(300)),
       },
-      fg: tv("white", "{colors.gray.950}"),
+      fg: tv("white", "{colors.slate.950}"),
     },
-    contrast: tv("white", "{colors.gray.950}"),
+    contrast: tv("white", "{colors.slate.950}"),
     surface: {
       bg: {
-        DEFAULT: tv(c(50), c(950)),
-        hover: tv(c(100), c(900)),
-        active: tv(c(200), c(800)),
+        DEFAULT: tv(c(50), c(800)),
+        hover: tv(c(100), c(700)),
+        active: tv(c(200), c(600)),
       },
       border: {
-        DEFAULT: tv(c(200), c(800)),
-        hover: tv(c(300), c(700)),
+        DEFAULT: tv(c(200), c(700)),
+        hover: tv(c(300), c(600)),
       },
       fg: tv(c(700), c(200)),
     },
     subtle: {
       bg: {
-        DEFAULT: tv(c(100), c(900)),
-        hover: tv(c(200), c(800)),
-        active: tv(c(300), c(700)),
+        DEFAULT: tv(c(100), c(800)),
+        hover: tv(c(200), c(700)),
+        active: tv(c(300), c(600)),
       },
       fg: tv(c(700), c(200)),
-      border: tv(c(200), c(800)),
+      border: tv(c(200), c(700)),
     },
     outline: {
-      border: tv(c(300), c(700)),
+      border: tv(c(300), c(600)),
       fg: tv(c(700), c(200)),
       bg: {
-        hover: tv(c(50), c(950)),
-        active: tv(c(100), c(900)),
+        hover: tv(c(50), c(900)),
+        active: tv(c(100), c(800)),
       },
     },
     plain: {
       fg: tv(c(700), c(200)),
       bg: {
-        hover: tv(c(50), c(950)),
-        active: tv(c(100), c(900)),
+        hover: tv(c(50), c(900)),
+        active: tv(c(100), c(800)),
       },
     },
     focusRing: tv(c(500), c(500)),
@@ -59,73 +62,23 @@ function chromaticPalette(color: string) {
   };
 }
 
-/** Compound semantic tokens for gray (neutral palette) */
-const grayPalette = {
-  solid: {
-    bg: {
-      DEFAULT: tv("{colors.gray.900}", "white"),
-      hover: tv("{colors.gray.800}", "{colors.gray.100}"),
-    },
-    fg: tv("white", "{colors.gray.950}"),
-  },
-  contrast: tv("white", "{colors.gray.950}"),
-  surface: {
-    bg: {
-      DEFAULT: tv("{colors.gray.50}", "{colors.gray.800}"),
-      hover: tv("{colors.gray.100}", "{colors.gray.700}"),
-      active: tv("{colors.gray.200}", "{colors.gray.600}"),
-    },
-    border: {
-      DEFAULT: tv("{colors.gray.200}", "{colors.gray.700}"),
-      hover: tv("{colors.gray.300}", "{colors.gray.600}"),
-    },
-    fg: tv("{colors.gray.800}", "{colors.gray.200}"),
-  },
-  subtle: {
-    bg: {
-      DEFAULT: tv("{colors.gray.100}", "{colors.gray.800}"),
-      hover: tv("{colors.gray.200}", "{colors.gray.700}"),
-      active: tv("{colors.gray.300}", "{colors.gray.600}"),
-    },
-    fg: tv("{colors.gray.800}", "{colors.gray.200}"),
-    border: tv("{colors.gray.200}", "{colors.gray.700}"),
-  },
-  outline: {
-    border: tv("{colors.gray.300}", "{colors.gray.600}"),
-    fg: tv("{colors.gray.800}", "{colors.gray.200}"),
-    bg: {
-      hover: tv("{colors.gray.50}", "{colors.gray.900}"),
-      active: tv("{colors.gray.100}", "{colors.gray.800}"),
-    },
-  },
-  plain: {
-    fg: tv("{colors.gray.800}", "{colors.gray.200}"),
-    bg: {
-      hover: tv("{colors.gray.50}", "{colors.gray.900}"),
-      active: tv("{colors.gray.100}", "{colors.gray.800}"),
-    },
-  },
-  focusRing: tv("{colors.gray.400}", "{colors.gray.400}"),
-  fg: tv("{colors.gray.800}", "{colors.gray.200}"),
-};
-
 export const colors = defineSemanticTokens.colors({
   // Global background tokens
   bg: {
-    DEFAULT: tv("white", "{colors.gray.900}"),
-    subtle: tv("{colors.gray.50}", "{colors.gray.800}"),
-    muted: tv("{colors.gray.100}", "{colors.gray.700}"),
-    emphasized: tv("{colors.gray.200}", "{colors.gray.600}"),
-    inverted: tv("{colors.gray.900}", "{colors.gray.50}"),
-    control: tv("white", "{colors.gray.700}"),
-    hover: tv("{colors.gray.50}", "{colors.gray.600}"),
+    DEFAULT: tv("white", "{colors.slate.900}"),
+    subtle: tv("{colors.slate.50}", "{colors.slate.800}"),
+    muted: tv("{colors.slate.100}", "{colors.slate.700}"),
+    emphasized: tv("{colors.slate.200}", "{colors.slate.600}"),
+    inverted: tv("{colors.slate.900}", "{colors.slate.50}"),
+    control: tv("white", "{colors.slate.700}"),
+    hover: tv("{colors.slate.50}", "{colors.slate.600}"),
   },
   // Global foreground tokens
   fg: {
-    DEFAULT: tv("{colors.gray.900}", "{colors.gray.50}"),
-    muted: tv("{colors.gray.600}", "{colors.gray.400}"),
-    subtle: tv("{colors.gray.400}", "{colors.gray.500}"),
-    inverted: tv("{colors.gray.50}", "black"),
+    DEFAULT: tv("{colors.slate.900}", "{colors.slate.50}"),
+    muted: tv("{colors.slate.600}", "{colors.slate.400}"),
+    subtle: tv("{colors.slate.400}", "{colors.slate.500}"),
+    inverted: tv("{colors.slate.50}", "black"),
     error: tv("{colors.red.500}", "{colors.red.400}"),
     warning: tv("{colors.orange.600}", "{colors.orange.300}"),
     success: tv("{colors.green.600}", "{colors.green.300}"),
@@ -133,26 +86,26 @@ export const colors = defineSemanticTokens.colors({
   },
   // Global border tokens
   border: {
-    DEFAULT: tv("{colors.gray.300}", "{colors.gray.700}"),
-    muted: tv("{colors.gray.100}", "{colors.gray.800}"),
-    subtle: tv("{colors.gray.50}", "{colors.gray.900}"),
-    emphasized: tv("{colors.gray.500}", "{colors.gray.600}"),
-    inverted: tv("{colors.gray.800}", "{colors.gray.200}"),
+    DEFAULT: tv("{colors.slate.300}", "{colors.slate.700}"),
+    muted: tv("{colors.slate.100}", "{colors.slate.800}"),
+    subtle: tv("{colors.slate.50}", "{colors.slate.900}"),
+    emphasized: tv("{colors.slate.500}", "{colors.slate.600}"),
+    inverted: tv("{colors.slate.800}", "{colors.slate.200}"),
     error: tv("{colors.red.500}", "{colors.red.400}"),
     warning: tv("{colors.orange.500}", "{colors.orange.400}"),
     success: tv("{colors.green.500}", "{colors.green.400}"),
     info: tv("{colors.blue.500}", "{colors.blue.400}"),
   },
-  // Compound color palette tokens per color
-  gray: grayPalette,
-  brand: chromaticPalette("brand"),
-  blue: chromaticPalette("blue"),
-  red: chromaticPalette("red"),
-  green: chromaticPalette("green"),
-  orange: chromaticPalette("orange"),
-  yellow: chromaticPalette("yellow"),
-  purple: chromaticPalette("purple"),
-  teal: chromaticPalette("teal"),
-  cyan: chromaticPalette("cyan"),
-  pink: chromaticPalette("pink"),
+  // Status color aliases (general-purpose, usable on any CSS color property)
+  error: tv("{colors.red.500}", "{colors.red.400}"),
+  warning: tv("{colors.orange.500}", "{colors.orange.400}"),
+  success: tv("{colors.green.500}", "{colors.green.400}"),
+  info: tv("{colors.blue.500}", "{colors.blue.400}"),
+  /**
+   * Neutral palette — the default "chrome" color for controls, surfaces, and
+   * containers.  Recipes reference `neutral.*` so the neutral hue can be
+   * swapped in a single place (e.g. change `"gray"` to `"slate"`).
+   */
+  neutral: colorPalette("slate"),
+  brand: colorPalette("brand"),
 });

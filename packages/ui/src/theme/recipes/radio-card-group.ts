@@ -51,8 +51,8 @@ export const radioCardGroup = defineSlotRecipe({
     variant: {
       subtle: {
         item: {
-          background: "gray.subtle.bg",
-          color: "gray.subtle.fg",
+          background: "neutral.subtle.bg",
+          color: "neutral.subtle.fg",
           _checked: {
             background: "colorPalette.subtle.bg",
             color: "colorPalette.subtle.fg",
@@ -60,7 +60,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "gray.subtle.border",
+          borderColor: "neutral.subtle.border",
           _checked: {
             borderColor: "colorPalette.solid.bg",
             _after: {
@@ -72,7 +72,7 @@ export const radioCardGroup = defineSlotRecipe({
       outline: {
         item: {
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
           _checked: {
             boxShadow: "0 0 0 1px var(--shadow-color)",
             boxShadowColor: "colorPalette.solid.bg",
@@ -81,7 +81,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
           _checked: {
             bg: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
@@ -94,9 +94,9 @@ export const radioCardGroup = defineSlotRecipe({
       surface: {
         item: {
           borderWidth: "1px",
-          background: "gray.surface.bg",
-          borderColor: "gray.surface.border",
-          color: "gray.surface.fg",
+          background: "neutral.surface.bg",
+          borderColor: "neutral.surface.border",
+          color: "neutral.surface.fg",
           _checked: {
             boxShadow: "0 0 0 1px var(--shadow-color)",
             boxShadowColor: "colorPalette.solid.bg",
@@ -105,7 +105,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
           _checked: {
             background: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
@@ -126,7 +126,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
           _checked: {
             background: "colorPalette.solid.fg",
             borderColor: "colorPalette.solid.fg",

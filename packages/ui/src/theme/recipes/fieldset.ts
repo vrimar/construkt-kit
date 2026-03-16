@@ -37,7 +37,7 @@ export const fieldset = defineSlotRecipe({
     errorText: {
       display: "inline-flex",
       alignItems: "center",
-      color: "error",
+      color: "fg.error",
       gap: "2",
       fontWeight: "medium",
       textStyle: "sm",

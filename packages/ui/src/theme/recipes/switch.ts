@@ -55,7 +55,7 @@ export const switchRecipe = defineSlotRecipe({
       },
       _invalid: {
         outline: "2px solid",
-        outlineColor: "error",
+        outlineColor: "border.error",
         outlineOffset: "2px",
       },
     },
@@ -81,7 +81,7 @@ export const switchRecipe = defineSlotRecipe({
       solid: {
         control: {
           borderRadius: "full",
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
           focusVisibleRing: "outside",
           _checked: {
             bg: "colorPalette.solid.bg",
@@ -102,14 +102,14 @@ export const switchRecipe = defineSlotRecipe({
         control: {
           borderRadius: "full",
           borderWidth: "1px",
-          borderColor: "gray.outline.border",
+          borderColor: "neutral.outline.border",
           focusVisibleRing: "outside",
           _checked: {
             borderColor: "colorPalette.outline.border",
           },
         },
         thumb: {
-          bg: "gray.subtle.fg",
+          bg: "neutral.subtle.fg",
           _checked: {
             bg: "colorPalette.outline.fg",
           },
@@ -122,14 +122,14 @@ export const switchRecipe = defineSlotRecipe({
       subtle: {
         control: {
           borderRadius: "full",
-          bg: "gray.subtle.bg",
+          bg: "neutral.subtle.bg",
           focusVisibleRing: "outside",
           _checked: {
             bg: "colorPalette.subtle.bg",
           },
         },
         thumb: {
-          bg: "gray.subtle.fg",
+          bg: "neutral.subtle.fg",
           _checked: {
             bg: "colorPalette.subtle.fg",
           },

@@ -28,7 +28,7 @@ export const Default: Story = {
 export const Variants: Story = {
   render: () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      {(["line", "outline", "enclosed", "plain"] as const).map((variant) => (
+      {(["line", "subtle", "outline", "enclosed", "plain"] as const).map((variant) => (
         <Tabs.Root
           key={variant}
           defaultValue="a"

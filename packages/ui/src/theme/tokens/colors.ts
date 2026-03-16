@@ -61,18 +61,20 @@ const gray = defineTokens.colors({
   800: { value: "#1f2937" },
   900: { value: "#111827" },
   950: { value: "#030712" },
-  a1: { value: "rgba(107, 114, 128, 0.05)" },
-  a2: { value: "rgba(107, 114, 128, 0.1)" },
-  a3: { value: "rgba(107, 114, 128, 0.15)" },
-  a4: { value: "rgba(107, 114, 128, 0.2)" },
-  a5: { value: "rgba(107, 114, 128, 0.3)" },
-  a6: { value: "rgba(107, 114, 128, 0.4)" },
-  a7: { value: "rgba(107, 114, 128, 0.5)" },
-  a8: { value: "rgba(107, 114, 128, 0.6)" },
-  a9: { value: "rgba(107, 114, 128, 0.7)" },
-  a10: { value: "rgba(107, 114, 128, 0.8)" },
-  a11: { value: "rgba(107, 114, 128, 0.9)" },
-  a12: { value: "rgba(107, 114, 128, 0.95)" },
+});
+
+const slate = defineTokens.colors({
+  50: { value: "#f8fafc" },
+  100: { value: "#f1f5f9" },
+  200: { value: "#e2e8f0" },
+  300: { value: "#cbd5e1" },
+  400: { value: "#94a3b8" },
+  500: { value: "#64748b" },
+  600: { value: "#475569" },
+  700: { value: "#334155" },
+  800: { value: "#1e293b" },
+  900: { value: "#0f172a" },
+  950: { value: "#020617" },
 });
 
 const blue = defineTokens.colors({
@@ -208,6 +210,7 @@ export const colors = {
   white,
   brand,
   gray,
+  slate,
   blue,
   red,
   green,
