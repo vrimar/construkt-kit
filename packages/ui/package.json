@@ -38,7 +38,7 @@
     "build": "panda codegen && tsdown",
     "dev": "panda codegen && tsdown --watch",
     "typecheck": "tsgo --noEmit",
-    "lint": "oxlint src",
+    "lint": "oxlint -c .oxlintrc.json src",
     "format": "oxfmt src -c ../config/oxfmt/index.jsonc",
     "test": "vitest run"
   },
@@ -60,6 +60,7 @@
   "devDependencies": {
     "@b3/config": "workspace:*",
     "@pandacss/dev": "^1.9.0",
+    "@pandacss/eslint-plugin": "^0.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "react": "^19.2.4",
