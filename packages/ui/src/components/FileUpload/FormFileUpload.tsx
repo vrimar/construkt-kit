@@ -60,6 +60,7 @@ export const FormFileUpload = ({
         <Input
           asChild
           aria-label={placeholder}
+          cursor="pointer"
         >
           <FileUpload.Trigger>
             <FileUpload.FileText
