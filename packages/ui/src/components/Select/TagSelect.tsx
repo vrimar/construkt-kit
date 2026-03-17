@@ -3,26 +3,25 @@ import { Box } from "styled-system/jsx";
 import { Text } from "../Text";
 
 import { TagsInput } from "../TagsInput";
-import { Select, type SelectProps } from "./Select";
-import type { SelectValue } from "./SelectList";
+import { Select, type SelectProps, type SelectValue } from "./Select";
 
-export interface TagSelectProps<T, V extends SelectValue> extends Omit<
-  SelectProps<T, V>,
+export interface TagSelectProps<T> extends Omit<
+  SelectProps<T>,
   "trigger" | "selected" | "onSelect"
 > {
-  selected: V[];
+  selected: SelectValue[];
   onSelect: (items: T) => unknown;
   renderTag?: (item: T) => React.ReactNode;
   placeholder?: string;
 }
 
-export const TagSelect = <T, V extends SelectValue>({
+export const TagSelect = <T,>({
   selected,
   onSelect,
   placeholder,
   renderTag,
   ...props
-}: TagSelectProps<T, V>) => {
+}: TagSelectProps<T>) => {
   const triggerRef = useRef<HTMLDivElement>(null);
   const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
 

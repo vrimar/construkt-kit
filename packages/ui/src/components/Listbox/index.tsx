@@ -1,0 +1,148 @@
+import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
+import { CheckIcon } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
+import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
+import { listbox, type ListboxVariantProps } from "styled-system/recipes";
+import type { WithRef } from "../../types";
+import { EmptyState } from "../EmptyState";
+import { SearchInput } from "../Input";
+
+export { createListCollection, useListCollection } from "@ark-ui/react/collection";
+export type { ListCollection } from "@ark-ui/react/collection";
+
+const { withProvider, withContext } = createStyleContext(listbox);
+
+type RootProps = HTMLStyledProps<"div"> & ListboxVariantProps;
+
+const Root = withProvider(ArkListbox.Root, "root") as ArkListbox.RootComponent<RootProps>;
+
+const RootProvider = withProvider(
+  ArkListbox.RootProvider,
+  "root",
+) as ArkListbox.RootProviderComponent<RootProps>;
+
+const Content = withContext(ArkListbox.Content, "content");
+const Empty = withContext(ArkListbox.Empty, "empty");
+const Input = withContext(ArkListbox.Input, "input");
+const Item = withContext(ArkListbox.Item, "item");
+const ItemGroup = withContext(ArkListbox.ItemGroup, "itemGroup");
+const ItemGroupLabel = withContext(ArkListbox.ItemGroupLabel, "itemGroupLabel");
+const ItemText = withContext(ArkListbox.ItemText, "itemText");
+const Label = withContext(ArkListbox.Label, "label");
+const ValueText = withContext(ArkListbox.ValueText, "valueText");
+
+const StyledItemIndicator = withContext(ArkListbox.ItemIndicator, "itemIndicator");
+
+function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
+  return (
+    <StyledItemIndicator
+      ref={ref}
+      {...props}
+    >
+      <CheckIcon />
+    </StyledItemIndicator>
+  );
+}
+
+// --- Simplified API ---
+
+export interface ListboxProps extends ComponentProps<typeof Root> {
+  /** Label text displayed above the list */
+  label?: string;
+  /** Placeholder for the search input (enables search when set) */
+  searchPlaceholder?: string;
+  /** Called when the search input value changes */
+  onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** Content displayed when the collection is empty */
+  emptyMessage?: ReactNode;
+  /** Render custom content after each item's text */
+  renderActions?: (item: any) => ReactNode;
+}
+
+function ListboxRoot({
+  ref,
+  label,
+  searchPlaceholder,
+  onSearchChange,
+  emptyMessage = "No items available",
+  renderActions,
+  children,
+  ...rest
+}: WithRef<ListboxProps>) {
+  const collection = rest.collection;
+  const grouped = collection.group?.() ?? [];
+  const isGrouped = grouped.length > 0 && grouped[0]?.[0] !== undefined;
+
+  return (
+    <Root
+      ref={ref}
+      {...rest}
+    >
+      {label && <Label>{label}</Label>}
+      {children ?? (
+        <>
+          {searchPlaceholder && (
+            <SearchInput
+              placeholder={searchPlaceholder}
+              onChange={onSearchChange}
+              size="sm"
+            />
+          )}
+          <Content>
+            {isGrouped
+              ? grouped.map(([group, items]) => (
+                  <ItemGroup key={String(group)}>
+                    <ItemGroupLabel>{String(group)}</ItemGroupLabel>
+                    {items.map((item) => (
+                      <Item
+                        key={collection.getItemValue(item)}
+                        item={item}
+                      >
+                        <ItemText>{collection.stringifyItem(item)}</ItemText>
+                        {renderActions?.(item)}
+                        <ItemIndicator />
+                      </Item>
+                    ))}
+                  </ItemGroup>
+                ))
+              : collection.items.map((item) => (
+                  <Item
+                    key={collection.getItemValue(item)}
+                    item={item}
+                  >
+                    <ItemText>{collection.stringifyItem(item)}</ItemText>
+                    {renderActions?.(item)}
+                    <ItemIndicator />
+                  </Item>
+                ))}
+            {collection.items.length === 0 && (
+              <EmptyState.Root size="sm">
+                <EmptyState.Content>
+                  <EmptyState.Description>{emptyMessage}</EmptyState.Description>
+                </EmptyState.Content>
+              </EmptyState.Root>
+            )}
+          </Content>
+        </>
+      )}
+    </Root>
+  );
+}
+
+export type ListboxRootProps = RootProps;
+
+export const Listbox = Object.assign(ListboxRoot, {
+  Root,
+  RootProvider,
+  Content,
+  Empty,
+  Input,
+  Item,
+  ItemGroup,
+  ItemGroupLabel,
+  ItemIndicator,
+  ItemText,
+  Label,
+  ValueText,
+  Context: ListboxContext,
+});

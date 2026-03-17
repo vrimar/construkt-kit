@@ -28,7 +28,7 @@ import "@tanstack/react-table";
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     type?: ColumnFilterType;
-    selectProps?: Partial<SelectProps<string, string>>;
+    selectProps?: Partial<SelectProps<string>>;
     width?: number;
     isVisible?: boolean;
   }

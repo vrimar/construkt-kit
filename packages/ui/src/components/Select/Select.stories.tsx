@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 import { Select } from "./Select";
-import { SelectList } from "./SelectList";
 
 const meta: Meta = {
   title: "Components/Select",
@@ -54,20 +53,5 @@ export const MultiSelect: Story = {
       onSelect={fn()}
       triggerProps={{ label: "Select fruits" }}
     />
-  ),
-};
-
-export const SelectListStory: Story = {
-  name: "SelectList",
-  render: () => (
-    <div style={{ maxWidth: 300, border: "1px solid #ccc", borderRadius: 8 }}>
-      <SelectList
-        items={items}
-        selected={undefined}
-        getValue={(item) => item.id}
-        getLabel={(item) => item.name}
-        onSelect={fn()}
-      />
-    </div>
   ),
 };

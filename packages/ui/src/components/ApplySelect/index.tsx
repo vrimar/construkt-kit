@@ -5,17 +5,14 @@ import { Button } from "../Buttons";
 import type { SelectProps, SelectValue } from "../Select";
 import { Select } from "../Select";
 
-export interface ApplySelectProps<T, V extends SelectValue> extends Omit<
-  SelectProps<T, V>,
-  "onSelect"
-> {
+export interface ApplySelectProps<T> extends Omit<SelectProps<T>, "onSelect"> {
   onApply: (values: T[]) => unknown;
   applyText?: string;
   cancelText?: string;
   hasToggleAll?: boolean;
 }
 
-export const ApplySelect = <T, V extends SelectValue>({
+export const ApplySelect = <T,>({
   onApply,
   selected,
   applyText = "Apply",
@@ -24,10 +21,10 @@ export const ApplySelect = <T, V extends SelectValue>({
   footer,
   hasToggleAll,
   ...props
-}: ApplySelectProps<T, V>) => {
+}: ApplySelectProps<T>) => {
   const [isAllToggled, setIsAllToggled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [tempSelected, setTempSelected] = useState<V[]>([]);
+  const [tempSelected, setTempSelected] = useState<SelectValue[]>([]);
 
   useEffect(() => {
     setTempSelected(Array.isArray(selected) ? selected : []);
@@ -66,16 +63,7 @@ export const ApplySelect = <T, V extends SelectValue>({
   const handleToggleAll = () => {
     if (isAllToggled) setTempSelected([]);
     else {
-      const filteredItems = props.items.filter((item) => {
-        const label = props.getLabel(item).toLowerCase();
-        const lowercaseQuery = props.searchQuery?.toLowerCase() ?? "";
-
-        return props.searchFilter
-          ? props.searchFilter(item, lowercaseQuery)
-          : label.includes(lowercaseQuery);
-      });
-
-      setTempSelected(filteredItems.map(getValue));
+      setTempSelected(props.items.map(getValue));
     }
 
     setIsAllToggled(!isAllToggled);

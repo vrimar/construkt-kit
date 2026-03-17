@@ -37,6 +37,7 @@ import { fieldset } from "./fieldset";
 import { fileUpload } from "./file-upload";
 import { hoverCard } from "./hover-card";
 import { inputGroup } from "./input-group";
+import { listbox } from "./listbox";
 import { menu } from "./menu";
 import { numberInput } from "./number-input";
 import { pagination } from "./pagination";
@@ -103,6 +104,7 @@ export const slotRecipes = {
   fileUpload,
   hoverCard,
   inputGroup,
+  listbox,
   menu,
   numberInput,
   pagination,

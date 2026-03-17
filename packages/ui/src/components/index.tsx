@@ -39,6 +39,7 @@ export * from "./Kbd";
 export * from "./Layout";
 export * from "./Link";
 export * from "./List";
+export * from "./Listbox";
 export * from "./LoadingOverlay";
 export * from "./Logo";
 export {
