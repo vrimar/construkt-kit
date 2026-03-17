@@ -46,15 +46,15 @@ function colorPalette(color: string) {
       border: tv(c(300), c(600)),
       fg: tv(c(700), c(200)),
       bg: {
-        hover: tv(c(50), c(900)),
-        active: tv(c(100), c(800)),
+        hover: tv(c(50), c(800)),
+        active: tv(c(100), c(700)),
       },
     },
     plain: {
       fg: tv(c(700), c(200)),
       bg: {
-        hover: tv(c(50), c(900)),
-        active: tv(c(100), c(800)),
+        hover: tv(c(50), c(800)),
+        active: tv(c(100), c(700)),
       },
     },
     focusRing: tv(c(500), c(500)),
@@ -115,4 +115,5 @@ export const colors = defineSemanticTokens.colors({
    */
   neutral,
   brand: colorPalette("brand"),
+  red: colorPalette("red"),
 });

@@ -36,17 +36,17 @@ const white = defineTokens.colors({
 });
 
 const brand = defineTokens.colors({
-  50: { value: "#e8f1ff" },
-  100: { value: "#c7dbff" },
-  200: { value: "#a3c3ff" },
+  50: { value: "#f0f6ff" },
+  100: { value: "#dbe8ff" },
+  200: { value: "#bdd4ff" },
   300: { value: "#7faaff" },
   400: { value: "#5b92ff" },
   500: { value: "#3778ff" },
   600: { value: "#2f67db" },
   700: { value: "#2757b8" },
   800: { value: "#1f4794" },
-  900: { value: "#132c5c" },
-  950: { value: "#0a1a3a" },
+  900: { value: "#1c3a7a" },
+  950: { value: "#122550" },
 });
 
 const gray = defineTokens.colors({

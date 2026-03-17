@@ -82,11 +82,13 @@ function ListboxRoot({
       {children ?? (
         <>
           {searchPlaceholder && (
-            <SearchInput
-              placeholder={searchPlaceholder}
-              onChange={onSearchChange}
-              size="sm"
-            />
+            <Input asChild>
+              <SearchInput
+                placeholder={searchPlaceholder}
+                onChange={onSearchChange}
+                size="sm"
+              />
+            </Input>
           )}
           <Content>
             {isGrouped

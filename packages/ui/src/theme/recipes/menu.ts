@@ -45,6 +45,7 @@ export const menu = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
       },
+      cursor: "pointer",
     },
     trigger: {
       _focusVisible: {

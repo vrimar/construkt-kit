@@ -16,7 +16,6 @@ export const DataTableHeader = <TData,>({ table, showFiltersRow }: DataTableHead
     <Box
       display="flex"
       flexDirection="column"
-      boxShadow="md"
     >
       <Box
         display="flex"

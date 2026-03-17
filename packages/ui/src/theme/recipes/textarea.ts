@@ -61,7 +61,7 @@ export const textarea = defineRecipe({
         _invalid: {
           borderColor: "border.error",
         },
-        _focus: {
+        _focusVisible: {
           borderColor: "colorPalette.solid.bg",
           boxShadowColor: "colorPalette.solid.bg",
           boxShadow: "0 1px 0 0 var(--shadow-color)",

@@ -30,7 +30,7 @@ export const editable = defineSlotRecipe({
       borderRadius: "md",
 
       focusRingWidth: "2px",
-      focusRing: "inside",
+      focusVisibleRing: "inside",
       transitionDuration: "normal",
       transitionProperty: "common",
       width: "full",

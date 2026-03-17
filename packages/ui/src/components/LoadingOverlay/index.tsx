@@ -24,7 +24,6 @@ export const LoadingOverlay = ({
 }: LoadingOverlayProps) => {
   return (
     <Flex
-      className={isActive ? "is-active" : undefined}
       position={relative ? "relative" : "absolute"}
       top={offset}
       left="0"
@@ -34,13 +33,15 @@ export const LoadingOverlay = ({
       width="100%"
       alignItems={align}
       background={fill ? "bg/75" : undefined}
-      transition="opacity .3s ease-in-out,
-      visibility 0s ease-in-out .3s,
-      background .3s ease-in-out"
       justifyContent="center"
-      willChange="opacity"
-      opacity="0"
-      visibility="hidden"
+      opacity={isActive ? "1" : "0"}
+      visibility={isActive ? "visible" : "hidden"}
+      pointerEvents={isActive ? "auto" : "none"}
+      style={{
+        transition: isActive
+          ? "opacity .3s ease-in-out, background .3s ease-in-out"
+          : "opacity .3s ease-in-out, visibility 0s ease-in-out .3s, background .3s ease-in-out",
+      }}
       {...props}
     >
       <Stack

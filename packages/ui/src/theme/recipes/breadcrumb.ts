@@ -14,7 +14,7 @@ export const breadcrumb = defineSlotRecipe({
       alignItems: "center",
       borderRadius: "sm",
       display: "inline-flex",
-      focusRing: "outside",
+      focusVisibleRing: "outside",
       gap: "2",
       outline: "0",
       textDecoration: "none",

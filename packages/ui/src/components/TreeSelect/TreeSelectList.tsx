@@ -24,6 +24,7 @@ export interface TreeSelectListProps<T> {
   searchPlaceholder?: string;
   showCheckboxes?: boolean;
   showToggleAll?: boolean;
+  defaultCollapsed?: boolean;
   renderItem?: (item: T) => React.ReactNode;
   renderActions?: (item: T) => React.ReactNode;
   onGroupSelect?: (group: TreeSelectGroup<T>) => void;
@@ -40,6 +41,7 @@ export const TreeSelectList = <T,>({
   searchPlaceholder = "Search...",
   showCheckboxes = true,
   showToggleAll = true,
+  defaultCollapsed = false,
   renderItem,
   renderActions,
   onGroupSelect,
@@ -47,7 +49,9 @@ export const TreeSelectList = <T,>({
   renderGroupActions,
 }: TreeSelectListProps<T>) => {
   const [search, setSearch] = useState("");
-  const [collapsed, setCollapsed] = useState<Set<string | number>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string | number>>(() =>
+    defaultCollapsed ? new Set(groups.map((g) => g.id)) : new Set(),
+  );
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
 
@@ -118,11 +122,16 @@ export const TreeSelectList = <T,>({
       height="100%"
     >
       <Flex
-        borderBottom="1px solid"
+        borderBottomWidth="1px"
         borderColor="border"
         align="center"
+        mb="2"
       >
-        <Box flex="1">
+        <Box
+          flex="1"
+          px="4"
+          py="2"
+        >
           <SearchInput
             size="sm"
             placeholder={searchPlaceholder}
@@ -189,6 +198,7 @@ export const TreeSelectList = <T,>({
                     e.stopPropagation();
                     toggleCollapse(group.id);
                   }}
+                  _icon={{ boxSize: "4" }}
                 >
                   {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
                 </Box>

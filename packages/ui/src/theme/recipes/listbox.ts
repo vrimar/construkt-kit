@@ -46,7 +46,6 @@ export const listbox = defineSlotRecipe({
         background: "neutral.surface.bg.hover",
       },
       _checked: {
-        background: "colorPalette.subtle.bg",
         color: "colorPalette.plain.fg",
       },
       _disabled: {
@@ -58,6 +57,7 @@ export const listbox = defineSlotRecipe({
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
+      fontWeight: "semibold",
     },
     itemIndicator: {
       display: "flex",
