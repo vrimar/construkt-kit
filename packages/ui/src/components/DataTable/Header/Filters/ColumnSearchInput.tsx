@@ -36,7 +36,7 @@ export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputPr
         color: "fg.subtle",
       }}
       fontWeight="normal"
-      hasSearchIcon={false}
+      hasIcon={false}
       value={tempValue}
       variant="plain"
     />

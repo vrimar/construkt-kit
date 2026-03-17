@@ -6,7 +6,7 @@ import { InputGroup } from "./InputGroup";
 
 export interface SearchInputProps extends InputProps {
   onClear?: () => unknown;
-  hasSearchIcon?: boolean;
+  hasIcon?: boolean;
 }
 
 type Size = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
@@ -21,16 +21,11 @@ const iconButtonSizeMap: Record<Size, Size> = {
   "2xl": "sm",
 };
 
-export const SearchInput = ({
-  hasSearchIcon = true,
-  onClear,
-  size,
-  ...props
-}: SearchInputProps) => {
+export const SearchInput = ({ hasIcon = true, onClear, size, ...props }: SearchInputProps) => {
   const iconButtonSize = iconButtonSizeMap[(size as Size) ?? "md"] ?? "xs";
   return (
     <InputGroup
-      startElement={hasSearchIcon && <SearchIcon size="14" />}
+      startElement={hasIcon && <SearchIcon />}
       endElement={
         props.value && (
           <IconButton

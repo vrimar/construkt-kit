@@ -5,7 +5,7 @@ import type { WithRef } from "../../types";
 
 import type { ButtonProps } from ".";
 import { Button } from ".";
-import { Text, TruncatedText } from "../Text";
+import { Text } from "../Text";
 
 export interface SelectButtonProps extends ButtonProps {
   sublabel?: React.ReactNode;
@@ -36,13 +36,14 @@ export const SelectButton = ({
     >
       <HStack width="100%">
         {sublabel && <Text color="fg.muted">{sublabel}</Text>}
-        <TruncatedText
+        <Text
+          truncate
           flex="1"
           textAlign="left"
           color={hasValue ? undefined : "fg.subtle"}
         >
           {label}
-        </TruncatedText>
+        </Text>
         <HStack gap="0">
           {hasValue && onClear ? (
             <Box onClick={handleClear}>

@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Text } from "./Text";
 import { TextLabel } from "./TextLabel";
-import { TruncatedText } from "./TruncatedText";
 
 const meta: Meta<typeof Text> = {
   title: "Components/Text",
@@ -43,10 +42,10 @@ export const TruncatedTextStory: Story = {
   name: "TruncatedText",
   render: () => (
     <div style={{ maxWidth: 200 }}>
-      <TruncatedText>
+      <Text truncate>
         This is a very long text that will be truncated with an ellipsis when it overflows the
         container.
-      </TruncatedText>
+      </Text>
     </div>
   ),
 };

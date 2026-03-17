@@ -5,4 +5,3 @@ export { Text };
 export type { TextProps };
 
 export * from "./TextLabel";
-export * from "./TruncatedText";

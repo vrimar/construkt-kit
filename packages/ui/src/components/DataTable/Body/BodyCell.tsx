@@ -1,7 +1,6 @@
 import { Box } from "styled-system/jsx";
 
 import { type Cell, flexRender } from "@tanstack/react-table";
-import { TruncatedText } from "../../Text";
 
 interface BodyCellProps<TData> {
   cell: Cell<TData, unknown>;
@@ -32,7 +31,7 @@ export const BodyCell = <TData,>({ cell }: BodyCellProps<TData>) => {
       title={typeof titleValue === "string" ? titleValue : undefined}
       position="relative"
     >
-      <TruncatedText>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TruncatedText>
+      <Box truncate>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Box>
     </Box>
   );
 };
