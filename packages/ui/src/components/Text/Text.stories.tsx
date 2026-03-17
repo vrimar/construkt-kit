@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Text } from "./Text";
-import { TextLabel } from "./TextLabel";
 
 const meta: Meta<typeof Text> = {
   title: "Components/Text",
@@ -24,16 +23,6 @@ export const Sizes: Story = {
       <Text textStyle="md">Medium</Text>
       <Text textStyle="lg">Large</Text>
       <Text textStyle="xl">Extra Large</Text>
-    </div>
-  ),
-};
-
-export const TextLabelStory: Story = {
-  name: "TextLabel",
-  render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <TextLabel>Label text</TextLabel>
-      <Text>Regular text below the label</Text>
     </div>
   ),
 };
