@@ -76,6 +76,7 @@ export function ResetPasswordPage({
               w="100%"
               type="submit"
               loading={isLoading}
+              colorPalette="brand"
             >
               Reset password
             </Button>

@@ -44,6 +44,7 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
             w="100%"
             type="submit"
             loading={isLoading}
+            colorPalette="brand"
           >
             Login
           </Button>
