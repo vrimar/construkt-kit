@@ -1,4 +1,4 @@
-import { Alert, Button, Input, Stack, TextLabel, useAutoFocus } from "@b3/ui";
+import { Alert, Button, Field, Input, Stack, useAutoFocus } from "@b3/ui";
 import { type ReactNode, useState } from "react";
 
 import { AuthLayout } from "../AuthLayout";
@@ -50,15 +50,14 @@ export function ForgotPasswordPage({
           }}
         >
           <Stack gap="4">
-            <Stack>
-              <TextLabel>Email</TextLabel>
+            <Field label="Email">
               <Input
                 ref={emailInput}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
               />
-            </Stack>
+            </Field>
 
             <Button
               w="100%"

@@ -1,4 +1,4 @@
-import { Alert, Button, Input, Stack, TextLabel, useAutoFocus } from "@b3/ui";
+import { Alert, Button, Field, Input, Stack, useAutoFocus } from "@b3/ui";
 import { type ReactNode, useState } from "react";
 
 import { AuthLayout } from "../AuthLayout";
@@ -55,24 +55,22 @@ export function ResetPasswordPage({
           }}
         >
           <Stack gap="4">
-            <Stack>
-              <TextLabel>New password</TextLabel>
+            <Field label="New password">
               <Input
                 ref={passwordInput}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
               />
-            </Stack>
+            </Field>
 
-            <Stack>
-              <TextLabel>Confirm password</TextLabel>
+            <Field label="Confirm password">
               <Input
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 type="password"
               />
-            </Stack>
+            </Field>
 
             <Button
               w="100%"

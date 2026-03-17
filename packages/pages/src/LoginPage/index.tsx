@@ -1,4 +1,4 @@
-import { Button, Input, Stack, TextLabel, useAutoFocus } from "@b3/ui";
+import { Button, Field, Input, Stack, useAutoFocus } from "@b3/ui";
 import { type ReactNode, useState } from "react";
 
 import { AuthLayout } from "../AuthLayout";
@@ -24,23 +24,21 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
         }}
       >
         <Stack gap="4">
-          <Stack>
-            <TextLabel>Email</TextLabel>
+          <Field label="Email">
             <Input
               ref={emailInput}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </Stack>
+          </Field>
 
-          <Stack>
-            <TextLabel>Password</TextLabel>
+          <Field label="Password">
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
             />
-          </Stack>
+          </Field>
 
           <Button
             w="100%"
