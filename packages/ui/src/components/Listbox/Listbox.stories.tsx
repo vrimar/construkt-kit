@@ -1,7 +1,9 @@
 import { createListCollection } from "@ark-ui/react/listbox";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 import { Listbox } from ".";
+import { IconButton } from "../Button";
 
 const meta: Meta = {
   title: "Components/Listbox",
@@ -97,6 +99,25 @@ export const Controlled: Story = {
       />
     );
   },
+};
+
+export const WithActions: Story = {
+  render: () => (
+    <Listbox
+      collection={countries}
+      label="Select Country"
+      maxW="64"
+      renderActions={(item) => (
+        <IconButton
+          aria-label={`Open actions for ${item.label}`}
+          size="2xs"
+          variant="plain"
+        >
+          <MoreHorizontalIcon />
+        </IconButton>
+      )}
+    />
+  ),
 };
 
 // --- Primitive API (custom composition) ---

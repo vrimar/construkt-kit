@@ -1,6 +1,12 @@
 import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
 import { CheckIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import type {
+  ComponentProps,
+  MouseEvent,
+  MouseEventHandler,
+  ReactNode,
+  SyntheticEvent,
+} from "react";
 import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { listbox, type ListboxVariantProps } from "styled-system/recipes";
 import type { WithRef } from "../../types";
@@ -24,7 +30,7 @@ const RootProvider = withProvider(
 const Content = withContext(ArkListbox.Content, "content");
 const Empty = withContext(ArkListbox.Empty, "empty");
 const Input = withContext(ArkListbox.Input, "input");
-const Item = withContext(ArkListbox.Item, "item");
+const StyledItem = withContext(ArkListbox.Item, "item");
 const ItemGroup = withContext(ArkListbox.ItemGroup, "itemGroup");
 const ItemGroupLabel = withContext(ArkListbox.ItemGroupLabel, "itemGroupLabel");
 const ItemText = withContext(ArkListbox.ItemText, "itemText");
@@ -32,6 +38,20 @@ const Label = withContext(ArkListbox.Label, "label");
 const ValueText = withContext(ArkListbox.ValueText, "valueText");
 
 const StyledItemIndicator = withContext(ArkListbox.ItemIndicator, "itemIndicator");
+const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
+const INTERACTIVE_ITEM_SELECTOR = [
+  `[${LISTBOX_ACTION_ATTRIBUTE}]`,
+  "button",
+  "a[href]",
+  "input",
+  "select",
+  "textarea",
+  "summary",
+  "[role='button']",
+  "[role='link']",
+  "[role='menuitem']",
+  "[contenteditable='true']",
+].join(", ");
 
 function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
   return (
@@ -41,6 +61,58 @@ function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
     >
       <CheckIcon />
     </StyledItemIndicator>
+  );
+}
+
+function isEventFromItemAction(event: MouseEvent<HTMLDivElement>) {
+  const target = event.target;
+
+  return target instanceof HTMLElement && target.closest(INTERACTIVE_ITEM_SELECTOR) !== null;
+}
+
+function stopItemSelection(event: MouseEvent<HTMLDivElement>) {
+  if (!isEventFromItemAction(event)) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function callItemHandlers(
+  event: MouseEvent<HTMLDivElement>,
+  handler?: MouseEventHandler<HTMLDivElement>,
+) {
+  stopItemSelection(event);
+  handler?.(event);
+}
+
+type ItemProps = ComponentProps<typeof StyledItem>;
+
+function Item({ ref, onMouseDown, onClick, ...props }: WithRef<ItemProps, HTMLDivElement>) {
+  return (
+    <StyledItem
+      ref={ref}
+      {...props}
+      onMouseDown={(event) => callItemHandlers(event, onMouseDown)}
+      onClick={(event) => callItemHandlers(event, onClick)}
+    />
+  );
+}
+
+function ItemActions({ children }: { children: ReactNode }) {
+  const stopPropagation = (event: SyntheticEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  return (
+    <div
+      data-listbox-item-action=""
+      onPointerDownCapture={stopPropagation}
+      onMouseDownCapture={stopPropagation}
+      onClick={stopPropagation}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -101,7 +173,7 @@ function ListboxRoot({
                         item={item}
                       >
                         <ItemText>{collection.stringifyItem(item)}</ItemText>
-                        {renderActions?.(item)}
+                        {renderActions && <ItemActions>{renderActions(item)}</ItemActions>}
                         <ItemIndicator />
                       </Item>
                     ))}
@@ -113,7 +185,7 @@ function ListboxRoot({
                     item={item}
                   >
                     <ItemText>{collection.stringifyItem(item)}</ItemText>
-                    {renderActions?.(item)}
+                    {renderActions && <ItemActions>{renderActions(item)}</ItemActions>}
                     <ItemIndicator />
                   </Item>
                 ))}

@@ -12,6 +12,8 @@ import type {
 } from "./Select";
 import { Select } from "./Select";
 
+const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
+
 export interface TagSelectProps<T> extends Omit<
   SelectRootProps<T>,
   "children" | "contentWidth" | "onSelect" | "selected"
@@ -130,7 +132,9 @@ export const TagSelect = <T,>({
                 item={item}
               >
                 <Select.ItemText>{renderLabel ? renderLabel(item) : undefined}</Select.ItemText>
-                {renderActions?.(item)}
+                {renderActions && (
+                  <div {...{ [LISTBOX_ACTION_ATTRIBUTE]: "" }}>{renderActions(item)}</div>
+                )}
                 <Select.ItemIndicator />
               </Select.Item>
             )}
