@@ -1,5 +1,5 @@
-import { b3Preset } from "@b3/ui/preset";
 import { defineConfig } from "@pandacss/dev";
+import { b3Preset } from "../../packages/ui/src/preset";
 
 export default defineConfig({
   preflight: true,

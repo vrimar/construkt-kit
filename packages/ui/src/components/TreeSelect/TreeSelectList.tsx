@@ -129,7 +129,7 @@ export const TreeSelectList = <T,>({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onClear={() => setSearch("")}
-            variant="flushed"
+            variant="plain"
           />
         </Box>
         {showToggleAll && showCheckboxes && (

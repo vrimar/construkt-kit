@@ -8,7 +8,7 @@ export const CloseButton = ({ ref, ...props }: WithRef<CloseButtonProps, HTMLBut
   return (
     <IconButton
       variant="plain"
-      colorPalette="gray"
+      colorPalette="neutral"
       aria-label="Close"
       ref={ref}
       {...props}

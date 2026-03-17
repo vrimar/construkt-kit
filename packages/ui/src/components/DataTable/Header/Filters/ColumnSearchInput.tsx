@@ -38,7 +38,7 @@ export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputPr
       fontWeight="normal"
       hasSearchIcon={false}
       value={tempValue}
-      variant="flushed"
+      variant="plain"
     />
   );
 };

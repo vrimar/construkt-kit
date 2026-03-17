@@ -6,7 +6,7 @@ export const popover = defineSlotRecipe({
   slots: popoverAnatomy.extendWith("header", "body", "footer").keys(),
   base: {
     content: {
-      "--popover-bg": "colors.neutral.surface.bg",
+      "--popover-bg": "colors.bg",
       "--popover-padding": "spacing.4",
 
       background: "var(--popover-bg)",

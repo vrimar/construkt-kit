@@ -62,6 +62,9 @@ function colorPalette(color: string) {
   };
 }
 
+const neutral = colorPalette("slate");
+neutral.surface.bg.DEFAULT = tv("white", "{colors.slate.800}");
+
 export const colors = defineSemanticTokens.colors({
   // Global background tokens
   bg: {
@@ -110,6 +113,6 @@ export const colors = defineSemanticTokens.colors({
    * containers.  Recipes reference `neutral.*` so the neutral hue can be
    * swapped in a single place (e.g. change `"gray"` to `"slate"`).
    */
-  neutral: colorPalette("slate"),
+  neutral,
   brand: colorPalette("brand"),
 });

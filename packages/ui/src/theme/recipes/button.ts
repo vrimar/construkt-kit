@@ -37,6 +37,7 @@ export const button = defineRecipe({
       layerStyle: "disabled",
     },
     focusVisibleRing: "outside",
+    colorPalette: "neutral",
   },
   defaultVariants: {
     variant: "solid",

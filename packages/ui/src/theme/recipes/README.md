@@ -46,8 +46,8 @@ Form controls (Input, Textarea) default to `neutral.*` tokens; use the `colored`
 ## neutral tokens
 
 Recipes use `neutral.*` (not `gray.*`) for default chrome — control surfaces, borders, backgrounds.
-`neutral` is defined in `semantic-tokens/colors.ts` as an alias for a color palette (gray by default).
-To change the neutral hue globally, update the single `neutral: colorPalette("gray")` line to another palette.
+`neutral` is defined in `semantic-tokens/colors.ts` as an alias for a color palette (slate by default).
+To change the neutral hue globally, update the single `neutral: colorPalette("slate")` line to another palette.
 
 | I'm styling…           | Use              |
 | ---------------------- | ---------------- |

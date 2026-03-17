@@ -30,7 +30,7 @@ export const SelectButton = ({
     <Button
       ref={ref}
       variant="surface"
-      colorPalette="gray"
+      colorPalette="neutral"
       justifyContent="space-between"
       {...props}
     >

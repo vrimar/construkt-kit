@@ -85,6 +85,12 @@ export const input = {
           borderColor: "border.error",
         },
       },
+      plain: {
+        focusVisibleRing: "inside",
+        _invalid: {
+          focusRingColor: "border.error",
+        },
+      },
     },
     size: {
       "2xs": { textStyle: "xs", px: "1.5", "--input-height": "sizes.7" },

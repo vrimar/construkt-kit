@@ -10,12 +10,10 @@ import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { Box, Stack, type BoxProps } from "styled-system/jsx";
 
-import type { DataTableParams } from "./types";
-
 import { DataTableBody } from "./Body";
 import { DataTableHeader } from "./Header";
 import { DataTablePagination } from "./Pagination";
-import type { TableFilterSelections } from "./types";
+import type { DataTableParams, TableFilterSelections } from "./types";
 
 export type DataTableLabels = {
   noResults?: string;
@@ -173,7 +171,7 @@ export const DataTable = <TData extends object>({
       width="100%"
       flex="1"
       borderWidth={isBasic ? undefined : "1px"}
-      borderRadius="5px"
+      borderRadius="sm"
       boxShadow={isBasic ? undefined : "xl"}
       minHeight="0"
     >

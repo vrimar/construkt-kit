@@ -24,6 +24,11 @@ Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm 
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsdown.config.ts`
 - Consumed via path aliases (e.g., `@b3/ui` → `packages/ui/src`)
 
+## Linting
+
+- `@pandacss/eslint-plugin` configured in `.oxlintrc.json` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
+- Run `pnpm lint` (uses `oxlint -c .oxlintrc.json src`) to check for violations.
+
 ## Ark UI MCP
 
 Use the Ark UI MCP tools to look up Ark UI component props and examples when implementing or customizing `@b3/ui` components. Components are built on Ark UI primitives, so these tools are relevant for understanding component behavior, props, and theming at the primitive level.

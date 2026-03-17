@@ -95,7 +95,7 @@ export const RangeDatePicker = ({
                     >
                       <Button
                         size="xs"
-                        variant="ghost"
+                        variant="plain"
                       >
                         {preset.label}
                       </Button>
@@ -109,7 +109,7 @@ export const RangeDatePicker = ({
                       <ArkDatePicker.PrevTrigger asChild>
                         <IconButton
                           size="xs"
-                          variant="ghost"
+                          variant="plain"
                         >
                           <ChevronLeftIcon />
                         </IconButton>
@@ -122,7 +122,7 @@ export const RangeDatePicker = ({
                       <ArkDatePicker.NextTrigger asChild>
                         <IconButton
                           size="xs"
-                          variant="ghost"
+                          variant="plain"
                         >
                           <ChevronRightIcon />
                         </IconButton>

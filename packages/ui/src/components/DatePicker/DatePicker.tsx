@@ -82,7 +82,7 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
                     <ArkDatePicker.PrevTrigger asChild>
                       <IconButton
                         size="xs"
-                        variant="ghost"
+                        variant="plain"
                       >
                         <ChevronLeftIcon />
                       </IconButton>
@@ -94,7 +94,7 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
                   <ArkDatePicker.NextTrigger asChild>
                     <IconButton
                       size="xs"
-                      variant="ghost"
+                      variant="plain"
                     >
                       <ChevronRightIcon />
                     </IconButton>

@@ -30,7 +30,7 @@ export const SearchInput = ({
   const iconButtonSize = iconButtonSizeMap[(size as Size) ?? "md"] ?? "xs";
   return (
     <InputGroup
-      startElement={hasSearchIcon && <SearchIcon />}
+      startElement={hasSearchIcon && <SearchIcon size="14" />}
       endElement={
         props.value && (
           <IconButton
