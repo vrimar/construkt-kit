@@ -37,6 +37,7 @@ export function ForgotPasswordPage({
             <Button
               variant="plain"
               onClick={onBack}
+              colorPalette="brand"
             >
               Back to login
             </Button>
@@ -73,6 +74,7 @@ export function ForgotPasswordPage({
                 type="button"
                 variant="plain"
                 onClick={onBack}
+                colorPalette="brand"
               >
                 Back to login
               </Button>

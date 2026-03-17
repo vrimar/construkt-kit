@@ -42,6 +42,7 @@ export function ResetPasswordPage({
             <Button
               variant="plain"
               onClick={onBack}
+              colorPalette="brand"
             >
               Back to login
             </Button>

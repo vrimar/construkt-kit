@@ -54,6 +54,7 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
               type="button"
               variant="plain"
               onClick={onForgotPassword}
+              colorPalette="brand"
             >
               Forgot your password?
             </Button>
