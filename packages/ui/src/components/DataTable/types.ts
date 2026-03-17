@@ -1,6 +1,13 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 
-import type { SelectProps } from "../Select";
+import type {
+  ApplySelectActionsProps,
+  ApplySelectContentProps,
+  ApplySelectRootProps,
+  ApplySelectSearchProps,
+  ApplySelectTriggerProps,
+} from "../ApplySelect";
+import type { SelectListProps } from "../Select";
 
 export type ColumnFilterType = "input" | "select" | "date";
 export type Column<TData> = {
@@ -28,7 +35,19 @@ import "@tanstack/react-table";
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     type?: ColumnFilterType;
-    selectProps?: Partial<SelectProps<string>>;
+    selectProps?: {
+      actions?: ApplySelectActionsProps;
+      content?: ApplySelectContentProps;
+      list?: SelectListProps;
+      root?: Partial<
+        Omit<
+          ApplySelectRootProps<string>,
+          "children" | "getLabel" | "getValue" | "items" | "onApply" | "selected"
+        >
+      >;
+      search?: ApplySelectSearchProps;
+      trigger?: ApplySelectTriggerProps;
+    };
     width?: number;
     isVisible?: boolean;
   }

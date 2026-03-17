@@ -1,36 +1,73 @@
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { HStack } from "styled-system/jsx";
 import { Button } from "../Buttons";
 
-import type { SelectProps, SelectValue } from "../Select";
+import type {
+  SelectContentProps,
+  SelectListProps,
+  SelectRootProps,
+  SelectSearchProps,
+  SelectTriggerProps,
+  SelectValue,
+} from "../Select";
 import { Select } from "../Select";
 
-export interface ApplySelectProps<T> extends Omit<SelectProps<T>, "onSelect"> {
+interface ApplySelectContextValue {
+  allSelected: boolean;
+  handleApply: () => void;
+  handleReset: () => void;
+  handleToggleAll: () => void;
+  hasSelection: boolean;
+}
+
+const ApplySelectContext = createContext<ApplySelectContextValue | null>(null);
+
+const useApplySelectContext = () => {
+  const context = useContext(ApplySelectContext);
+
+  if (context == null) {
+    throw new Error("ApplySelect compound components must be used within ApplySelect.Root");
+  }
+
+  return context;
+};
+
+export interface ApplySelectRootProps<T> extends Omit<
+  SelectRootProps<T>,
+  "children" | "onSelect" | "selected"
+> {
   onApply: (values: T[]) => unknown;
+  children: React.ReactNode;
+  selected: SelectValue[];
+}
+
+export interface ApplySelectActionsProps {
   applyText?: string;
   cancelText?: string;
   hasToggleAll?: boolean;
 }
 
-export const ApplySelect = <T,>({
+export type ApplySelectTriggerProps = SelectTriggerProps;
+export type ApplySelectContentProps = SelectContentProps;
+export type ApplySelectSearchProps = SelectSearchProps;
+export type ApplySelectListProps = SelectListProps;
+
+export const ApplySelectRoot = <T,>({
+  children,
   onApply,
   selected,
-  applyText = "Apply",
-  cancelText = "Cancel",
-  triggerProps,
-  footer,
-  hasToggleAll,
   ...props
-}: ApplySelectProps<T>) => {
-  const [isAllToggled, setIsAllToggled] = useState(false);
-  const [open, setOpen] = useState(false);
+}: ApplySelectRootProps<T>) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [tempSelected, setTempSelected] = useState<SelectValue[]>([]);
+
+  const { getValue, items, onOpenChange, open } = props;
 
   useEffect(() => {
     setTempSelected(Array.isArray(selected) ? selected : []);
   }, [selected]);
 
-  const getValue = props.getValue;
+  const allSelected = items.length > 0 && tempSelected.length === items.length;
 
   const handleSelect = (item: T) => {
     const value = getValue(item);
@@ -42,75 +79,114 @@ export const ApplySelect = <T,>({
   };
 
   const handleApply = () => {
-    onApply(tempSelected.map((id) => props.items.find((i) => getValue(i) === id)) as T[]);
-    setOpen(false);
+    onApply(
+      tempSelected.map((id) => items.find((item) => getValue(item) === id)).filter(Boolean) as T[],
+    );
+    setIsOpen(false);
   };
 
   const handleReset = () => {
     setTempSelected(Array.isArray(selected) ? selected : []);
-    setOpen(false);
+    setIsOpen(false);
     onApply([]);
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
+  const handleSelectOpenChange = (nextOpen: boolean) => {
+    setIsOpen(nextOpen);
+    onOpenChange?.(nextOpen);
 
-    const hasSelected = !isOpen && Array.isArray(selected);
+    const hasSelected = !nextOpen && Array.isArray(selected);
 
-    if (!isOpen) setTempSelected(hasSelected ? selected : []);
+    if (!nextOpen) setTempSelected(hasSelected ? selected : []);
   };
 
   const handleToggleAll = () => {
-    if (isAllToggled) setTempSelected([]);
-    else {
-      setTempSelected(props.items.map(getValue));
-    }
-
-    setIsAllToggled(!isAllToggled);
+    setTempSelected(allSelected ? [] : items.map(getValue));
   };
 
+  const contextValue = useMemo<ApplySelectContextValue>(
+    () => ({
+      allSelected,
+      handleApply,
+      handleReset,
+      handleToggleAll,
+      hasSelection: tempSelected.length > 0,
+    }),
+    [allSelected, handleApply, handleReset, handleToggleAll, tempSelected.length],
+  );
+
   return (
-    <Select
-      {...props}
-      footer={
-        <HStack p="4">
-          {hasToggleAll && (
-            <HStack>
-              <Button
-                size="xs"
-                variant="outline"
-                onClick={handleToggleAll}
-              >
-                Toggle All
-              </Button>
-            </HStack>
-          )}
-          <HStack
-            justifyContent="flex-end"
-            width="100%"
-          >
+    <ApplySelectContext.Provider value={contextValue}>
+      <Select.Root
+        {...props}
+        onOpenChange={handleSelectOpenChange}
+        onSelect={handleSelect}
+        open={open ?? isOpen}
+        selected={tempSelected}
+      >
+        {children}
+      </Select.Root>
+    </ApplySelectContext.Provider>
+  );
+};
+
+export const ApplySelectActions = ({
+  applyText = "Apply",
+  cancelText = "Cancel",
+  hasToggleAll = false,
+}: ApplySelectActionsProps) => {
+  const { allSelected, handleApply, handleReset, handleToggleAll, hasSelection } =
+    useApplySelectContext();
+
+  return (
+    <Select.Footer>
+      <HStack p="4">
+        {hasToggleAll && (
+          <HStack>
             <Button
-              variant="plain"
-              onClick={handleReset}
               size="xs"
+              variant="outline"
+              onClick={handleToggleAll}
             >
-              {cancelText}
-            </Button>
-            <Button
-              onClick={handleApply}
-              size="xs"
-              disabled={tempSelected.length === 0}
-            >
-              {applyText}
+              {allSelected ? "Clear All" : "Toggle All"}
             </Button>
           </HStack>
+        )}
+        <HStack
+          justifyContent="flex-end"
+          width="100%"
+        >
+          <Button
+            variant="plain"
+            onClick={handleReset}
+            size="xs"
+          >
+            {cancelText}
+          </Button>
+          <Button
+            onClick={handleApply}
+            size="xs"
+            disabled={!hasSelection}
+          >
+            {applyText}
+          </Button>
         </HStack>
-      }
-      open={open}
-      onOpenChange={handleOpenChange}
-      selected={tempSelected}
-      onSelect={handleSelect}
-      triggerProps={triggerProps}
-    />
+      </HStack>
+    </Select.Footer>
   );
+};
+
+export const ApplySelect = {
+  Root: ApplySelectRoot,
+  Trigger: Select.Trigger,
+  Content: Select.Content,
+  Search: Select.Search,
+  List: Select.List,
+  Items: Select.Items,
+  Item: Select.Item,
+  ItemText: Select.ItemText,
+  ItemIndicator: Select.ItemIndicator,
+  EmptyState: Select.EmptyState,
+  Footer: Select.Footer,
+  Actions: ApplySelectActions,
 };

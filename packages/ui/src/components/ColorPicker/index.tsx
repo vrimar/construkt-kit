@@ -48,10 +48,11 @@ export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children">
 export const ColorPicker = ({ withAlpha = false, swatches, ...rest }: ColorPickerProps) => {
   return (
     <ColorPickerParts.Root {...rest}>
-      <HiddenInput />
       <Control>
-        <ChannelInput channel="hex" />
-        <Trigger />
+        <Trigger>
+          <TransparencyGrid />
+          <ValueSwatch />
+        </Trigger>
       </Control>
       <Positioner>
         <Content>
@@ -59,12 +60,14 @@ export const ColorPicker = ({ withAlpha = false, swatches, ...rest }: ColorPicke
             <AreaBackground />
             <AreaThumb />
           </Area>
+          <ChannelInput channel="hex" />
           <ChannelSlider channel="hue">
             <ChannelSliderTrack />
             <ChannelSliderThumb />
           </ChannelSlider>
           {withAlpha && (
             <ChannelSlider channel="alpha">
+              <TransparencyGrid />
               <ChannelSliderTrack />
               <ChannelSliderThumb />
             </ChannelSlider>
@@ -83,6 +86,7 @@ export const ColorPicker = ({ withAlpha = false, swatches, ...rest }: ColorPicke
           )}
         </Content>
       </Positioner>
+      <HiddenInput />
     </ColorPickerParts.Root>
   );
 };

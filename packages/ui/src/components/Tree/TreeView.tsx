@@ -3,7 +3,7 @@ import {
   TreeViewContext,
   TreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { treeView } from "styled-system/recipes";
@@ -18,7 +18,7 @@ const Branch = withContext(ArkTreeView.Branch, "branch");
 const BranchControl = withContext(ArkTreeView.BranchControl, "branchControl");
 const BranchTrigger = withContext(ArkTreeView.BranchTrigger, "branchTrigger");
 const BranchIndicator = withContext(ArkTreeView.BranchIndicator, "branchIndicator", {
-  defaultProps: { children: <ChevronDownIcon /> },
+  defaultProps: { children: <ChevronRightIcon /> },
 });
 const BranchText = withContext(ArkTreeView.BranchText, "branchText");
 const BranchContent = withContext(ArkTreeView.BranchContent, "branchContent");

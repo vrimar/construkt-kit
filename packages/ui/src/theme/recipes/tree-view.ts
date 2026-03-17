@@ -3,9 +3,10 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 export const treeView = defineSlotRecipe({
   className: "treeView",
-  slots: treeViewAnatomy.keys(),
+  slots: [...treeViewAnatomy.keys(), "nodeCheckbox", "branchIndentGuide"],
   base: {
     root: {
+      colorPalette: "brand",
       width: "full",
       display: "flex",
       flexDirection: "column",
@@ -55,7 +56,7 @@ export const treeView = defineSlotRecipe({
       transformOrigin: "center",
       color: "fg.subtle",
       _open: {
-        rotate: "-180deg",
+        rotate: "90deg",
       },
       _icon: {
         width: "1em",
@@ -109,6 +110,26 @@ export const treeView = defineSlotRecipe({
     itemText: {
       truncate: true,
     },
+    nodeCheckbox: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      borderWidth: "1px",
+      borderColor: "border",
+      borderRadius: "xs",
+      cursor: "pointer",
+      _checked: {
+        bg: "colorPalette.solid.bg",
+        borderColor: "colorPalette.solid.bg",
+        color: "colorPalette.solid.fg",
+      },
+      _indeterminate: {
+        bg: "colorPalette.solid.bg",
+        borderColor: "colorPalette.solid.bg",
+        color: "colorPalette.solid.fg",
+      },
+    },
   },
   defaultVariants: {
     size: "md",
@@ -123,11 +144,15 @@ export const treeView = defineSlotRecipe({
         },
         branchControl: {
           py: "0.5",
-          px: "1.5",
+          pe: "1.5",
         },
         item: {
           py: "0.5",
-          px: "1.5",
+          pe: "1.5",
+        },
+        nodeCheckbox: {
+          boxSize: "3.5",
+          _icon: { boxSize: "2.5" },
         },
       },
       md: {
@@ -137,11 +162,15 @@ export const treeView = defineSlotRecipe({
         },
         branchControl: {
           py: "1",
-          px: "2",
+          pe: "2",
         },
         item: {
           py: "1",
-          px: "2",
+          pe: "2",
+        },
+        nodeCheckbox: {
+          boxSize: "4",
+          _icon: { boxSize: "3" },
         },
       },
     },

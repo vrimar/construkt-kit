@@ -20,12 +20,37 @@ export const colorPicker = defineSlotRecipe({
       flexDirection: "row",
       gap: "2",
     },
+    trigger: {
+      display: "grid",
+      placeItems: "center",
+      width: "10",
+      height: "10",
+      minWidth: "10",
+      p: "0",
+      bg: "bg",
+      borderWidth: "1px",
+      borderColor: "neutral.outline.border",
+      borderRadius: "md",
+      cursor: "pointer",
+      overflow: "hidden",
+      flexShrink: "0",
+      outline: "none",
+      _focusVisible: {
+        focusVisibleRing: "inside",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
+    },
     content: {
       background: "neutral.surface.bg",
+      borderWidth: "1px",
+      borderColor: "neutral.surface.border",
       borderRadius: "lg",
       boxShadow: "lg",
       display: "flex",
       flexDirection: "column",
+      gap: "3",
       maxWidth: "sm",
       p: "4",
       zIndex: "popover",
@@ -54,7 +79,27 @@ export const colorPicker = defineSlotRecipe({
     areaBackground: {
       height: "full",
     },
+    channelInput: {
+      appearance: "none",
+      width: "full",
+      minWidth: "0",
+      height: "10",
+      px: "3",
+      borderWidth: "1px",
+      borderColor: "neutral.outline.border",
+      borderRadius: "md",
+      bg: "bg",
+      color: "fg",
+      outline: "0",
+      _focusVisible: {
+        focusVisibleRing: "inside",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
+    },
     channelSlider: {
+      position: "relative",
       borderRadius: "md",
     },
     channelSliderTrack: {
@@ -83,7 +128,16 @@ export const colorPicker = defineSlotRecipe({
       outline: "none",
     },
     transparencyGrid: {
+      gridArea: "1 / 1",
+      width: "full",
+      height: "full",
       borderRadius: "md",
+    },
+    valueSwatch: {
+      gridArea: "1 / 1",
+      width: "full",
+      height: "full",
+      borderRadius: "inherit",
     },
   },
 });

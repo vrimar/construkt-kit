@@ -20,27 +20,64 @@ const items = [
 
 export const Default: Story = {
   render: () => (
-    <ApplySelect
+    <ApplySelect.Root
       items={items}
       selected={[]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
       onApply={fn()}
-      triggerProps={{ label: "Select Frameworks" }}
-    />
+    >
+      <ApplySelect.Trigger label="Select Frameworks" />
+      <ApplySelect.Content>
+        <ApplySelect.Search />
+        <ApplySelect.List>
+          <ApplySelect.Items>
+            {(item: (typeof items)[number]) => (
+              <ApplySelect.Item
+                key={item.id}
+                item={item}
+              >
+                <ApplySelect.ItemText />
+                <ApplySelect.ItemIndicator />
+              </ApplySelect.Item>
+            )}
+          </ApplySelect.Items>
+          <ApplySelect.EmptyState />
+        </ApplySelect.List>
+        <ApplySelect.Actions />
+      </ApplySelect.Content>
+    </ApplySelect.Root>
   ),
 };
 
 export const WithToggleAll: Story = {
   render: () => (
-    <ApplySelect
+    <ApplySelect.Root
       items={items}
       selected={[1, 3]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
       onApply={fn()}
-      hasToggleAll
-      triggerProps={{ label: "Select All" }}
-    />
+    >
+      <ApplySelect.Trigger label="Select All" />
+      <ApplySelect.Content>
+        <ApplySelect.Search />
+        <ApplySelect.List>
+          <ApplySelect.Items>
+            {(item: (typeof items)[number]) => (
+              <ApplySelect.Item
+                key={item.id}
+                item={item}
+              >
+                <ApplySelect.ItemText />
+                <ApplySelect.ItemIndicator />
+              </ApplySelect.Item>
+            )}
+          </ApplySelect.Items>
+          <ApplySelect.EmptyState />
+        </ApplySelect.List>
+        <ApplySelect.Actions hasToggleAll />
+      </ApplySelect.Content>
+    </ApplySelect.Root>
   ),
 };
