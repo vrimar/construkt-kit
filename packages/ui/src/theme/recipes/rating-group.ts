@@ -61,6 +61,10 @@ export const ratingGroup = defineSlotRecipe({
     },
   },
 
+  defaultVariants: {
+    size: "md",
+  },
+
   variants: {
     size: {
       xs: { root: { gap: "2" }, itemIndicator: { width: "4", height: "4" } },
@@ -69,9 +73,5 @@ export const ratingGroup = defineSlotRecipe({
       lg: { root: { gap: "3" }, itemIndicator: { width: "5.5", height: "5.5" } },
       xl: { root: { gap: "3" }, itemIndicator: { width: "6", height: "6" } },
     },
-  },
-
-  defaultVariants: {
-    size: "md",
   },
 });

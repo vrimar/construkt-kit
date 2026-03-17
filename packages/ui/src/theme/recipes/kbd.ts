@@ -15,6 +15,11 @@ export const kbd = defineRecipe({
     justifyContent: "center",
   },
 
+  defaultVariants: {
+    size: "md",
+    variant: "subtle",
+  },
+
   variants: {
     variant: {
       solid: {
@@ -47,10 +52,5 @@ export const kbd = defineRecipe({
       lg: { textStyle: "sm", height: "5.5", minWidth: "5.5", px: "1" },
       xl: { textStyle: "md", height: "6", minWidth: "6", px: "1" },
     },
-  },
-
-  defaultVariants: {
-    size: "md",
-    variant: "subtle",
   },
 });

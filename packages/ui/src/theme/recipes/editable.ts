@@ -2,8 +2,8 @@ import { editableAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 export const editable = defineSlotRecipe({
-  slots: editableAnatomy.keys(),
   className: "editable",
+  slots: editableAnatomy.keys(),
   base: {
     root: {
       alignItems: "center",

@@ -2,8 +2,8 @@ import { checkboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 export const checkbox = defineSlotRecipe({
-  slots: checkboxAnatomy.keys(),
   className: "checkbox",
+  slots: checkboxAnatomy.keys(),
   base: {
     root: {
       display: "inline-flex",
@@ -34,6 +34,11 @@ export const checkbox = defineSlotRecipe({
       fontWeight: "medium",
       userSelect: "none",
     },
+  },
+
+  defaultVariants: {
+    variant: "solid",
+    size: "md",
   },
 
   variants: {
@@ -99,10 +104,5 @@ export const checkbox = defineSlotRecipe({
         },
       },
     },
-  },
-
-  defaultVariants: {
-    variant: "solid",
-    size: "md",
   },
 });

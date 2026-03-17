@@ -43,6 +43,11 @@ export const breadcrumb = defineSlotRecipe({
     },
   },
 
+  defaultVariants: {
+    variant: "plain",
+    size: "md",
+  },
+
   variants: {
     variant: {
       underline: {
@@ -68,10 +73,5 @@ export const breadcrumb = defineSlotRecipe({
       md: { list: { gap: "1.5", textStyle: "md" } },
       lg: { list: { gap: "2", textStyle: "lg" } },
     },
-  },
-
-  defaultVariants: {
-    variant: "plain",
-    size: "md",
   },
 });

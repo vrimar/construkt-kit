@@ -4,6 +4,12 @@ export const skeleton = defineRecipe({
   className: "skeleton",
   jsx: ["Skeleton", "SkeletonCircle", "SkeletonText"],
   base: {},
+
+  defaultVariants: {
+    animation: "pulse",
+    loading: true,
+  },
+
   variants: {
     loading: {
       true: {
@@ -55,10 +61,5 @@ export const skeleton = defineRecipe({
         animation: "none",
       },
     },
-  },
-
-  defaultVariants: {
-    animation: "pulse",
-    loading: true,
   },
 });

@@ -79,6 +79,10 @@ export const segmentGroup = defineSlotRecipe({
     },
   },
 
+  defaultVariants: {
+    size: "md",
+  },
+
   variants: {
     size: {
       xs: { item: { h: "8", minW: "8", textStyle: "sm", px: "2.5", _icon: { boxSize: "4" } } },
@@ -97,9 +101,5 @@ export const segmentGroup = defineSlotRecipe({
         },
       },
     },
-  },
-
-  defaultVariants: {
-    size: "md",
   },
 });
