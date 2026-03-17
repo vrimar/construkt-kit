@@ -35,6 +35,10 @@ export const button = defineRecipe({
     },
     _disabled: {
       layerStyle: "disabled",
+      "&[data-loading]": {
+        filter: "none",
+        opacity: "1",
+      },
     },
     focusVisibleRing: "outside",
     colorPalette: "neutral",
