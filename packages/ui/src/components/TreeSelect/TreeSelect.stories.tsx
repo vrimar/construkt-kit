@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { TreeSelectList, type TreeSelectGroup } from "./TreeSelectList";
+import { createTreeCollection } from "../Tree";
+import { TreeSelect } from "./TreeSelect";
 
 const meta: Meta = {
   title: "Components/TreeSelect",
@@ -10,43 +11,58 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-interface Item {
-  id: number;
-  name: string;
+interface DemoNode {
+  id: string;
+  label: string;
+  children?: DemoNode[];
 }
 
-const groups: TreeSelectGroup<Item>[] = [
-  {
-    id: "fruits",
-    name: "Fruits",
+const collection = createTreeCollection<DemoNode>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.label,
+  rootNode: {
+    id: "ROOT",
+    label: "",
     children: [
-      { id: 1, name: "Apple" },
-      { id: 2, name: "Banana" },
-      { id: 3, name: "Cherry" },
+      {
+        id: "fruits",
+        label: "Fruits",
+        children: [
+          { id: "apple", label: "Apple" },
+          { id: "banana", label: "Banana" },
+          {
+            id: "citrus",
+            label: "Citrus",
+            children: [
+              { id: "orange", label: "Orange" },
+              { id: "lemon", label: "Lemon" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "vegetables",
+        label: "Vegetables",
+        children: [
+          { id: "carrot", label: "Carrot" },
+          { id: "broccoli", label: "Broccoli" },
+          { id: "spinach", label: "Spinach" },
+        ],
+      },
     ],
   },
-  {
-    id: "vegetables",
-    name: "Vegetables",
-    children: [
-      { id: 4, name: "Carrot" },
-      { id: 5, name: "Broccoli" },
-      { id: 6, name: "Spinach" },
-    ],
-  },
-];
+});
 
 function TreeSelectDemo() {
-  const [selected, setSelected] = useState<(string | number)[]>([1, 4]);
+  const [selected, setSelected] = useState<string[]>(["apple", "lemon"]);
 
   return (
     <div style={{ maxWidth: 400, border: "1px solid #ccc", borderRadius: 8 }}>
-      <TreeSelectList
-        groups={groups}
-        selected={selected}
-        onSelectedChange={setSelected}
-        getId={(item) => item.id}
-        getLabel={(item) => item.name}
+      <TreeSelect
+        collection={collection}
+        value={selected}
+        onValueChange={setSelected}
+        maxHeight="320px"
       />
     </div>
   );

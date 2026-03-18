@@ -142,11 +142,8 @@ function CheckboxTreeNode({ node, indexPath }: { node: Node; indexPath: number[]
         <TreeView.Branch>
           <TreeView.BranchControl>
             <TreeView.NodeCheckbox>
-              <TreeView.NodeCheckboxIndicator>
+              <TreeView.NodeCheckboxIndicator indeterminate={<MinusIcon />}>
                 <CheckIcon />
-              </TreeView.NodeCheckboxIndicator>
-              <TreeView.NodeCheckboxIndicator indeterminate>
-                <MinusIcon />
               </TreeView.NodeCheckboxIndicator>
             </TreeView.NodeCheckbox>
             <TreeView.BranchIndicator />
@@ -165,7 +162,7 @@ function CheckboxTreeNode({ node, indexPath }: { node: Node; indexPath: number[]
       ) : (
         <TreeView.Item>
           <TreeView.NodeCheckbox>
-            <TreeView.NodeCheckboxIndicator>
+            <TreeView.NodeCheckboxIndicator indeterminate={<MinusIcon />}>
               <CheckIcon />
             </TreeView.NodeCheckboxIndicator>
           </TreeView.NodeCheckbox>
