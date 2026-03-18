@@ -2,7 +2,7 @@ import { createTreeCollection } from "@ark-ui/react/tree-view";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { CheckboxTree } from ".";
+import { CheckboxTree } from "./CheckboxTree";
 
 vi.mock("../VirtualScrollArea", () => ({
   VirtualScrollArea: ({

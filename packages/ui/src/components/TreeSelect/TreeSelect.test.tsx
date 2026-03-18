@@ -6,7 +6,7 @@ import { TreeSelect } from "./TreeSelect";
 
 const checkboxTreeSpy = vi.fn();
 
-vi.mock("../Tree", () => ({
+vi.mock("../Tree/CheckboxTree", () => ({
   CheckboxTree: (props: Record<string, unknown>) => {
     checkboxTreeSpy(props);
 

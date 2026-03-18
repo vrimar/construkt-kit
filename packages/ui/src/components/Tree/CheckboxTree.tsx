@@ -109,6 +109,7 @@ export const CheckboxTree = <T extends TreeNode>({
         items={visibleNodes}
         itemHeight={TREE_ROW_HEIGHT_ESTIMATE[size]}
         getItemKey={(index) => collection.getNodeValue(visibleNodes[index].node)}
+        height={maxHeight}
         maxHeight={maxHeight}
         measure
         borderWidth="1px"

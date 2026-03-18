@@ -1,5 +1,5 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
-import { SquareCheckIcon, SquareIcon } from "lucide-react";
+import { SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { Box, Flex } from "styled-system/jsx";
@@ -7,7 +7,7 @@ import { Box, Flex } from "styled-system/jsx";
 import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";
 import { Tooltip } from "../Tooltip";
-import { CheckboxTree } from "../Tree";
+import { CheckboxTree } from "../Tree/CheckboxTree";
 import { DEFAULT_TREE_SIZE, type TreeSize } from "../Tree/treeShared";
 
 const filterTreeCollection = <TNode extends TreeNode>(
@@ -151,15 +151,16 @@ export interface TreeSelectProps<TNode extends TreeNode> {
   collection: TreeCollection<TNode>;
   value: string[];
   onValueChange: (value: string[]) => void;
-  renderNode?: (node: TNode) => ReactNode;
-  renderActions?: (node: TNode) => ReactNode;
+  renderNode?: (details: { node: TNode; isBranch: boolean }) => ReactNode;
+  renderActions?: (details: { node: TNode; isBranch: boolean }) => ReactNode;
+  isNodeCheckable?: (details: { node: TNode; isBranch: boolean }) => boolean;
   searchPlaceholder?: string;
   searchPredicate?: (node: TNode, query: string) => boolean;
   showSearch?: boolean;
   showSelectAll?: boolean;
   expandedValue?: string[];
   defaultExpandedValue?: string[];
-  onExpandedValueChange?: (expandedValue: string[]) => void;
+  onExpandedChange?: (expandedValue: string[]) => void;
   maxHeight?: string;
   size?: TreeSize;
 }
@@ -170,13 +171,14 @@ export const TreeSelect = <TNode extends TreeNode>({
   onValueChange,
   renderNode,
   renderActions,
+  isNodeCheckable,
   searchPlaceholder = "Search...",
   searchPredicate,
   showSearch = true,
   showSelectAll = true,
   expandedValue,
   defaultExpandedValue,
-  onExpandedValueChange,
+  onExpandedChange,
   maxHeight = "320px",
   size = DEFAULT_TREE_SIZE,
 }: TreeSelectProps<TNode>) => {
@@ -237,7 +239,7 @@ export const TreeSelect = <TNode extends TreeNode>({
       setUncontrolledExpandedValue(nextExpandedValue);
     }
 
-    onExpandedValueChange?.(nextExpandedValue);
+    onExpandedChange?.(nextExpandedValue);
   };
 
   const allSelectableValues = useMemo(
@@ -259,10 +261,7 @@ export const TreeSelect = <TNode extends TreeNode>({
   );
 
   return (
-    <Flex
-      direction="column"
-      height="100%"
-    >
+    <Flex direction="column">
       {(showSearch || showSelectAll) && (
         <Flex
           borderBottomWidth="1px"
@@ -296,17 +295,19 @@ export const TreeSelect = <TNode extends TreeNode>({
                 flexShrink={0}
                 onClick={() => onValueChange(allSelected ? [] : allSelectableValues)}
               >
-                {allSelected || someSelected ? <SquareCheckIcon /> : <SquareIcon />}
+                {allSelected ? (
+                  <SquareCheckIcon />
+                ) : someSelected ? (
+                  <SquareMinusIcon />
+                ) : (
+                  <SquareIcon />
+                )}
               </IconButton>
             </Tooltip>
           )}
         </Flex>
       )}
-      <Box
-        flex="1"
-        minHeight="0"
-      >
-        <CheckboxTree
+      <CheckboxTree
           collection={filteredCollection}
           checkedValue={value}
           onCheckedChange={handleCheckedChange}
@@ -314,13 +315,19 @@ export const TreeSelect = <TNode extends TreeNode>({
           onExpandedChange={handleExpandedChange}
           maxHeight={maxHeight}
           size={size}
-          renderNode={({ node }) => renderNode?.(node)}
-          renderActions={({ node }) => renderActions?.(node)}
-          isNodeCheckable={({ node, isBranch }) =>
-            isBranch ? selectableSubtrees.has(filteredCollection.getNodeValue(node)) : true
+          renderNode={
+            renderNode ? ({ node, isBranch }) => renderNode({ node, isBranch }) : undefined
           }
+          renderActions={
+            renderActions ? ({ node, isBranch }) => renderActions({ node, isBranch }) : undefined
+          }
+          isNodeCheckable={({ node, isBranch }) => {
+            if (isBranch && !selectableSubtrees.has(filteredCollection.getNodeValue(node))) {
+              return false;
+            }
+            return isNodeCheckable?.({ node, isBranch }) ?? true;
+          }}
         />
-      </Box>
     </Flex>
   );
 };
