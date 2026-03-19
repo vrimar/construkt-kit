@@ -22,9 +22,6 @@
     "source.organizeImports": "explicit",
     "source.removeUnusedImports": "explicit"
   },
-  "workbench.editorAssociations": {
-    "*.md": "vscode.markdown.preview.editor"
-  },
   "cSpell.words": [
     "Chakra"
   ]
