@@ -2,12 +2,13 @@ import { DatePicker as ArkDatePicker, parseDate, useDatePicker } from "@ark-ui/r
 import { Portal } from "@ark-ui/react/portal";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { Box, HStack, Stack } from "styled-system/jsx";
-import { IconButton } from "../Buttons";
+import { HStack, styled } from "styled-system/jsx";
+import { datePicker as datePickerRecipe } from "styled-system/recipes";
+import { Button, IconButton } from "../Buttons";
 import { Text } from "../Text";
-
-import { Button } from "../Buttons";
 import { DatePickerDayView } from "./DayView";
+
+const classes = datePickerRecipe();
 
 export interface DatePickerProps {
   trigger?: ReactNode;
@@ -62,7 +63,7 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
       value={datePicker}
       asChild
     >
-      <Box width="100%">
+      <styled.div className={classes.root} width="100%">
         <ArkDatePicker.Control asChild>
           <ArkDatePicker.Trigger asChild>{trigger}</ArkDatePicker.Trigger>
         </ArkDatePicker.Control>
@@ -70,15 +71,8 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
         <Portal disabled>
           <ArkDatePicker.Positioner>
             <ArkDatePicker.Content asChild>
-              <Stack
-                bg="bg"
-                p="4"
-                borderWidth="1px"
-                borderColor="border"
-                borderRadius="sm"
-                zIndex="9999"
-              >
-                <HStack justifyContent="space-between">
+              <styled.div className={classes.content}>
+                <styled.div className={classes.viewControl}>
                   <HStack>
                     <ArkDatePicker.PrevTrigger asChild>
                       <IconButton
@@ -100,14 +94,14 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
                       <ChevronRightIcon />
                     </IconButton>
                   </ArkDatePicker.NextTrigger>
-                </HStack>
+                </styled.div>
 
                 <DatePickerDayView monthOffset={0} />
-              </Stack>
+              </styled.div>
             </ArkDatePicker.Content>
           </ArkDatePicker.Positioner>
         </Portal>
-      </Box>
+      </styled.div>
     </ArkDatePicker.RootProvider>
   );
 };

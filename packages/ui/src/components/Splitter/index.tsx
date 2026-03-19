@@ -7,9 +7,14 @@ import {
   type PanelProps,
   type SeparatorProps,
 } from "react-resizable-panels";
-import { styled, type HTMLStyledProps } from "styled-system/jsx";
+import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
+import { splitter } from "styled-system/recipes";
 
-const StyledDiv = styled(ark.div);
+const { withProvider, withContext } = createStyleContext(splitter);
+
+const StyledRoot = withProvider(ark.div, "root");
+const StyledPanel = withContext(ark.div, "panel");
+const StyledResizeTrigger = withContext(ark.div, "resizeTrigger");
 type BoxProps = HTMLStyledProps<"div">;
 
 export type SplitterGroupProps = Pick<
@@ -40,7 +45,7 @@ function SplitterGroup({
   ...boxProps
 }: SplitterGroupProps) {
   return (
-    <StyledDiv
+    <StyledRoot
       asChild
       {...boxProps}
     >
@@ -57,7 +62,7 @@ function SplitterGroup({
       >
         {children}
       </Group>
-    </StyledDiv>
+    </StyledRoot>
   );
 }
 
@@ -93,7 +98,7 @@ function SplitterPanel({
   ...boxProps
 }: SplitterPanelProps) {
   return (
-    <StyledDiv
+    <StyledPanel
       asChild
       {...boxProps}
     >
@@ -112,7 +117,7 @@ function SplitterPanel({
       >
         {children}
       </Panel>
-    </StyledDiv>
+    </StyledPanel>
   );
 }
 
@@ -121,7 +126,7 @@ export type SplitterSeparatorProps = Pick<SeparatorProps, "disabled" | "elementR
 
 function SplitterSeparator({ disabled, elementRef, id, ...boxProps }: SplitterSeparatorProps) {
   return (
-    <StyledDiv
+    <StyledResizeTrigger
       asChild
       {...boxProps}
     >
@@ -130,7 +135,7 @@ function SplitterSeparator({ disabled, elementRef, id, ...boxProps }: SplitterSe
         elementRef={elementRef}
         id={id}
       />
-    </StyledDiv>
+    </StyledResizeTrigger>
   );
 }
 

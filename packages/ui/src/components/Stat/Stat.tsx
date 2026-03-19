@@ -1,50 +1,26 @@
 import { ark } from "@ark-ui/react/factory";
 import { InfoIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
-import { styled } from "styled-system/jsx";
+import { createStyleContext, styled } from "styled-system/jsx";
+import { stat } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 import { Badge, type BadgeProps } from "../Badge";
 import { IconButton } from "../Buttons";
 import { ToggleTip } from "../ToggleTip";
 
-const StatRoot = styled(ark.div, {
-  base: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1",
-  },
-});
+const { withProvider, withContext } = createStyleContext(stat);
 
-const StatHelpText = styled(ark.span, {
-  base: {
-    textStyle: "xs",
-    color: "fg.muted",
-  },
-});
+const StatRoot = withProvider(ark.div, "root");
+const StatHelpText = withContext(ark.span, "helpText");
+const StatValueUnit = withContext(ark.span, "valueUnit");
 
-const StatValueUnit = styled(ark.span, {
-  base: {
-    textStyle: "sm",
-    fontWeight: "normal",
-    color: "fg.muted",
-  },
-});
-
-type StatLabelBaseProps = ComponentProps<typeof styled.span>;
+type StatLabelBaseProps = ComponentProps<typeof StatLabelRoot>;
 
 interface StatLabelProps extends StatLabelBaseProps {
   info?: ReactNode;
 }
 
-const StatLabelRoot = styled(ark.span, {
-  base: {
-    textStyle: "sm",
-    color: "fg.muted",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "1",
-  },
-});
+const StatLabelRoot = withContext(ark.span, "label");
 
 function StatLabel({ ref, info, children, ...rest }: WithRef<StatLabelProps>) {
   return (
@@ -68,14 +44,7 @@ function StatLabel({ ref, info, children, ...rest }: WithRef<StatLabelProps>) {
   );
 }
 
-const StatValueTextRoot = styled(ark.span, {
-  base: {
-    textStyle: "2xl",
-    fontWeight: "semibold",
-    verticalAlign: "baseline",
-    lineHeight: "tight",
-  },
-});
+const StatValueTextRoot = withContext(ark.span, "valueText");
 
 type StatValueTextBaseProps = ComponentProps<typeof StatValueTextRoot>;
 

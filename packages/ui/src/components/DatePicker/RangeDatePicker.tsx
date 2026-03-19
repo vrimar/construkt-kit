@@ -3,12 +3,14 @@ import { DatePicker as ArkDatePicker, parseDate, useDatePicker } from "@ark-ui/r
 import { Portal } from "@ark-ui/react/portal";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { Box, HStack, Stack } from "styled-system/jsx";
+import { HStack, Stack, styled } from "styled-system/jsx";
+import { datePicker as datePickerRecipe } from "styled-system/recipes";
 import { Button, IconButton } from "../Buttons";
 import { Separator } from "../Layout";
 import { Text } from "../Text";
-
 import { DatePickerDayView } from "./DayView";
+
+const classes = datePickerRecipe();
 
 export interface RangeDatePickerProps {
   trigger: ReactNode;
@@ -64,7 +66,7 @@ export const RangeDatePicker = ({
       value={datePicker}
       asChild
     >
-      <Box width="100%">
+      <styled.div className={classes.root} width="100%">
         <ArkDatePicker.Control asChild>
           <ArkDatePicker.Trigger asChild>{trigger}</ArkDatePicker.Trigger>
         </ArkDatePicker.Control>
@@ -72,14 +74,7 @@ export const RangeDatePicker = ({
         <Portal>
           <ArkDatePicker.Positioner>
             <ArkDatePicker.Content asChild>
-              <HStack
-                bg="bg"
-                p="4"
-                borderWidth="1px"
-                borderColor="border"
-                borderRadius="sm"
-                alignItems="flex-start"
-              >
+              <styled.div className={classes.content} flexDirection="row" alignItems="flex-start">
                 <Stack gap="0.5">
                   <Button
                     variant="outline"
@@ -105,7 +100,7 @@ export const RangeDatePicker = ({
                 </Stack>
                 <Separator orientation="vertical" />
                 <Stack>
-                  <HStack justifyContent="space-between">
+                  <styled.div className={classes.viewControl}>
                     <HStack>
                       <ArkDatePicker.PrevTrigger asChild>
                         <IconButton
@@ -129,7 +124,7 @@ export const RangeDatePicker = ({
                         </IconButton>
                       </ArkDatePicker.NextTrigger>
                     </HStack>
-                  </HStack>
+                  </styled.div>
 
                   <HStack
                     gap="5"
@@ -145,11 +140,11 @@ export const RangeDatePicker = ({
                     />
                   </HStack>
                 </Stack>
-              </HStack>
+              </styled.div>
             </ArkDatePicker.Content>
           </ArkDatePicker.Positioner>
         </Portal>
-      </Box>
+      </styled.div>
     </ArkDatePicker.RootProvider>
   );
 };

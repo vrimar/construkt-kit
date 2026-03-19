@@ -4,8 +4,8 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 
 export const treeView = defineSlotRecipe({
-  className: "treeView",
-  slots: [...treeViewAnatomy.keys(), "nodeCheckbox", "branchIndentGuide"],
+  className: "tree-view",
+  slots: treeViewAnatomy.keys(),
   base: {
     root: {
       colorPalette: "brand",

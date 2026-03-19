@@ -1,67 +1,23 @@
+import { ark } from "@ark-ui/react/factory";
 import * as React from "react";
-import { styled } from "styled-system/jsx";
-import type { HTMLStyledProps } from "styled-system/types";
+import { createStyleContext } from "styled-system/jsx";
+import { checkboxCard } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 import * as ArkCheckbox from "../Checkbox";
 
-const CardRoot = styled("label", {
-  base: {
-    display: "flex",
-    flexDirection: "column",
-    borderWidth: "1px",
-    borderColor: "border",
-    borderRadius: "l2",
-    cursor: "pointer",
-    userSelect: "none",
-    _hover: { bg: "bg.subtle" },
-    _checked: { borderColor: "colorPalette", bg: "colorPalette.subtle" },
-  },
-});
+const { withProvider, withContext } = createStyleContext(checkboxCard);
 
-const CardControl = styled("div", {
-  base: {
-    display: "flex",
-    alignItems: "center",
-    gap: "3",
-    p: "4",
-    flex: "1",
-  },
-});
+const CardRoot = withProvider(ark.label, "root");
+const CardControl = withContext(ark.div, "control");
+const CardContent = withContext(ark.div, "content");
+const CardLabel = withContext(ark.span, "label");
+const CardDescription = withContext(ark.span, "description");
+const CardAddon = withContext(ark.div, "addon");
 
-const CardContent = styled("div", {
-  base: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1",
-    flex: "1",
-  },
-});
-
-const CardLabel = styled("span", {
-  base: {
-    fontWeight: "medium",
-    textStyle: "sm",
-  },
-});
-
-const CardDescription = styled("span", {
-  base: {
-    textStyle: "sm",
-    color: "fg.muted",
-  },
-});
-
-const CardAddon = styled("div", {
-  base: {
-    borderTopWidth: "1px",
-    borderColor: "border",
-    px: "4",
-    py: "3",
-  },
-});
+type CardRootProps = React.ComponentProps<typeof CardRoot>;
 
 export interface CheckboxCardProps extends Omit<
-  HTMLStyledProps<"label">,
+  CardRootProps,
   "onChange" | "defaultChecked"
 > {
   icon?: React.ReactElement;
