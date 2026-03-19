@@ -7,12 +7,12 @@ Pre-built `AuthProvider` adapters for `@b3/pages`.
 ```ts
 import { createAuth0AuthProvider } from "@b3/auth-adapters";
 
-export const authProvider = createAuth0AuthProvider(auth0Client);
+const authProvider = createAuth0AuthProvider(auth0Client);
 ```
 
-Returns an `AuthProvider` (from `@b3/pages`) mapping `getToken`, `login`, `logout`, `isAuthenticated`, `getUser` to the Auth0 client.
+Returns an `AuthProvider` (from `@b3/pages`) mapping `getToken`, `login`, `logout`, `isAuthenticated`, `getUser` to the Auth0 client. Accepts any object matching the `Auth0ClientLike` interface — no direct Auth0 SDK dependency.
 
-## Custom adapter
+## Custom Adapter
 
 Implement the `AuthProvider` interface directly:
 
@@ -30,10 +30,10 @@ export const authProvider: AuthProvider = {
     /* ... */
   },
   isAuthenticated: () => {
-    /* ... */
+    /* sync or async */
   },
   getUser: () => {
-    /* ... */
+    /* sync or async */
   },
 };
 ```

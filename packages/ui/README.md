@@ -4,86 +4,33 @@
 
 > **Rule:** Always import from `@b3/ui`, never from `@ark-ui/*` or `styled-system/*` directly.
 
-## Setup
+## Exports
 
-Peer dependencies:
+### Components
 
-```bash
-pnpm add @ark-ui/react react react-dom
-```
+**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator` (alias `Divider`), `Divider`, `Wrap`
 
-Wrap your app root with a Panda CSS-based provider:
+**Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`
 
-```tsx
-import { Provider, Toaster } from "@b3/ui";
+**Data Display:** `DataTable`, `Badge`, `Avatar`, `Image`, `List`, `Table`, `Stat`, `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
 
-<Provider>
-  <App />
-  <Toaster />
-</Provider>;
-```
+**Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner`
 
-## Theme
+**Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Popover`, `Tooltip`, `ToggleTip`, `HoverCard`
 
-Theme is compiled at build time via **Panda CSS**. The `b3Preset` (from `@b3/ui/preset`) defines brand tokens, semantic tokens, and component recipes.
+**Form:** `Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `EditableText`, `FileUpload`, `PinInput`, `ColorPicker`
 
-> `designSystem` is still exported for backward compatibility but is **deprecated** (returns an empty object). Use the Panda CSS preset instead.
+**Selection / Dropdowns:** `Select`, `SelectList`, `SelectListItem`, `SelectButton`, `TagSelect`, `ApplyInput`, `ApplySelect`, `Combobox`
 
-## Panda CSS Utilities
+**Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
 
-```tsx
-import { css, cx, styled } from "@b3/ui";
-import type { HTMLStyledProps, StyledComponent } from "@b3/ui";
-import { token } from "@b3/ui"; // design token accessor
-```
+**Date Pickers:** `DatePicker`, `RangeDatePicker`, `DatePickerSelect`
 
-## Components
+**Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `ContextMenu`, `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-### Layout
+**Misc:** `Actionbar`, `Clipboard`, `Collapsible`, `Icon`, `Logo`, `Pagination`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ToggleGroup`, `DebugFontSwitcher`, `Provider`
 
-`Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator` (alias for `Divider`), `Divider`, `Wrap`
-
-### Buttons
-
-`Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`
-
-### Data Display
-
-`DataTable`, `Badge`, `Avatar`, `Image`, `List` (compound), `Table`, `Stat` (compound), `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
-
-### Feedback
-
-`Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner`
-
-### Overlay / Dialog
-
-`Dialog` (compound), `SubmitDialog`, `DeleteDialog`, `Drawer`, `Popover` (compound), `Tooltip`, `ToggleTip`, `HoverCard`
-
-### Form
-
-`Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput` (compound), `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `EditableText`, `FileUpload`, `PinInput`, `ColorPicker`
-
-### Selection / Dropdowns
-
-`Select`, `SelectList`, `SelectListItem`, `SelectButton`, `TagSelect`, `ApplyInput`, `ApplySelect`, `Combobox`
-
-### Tree
-
-`TreeView` (compound component built on Ark UI), `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
-
-### Date Pickers
-
-`DatePicker`, `RangeDatePicker`, `DatePickerSelect`
-
-### Navigation & Text
-
-`Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu` (compound), `ContextMenu` (compound), `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
-
-### Misc
-
-`Actionbar`, `Clipboard`, `Collapsible`, `Highlight`, `Icon`, `Logo`, `Pagination`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ToggleGroup`, `DebugFontSwitcher`, `Provider`
-
-## Hooks
+### Hooks
 
 | Hook               | Description                                                |
 | ------------------ | ---------------------------------------------------------- |
@@ -92,6 +39,204 @@ import { token } from "@b3/ui"; // design token accessor
 | `useFileSelect`    | Opens native file picker, returns parsed files             |
 | `useRowSelection`  | Row selection state for tables (toggle, togglePage, clear) |
 
-## Types
+### Panda CSS Utilities
+
+```tsx
+import { css, cx, styled } from "@b3/ui";
+import type { HTMLStyledProps, StyledComponent } from "@b3/ui";
+import { token } from "@b3/ui"; // design token accessor
+```
+
+### Types
 
 `WithRef<T, E>` — generic ref forwarding type.
+
+## Variant Vocabulary
+
+`solid` > `surface` > `subtle` > `outline` > `plain` (no `ghost`). See `src/theme/recipes/README.md` for full reference.
+
+## Component Structure
+
+Each component under `src/components/<Name>/` follows this pattern:
+
+- `index.tsx` — public exports (re-exported in `components/index.tsx`)
+- `<Name>.tsx` — main component implementation
+- `<Name>.stories.tsx` — Storybook stories
+- `types.ts` — (optional) component-specific types
+
+Compound components (DataTable, Dialog, Menu, etc.) may have subfolders for sub-parts (e.g. `DataTable/Header/`, `DataTable/Body/`).
+
+## Implementation Patterns
+
+### 1. Simple styled component (Badge, Input, Textarea)
+
+One-liner. Use when wrapping a single element with a recipe:
+
+```tsx
+import { ark } from "@ark-ui/react/factory";
+import { styled } from "styled-system/jsx";
+import { badge } from "styled-system/recipes";
+
+export type BadgeProps = ComponentProps<typeof Badge>;
+export const Badge = styled(ark.div, badge);
+```
+
+For Ark UI field primitives: `export const Input = styled(Field.Input, input);`
+
+### 2. Compound component with style context (Dialog, Menu, Tabs)
+
+Use `createStyleContext(recipe)` to wrap Ark UI compound parts with slot-based styling:
+
+```tsx
+import { Dialog as ArkDialog } from "@ark-ui/react/dialog";
+import { createStyleContext } from "styled-system/jsx";
+import { dialog } from "styled-system/recipes";
+
+const { withRootProvider, withContext } = createStyleContext(dialog);
+
+const Root = withRootProvider(ArkDialog.Root, { defaultProps: { unmountOnExit: true, lazyMount: true } });
+const Content = withContext(ArkDialog.Content, "content");  // "content" = slot name in recipe
+const Title = withContext(ArkDialog.Title, "title");
+
+export const Dialog = { Root, Content, Title, ... };  // Export as plain object
+```
+
+- Each sub-component is a "slot" in the recipe — Panda generates e.g. `dialog__content`, `dialog__title`
+- Export as a **plain object** with capitalized properties → `<Dialog.Root>`, `<Dialog.Content>`
+- Slot recipes use `sva()` (slot variant authority)
+
+### 3. Compound with custom context (Select, ButtonGroup)
+
+Adds app-level React context on top of the style context pattern:
+
+```tsx
+// ButtonGroup provides variant props to all child Buttons via context
+const [ButtonPropsProvider, useButtonPropsContext] = createContext<ButtonVariantProps>({
+  strict: false,
+});
+
+export const ButtonGroup = ({ ref, ...props }) => {
+  const [variantProps, otherProps] = button.splitVariantProps(props);
+  return (
+    <ButtonPropsProvider value={variantProps}>
+      <Group
+        ref={ref}
+        {...otherProps}
+      />
+    </ButtonPropsProvider>
+  );
+};
+
+// Child Button merges inherited props from context
+export const Button = ({ ref, ...props }) => {
+  const propsContext = useButtonPropsContext();
+  const mergedProps = mergeProps(propsContext, { ref, ...props });
+  // ...
+};
+```
+
+Key utilities:
+
+- `splitVariantProps(props)` — separates recipe variant props (`variant`, `size`) from other props
+- `mergeProps()` — merges context-inherited props with local props (local wins)
+- `strict: false` — context is optional; component works standalone too
+
+## Theme Architecture
+
+`src/preset.ts` exports `b3Preset`, assembled from:
+
+- `theme/tokens/` — primitive tokens (colors, spacing, fonts, radii, etc.)
+- `theme/semantic-tokens/` — light/dark mode tokens (`colors.ts`, `shadows.ts`)
+  - `colorPalette(color)` generates `solid`, `surface`, `subtle`, `outline`, `plain` sub-tokens
+  - Available palettes: `brand`, `slate`, `gray`, `blue`, `red`, `green`, `orange`, `yellow`
+  - `neutral` is an alias palette (defaults to slate) used for default chrome
+- `theme/recipes/` — component recipes (variants, sizes, defaults)
+- `theme/conditions.ts` — custom Panda CSS conditions
+- `theme/keyframes.ts`, `animation-styles.ts`, `text-styles.ts`, `layer-styles.ts`
+
+### `styled-system/` is OUTPUT, not a dependency
+
+- `styled-system/` is **Panda CSS build output** (committed to git, generated by `panda codegen`)
+- Imports like `styled-system/jsx`, `styled-system/css`, `styled-system/recipes` resolve to this local output
+- `@pandacss/dev` is the **build-time tool** — only used in `preset.ts`, `panda.config.ts`, and recipe definitions
+- The tsdown plugin in `tsdown.config.ts` resolves `styled-system/` imports for the dist build
+
+### Token Path Syntax
+
+| Context               | Syntax             | Example                       |
+| --------------------- | ------------------ | ----------------------------- |
+| In recipe definitions | Bare token paths   | `bg: "colorPalette.solid.bg"` |
+| Token references      | Curly braces       | `{colors.brand.500}`          |
+| In components (JS)    | `token()` function | `token('colors.brand.500')`   |
+| In components (CSS)   | Short paths        | `css({ bg: 'brand.500' })`    |
+
+Semantic token layers: `bg.*`, `fg.*`, `border.*`, `neutral.*`, `colorPalette.*`
+
+### Condition Overrides
+
+The theme redefines standard pseudo-selectors:
+
+| Condition           | Behavior                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| `_hover`, `_active` | Exclude `:disabled` — disabled elements don't show hover/active                                  |
+| `_checked`          | Matches 4 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]` |
+| `_focusVisible`     | Uses `[data-focus-visible]` NOT `:focus-visible` — Ark UI keyboard-only detection                |
+| `_light`            | `:root &, .light &` — explicit light mode                                                        |
+
+### recipes vs slotRecipes
+
+Both are registered in `theme/recipes/index.ts`:
+
+- **`recipes`** (simple `cva()`): `badge`, `button`, `code`, `heading`, `icon`, `input`, `kbd`, `link`, `skeleton`, `spinner`, `text`, `textarea`, etc. — single-element components
+- **`slotRecipes`** (compound `sva()`): `accordion`, `dialog`, `menu`, `select`, `tabs`, etc. — multi-slot components using `createStyleContext()`
+- Naming exception: `switchRecipe` key (not `switch` — JS reserved word)
+
+## File Map
+
+| Path                         | Purpose                        |
+| ---------------------------- | ------------------------------ |
+| `src/index.ts`               | Public barrel export           |
+| `src/preset.ts`              | `b3Preset` Panda CSS preset    |
+| `src/types.ts`               | Shared types (`WithRef`, etc.) |
+| `src/components/index.tsx`   | Component barrel export        |
+| `src/components/<Name>/`     | Individual component folders   |
+| `src/hooks/`                 | Shared hooks                   |
+| `src/theme/recipes/`         | All component recipes          |
+| `src/theme/tokens/`          | Primitive design tokens        |
+| `src/theme/semantic-tokens/` | Semantic tokens (light/dark)   |
+| `styled-system/`             | Panda CSS generated code       |
+| `panda.config.ts`            | Panda CSS config               |
+
+## Common Patterns
+
+### Creating a new component
+
+1. Create folder `src/components/<Name>/`
+2. Add `index.tsx` with named exports
+3. Add recipe in `theme/recipes/<name>.ts` if styling is needed
+4. Register recipe in `theme/recipes/index.ts` (in `recipes` or `slotRecipes`)
+5. Re-export from `components/index.tsx`
+6. Re-export from `src/index.ts` (if not already covered by `components/` barrel)
+
+### Styling
+
+- Use `css()` for one-off styles, `styled()` for styled components, recipes for variants
+- Colors: `token('colors.brand.500')` or `colorPalette` prop + recipe variants
+- Never use hardcoded colors (`#fff`, `rgb(...)`) — the Panda linter will reject them
+
+### Consuming @b3/ui in apps
+
+Apps configure `panda.config.ts` with `presets: ["@pandacss/preset-base", b3Preset]`.
+Path alias `@b3/ui` → `packages/ui/src` resolved by Vite/tsconfig.
+
+## Testing
+
+- **Runner:** Vitest with jsdom environment
+- **Setup:** `vitest.setup.ts` polyfills `ResizeObserver` and `IntersectionObserver` (not in jsdom)
+- **Aliases:** `styled-system` → `./styled-system` in `vitest.config.ts`
+- **Libraries:** `@testing-library/react` + `userEvent` for component interaction tests
+- **Pattern:** Tests verify non-obvious UX (e.g., interactive descendants in Select items don't trigger selection)
+
+## Ark UI MCP
+
+Use the Ark UI MCP tools to look up Ark UI component props and examples when implementing or customizing components. Components are built on Ark UI primitives, so these tools are relevant for understanding component behavior, props, and theming at the primitive level.

@@ -2,21 +2,27 @@
 
 Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm turbo dev`), **Tsdown**, **Changesets**.
 
+> For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
+
 ## Packages
 
 - **`@b3/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import from `@b3/ui`, never `@ark-ui/*` or `styled-system/*`.
-  - Components: `DataTable`, `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `Dialog`, `SubmitDialog`, `DeleteDialog`, `Select`, `SelectList`, `SelectListItem`, `TagSelect`, `Combobox`, `Drawer`, `Menu`, `ContextMenu`, `Tabs`, `Accordion`, `Breadcrumb`, `Form`, `Fieldset`, `Toaster`, `toaster`, `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator`, `Divider`, `Wrap`, `Badge`, `Alert`, `LoadingOverlay`, `EmptyState`, `Avatar`, `Link`, `Tooltip`, `ToggleTip`, `HoverCard`, `Popover`, `Splitter`, `Table`, `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`, `DatePicker`, `RangeDatePicker`, `DatePickerSelect`, `ScrollArea`, `ApplyInput`, `ApplySelect`, `EditableText`, `Editable`, `Logo`, `NumberInput`, `Stat`, `Checkbox`, `CheckboxCard`, `Radio`, `RadioGroup`, `RadioCard`, `Switch`, `Slider`, `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `Image`, `ToggleGroup`, `DebugFontSwitcher`, `FileUpload`, `Clipboard`, `Collapsible`, `ColorPicker`, `SearchHighlight`, `useHighlight`, `TagsInput`, `Actionbar`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`, `List`, `Pagination`, `PinInput`, `Progress`, `RatingGroup`, `SegmentGroup`, `Skeleton`, `Spinner`, `Icon`, `Provider`
-  - Hooks: `useAutoFocus`, `useDebounceQuery`, `useFileSelect`, `useRowSelection`
-  - Panda CSS utilities: `css`, `cx`, `styled`, `token`; types: `HTMLStyledProps`, `StyledComponent`
-  - Theme: `b3Preset` (from `@b3/ui/preset`) — Panda CSS preset with brand tokens and semantic tokens.
-  - Variant vocabulary: `solid` > `surface` > `subtle` > `outline` > `plain` (no `ghost`). See `src/theme/recipes/README.md`.
-  - Types: `WithRef<T, E>`
-- **`@b3/api`** — `createApiClient`, `setApiConfig`, `ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`, `ApiErrorResponse`, `DataTableParams`, `DataTableFilters`, `DataTableSortType`; re-exported types: `Client`, `RequestConfig`, `ResponseConfig`, `ResponseErrorConfig`
-- **`@b3/utils`** — `buildQueryString`, `addOrRemove`, `addOrRemoveByKey`, `transformArray`, `findInTree`, `getFirstItemId`, `getLastItemId`, `toCamelCase`, `toInt`, `isStrictlyNumeric`, `formatDateDefault`, `formatDateRelative`, `isValidNumber`, `objectKeys`, `toKeyValue`, `isPlainObject`, `saveBlobResponse`, `downloadFile`, `isEnumKey`, `enumToKeys`, `enumToValues`, `enumToEntries`, `enumToOptions`, `enumValueToKey`, `fromEnum`, `mapEnumToFlags`, `toListItems`, `getEnumKeyByValue`, `emailSchema`/`phoneSchema`/`passwordSchema`/`loginSchema` (Zod)
-- **`@b3/pages`** — `LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`; types: `AuthProvider`, `User`, `LoginOptions`, `LoginPageProps`, `ForgotPasswordPageProps`, `ResetPasswordPageProps`
-- **`@b3/config`** — Importable as `@b3/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`
-- **`@b3/auth-adapters`** — `createAuth0AuthProvider()`
-- **`@b3/testing`** — Test infrastructure (MSW request handlers for Storybook)
+- **`@b3/api`** — HTTP client (`createApiClient`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
+- **`@b3/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
+- **`@b3/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
+- **`@b3/config`** — Shared tool configs: `@b3/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
+- **`@b3/auth-adapters`** — `AuthProvider` adapters (Auth0).
+- **`@b3/testing`** — Test infrastructure (MSW request handlers for Storybook).
+
+## Key Dependencies
+
+- React 18/19 (peer dep)
+- Panda CSS (build-time CSS-in-JS)
+- Ark UI (headless component primitives)
+- Zod (validation schemas in @b3/utils)
+- Kubb (OpenAPI client codegen, configured via @b3/config/kubb)
+- TanStack Table (used by DataTable)
+- MSW (mock service worker, for Storybook/testing)
 
 ## Conventions
 
@@ -24,11 +30,44 @@ Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm 
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsdown.config.ts`
 - Consumed via path aliases (e.g., `@b3/ui` → `packages/ui/src`)
 
+## Build & Dev Commands
+
+| Command                | Purpose                             |
+| ---------------------- | ----------------------------------- |
+| `pnpm install`         | Install all workspace dependencies  |
+| `pnpm turbo dev`       | Dev mode (watch + rebuild all pkgs) |
+| `pnpm turbo build`     | Build all packages (`dist/`)        |
+| `pnpm turbo test`      | Run all tests                       |
+| `pnpm turbo typecheck` | Type-check all packages             |
+| `pnpm lint`            | Lint all packages (oxlint)          |
+| `pnpm storybook`       | Start Storybook dev server          |
+| `pnpm changeset`       | Create a changeset for versioning   |
+
+Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS + `.d.ts` in `dist/`.
+`styled-system/` directories are Panda CSS generated output (committed, not in dist). **Never edit `styled-system/` manually** — regenerated by `panda codegen`.
+
+## Versioning (Changesets)
+
+1. `pnpm changeset` — describe what changed and which packages are affected
+2. `pnpm changeset version` — bump versions and update changelogs
+3. Commit the version bump, then `pnpm changeset publish` to publish
+
+## Testing
+
+- **Unit tests**: Vitest (configured per-package via `vitest.config.ts`)
+- **E2E tests**: Playwright (configured via `@b3/config/playwright`)
+- **Mocking**: MSW (mock service worker) for Storybook and test suites via `@b3/testing`
+
 ## Linting
 
 - `@pandacss/eslint-plugin` configured in `.oxlintrc.json` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
 - Run `pnpm lint` (uses `oxlint -c .oxlintrc.json src`) to check for violations.
 
-## Ark UI MCP
+## Anti-Patterns (Do NOT)
 
-Use the Ark UI MCP tools to look up Ark UI component props and examples when implementing or customizing `@b3/ui` components. Components are built on Ark UI primitives, so these tools are relevant for understanding component behavior, props, and theming at the primitive level.
+- Import from `@ark-ui/react` directly — always use the `@b3/ui` wrapper
+- Import from `styled-system/*` in consuming apps — use `css`/`styled`/`token` from `@b3/ui`
+- Use hardcoded colors (`#hex`, `rgb()`, `hsl()`) — use Panda tokens
+- Use default exports — all packages use named exports only
+- Import between packages via relative paths — use `@b3/*` aliases
+- Add `react` or `react-dom` to package `dependencies` — they are peer deps

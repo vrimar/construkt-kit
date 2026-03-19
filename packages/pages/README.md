@@ -12,6 +12,20 @@ Shared auth page components for B3 apps. Pages own layout — consuming apps wir
 
 **Types:** `AuthProvider`, `User`, `LoginOptions`, `LoginPageProps`, `ForgotPasswordPageProps`, `ResetPasswordPageProps`
 
+## AuthProvider Interface
+
+```ts
+interface AuthProvider {
+  getToken: () => Promise<string | null>;
+  login: (options?: LoginOptions) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: () => Promise<boolean> | boolean; // sync or async
+  getUser: () => Promise<User | null> | User | null; // sync or async
+}
+```
+
+`isAuthenticated()` and `getUser()` accept both sync and async return types — allows Auth0 (sync cache) and MSAL (async) to both work.
+
 ## Usage
 
 ```tsx
