@@ -18,13 +18,12 @@ export const Default: Story = {};
 export const Sizes: Story = {
   render: () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <Heading size="xs">Heading xs</Heading>
-      <Heading size="sm">Heading sm</Heading>
-      <Heading size="md">Heading md</Heading>
-      <Heading size="lg">Heading lg</Heading>
-      <Heading size="xl">Heading xl</Heading>
-      <Heading size="2xl">Heading 2xl</Heading>
-      <Heading size="3xl">Heading 3xl</Heading>
+      <Heading as="h6">Heading h6</Heading>
+      <Heading as="h5">Heading h5</Heading>
+      <Heading as="h4">Heading h4</Heading>
+      <Heading as="h3">Heading h3</Heading>
+      <Heading as="h2">Heading h2</Heading>
+      <Heading as="h1">Heading h1</Heading>
     </div>
   ),
 };
@@ -32,7 +31,6 @@ export const Sizes: Story = {
 export const AsH1: Story = {
   args: {
     as: "h1",
-    size: "3xl",
     children: "H1 Heading",
   },
 };

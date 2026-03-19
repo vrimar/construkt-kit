@@ -25,7 +25,7 @@ export const Default: Story = {
       selected={undefined}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onSelect={fn()}
+      onSelect={fn<(item: (typeof items)[number]) => void>()}
     >
       <Select.Trigger label="Select a fruit" />
       <Select.Content>
@@ -56,7 +56,7 @@ export const WithSelected: Story = {
       selected={2}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onSelect={fn()}
+      onSelect={fn<(item: (typeof items)[number]) => void>()}
     >
       <Select.Trigger />
       <Select.Content>
@@ -87,7 +87,7 @@ export const MultiSelect: Story = {
       selected={[1, 3]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onSelect={fn()}
+      onSelect={fn<(item: (typeof items)[number]) => void>()}
     >
       <Select.Trigger label="Select fruits" />
       <Select.Content>
@@ -118,7 +118,7 @@ export const Compound: Story = {
       selected={[1, 3]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onSelect={fn()}
+      onSelect={fn<(item: (typeof items)[number]) => void>()}
     >
       <Select.Trigger label="Select fruits" />
       <Select.Content width="320px">

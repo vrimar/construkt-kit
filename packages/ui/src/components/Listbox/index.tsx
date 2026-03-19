@@ -1,11 +1,12 @@
+import type { CollectionItem } from "@ark-ui/react/collection";
 import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
 import { CheckIcon } from "lucide-react";
 import type {
-  ComponentProps,
-  MouseEvent,
-  MouseEventHandler,
-  ReactNode,
-  SyntheticEvent,
+    ComponentProps,
+    MouseEvent,
+    MouseEventHandler,
+    ReactNode,
+    SyntheticEvent,
 } from "react";
 import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { listbox, type ListboxVariantProps } from "styled-system/recipes";
@@ -157,7 +158,8 @@ function ItemActions({ children }: { children: ReactNode }) {
 
 // --- Simplified API ---
 
-export interface ListboxProps extends ComponentProps<typeof Root> {
+export interface ListboxProps<T extends CollectionItem = CollectionItem>
+  extends ArkListbox.RootComponentProps<T, RootProps> {
   /** Label text displayed above the list */
   label?: string;
   /** Placeholder for the search input (enables search when set) */
@@ -167,10 +169,10 @@ export interface ListboxProps extends ComponentProps<typeof Root> {
   /** Content displayed when the collection is empty */
   emptyMessage?: ReactNode;
   /** Render custom content after each item's text */
-  renderActions?: (item: any) => ReactNode;
+  renderActions?: (item: T) => ReactNode;
 }
 
-function ListboxRoot({
+function ListboxRoot<T extends CollectionItem>({
   ref,
   label,
   searchPlaceholder,
@@ -179,7 +181,7 @@ function ListboxRoot({
   renderActions,
   children,
   ...rest
-}: WithRef<ListboxProps>) {
+}: WithRef<ListboxProps<T>>) {
   const collection = rest.collection;
   const grouped = collection.group?.() ?? [];
   const isGrouped = grouped.length > 0 && grouped[0]?.[0] !== undefined;

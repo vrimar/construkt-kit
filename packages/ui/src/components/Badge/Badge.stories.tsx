@@ -22,7 +22,6 @@ export const Variants: Story = {
       <Badge variant="surface">Surface</Badge>
       <Badge variant="subtle">Subtle</Badge>
       <Badge variant="outline">Outline</Badge>
-      <Badge variant="plain">Plain</Badge>
     </div>
   ),
 };

@@ -1,7 +1,7 @@
 import {
-  Combobox as ArkCombobox,
-  ComboboxContext,
-  useComboboxItemContext,
+    Combobox as ArkCombobox,
+    ComboboxContext,
+    useComboboxItemContext,
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
@@ -83,3 +83,5 @@ export const Combobox = {
   Trigger,
   Context: ComboboxContext,
 };
+
+export { createListCollection, useListCollection } from "@ark-ui/react/collection";

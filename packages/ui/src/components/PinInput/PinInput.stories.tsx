@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PinInput } from ".";
+import { PinInput, type PinInputRootProps } from ".";
 
 const meta: Meta = {
   title: "Components/PinInput",
@@ -44,18 +44,22 @@ export const SixDigits: Story = {
 };
 
 export const Masked: Story = {
-  render: () => (
-    <PinInput.Root mask>
-      <PinInput.Label>Secret PIN</PinInput.Label>
-      <PinInput.Control>
-        {[0, 1, 2, 3].map((id) => (
-          <PinInput.Input
-            key={id}
-            index={id}
-          />
-        ))}
-      </PinInput.Control>
-      <PinInput.HiddenInput />
-    </PinInput.Root>
-  ),
+  render: () => {
+    const maskedProps = { mask: true as never } as PinInputRootProps;
+
+    return (
+      <PinInput.Root {...maskedProps}>
+        <PinInput.Label>Secret PIN</PinInput.Label>
+        <PinInput.Control>
+          {[0, 1, 2, 3].map((id) => (
+            <PinInput.Input
+              key={id}
+              index={id}
+            />
+          ))}
+        </PinInput.Control>
+        <PinInput.HiddenInput />
+      </PinInput.Root>
+    );
+  },
 };

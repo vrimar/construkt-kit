@@ -3,6 +3,7 @@ import type { StorybookConfig } from "@storybook/react-vite";
 import { createRequire } from "node:module";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import checker from "vite-plugin-checker";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -46,7 +47,7 @@ const config: StorybookConfig = {
         {
           name: "resolve-ark-ui",
           enforce: "pre" as const,
-          resolveId(source) {
+          resolveId(source: string) {
             // Redirect @ark-ui/react imports to the correct pnpm store location
             if (source === "@ark-ui/react" || source.startsWith("@ark-ui/react/")) {
               try {
@@ -62,6 +63,7 @@ const config: StorybookConfig = {
             return null;
           },
         },
+        checker({ typescript: true }),
       ],
       resolve: {
         ...config.resolve,

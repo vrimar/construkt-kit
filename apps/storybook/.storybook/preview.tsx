@@ -4,6 +4,7 @@ import "./storybook.css";
 import type { Preview } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
+import type { ReactElement } from "react";
 
 initialize();
 
@@ -19,7 +20,7 @@ function createTestQueryClient() {
 const preview: Preview = {
   loaders: [mswLoader],
   decorators: [
-    (Story) => (
+    (Story: () => ReactElement) => (
       <QueryClientProvider client={createTestQueryClient()}>
         <Story />
       </QueryClientProvider>

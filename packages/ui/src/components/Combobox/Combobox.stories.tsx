@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Combobox } from ".";
+import { Combobox, createListCollection } from ".";
 
 const meta: Meta = {
   title: "Components/Combobox",
@@ -17,9 +17,11 @@ const items = [
   { label: "Solid", value: "solid" },
 ];
 
+const collection = createListCollection({ items });
+
 export const Default: Story = {
   render: () => (
-    <Combobox.Root items={items}>
+    <Combobox.Root collection={collection}>
       <Combobox.Label>Framework</Combobox.Label>
       <Combobox.Control>
         <Combobox.Input placeholder="Select a framework" />
@@ -29,7 +31,7 @@ export const Default: Story = {
       <Combobox.Positioner>
         <Combobox.Content>
           <Combobox.List>
-            {items.map((item) => (
+            {collection.items.map((item) => (
               <Combobox.Item
                 key={item.value}
                 item={item}

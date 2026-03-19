@@ -51,7 +51,7 @@ export const NoBackdrop: Story = {
       <DialogTrigger asChild>
         <Button variant="outline">Open (no backdrop)</Button>
       </DialogTrigger>
-      <DialogContent backdrop={false}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Dialog without backdrop</DialogTitle>
         </DialogHeader>

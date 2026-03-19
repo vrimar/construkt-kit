@@ -25,7 +25,7 @@ export const Default: Story = {
       selected={[]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onApply={fn()}
+      onApply={fn<(values: (typeof items)[number][]) => void>()}
     >
       <ApplySelect.Trigger label="Select Frameworks" />
       <ApplySelect.Content>
@@ -57,7 +57,7 @@ export const WithToggleAll: Story = {
       selected={[1, 3]}
       getValue={(item) => item.id}
       getLabel={(item) => item.name}
-      onApply={fn()}
+      onApply={fn<(values: (typeof items)[number][]) => void>()}
     >
       <ApplySelect.Trigger label="Select All" />
       <ApplySelect.Content>

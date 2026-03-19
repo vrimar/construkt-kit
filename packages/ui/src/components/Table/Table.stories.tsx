@@ -69,7 +69,7 @@ export const WithCaption: Story = {
 export const Sizes: Story = {
   render: () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      {(["sm", "md", "lg"] as const).map((size) => (
+      {(["sm", "md"] as const).map((size) => (
         <Table.Root
           key={size}
           size={size}

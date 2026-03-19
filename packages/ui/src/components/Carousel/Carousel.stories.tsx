@@ -11,7 +11,7 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <Carousel.Root>
+    <Carousel.Root slideCount={5}>
       <Carousel.Control>
         <Carousel.PrevTrigger>◀</Carousel.PrevTrigger>
         <Carousel.NextTrigger>▶</Carousel.NextTrigger>

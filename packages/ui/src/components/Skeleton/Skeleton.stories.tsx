@@ -26,9 +26,9 @@ export const Default: Story = {
 export const Circle: Story = {
   render: () => (
     <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-      <SkeletonCircle size="10" />
-      <SkeletonCircle size="14" />
-      <SkeletonCircle size="20" />
+      <SkeletonCircle width="10" height="10" />
+      <SkeletonCircle width="14" height="14" />
+      <SkeletonCircle width="20" height="20" />
     </div>
   ),
 };
@@ -44,7 +44,7 @@ export const Text: Story = {
 export const CardLoading: Story = {
   render: () => (
     <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", maxWidth: 400 }}>
-      <SkeletonCircle size="10" />
+      <SkeletonCircle width="10" height="10" />
       <div style={{ flex: 1 }}>
         <SkeletonText noOfLines={3} />
       </div>

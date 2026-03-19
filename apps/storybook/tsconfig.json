@@ -1,4 +1,34 @@
 {
   "extends": "@b3/config/typescript",
-  "include": [".storybook/**/*.ts", ".storybook/**/*.tsx"]
+  "compilerOptions": {
+    "paths": {
+      "*": [
+        "./*"
+      ],
+      "@storybook/react-vite": [
+        "./node_modules/@storybook/react-vite"
+      ],
+      "storybook/test": [
+        "./node_modules/storybook/test"
+      ],
+      "styled-system/*": [
+        "../../packages/ui/styled-system/*"
+      ],
+      "@b3/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@b3/pages": [
+        "../../packages/pages/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    ".storybook/**/*.d.ts",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "../../packages/ui/src/**/*.stories.ts",
+    "../../packages/ui/src/**/*.stories.tsx",
+    "../../packages/pages/src/**/*.stories.ts",
+    "../../packages/pages/src/**/*.stories.tsx"
+  ]
 }

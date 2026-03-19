@@ -1,9 +1,8 @@
-import { createListCollection } from "@ark-ui/react/listbox";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
-import { Listbox } from ".";
-import { IconButton } from "../Button";
+import { createListCollection, Listbox } from ".";
+import { IconButton } from "../Buttons";
 
 const meta: Meta = {
   title: "Components/Listbox",

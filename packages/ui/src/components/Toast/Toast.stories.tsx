@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { ReactElement } from "react";
 import { Toaster, toaster } from ".";
 import { Button } from "../Buttons";
 
@@ -6,7 +7,7 @@ const meta: Meta = {
   title: "Components/Toast",
   tags: ["autodocs"],
   decorators: [
-    (Story) => (
+    (Story: () => ReactElement) => (
       <>
         <Toaster />
         <Story />

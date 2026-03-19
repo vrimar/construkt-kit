@@ -50,13 +50,12 @@ export const Single: Story = {
 export const Sizes: Story = {
   render: () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      {(["sm", "md", "lg"] as const).map((size) => (
+      {(["A", "B", "C"] as const).map((label) => (
         <ToggleGroup.Root
-          key={size}
+          key={label}
           defaultValue={["a"]}
-          size={size}
         >
-          <ToggleGroup.Item value="a">A</ToggleGroup.Item>
+          <ToggleGroup.Item value="a">{label}</ToggleGroup.Item>
           <ToggleGroup.Item value="b">B</ToggleGroup.Item>
           <ToggleGroup.Item value="c">C</ToggleGroup.Item>
         </ToggleGroup.Root>

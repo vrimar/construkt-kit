@@ -1,17 +1,22 @@
 import {
-  TreeView as ArkTreeView,
-  TreeViewContext,
-  TreeViewNodeContext,
+    TreeView as ArkTreeView,
+    TreeViewContext,
+    TreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
-import { treeView } from "styled-system/recipes";
+import { treeView, type TreeViewVariantProps } from "styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(treeView);
 
-const Root = withProvider(ArkTreeView.Root, "root");
-const RootProvider = withProvider(ArkTreeView.RootProvider, "root");
+type RootProps = TreeViewVariantProps;
+
+const Root = withProvider(ArkTreeView.Root, "root") as ArkTreeView.RootComponent<RootProps>;
+const RootProvider = withProvider(
+  ArkTreeView.RootProvider,
+  "root",
+) as ArkTreeView.RootProviderComponent<RootProps>;
 const Tree = withContext(ArkTreeView.Tree, "tree");
 const Label = withContext(ArkTreeView.Label, "label");
 const Branch = withContext(ArkTreeView.Branch, "branch");
