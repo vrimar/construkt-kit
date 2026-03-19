@@ -76,7 +76,6 @@ export * from "./ToggleGroup";
 export * from "./ToggleTip";
 export * from "./Tooltip";
 export * from "./Tree";
-export * from "./TreeSelect";
 export * from "./utils";
 export * from "./VirtualScrollArea";
 export { Portal } from "@ark-ui/react/portal";
