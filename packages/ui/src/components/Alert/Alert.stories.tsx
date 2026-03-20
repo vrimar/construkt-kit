@@ -13,20 +13,27 @@ const meta: Meta<typeof Alert> = {
 export default meta;
 type Story = StoryObj<typeof Alert>;
 
-export const Info: Story = {
-  args: { status: "info", title: "Informational message" },
-};
-
-export const Success: Story = {
-  args: { status: "success", title: "Changes saved successfully" },
-};
-
-export const Warning: Story = {
-  args: { status: "warning", title: "This action cannot be undone" },
-};
-
-export const Error: Story = {
-  args: { status: "error", title: "Something went wrong" },
+export const Variants: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: "12px" }}>
+      <Alert
+        status="info"
+        title="Informational message"
+      />
+      <Alert
+        status="success"
+        title="Changes saved successfully"
+      />
+      <Alert
+        status="warning"
+        title="This action cannot be undone"
+      />
+      <Alert
+        status="error"
+        title="Something went wrong"
+      />
+    </div>
+  ),
 };
 
 export const WithDescription: Story = {

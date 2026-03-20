@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Box, HStack } from "styled-system/jsx";
 
 import type { SelectButtonProps } from "../Buttons";
@@ -110,9 +118,32 @@ export const SelectRoot = <T,>({
   selected,
 }: SelectRootProps<T>) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [measuredContentWidth, setMeasuredContentWidth] = useState<number | undefined>(undefined);
   const isMultiSelect = Array.isArray(selected);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  let resolvedContentWidth = controlledContentWidth ?? buttonRef.current?.clientWidth;
+
+  useLayoutEffect(() => {
+    if (controlledContentWidth != null) return;
+
+    const button = buttonRef.current;
+
+    if (button == null) return;
+
+    const syncContentWidth = () => {
+      const nextWidth = button.clientWidth;
+
+      setMeasuredContentWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
+    };
+
+    syncContentWidth();
+
+    const resizeObserver = new ResizeObserver(syncContentWidth);
+    resizeObserver.observe(button);
+
+    return () => resizeObserver.disconnect();
+  }, [controlledContentWidth]);
+
+  let resolvedContentWidth = controlledContentWidth ?? measuredContentWidth;
 
   if (resolvedContentWidth == null || resolvedContentWidth < minContentWidth) {
     resolvedContentWidth = minContentWidth;
@@ -348,6 +379,7 @@ export const SelectEmptyState = ({ children = "No items available" }: SelectEmpt
 export const SelectFooter = ({ children, ...props }: SelectFooterProps) => (
   <Box {...props}>{children}</Box>
 );
+
 export const Select = {
   Root: SelectRoot,
   Trigger: SelectTrigger,

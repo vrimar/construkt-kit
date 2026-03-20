@@ -8,6 +8,60 @@ afterEach(() => {
 });
 
 describe("Select", () => {
+  it("stretches content to the trigger width when contentWidth is not provided", async () => {
+    const originalClientWidth = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "clientWidth",
+    );
+
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+      configurable: true,
+      get() {
+        return 320;
+      },
+    });
+
+    const items = [
+      { label: "First filter", value: "1" },
+      { label: "Second filter", value: "2" },
+    ];
+
+    try {
+      render(
+        <Select.Root
+          getLabel={(item) => item.label}
+          getValue={(item) => item.value}
+          items={items}
+          onSelect={vi.fn()}
+          open
+          selected={undefined}
+        >
+          <Select.Trigger label="Filter" />
+          <Select.Content data-testid="select-content">
+            <Select.List>
+              <Select.Items>
+                {(item: (typeof items)[number]) => (
+                  <Select.Item
+                    key={item.value}
+                    item={item}
+                  >
+                    <Select.ItemText />
+                  </Select.Item>
+                )}
+              </Select.Items>
+            </Select.List>
+          </Select.Content>
+        </Select.Root>,
+      );
+
+      expect(screen.getByTestId("select-content").className).toContain("w_320");
+    } finally {
+      if (originalClientWidth != null) {
+        Object.defineProperty(HTMLElement.prototype, "clientWidth", originalClientWidth);
+      }
+    }
+  });
+
   it("does not select an item when clicking an interactive descendant inside Select.Item", async () => {
     const user = userEvent.setup();
     const onAction = vi.fn();
@@ -30,7 +84,7 @@ describe("Select", () => {
         <Select.Content>
           <Select.List>
             <Select.Items>
-              {(item) => (
+              {(item: (typeof items)[number]) => (
                 <Select.Item
                   key={item.value}
                   item={item}
