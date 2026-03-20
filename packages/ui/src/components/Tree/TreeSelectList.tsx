@@ -7,8 +7,8 @@ import { Box, Flex } from "styled-system/jsx";
 
 import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";
+import { VirtualScrollArea } from "../ScrollArea/VirtualScrollArea";
 import { Tooltip } from "../Tooltip";
-import { VirtualScrollArea } from "../VirtualScrollArea";
 import {
   collectBranchesWithLeafDescendants,
   collectBranchValues,
@@ -314,9 +314,6 @@ export const TreeSelectList = <TNode extends TreeNode>({
             height={maxHeight}
             maxHeight={maxHeight}
             measure
-            borderWidth="1px"
-            borderColor="border"
-            borderRadius="md"
             p="2"
           >
             {({ node, indexPath }) => {

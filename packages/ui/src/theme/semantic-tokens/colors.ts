@@ -116,4 +116,7 @@ export const colors = defineSemanticTokens.colors({
   neutral,
   brand: colorPalette("brand"),
   red: colorPalette("red"),
+  green: colorPalette("green"),
+  orange: colorPalette("orange"),
+  blue: colorPalette("blue"),
 });

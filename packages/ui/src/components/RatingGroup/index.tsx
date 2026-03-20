@@ -44,6 +44,7 @@ function ItemIndicator({
   return (
     <StyledItemIndicator
       ref={ref}
+      cursor="pointer"
       {...rest}
       data-highlighted={item.highlighted ? "" : undefined}
       data-checked={item.checked ? "" : undefined}

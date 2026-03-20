@@ -58,7 +58,7 @@ export const SubmitDialog = ({
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content maxWidth={width}>
+          <Dialog.Content style={{ maxWidth: width }}>
             <Dialog.Header>
               <Dialog.Title>{title}</Dialog.Title>
             </Dialog.Header>

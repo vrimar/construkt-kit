@@ -2,7 +2,7 @@ import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import { Box } from "styled-system/jsx";
 
-import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
+import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 
 interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   /** The list of items to virtualize. */

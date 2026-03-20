@@ -30,6 +30,7 @@ export const segmentGroup = defineSlotRecipe({
       justifyContent: "center",
       position: "relative",
       userSelect: "none",
+      cursor: "pointer",
       _disabled: {
         opacity: "0.5",
       },
