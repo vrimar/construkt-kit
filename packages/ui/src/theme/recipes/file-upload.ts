@@ -26,7 +26,7 @@ export const fileUpload = defineSlotRecipe({
 
       focusVisibleRing: "outside",
       justifyContent: "center",
-      transition: "backgrounds",
+      transition: "colors",
       width: "full",
       _dragging: {
         background: "neutral.surface.bg.hover",

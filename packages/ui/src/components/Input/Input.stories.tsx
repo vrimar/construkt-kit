@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Input } from "./Input";
 import { InputGroup } from "./InputGroup";
-import { MultiLineInput } from "./MultiLineInput";
 import { PasswordInput } from "./PasswordInput";
 import { SearchInput } from "./SearchInput";
 import { Textarea } from "./Textarea";
@@ -94,15 +93,6 @@ export const TextareaStory: Story = {
   render: () => (
     <div style={{ maxWidth: 400 }}>
       <Textarea placeholder="Enter long text..." />
-    </div>
-  ),
-};
-
-export const MultiLineInputStory: Story = {
-  name: "MultiLineInput",
-  render: () => (
-    <div style={{ maxWidth: 400 }}>
-      <MultiLineInput placeholder="Enter text (Enter is prevented)..." />
     </div>
   ),
 };

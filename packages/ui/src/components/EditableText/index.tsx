@@ -1,5 +1,5 @@
 import { PencilIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HStack } from "styled-system/jsx";
 import { type InputProps, Input } from "../Input";
 
@@ -25,6 +25,10 @@ export const EditableText = ({
     text,
     isEditing: false,
   });
+
+  useEffect(() => {
+    setState((prev) => (prev.isEditing ? prev : { ...prev, text }));
+  }, [text]);
 
   const handleOnChange = (value: string) => {
     setState({

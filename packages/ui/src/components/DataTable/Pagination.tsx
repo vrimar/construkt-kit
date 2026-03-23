@@ -1,8 +1,8 @@
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ChevronsLeftIcon,
+    ChevronsRightIcon,
 } from "lucide-react";
 import { HStack } from "styled-system/jsx";
 import { Text } from "../Text";
@@ -36,7 +36,7 @@ export const DataTablePagination = <TData,>({
   return (
     <HStack
       borderTopWidth="1px"
-      alignContent="center"
+      alignItems="center"
       justifyContent="space-between"
       paddingX="4"
       paddingY="2"
@@ -45,8 +45,8 @@ export const DataTablePagination = <TData,>({
         gap="4"
         height="100%"
       >
-        <Text fontSize="md">
-          <b>{totalItems} </b>
+        <Text textStyle="md">
+          <Text as="span" fontWeight="bold">{totalItems} </Text>
           {itemsLabel}
         </Text>
       </HStack>
@@ -54,7 +54,7 @@ export const DataTablePagination = <TData,>({
       <HStack gap="8">
         {totalItems > 0 ? (
           <Text>
-            {pageLabel} <b>{page + 1}</b> {outOfLabel} <b>{pageCount}</b>
+            {pageLabel} <Text as="span" fontWeight="bold">{page + 1}</Text> {outOfLabel} <Text as="span" fontWeight="bold">{pageCount}</Text>
           </Text>
         ) : (
           <Text>-</Text>

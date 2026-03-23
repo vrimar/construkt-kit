@@ -33,7 +33,7 @@ export const SearchInput = ({
     <InputGroup
       startElement={hasIcon && <SearchIcon />}
       endElement={
-        props.value && (
+        props.value && onClear && (
           <IconButton
             variant="plain"
             size={iconButtonSize}

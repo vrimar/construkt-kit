@@ -23,7 +23,8 @@ export const SubmitForm = ({
   ...props
 }: SubmitFormProps) => {
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter" && onSubmit) {
+    const target = event.target as HTMLElement;
+    if (event.key === "Enter" && target.tagName !== "TEXTAREA" && onSubmit) {
       onSubmit();
     }
   };

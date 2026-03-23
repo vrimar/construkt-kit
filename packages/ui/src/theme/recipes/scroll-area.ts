@@ -7,8 +7,8 @@ export const scrollArea = defineSlotRecipe({
     root: {
       display: "flex",
       flexDirection: "column",
-      width: "100%",
-      height: "100%",
+      width: "full",
+      height: "full",
       position: "relative",
       overflow: "hidden",
       "--scrollbar-margin": "0px",
@@ -17,8 +17,8 @@ export const scrollArea = defineSlotRecipe({
     viewport: {
       display: "flex",
       flexDirection: "column",
-      height: "100%",
-      width: "100%",
+      height: "full",
+      width: "full",
       WebkitOverflowScrolling: "touch",
       scrollbarWidth: "none",
       "&::-webkit-scrollbar": {

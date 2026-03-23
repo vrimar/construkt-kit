@@ -12,7 +12,7 @@ import { semanticTokens } from "./theme/semantic-tokens";
 import { textStyles } from "./theme/text-styles";
 import { tokens } from "./theme/tokens";
 
-const colorPaletteValues = ["brand", "slate", "gray", "blue", "red", "green", "orange", "yellow"];
+const colorPaletteValues = ["brand", "neutral", "slate", "gray", "blue", "red", "green", "orange", "yellow"];
 
 /**
  * Custom B3 Panda CSS preset.

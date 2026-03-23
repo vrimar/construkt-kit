@@ -46,7 +46,7 @@ export const SelectButton = ({
         </Text>
         <HStack gap="0">
           {hasValue && onClear ? (
-            <Box onClick={handleClear}>
+            <Box onClick={(e) => { e.stopPropagation(); handleClear(); }}>
               <XIcon />
             </Box>
           ) : (

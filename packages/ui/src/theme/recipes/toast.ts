@@ -8,7 +8,7 @@ export const toast = defineSlotRecipe({
   base: {
     root: {
       alignItems: "start",
-      background: "neutral.surface.bg",
+      background: "colorPalette.surface.bg",
       borderRadius: "lg",
       boxShadow: "lg",
       display: "flex",
@@ -53,7 +53,7 @@ export const toast = defineSlotRecipe({
       textStyle: "sm",
     },
     actionTrigger: {
-      color: "brand.plain.fg",
+      color: "colorPalette.plain.fg",
       cursor: "pointer",
       fontWeight: "semibold",
       textStyle: "sm",

@@ -16,6 +16,8 @@ export interface DatePickerProps {
   onValueChange: (value: Date | undefined) => unknown;
 }
 
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) => {
   const [tempValue, setTempValue] = useState(value ? [parseDate(value)] : []);
 
@@ -29,14 +31,13 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
 
       const picked = props.value[0];
       if (picked) {
-        onValueChange(picked.toDate(Intl.DateTimeFormat().resolvedOptions().timeZone));
+        onValueChange(picked.toDate(localTimeZone));
       } else {
         onValueChange(undefined);
       }
 
       setIsOpened(false);
     },
-    min: parseDate(new Date()),
     numOfMonths: 1,
     startOfWeek: 1,
     open: isOpened,
@@ -63,7 +64,10 @@ export const DatePicker = ({ trigger, value, onValueChange }: DatePickerProps) =
       value={datePicker}
       asChild
     >
-      <styled.div className={classes.root} width="100%">
+      <styled.div
+        className={classes.root}
+        width="100%"
+      >
         <ArkDatePicker.Control asChild>
           <ArkDatePicker.Trigger asChild>{trigger}</ArkDatePicker.Trigger>
         </ArkDatePicker.Control>

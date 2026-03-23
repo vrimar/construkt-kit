@@ -21,6 +21,7 @@ export const TooltipIconButton = ({
     <Tooltip
       ref={ref}
       content={label}
+      {...tooltipProps}
     >
       <IconButton {...props}>{children}</IconButton>
     </Tooltip>

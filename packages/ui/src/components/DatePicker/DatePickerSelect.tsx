@@ -8,7 +8,12 @@ interface DatePickerSelectProps extends Omit<RangeDatePickerProps, "trigger"> {}
 
 export const DatePickerSelect = (props: DatePickerSelectProps) => {
   const label = useMemo(() => {
-    return props.value.map((date) => `${date.year}-${date.month}-${date.day}`).join(" to ");
+    return props.value
+      .map(
+        (date) =>
+          `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`,
+      )
+      .join(" to ");
   }, [props.value]);
 
   const hasValue = props.value.length === 2;

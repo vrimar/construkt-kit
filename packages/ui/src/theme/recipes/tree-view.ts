@@ -8,7 +8,7 @@ export const treeView = defineSlotRecipe({
   slots: treeViewAnatomy.keys(),
   base: {
     root: {
-      colorPalette: "brand",
+      colorPalette: "neutral",
       width: "full",
       display: "flex",
       flexDirection: "column",
@@ -41,18 +41,15 @@ export const treeView = defineSlotRecipe({
       cursor: "pointer",
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
-      transition: "backgrounds",
+      transition: "colors",
       _hover: {
         bg: "bg.subtle",
       },
       _selected: {
         bg: "bg.emphasized",
       },
-      _focusVisible: {
-        outline: "2px solid",
-        outlineColor: "border.emphasized",
-        outlineOffset: "-2px",
-      },
+      focusVisibleRing: "inside",
+      focusRingColor: "border.emphasized",
       _disabled: {
         layerStyle: "disabled",
       },
@@ -104,18 +101,15 @@ export const treeView = defineSlotRecipe({
       cursor: "pointer",
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
-      transition: "backgrounds",
+      transition: "colors",
       _hover: {
         bg: "bg.subtle",
       },
       _selected: {
         bg: "bg.emphasized",
       },
-      _focusVisible: {
-        outline: "2px solid",
-        outlineColor: "border.emphasized",
-        outlineOffset: "-2px",
-      },
+      focusVisibleRing: "inside",
+      focusRingColor: "border.emphasized",
       _disabled: {
         layerStyle: "disabled",
       },

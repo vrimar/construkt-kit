@@ -17,13 +17,13 @@ const Content = withContext(ark.div, "content");
 type IndicatorProps = ComponentProps<typeof StyledIndicator>;
 const StyledIndicator = withContext(ark.span, "indicator");
 
-function Indicator({ ref, ...props }: WithRef<IndicatorProps, HTMLSpanElement>) {
+function Indicator({ ref, children, ...props }: WithRef<IndicatorProps, HTMLSpanElement>) {
   return (
     <StyledIndicator
       ref={ref}
       {...props}
     >
-      <InfoIcon />
+      {children || <InfoIcon />}
     </StyledIndicator>
   );
 }

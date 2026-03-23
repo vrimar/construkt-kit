@@ -1,7 +1,7 @@
 import {
-  TagsInput as ArkTagsInput,
-  TagsInputContext,
-  useTagsInputContext,
+    TagsInput as ArkTagsInput,
+    TagsInputContext,
+    useTagsInputContext,
 } from "@ark-ui/react/tags-input";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -36,7 +36,7 @@ function Items(props: TagsInputItemsProps) {
 
   return context.value.map((item, index) => (
     <Item
-      key={index}
+      key={item}
       index={index}
       value={item}
       {...props}

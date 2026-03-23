@@ -11,7 +11,6 @@ export const DatePickerDayView = (props: DayViewProps) => {
   const datePicker = useDatePickerContext();
   const offset = datePicker.getOffset({ months: monthOffset });
 
-  datePicker.getTableRowProps();
   return (
     <DatePicker.Table>
       <DatePicker.TableHead>
@@ -38,7 +37,7 @@ export const DatePickerDayView = (props: DayViewProps) => {
                     variant="plain"
                     css={{
                       '[aria-selected="true"] &': {
-                        bg: "brand.50",
+                        bg: "colorPalette.subtle.bg",
                       },
                     }}
                   >

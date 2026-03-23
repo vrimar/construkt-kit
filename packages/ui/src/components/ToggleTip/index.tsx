@@ -24,7 +24,7 @@ export const ToggleTip = ({
   return (
     <ArkPopover.Root
       {...rest}
-      positioning={{ ...rest.positioning, gutter: 4 }}
+      positioning={{ gutter: 4, ...rest.positioning }}
     >
       <ArkPopover.Trigger asChild>{children}</ArkPopover.Trigger>
       <Portal

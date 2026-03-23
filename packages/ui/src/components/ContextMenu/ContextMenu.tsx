@@ -48,13 +48,14 @@ function ContextMenuCheckboxItem({
 }: WithRef<ComponentProps<typeof ArkMenu.CheckboxItem>>) {
   return (
     <ArkMenu.CheckboxItem
+      cursor="pointer"
       ref={ref}
       {...props}
     >
       <ArkMenu.ItemIndicator>
         <CheckIcon />
       </ArkMenu.ItemIndicator>
-      {children}
+      <Box flex="1">{children}</Box>
     </ArkMenu.CheckboxItem>
   );
 }
