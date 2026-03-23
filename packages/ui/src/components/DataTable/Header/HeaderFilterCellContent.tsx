@@ -18,7 +18,7 @@ export const DataTableHeaderFilterCellContent = <TData,>({
 }: HeaderFilterCellContentProps<TData>) => {
   const column = header.column;
   const filterable = column.getCanFilter();
-  const name = column.columnDef.header as string;
+  const name = typeof column.columnDef.header === "string" ? column.columnDef.header : column.id;
   const type = column.columnDef.meta?.type || "input";
   const filterValue = column.getFilterValue() as string[];
 

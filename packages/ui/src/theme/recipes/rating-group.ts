@@ -42,7 +42,7 @@ export const ratingGroup = defineSlotRecipe({
         top: 0,
       },
       "& [data-bg]": {
-        color: "neutral.subtle.bg",
+        color: "colorPalette.subtle.bg",
       },
       "& [data-fg]": {
         color: "transparent",

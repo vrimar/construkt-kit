@@ -6,7 +6,7 @@ export const hoverCard = defineSlotRecipe({
   slots: hoverCardAnatomy.keys(),
   base: {
     content: {
-      "--hovercard-bg": "colors.neutral.surface.bg",
+      "--hovercard-bg": "colors.bg",
 
       bg: "var(--hovercard-bg)",
       borderRadius: "lg",

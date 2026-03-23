@@ -37,8 +37,8 @@ export const Trigger = withContext(ArkMenu.Trigger, "trigger");
 export const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
 
 export {
-  MenuContext as Context,
-  type MenuSelectionDetails as SelectionDetails,
+    MenuContext as Context,
+    type MenuSelectionDetails as SelectionDetails
 } from "@ark-ui/react/menu";
 
 const StyledItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator");
@@ -119,7 +119,7 @@ function MenuCheckboxItem({
       <ItemIndicator>
         <CheckIcon />
       </ItemIndicator>
-      {children}
+      <Box flex="1">{children}</Box>
     </CheckboxItem>
   );
 }

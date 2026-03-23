@@ -40,7 +40,7 @@ export const switchRecipe = defineSlotRecipe({
     },
     control: {
       display: "inline-flex",
-      gap: "0.5rem",
+      gap: "2",
       flexShrink: 0,
       justifyContent: "flex-start",
       cursor: "pointer",
@@ -48,7 +48,7 @@ export const switchRecipe = defineSlotRecipe({
       position: "relative",
       width: "var(--switch-width)",
       height: "var(--switch-height)",
-      transition: "backgrounds",
+      transition: "colors",
       focusVisibleRing: "outside",
       _disabled: {
         layerStyle: "disabled",

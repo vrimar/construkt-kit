@@ -27,21 +27,21 @@ export const table = defineSlotRecipe({
         overflow: "unset",
         position: "sticky",
         shadowColor: "border",
-        zIndex: 1,
+        zIndex: "1",
       },
     },
     row: {
       _last: { "& td": { boxShadow: "none" } },
     },
     header: {
-      textAlign: "left",
+      textAlign: "start",
       verticalAlign: "middle",
       boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
       shadowColor: "border",
       _pinned: {
         position: "sticky",
         bg: "inherit",
-        zIndex: 2,
+        zIndex: "2",
       },
     },
     head: {
@@ -98,7 +98,7 @@ export const table = defineSlotRecipe({
           "& :where(tr)": {
             top: "var(--table-sticky-offset, 0)",
             position: "sticky",
-            zIndex: 2,
+            zIndex: "2",
           },
         },
       },

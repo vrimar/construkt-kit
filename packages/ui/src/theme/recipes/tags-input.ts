@@ -47,7 +47,7 @@ export const tagsInput = defineSlotRecipe({
       focusRingWidth: "2px",
       focusVisibleRing: "inside",
       justifyContent: "center",
-      cursor: { base: "button", _disabled: "initial" },
+      cursor: { base: "pointer", _disabled: "initial" },
       _icon: {
         boxSize: "5",
       },

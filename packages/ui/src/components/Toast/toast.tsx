@@ -62,7 +62,7 @@ export const Toaster = () => {
       >
         {(toast) => (
           <Root>
-            {toast.type === "loading" ? <Spinner color="brand.plain.fg" /> : <Indicator />}
+            {toast.type === "loading" ? <Spinner color="colorPalette.plain.fg" /> : <Indicator />}
 
             <Stack
               gap="3"

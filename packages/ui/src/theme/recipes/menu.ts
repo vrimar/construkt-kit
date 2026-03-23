@@ -85,14 +85,14 @@ export const menu = defineSlotRecipe({
   variants: {
     size: {
       xs: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
+        content: { p: "1", gap: "0.5", textStyle: "xs" },
         item: { px: "1", minH: "7", gap: "2", _icon: { boxSize: "3.5" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "1", height: "7" },
         separator: { mx: "-1", my: "0.5" },
       },
       sm: {
-        content: { p: "1", gap: "0.5", textStyle: "xs" },
+        content: { p: "1", gap: "0.5", textStyle: "sm" },
         item: { px: "1.5", minH: "8", gap: "2", _icon: { boxSize: "4" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "1.5", height: "8" },

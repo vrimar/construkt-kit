@@ -2,7 +2,7 @@ import { defineRecipe } from "@pandacss/dev";
 
 export const textarea = defineRecipe({
   className: "textarea",
-  jsx: ["Textarea", "Field.Textarea", "MultiLineInput"],
+  jsx: ["Textarea", "Field.Textarea"],
   base: {
     appearance: "none",
     borderRadius: "md",
@@ -10,7 +10,6 @@ export const textarea = defineRecipe({
     outline: "0",
     position: "relative",
     transition: "colors",
-    transitionProperty: "box-shadow, border-color",
     width: "100%",
     _disabled: {
       layerStyle: "disabled",

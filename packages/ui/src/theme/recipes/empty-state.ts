@@ -39,19 +39,19 @@ export const emptyState = defineSlotRecipe({
     size: {
       sm: {
         root: { py: "8", px: "4" },
-        indicator: { "& svg": { width: "6", height: "6" } },
+        indicator: { _icon: { width: "6", height: "6" } },
         title: { textStyle: "md" },
         description: { textStyle: "xs" },
       },
       md: {
         root: { py: "12", px: "6" },
-        indicator: { "& svg": { width: "8", height: "8" } },
+        indicator: { _icon: { width: "8", height: "8" } },
         title: { textStyle: "lg" },
         description: { textStyle: "sm" },
       },
       lg: {
         root: { py: "16", px: "8" },
-        indicator: { "& svg": { width: "10", height: "10" } },
+        indicator: { _icon: { width: "10", height: "10" } },
         title: { textStyle: "xl" },
         description: { textStyle: "md" },
       },

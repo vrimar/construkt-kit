@@ -4,11 +4,11 @@ import { Text } from "../Text";
 
 import { TagsInput } from "../TagsInput";
 import type {
-  SelectContentProps,
-  SelectListProps,
-  SelectRootProps,
-  SelectTriggerProps,
-  SelectValue,
+    SelectContentProps,
+    SelectListProps,
+    SelectRootProps,
+    SelectTriggerProps,
+    SelectValue,
 } from "./Select";
 import { Select } from "./Select";
 
@@ -81,7 +81,7 @@ export const TagSelect = <T,>({
 
                   return (
                     <TagsInput.Item
-                      key={index}
+                      key={id}
                       index={index}
                       value={id}
                     >

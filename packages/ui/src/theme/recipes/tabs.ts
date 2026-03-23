@@ -143,11 +143,11 @@ export const tabs = defineSlotRecipe({
           color: "fg.muted",
           border: "1px solid transparent",
           _hover: {
-            color: "brand.solid.bg",
+            color: "colorPalette.solid.bg",
           },
           _selected: {
             color: "colorPalette.surface.fg",
-            bg: "white",
+            bg: "bg",
             borderColor: "border",
             borderRadius: "md",
           },

@@ -5,7 +5,9 @@ import { hoverCard } from "styled-system/recipes";
 
 const { withRootProvider, withContext } = createStyleContext(hoverCard);
 
-const Root = withRootProvider(ArkHoverCard.Root);
+const Root = withRootProvider(ArkHoverCard.Root, {
+  defaultProps: { unmountOnExit: true, lazyMount: true },
+});
 const RootProvider = withRootProvider(ArkHoverCard.RootProvider);
 const Arrow = withContext(ArkHoverCard.Arrow, "arrow");
 const ArrowTip = withContext(ArkHoverCard.ArrowTip, "arrowTip");

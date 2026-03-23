@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export interface ParsedFile {
   source: string;
@@ -31,6 +31,15 @@ export const useFileSelect = <TMultiple extends boolean = false>(
   options: UseFileUploadOptions<TMultiple> = {},
 ) => {
   const optionsRef = useRef(options);
+  const urlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const url of urlsRef.current) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, []);
 
   return useCallback(() => {
     const { accept = "", multiple = false, onSelect } = optionsRef.current;
@@ -40,12 +49,18 @@ export const useFileSelect = <TMultiple extends boolean = false>(
     input.onchange = () => {
       if (!input.files) return;
 
+      for (const url of urlsRef.current) {
+        URL.revokeObjectURL(url);
+      }
+
       const parsed: ParsedFile[] = Array.from(input.files).map((file) => ({
         source: URL.createObjectURL(file),
         name: file.name,
         size: file.size,
         file,
       }));
+
+      urlsRef.current = parsed.map((p) => p.source);
 
       if (multiple) {
         (onSelect as (files: ParsedFile[]) => void)?.(parsed);

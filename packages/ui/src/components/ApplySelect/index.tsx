@@ -88,7 +88,6 @@ export const ApplySelectRoot = <T,>({
   const handleReset = () => {
     setTempSelected(Array.isArray(selected) ? selected : []);
     setIsOpen(false);
-    onApply([]);
   };
 
   const handleSelectOpenChange = (nextOpen: boolean) => {

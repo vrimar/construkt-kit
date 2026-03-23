@@ -61,9 +61,12 @@ function ActionTrigger({
   const dialog = useDialogContext();
   return (
     <StyledButton
-      {...props}
       ref={ref}
-      onClick={() => dialog.setOpen(false)}
+      {...props}
+      onClick={(e) => {
+        props.onClick?.(e);
+        if (!e.defaultPrevented) dialog.setOpen(false);
+      }}
     />
   );
 }

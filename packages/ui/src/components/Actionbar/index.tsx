@@ -1,13 +1,14 @@
 import { ark } from "@ark-ui/react/factory";
-import { Popover } from "@ark-ui/react/popover";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { actionbar } from "styled-system/recipes";
+import { Popover } from "../Popover";
+import { Positioner as PopoverPositioner } from "../Popover/Popover";
 
 const { withContext } = createStyleContext(actionbar);
 
 const Root = Popover.Root;
-const Positioner = Popover.Positioner;
+const Positioner = PopoverPositioner;
 const Content = withContext(ark.div, "content");
 const Separator = withContext(ark.div, "separator");
 const SelectionTrigger = withContext(ark.button, "selectionTrigger");

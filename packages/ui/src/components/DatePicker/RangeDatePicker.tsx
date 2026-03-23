@@ -40,9 +40,14 @@ export const RangeDatePicker = ({
     onValueChange: (props) => {
       setTempValue(props.value);
 
-      if (props.value.length === 2) {
+      if (mode === "single" && props.value.length === 1) {
         onValueChange(props.value);
         setIsOpened(false);
+      } else if (mode === "range" && props.value.length === 2) {
+        onValueChange(props.value);
+        setIsOpened(false);
+      } else if (mode === "multiple") {
+        onValueChange(props.value);
       }
     },
     numOfMonths: 2,
