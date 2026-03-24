@@ -31,7 +31,7 @@ const Control = withContext(ArkNumberInput.Control, "control", {
 
 export type NumberInputProps = RootProps;
 
-function NumberInputRoot({ ref, children, ...rest }: WithRef<NumberInputProps>) {
+function NumberInputSimple({ ref, children, ...rest }: WithRef<NumberInputProps>) {
   return (
     <Root
       ref={ref}
@@ -42,8 +42,8 @@ function NumberInputRoot({ ref, children, ...rest }: WithRef<NumberInputProps>) 
   );
 }
 
-export const NumberInput = Object.assign(NumberInputRoot, {
-  Root: NumberInputRoot,
+export const NumberInput = Object.assign(NumberInputSimple, {
+  Root: NumberInputSimple,
   Field: Input,
   Control,
   Scrubber,
