@@ -50,7 +50,7 @@ export const Sizes: Story = {
         maxWidth: "400px",
       }}
     >
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+      {(["xs", "sm", "md", "lg"] as const).map((size) => (
         <TagsInput.Root
           key={size}
           defaultValue={["React", "Vue"]}

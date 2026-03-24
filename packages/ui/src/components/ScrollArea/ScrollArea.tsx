@@ -22,7 +22,7 @@ export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
     contentProps?: ComponentProps<typeof Content>;
   };
 
-const ScrollAreaRoot = ({
+const ScrollAreaSimple = ({
   ref,
   children,
   scrollbars = "both",
@@ -52,7 +52,7 @@ const ScrollAreaRoot = ({
   );
 };
 
-export const ScrollArea = Object.assign(ScrollAreaRoot, {
+export const ScrollArea = Object.assign(ScrollAreaSimple, {
   Root,
   Viewport,
   Content,

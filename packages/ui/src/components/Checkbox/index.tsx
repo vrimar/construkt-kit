@@ -53,7 +53,7 @@ export interface CheckboxProps extends RootProps {
   rootRef?: Ref<HTMLLabelElement>;
 }
 
-function CheckboxRoot({
+function CheckboxSimple({
   ref,
   icon,
   children,
@@ -77,7 +77,7 @@ function CheckboxRoot({
   );
 }
 
-export const Checkbox = Object.assign(CheckboxRoot, {
+export const Checkbox = Object.assign(CheckboxSimple, {
   Root,
   RootProvider,
   Control,

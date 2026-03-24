@@ -62,7 +62,7 @@ export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children">
   swatches?: string[];
 }
 
-export const ColorPicker = ({
+const ColorPickerSimple = ({
   portalled = true,
   portalRef,
   withAlpha = false,
@@ -70,7 +70,7 @@ export const ColorPicker = ({
   ...rest
 }: ColorPickerProps) => {
   return (
-    <ColorPickerParts.Root {...rest}>
+    <Root {...rest}>
       <Control>
         <Trigger>
           <TriggerSwatch>
@@ -117,11 +117,11 @@ export const ColorPicker = ({
         </Positioner>
       </Portal>
       <HiddenInput />
-    </ColorPickerParts.Root>
+    </Root>
   );
 };
 
-export const ColorPickerParts = {
+export const ColorPicker = Object.assign(ColorPickerSimple, {
   Root,
   RootProvider,
   Area,
@@ -151,4 +151,4 @@ export const ColorPickerParts = {
   ValueText,
   View,
   Context: ColorPickerContext,
-};
+});

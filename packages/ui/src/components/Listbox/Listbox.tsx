@@ -174,7 +174,7 @@ export interface ListboxProps<
   renderActions?: (item: T) => ReactNode;
 }
 
-function ListboxRoot<T extends CollectionItem>({
+function ListboxSimple<T extends CollectionItem>({
   ref,
   label,
   searchPlaceholder,
@@ -248,7 +248,7 @@ function ListboxRoot<T extends CollectionItem>({
 
 export type ListboxRootProps = RootProps;
 
-export const Listbox = Object.assign(ListboxRoot, {
+export const Listbox = Object.assign(ListboxSimple, {
   Root,
   RootProvider,
   Content,
