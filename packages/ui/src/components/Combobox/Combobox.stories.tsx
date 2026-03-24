@@ -46,3 +46,31 @@ export const Default: Story = {
     </Combobox.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        padding: "16px",
+        maxWidth: "320px",
+      }}
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <Combobox.Root
+          key={size}
+          collection={collection}
+          size={size}
+        >
+          <Combobox.Label>{size}</Combobox.Label>
+          <Combobox.Control>
+            <Combobox.Input placeholder="Select a framework..." />
+            <Combobox.Trigger>▼</Combobox.Trigger>
+          </Combobox.Control>
+        </Combobox.Root>
+      ))}
+    </div>
+  ),
+};

@@ -12,7 +12,17 @@ import { semanticTokens } from "./theme/semantic-tokens";
 import { textStyles } from "./theme/text-styles";
 import { tokens } from "./theme/tokens";
 
-const colorPaletteValues = ["brand", "neutral", "slate", "gray", "blue", "red", "green", "orange", "yellow"];
+const colorPaletteValues = [
+  "brand",
+  "neutral",
+  "slate",
+  "gray",
+  "blue",
+  "red",
+  "green",
+  "orange",
+  "yellow",
+];
 
 /**
  * Custom B3 Panda CSS preset.
@@ -47,5 +57,23 @@ export const b3Preset = definePreset({
         },
       },
     ],
+    recipes: {
+      menu: [{ size: ["xs", "sm", "md", "lg", "xl"] }],
+      listbox: [{ size: ["sm", "md", "lg"] }],
+      accordion: [{ size: ["sm", "md"] }],
+      breadcrumb: [{ size: ["xs", "sm", "md", "lg"] }],
+      checkboxCard: [{ size: ["sm", "md", "lg"] }],
+      combobox: [{ size: ["xs", "sm", "md", "lg", "xl"] }],
+      editable: [{ size: ["2xs", "xs", "sm", "md", "lg"] }],
+      emptyState: [{ size: ["sm", "md", "lg"] }],
+      icon: [{ size: ["2xs", "xs", "sm", "md", "lg", "xl"] }],
+      numberInput: [{ size: ["sm", "md", "lg", "xl"] }],
+      pinInput: [{ size: ["xs", "sm", "md", "lg", "xl", "2xl"] }],
+      progress: [{ size: ["xs", "sm", "md", "lg", "xl"] }],
+      scrollArea: [{ size: ["xs", "sm", "md", "lg"] }],
+      stat: [{ size: ["sm", "md", "lg"] }],
+      tagsInput: [{ size: ["xs", "sm", "md", "lg", "xl"] }],
+      treeView: [{ size: ["sm", "md"] }],
+    },
   },
 });

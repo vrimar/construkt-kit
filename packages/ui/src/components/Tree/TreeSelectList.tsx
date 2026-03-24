@@ -10,11 +10,11 @@ import { SearchInput } from "../Input/SearchInput";
 import { VirtualScrollArea } from "../ScrollArea/VirtualScrollArea";
 import { Tooltip } from "../Tooltip";
 import {
-  collectBranchesWithLeafDescendants,
-  collectBranchValues,
-  collectLeafValues,
-  filterTreeCollection,
-  mergeFilteredValue,
+    collectBranchesWithLeafDescendants,
+    collectBranchValues,
+    collectLeafValues,
+    filterTreeCollection,
+    mergeFilteredValue,
 } from "./treeCollectionUtils";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
 import { DEFAULT_TREE_SIZE, TREE_ROW_HEIGHT_ESTIMATE, type TreeSize } from "./treeShared";
@@ -270,7 +270,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
               px="2"
             >
               <SearchInput
-                size={size}
+                size="sm"
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}

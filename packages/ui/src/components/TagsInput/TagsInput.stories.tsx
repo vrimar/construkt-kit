@@ -38,3 +38,32 @@ export const Empty: Story = {
     </TagsInput.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        padding: "16px",
+        maxWidth: "400px",
+      }}
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <TagsInput.Root
+          key={size}
+          defaultValue={["React", "Vue"]}
+          size={size}
+        >
+          <TagsInput.Label>{size}</TagsInput.Label>
+          <TagsInput.Control>
+            <TagsInput.Items />
+            <TagsInput.Input placeholder="Add tag..." />
+          </TagsInput.Control>
+          <TagsInput.HiddenInput />
+        </TagsInput.Root>
+      ))}
+    </div>
+  ),
+};

@@ -60,12 +60,6 @@ export const menu = defineSlotRecipe({
       fontWeight: "medium",
       gap: "1px",
       justifyContent: "center",
-      _after: {
-        content: '""',
-        width: "100%",
-        height: "1px",
-        bg: "border",
-      },
     },
     itemIndicator: {
       justifyContent: "flex-end",

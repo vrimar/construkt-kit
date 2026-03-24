@@ -52,3 +52,26 @@ export const Group: Story = {
     </div>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        maxWidth: 400,
+        padding: "16px",
+      }}
+    >
+      {(["sm", "md", "lg"] as const).map((size) => (
+        <CheckboxCard
+          key={size}
+          label={`Option (${size})`}
+          description="Description text for this option."
+          size={size}
+        />
+      ))}
+    </div>
+  ),
+};

@@ -24,7 +24,6 @@ export * from "./Dialog";
 export * from "./DisplayValue";
 export * from "./Drawer";
 export * from "./Editable";
-export * from "./EditableText";
 export * from "./EmptyState";
 export * from "./Fieldset";
 export * from "./FileUpload";

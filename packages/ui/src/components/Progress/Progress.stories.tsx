@@ -52,3 +52,30 @@ export const Indeterminate: Story = {
     </Progress.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        padding: "16px",
+        maxWidth: "400px",
+      }}
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <Progress.Root
+          key={size}
+          value={65}
+          size={size}
+        >
+          <Progress.Label>{size}</Progress.Label>
+          <Progress.Track>
+            <Progress.Range />
+          </Progress.Track>
+        </Progress.Root>
+      ))}
+    </div>
+  ),
+};

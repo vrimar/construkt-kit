@@ -253,3 +253,36 @@ export const WithCheckboxes: StoryObj = {
     </Box>
   ),
 };
+
+export const Sizes: StoryObj = {
+  render: () => (
+    <div style={{ display: "flex", gap: "24px", padding: "16px", alignItems: "flex-start" }}>
+      {(["sm", "md"] as const).map((size) => (
+        <Box
+          key={size}
+          minW="240px"
+          border="1px solid"
+          borderColor="border"
+          rounded="md"
+          p="2"
+        >
+          <TreeView.Root
+            collection={collection}
+            defaultExpandedValue={["src"]}
+            size={size}
+          >
+            <TreeView.Tree>
+              {collection.rootNode.children!.map((node, index) => (
+                <TreeNode
+                  key={node.id}
+                  node={node}
+                  indexPath={[index]}
+                />
+              ))}
+            </TreeView.Tree>
+          </TreeView.Root>
+        </Box>
+      ))}
+    </div>
+  ),
+};
