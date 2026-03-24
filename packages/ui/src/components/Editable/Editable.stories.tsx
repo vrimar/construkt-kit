@@ -45,3 +45,31 @@ export const Default: Story = {
     </Editable.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        padding: "16px",
+        maxWidth: "400px",
+      }}
+    >
+      {(["2xs", "xs", "sm", "md", "lg"] as const).map((size) => (
+        <Editable.Root
+          key={size}
+          defaultValue={`Editable value (${size})`}
+          size={size}
+        >
+          <Editable.Label>{size}</Editable.Label>
+          <Editable.Area>
+            <Editable.Input />
+            <Editable.Preview />
+          </Editable.Area>
+        </Editable.Root>
+      ))}
+    </div>
+  ),
+};

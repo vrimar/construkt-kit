@@ -63,3 +63,27 @@ export const Masked: Story = {
     );
   },
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "16px" }}>
+      {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
+        <PinInput.Root
+          key={size}
+          size={size}
+        >
+          <PinInput.Label>{size}</PinInput.Label>
+          <PinInput.Control>
+            {[0, 1, 2, 3].map((id) => (
+              <PinInput.Input
+                key={id}
+                index={id}
+              />
+            ))}
+          </PinInput.Control>
+          <PinInput.HiddenInput />
+        </PinInput.Root>
+      ))}
+    </div>
+  ),
+};

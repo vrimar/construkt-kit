@@ -18,7 +18,7 @@
 
 **Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Popover`, `Tooltip`, `ToggleTip`, `HoverCard`
 
-**Form:** `Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `EditableText`, `FileUpload`, `PinInput`, `ColorPicker`
+**Form:** `Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `PinInput`, `ColorPicker`
 
 **Selection / Dropdowns:** `Select`, `SelectList`, `SelectListItem`, `SelectButton`, `TagSelect`, `ApplyInput`, `ApplySelect`, `Combobox`
 

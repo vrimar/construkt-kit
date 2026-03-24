@@ -38,3 +38,31 @@ export const WithMinMax: Story = {
     </NumberInput>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        padding: "16px",
+        maxWidth: "320px",
+      }}
+    >
+      {(["sm", "md", "lg", "xl"] as const).map((size) => (
+        <NumberInput
+          key={size}
+          defaultValue="10"
+          min={0}
+          max={100}
+          size={size}
+        >
+          <NumberInput.Label>{size}</NumberInput.Label>
+          <NumberInput.Field />
+          <NumberInput.Control />
+        </NumberInput>
+      ))}
+    </div>
+  ),
+};

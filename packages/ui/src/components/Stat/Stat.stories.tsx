@@ -58,3 +58,20 @@ export const WithUnit: Story = {
     </Stat.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: "32px", padding: "16px", alignItems: "flex-start" }}>
+      {(["sm", "md", "lg"] as const).map((size) => (
+        <Stat.Root
+          key={size}
+          size={size}
+        >
+          <Stat.Label>Revenue ({size})</Stat.Label>
+          <Stat.ValueText>$12,340</Stat.ValueText>
+          <Stat.HelpText>Last 30 days</Stat.HelpText>
+        </Stat.Root>
+      ))}
+    </div>
+  ),
+};

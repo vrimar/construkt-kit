@@ -119,6 +119,22 @@ export const WithActions: Story = {
   ),
 };
 
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", padding: "16px" }}>
+      {(["sm", "md", "lg"] as const).map((size) => (
+        <Listbox
+          key={size}
+          collection={countries}
+          label={size}
+          size={size}
+          maxW="64"
+        />
+      ))}
+    </div>
+  ),
+};
+
 // --- Primitive API (custom composition) ---
 
 export const CustomItem: Story = {

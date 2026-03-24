@@ -35,3 +35,22 @@ export const WithIndicator: Story = {
     </EmptyState.Root>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: "32px", padding: "16px", flexWrap: "wrap" }}>
+      {(["sm", "md", "lg"] as const).map((size) => (
+        <EmptyState.Root
+          key={size}
+          size={size}
+        >
+          <EmptyState.Content>
+            <EmptyState.Indicator>📭</EmptyState.Indicator>
+            <EmptyState.Title>No results ({size})</EmptyState.Title>
+            <EmptyState.Description>Try adjusting your filters.</EmptyState.Description>
+          </EmptyState.Content>
+        </EmptyState.Root>
+      ))}
+    </div>
+  ),
+};

@@ -44,3 +44,28 @@ export const HorizontalScroll: Story = {
     </ScrollArea>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: "24px", padding: "16px", alignItems: "flex-start" }}>
+      {(["xs", "sm", "md", "lg"] as const).map((size) => (
+        <ScrollArea
+          key={size}
+          height="150px"
+          width="200px"
+          border="1px solid"
+          borderColor="border"
+          borderRadius="md"
+          size={size}
+        >
+          <div style={{ padding: "8px" }}>
+            <p style={{ marginBottom: "4px", fontWeight: "bold" }}>{size}</p>
+            {Array.from({ length: 10 }, (_, i) => (
+              <p key={i}>Line {i + 1}</p>
+            ))}
+          </div>
+        </ScrollArea>
+      ))}
+    </div>
+  ),
+};
