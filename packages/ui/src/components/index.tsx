@@ -16,7 +16,6 @@ export * from "./Code";
 export * from "./Collapsible";
 export * from "./ColorPicker";
 export * from "./Combobox";
-export * from "./ContextMenu";
 export * from "./DataTable";
 export * from "./DatePicker";
 export * from "./DebugFontSwitcher";

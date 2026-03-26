@@ -9,7 +9,6 @@ import { AbsoluteCenter } from "../Layout/AbsoluteCenter";
 
 const { withRootProvider, withContext } = createStyleContext(menu);
 
-// Primitives — exported for sibling components (ContextMenu), not re-exported from barrel
 export type RootProps = ComponentProps<typeof Root>;
 export const Root = withRootProvider(ArkMenu.Root, {
   defaultProps: { unmountOnExit: true, lazyMount: true },
@@ -37,8 +36,8 @@ export const Trigger = withContext(ArkMenu.Trigger, "trigger");
 export const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
 
 export {
-    MenuContext as Context,
-    type MenuSelectionDetails as SelectionDetails
+  MenuContext as Context,
+  type MenuSelectionDetails as SelectionDetails,
 } from "@ark-ui/react/menu";
 
 const StyledItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator");
