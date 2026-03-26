@@ -108,3 +108,29 @@ export const Sizes: Story = {
     </div>
   ),
 };
+
+export const ContextMenu: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.ContextTrigger
+        style={{
+          padding: "40px",
+          border: "2px dashed",
+          borderRadius: "var(--radii-md)",
+          textAlign: "center",
+          userSelect: "none",
+          borderColor: "var(--colors-border)",
+        }}
+      >
+        Right-click here
+      </Menu.ContextTrigger>
+      <Menu.Content>
+        <Menu.Item value="cut">Cut</Menu.Item>
+        <Menu.Item value="copy">Copy</Menu.Item>
+        <Menu.Item value="paste">Paste</Menu.Item>
+        <Menu.Separator />
+        <Menu.Item value="delete">Delete</Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
