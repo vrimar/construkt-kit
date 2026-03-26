@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { Button, ButtonGroup } from "./Button";
 import { CloseButton } from "./CloseButton";
 import { DeleteButton } from "./DeleteButton";
@@ -18,18 +19,20 @@ type Story = StoryObj;
 export const Default: Story = {
   render: () => (
     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-      <IconButton aria-label="Search">🔍</IconButton>
+      <IconButton aria-label="Search">
+        <SearchIcon />
+      </IconButton>
       <IconButton
         variant="outline"
         aria-label="Settings"
       >
-        ⚙️
+        <SettingsIcon />
       </IconButton>
       <IconButton
         variant="subtle"
         aria-label="Info"
       >
-        ℹ️
+        <InfoIcon />
       </IconButton>
     </div>
   ),
@@ -37,7 +40,11 @@ export const Default: Story = {
 
 export const TooltipIconButtonStory: Story = {
   name: "TooltipIconButton",
-  render: () => <TooltipIconButton label="Edit item">✏️</TooltipIconButton>,
+  render: () => (
+    <TooltipIconButton label="Edit item">
+      <PencilIcon />
+    </TooltipIconButton>
+  ),
 };
 
 export const DeleteButtonStory: Story = {

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Pagination } from ".";
 import { Button, IconButton } from "../Buttons";
 
@@ -22,7 +23,7 @@ export const Default: Story = {
           variant="outline"
           aria-label="Previous"
         >
-          ◀
+          <ChevronLeftIcon />
         </IconButton>
       </Pagination.PrevTrigger>
       <Pagination.Items
@@ -46,7 +47,7 @@ export const Default: Story = {
           variant="outline"
           aria-label="Next"
         >
-          ▶
+          <ChevronRightIcon />
         </IconButton>
       </Pagination.NextTrigger>
     </Pagination.Root>

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { CopyIcon, PencilIcon, ShareIcon, TrashIcon } from "lucide-react";
 import { Menu } from ".";
 import { Button } from "../Buttons";
 
@@ -35,26 +36,26 @@ export const WithIcons: Story = {
       <Menu.Content>
         <Menu.Item
           value="edit"
-          icon={<span>✏️</span>}
+          icon={<PencilIcon />}
         >
           Edit
         </Menu.Item>
         <Menu.Item
           value="copy"
-          icon={<span>📋</span>}
+          icon={<CopyIcon />}
         >
           Copy
         </Menu.Item>
         <Menu.Item
           value="share"
-          icon={<span>📤</span>}
+          icon={<ShareIcon />}
         >
           Share
         </Menu.Item>
         <Menu.Separator />
         <Menu.Item
           value="delete"
-          icon={<span>🗑️</span>}
+          icon={<TrashIcon />}
         >
           Delete
         </Menu.Item>

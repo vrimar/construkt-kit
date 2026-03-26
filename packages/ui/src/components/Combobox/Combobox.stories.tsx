@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import { Combobox, createListCollection } from ".";
 
 const meta: Meta = {
@@ -25,8 +26,12 @@ export const Default: Story = {
       <Combobox.Label>Framework</Combobox.Label>
       <Combobox.Control>
         <Combobox.Input placeholder="Select a framework" />
-        <Combobox.Trigger>▼</Combobox.Trigger>
-        <Combobox.ClearTrigger>✕</Combobox.ClearTrigger>
+        <Combobox.Trigger>
+          <ChevronDownIcon />
+        </Combobox.Trigger>
+        <Combobox.ClearTrigger>
+          <XIcon />
+        </Combobox.ClearTrigger>
       </Combobox.Control>
       <Combobox.Positioner>
         <Combobox.Content>
@@ -67,7 +72,9 @@ export const Sizes: Story = {
           <Combobox.Label>{size}</Combobox.Label>
           <Combobox.Control>
             <Combobox.Input placeholder="Select a framework..." />
-            <Combobox.Trigger>▼</Combobox.Trigger>
+            <Combobox.Trigger>
+              <ChevronDownIcon />
+            </Combobox.Trigger>
           </Combobox.Control>
         </Combobox.Root>
       ))}

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { XIcon } from "lucide-react";
 import { ActionBar } from ".";
 import { Button } from "../Buttons";
 
@@ -29,7 +30,9 @@ export const Default: Story = {
           >
             Move
           </Button>
-          <ActionBar.CloseTrigger>✕</ActionBar.CloseTrigger>
+          <ActionBar.CloseTrigger>
+            <XIcon />
+          </ActionBar.CloseTrigger>
         </ActionBar.Content>
       </ActionBar.Positioner>
     </ActionBar.Root>

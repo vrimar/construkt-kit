@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { MoonIcon, SunIcon } from "lucide-react";
 import { Switch } from ".";
 
 const meta: Meta<typeof Switch> = {
@@ -43,6 +44,6 @@ export const Sizes: Story = {
 export const WithTrackLabel: Story = {
   args: {
     children: "Theme",
-    trackLabel: { on: "🌙", off: "☀️" },
+    trackLabel: { on: <MoonIcon />, off: <SunIcon /> },
   },
 };

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Carousel } from ".";
 
 const meta: Meta = {
@@ -13,8 +14,12 @@ export const Default: Story = {
   render: () => (
     <Carousel.Root slideCount={5}>
       <Carousel.Control>
-        <Carousel.PrevTrigger>◀</Carousel.PrevTrigger>
-        <Carousel.NextTrigger>▶</Carousel.NextTrigger>
+        <Carousel.PrevTrigger>
+          <ChevronLeftIcon />
+        </Carousel.PrevTrigger>
+        <Carousel.NextTrigger>
+          <ChevronRightIcon />
+        </Carousel.NextTrigger>
       </Carousel.Control>
       <Carousel.ItemGroup>
         {[1, 2, 3, 4, 5].map((i) => (
