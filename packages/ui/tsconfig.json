@@ -7,6 +7,5 @@
       "styled-system/*": ["./styled-system/*"]
     }
   },
-  "include": ["src", "styled-system"],
-  "exclude": ["src/**/*.stories.tsx", "src/**/*.stories.ts"]
+  "include": ["src", "styled-system"]
 }

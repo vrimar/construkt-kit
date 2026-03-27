@@ -5,7 +5,6 @@ import type { ComponentProps, ReactNode, RefObject } from "react";
 import { Box, createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { menu } from "styled-system/recipes";
 import type { WithRef } from "../../types";
-import { AbsoluteCenter } from "../Layout/AbsoluteCenter";
 
 const { withRootProvider, withContext } = createStyleContext(menu);
 
@@ -112,13 +111,12 @@ function MenuCheckboxItem({
   return (
     <CheckboxItem
       ref={ref}
-      cursor="pointer"
       {...props}
     >
       <ItemIndicator>
         <CheckIcon />
       </ItemIndicator>
-      <Box flex="1">{children}</Box>
+      {children}
     </CheckboxItem>
   );
 }
@@ -126,20 +124,12 @@ function MenuCheckboxItem({
 function MenuRadioItem({ ref, children, ...rest }: WithRef<ComponentProps<typeof RadioItem>>) {
   return (
     <RadioItem
-      cursor="pointer"
-      ps="8"
       ref={ref}
       {...rest}
     >
-      <AbsoluteCenter
-        axis="horizontal"
-        left="4"
-        asChild
-      >
-        <ItemIndicator>
-          <CheckIcon />
-        </ItemIndicator>
-      </AbsoluteCenter>
+      <ItemIndicator>
+        <CheckIcon />
+      </ItemIndicator>
       <ItemText>{children}</ItemText>
     </RadioItem>
   );
@@ -152,7 +142,6 @@ export interface MenuItemProps extends ComponentProps<typeof Item> {
 function MenuItem({ ref, icon, children, ...rest }: WithRef<MenuItemProps>) {
   return (
     <Item
-      cursor="pointer"
       {...rest}
       ref={ref}
     >
