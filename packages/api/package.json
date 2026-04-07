@@ -38,12 +38,12 @@
     "react": "^19.0.0"
   },
   "dependencies": {
-    "@kubb/core": "^4.31.5",
-    "@kubb/plugin-client": "^4.31.5",
+    "@kubb/core": "^4.37.2",
+    "@kubb/plugin-client": "^4.37.2",
     "tsx": "^4"
   },
   "devDependencies": {
     "@b3/config": "workspace:*",
-    "tsdown": "^0.21.2"
+    "tsdown": "^0.21.7"
   }
 }

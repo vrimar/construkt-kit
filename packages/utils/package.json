@@ -30,11 +30,11 @@
     "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
   },
   "dependencies": {
-    "dayjs": "^1.11.19",
+    "dayjs": "^1.11.20",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@b3/config": "workspace:*",
-    "tsdown": "^0.21.2"
+    "tsdown": "^0.21.7"
   }
 }

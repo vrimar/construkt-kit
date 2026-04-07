@@ -43,13 +43,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ark-ui/react": "^5.34.1",
+    "@ark-ui/react": "^5.35.0",
     "@b3/utils": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-virtual": "^3.13.19",
-    "dayjs": "^1.11.19",
-    "lucide-react": "^0.577.0",
-    "react-resizable-panels": "^4.7.1",
+    "@tanstack/react-virtual": "^3.13.23",
+    "dayjs": "^1.11.20",
+    "lucide-react": "^1.7.0",
+    "react-resizable-panels": "^4.9.0",
     "react-use": "^17.6.0",
     "ts-pattern": "^5.9.0"
   },
@@ -59,17 +59,17 @@
   },
   "devDependencies": {
     "@b3/config": "workspace:*",
-    "@pandacss/dev": "^1.9.0",
+    "@pandacss/dev": "^1.9.1",
     "@pandacss/eslint-plugin": "^0.3.2",
-    "@storybook/react-vite": "^10.2.19",
+    "@storybook/react-vite": "^10.3.5",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "jsdom": "^29.0.0",
+    "jsdom": "^29.0.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tsdown": "^0.21.2",
-    "vitest": "^4.0.18"
+    "tsdown": "^0.21.7",
+    "vitest": "^4.1.3"
   }
 }

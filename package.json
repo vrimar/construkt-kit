@@ -17,15 +17,15 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
-    "@typescript/native-preview": "7.0.0-dev.20260304.1",
-    "oxfmt": "^0.36.0",
-    "oxlint": "^1.51.0",
-    "oxlint-tsgolint": "^0.16.0",
-    "turbo": "^2.8.13"
+    "@typescript/native-preview": "7.0.0-dev.20260407.1",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.20.0",
+    "turbo": "^2.9.5"
   },
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.30.3"
+  "packageManager": "pnpm@10.33.0"
 }

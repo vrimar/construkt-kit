@@ -49,9 +49,9 @@
     }
   },
   "devDependencies": {
-    "@auth0/auth0-react": "^2.15.0",
+    "@auth0/auth0-react": "^2.16.1",
     "@b3/config": "workspace:*",
     "@b3/pages": "workspace:*",
-    "tsdown": "^0.21.2"
+    "tsdown": "^0.21.7"
   }
 }
