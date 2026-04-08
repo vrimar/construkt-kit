@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Box, VStack } from "../Layout";
 import { Input } from "./Input";
 import { InputGroup } from "./InputGroup";
 import { PasswordInput } from "./PasswordInput";
@@ -21,7 +22,10 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: 400 }}>
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
       <Input
         size="xs"
         placeholder="Extra small"
@@ -38,13 +42,16 @@ export const Sizes: Story = {
         size="lg"
         placeholder="Large"
       />
-    </div>
+    </VStack>
   ),
 };
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: 400 }}>
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
       <Input
         variant="outline"
         placeholder="Outline"
@@ -53,7 +60,7 @@ export const Variants: Story = {
         variant="subtle"
         placeholder="Subtle"
       />
-    </div>
+    </VStack>
   ),
 };
 
@@ -73,26 +80,26 @@ export const InputGroupStory: Story = {
 export const PasswordInputStory: Story = {
   name: "PasswordInput",
   render: () => (
-    <div style={{ maxWidth: 400 }}>
+    <Box maxW="400px">
       <PasswordInput placeholder="Enter password" />
-    </div>
+    </Box>
   ),
 };
 
 export const SearchInputStory: Story = {
   name: "SearchInput",
   render: () => (
-    <div style={{ maxWidth: 400 }}>
+    <Box maxW="400px">
       <SearchInput placeholder="Search..." />
-    </div>
+    </Box>
   ),
 };
 
 export const TextareaStory: Story = {
   name: "Textarea",
   render: () => (
-    <div style={{ maxWidth: 400 }}>
+    <Box maxW="400px">
       <Textarea placeholder="Enter long text..." />
-    </div>
+    </Box>
   ),
 };

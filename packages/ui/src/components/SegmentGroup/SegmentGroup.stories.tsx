@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SegmentGroup } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/SegmentGroup",
@@ -28,7 +29,7 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <VStack gap="4">
       {(["sm", "md", "lg"] as const).map((size) => (
         <SegmentGroup.Root
           key={size}
@@ -46,6 +47,6 @@ export const Sizes: Story = {
           </SegmentGroup.Item>
         </SegmentGroup.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

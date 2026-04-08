@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Progress } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Progress",
@@ -55,14 +56,10 @@ export const Indeterminate: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        padding: "16px",
-        maxWidth: "400px",
-      }}
+    <VStack
+      gap="4"
+      p="4"
+      maxW="400px"
     >
       {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
         <Progress.Root
@@ -76,6 +73,6 @@ export const Sizes: Story = {
           </Progress.Track>
         </Progress.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

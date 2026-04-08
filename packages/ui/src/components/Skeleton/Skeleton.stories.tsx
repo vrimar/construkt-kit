@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Skeleton, SkeletonCircle, SkeletonText } from ".";
+import { Box, Flex, HStack, VStack } from "../Layout";
 
 const meta: Meta<typeof Skeleton> = {
   title: "Components/Skeleton",
@@ -12,42 +13,61 @@ type Story = StoryObj<typeof Skeleton>;
 
 export const Default: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: 400 }}>
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
       <Skeleton height="20px" />
       <Skeleton height="20px" />
       <Skeleton
         height="20px"
         width="80%"
       />
-    </div>
+    </VStack>
   ),
 };
 
 export const Circle: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-      <SkeletonCircle width="10" height="10" />
-      <SkeletonCircle width="14" height="14" />
-      <SkeletonCircle width="20" height="20" />
-    </div>
+    <HStack gap="4">
+      <SkeletonCircle
+        width="10"
+        height="10"
+      />
+      <SkeletonCircle
+        width="14"
+        height="14"
+      />
+      <SkeletonCircle
+        width="20"
+        height="20"
+      />
+    </HStack>
   ),
 };
 
 export const Text: Story = {
   render: () => (
-    <div style={{ maxWidth: 400 }}>
+    <Box maxW="400px">
       <SkeletonText noOfLines={4} />
-    </div>
+    </Box>
   ),
 };
 
 export const CardLoading: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", maxWidth: 400 }}>
-      <SkeletonCircle width="10" height="10" />
-      <div style={{ flex: 1 }}>
+    <Flex
+      gap="4"
+      align="flex-start"
+      maxW="400px"
+    >
+      <SkeletonCircle
+        width="10"
+        height="10"
+      />
+      <Box flex="1">
         <SkeletonText noOfLines={3} />
-      </div>
-    </div>
+      </Box>
+    </Flex>
   ),
 };

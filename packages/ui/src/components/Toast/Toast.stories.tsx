@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactElement } from "react";
 import { Toaster, toaster } from ".";
 import { Button } from "../Buttons";
+import { Wrap } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Toast",
@@ -21,7 +22,7 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+    <Wrap gap="2">
       <Button
         onClick={() =>
           toaster.create({
@@ -66,6 +67,6 @@ export const Default: Story = {
       >
         Error
       </Button>
-    </div>
+    </Wrap>
   ),
 };

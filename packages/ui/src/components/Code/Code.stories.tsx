@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Code } from ".";
+import { HStack, Wrap } from "../Layout";
 
 const meta: Meta<typeof Code> = {
   title: "Components/Code",
@@ -17,23 +18,23 @@ export const Default: Story = {};
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+    <Wrap gap="2">
       <Code variant="solid">solid</Code>
       <Code variant="surface">surface</Code>
       <Code variant="subtle">subtle</Code>
       <Code variant="outline">outline</Code>
       <Code variant="plain">plain</Code>
-    </div>
+    </Wrap>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <Code size="xs">xs</Code>
       <Code size="sm">sm</Code>
       <Code size="md">md</Code>
       <Code size="lg">lg</Code>
-    </div>
+    </HStack>
   ),
 };

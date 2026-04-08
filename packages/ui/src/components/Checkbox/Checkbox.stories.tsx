@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Checkbox } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof Checkbox> = {
   title: "Components/Checkbox",
@@ -32,10 +33,10 @@ export const Disabled: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+    <HStack gap="4">
       <Checkbox size="sm">Small</Checkbox>
       <Checkbox size="md">Medium</Checkbox>
       <Checkbox size="lg">Large</Checkbox>
-    </div>
+    </HStack>
   ),
 };

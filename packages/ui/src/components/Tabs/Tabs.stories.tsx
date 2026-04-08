@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Tabs } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Tabs",
@@ -27,7 +28,7 @@ export const Default: Story = {
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <VStack gap="6">
       {(["line", "subtle", "enclosed"] as const).map((variant) => (
         <Tabs.Root
           key={variant}
@@ -43,13 +44,13 @@ export const Variants: Story = {
           <Tabs.Content value="b">Second tab</Tabs.Content>
         </Tabs.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <VStack gap="6">
       {(["sm", "md", "lg"] as const).map((size) => (
         <Tabs.Root
           key={size}
@@ -65,6 +66,6 @@ export const Sizes: Story = {
           <Tabs.Content value="b">Content</Tabs.Content>
         </Tabs.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

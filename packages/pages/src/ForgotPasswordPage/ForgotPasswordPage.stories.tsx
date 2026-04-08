@@ -1,3 +1,4 @@
+import { Box } from "@b3/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 import { ForgotPasswordPage } from "./index";
@@ -32,7 +33,13 @@ export const Success: Story = {
 export const WithLogo: Story = {
   args: {
     logo: (
-      <div style={{ fontWeight: 700, fontSize: "1.5rem", marginBottom: "1rem" }}>B3 Portal</div>
+      <Box
+        fontWeight="bold"
+        fontSize="2xl"
+        mb="4"
+      >
+        B3 Portal
+      </Box>
     ),
   },
 };

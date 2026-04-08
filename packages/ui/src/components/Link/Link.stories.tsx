@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Link } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof Link> = {
   title: "Components/Link",
@@ -18,7 +19,7 @@ export const Default: Story = {};
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px" }}>
+    <HStack gap="4">
       <Link
         href="#"
         variant="underline"
@@ -31,6 +32,6 @@ export const Variants: Story = {
       >
         Plain
       </Link>
-    </div>
+    </HStack>
   ),
 };

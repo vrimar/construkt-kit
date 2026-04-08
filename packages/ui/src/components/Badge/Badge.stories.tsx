@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Badge } from ".";
+import { HStack, Wrap } from "../Layout";
 
 const meta: Meta<typeof Badge> = {
   title: "Components/Badge",
@@ -17,22 +18,22 @@ export const Default: Story = {};
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+    <Wrap gap="2">
       <Badge variant="solid">Solid</Badge>
       <Badge variant="surface">Surface</Badge>
       <Badge variant="subtle">Subtle</Badge>
       <Badge variant="outline">Outline</Badge>
-    </div>
+    </Wrap>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <Badge size="xs">XSmall</Badge>
       <Badge size="sm">Small</Badge>
       <Badge size="md">Medium</Badge>
       <Badge size="lg">Large</Badge>
-    </div>
+    </HStack>
   ),
 };

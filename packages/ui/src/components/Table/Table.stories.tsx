@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Table } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Table",
@@ -68,7 +69,7 @@ export const WithCaption: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <VStack gap="6">
       {(["sm", "md"] as const).map((size) => (
         <Table.Root
           key={size}
@@ -88,6 +89,6 @@ export const Sizes: Story = {
           </Table.Body>
         </Table.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

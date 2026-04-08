@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Avatar } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Avatar",
@@ -39,7 +40,7 @@ export const WithIcon: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
         <Avatar.Root
           key={size}
@@ -48,6 +49,6 @@ export const Sizes: Story = {
           <Avatar.Fallback name="John Doe" />
         </Avatar.Root>
       ))}
-    </div>
+    </HStack>
   ),
 };

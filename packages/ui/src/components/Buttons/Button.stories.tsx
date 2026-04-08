@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { HStack, Wrap } from "../Layout";
 import { Button } from "./Button";
 
 const meta: Meta<typeof Button> = {
@@ -29,23 +30,23 @@ export const Disabled: Story = {
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+    <Wrap gap="2">
       <Button variant="solid">Solid</Button>
       <Button variant="surface">Surface</Button>
       <Button variant="subtle">Subtle</Button>
       <Button variant="outline">Outline</Button>
       <Button variant="plain">Plain</Button>
-    </div>
+    </Wrap>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <Button size="xs">XSmall</Button>
       <Button size="sm">Small</Button>
       <Button size="md">Medium</Button>
       <Button size="lg">Large</Button>
-    </div>
+    </HStack>
   ),
 };

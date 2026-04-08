@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Slider } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta<typeof Slider> = {
   title: "Components/Slider",
@@ -30,7 +31,10 @@ export const Range: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: 300 }}>
+    <VStack
+      gap="6"
+      maxW="300px"
+    >
       <Slider
         defaultValue={[30]}
         size="sm"
@@ -43,6 +47,6 @@ export const Sizes: Story = {
         defaultValue={[70]}
         size="lg"
       />
-    </div>
+    </VStack>
   ),
 };

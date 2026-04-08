@@ -3,6 +3,7 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 import { createListCollection, Listbox } from ".";
 import { IconButton } from "../Buttons";
+import { Flex } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Listbox",
@@ -121,7 +122,11 @@ export const WithActions: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", padding: "16px" }}>
+    <Flex
+      gap="10"
+      align="flex-start"
+      p="4"
+    >
       {(["sm", "md", "lg"] as const).map((size) => (
         <Listbox
           key={size}
@@ -131,7 +136,7 @@ export const Sizes: Story = {
           maxW="64"
         />
       ))}
-    </div>
+    </Flex>
   ),
 };
 

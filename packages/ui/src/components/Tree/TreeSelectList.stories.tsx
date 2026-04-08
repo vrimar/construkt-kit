@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
+import { Box } from "../Layout";
 import { createTreeCollection } from "./index";
 import { TreeSelectList } from "./TreeSelectList";
 
@@ -57,14 +58,19 @@ function TreeSelectListDemo() {
   const [selected, setSelected] = useState<string[]>(["apple", "lemon"]);
 
   return (
-    <div style={{ maxWidth: 400, border: "1px solid #ccc", borderRadius: 8 }}>
+    <Box
+      maxW="400px"
+      borderWidth="1px"
+      borderColor="border.default"
+      borderRadius="lg"
+    >
       <TreeSelectList
         collection={collection}
         value={selected}
         onValueChange={setSelected}
         maxHeight="320px"
       />
-    </div>
+    </Box>
   );
 }
 
@@ -76,7 +82,12 @@ function BareTreeDemo() {
   const [selected, setSelected] = useState<string[]>([]);
 
   return (
-    <div style={{ maxWidth: 400, border: "1px solid #ccc", borderRadius: 8 }}>
+    <Box
+      maxW="400px"
+      borderWidth="1px"
+      borderColor="border.default"
+      borderRadius="lg"
+    >
       <TreeSelectList
         collection={collection}
         value={selected}
@@ -85,7 +96,7 @@ function BareTreeDemo() {
         showSelectAll={false}
         maxHeight="320px"
       />
-    </div>
+    </Box>
   );
 }
 
@@ -97,7 +108,12 @@ function SmallSizeDemo() {
   const [selected, setSelected] = useState<string[]>(["carrot"]);
 
   return (
-    <div style={{ maxWidth: 400, border: "1px solid #ccc", borderRadius: 8 }}>
+    <Box
+      maxW="400px"
+      borderWidth="1px"
+      borderColor="border.default"
+      borderRadius="lg"
+    >
       <TreeSelectList
         collection={collection}
         value={selected}
@@ -105,7 +121,7 @@ function SmallSizeDemo() {
         size="sm"
         maxHeight="320px"
       />
-    </div>
+    </Box>
   );
 }
 
@@ -153,14 +169,14 @@ function LongListDemo() {
   const [selected, setSelected] = useState<string[]>([]);
 
   return (
-    <div style={{ maxWidth: 400 }}>
+    <Box maxW="400px">
       <TreeSelectList
         collection={largeCollection}
         value={selected}
         onValueChange={setSelected}
         maxHeight="480px"
       />
-    </div>
+    </Box>
   );
 }
 

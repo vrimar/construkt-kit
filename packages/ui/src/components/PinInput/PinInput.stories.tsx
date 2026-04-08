@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PinInput, type PinInputRootProps } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/PinInput",
@@ -66,7 +67,10 @@ export const Masked: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "16px" }}>
+    <VStack
+      gap="4"
+      p="4"
+    >
       {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
         <PinInput.Root
           key={size}
@@ -84,6 +88,6 @@ export const Sizes: Story = {
           <PinInput.HiddenInput />
         </PinInput.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

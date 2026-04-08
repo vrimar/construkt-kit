@@ -3,6 +3,7 @@ import { CopyIcon, PencilIcon, ShareIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { Menu } from ".";
 import { Button } from "../Buttons";
+import { Flex } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Menu",
@@ -87,7 +88,11 @@ export const WithGroups: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "120px", alignItems: "flex-start", padding: "16px" }}>
+    <Flex
+      gap="30"
+      align="flex-start"
+      p="4"
+    >
       {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
         <Menu.Root
           key={size}
@@ -106,7 +111,7 @@ export const Sizes: Story = {
           </Menu.Content>
         </Menu.Root>
       ))}
-    </div>
+    </Flex>
   ),
 };
 
@@ -118,7 +123,11 @@ export const Types: Story = {
       const [size, setSize] = useState("md");
 
       return (
-        <div style={{ display: "flex", gap: "120px", alignItems: "flex-start", padding: "16px" }}>
+        <Flex
+          gap="30"
+          align="flex-start"
+          p="4"
+        >
           <Menu.Root
             open
             onOpenChange={() => {}}
@@ -168,7 +177,7 @@ export const Types: Story = {
               </Menu.RadioItemGroup>
             </Menu.Content>
           </Menu.Root>
-        </div>
+        </Flex>
       );
     }
     return <TypesDemo />;
@@ -179,14 +188,12 @@ export const ContextMenu: Story = {
   render: () => (
     <Menu.Root>
       <Menu.ContextTrigger
-        style={{
-          padding: "40px",
-          border: "2px dashed",
-          borderRadius: "var(--radii-md)",
-          textAlign: "center",
-          userSelect: "none",
-          borderColor: "var(--colors-border)",
-        }}
+        p="10"
+        border="2px dashed"
+        borderRadius="md"
+        textAlign="center"
+        userSelect="none"
+        borderColor="border"
       >
         Right-click here
       </Menu.ContextTrigger>

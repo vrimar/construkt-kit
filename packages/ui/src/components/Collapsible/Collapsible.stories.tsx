@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Collapsible } from ".";
 import { Button } from "../Buttons";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Collapsible",
@@ -17,10 +18,10 @@ export const Default: Story = {
         <Button variant="outline">Toggle content</Button>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <div style={{ padding: "16px" }}>
+        <Box p="4">
           This content can be expanded and collapsed. Lorem ipsum dolor sit amet, consectetur
           adipiscing elit.
-        </div>
+        </Box>
       </Collapsible.Content>
     </Collapsible.Root>
   ),
@@ -33,7 +34,7 @@ export const DefaultOpen: Story = {
         <Button variant="outline">Toggle</Button>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <div style={{ padding: "16px" }}>This section is open by default.</div>
+        <Box p="4">This section is open by default.</Box>
       </Collapsible.Content>
     </Collapsible.Root>
   ),

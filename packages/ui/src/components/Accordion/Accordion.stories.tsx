@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Accordion } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Accordion",
@@ -63,7 +64,10 @@ export const Multiple: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "24px", padding: "16px" }}>
+    <HStack
+      gap="6"
+      p="4"
+    >
       {(["sm", "md"] as const).map((size) => (
         <Accordion.Root
           key={size}
@@ -92,6 +96,6 @@ export const Sizes: Story = {
           </Accordion.Item>
         </Accordion.Root>
       ))}
-    </div>
+    </HStack>
   ),
 };

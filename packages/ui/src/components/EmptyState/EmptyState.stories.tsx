@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { EmptyState } from ".";
+import { Wrap } from "../Layout";
 
 const meta: Meta = {
   title: "Components/EmptyState",
@@ -38,7 +39,10 @@ export const WithIndicator: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "32px", padding: "16px", flexWrap: "wrap" }}>
+    <Wrap
+      gap="8"
+      p="4"
+    >
       {(["sm", "md", "lg"] as const).map((size) => (
         <EmptyState.Root
           key={size}
@@ -51,6 +55,6 @@ export const Sizes: Story = {
           </EmptyState.Content>
         </EmptyState.Root>
       ))}
-    </div>
+    </Wrap>
   ),
 };

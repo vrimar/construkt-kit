@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { Switch } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof Switch> = {
   title: "Components/Switch",
@@ -33,11 +34,11 @@ export const Disabled: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+    <HStack gap="4">
       <Switch size="sm">Small</Switch>
       <Switch size="md">Medium</Switch>
       <Switch size="lg">Large</Switch>
-    </div>
+    </HStack>
   ),
 };
 
