@@ -1,12 +1,10 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig, mergeConfig, type UserConfig } from "vite";
 import checker from "vite-plugin-checker";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 const baseConfig = defineConfig({
   plugins: [
     react(),
-    tsconfigPaths(),
     checker({
       oxlint: true,
       overlay: false,
@@ -14,6 +12,9 @@ const baseConfig = defineConfig({
   ],
   build: {
     target: "esnext",
+  },
+  resolve: {
+    tsconfigPaths: true,
   },
   server: {
     open: true,

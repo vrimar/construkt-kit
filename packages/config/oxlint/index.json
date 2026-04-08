@@ -44,13 +44,10 @@
     "react/no-danger": "error",
     "react/jsx-no-target-blank": "error",
     "react/no-children-prop": "error",
-    "react/no-deprecated": "warn",
-    "react/prop-types": "off",
     "react/no-array-index-key": "off",
     "react/button-has-type": "off",
     "react/jsx-props-no-spreading": "off",
     "react/no-unescaped-entities": "off",
-    "react/require-default-props": "off",
 
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
