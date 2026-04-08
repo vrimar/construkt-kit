@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Breadcrumb } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Breadcrumb",
@@ -49,7 +50,10 @@ export const WithEllipsis: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "16px" }}>
+    <VStack
+      gap="4"
+      p="4"
+    >
       {(["xs", "sm", "md", "lg"] as const).map((size) => (
         <Breadcrumb.Root
           key={size}
@@ -70,6 +74,6 @@ export const Sizes: Story = {
           </Breadcrumb.List>
         </Breadcrumb.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

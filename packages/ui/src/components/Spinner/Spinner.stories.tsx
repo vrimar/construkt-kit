@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Spinner } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof Spinner> = {
   title: "Components/Spinner",
@@ -14,13 +15,13 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+    <HStack gap="4">
       <Spinner size="xs" />
       <Spinner size="sm" />
       <Spinner size="md" />
       <Spinner size="lg" />
       <Spinner size="xl" />
-    </div>
+    </HStack>
   ),
 };
 

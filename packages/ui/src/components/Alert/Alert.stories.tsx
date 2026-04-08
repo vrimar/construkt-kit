@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Grid } from "../Layout";
 import { Alert } from "./Alert";
 
 const meta: Meta<typeof Alert> = {
@@ -15,7 +16,7 @@ type Story = StoryObj<typeof Alert>;
 
 export const Variants: Story = {
   render: () => (
-    <div style={{ display: "grid", gap: "12px" }}>
+    <Grid gap="3">
       <Alert
         status="info"
         title="Informational message"
@@ -32,7 +33,7 @@ export const Variants: Story = {
         status="error"
         title="Something went wrong"
       />
-    </div>
+    </Grid>
   ),
 };
 

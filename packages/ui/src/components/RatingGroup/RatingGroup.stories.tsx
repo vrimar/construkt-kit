@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { RatingGroup } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/RatingGroup",
@@ -37,7 +38,7 @@ export const ReadOnly: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <VStack gap="4">
       <RatingGroup.Root
         count={5}
         defaultValue={3}
@@ -62,6 +63,6 @@ export const Sizes: Story = {
         <RatingGroup.Label>Large</RatingGroup.Label>
         <RatingGroup.Control />
       </RatingGroup.Root>
-    </div>
+    </VStack>
   ),
 };

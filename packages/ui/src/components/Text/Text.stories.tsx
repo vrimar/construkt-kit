@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Box, VStack } from "../Layout";
 import { Text } from "./Text";
 
 const meta: Meta<typeof Text> = {
@@ -17,24 +18,24 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <VStack gap="2">
       <Text textStyle="xs">Extra Small</Text>
       <Text textStyle="sm">Small</Text>
       <Text textStyle="md">Medium</Text>
       <Text textStyle="lg">Large</Text>
       <Text textStyle="xl">Extra Large</Text>
-    </div>
+    </VStack>
   ),
 };
 
 export const TruncatedTextStory: Story = {
   name: "TruncatedText",
   render: () => (
-    <div style={{ maxWidth: 200 }}>
+    <Box maxW="200px">
       <Text truncate>
         This is a very long text that will be truncated with an ellipsis when it overflows the
         container.
       </Text>
-    </div>
+    </Box>
   ),
 };

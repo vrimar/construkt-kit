@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
-import { Box } from "../Layout";
+import { Box, Flex } from "../Layout";
 import { createTreeCollection } from "./index";
 import { TreeView } from "./TreeView";
 
@@ -256,7 +256,11 @@ export const WithCheckboxes: StoryObj = {
 
 export const Sizes: StoryObj = {
   render: () => (
-    <div style={{ display: "flex", gap: "24px", padding: "16px", alignItems: "flex-start" }}>
+    <Flex
+      gap="6"
+      p="4"
+      align="flex-start"
+    >
       {(["sm", "md"] as const).map((size) => (
         <Box
           key={size}
@@ -283,6 +287,6 @@ export const Sizes: StoryObj = {
           </TreeView.Root>
         </Box>
       ))}
-    </div>
+    </Flex>
   ),
 };

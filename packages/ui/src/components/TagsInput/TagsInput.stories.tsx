@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TagsInput } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/TagsInput",
@@ -41,14 +42,10 @@ export const Empty: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        padding: "16px",
-        maxWidth: "400px",
-      }}
+    <VStack
+      gap="4"
+      p="4"
+      maxW="400px"
     >
       {(["xs", "sm", "md", "lg"] as const).map((size) => (
         <TagsInput.Root
@@ -64,6 +61,6 @@ export const Sizes: Story = {
           <TagsInput.HiddenInput />
         </TagsInput.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

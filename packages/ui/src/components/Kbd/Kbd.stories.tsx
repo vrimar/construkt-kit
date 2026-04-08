@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Kbd } from ".";
+import { Box, HStack } from "../Layout";
 
 const meta: Meta<typeof Kbd> = {
   title: "Components/Kbd",
@@ -17,21 +18,24 @@ export const Default: Story = {};
 
 export const Combinations: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <Kbd>⌘</Kbd>+<Kbd>C</Kbd>
-      <span style={{ marginLeft: 16 }}>
+      <Box
+        as="span"
+        ml="4"
+      >
         <Kbd>Ctrl</Kbd>+<Kbd>Shift</Kbd>+<Kbd>P</Kbd>
-      </span>
-    </div>
+      </Box>
+    </HStack>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <Kbd size="sm">sm</Kbd>
       <Kbd size="md">md</Kbd>
       <Kbd size="lg">lg</Kbd>
-    </div>
+    </HStack>
   ),
 };

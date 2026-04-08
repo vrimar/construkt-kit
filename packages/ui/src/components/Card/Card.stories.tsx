@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Card } from ".";
 import { Button } from "../Buttons";
+import { Wrap } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Card",
@@ -28,7 +29,7 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+    <Wrap gap="4">
       {(["Compact", "Default", "Spacious"] as const).map((label) => (
         <Card.Root
           key={label}
@@ -40,6 +41,6 @@ export const Sizes: Story = {
           <Card.Body>Card content</Card.Body>
         </Card.Root>
       ))}
-    </div>
+    </Wrap>
   ),
 };

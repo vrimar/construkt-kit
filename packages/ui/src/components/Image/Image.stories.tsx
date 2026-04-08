@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Image } from ".";
+import { Box } from "../Layout";
 
 const meta: Meta<typeof Image> = {
   title: "Components/Image",
@@ -21,7 +22,12 @@ export const Default: Story = {
 
 export const WithFit: Story = {
   render: () => (
-    <div style={{ width: 200, height: 200, border: "1px solid #ccc" }}>
+    <Box
+      w="200px"
+      h="200px"
+      borderWidth="1px"
+      borderColor="border.default"
+    >
       <Image
         src="https://via.placeholder.com/400x300"
         alt="Fitted image"
@@ -29,6 +35,6 @@ export const WithFit: Story = {
         width="100%"
         height="100%"
       />
-    </div>
+    </Box>
   ),
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Stat } from ".";
+import { Flex, HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Stat",
@@ -24,7 +25,7 @@ export const Default: Story = {
 
 export const WithTrend: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "32px" }}>
+    <HStack gap="8">
       <Stat.Root>
         <Stat.Label>Sales</Stat.Label>
         <Stat.ValueText>$12,340</Stat.ValueText>
@@ -35,7 +36,7 @@ export const WithTrend: Story = {
         <Stat.ValueText>$8,120</Stat.ValueText>
         <Stat.DownTrend>4%</Stat.DownTrend>
       </Stat.Root>
-    </div>
+    </HStack>
   ),
 };
 
@@ -61,7 +62,11 @@ export const WithUnit: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "32px", padding: "16px", alignItems: "flex-start" }}>
+    <Flex
+      gap="8"
+      p="4"
+      align="flex-start"
+    >
       {(["sm", "md", "lg"] as const).map((size) => (
         <Stat.Root
           key={size}
@@ -72,6 +77,6 @@ export const Sizes: Story = {
           <Stat.HelpText>Last 30 days</Stat.HelpText>
         </Stat.Root>
       ))}
-    </div>
+    </Flex>
   ),
 };

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import { Combobox, createListCollection } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Combobox",
@@ -54,14 +55,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        padding: "16px",
-        maxWidth: "320px",
-      }}
+    <VStack
+      gap="4"
+      p="4"
+      maxW="320px"
     >
       {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
         <Combobox.Root
@@ -78,6 +75,6 @@ export const Sizes: Story = {
           </Combobox.Control>
         </Combobox.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

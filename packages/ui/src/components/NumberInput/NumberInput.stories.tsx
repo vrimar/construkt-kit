@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { NumberInput } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta<typeof NumberInput> = {
   title: "Components/NumberInput",
@@ -41,14 +42,10 @@ export const WithMinMax: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        padding: "16px",
-        maxWidth: "320px",
-      }}
+    <VStack
+      gap="3"
+      p="4"
+      maxW="320px"
     >
       {(["sm", "md", "lg", "xl"] as const).map((size) => (
         <NumberInput
@@ -63,6 +60,6 @@ export const Sizes: Story = {
           <NumberInput.Control />
         </NumberInput>
       ))}
-    </div>
+    </VStack>
   ),
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ToggleGroup } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/ToggleGroup",
@@ -49,7 +50,7 @@ export const Single: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <VStack gap="4">
       {(["A", "B", "C"] as const).map((label) => (
         <ToggleGroup.Root
           key={label}
@@ -60,6 +61,6 @@ export const Sizes: Story = {
           <ToggleGroup.Item value="c">C</ToggleGroup.Item>
         </ToggleGroup.Root>
       ))}
-    </div>
+    </VStack>
   ),
 };

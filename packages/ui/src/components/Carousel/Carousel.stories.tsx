@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Carousel } from ".";
+import { Center } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Carousel",
@@ -27,20 +28,15 @@ export const Default: Story = {
             key={i}
             index={i - 1}
           >
-            <div
-              style={{
-                height: 200,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#f0f0f0",
-                borderRadius: 8,
-                fontSize: 24,
-                fontWeight: "bold",
-              }}
+            <Center
+              h="200px"
+              bg="bg.subtle"
+              borderRadius="lg"
+              fontSize="2xl"
+              fontWeight="bold"
             >
               Slide {i}
-            </div>
+            </Center>
           </Carousel.Item>
         ))}
       </Carousel.ItemGroup>

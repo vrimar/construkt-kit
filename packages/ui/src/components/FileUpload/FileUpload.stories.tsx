@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FileUpload } from ".";
 import { Button } from "../Buttons";
+import { Center } from "../Layout";
 
 const meta: Meta = {
   title: "Components/FileUpload",
@@ -29,9 +30,7 @@ export const Dropzone: Story = {
     <FileUpload.Root maxFiles={3}>
       <FileUpload.HiddenInput />
       <FileUpload.Dropzone>
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          Drag and drop files here, or click to select
-        </div>
+        <Center p="10">Drag and drop files here, or click to select</Center>
       </FileUpload.Dropzone>
       <FileUpload.ItemGroup>
         <FileUpload.Items />

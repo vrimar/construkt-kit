@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import { HStack, VStack } from "../Layout";
 import { Button, ButtonGroup } from "./Button";
 import { CloseButton } from "./CloseButton";
 import { DeleteButton } from "./DeleteButton";
@@ -18,7 +19,7 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <IconButton aria-label="Search">
         <SearchIcon />
       </IconButton>
@@ -34,7 +35,7 @@ export const Default: Story = {
       >
         <InfoIcon />
       </IconButton>
-    </div>
+    </HStack>
   ),
 };
 
@@ -65,7 +66,10 @@ export const CloseButtonStory: Story = {
 export const SelectButtonStory: Story = {
   name: "SelectButton",
   render: () => (
-    <div style={{ display: "flex", gap: "8px", flexDirection: "column", maxWidth: 300 }}>
+    <VStack
+      gap="2"
+      maxW="300px"
+    >
       <SelectButton
         label="Select an option"
         hasValue={false}
@@ -75,7 +79,7 @@ export const SelectButtonStory: Story = {
         hasValue
         onClear={() => {}}
       />
-    </div>
+    </VStack>
   ),
 };
 

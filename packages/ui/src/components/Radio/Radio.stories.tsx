@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Radio, RadioGroup } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof Radio> = {
   title: "Components/Radio",
@@ -22,7 +23,7 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "24px" }}>
+    <HStack gap="6">
       <RadioGroup
         defaultValue="a"
         size="sm"
@@ -41,6 +42,6 @@ export const Sizes: Story = {
       >
         <Radio value="a">Large</Radio>
       </RadioGroup>
-    </div>
+    </HStack>
   ),
 };

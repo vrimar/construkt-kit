@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Tooltip } from ".";
 import { Button } from "../Buttons";
+import { Wrap } from "../Layout";
 
 const meta: Meta<typeof Tooltip> = {
   title: "Components/Tooltip",
@@ -28,7 +29,10 @@ export const WithArrow: Story = {
 
 export const Placements: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", padding: "60px" }}>
+    <Wrap
+      gap="4"
+      p="15"
+    >
       {(["top", "bottom", "left", "right"] as const).map((placement) => (
         <Tooltip
           key={placement}
@@ -38,6 +42,6 @@ export const Placements: Story = {
           <Button variant="outline">{placement}</Button>
         </Tooltip>
       ))}
-    </div>
+    </Wrap>
   ),
 };

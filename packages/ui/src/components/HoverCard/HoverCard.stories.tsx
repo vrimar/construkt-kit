@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HoverCard } from ".";
 import { Button } from "../Buttons";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/HoverCard",
@@ -20,10 +21,10 @@ export const Default: Story = {
         <HoverCard.Arrow>
           <HoverCard.ArrowTip />
         </HoverCard.Arrow>
-        <div style={{ padding: "16px" }}>
+        <Box p="4">
           <strong>Hover Card Content</strong>
           <p>This card appears on hover.</p>
-        </div>
+        </Box>
       </HoverCard.Content>
     </HoverCard.Root>
   ),

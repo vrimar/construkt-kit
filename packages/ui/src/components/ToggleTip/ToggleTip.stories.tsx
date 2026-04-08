@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoTip, ToggleTip } from ".";
 import { Button } from "../Buttons";
+import { HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/ToggleTip",
@@ -21,10 +22,10 @@ export const Default: Story = {
 export const InfoTipStory: Story = {
   name: "InfoTip",
   render: () => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <HStack gap="2">
       <span>Some label</span>
       <InfoTip>This provides additional context about the label.</InfoTip>
-    </div>
+    </HStack>
   ),
 };
 

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckboxCard } from ".";
+import { VStack } from "../Layout";
 
 const meta: Meta<typeof CheckboxCard> = {
   title: "Components/CheckboxCard",
@@ -35,7 +36,10 @@ export const WithAddon: Story = {
 
 export const Group: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "12px", flexDirection: "column", maxWidth: 400 }}>
+    <VStack
+      gap="3"
+      maxW="400px"
+    >
       <CheckboxCard
         label="Option 1"
         description="First option"
@@ -49,20 +53,16 @@ export const Group: Story = {
         label="Option 3"
         description="Third option"
       />
-    </div>
+    </VStack>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        maxWidth: 400,
-        padding: "16px",
-      }}
+    <VStack
+      gap="3"
+      maxW="400px"
+      p="4"
     >
       {(["sm", "md", "lg"] as const).map((size) => (
         <CheckboxCard
@@ -72,6 +72,6 @@ export const Sizes: Story = {
           size={size}
         />
       ))}
-    </div>
+    </VStack>
   ),
 };

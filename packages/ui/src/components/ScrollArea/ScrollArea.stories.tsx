@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ScrollArea } from ".";
+import { Box, Flex } from "../Layout";
+import { Text } from "../Text";
 
 const meta: Meta<typeof ScrollArea> = {
   title: "Components/ScrollArea",
@@ -19,11 +21,11 @@ export const Default: Story = {
       borderColor="border"
       borderRadius="md"
     >
-      <div style={{ padding: "16px" }}>
+      <Box p="4">
         {Array.from({ length: 20 }, (_, i) => (
           <p key={i}>Scrollable content line {i + 1}</p>
         ))}
-      </div>
+      </Box>
     </ScrollArea>
   ),
 };
@@ -37,17 +39,25 @@ export const HorizontalScroll: Story = {
       borderColor="border"
       borderRadius="md"
     >
-      <div style={{ padding: "16px", whiteSpace: "nowrap", width: "800px" }}>
+      <Box
+        p="4"
+        whiteSpace="nowrap"
+        w="800px"
+      >
         This is a very long line of text that will cause horizontal scrolling to demonstrate the
         horizontal scroll area functionality.
-      </div>
+      </Box>
     </ScrollArea>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "24px", padding: "16px", alignItems: "flex-start" }}>
+    <Flex
+      gap="6"
+      p="4"
+      align="flex-start"
+    >
       {(["xs", "sm", "md", "lg"] as const).map((size) => (
         <ScrollArea
           key={size}
@@ -58,14 +68,19 @@ export const Sizes: Story = {
           borderRadius="md"
           size={size}
         >
-          <div style={{ padding: "8px" }}>
-            <p style={{ marginBottom: "4px", fontWeight: "bold" }}>{size}</p>
+          <Box p="2">
+            <Text
+              mb="1"
+              fontWeight="bold"
+            >
+              {size}
+            </Text>
             {Array.from({ length: 10 }, (_, i) => (
               <p key={i}>Line {i + 1}</p>
             ))}
-          </div>
+          </Box>
         </ScrollArea>
       ))}
-    </div>
+    </Flex>
   ),
 };
