@@ -19,9 +19,16 @@ export * from "./Combobox";
 export * from "./DataTable";
 export * from "./DatePicker";
 export * from "./DebugFontSwitcher";
-export * from "./Dialog";
+export {
+  DeleteDialog,
+  Dialog,
+  SubmitDialog,
+  type DialogContentProps,
+  type DialogRootProps,
+  type SubmitDialogProps,
+} from "./Dialog";
 export * from "./DisplayValue";
-export * from "./Drawer";
+export { Drawer, type DrawerContentProps, type DrawerRootProps } from "./Drawer";
 export * from "./Editable";
 export * from "./EmptyState";
 export * from "./Fieldset";
@@ -29,7 +36,7 @@ export * from "./FileUpload";
 export * from "./Form";
 export * from "./Heading";
 export * from "./Highlight";
-export * from "./HoverCard";
+export { HoverCard, type HoverCardContentProps, type HoverCardRootProps } from "./HoverCard";
 export * from "./Icon";
 export * from "./Image";
 export * from "./Input";

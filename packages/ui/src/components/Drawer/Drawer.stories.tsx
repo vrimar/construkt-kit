@@ -16,7 +16,6 @@ export const Default: Story = {
       <Drawer.Trigger asChild>
         <Button>Open Drawer</Button>
       </Drawer.Trigger>
-      <Drawer.Backdrop />
       <Drawer.Content>
         <Drawer.Header>
           <Drawer.Title>Drawer Title</Drawer.Title>
@@ -38,7 +37,6 @@ export const LeftPlacement: Story = {
       <Drawer.Trigger asChild>
         <Button variant="outline">Open Left</Button>
       </Drawer.Trigger>
-      <Drawer.Backdrop />
       <Drawer.Content>
         <Drawer.Header>
           <Drawer.Title>Left Drawer</Drawer.Title>

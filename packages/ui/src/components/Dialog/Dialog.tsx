@@ -1,6 +1,7 @@
 import { Dialog as ArkDialog, DialogContext, useDialogContext } from "@ark-ui/react/dialog";
 import { ark } from "@ark-ui/react/factory";
-import { type ComponentProps } from "react";
+import { Portal } from "@ark-ui/react/portal";
+import { type ComponentProps, type RefObject } from "react";
 import { createStyleContext, styled } from "styled-system/jsx";
 import { dialog } from "styled-system/recipes";
 import type { WithRef } from "../../types";
@@ -72,14 +73,42 @@ function ActionTrigger({
 }
 
 export type DialogRootProps = ComponentProps<typeof Root>;
-export type DialogContentProps = ComponentProps<typeof Content>;
+
+export interface DialogContentProps extends ComponentProps<typeof Content> {
+  portalled?: boolean;
+  portalRef?: RefObject<HTMLElement>;
+  backdrop?: boolean;
+}
+
+function DialogContent({
+  ref,
+  portalled = true,
+  portalRef,
+  backdrop = true,
+  ...rest
+}: WithRef<DialogContentProps>) {
+  return (
+    <Portal
+      disabled={!portalled}
+      container={portalRef}
+    >
+      {backdrop && <Backdrop />}
+      <Positioner>
+        <Content
+          ref={ref}
+          {...rest}
+        />
+      </Positioner>
+    </Portal>
+  );
+}
 
 export const Dialog = {
   Root,
   RootProvider,
   Backdrop,
   CloseTrigger,
-  Content,
+  Content: DialogContent,
   Description,
   Positioner,
   Title,

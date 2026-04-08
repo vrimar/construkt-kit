@@ -16,17 +16,15 @@ export const Default: Story = {
       <HoverCard.Trigger asChild>
         <Button variant="outline">Hover me</Button>
       </HoverCard.Trigger>
-      <HoverCard.Positioner>
-        <HoverCard.Content>
-          <HoverCard.Arrow>
-            <HoverCard.ArrowTip />
-          </HoverCard.Arrow>
-          <div style={{ padding: "16px" }}>
-            <strong>Hover Card Content</strong>
-            <p>This card appears on hover.</p>
-          </div>
-        </HoverCard.Content>
-      </HoverCard.Positioner>
+      <HoverCard.Content>
+        <HoverCard.Arrow>
+          <HoverCard.ArrowTip />
+        </HoverCard.Arrow>
+        <div style={{ padding: "16px" }}>
+          <strong>Hover Card Content</strong>
+          <p>This card appears on hover.</p>
+        </div>
+      </HoverCard.Content>
     </HoverCard.Root>
   ),
 };
