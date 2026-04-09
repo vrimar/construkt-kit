@@ -7,7 +7,15 @@ afterEach(() => {
   cleanup();
 });
 
-describe("Select", () => {
+const items = [
+  { label: "First filter", value: "1" },
+  { label: "Second filter", value: "2" },
+];
+
+const getValue = (item: (typeof items)[number]) => item.value;
+const getLabel = (item: (typeof items)[number]) => item.label;
+
+describe("Select (compound API)", () => {
   it("stretches content to the trigger width when contentWidth is not provided", async () => {
     const originalClientWidth = Object.getOwnPropertyDescriptor(
       HTMLElement.prototype,
@@ -112,5 +120,105 @@ describe("Select", () => {
     expect(onAction).toHaveBeenCalledOnce();
     expect(onAction).toHaveBeenCalledWith("1");
     expect(onSelect).not.toHaveBeenCalled();
+  });
+});
+
+describe("Select (simple API)", () => {
+  it("renders items using the simple API", () => {
+    render(
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={vi.fn()}
+        label="Filter"
+        open
+      />,
+    );
+
+    expect(screen.getByText("First filter")).toBeDefined();
+    expect(screen.getByText("Second filter")).toBeDefined();
+  });
+
+  it("renders a search input when searchPlaceholder is set", () => {
+    render(
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={vi.fn()}
+        label="Filter"
+        searchPlaceholder="Search..."
+        open
+      />,
+    );
+
+    expect(screen.getByPlaceholderText("Search...")).toBeDefined();
+  });
+
+  it("does not render a search input when searchPlaceholder is omitted", () => {
+    render(
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={vi.fn()}
+        label="Filter"
+        open
+      />,
+    );
+
+    expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+
+  it("renders empty state when items is empty", () => {
+    render(
+      <Select
+        items={[]}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={vi.fn()}
+        label="Filter"
+        emptyMessage="Nothing here"
+        open
+      />,
+    );
+
+    expect(screen.getByText("Nothing here")).toBeDefined();
+  });
+
+  it("supports children escape hatch for compound usage", () => {
+    render(
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={vi.fn()}
+        open
+      >
+        <Select.Trigger label="Custom" />
+        <Select.Content>
+          <Select.List>
+            <Select.Items>
+              {(item: (typeof items)[number]) => (
+                <Select.Item
+                  key={item.value}
+                  item={item}
+                >
+                  <Select.ItemText />
+                </Select.Item>
+              )}
+            </Select.Items>
+          </Select.List>
+        </Select.Content>
+      </Select>,
+    );
+
+    expect(screen.getByText("First filter")).toBeDefined();
   });
 });

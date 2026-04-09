@@ -380,7 +380,87 @@ export const SelectFooter = ({ children, ...props }: SelectFooterProps) => (
   <Box {...props}>{children}</Box>
 );
 
-export const Select = {
+// --- Simple API ---
+
+export interface SelectProps<T> extends Omit<SelectRootProps<T>, "children"> {
+  /** Label displayed on the trigger button */
+  label?: string;
+  /** Placeholder for the search input (enables search when set) */
+  searchPlaceholder?: string;
+  /** Extra content rendered next to the search input */
+  searchExtra?: React.ReactNode;
+  /** Content displayed when the collection is empty */
+  emptyMessage?: React.ReactNode;
+  /** Render custom content after each item's text */
+  renderActions?: (item: T) => React.ReactNode;
+  /** Render custom item content (replaces default ItemText + ItemIndicator) */
+  renderItem?: (item: T) => React.ReactNode;
+  /** Props forwarded to the trigger button */
+  triggerProps?: Partial<SelectTriggerProps>;
+  /** Props forwarded to the content popover */
+  contentProps?: Partial<SelectContentProps>;
+  /** Props forwarded to the list container */
+  listProps?: Partial<SelectListProps>;
+  /** Content rendered below the list */
+  footer?: React.ReactNode;
+  /** Override children for full compound control inside SelectRoot */
+  children?: React.ReactNode;
+}
+
+const SelectSimple = <T,>({
+  label,
+  searchPlaceholder,
+  searchExtra,
+  emptyMessage,
+  renderActions,
+  renderItem,
+  triggerProps,
+  contentProps,
+  listProps,
+  footer,
+  children,
+  ...rootProps
+}: SelectProps<T>) => (
+  <SelectRoot {...rootProps}>
+    {children ?? (
+      <>
+        <SelectTrigger
+          {...triggerProps}
+          label={triggerProps?.label ?? label}
+        />
+        <SelectContent {...contentProps}>
+          {searchPlaceholder && (
+            <SelectSearch placeholder={searchPlaceholder}>{searchExtra}</SelectSearch>
+          )}
+          <SelectList {...listProps}>
+            <SelectItems<T>>
+              {(item) => (
+                <SelectItem
+                  key={String(rootProps.getValue(item))}
+                  item={item}
+                >
+                  {renderItem ? (
+                    renderItem(item)
+                  ) : (
+                    <>
+                      <SelectItemText />
+                      {renderActions?.(item)}
+                      <SelectItemIndicator />
+                    </>
+                  )}
+                </SelectItem>
+              )}
+            </SelectItems>
+            <SelectEmptyState>{emptyMessage}</SelectEmptyState>
+          </SelectList>
+          {footer && <SelectFooter>{footer}</SelectFooter>}
+        </SelectContent>
+      </>
+    )}
+  </SelectRoot>
+);
+
+export const Select = Object.assign(SelectSimple, {
   Root: SelectRoot,
   Trigger: SelectTrigger,
   Content: SelectContent,
@@ -392,4 +472,4 @@ export const Select = {
   ItemIndicator: SelectItemIndicator,
   EmptyState: SelectEmptyState,
   Footer: SelectFooter,
-};
+});

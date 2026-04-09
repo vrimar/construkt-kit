@@ -45,6 +45,7 @@ export interface ApplySelectActionsProps {
   applyText?: string;
   cancelText?: string;
   hasToggleAll?: boolean;
+  onReset?: () => void;
 }
 
 export type ApplySelectTriggerProps = SelectTriggerProps;
@@ -133,9 +134,15 @@ export const ApplySelectActions = ({
   applyText = "Apply",
   cancelText = "Cancel",
   hasToggleAll = false,
+  onReset,
 }: ApplySelectActionsProps) => {
   const { allSelected, handleApply, handleReset, handleToggleAll, hasSelection } =
     useApplySelectContext();
+
+  const handleResetClick = () => {
+    onReset?.();
+    handleReset();
+  };
 
   return (
     <Select.Footer>
@@ -157,7 +164,7 @@ export const ApplySelectActions = ({
         >
           <Button
             variant="plain"
-            onClick={handleReset}
+            onClick={handleResetClick}
             size="xs"
           >
             {cancelText}
