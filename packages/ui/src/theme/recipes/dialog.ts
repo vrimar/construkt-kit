@@ -51,9 +51,8 @@ export const dialog = defineSlotRecipe({
       insetEnd: "3",
     },
     content: {
-      bg: "neutral.surface.bg",
+      layerStyle: "modal.surface",
       borderRadius: "lg",
-      boxShadow: "lg",
       display: "flex",
       flexDirection: "column",
       my: "var(--dialog-margin, var(--dialog-base-margin))",

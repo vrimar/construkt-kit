@@ -35,6 +35,7 @@ export const drawer = defineSlotRecipe({
       overscrollBehaviorY: "none",
     },
     content: {
+      layerStyle: "modal.surface",
       display: "flex",
       flexDirection: "column",
       position: "relative",
@@ -43,8 +44,6 @@ export const drawer = defineSlotRecipe({
       zIndex: "modal",
       maxH: "100dvh",
       color: "inherit",
-      bg: "neutral.surface.bg",
-      boxShadow: "lg",
       _open: {
         animationDuration: "slowest",
         animationTimingFunction: "cubic-bezier(0.05, 0.7, 0.1, 1.0)",

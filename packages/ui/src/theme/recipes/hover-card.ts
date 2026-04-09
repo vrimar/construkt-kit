@@ -6,11 +6,7 @@ export const hoverCard = defineSlotRecipe({
   slots: hoverCardAnatomy.keys(),
   base: {
     content: {
-      "--hovercard-bg": "colors.bg",
-
-      bg: "var(--hovercard-bg)",
-      borderRadius: "lg",
-      boxShadow: "lg",
+      layerStyle: "floating.surface",
       display: "flex",
       flexDirection: "column",
       maxWidth: "80",
@@ -31,7 +27,7 @@ export const hoverCard = defineSlotRecipe({
     },
     arrow: {
       "--arrow-size": "sizes.3",
-      "--arrow-background": "var(--hovercard-bg)",
+      "--arrow-background": "colors.neutral.surface.bg",
     },
     arrowTip: {
       borderTopWidth: "0.5px",
