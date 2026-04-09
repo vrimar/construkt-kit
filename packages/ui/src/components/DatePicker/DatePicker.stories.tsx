@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
-import { DatePicker, DatePickerSelect, RangeDatePicker } from ".";
+import { DatePicker, DatePickerSelect, defaultRangePresets } from ".";
 import { Button } from "../Buttons";
 
 const meta: Meta = {
@@ -11,23 +11,50 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-export const Default: Story = {
+export const Single: Story = {
+  name: "Single",
   render: () => <DatePicker onValueChange={fn()} />,
 };
 
-export const RangePicker: Story = {
+export const Range: Story = {
+  name: "Range",
   render: () => (
-    <RangeDatePicker
-      trigger={<Button variant="outline">Select date range</Button>}
-      value={[]}
+    <DatePicker
+      selectionMode="range"
+      presets={defaultRangePresets}
+      clearable
       onValueChange={fn()}
     />
   ),
 };
 
-export const PickerSelect: Story = {
+export const CustomTrigger: Story = {
+  name: "Custom Trigger",
+  render: () => (
+    <DatePicker
+      trigger={<Button variant="outline">Pick a date</Button>}
+      onValueChange={fn()}
+    />
+  ),
+};
+
+export const NotPortalled: Story = {
+  name: "Not Portalled",
+  render: () => (
+    <DatePicker
+      portalled={false}
+      onValueChange={fn()}
+    />
+  ),
+};
+
+// --- DatePickerSelect ---
+
+export const Select: Story = {
+  name: "DatePickerSelect / Range",
   render: () => (
     <DatePickerSelect
+      selectionMode="range"
       value={[]}
       onValueChange={fn()}
     />

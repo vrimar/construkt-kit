@@ -1,40 +1,37 @@
+import type { DateValue } from "@ark-ui/react/date-picker";
 import { useMemo } from "react";
-
 import { SelectButton } from "../Buttons/SelectButton";
-import type { RangeDatePickerProps } from "./RangeDatePicker";
-import { RangeDatePicker } from "./RangeDatePicker";
+import { DatePicker } from "./DatePicker";
+import type { DatePickerProps, DatePickerSelectProps } from "./types";
+import { fireClear, toArkValue } from "./types";
 
-interface DatePickerSelectProps extends Omit<RangeDatePickerProps, "trigger"> {}
+function formatDateValue(value: DateValue): string {
+  return `${value.year}-${String(value.month).padStart(2, "0")}-${String(value.day).padStart(2, "0")}`;
+}
 
 export const DatePickerSelect = (props: DatePickerSelectProps) => {
+  const arkValue = toArkValue(props) ?? [];
+
   const label = useMemo(() => {
-    return props.value
-      .map(
-        (date) =>
-          `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`,
-      )
-      .join(" to ");
-  }, [props.value]);
+    const fmt = props.formatValue ?? formatDateValue;
+    return arkValue.map(fmt).join(" – ");
+  }, [arkValue, props.formatValue]);
 
-  const hasValue = props.value.length === 2;
+  const hasValue = arkValue.length > 0;
 
-  const handleClear = () => {
-    props.onValueChange([]);
-  };
+  const datePickerProps = {
+    ...props,
+    trigger: (
+      <SelectButton
+        hasValue={hasValue}
+        onClear={() => fireClear(props)}
+        label={label || props.placeholder || "Select date"}
+        variant="plain"
+        width="100%"
+        size="sm"
+      />
+    ),
+  } as DatePickerProps;
 
-  return (
-    <RangeDatePicker
-      {...props}
-      trigger={
-        <SelectButton
-          hasValue={hasValue}
-          onClear={handleClear}
-          label={label || "Select date"}
-          variant="plain"
-          width="100%"
-          size="sm"
-        />
-      }
-    />
-  );
+  return <DatePicker {...datePickerProps} />;
 };

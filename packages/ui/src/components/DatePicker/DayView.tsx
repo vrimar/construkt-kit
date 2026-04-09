@@ -1,6 +1,7 @@
-import { DatePicker, useDatePickerContext } from "@ark-ui/react/date-picker";
+import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { Box } from "styled-system/jsx";
 import { Button } from "../Buttons";
+import * as Parts from "./parts";
 
 interface DayViewProps {
   monthOffset: number;
@@ -12,26 +13,26 @@ export const DatePickerDayView = (props: DayViewProps) => {
   const offset = datePicker.getOffset({ months: monthOffset });
 
   return (
-    <DatePicker.Table>
-      <DatePicker.TableHead>
-        <DatePicker.TableRow>
+    <Parts.Table flex="1">
+      <Parts.TableHead>
+        <Parts.TableRow>
           {datePicker.weekDays.map((weekDay, id) => (
-            <DatePicker.TableHeader key={id}>
+            <Parts.TableHeader key={id}>
               <Box color="fg.subtle">{weekDay.short}</Box>
-            </DatePicker.TableHeader>
+            </Parts.TableHeader>
           ))}
-        </DatePicker.TableRow>
-      </DatePicker.TableHead>
-      <DatePicker.TableBody>
+        </Parts.TableRow>
+      </Parts.TableHead>
+      <Parts.TableBody>
         {offset.weeks.map((week, id) => (
-          <DatePicker.TableRow key={id}>
+          <Parts.TableRow key={id}>
             {week.map((day, id) => (
-              <DatePicker.TableCell
+              <Parts.TableCell
                 key={id}
                 value={day}
                 visibleRange={offset.visibleRange}
               >
-                <DatePicker.TableCellTrigger asChild>
+                <Parts.TableCellTrigger asChild>
                   <Button
                     size="xs"
                     variant="plain"
@@ -43,12 +44,12 @@ export const DatePickerDayView = (props: DayViewProps) => {
                   >
                     {day.day}
                   </Button>
-                </DatePicker.TableCellTrigger>
-              </DatePicker.TableCell>
+                </Parts.TableCellTrigger>
+              </Parts.TableCell>
             ))}
-          </DatePicker.TableRow>
+          </Parts.TableRow>
         ))}
-      </DatePicker.TableBody>
-    </DatePicker.Table>
+      </Parts.TableBody>
+    </Parts.Table>
   );
 };

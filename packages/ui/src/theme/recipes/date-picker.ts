@@ -18,7 +18,6 @@ export const datePicker = defineSlotRecipe({
       flexDirection: "column",
       gap: "3",
       p: "4",
-      width: "344px",
       zIndex: "dropdown",
       _open: {
         animation: "fadeIn 0.25s ease-out",
@@ -87,5 +86,24 @@ export const datePicker = defineSlotRecipe({
         display: "none",
       },
     },
+  },
+  variants: {
+    variant: {
+      popover: {},
+      inline: {
+        content: {
+          boxShadow: "none",
+          p: "0",
+          width: "full",
+          zIndex: "auto",
+          animation: "none",
+          _open: { animation: "none" },
+          _closed: { animation: "none" },
+        },
+      },
+    },
+  },
+  defaultVariants: {
+    variant: "popover",
   },
 });

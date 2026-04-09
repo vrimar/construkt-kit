@@ -24,7 +24,7 @@
 
 **Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
 
-**Date Pickers:** `DatePicker`, `RangeDatePicker`, `DatePickerSelect`
+**Date Pickers:** `Calendar`, `DatePicker`, `DatePickerSelect`
 
 **Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `ContextMenu`, `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 

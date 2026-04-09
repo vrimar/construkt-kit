@@ -34,6 +34,7 @@ export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps)
 
   return (
     <DatePickerSelect
+      selectionMode="range"
       onValueChange={handleValueChange}
       value={value}
     />
