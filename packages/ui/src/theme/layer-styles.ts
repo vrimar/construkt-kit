@@ -8,4 +8,30 @@ export const layerStyles = defineLayerStyles({
       filter: "grayscale(100%)",
     },
   },
+  "dropdown.surface": {
+    value: {
+      background: "neutral.surface.bg",
+      borderWidth: "1px",
+      borderColor: "neutral.surface.border",
+      borderRadius: "md",
+      boxShadow: "md",
+    },
+  },
+  "floating.surface": {
+    value: {
+      background: "neutral.surface.bg",
+      borderWidth: "1px",
+      borderColor: "neutral.surface.border",
+      borderRadius: "lg",
+      boxShadow: "md",
+    },
+  },
+  "modal.surface": {
+    value: {
+      background: "neutral.surface.bg",
+      borderWidth: "1px",
+      borderColor: "neutral.surface.border",
+      boxShadow: "lg",
+    },
+  },
 });

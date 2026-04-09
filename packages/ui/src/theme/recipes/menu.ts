@@ -8,9 +8,7 @@ export const menu = defineSlotRecipe({
     content: {
       "--menu-z-index": "zIndex.popover",
 
-      bg: "neutral.surface.bg",
-      borderRadius: "lg",
-      boxShadow: "md",
+      layerStyle: "dropdown.surface",
       display: "flex",
       flexDirection: "column",
       maxH: "min(var(--available-height), {sizes.96})",

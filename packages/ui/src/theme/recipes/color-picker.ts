@@ -3,7 +3,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 export const colorPicker = defineSlotRecipe({
   className: "color-picker",
-  slots: colorPickerAnatomy.keys(),
+  slots: colorPickerAnatomy.extendWith("valueSwatch").keys(),
   base: {
     root: {
       display: "flex",
@@ -43,11 +43,7 @@ export const colorPicker = defineSlotRecipe({
       },
     },
     content: {
-      background: "colorPalette.surface.bg",
-      borderWidth: "1px",
-      borderColor: "colorPalette.surface.border",
-      borderRadius: "lg",
-      boxShadow: "lg",
+      layerStyle: "floating.surface",
       display: "flex",
       flexDirection: "column",
       gap: "3",

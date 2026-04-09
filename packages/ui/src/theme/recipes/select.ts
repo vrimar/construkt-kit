@@ -12,9 +12,7 @@ export const select = defineSlotRecipe({
       width: "full",
     },
     content: {
-      background: "neutral.surface.bg",
-      borderRadius: "md",
-      boxShadow: "md",
+      layerStyle: "dropdown.surface",
       display: "flex",
       flexDirection: "column",
       maxH: "min(var(--available-height), {sizes.96})",

@@ -4,6 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
 import { createStyleContext, styled } from "styled-system/jsx";
 import { colorPicker } from "styled-system/recipes";
+import type { WithRef } from "../../types";
 export { parseColor } from "@ark-ui/react/color-picker";
 
 const { withRootProvider, withContext } = createStyleContext(colorPicker);
@@ -40,7 +41,7 @@ const SwatchIndicator = withContext(ArkColorPicker.SwatchIndicator, "swatchIndic
 const SwatchTrigger = withContext(ArkColorPicker.SwatchTrigger, "swatchTrigger");
 const TransparencyGrid = withContext(ArkColorPicker.TransparencyGrid, "transparencyGrid");
 const Trigger = withContext(ArkColorPicker.Trigger, "trigger");
-const ValueSwatch = withContext(ArkColorPicker.ValueSwatch, "swatch");
+const ValueSwatch = withContext(ArkColorPicker.ValueSwatch, "valueSwatch");
 const ValueText = withContext(ArkColorPicker.ValueText, "valueText");
 const View = withContext(ArkColorPicker.View, "view");
 const TriggerSwatch = styled(ark.div, {
@@ -54,6 +55,33 @@ const TriggerSwatch = styled(ark.div, {
 });
 
 export type ColorPickerRootProps = ComponentProps<typeof Root>;
+
+export interface ColorPickerContentProps extends ComponentProps<typeof Content> {
+  portalled?: boolean;
+  portalRef?: RefObject<HTMLElement | null>;
+}
+
+function ColorPickerContent({
+  ref,
+  portalled = true,
+  portalRef,
+  ...rest
+}: WithRef<ColorPickerContentProps>) {
+  return (
+    <Portal
+      disabled={!portalled}
+      container={portalRef}
+    >
+      <Positioner>
+        <Content
+          animation="none"
+          ref={ref}
+          {...rest}
+        />
+      </Positioner>
+    </Portal>
+  );
+}
 
 export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children"> {
   portalled?: boolean;
@@ -79,43 +107,39 @@ const ColorPickerSimple = ({
           </TriggerSwatch>
         </Trigger>
       </Control>
-      <Portal
-        disabled={!portalled}
-        container={portalRef}
+      <ColorPickerContent
+        portalled={portalled}
+        portalRef={portalRef}
       >
-        <Positioner>
-          <Content>
-            <Area>
-              <AreaBackground />
-              <AreaThumb />
-            </Area>
-            <ChannelInput channel="hex" />
-            <ChannelSlider channel="hue">
-              <ChannelSliderTrack />
-              <ChannelSliderThumb />
-            </ChannelSlider>
-            {withAlpha && (
-              <ChannelSlider channel="alpha">
-                <TransparencyGrid />
-                <ChannelSliderTrack />
-                <ChannelSliderThumb />
-              </ChannelSlider>
-            )}
-            {swatches && swatches.length > 0 && (
-              <SwatchGroup>
-                {swatches.map((swatch) => (
-                  <SwatchTrigger
-                    key={swatch}
-                    value={swatch}
-                  >
-                    <Swatch value={swatch} />
-                  </SwatchTrigger>
-                ))}
-              </SwatchGroup>
-            )}
-          </Content>
-        </Positioner>
-      </Portal>
+        <Area>
+          <AreaBackground />
+          <AreaThumb />
+        </Area>
+        <ChannelInput channel="hex" />
+        <ChannelSlider channel="hue">
+          <ChannelSliderTrack />
+          <ChannelSliderThumb />
+        </ChannelSlider>
+        {withAlpha && (
+          <ChannelSlider channel="alpha">
+            <TransparencyGrid />
+            <ChannelSliderTrack />
+            <ChannelSliderThumb />
+          </ChannelSlider>
+        )}
+        {swatches && swatches.length > 0 && (
+          <SwatchGroup>
+            {swatches.map((swatch) => (
+              <SwatchTrigger
+                key={swatch}
+                value={swatch}
+              >
+                <Swatch value={swatch} />
+              </SwatchTrigger>
+            ))}
+          </SwatchGroup>
+        )}
+      </ColorPickerContent>
       <HiddenInput />
     </Root>
   );
@@ -133,7 +157,7 @@ export const ColorPicker = Object.assign(ColorPickerSimple, {
   ChannelSliderThumb,
   ChannelSliderTrack,
   ChannelSliderValueText,
-  Content,
+  Content: ColorPickerContent,
   Control,
   EyeDropperTrigger,
   FormatSelect,

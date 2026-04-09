@@ -11,9 +11,7 @@ export const datePicker = defineSlotRecipe({
       gap: "1.5",
     },
     content: {
-      background: "neutral.surface.bg",
-      borderRadius: "lg",
-      boxShadow: "lg",
+      layerStyle: "floating.surface",
       display: "flex",
       flexDirection: "column",
       gap: "3",

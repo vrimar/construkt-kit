@@ -6,12 +6,9 @@ export const popover = defineSlotRecipe({
   slots: popoverAnatomy.extendWith("header", "body", "footer").keys(),
   base: {
     content: {
-      "--popover-bg": "colors.bg",
       "--popover-padding": "spacing.4",
 
-      background: "var(--popover-bg)",
-      borderRadius: "lg",
-      boxShadow: "lg",
+      layerStyle: "floating.surface",
       display: "flex",
       flexDirection: "column",
       maxHeight: "var(--available-height)",
@@ -61,7 +58,7 @@ export const popover = defineSlotRecipe({
     },
     arrow: {
       "--arrow-size": "sizes.3",
-      "--arrow-background": "var(--popover-bg)",
+      "--arrow-background": "colors.neutral.surface.bg",
     },
     arrowTip: {
       borderTopWidth: "0.5px",
