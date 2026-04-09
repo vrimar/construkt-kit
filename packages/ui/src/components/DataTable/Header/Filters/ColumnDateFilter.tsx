@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { useMemo } from "react";
+import { Box } from "styled-system/jsx";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
 
 const DATE_RANGE_SEPARATOR = "<>";
@@ -20,23 +21,27 @@ export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps)
   };
 
   const value = useMemo(() => {
+    if (!dateValue) return undefined;
+
     const dateTokens = dateValue.split(DATE_RANGE_SEPARATOR);
 
-    if (dateTokens?.length !== 2) return [];
+    if (dateTokens?.length !== 2) return undefined;
 
     const start = dayjs(dateTokens[0]);
     const end = dayjs(dateTokens[1]);
 
-    if (!start.isValid() || !end.isValid()) return [];
+    if (!start.isValid() || !end.isValid()) return undefined;
 
     return [parseDate(start.toDate()), parseDate(end.toDate())];
   }, [dateValue]);
 
   return (
-    <DatePickerSelect
-      selectionMode="range"
-      onValueChange={handleValueChange}
-      value={value}
-    />
+    <Box width="100%">
+      <DatePickerSelect
+        selectionMode="range"
+        onValueChange={handleValueChange}
+        value={value}
+      />
+    </Box>
   );
 };

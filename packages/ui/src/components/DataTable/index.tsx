@@ -37,7 +37,7 @@ export type DataTableProps<TData extends object> = {
   selections?: TableFilterSelections;
   showPagination?: boolean;
   showFiltersRow?: boolean;
-  isBasic?: boolean;
+  variant?: "default" | "basic";
   labels?: DataTableLabels;
 };
 
@@ -55,7 +55,7 @@ export const DataTable = <TData extends object>({
   showPagination = true,
   showFiltersRow = true,
   getRowProps,
-  isBasic,
+  variant,
   labels,
 }: DataTableProps<TData>) => {
   const sortingState = useMemo(
@@ -170,9 +170,9 @@ export const DataTable = <TData extends object>({
       bg="bg"
       width="100%"
       flex="1"
-      borderWidth={isBasic ? undefined : "1px"}
+      borderWidth={variant === "basic" ? undefined : "1px"}
       borderRadius="sm"
-      boxShadow={isBasic ? undefined : "xl"}
+      boxShadow={variant === "basic" ? undefined : "xl"}
       minHeight="0"
     >
       <Box
@@ -200,7 +200,7 @@ export const DataTable = <TData extends object>({
         <DataTablePagination
           table={table}
           totalItems={totalItems}
-          size={isBasic ? "xs" : "md"}
+          size={variant === "basic" ? "xs" : "md"}
           labels={labels}
         />
       )}

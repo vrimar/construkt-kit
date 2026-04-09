@@ -1,8 +1,8 @@
 import {
-    ChevronLeftIcon,
-    ChevronRightIcon,
-    ChevronsLeftIcon,
-    ChevronsRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
 } from "lucide-react";
 import { HStack } from "styled-system/jsx";
 import { Text } from "../Text";
@@ -24,7 +24,6 @@ interface PaginationProps<TData> {
 export const DataTablePagination = <TData,>({
   table,
   totalItems,
-  size = "md",
   labels,
 }: PaginationProps<TData>) => {
   const pageCount = table.getPageCount();
@@ -46,7 +45,12 @@ export const DataTablePagination = <TData,>({
         height="100%"
       >
         <Text textStyle="md">
-          <Text as="span" fontWeight="bold">{totalItems} </Text>
+          <Text
+            as="span"
+            fontWeight="bold"
+          >
+            {totalItems}{" "}
+          </Text>
           {itemsLabel}
         </Text>
       </HStack>
@@ -54,7 +58,20 @@ export const DataTablePagination = <TData,>({
       <HStack gap="8">
         {totalItems > 0 ? (
           <Text>
-            {pageLabel} <Text as="span" fontWeight="bold">{page + 1}</Text> {outOfLabel} <Text as="span" fontWeight="bold">{pageCount}</Text>
+            {pageLabel}{" "}
+            <Text
+              as="span"
+              fontWeight="bold"
+            >
+              {page + 1}
+            </Text>{" "}
+            {outOfLabel}{" "}
+            <Text
+              as="span"
+              fontWeight="bold"
+            >
+              {pageCount}
+            </Text>
           </Text>
         ) : (
           <Text>-</Text>
@@ -64,7 +81,7 @@ export const DataTablePagination = <TData,>({
             variant="outline"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
-            size={size}
+            size="sm"
           >
             <ChevronsLeftIcon />
           </IconButton>
@@ -72,7 +89,7 @@ export const DataTablePagination = <TData,>({
             variant="outline"
             onClick={table.previousPage}
             disabled={!table.getCanPreviousPage()}
-            size={size}
+            size="sm"
           >
             <ChevronLeftIcon />
           </IconButton>
@@ -81,7 +98,7 @@ export const DataTablePagination = <TData,>({
             variant="outline"
             onClick={table.nextPage}
             disabled={!table.getCanNextPage()}
-            size={size}
+            size="sm"
           >
             <ChevronRightIcon />
           </IconButton>
@@ -89,7 +106,7 @@ export const DataTablePagination = <TData,>({
             variant="outline"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
-            size={size}
+            size="sm"
           >
             <ChevronsRightIcon />
           </IconButton>

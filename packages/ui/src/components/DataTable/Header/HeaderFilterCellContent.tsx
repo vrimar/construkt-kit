@@ -1,9 +1,9 @@
 import type { Header } from "@tanstack/react-table";
-import { ApplySelect } from "../../ApplySelect";
 
 import type { ColumnFilterValue } from "../types";
 import { ColumnDateFilter } from "./Filters/ColumnDateFilter";
 import { ColumnSearchInput } from "./Filters/ColumnSearchInput";
+import { ColumnSelectFilter } from "./Filters/ColumnSelectFilter";
 
 interface HeaderFilterCellContentProps<TData> {
   header: Header<TData, unknown>;
@@ -47,44 +47,13 @@ export const DataTableHeaderFilterCellContent = <TData,>({
       );
     case "select":
       return (
-        <ApplySelect.Root
-          items={filterValues}
-          selected={filterValue}
-          getLabel={(item) => item}
-          getValue={(item) => item}
+        <ColumnSelectFilter
+          name={name}
+          filterValues={filterValues}
+          selected={filterValue ?? []}
+          selectProps={column.columnDef.meta?.selectProps}
           onApply={handleChange}
-          placement="bottom-end"
-          {...column.columnDef.meta?.selectProps?.root}
-        >
-          <ApplySelect.Trigger
-            label={name}
-            size="sm"
-            width="100%"
-            variant="plain"
-            {...column.columnDef.meta?.selectProps?.trigger}
-          />
-          <ApplySelect.Content {...column.columnDef.meta?.selectProps?.content}>
-            <ApplySelect.Search {...column.columnDef.meta?.selectProps?.search} />
-            <ApplySelect.List {...column.columnDef.meta?.selectProps?.list}>
-              <ApplySelect.Items>
-                {(item: string) => (
-                  <ApplySelect.Item
-                    key={item}
-                    item={item}
-                  >
-                    <ApplySelect.ItemText />
-                    <ApplySelect.ItemIndicator />
-                  </ApplySelect.Item>
-                )}
-              </ApplySelect.Items>
-              <ApplySelect.EmptyState />
-            </ApplySelect.List>
-            <ApplySelect.Actions
-              cancelText="Reset"
-              {...column.columnDef.meta?.selectProps?.actions}
-            />
-          </ApplySelect.Content>
-        </ApplySelect.Root>
+        />
       );
     default:
       return null;
