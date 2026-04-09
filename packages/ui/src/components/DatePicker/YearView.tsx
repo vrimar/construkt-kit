@@ -1,37 +1,72 @@
-import { DatePicker } from "@ark-ui/react/date-picker";
+import { useDatePickerContext } from "@ark-ui/react/date-picker";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { HStack } from "styled-system/jsx";
+import { Button, IconButton } from "../Buttons";
+import { Text } from "../Text";
+import * as Parts from "./parts";
 
 export const DatePickerYearView = () => {
+  const datePicker = useDatePickerContext();
+
   return (
-    <DatePicker.View view="year">
-      <DatePicker.Context>
-        {(datePicker) => (
+    <Parts.View view="year">
+      <Parts.ArkDatePicker.Context>
+        {(api) => (
           <>
-            <DatePicker.ViewControl>
-              <DatePicker.PrevTrigger>Prev</DatePicker.PrevTrigger>
-              <DatePicker.ViewTrigger>
-                <DatePicker.RangeText />
-              </DatePicker.ViewTrigger>
-              <DatePicker.NextTrigger>Next</DatePicker.NextTrigger>
-            </DatePicker.ViewControl>
-            <DatePicker.Table>
-              <DatePicker.TableBody>
-                {datePicker.getYearsGrid({ columns: 4 }).map((years, id) => (
-                  <DatePicker.TableRow key={id}>
+            <Parts.ViewControl>
+              <HStack>
+                <Parts.PrevTrigger asChild>
+                  <IconButton
+                    size="xs"
+                    variant="plain"
+                  >
+                    <ChevronLeftIcon />
+                  </IconButton>
+                </Parts.PrevTrigger>
+                <Parts.ViewTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="plain"
+                  >
+                    <Text fontWeight="bold">{datePicker.visibleRangeText.start}</Text>
+                  </Button>
+                </Parts.ViewTrigger>
+              </HStack>
+              <Parts.NextTrigger asChild>
+                <IconButton
+                  size="xs"
+                  variant="plain"
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              </Parts.NextTrigger>
+            </Parts.ViewControl>
+            <Parts.Table>
+              <Parts.TableBody>
+                {api.getYearsGrid({ columns: 4 }).map((years, id) => (
+                  <Parts.TableRow key={id}>
                     {years.map((year, id) => (
-                      <DatePicker.TableCell
+                      <Parts.TableCell
                         key={id}
                         value={year.value}
                       >
-                        <DatePicker.TableCellTrigger>{year.label}</DatePicker.TableCellTrigger>
-                      </DatePicker.TableCell>
+                        <Parts.TableCellTrigger asChild>
+                          <Button
+                            size="xs"
+                            variant="plain"
+                          >
+                            {year.label}
+                          </Button>
+                        </Parts.TableCellTrigger>
+                      </Parts.TableCell>
                     ))}
-                  </DatePicker.TableRow>
+                  </Parts.TableRow>
                 ))}
-              </DatePicker.TableBody>
-            </DatePicker.Table>
+              </Parts.TableBody>
+            </Parts.Table>
           </>
         )}
-      </DatePicker.Context>
-    </DatePicker.View>
+      </Parts.ArkDatePicker.Context>
+    </Parts.View>
   );
 };

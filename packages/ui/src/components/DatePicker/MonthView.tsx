@@ -1,37 +1,72 @@
-import { DatePicker } from "@ark-ui/react/date-picker";
+import { useDatePickerContext } from "@ark-ui/react/date-picker";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { HStack } from "styled-system/jsx";
+import { Button, IconButton } from "../Buttons";
+import { Text } from "../Text";
+import * as Parts from "./parts";
 
 export const DatePickerMonthView = () => {
+  const datePicker = useDatePickerContext();
+
   return (
-    <DatePicker.View view="month">
-      <DatePicker.Context>
-        {(datePicker) => (
+    <Parts.View view="month">
+      <Parts.ArkDatePicker.Context>
+        {(api) => (
           <>
-            <DatePicker.ViewControl>
-              <DatePicker.PrevTrigger>Prev</DatePicker.PrevTrigger>
-              <DatePicker.ViewTrigger>
-                <DatePicker.RangeText />
-              </DatePicker.ViewTrigger>
-              <DatePicker.NextTrigger>Next</DatePicker.NextTrigger>
-            </DatePicker.ViewControl>
-            <DatePicker.Table>
-              <DatePicker.TableBody>
-                {datePicker.getMonthsGrid({ columns: 4, format: "short" }).map((months, id) => (
-                  <DatePicker.TableRow key={id}>
+            <Parts.ViewControl>
+              <HStack>
+                <Parts.PrevTrigger asChild>
+                  <IconButton
+                    size="xs"
+                    variant="plain"
+                  >
+                    <ChevronLeftIcon />
+                  </IconButton>
+                </Parts.PrevTrigger>
+                <Parts.ViewTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="plain"
+                  >
+                    <Text fontWeight="bold">{datePicker.visibleRangeText.start}</Text>
+                  </Button>
+                </Parts.ViewTrigger>
+              </HStack>
+              <Parts.NextTrigger asChild>
+                <IconButton
+                  size="xs"
+                  variant="plain"
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              </Parts.NextTrigger>
+            </Parts.ViewControl>
+            <Parts.Table>
+              <Parts.TableBody>
+                {api.getMonthsGrid({ columns: 4, format: "short" }).map((months, id) => (
+                  <Parts.TableRow key={id}>
                     {months.map((month, id) => (
-                      <DatePicker.TableCell
+                      <Parts.TableCell
                         key={id}
                         value={month.value}
                       >
-                        <DatePicker.TableCellTrigger>{month.label}</DatePicker.TableCellTrigger>
-                      </DatePicker.TableCell>
+                        <Parts.TableCellTrigger asChild>
+                          <Button
+                            size="xs"
+                            variant="plain"
+                          >
+                            {month.label}
+                          </Button>
+                        </Parts.TableCellTrigger>
+                      </Parts.TableCell>
                     ))}
-                  </DatePicker.TableRow>
+                  </Parts.TableRow>
                 ))}
-              </DatePicker.TableBody>
-            </DatePicker.Table>
+              </Parts.TableBody>
+            </Parts.Table>
           </>
         )}
-      </DatePicker.Context>
-    </DatePicker.View>
+      </Parts.ArkDatePicker.Context>
+    </Parts.View>
   );
 };

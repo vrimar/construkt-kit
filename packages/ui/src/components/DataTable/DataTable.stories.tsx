@@ -17,22 +17,44 @@ interface Person {
   name: string;
   email: string;
   role: string;
+  createdAt: string;
 }
 
 const columnHelper = createColumnHelper<Person>();
 
 const columns = [
-  columnHelper.accessor("name", { header: "Name" }),
-  columnHelper.accessor("email", { header: "Email" }),
-  columnHelper.accessor("role", { header: "Role" }),
+  columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
+  columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
+  columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
+  columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
 ];
 
+const roleSelections = ["Admin", "User", "Editor"];
+
 const data: Person[] = [
-  { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
-  { id: 2, name: "Bob Smith", email: "bob@example.com", role: "User" },
-  { id: 3, name: "Charlie Brown", email: "charlie@example.com", role: "Editor" },
-  { id: 4, name: "Diana Prince", email: "diana@example.com", role: "Admin" },
-  { id: 5, name: "Eve Williams", email: "eve@example.com", role: "User" },
+  {
+    id: 1,
+    name: "Alice Johnson",
+    email: "alice@example.com",
+    role: "Admin",
+    createdAt: "2024-01-15",
+  },
+  { id: 2, name: "Bob Smith", email: "bob@example.com", role: "User", createdAt: "2024-02-20" },
+  {
+    id: 3,
+    name: "Charlie Brown",
+    email: "charlie@example.com",
+    role: "Editor",
+    createdAt: "2024-03-10",
+  },
+  {
+    id: 4,
+    name: "Diana Prince",
+    email: "diana@example.com",
+    role: "Admin",
+    createdAt: "2024-04-05",
+  },
+  { id: 5, name: "Eve Williams", email: "eve@example.com", role: "User", createdAt: "2024-05-18" },
 ];
 
 const defaultParams: DataTableParams = {
@@ -54,6 +76,7 @@ function DataTableStory(props: { data: Person[]; loading?: boolean; isBasic?: bo
       onParamChange={setParams}
       loading={props.loading}
       isBasic={props.isBasic}
+      selections={{ role: roleSelections }}
     />
   );
 }
