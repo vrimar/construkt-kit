@@ -1,7 +1,6 @@
 export * from "./Accordion";
 export * from "./Actionbar";
 export * from "./Alert";
-export * from "./ApplyInput";
 export * from "./ApplySelect";
 export * from "./Avatar";
 export * from "./Badge";
