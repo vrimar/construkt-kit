@@ -22,6 +22,20 @@ export type DataTableFilters = Record<string, string[] | undefined>;
 
 export type DataTableSortType = "asc" | "desc" | "";
 
+export type DataTableSelectProps = {
+  actions?: ApplySelectActionsProps;
+  content?: ApplySelectContentProps;
+  list?: SelectListProps;
+  root?: Partial<
+    Omit<
+      ApplySelectRootProps<string>,
+      "children" | "getLabel" | "getValue" | "items" | "onApply" | "selected"
+    >
+  >;
+  search?: ApplySelectSearchProps;
+  trigger?: ApplySelectTriggerProps;
+};
+
 export type DataTableParams = {
   orderBy: string;
   orderType: DataTableSortType;
@@ -35,19 +49,7 @@ import "@tanstack/react-table";
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     type?: ColumnFilterType;
-    selectProps?: {
-      actions?: ApplySelectActionsProps;
-      content?: ApplySelectContentProps;
-      list?: SelectListProps;
-      root?: Partial<
-        Omit<
-          ApplySelectRootProps<string>,
-          "children" | "getLabel" | "getValue" | "items" | "onApply" | "selected"
-        >
-      >;
-      search?: ApplySelectSearchProps;
-      trigger?: ApplySelectTriggerProps;
-    };
+    selectProps?: DataTableSelectProps;
     width?: number;
     isVisible?: boolean;
   }

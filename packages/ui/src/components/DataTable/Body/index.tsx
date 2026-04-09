@@ -45,7 +45,8 @@ export const DataTableBody = <TData,>({
 
   return (
     <ScrollArea
-      height="100%"
+      flex="1"
+      minHeight="0"
       py="2"
       ref={scrollRef}
     >
