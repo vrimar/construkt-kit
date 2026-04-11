@@ -1,13 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import {
+  Button,
+  ButtonGroup,
+  CloseButton,
+  DeleteButton,
+  EditButton,
+  IconButton,
+  SelectButton,
+  TooltipIconButton,
+} from ".";
 import { HStack, VStack } from "../Layout";
-import { Button, ButtonGroup } from "./Button";
-import { CloseButton } from "./CloseButton";
-import { DeleteButton } from "./DeleteButton";
-import { EditButton } from "./EditButton";
-import { IconButton } from "./IconButton";
-import { SelectButton } from "./SelectButton";
-import { TooltipIconButton } from "./TooltipIconButton";
 
 const meta: Meta = {
   title: "Components/Buttons/IconButton",

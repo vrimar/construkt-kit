@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { SearchHighlight } from "./SearchHighlight";
+import { SearchHighlight } from ".";
 
 const meta: Meta<typeof SearchHighlight> = {
   title: "Components/Highlight",

@@ -1,4 +1,4 @@
-import { NumberInput as ArkNumberInput } from "@ark-ui/react/number-input";
+import { NumberInput as ArkNumberInput, NumberInputContext } from "@ark-ui/react/number-input";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
@@ -48,4 +48,5 @@ export const NumberInput = Object.assign(NumberInputSimple, {
   Control,
   Scrubber,
   Label,
+  Context: NumberInputContext,
 });

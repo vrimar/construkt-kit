@@ -27,16 +27,17 @@ export const Default: Story = {
   ),
 };
 
-export const Sizes: Story = {
+export const Variants: Story = {
   render: () => (
     <Wrap gap="4">
-      {(["Compact", "Default", "Spacious"] as const).map((label) => (
+      {(["elevated", "outline", "subtle"] as const).map((variant) => (
         <Card.Root
-          key={label}
+          key={variant}
+          variant={variant}
           minW="200px"
         >
           <Card.Header>
-            <Card.Title>{label}</Card.Title>
+            <Card.Title>{variant}</Card.Title>
           </Card.Header>
           <Card.Body>Card content</Card.Body>
         </Card.Root>

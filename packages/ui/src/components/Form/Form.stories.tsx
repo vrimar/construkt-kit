@@ -11,7 +11,7 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-export const FieldDefault: Story = {
+export const FieldStory: Story = {
   name: "Field",
   render: () => (
     <Field
@@ -23,7 +23,7 @@ export const FieldDefault: Story = {
   ),
 };
 
-export const FieldWithError: Story = {
+export const FieldWithErrorStory: Story = {
   name: "Field with Error",
   render: () => (
     <Field
@@ -39,7 +39,7 @@ export const FieldWithError: Story = {
   ),
 };
 
-export const FieldOptional: Story = {
+export const FieldOptionalStory: Story = {
   name: "Field Optional",
   render: () => (
     <Field
@@ -51,7 +51,7 @@ export const FieldOptional: Story = {
   ),
 };
 
-export const SubmitFormDefault: Story = {
+export const SubmitFormStory: Story = {
   name: "SubmitForm",
   render: () => (
     <SubmitForm
@@ -68,7 +68,7 @@ export const SubmitFormDefault: Story = {
   ),
 };
 
-export const SubmitFormLoading: Story = {
+export const SubmitFormLoadingStory: Story = {
   name: "SubmitForm Loading",
   render: () => (
     <SubmitForm

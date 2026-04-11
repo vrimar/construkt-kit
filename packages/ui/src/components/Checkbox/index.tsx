@@ -1,4 +1,8 @@
-import { Checkbox as ArkCheckbox, useCheckboxContext } from "@ark-ui/react/checkbox";
+import {
+  Checkbox as ArkCheckbox,
+  CheckboxContext,
+  useCheckboxContext,
+} from "@ark-ui/react/checkbox";
 import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
 import { createStyleContext, styled } from "styled-system/jsx";
 import { checkbox } from "styled-system/recipes";
@@ -85,4 +89,5 @@ export const Checkbox = Object.assign(CheckboxSimple, {
   Label,
   HiddenInput,
   Indicator,
+  Context: CheckboxContext,
 });

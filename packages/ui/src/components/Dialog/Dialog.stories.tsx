@@ -1,18 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button } from "../Buttons/Button";
-import { Dialog } from "./Dialog";
-
-const {
-  Root: DialogRoot,
-  Trigger: DialogTrigger,
-  Content: DialogContent,
-  Header: DialogHeader,
-  Title: DialogTitle,
-  Body: DialogBody,
-  Footer: DialogFooter,
-  ActionTrigger: DialogActionTrigger,
-  CloseTrigger: DialogCloseTrigger,
-} = Dialog;
+import { Dialog } from ".";
+import { Button } from "../Buttons";
 
 const meta: Meta = {
   title: "Components/Dialog",
@@ -24,40 +12,40 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <DialogRoot>
-      <DialogTrigger asChild>
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
         <Button>Open dialog</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm action</DialogTitle>
-        </DialogHeader>
-        <DialogBody>Are you sure you want to continue? This cannot be undone.</DialogBody>
-        <DialogFooter>
-          <DialogActionTrigger asChild>
+      </Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Confirm action</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>Are you sure you want to continue? This cannot be undone.</Dialog.Body>
+        <Dialog.Footer>
+          <Dialog.ActionTrigger asChild>
             <Button variant="outline">Cancel</Button>
-          </DialogActionTrigger>
+          </Dialog.ActionTrigger>
           <Button colorPalette="red">Confirm</Button>
-        </DialogFooter>
-        <DialogCloseTrigger />
-      </DialogContent>
-    </DialogRoot>
+        </Dialog.Footer>
+        <Dialog.CloseTrigger />
+      </Dialog.Content>
+    </Dialog.Root>
   ),
 };
 
 export const NoBackdrop: Story = {
   render: () => (
-    <DialogRoot>
-      <DialogTrigger asChild>
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
         <Button variant="outline">Open (no backdrop)</Button>
-      </DialogTrigger>
-      <DialogContent backdrop={false}>
-        <DialogHeader>
-          <DialogTitle>Dialog without backdrop</DialogTitle>
-        </DialogHeader>
-        <DialogBody>Content here.</DialogBody>
-        <DialogCloseTrigger />
-      </DialogContent>
-    </DialogRoot>
+      </Dialog.Trigger>
+      <Dialog.Content backdrop={false}>
+        <Dialog.Header>
+          <Dialog.Title>Dialog without backdrop</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>Content here.</Dialog.Body>
+        <Dialog.CloseTrigger />
+      </Dialog.Content>
+    </Dialog.Root>
   ),
 };

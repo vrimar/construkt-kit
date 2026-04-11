@@ -12,12 +12,10 @@ export default meta;
 type Story = StoryObj;
 
 export const Single: Story = {
-  name: "Single",
   render: () => <DatePicker onValueChange={fn()} />,
 };
 
 export const Range: Story = {
-  name: "Range",
   render: () => (
     <DatePicker
       selectionMode="range"

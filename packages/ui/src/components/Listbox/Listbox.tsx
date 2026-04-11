@@ -17,7 +17,7 @@ import { SearchInput } from "../Input";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
 
 export { createListCollection, useListCollection } from "@ark-ui/react/collection";
-export type { ListCollection } from "@ark-ui/react/collection";
+export type { CollectionItem, ListCollection } from "@ark-ui/react/collection";
 
 const { withProvider, withContext } = createStyleContext(listbox);
 

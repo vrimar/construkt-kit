@@ -11,12 +11,10 @@ export default meta;
 type Story = StoryObj;
 
 export const Single: Story = {
-  name: "Single",
   render: () => <Calendar onValueChange={fn()} />,
 };
 
 export const Range: Story = {
-  name: "Range",
   render: () => (
     <Calendar
       selectionMode="range"
@@ -38,7 +36,6 @@ export const RangeWithPresets: Story = {
 };
 
 export const Disabled: Story = {
-  name: "Disabled",
   render: () => (
     <Calendar
       disabled

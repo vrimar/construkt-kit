@@ -11,7 +11,9 @@ type RootProps = ComponentProps<typeof Root>;
 const Root = withRootProvider(ArkHoverCard.Root, {
   defaultProps: { unmountOnExit: true, lazyMount: true },
 });
-const RootProvider = withRootProvider(ArkHoverCard.RootProvider);
+const RootProvider = withRootProvider(ArkHoverCard.RootProvider, {
+  defaultProps: { unmountOnExit: true, lazyMount: true },
+});
 const Arrow = withContext(ArkHoverCard.Arrow, "arrow");
 const ArrowTip = withContext(ArkHoverCard.ArrowTip, "arrowTip");
 const Content = withContext(ArkHoverCard.Content, "content");

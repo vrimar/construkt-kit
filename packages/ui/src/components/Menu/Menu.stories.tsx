@@ -115,73 +115,72 @@ export const Sizes: Story = {
   ),
 };
 
+function TypesDemo() {
+  const [bold, setBold] = useState(false);
+  const [italic, setItalic] = useState(true);
+  const [size, setSize] = useState("md");
+
+  return (
+    <Flex
+      gap="30"
+      align="flex-start"
+      p="4"
+    >
+      <Menu.Root
+        open
+        onOpenChange={() => {}}
+      >
+        <Menu.Trigger asChild>
+          <Button variant="outline">Checkbox</Button>
+        </Menu.Trigger>
+        <Menu.Content portalled={false}>
+          <Menu.CheckboxItem
+            value="bold"
+            checked={bold}
+            onCheckedChange={(checked) => setBold(!!checked)}
+          >
+            Bold
+          </Menu.CheckboxItem>
+          <Menu.CheckboxItem
+            value="italic"
+            checked={italic}
+            onCheckedChange={(checked) => setItalic(!!checked)}
+          >
+            Italic
+          </Menu.CheckboxItem>
+          <Menu.CheckboxItem
+            value="underline"
+            checked={false}
+          >
+            Underline
+          </Menu.CheckboxItem>
+        </Menu.Content>
+      </Menu.Root>
+
+      <Menu.Root
+        open
+        onOpenChange={() => {}}
+      >
+        <Menu.Trigger asChild>
+          <Button variant="outline">Radio</Button>
+        </Menu.Trigger>
+        <Menu.Content portalled={false}>
+          <Menu.RadioItemGroup
+            value={size}
+            onValueChange={({ value }) => setSize(value)}
+          >
+            <Menu.RadioItem value="sm">Small</Menu.RadioItem>
+            <Menu.RadioItem value="md">Medium</Menu.RadioItem>
+            <Menu.RadioItem value="lg">Large</Menu.RadioItem>
+          </Menu.RadioItemGroup>
+        </Menu.Content>
+      </Menu.Root>
+    </Flex>
+  );
+}
+
 export const Types: Story = {
-  render: () => {
-    function TypesDemo() {
-      const [bold, setBold] = useState(false);
-      const [italic, setItalic] = useState(true);
-      const [size, setSize] = useState("md");
-
-      return (
-        <Flex
-          gap="30"
-          align="flex-start"
-          p="4"
-        >
-          <Menu.Root
-            open
-            onOpenChange={() => {}}
-          >
-            <Menu.Trigger asChild>
-              <Button variant="outline">Checkbox</Button>
-            </Menu.Trigger>
-            <Menu.Content portalled={false}>
-              <Menu.CheckboxItem
-                value="bold"
-                checked={bold}
-                onCheckedChange={(checked) => setBold(!!checked)}
-              >
-                Bold
-              </Menu.CheckboxItem>
-              <Menu.CheckboxItem
-                value="italic"
-                checked={italic}
-                onCheckedChange={(checked) => setItalic(!!checked)}
-              >
-                Italic
-              </Menu.CheckboxItem>
-              <Menu.CheckboxItem
-                value="underline"
-                checked={false}
-              >
-                Underline
-              </Menu.CheckboxItem>
-            </Menu.Content>
-          </Menu.Root>
-
-          <Menu.Root
-            open
-            onOpenChange={() => {}}
-          >
-            <Menu.Trigger asChild>
-              <Button variant="outline">Radio</Button>
-            </Menu.Trigger>
-            <Menu.Content portalled={false}>
-              <Menu.RadioItemGroup
-                value={size}
-                onValueChange={({ value }) => setSize(value)}
-              >
-                <Menu.RadioItem value="sm">Small</Menu.RadioItem>
-                <Menu.RadioItem value="md">Medium</Menu.RadioItem>
-                <Menu.RadioItem value="lg">Large</Menu.RadioItem>
-              </Menu.RadioItemGroup>
-            </Menu.Content>
-          </Menu.Root>
-        </Flex>
-      );
-    }
-    return <TypesDemo />;
-  },
+  render: () => <TypesDemo />,
 };
 
 export const ContextMenu: Story = {

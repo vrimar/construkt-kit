@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
 import { fn } from "storybook/test";
-import { Select } from "./Select";
+import { Select } from ".";
 
 const meta: Meta = {
   title: "Components/Select",

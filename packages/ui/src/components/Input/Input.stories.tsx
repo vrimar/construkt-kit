@@ -1,10 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Input, InputGroup, PasswordInput, SearchInput, Textarea } from ".";
 import { Box, VStack } from "../Layout";
-import { Input } from "./Input";
-import { InputGroup } from "./InputGroup";
-import { PasswordInput } from "./PasswordInput";
-import { SearchInput } from "./SearchInput";
-import { Textarea } from "./Textarea";
 
 const meta: Meta<typeof Input> = {
   title: "Components/Input",
