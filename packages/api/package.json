@@ -28,14 +28,10 @@
     "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
-    "format": "oxfmt src -c ../config/oxfmt/index.jsonc",
-    "generate": "orval --config orval.config.ts"
+    "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
   },
   "bin": {
     "b3-api-gen": "./bin/api-gen.mjs"
-  },
-  "peerDependencies": {
-    "react": "^19.0.0"
   },
   "dependencies": {
     "@kubb/core": "^4.37.2",

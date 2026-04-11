@@ -40,13 +40,7 @@
     "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
   },
   "peerDependencies": {
-    "@auth0/auth0-react": ">=2.0.0",
     "react": "^19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@auth0/auth0-react": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@auth0/auth0-react": "^2.16.1",

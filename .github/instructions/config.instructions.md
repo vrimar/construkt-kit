@@ -8,14 +8,14 @@ Read `packages/config/README.md` for full options and usage.
 
 Sub-path exports — each consumed differently:
 
-| Sub-path                | Type    | Key export                                                                             |
-| ----------------------- | ------- | -------------------------------------------------------------------------------------- |
-| `@b3/config/typescript` | JSON    | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                   |
-| `@b3/config/vite`       | Factory | `createViteConfig(overrides?)` — includes React plugin, tsconfig-paths, oxlint checker |
-| `@b3/config/playwright` | Factory | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer     |
-| `@b3/config/kubb`       | Factory | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`           |
-| `@b3/config/oxlint`     | JSON    | Linting rules (Panda CSS enforcement, etc.)                                            |
-| `@b3/config/oxfmt`      | JSONC   | Formatting rules                                                                       |
+| Sub-path                | Type    | Key export                                                                                               |
+| ----------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `@b3/config/typescript` | JSON    | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                                     |
+| `@b3/config/vite`       | Factory | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
+| `@b3/config/playwright` | Factory | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
+| `@b3/config/kubb`       | Factory | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
+| `@b3/config/oxlint`     | JSON    | Linting rules (Panda CSS enforcement, etc.)                                                              |
+| `@b3/config/oxfmt`      | JSONC   | Formatting rules                                                                                         |
 
 ## Key Patterns
 

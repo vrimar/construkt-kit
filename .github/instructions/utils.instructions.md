@@ -18,7 +18,8 @@ Read `packages/utils/README.md` for full export table and examples.
 - **Tree traversal** (`findInTree`) is depth-first predicate search — no cycle detection
 - **Query building** (`buildQueryString`) recursively handles nested objects/arrays; omits `undefined`/`null`
 - **File utilities** (`saveBlobResponse`, `downloadFile`) sanitize filenames to prevent path traversal
-- **Number parsing** (`toInt`, `isValidNumber`) returns `0` for invalid input — never throws
+- **Number parsing** (`toInt`, `isStrictlyNumeric` in `number.ts`) returns `0` for invalid input — never throws
+- **Number validation** (`isValidNumber` in `number.ts`) returns `boolean` — handles strings and numbers
 
 ## Conventions
 
