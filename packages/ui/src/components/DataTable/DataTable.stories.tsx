@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
 import { DataTable } from ".";
+import { Box } from "../Layout";
 import type { DataTableParams } from "./types";
 
 const meta: Meta = {
@@ -232,20 +233,30 @@ function DataTableStory(props: {
 }
 
 export const Default: Story = {
-  render: () => <DataTableStory data={data} />,
+  render: () => (
+    <Box maxW="800px">
+      <DataTableStory data={data} />
+    </Box>
+  ),
 };
 
 export const Loading: Story = {
   render: () => (
-    <DataTableStory
-      data={[]}
-      loading
-    />
+    <Box maxW="800px">
+      <DataTableStory
+        data={[]}
+        loading
+      />
+    </Box>
   ),
 };
 
 export const Empty: Story = {
-  render: () => <DataTableStory data={[]} />,
+  render: () => (
+    <Box maxW="800px">
+      <DataTableStory data={[]} />
+    </Box>
+  ),
 };
 
 export const Basic: Story = {

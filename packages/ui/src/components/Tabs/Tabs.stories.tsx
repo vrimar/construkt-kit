@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Tabs } from ".";
-import { VStack } from "../Layout";
+import { Box, VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Tabs",
@@ -12,17 +12,19 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <Tabs.Root defaultValue="tab-1">
-      <Tabs.List>
-        <Tabs.Trigger value="tab-1">Overview</Tabs.Trigger>
-        <Tabs.Trigger value="tab-2">Settings</Tabs.Trigger>
-        <Tabs.Trigger value="tab-3">Billing</Tabs.Trigger>
-        <Tabs.Indicator />
-      </Tabs.List>
-      <Tabs.Content value="tab-1">Overview content goes here.</Tabs.Content>
-      <Tabs.Content value="tab-2">Settings content goes here.</Tabs.Content>
-      <Tabs.Content value="tab-3">Billing content goes here.</Tabs.Content>
-    </Tabs.Root>
+    <Box maxW="400px">
+      <Tabs.Root defaultValue="tab-1">
+        <Tabs.List>
+          <Tabs.Trigger value="tab-1">Overview</Tabs.Trigger>
+          <Tabs.Trigger value="tab-2">Settings</Tabs.Trigger>
+          <Tabs.Trigger value="tab-3">Billing</Tabs.Trigger>
+          <Tabs.Indicator />
+        </Tabs.List>
+        <Tabs.Content value="tab-1">Overview content goes here.</Tabs.Content>
+        <Tabs.Content value="tab-2">Settings content goes here.</Tabs.Content>
+        <Tabs.Content value="tab-3">Billing content goes here.</Tabs.Content>
+      </Tabs.Root>
+    </Box>
   ),
 };
 

@@ -1,10 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { LoadingOverlay } from ".";
+import { Box } from "../Layout";
 
 const meta: Meta<typeof LoadingOverlay> = {
   title: "Components/LoadingOverlay",
   component: LoadingOverlay,
   tags: ["autodocs"],
+  decorators: [
+    (Story: any) => (
+      <Box
+        w="400px"
+        h="200px"
+      >
+        <Story />
+      </Box>
+    ),
+  ],
 };
 
 export default meta;

@@ -13,29 +13,33 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <Collapsible.Root>
-      <Collapsible.Trigger asChild>
-        <Button variant="outline">Toggle content</Button>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
-        <Box p="4">
-          This content can be expanded and collapsed. Lorem ipsum dolor sit amet, consectetur
-          adipiscing elit.
-        </Box>
-      </Collapsible.Content>
-    </Collapsible.Root>
+    <Box maxW="400px">
+      <Collapsible.Root>
+        <Collapsible.Trigger asChild>
+          <Button variant="outline">Toggle content</Button>
+        </Collapsible.Trigger>
+        <Collapsible.Content>
+          <Box p="4">
+            This content can be expanded and collapsed. Lorem ipsum dolor sit amet, consectetur
+            adipiscing elit.
+          </Box>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </Box>
   ),
 };
 
 export const DefaultOpen: Story = {
   render: () => (
-    <Collapsible.Root defaultOpen>
-      <Collapsible.Trigger asChild>
-        <Button variant="outline">Toggle</Button>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
-        <Box p="4">This section is open by default.</Box>
-      </Collapsible.Content>
-    </Collapsible.Root>
+    <Box maxW="400px">
+      <Collapsible.Root defaultOpen>
+        <Collapsible.Trigger asChild>
+          <Button variant="outline">Toggle</Button>
+        </Collapsible.Trigger>
+        <Collapsible.Content>
+          <Box p="4">This section is open by default.</Box>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </Box>
   ),
 };

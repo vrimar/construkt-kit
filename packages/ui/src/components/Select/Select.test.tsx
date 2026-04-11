@@ -16,58 +16,69 @@ const getValue = (item: (typeof items)[number]) => item.value;
 const getLabel = (item: (typeof items)[number]) => item.label;
 
 describe("Select (compound API)", () => {
-  it("stretches content to the trigger width when contentWidth is not provided", async () => {
-    const originalClientWidth = Object.getOwnPropertyDescriptor(
-      HTMLElement.prototype,
-      "clientWidth",
+  it("applies explicit contentWidth to content", () => {
+    render(
+      <Select.Root
+        getLabel={(item) => item.label}
+        getValue={(item) => item.value}
+        items={items}
+        contentWidth={300}
+        onSelect={vi.fn()}
+        open
+        selected={undefined}
+      >
+        <Select.Trigger label="Filter" />
+        <Select.Content data-testid="select-content">
+          <Select.List>
+            <Select.Items>
+              {(item: (typeof items)[number]) => (
+                <Select.Item
+                  key={item.value}
+                  item={item}
+                >
+                  <Select.ItemText />
+                </Select.Item>
+              )}
+            </Select.Items>
+          </Select.List>
+        </Select.Content>
+      </Select.Root>,
     );
 
-    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
-      configurable: true,
-      get() {
-        return 320;
-      },
-    });
+    expect(screen.getByTestId("select-content").className).toContain("w_300");
+  });
 
-    const items = [
-      { label: "First filter", value: "1" },
-      { label: "Second filter", value: "2" },
-    ];
+  it("does not set content width when matchTriggerWidth is false", () => {
+    render(
+      <Select.Root
+        getLabel={(item) => item.label}
+        getValue={(item) => item.value}
+        items={items}
+        matchTriggerWidth={false}
+        onSelect={vi.fn()}
+        open
+        selected={undefined}
+      >
+        <Select.Trigger label="Filter" />
+        <Select.Content data-testid="select-content">
+          <Select.List>
+            <Select.Items>
+              {(item: (typeof items)[number]) => (
+                <Select.Item
+                  key={item.value}
+                  item={item}
+                >
+                  <Select.ItemText />
+                </Select.Item>
+              )}
+            </Select.Items>
+          </Select.List>
+        </Select.Content>
+      </Select.Root>,
+    );
 
-    try {
-      render(
-        <Select.Root
-          getLabel={(item) => item.label}
-          getValue={(item) => item.value}
-          items={items}
-          onSelect={vi.fn()}
-          open
-          selected={undefined}
-        >
-          <Select.Trigger label="Filter" />
-          <Select.Content data-testid="select-content">
-            <Select.List>
-              <Select.Items>
-                {(item: (typeof items)[number]) => (
-                  <Select.Item
-                    key={item.value}
-                    item={item}
-                  >
-                    <Select.ItemText />
-                  </Select.Item>
-                )}
-              </Select.Items>
-            </Select.List>
-          </Select.Content>
-        </Select.Root>,
-      );
-
-      expect(screen.getByTestId("select-content").className).toContain("w_320");
-    } finally {
-      if (originalClientWidth != null) {
-        Object.defineProperty(HTMLElement.prototype, "clientWidth", originalClientWidth);
-      }
-    }
+    const className = screen.getByTestId("select-content").className;
+    expect(className).not.toMatch(/(?:^|\s)w_\d+/);
   });
 
   it("does not select an item when clicking an interactive descendant inside Select.Item", async () => {
