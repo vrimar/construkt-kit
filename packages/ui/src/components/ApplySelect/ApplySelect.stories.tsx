@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 import { ApplySelect } from ".";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/ApplySelect",
@@ -20,64 +21,68 @@ const items = [
 
 export const Default: Story = {
   render: () => (
-    <ApplySelect.Root
-      items={items}
-      selected={[]}
-      getValue={(item) => item.id}
-      getLabel={(item) => item.name}
-      onApply={fn<(values: (typeof items)[number][]) => void>()}
-    >
-      <ApplySelect.Trigger label="Select Frameworks" />
-      <ApplySelect.Content>
-        <ApplySelect.Search />
-        <ApplySelect.List>
-          <ApplySelect.Items>
-            {(item: (typeof items)[number]) => (
-              <ApplySelect.Item
-                key={item.id}
-                item={item}
-              >
-                <ApplySelect.ItemText />
-                <ApplySelect.ItemIndicator />
-              </ApplySelect.Item>
-            )}
-          </ApplySelect.Items>
-          <ApplySelect.EmptyState />
-        </ApplySelect.List>
-        <ApplySelect.Actions />
-      </ApplySelect.Content>
-    </ApplySelect.Root>
+    <Box maxW="320px">
+      <ApplySelect.Root
+        items={items}
+        selected={[]}
+        getValue={(item) => item.id}
+        getLabel={(item) => item.name}
+        onApply={fn<(values: (typeof items)[number][]) => void>()}
+      >
+        <ApplySelect.Trigger label="Select Frameworks" />
+        <ApplySelect.Content>
+          <ApplySelect.Search />
+          <ApplySelect.List>
+            <ApplySelect.Items>
+              {(item: (typeof items)[number]) => (
+                <ApplySelect.Item
+                  key={item.id}
+                  item={item}
+                >
+                  <ApplySelect.ItemText />
+                  <ApplySelect.ItemIndicator />
+                </ApplySelect.Item>
+              )}
+            </ApplySelect.Items>
+            <ApplySelect.EmptyState />
+          </ApplySelect.List>
+          <ApplySelect.Actions />
+        </ApplySelect.Content>
+      </ApplySelect.Root>
+    </Box>
   ),
 };
 
 export const WithToggleAll: Story = {
   render: () => (
-    <ApplySelect.Root
-      items={items}
-      selected={[1, 3]}
-      getValue={(item) => item.id}
-      getLabel={(item) => item.name}
-      onApply={fn<(values: (typeof items)[number][]) => void>()}
-    >
-      <ApplySelect.Trigger label="Select All" />
-      <ApplySelect.Content>
-        <ApplySelect.Search />
-        <ApplySelect.List>
-          <ApplySelect.Items>
-            {(item: (typeof items)[number]) => (
-              <ApplySelect.Item
-                key={item.id}
-                item={item}
-              >
-                <ApplySelect.ItemText />
-                <ApplySelect.ItemIndicator />
-              </ApplySelect.Item>
-            )}
-          </ApplySelect.Items>
-          <ApplySelect.EmptyState />
-        </ApplySelect.List>
-        <ApplySelect.Actions hasToggleAll />
-      </ApplySelect.Content>
-    </ApplySelect.Root>
+    <Box maxW="320px">
+      <ApplySelect.Root
+        items={items}
+        selected={[1, 3]}
+        getValue={(item) => item.id}
+        getLabel={(item) => item.name}
+        onApply={fn<(values: (typeof items)[number][]) => void>()}
+      >
+        <ApplySelect.Trigger label="Select All" />
+        <ApplySelect.Content>
+          <ApplySelect.Search />
+          <ApplySelect.List>
+            <ApplySelect.Items>
+              {(item: (typeof items)[number]) => (
+                <ApplySelect.Item
+                  key={item.id}
+                  item={item}
+                >
+                  <ApplySelect.ItemText />
+                  <ApplySelect.ItemIndicator />
+                </ApplySelect.Item>
+              )}
+            </ApplySelect.Items>
+            <ApplySelect.EmptyState />
+          </ApplySelect.List>
+          <ApplySelect.Actions hasToggleAll />
+        </ApplySelect.Content>
+      </ApplySelect.Root>
+    </Box>
   ),
 };

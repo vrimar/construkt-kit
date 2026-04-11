@@ -1,12 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import { Box, HStack } from "styled-system/jsx";
 
 import type { SelectButtonProps } from "../Buttons";
@@ -23,9 +15,8 @@ type PopoverRootProps = React.ComponentProps<typeof Popover.Root>;
 
 interface SelectContextValue<T> {
   activeItemStyle: "checkmark" | "none";
-  buttonRef: React.RefObject<HTMLButtonElement | null>;
   collection: ListCollection<T>;
-  contentWidth: number;
+  contentWidth: number | undefined;
   filter: (value: string) => void;
   getLabel: (item: T) => string;
   getValue: (item: T) => SelectValue;
@@ -58,6 +49,7 @@ export interface SelectRootProps<T> {
   getTriggerLabel?: (label: string) => string;
   activeItemStyle?: "checkmark" | "none";
   contentWidth?: number;
+  matchTriggerWidth?: boolean;
   open?: boolean;
   onOpenChange?: (value: boolean) => unknown;
   placement?: PopoverRootProps["placement"];
@@ -111,6 +103,7 @@ export const SelectRoot = <T,>({
   getValue,
   items,
   listboxProps,
+  matchTriggerWidth = true,
   onOpenChange,
   onSelect,
   open,
@@ -118,36 +111,7 @@ export const SelectRoot = <T,>({
   selected,
 }: SelectRootProps<T>) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [measuredContentWidth, setMeasuredContentWidth] = useState<number | undefined>(undefined);
   const isMultiSelect = Array.isArray(selected);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useLayoutEffect(() => {
-    if (controlledContentWidth != null) return;
-
-    const button = buttonRef.current;
-
-    if (button == null) return;
-
-    const syncContentWidth = () => {
-      const nextWidth = button.clientWidth;
-
-      setMeasuredContentWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
-    };
-
-    syncContentWidth();
-
-    const resizeObserver = new ResizeObserver(syncContentWidth);
-    resizeObserver.observe(button);
-
-    return () => resizeObserver.disconnect();
-  }, [controlledContentWidth]);
-
-  let resolvedContentWidth = controlledContentWidth ?? measuredContentWidth;
-
-  if (resolvedContentWidth == null || resolvedContentWidth < minContentWidth) {
-    resolvedContentWidth = minContentWidth;
-  }
 
   const selectedItems = useMemo(
     () => (selected == null ? [] : Array.isArray(selected) ? selected : [selected]),
@@ -209,9 +173,8 @@ export const SelectRoot = <T,>({
   const contextValue = useMemo<SelectContextValue<T>>(
     () => ({
       activeItemStyle,
-      buttonRef,
       collection,
-      contentWidth: resolvedContentWidth,
+      contentWidth: controlledContentWidth,
       filter,
       getLabel,
       getValue,
@@ -222,6 +185,7 @@ export const SelectRoot = <T,>({
     [
       activeItemStyle,
       collection,
+      controlledContentWidth,
       filter,
       getLabel,
       getTriggerLabel,
@@ -229,7 +193,6 @@ export const SelectRoot = <T,>({
       hasSelected,
       isMultiSelect,
       label,
-      resolvedContentWidth,
     ],
   );
 
@@ -239,7 +202,10 @@ export const SelectRoot = <T,>({
         lazyMount
         open={controlledOpen}
         onOpenChange={({ open: nextOpen }) => handleOpenChange(nextOpen)}
-        positioning={{ placement }}
+        positioning={{
+          placement,
+          sameWidth: matchTriggerWidth && controlledContentWidth == null,
+        }}
       >
         <Listbox.Root
           {...listboxProps}
@@ -256,13 +222,12 @@ export const SelectRoot = <T,>({
 };
 
 export const SelectTrigger = ({ children, ...props }: SelectTriggerProps) => {
-  const { buttonRef, hasSelected, triggerLabel } = useSelectContext<unknown>();
+  const { hasSelected, triggerLabel } = useSelectContext<unknown>();
 
   return (
     <Popover.Trigger asChild>
       {children ?? (
         <SelectButton
-          ref={buttonRef}
           {...props}
           hasValue={props.hasValue ?? hasSelected}
           label={props.label ?? triggerLabel}
@@ -278,7 +243,8 @@ export const SelectContent = ({ children, ...props }: SelectContentProps) => {
 
   return (
     <Popover.Content
-      width={contentWidth}
+      minW={minContentWidth}
+      {...(contentWidth != null ? { width: contentWidth } : {})}
       p="0"
       {...props}
     >

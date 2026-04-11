@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
 import { fn } from "storybook/test";
 import { Select } from ".";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Select",
@@ -27,76 +28,86 @@ const onSelect = fn<(item: (typeof items)[number]) => void>();
 
 export const Default: Story = {
   render: () => (
-    <Select
-      items={items}
-      selected={undefined}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-      label="Select a fruit"
-    />
+    <Box maxW="320px">
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+        label="Select a fruit"
+      />
+    </Box>
   ),
 };
 
 export const WithSearch: Story = {
   render: () => (
-    <Select
-      items={items}
-      selected={undefined}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-      label="Select a fruit"
-      searchPlaceholder="Search fruits..."
-    />
+    <Box maxW="320px">
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+        label="Select a fruit"
+        searchPlaceholder="Search fruits..."
+      />
+    </Box>
   ),
 };
 
 export const WithSelected: Story = {
   render: () => (
-    <Select
-      items={items}
-      selected={2}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-    />
+    <Box maxW="320px">
+      <Select
+        items={items}
+        selected={2}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+      />
+    </Box>
   ),
 };
 
 export const MultiSelect: Story = {
   render: () => (
-    <Select
-      items={items}
-      selected={[1, 3]}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-      label="Select fruits"
-      searchPlaceholder="Search..."
-    />
+    <Box maxW="320px">
+      <Select
+        items={items}
+        selected={[1, 3]}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+        label="Select fruits"
+        searchPlaceholder="Search..."
+      />
+    </Box>
   ),
 };
 
 export const WithActions: Story = {
   render: () => (
-    <Select
-      items={items}
-      selected={undefined}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-      label="Select a fruit"
-      renderActions={(item) => (
-        <button
-          type="button"
-          aria-label={`Edit ${item.name}`}
-          onClick={() => alert(`Edit ${item.name}`)}
-        >
-          <MoreHorizontalIcon size={14} />
-        </button>
-      )}
-    />
+    <Box maxW="320px">
+      <Select
+        items={items}
+        selected={undefined}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+        label="Select a fruit"
+        renderActions={(item) => (
+          <button
+            type="button"
+            aria-label={`Edit ${item.name}`}
+            onClick={() => alert(`Edit ${item.name}`)}
+          >
+            <MoreHorizontalIcon size={14} />
+          </button>
+        )}
+      />
+    </Box>
   ),
 };
 
@@ -104,31 +115,33 @@ export const WithActions: Story = {
 
 export const Compound: Story = {
   render: () => (
-    <Select.Root
-      items={items}
-      selected={[1, 3]}
-      getValue={getValue}
-      getLabel={getLabel}
-      onSelect={onSelect}
-    >
-      <Select.Trigger label="Select fruits" />
-      <Select.Content width="320px">
-        <Select.Search placeholder="Search fruits..." />
-        <Select.List>
-          <Select.Items>
-            {(item: (typeof items)[number]) => (
-              <Select.Item
-                key={item.id}
-                item={item}
-              >
-                <Select.ItemText />
-                <Select.ItemIndicator />
-              </Select.Item>
-            )}
-          </Select.Items>
-          <Select.EmptyState />
-        </Select.List>
-      </Select.Content>
-    </Select.Root>
+    <Box maxW="320px">
+      <Select.Root
+        items={items}
+        selected={[1, 3]}
+        getValue={getValue}
+        getLabel={getLabel}
+        onSelect={onSelect}
+      >
+        <Select.Trigger label="Select fruits" />
+        <Select.Content>
+          <Select.Search placeholder="Search fruits..." />
+          <Select.List>
+            <Select.Items>
+              {(item: (typeof items)[number]) => (
+                <Select.Item
+                  key={item.id}
+                  item={item}
+                >
+                  <Select.ItemText />
+                  <Select.ItemIndicator />
+                </Select.Item>
+              )}
+            </Select.Items>
+            <Select.EmptyState />
+          </Select.List>
+        </Select.Content>
+      </Select.Root>
+    </Box>
   ),
 };

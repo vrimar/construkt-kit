@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 import { Calendar, defaultRangePresets } from ".";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Calendar",
@@ -11,35 +12,45 @@ export default meta;
 type Story = StoryObj;
 
 export const Single: Story = {
-  render: () => <Calendar onValueChange={fn()} />,
+  render: () => (
+    <Box maxW="320px">
+      <Calendar onValueChange={fn()} />
+    </Box>
+  ),
 };
 
 export const Range: Story = {
   render: () => (
-    <Calendar
-      selectionMode="range"
-      onValueChange={fn()}
-    />
+    <Box maxW="320px">
+      <Calendar
+        selectionMode="range"
+        onValueChange={fn()}
+      />
+    </Box>
   ),
 };
 
 export const RangeWithPresets: Story = {
   name: "Range + Presets",
   render: () => (
-    <Calendar
-      selectionMode="range"
-      presets={defaultRangePresets}
-      clearable
-      onValueChange={fn()}
-    />
+    <Box maxW="320px">
+      <Calendar
+        selectionMode="range"
+        presets={defaultRangePresets}
+        clearable
+        onValueChange={fn()}
+      />
+    </Box>
   ),
 };
 
 export const Disabled: Story = {
   render: () => (
-    <Calendar
-      disabled
-      onValueChange={fn()}
-    />
+    <Box maxW="320px">
+      <Calendar
+        disabled
+        onValueChange={fn()}
+      />
+    </Box>
   ),
 };

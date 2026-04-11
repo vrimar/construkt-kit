@@ -1,14 +1,14 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React from "react";
 import { Box } from "styled-system/jsx";
 import { Text } from "../Text";
 
 import { TagsInput } from "../TagsInput";
 import type {
-    SelectContentProps,
-    SelectListProps,
-    SelectRootProps,
-    SelectTriggerProps,
-    SelectValue,
+  SelectContentProps,
+  SelectListProps,
+  SelectRootProps,
+  SelectTriggerProps,
+  SelectValue,
 } from "./Select";
 import { Select } from "./Select";
 
@@ -52,20 +52,8 @@ export const TagSelect = <T,>({
   triggerProps,
   ...props
 }: TagSelectProps<T>) => {
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    if (triggerRef.current) {
-      setContentWidth(triggerRef.current.clientWidth);
-    }
-  }, []);
-
   const trigger = (
-    <Box
-      width="full"
-      ref={triggerRef}
-    >
+    <Box width="full">
       <TagsInput.Root
         cursor="pointer"
         value={selected as string[]}
@@ -114,7 +102,6 @@ export const TagSelect = <T,>({
   return (
     <Select.Root
       {...props}
-      contentWidth={contentWidth}
       getLabel={getLabel}
       getValue={getValue}
       items={items}

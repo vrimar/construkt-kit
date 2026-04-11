@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 import { Field, SubmitForm } from ".";
 import { Input } from "../Input";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Form",
@@ -14,71 +15,81 @@ type Story = StoryObj;
 export const FieldStory: Story = {
   name: "Field",
   render: () => (
-    <Field
-      label="Email"
-      helperText="We'll never share your email."
-    >
-      <Input placeholder="Enter your email" />
-    </Field>
+    <Box maxW="400px">
+      <Field
+        label="Email"
+        helperText="We'll never share your email."
+      >
+        <Input placeholder="Enter your email" />
+      </Field>
+    </Box>
   ),
 };
 
 export const FieldWithErrorStory: Story = {
   name: "Field with Error",
   render: () => (
-    <Field
-      label="Password"
-      invalid
-      errorText="Password is required."
-    >
-      <Input
-        type="password"
-        placeholder="Enter password"
-      />
-    </Field>
+    <Box maxW="400px">
+      <Field
+        label="Password"
+        invalid
+        errorText="Password is required."
+      >
+        <Input
+          type="password"
+          placeholder="Enter password"
+        />
+      </Field>
+    </Box>
   ),
 };
 
 export const FieldOptionalStory: Story = {
   name: "Field Optional",
   render: () => (
-    <Field
-      label="Nickname"
-      optionalText="(optional)"
-    >
-      <Input placeholder="Enter nickname" />
-    </Field>
+    <Box maxW="400px">
+      <Field
+        label="Nickname"
+        optionalText="(optional)"
+      >
+        <Input placeholder="Enter nickname" />
+      </Field>
+    </Box>
   ),
 };
 
 export const SubmitFormStory: Story = {
   name: "SubmitForm",
   render: () => (
-    <SubmitForm
-      onSubmit={fn()}
-      onCancel={fn()}
-    >
-      <Field label="Name">
-        <Input placeholder="Enter your name" />
-      </Field>
-      <Field label="Email">
-        <Input placeholder="Enter your email" />
-      </Field>
-    </SubmitForm>
+    <Box maxW="400px">
+      <SubmitForm
+        onSubmit={fn()}
+        onCancel={fn()}
+      >
+        <Field label="Name">
+          <Input placeholder="Enter your name" />
+        </Field>
+        <Field label="Email">
+          <Input placeholder="Enter your email" />
+        </Field>
+      </SubmitForm>
+    </Box>
   ),
 };
 
 export const SubmitFormLoadingStory: Story = {
   name: "SubmitForm Loading",
   render: () => (
-    <SubmitForm
-      onSubmit={fn()}
-      onCancel={fn()}
-      isSubmitLoading
-    >
-      <Field label="Name">
-        <Input placeholder="Enter your name" />
-      </Field>
-    </SubmitForm>
+    <Box maxW="400px">
+      <SubmitForm
+        onSubmit={fn()}
+        onCancel={fn()}
+        isSubmitLoading
+      >
+        <Field label="Name">
+          <Input placeholder="Enter your name" />
+        </Field>
+      </SubmitForm>
+    </Box>
   ),
 };

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PinInput, type PinInputRootProps } from ".";
-import { VStack } from "../Layout";
+import { Box, VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/PinInput",
@@ -12,45 +12,9 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <PinInput.Root>
-      <PinInput.Label>OTP Code</PinInput.Label>
-      <PinInput.Control>
-        {[0, 1, 2, 3].map((id) => (
-          <PinInput.Input
-            key={id}
-            index={id}
-          />
-        ))}
-      </PinInput.Control>
-      <PinInput.HiddenInput />
-    </PinInput.Root>
-  ),
-};
-
-export const SixDigits: Story = {
-  render: () => (
-    <PinInput.Root>
-      <PinInput.Label>Verification Code</PinInput.Label>
-      <PinInput.Control>
-        {[0, 1, 2, 3, 4, 5].map((id) => (
-          <PinInput.Input
-            key={id}
-            index={id}
-          />
-        ))}
-      </PinInput.Control>
-      <PinInput.HiddenInput />
-    </PinInput.Root>
-  ),
-};
-
-export const Masked: Story = {
-  render: () => {
-    const maskedProps = { mask: true as never } as PinInputRootProps;
-
-    return (
-      <PinInput.Root {...maskedProps}>
-        <PinInput.Label>Secret PIN</PinInput.Label>
+    <Box maxW="320px">
+      <PinInput.Root>
+        <PinInput.Label>OTP Code</PinInput.Label>
         <PinInput.Control>
           {[0, 1, 2, 3].map((id) => (
             <PinInput.Input
@@ -61,6 +25,48 @@ export const Masked: Story = {
         </PinInput.Control>
         <PinInput.HiddenInput />
       </PinInput.Root>
+    </Box>
+  ),
+};
+
+export const SixDigits: Story = {
+  render: () => (
+    <Box maxW="320px">
+      <PinInput.Root>
+        <PinInput.Label>Verification Code</PinInput.Label>
+        <PinInput.Control>
+          {[0, 1, 2, 3, 4, 5].map((id) => (
+            <PinInput.Input
+              key={id}
+              index={id}
+            />
+          ))}
+        </PinInput.Control>
+        <PinInput.HiddenInput />
+      </PinInput.Root>
+    </Box>
+  ),
+};
+
+export const Masked: Story = {
+  render: () => {
+    const maskedProps = { mask: true as never } as PinInputRootProps;
+
+    return (
+      <Box maxW="320px">
+        <PinInput.Root {...maskedProps}>
+          <PinInput.Label>Secret PIN</PinInput.Label>
+          <PinInput.Control>
+            {[0, 1, 2, 3].map((id) => (
+              <PinInput.Input
+                key={id}
+                index={id}
+              />
+            ))}
+          </PinInput.Control>
+          <PinInput.HiddenInput />
+        </PinInput.Root>
+      </Box>
     );
   },
 };
