@@ -1,5 +1,5 @@
 import { RefreshCwIcon } from "lucide-react";
-import { Box, Stack, type BoxProps } from "styled-system/jsx";
+import { Box, type BoxProps, Stack } from "styled-system/jsx";
 import { Text } from "../../Text";
 
 import type { Row, Table } from "@tanstack/react-table";

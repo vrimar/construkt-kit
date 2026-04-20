@@ -9,8 +9,8 @@ import type {
   ReactNode,
   SyntheticEvent,
 } from "react";
-import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
-import { listbox, type ListboxVariantProps } from "styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
+import { type ListboxVariantProps, listbox } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput } from "../Input";
@@ -114,7 +114,7 @@ function Content({
             style={{
               minWidth: "100%",
               width: "100%",
-              ...(contentProps?.style ?? {}),
+              ...contentProps?.style,
             }}
           >
             {children}

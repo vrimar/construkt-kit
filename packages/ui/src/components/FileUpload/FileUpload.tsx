@@ -5,7 +5,7 @@ import {
 } from "@ark-ui/react/file-upload";
 import { FileIcon, XIcon } from "lucide-react";
 import { type ComponentProps, useMemo } from "react";
-import { createStyleContext, type HTMLStyledProps, Stack } from "styled-system/jsx";
+import { type HTMLStyledProps, Stack, createStyleContext } from "styled-system/jsx";
 import { fileUpload } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 import { Span } from "../Span";

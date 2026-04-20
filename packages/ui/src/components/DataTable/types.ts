@@ -1,4 +1,5 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
+import "@tanstack/react-table";
 
 import type {
   ApplySelectActionsProps,
@@ -43,8 +44,6 @@ export type DataTableParams = {
   pageSize: number;
   filters: DataTableFilters;
 };
-
-import "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {

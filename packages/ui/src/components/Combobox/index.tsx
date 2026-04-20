@@ -5,8 +5,8 @@ import {
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
-import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
-import { combobox, type ComboboxVariantProps } from "styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
+import { type ComboboxVariantProps, combobox } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(combobox);

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
-import { createTreeCollection, TreeView } from ".";
+import { TreeView, createTreeCollection } from ".";
 import { Box, Flex } from "../Layout";
 
 interface Node {

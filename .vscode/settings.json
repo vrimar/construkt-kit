@@ -19,8 +19,7 @@
     "editor.formatOnSave": true
   },
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-    "source.removeUnusedImports": "explicit"
+    "source.fixAll.oxc": "always"
   },
   "cSpell.words": [
     "Chakra"

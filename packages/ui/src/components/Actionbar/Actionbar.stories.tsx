@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { XIcon } from "lucide-react";
+import { useState } from "react";
 import { ActionBar } from ".";
 import { Button } from "../Buttons";
 
@@ -11,10 +12,18 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-export const Default: Story = {
-  render: () => (
-    <ActionBar.Root open>
-      <ActionBar.Positioner>
+function ControlledActionBarStory() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setOpen((prev) => !prev)}>
+        {open ? "Deselect items" : "Select items"}
+      </Button>
+      <ActionBar.Root
+        open={open}
+        onOpenChange={(e) => setOpen(e.open)}
+      >
         <ActionBar.Content>
           <ActionBar.SelectionTrigger>2 selected</ActionBar.SelectionTrigger>
           <ActionBar.Separator />
@@ -30,11 +39,15 @@ export const Default: Story = {
           >
             Move
           </Button>
-          <ActionBar.CloseTrigger>
+          <ActionBar.CloseTrigger onClick={() => setOpen(false)}>
             <XIcon />
           </ActionBar.CloseTrigger>
         </ActionBar.Content>
-      </ActionBar.Positioner>
-    </ActionBar.Root>
-  ),
+      </ActionBar.Root>
+    </>
+  );
+}
+
+export const Default: Story = {
+  render: () => <ControlledActionBarStory />,
 };

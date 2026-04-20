@@ -6,7 +6,7 @@ import {
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
-import { treeView, type TreeViewVariantProps } from "styled-system/recipes";
+import { type TreeViewVariantProps, treeView } from "styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(treeView);
 
