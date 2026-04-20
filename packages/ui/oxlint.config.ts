@@ -1,10 +1,13 @@
-{
-  "extends": ["./node_modules/@b3/config/oxlint/index.json"],
-  "jsPlugins": ["@pandacss/eslint-plugin"],
-  "settings": {
-    "@pandacss/configPath": "./panda.config.ts"
+import baseConfig from "@b3/config/oxlint";
+
+export default {
+  ...baseConfig,
+  jsPlugins: ["@pandacss/eslint-plugin"],
+  settings: {
+    "@pandacss/configPath": "./panda.config.ts",
   },
-  "rules": {
+  rules: {
+    ...baseConfig.rules,
     "@pandacss/file-not-included": "error",
     "@pandacss/no-debug": "warn",
     "@pandacss/no-deprecated-tokens": "warn",
@@ -13,6 +16,6 @@
     "@pandacss/no-invalid-nesting": "error",
     "@pandacss/no-invalid-token-paths": "error",
     "@pandacss/no-property-renaming": "warn",
-    "@pandacss/no-unsafe-token-fn-usage": "warn"
-  }
-}
+    "@pandacss/no-unsafe-token-fn-usage": "warn",
+  },
+};

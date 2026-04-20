@@ -1,23 +1,24 @@
-{
-  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "import"],
-  "env": {
-    "browser": true,
-    "node": true,
-    "es2022": true
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["react", "typescript", "import"],
+  env: {
+    browser: true,
+    node: true,
+    es2022: true,
   },
-  "rules": {
+  rules: {
     "no-unused-vars": [
       "warn",
       {
-        "fix": {
-          "imports": "safe-fix",
-          "variables": "off"
-        }
-      }
+        fix: {
+          imports: "safe-fix",
+          variables: "off",
+        },
+      },
     ],
     "no-console": "warn",
-    "eqeqeq": ["error", "smart"],
+    eqeqeq: ["error", "smart"],
     "no-eval": "error",
     "no-implied-eval": "error",
     "no-debugger": "error",
@@ -34,8 +35,8 @@
     "sort-imports": [
       "warn",
       {
-        "allowSeparatedGroups": true
-      }
+        allowSeparatedGroups: true,
+      },
     ],
 
     "typescript/no-explicit-any": "off",
@@ -43,9 +44,9 @@
     "typescript/consistent-type-imports": [
       "error",
       {
-        "prefer": "type-imports",
-        "disallowTypeAnnotations": false
-      }
+        prefer: "type-imports",
+        disallowTypeAnnotations: false,
+      },
     ],
     "typescript/no-empty-object-type": "off",
     "typescript/no-non-null-assertion": "warn",
@@ -70,6 +71,6 @@
     "import/no-cycle": "warn",
     "import/no-self-import": "error",
     "import/no-default-export": "warn",
-    "import/first": "error"
-  }
-}
+    "import/first": "error",
+  },
+});

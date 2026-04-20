@@ -38,8 +38,8 @@
     "build": "panda codegen && tsdown",
     "dev": "panda codegen && tsdown --watch",
     "typecheck": "tsgo --noEmit",
-    "lint": "oxlint -c .oxlintrc.json src",
-    "lint:fix": "oxlint -c .oxlintrc.json src --fix",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint src --fix",
     "format": "oxfmt src",
     "test": "vitest run"
   },

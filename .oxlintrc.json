@@ -1,7 +1,0 @@
-{
-  "extends": ["./packages/config/oxlint/index.json"],
-  "options": {
-    "typeAware": true,
-    "typeCheck": true
-  }
-}

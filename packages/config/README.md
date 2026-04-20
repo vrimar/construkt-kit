@@ -4,14 +4,22 @@ Shared tool configuration for B3 frontend projects.
 
 ## Sub-paths
 
-| Import                  | Usage                                                             |
-| ----------------------- | ----------------------------------------------------------------- |
-| `@b3/config/typescript` | `"extends": "@b3/config/typescript"` in `tsconfig.json`           |
-| `@b3/config/oxlint`     | `"extends": ["@b3/config/oxlint"]` in `.oxlintrc.json`            |
-| `@b3/config/oxfmt`      | `export { default } from "@b3/config/oxfmt"` in `oxfmt.config.ts` |
-| `@b3/config/vite`       | `createViteConfig(overrides?)` factory                            |
-| `@b3/config/playwright` | `createPlaywrightConfig(overrides?)` factory                      |
-| `@b3/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen           |
+| Import                  | Usage                                                              |
+| ----------------------- | ------------------------------------------------------------------ |
+| `@b3/config/typescript` | `"extends": "@b3/config/typescript"` in `tsconfig.json`            |
+| `@b3/config/oxlint`     | `import baseConfig from "@b3/config/oxlint"` in `oxlint.config.ts` |
+| `@b3/config/oxfmt`      | `export { default } from "@b3/config/oxfmt"` in `oxfmt.config.ts`  |
+| `@b3/config/vite`       | `createViteConfig(overrides?)` factory                             |
+| `@b3/config/playwright` | `createPlaywrightConfig(overrides?)` factory                       |
+| `@b3/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen            |
+
+## Oxlint Config
+
+The shared `@b3/config/oxlint` export now ships as a TypeScript config module.
+Consume it from an `oxlint.config.ts` file and merge local overrides there.
+
+This requires the Node-based `oxlint` runtime with a Node version new enough to
+execute TypeScript config files.
 
 ## Oxfmt Config
 

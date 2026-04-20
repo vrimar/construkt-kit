@@ -63,9 +63,9 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 
 ## Linting
 
-- Root `.oxlintrc.json` extends `@b3/config/oxlint` with type-aware checking enabled.
-- `@b3/ui` has an additional `.oxlintrc.json` that loads `@pandacss/eslint-plugin` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
-- Run `pnpm lint` to check all packages. Per-package scripts: `oxlint src` (most packages) or `oxlint -c .oxlintrc.json src` (UI).
+- Root `oxlint.config.ts` extends `@b3/config/oxlint` with type-aware checking enabled.
+- `@b3/ui` has an additional `oxlint.config.ts` that loads `@pandacss/eslint-plugin` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
+- Run `pnpm lint` to check all packages. Per-package scripts use `oxlint src` or `oxlint .`, relying on local or root `oxlint.config.ts` resolution.
 
 ## Anti-Patterns (Do NOT)
 

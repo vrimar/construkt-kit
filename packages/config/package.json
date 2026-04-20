@@ -4,8 +4,8 @@
   "description": "Shared tool configuration for all B3 frontend projects",
   "exports": {
     "./typescript": "./typescript/base.json",
-    "./oxlint": "./oxlint/index.json",
-    "./oxfmt": "./oxfmt/oxfmt.config.ts",
+    "./oxlint": "./oxlint/index.config.ts",
+    "./oxfmt": "./oxfmt/index.config.ts",
     "./vite": "./vite/index.ts",
     "./playwright": "./playwright/index.ts",
     "./kubb": "./kubb/index.ts"

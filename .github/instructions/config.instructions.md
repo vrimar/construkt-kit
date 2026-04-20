@@ -14,7 +14,7 @@ Sub-path exports — each consumed differently:
 | `@b3/config/vite`       | Factory   | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
 | `@b3/config/playwright` | Factory   | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
 | `@b3/config/kubb`       | Factory   | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
-| `@b3/config/oxlint`     | JSON      | Linting rules (Panda CSS enforcement, etc.)                                                              |
+| `@b3/config/oxlint`     | TS config | Shared base for `oxlint.config.ts` files                                                                 |
 | `@b3/config/oxfmt`      | TS config | Shared `oxfmt.config.ts` base                                                                            |
 
 ## Key Patterns
