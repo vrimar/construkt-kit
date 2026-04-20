@@ -28,7 +28,7 @@
     "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
-    "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
+    "format": "oxfmt src"
   },
   "bin": {
     "b3-api-gen": "./bin/api-gen.mjs"

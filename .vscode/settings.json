@@ -1,6 +1,6 @@
 {
   "oxc.lint.enable": true,
-  "oxc.fmt.configPath": "packages/config/oxfmt/index.jsonc",
+  "oxc.fmt.configPath": "packages/config/oxfmt/oxfmt.config.ts",
   "oxc.oxfmtPath": "./node_modules/oxfmt/bin/oxfmt",
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode",

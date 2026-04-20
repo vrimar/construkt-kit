@@ -37,7 +37,7 @@
     "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
-    "format": "oxfmt src -c ../config/oxfmt/index.jsonc"
+    "format": "oxfmt src"
   },
   "peerDependencies": {
     "react": "^19.0.0"

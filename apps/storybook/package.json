@@ -2,12 +2,13 @@
   "name": "@b3/storybook",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build": "storybook build",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
-    "format": "oxfmt . -c ../../packages/config/oxfmt/index.jsonc"
+    "format": "oxfmt ."
   },
   "dependencies": {
     "@b3/pages": "workspace:*",

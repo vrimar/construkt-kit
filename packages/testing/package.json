@@ -37,7 +37,7 @@
     "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
-    "format": "oxfmt . -c ../config/oxfmt/index.jsonc"
+    "format": "oxfmt ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.96.2",

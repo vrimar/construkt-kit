@@ -4,14 +4,18 @@ Shared tool configuration for B3 frontend projects.
 
 ## Sub-paths
 
-| Import                  | Usage                                                   |
-| ----------------------- | ------------------------------------------------------- |
-| `@b3/config/typescript` | `"extends": "@b3/config/typescript"` in `tsconfig.json` |
-| `@b3/config/oxlint`     | `"extends": ["@b3/config/oxlint"]` in `.oxlintrc.json`  |
-| `@b3/config/oxfmt`      | `"@b3/config/oxfmt"` in `.oxfmtrc.jsonc`                |
-| `@b3/config/vite`       | `createViteConfig(overrides?)` factory                  |
-| `@b3/config/playwright` | `createPlaywrightConfig(overrides?)` factory            |
-| `@b3/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen |
+| Import                  | Usage                                                             |
+| ----------------------- | ----------------------------------------------------------------- |
+| `@b3/config/typescript` | `"extends": "@b3/config/typescript"` in `tsconfig.json`           |
+| `@b3/config/oxlint`     | `"extends": ["@b3/config/oxlint"]` in `.oxlintrc.json`            |
+| `@b3/config/oxfmt`      | `export { default } from "@b3/config/oxfmt"` in `oxfmt.config.ts` |
+| `@b3/config/vite`       | `createViteConfig(overrides?)` factory                            |
+| `@b3/config/playwright` | `createPlaywrightConfig(overrides?)` factory                      |
+| `@b3/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen           |
+
+## Oxfmt Config
+
+The shared `@b3/config/oxfmt` base enables Oxc import sorting via `sortImports: true`, so consuming packages inherit automatic import ordering without additional local config.
 
 ## Vite Config
 

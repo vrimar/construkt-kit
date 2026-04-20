@@ -5,7 +5,7 @@
   "exports": {
     "./typescript": "./typescript/base.json",
     "./oxlint": "./oxlint/index.json",
-    "./oxfmt": "./oxfmt/index.jsonc",
+    "./oxfmt": "./oxfmt/oxfmt.config.ts",
     "./vite": "./vite/index.ts",
     "./playwright": "./playwright/index.ts",
     "./kubb": "./kubb/index.ts"
