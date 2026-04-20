@@ -1,14 +1,15 @@
-export type {
+import type {
   Client,
   RequestConfig,
   ResponseConfig,
   ResponseErrorConfig,
 } from "@kubb/plugin-client/clients/fetch";
-import type { Client, RequestConfig, ResponseConfig } from "@kubb/plugin-client/clients/fetch";
-import { client as kubbClient, getConfig } from "@kubb/plugin-client/clients/fetch";
+import { getConfig, client as kubbClient } from "@kubb/plugin-client/clients/fetch";
 
 import { ApiError } from "./errors";
 import type { ApiErrorResponse } from "./errors";
+
+export type { Client, RequestConfig, ResponseConfig, ResponseErrorConfig };
 
 export function createApiClient(getToken: () => string | null | undefined): Client {
   return async <TResponseData, TRequestData = unknown>(
@@ -35,10 +36,10 @@ export function createApiClient(getToken: () => string | null | undefined): Clie
           : config.data !== undefined
             ? JSON.stringify(config.data)
             : undefined,
-      signal: config.signal as AbortSignal | undefined,
+      signal: config.signal,
       headers: {
         ...(typeof config.headers === "object" && !Array.isArray(config.headers)
-          ? (config.headers as Record<string, string>)
+          ? config.headers
           : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },

@@ -5,7 +5,7 @@ import type { SelectButtonProps } from "../Buttons";
 import { SelectButton } from "../Buttons";
 import { EmptyState } from "../EmptyState";
 import { SearchInput } from "../Input";
-import { Listbox, useListCollection, type ListCollection, type ListboxProps } from "../Listbox";
+import { type ListCollection, Listbox, type ListboxProps, useListCollection } from "../Listbox";
 import { Popover } from "../Popover";
 
 export type SelectValue = string | number;
@@ -280,7 +280,7 @@ export const SelectSearch = ({
         placeholder={placeholder}
         onChange={handleChange}
         size={size}
-        css={{ flex: 1, ...(css ?? {}) }}
+        css={{ flex: 1, ...css }}
         variant={variant}
       />
       {children}

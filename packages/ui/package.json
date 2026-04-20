@@ -39,6 +39,7 @@
     "dev": "panda codegen && tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint -c .oxlintrc.json src",
+    "lint:fix": "oxlint -c .oxlintrc.json src --fix",
     "format": "oxfmt src -c ../config/oxfmt/index.jsonc",
     "test": "vitest run"
   },

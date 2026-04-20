@@ -10,8 +10,8 @@ import { SearchInput } from "../Input/SearchInput";
 import { VirtualScrollArea } from "../ScrollArea/VirtualScrollArea";
 import { Tooltip } from "../Tooltip";
 import {
-    collectBranchesWithLeafDescendants,
     collectBranchValues,
+    collectBranchesWithLeafDescendants,
     collectLeafValues,
     filterTreeCollection,
     mergeFilteredValue,

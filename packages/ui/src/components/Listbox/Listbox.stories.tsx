@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
-import { createListCollection, Listbox } from ".";
+import { Listbox, createListCollection } from ".";
 import { IconButton } from "../Buttons";
 import { Flex } from "../Layout";
 
@@ -12,6 +12,20 @@ const meta: Meta = {
 
 export default meta;
 type Story = StoryObj;
+
+function ControlledListboxStory() {
+  const [value, setValue] = useState<string[]>(["uk"]);
+
+  return (
+    <Listbox
+      collection={countries}
+      label="Select Country"
+      value={value}
+      onValueChange={(e) => setValue(e.value)}
+      maxW="64"
+    />
+  );
+}
 
 const countries = createListCollection({
   items: [
@@ -86,19 +100,7 @@ export const Grouped: Story = {
 };
 
 export const Controlled: Story = {
-  render: () => {
-    const [value, setValue] = useState<string[]>(["uk"]);
-
-    return (
-      <Listbox
-        collection={countries}
-        label="Select Country"
-        value={value}
-        onValueChange={(e) => setValue(e.value)}
-        maxW="64"
-      />
-    );
-  },
+  render: () => <ControlledListboxStory />,
 };
 
 export const WithActions: Story = {

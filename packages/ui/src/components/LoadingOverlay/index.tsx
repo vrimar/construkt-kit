@@ -1,4 +1,4 @@
-import { Flex, Stack, type FlexProps } from "styled-system/jsx";
+import { Flex, type FlexProps, Stack } from "styled-system/jsx";
 import { Spinner, type SpinnerProps } from "../Spinner";
 import { Text } from "../Text";
 

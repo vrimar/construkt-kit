@@ -4,8 +4,8 @@ import {
   useRatingGroupItemContext,
 } from "@ark-ui/react/rating-group";
 import { StarIcon } from "lucide-react";
-import { cloneElement, isValidElement, type ComponentProps, type ReactElement } from "react";
-import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
+import { type ComponentProps, type ReactElement, cloneElement, isValidElement } from "react";
+import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { ratingGroup } from "styled-system/recipes";
 import type { WithRef } from "../../types";
 

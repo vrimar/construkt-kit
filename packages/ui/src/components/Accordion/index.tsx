@@ -1,4 +1,4 @@
-import { Accordion as ArkAccordion, AccordionContext } from "@ark-ui/react/accordion";
+import { AccordionContext, Accordion as ArkAccordion } from "@ark-ui/react/accordion";
 import { ark } from "@ark-ui/react/factory";
 import { ChevronDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";

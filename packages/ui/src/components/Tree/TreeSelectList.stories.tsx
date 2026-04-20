@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { createTreeCollection, TreeSelectList } from ".";
+import { TreeSelectList, createTreeCollection } from ".";
 import { Box } from "../Layout";
 
 const meta: Meta = {

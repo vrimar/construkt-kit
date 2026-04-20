@@ -7,7 +7,15 @@
     "es2022": true
   },
   "rules": {
-    "no-unused-vars": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "fix": {
+          "imports": "safe-fix",
+          "variables": "off"
+        }
+      }
+    ],
     "no-console": "warn",
     "eqeqeq": ["error", "smart"],
     "no-eval": "error",
@@ -23,6 +31,12 @@
     "no-constant-condition": "warn",
     "no-throw-literal": "error",
     "no-shadow": "warn",
+    "sort-imports": [
+      "warn",
+      {
+        "allowSeparatedGroups": true
+      }
+    ],
 
     "typescript/no-explicit-any": "off",
     "typescript/no-unused-vars": "warn",

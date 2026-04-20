@@ -1,13 +1,13 @@
 import { ark } from "@ark-ui/react/factory";
 import {
     Group,
-    Panel,
-    Separator,
     type GroupProps,
+    Panel,
     type PanelProps,
+    Separator,
     type SeparatorProps,
 } from "react-resizable-panels";
-import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
+import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { splitter } from "styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(splitter);
