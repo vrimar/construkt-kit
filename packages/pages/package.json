@@ -42,6 +42,6 @@
     "@storybook/test": "^8.6.17",
     "@types/react": "^19.2.14",
     "storybook": "^10.3.5",
-    "tsdown": "^0.21.7"
+    "tsdown": "^0.21.9"
   }
 }

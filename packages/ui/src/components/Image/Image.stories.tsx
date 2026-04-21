@@ -32,7 +32,7 @@ export const WithFit: Story = {
       <Image
         src="https://via.placeholder.com/400x300"
         alt="Fitted image"
-        fit="contain"
+        objectFit="contain"
         width="100%"
         height="100%"
       />
