@@ -273,7 +273,7 @@ export const SelectSearch = ({
     <HStack
       gap="0"
       borderBottomWidth="1px"
-      borderColor="border.default"
+      borderColor="border"
     >
       <SearchInput
         {...props}

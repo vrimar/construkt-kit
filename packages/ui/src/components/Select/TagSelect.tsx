@@ -1,8 +1,8 @@
 import React from "react";
 import { Box } from "styled-system/jsx";
-import { Text } from "../Text";
 
 import { TagsInput } from "../TagsInput";
+import { Text } from "../Text";
 import type {
   SelectContentProps,
   SelectListProps,

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { StarIcon } from "lucide-react";
+
 import { Icon } from ".";
 import { HStack } from "../Layout";
 

@@ -1,11 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
 import {
-    Group,
-    type GroupProps,
-    Panel,
-    type PanelProps,
-    Separator,
-    type SeparatorProps,
+  Group,
+  type GroupProps,
+  Panel,
+  type PanelProps,
+  Separator,
+  type SeparatorProps,
 } from "react-resizable-panels";
 import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { splitter } from "styled-system/recipes";

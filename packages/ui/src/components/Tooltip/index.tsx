@@ -3,6 +3,7 @@ import { Tooltip as ArkTooltip } from "@ark-ui/react/tooltip";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { tooltip } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(tooltip);

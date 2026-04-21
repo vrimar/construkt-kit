@@ -3,6 +3,7 @@ import { Slider as ArkSlider } from "@ark-ui/react/slider";
 import type { ComponentProps, ReactNode } from "react";
 import { HStack, createStyleContext } from "styled-system/jsx";
 import { slider } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(slider);
@@ -72,16 +73,17 @@ export const Slider = ({
       {marks?.length && (
         <MarkerGroup>
           {marks.map((mark, index) => {
-            const value = typeof mark === "number" ? mark : mark.value;
-            const label = typeof mark === "number" ? undefined : mark.label;
+            const markValue = typeof mark === "number" ? mark : mark.value;
+            const markLabel = typeof mark === "number" ? undefined : mark.label;
+
             return (
               <Marker
                 key={index}
-                value={value}
+                value={markValue}
                 fontSize="md"
               >
                 <MarkerIndicator />
-                {label}
+                {markLabel}
               </Marker>
             );
           })}

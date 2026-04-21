@@ -1,6 +1,6 @@
 {
   "oxc.lint.enable": true,
-  "oxc.fmt.configPath": "packages/config/oxfmt/oxfmt.config.ts",
+  "oxc.fmt.configPath": "packages/config/oxfmt/index.config.ts",
   "oxc.oxfmtPath": "./node_modules/oxfmt/bin/oxfmt",
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode",
@@ -20,8 +20,5 @@
   },
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "always"
-  },
-  "cSpell.words": [
-    "Chakra"
-  ]
+  }
 }

@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { HStack } from "styled-system/jsx";
-import { Button } from "../Buttons";
 
+import { Button } from "../Buttons";
 import type {
   SelectContentProps,
   SelectListProps,
@@ -79,17 +79,17 @@ export const ApplySelectRoot = <T,>({
     });
   };
 
-  const handleApply = () => {
+  const handleApply = useCallback(() => {
     onApply(
       tempSelected.map((id) => items.find((item) => getValue(item) === id)).filter(Boolean) as T[],
     );
     setIsOpen(false);
-  };
+  }, [getValue, items, onApply, tempSelected]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setTempSelected(Array.isArray(selected) ? selected : []);
     setIsOpen(false);
-  };
+  }, [selected]);
 
   const handleSelectOpenChange = (nextOpen: boolean) => {
     setIsOpen(nextOpen);
@@ -100,9 +100,9 @@ export const ApplySelectRoot = <T,>({
     if (!nextOpen) setTempSelected(hasSelected ? selected : []);
   };
 
-  const handleToggleAll = () => {
+  const handleToggleAll = useCallback(() => {
     setTempSelected(allSelected ? [] : items.map(getValue));
-  };
+  }, [allSelected, getValue, items]);
 
   const contextValue = useMemo<ApplySelectContextValue>(
     () => ({

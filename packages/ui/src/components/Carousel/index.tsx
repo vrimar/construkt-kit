@@ -6,6 +6,7 @@ import {
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { carousel } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(carousel);
@@ -25,14 +26,14 @@ const PrevTrigger = withContext(ArkCarousel.PrevTrigger, "prevTrigger");
 
 const StyledIndicatorGroup = withContext(ArkCarousel.IndicatorGroup, "indicatorGroup");
 function IndicatorGroup({ ref, ...props }: WithRef<ComponentProps<typeof StyledIndicatorGroup>>) {
-  const carousel = useCarouselContext();
+  const carouselCtx = useCarouselContext();
 
   return (
     <StyledIndicatorGroup
       {...props}
       ref={ref}
     >
-      {carousel.pageSnapPoints.map((_, index) => (
+      {carouselCtx.pageSnapPoints.map((_, index) => (
         <Indicator
           key={index}
           index={index}

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDownIcon, XIcon } from "lucide-react";
+
 import { Combobox, createListCollection } from ".";
 import { VStack } from "../Layout";
 

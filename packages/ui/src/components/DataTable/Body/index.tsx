@@ -1,13 +1,12 @@
-import { RefreshCwIcon } from "lucide-react";
-import { Box, type BoxProps, Stack } from "styled-system/jsx";
-import { Text } from "../../Text";
-
 import type { Row, Table } from "@tanstack/react-table";
+import { RefreshCwIcon } from "lucide-react";
 import React, { useEffect } from "react";
+import { Box, type BoxProps, Stack } from "styled-system/jsx";
+
 import { Button } from "../../Buttons";
 import { LoadingOverlay } from "../../LoadingOverlay";
 import { ScrollArea } from "../../ScrollArea";
-
+import { Text } from "../../Text";
 import { BodyCell } from "./BodyCell";
 
 interface DataTableBodyProps<TData> {

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { SegmentGroup } from ".";
 import { VStack } from "../Layout";
 

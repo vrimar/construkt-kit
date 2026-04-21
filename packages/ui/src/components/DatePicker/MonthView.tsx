@@ -1,6 +1,7 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { HStack } from "styled-system/jsx";
+
 import { Button, IconButton } from "../Buttons";
 import { Text } from "../Text";
 import * as Parts from "./parts";
@@ -43,11 +44,11 @@ export const DatePickerMonthView = () => {
             </Parts.ViewControl>
             <Parts.Table>
               <Parts.TableBody>
-                {api.getMonthsGrid({ columns: 4, format: "short" }).map((months, id) => (
-                  <Parts.TableRow key={id}>
-                    {months.map((month, id) => (
+                {api.getMonthsGrid({ columns: 4, format: "short" }).map((months, rowIndex) => (
+                  <Parts.TableRow key={rowIndex}>
+                    {months.map((month, monthIndex) => (
                       <Parts.TableCell
-                        key={id}
+                        key={monthIndex}
                         value={month.value}
                       >
                         <Parts.TableCellTrigger asChild>

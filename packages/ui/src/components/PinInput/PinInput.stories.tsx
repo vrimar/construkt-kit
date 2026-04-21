@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { PinInput, type PinInputRootProps } from ".";
 import { Box, VStack } from "../Layout";
 

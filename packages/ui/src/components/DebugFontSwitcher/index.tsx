@@ -1,10 +1,10 @@
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "styled-system/jsx";
+
 import { Icon } from "../Icon";
 import { Input } from "../Input";
-import { Text } from "../Text";
-
 import { Popover } from "../Popover";
+import { Text } from "../Text";
 
 type FontOption = {
   name: string;

@@ -3,6 +3,7 @@ import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { hoverCard } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(hoverCard);

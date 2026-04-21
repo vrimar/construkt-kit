@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Collapsible } from ".";
 import { Button } from "../Buttons";
 import { Box } from "../Layout";

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Progress } from ".";
 import { VStack } from "../Layout";
 

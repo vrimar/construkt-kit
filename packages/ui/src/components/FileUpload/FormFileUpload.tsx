@@ -1,8 +1,9 @@
 import { FileUpIcon } from "lucide-react";
+
 import { CloseButton } from "../Buttons";
 import { Input } from "../Input";
 import { InputGroup } from "../Input/InputGroup";
-import { FileUpload } from "./index";
+import { FileUpload } from "./FileUpload";
 
 export interface FormFileUploadProps {
   onFileChange: (file: File | undefined) => void;

@@ -4,6 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 import { type ComponentProps, type RefObject } from "react";
 import { createStyleContext, styled } from "styled-system/jsx";
 import { dialog } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
 
@@ -59,14 +60,15 @@ function ActionTrigger({
   ref,
   ...props
 }: WithRef<ComponentProps<typeof StyledButton>, HTMLButtonElement>) {
-  const dialog = useDialogContext();
+  const dialogCtx = useDialogContext();
+
   return (
     <StyledButton
       ref={ref}
       {...props}
       onClick={(e) => {
         props.onClick?.(e);
-        if (!e.defaultPrevented) dialog.setOpen(false);
+        if (!e.defaultPrevented) dialogCtx.setOpen(false);
       }}
     />
   );

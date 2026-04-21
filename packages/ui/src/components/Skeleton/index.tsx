@@ -2,6 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 import { Stack, type StackProps, styled } from "styled-system/jsx";
 import { skeleton } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
@@ -22,14 +23,12 @@ export interface SkeletonTextProps extends SkeletonProps {
 export const SkeletonText = ({
   ref,
   noOfLines = 3,
-  gap,
   rootProps,
   ...skeletonProps
 }: WithRef<SkeletonTextProps>) => {
   return (
     <Stack
       ref={ref}
-      gap={gap}
       width="full"
       {...rootProps}
     >

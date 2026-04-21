@@ -2,6 +2,7 @@ import { ScrollArea as ArkScrollArea } from "@ark-ui/react/scroll-area";
 import type { ComponentProps } from "react";
 import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { type ScrollAreaVariantProps, scrollArea } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(scrollArea);

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
+
 import { DataTable } from ".";
 import { Box } from "../Layout";
 import type { DataTableParams } from "./types";

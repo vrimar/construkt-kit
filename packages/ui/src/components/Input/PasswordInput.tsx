@@ -1,9 +1,9 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
-import type { InputProps } from "./Input";
-import { Input } from "./Input";
 
 import { TooltipIconButton } from "../Buttons";
+import type { InputProps } from "./Input";
+import { Input } from "./Input";
 import type { InputGroupProps } from "./InputGroup";
 import { InputGroup } from "./InputGroup";
 

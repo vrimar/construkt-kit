@@ -1,6 +1,6 @@
 import { defineConfig } from "oxfmt";
 
-const oxfmtConfig = defineConfig({
+export default defineConfig({
   semi: true,
   singleQuote: false,
   trailingComma: "all",
@@ -9,5 +9,3 @@ const oxfmtConfig = defineConfig({
   tabWidth: 2,
   sortImports: true,
 });
-
-export default oxfmtConfig;

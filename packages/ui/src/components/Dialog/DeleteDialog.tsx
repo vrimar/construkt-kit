@@ -1,6 +1,5 @@
 import { Text } from "../Text";
-
-import { SubmitDialog } from ".";
+import { SubmitDialog } from "./SubmitDialog";
 
 interface DeleteDialogProps {
   title: string;

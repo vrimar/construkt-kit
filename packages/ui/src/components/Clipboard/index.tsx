@@ -3,6 +3,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { clipboard } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(clipboard);

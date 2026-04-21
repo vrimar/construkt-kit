@@ -1,5 +1,6 @@
 import type { DateValue } from "@ark-ui/react/date-picker";
 import { useMemo } from "react";
+
 import { SelectButton } from "../Buttons/SelectButton";
 import { DatePicker } from "./DatePicker";
 import type { DatePickerProps, DatePickerSelectProps } from "./types";
@@ -10,14 +11,15 @@ function formatDateValue(value: DateValue): string {
 }
 
 export const DatePickerSelect = (props: DatePickerSelectProps) => {
-  const arkValue = toArkValue(props) ?? [];
+  const value = toArkValue(props) ?? [];
 
   const label = useMemo(() => {
     const fmt = props.formatValue ?? formatDateValue;
-    return arkValue.map(fmt).join(" – ");
-  }, [arkValue, props.formatValue]);
+    return value.map(fmt).join(" – ");
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
+  }, [value, props.formatValue]);
 
-  const hasValue = arkValue.length > 0;
+  const hasValue = value.length > 0;
 
   const datePickerProps = {
     ...props,

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
 import { Carousel } from ".";
 import { Center } from "../Layout";
 

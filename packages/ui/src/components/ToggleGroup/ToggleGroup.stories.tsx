@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { ToggleGroup } from ".";
 import { VStack } from "../Layout";
 

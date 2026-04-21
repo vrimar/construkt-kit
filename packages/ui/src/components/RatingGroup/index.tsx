@@ -7,6 +7,7 @@ import { StarIcon } from "lucide-react";
 import { type ComponentProps, type ReactElement, cloneElement, isValidElement } from "react";
 import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { ratingGroup } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(ratingGroup);
@@ -62,8 +63,9 @@ interface ItemsProps extends Omit<ComponentProps<typeof Item>, "index"> {
 
 function Items(props: ItemsProps) {
   const { icon, ...rest } = props;
-  const ratingGroup = useRatingGroupContext();
-  return ratingGroup.items.map((item) => (
+  const ratingGroupCtx = useRatingGroupContext();
+
+  return ratingGroupCtx.items.map((item) => (
     <Item
       key={item}
       index={item}

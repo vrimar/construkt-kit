@@ -1,5 +1,6 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { Box } from "styled-system/jsx";
+
 import { Button } from "../Buttons";
 import * as Parts from "./parts";
 
@@ -24,11 +25,11 @@ export const DatePickerDayView = (props: DayViewProps) => {
         </Parts.TableRow>
       </Parts.TableHead>
       <Parts.TableBody>
-        {offset.weeks.map((week, id) => (
-          <Parts.TableRow key={id}>
-            {week.map((day, id) => (
+        {offset.weeks.map((week, weekIndex) => (
+          <Parts.TableRow key={weekIndex}>
+            {week.map((day, dayIndex) => (
               <Parts.TableCell
-                key={id}
+                key={dayIndex}
                 value={day}
                 visibleRange={offset.visibleRange}
               >

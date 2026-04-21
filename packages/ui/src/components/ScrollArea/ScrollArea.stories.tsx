@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { ScrollArea } from ".";
 import { Box, Flex } from "../Layout";
 import { Text } from "../Text";

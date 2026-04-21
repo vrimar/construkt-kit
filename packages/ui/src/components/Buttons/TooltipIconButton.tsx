@@ -1,5 +1,4 @@
 import type { WithRef } from "../../types";
-
 import type { TooltipProps } from "../Tooltip";
 import { Tooltip } from "../Tooltip";
 import type { ButtonProps } from "./Button";

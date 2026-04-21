@@ -37,6 +37,7 @@
     "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
+    "lint:fix": "oxlint src --fix",
     "format": "oxfmt ."
   },
   "dependencies": {

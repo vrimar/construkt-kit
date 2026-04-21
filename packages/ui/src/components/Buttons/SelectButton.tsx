@@ -1,11 +1,11 @@
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Box, HStack } from "styled-system/jsx";
-import type { WithRef } from "../../types";
 
-import type { ButtonProps } from ".";
-import { Button } from ".";
+import type { WithRef } from "../../types";
+import type { ButtonProps } from "../Buttons";
 import { Text } from "../Text";
+import { Button } from "./Button";
 
 export interface SelectButtonProps extends ButtonProps {
   sublabel?: ReactNode;
@@ -46,7 +46,12 @@ export const SelectButton = ({
         </Text>
         <HStack gap="0">
           {hasValue && onClear ? (
-            <Box onClick={(e) => { e.stopPropagation(); handleClear(); }}>
+            <Box
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClear();
+              }}
+            >
               <XIcon />
             </Box>
           ) : (

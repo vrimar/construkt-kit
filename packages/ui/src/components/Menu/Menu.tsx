@@ -4,6 +4,7 @@ import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode, RefObject } from "react";
 import { Box, type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
 import { menu } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(menu);

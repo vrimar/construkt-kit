@@ -4,6 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { drawer } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(drawer);

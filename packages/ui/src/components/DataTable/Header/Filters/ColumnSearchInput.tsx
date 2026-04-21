@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
+
 import { SearchInput } from "../../../Input";
 
 const DEBOUNCE_DELAY_MS = 500;

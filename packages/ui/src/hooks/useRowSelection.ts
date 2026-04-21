@@ -5,7 +5,7 @@ export interface UseRowSelectionOptions<T> {
   getId: (row: T) => number | string;
 }
 
-export const useRowSelection = <T,>({ rows, getId }: UseRowSelectionOptions<T>) => {
+export const useRowSelection = <T>({ rows, getId }: UseRowSelectionOptions<T>) => {
   type Id = ReturnType<typeof getId>;
 
   const [selected, setSelected] = React.useState<Set<Id>>(() => new Set());
@@ -17,7 +17,11 @@ export const useRowSelection = <T,>({ rows, getId }: UseRowSelectionOptions<T>) 
   const toggle = React.useCallback((id: Id) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }, []);
@@ -28,7 +32,11 @@ export const useRowSelection = <T,>({ rows, getId }: UseRowSelectionOptions<T>) 
       const allSelected = pageIds.every((id) => next.has(id));
 
       for (const id of pageIds) {
-        allSelected ? next.delete(id) : next.add(id);
+        if (allSelected) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
       }
 
       return next;

@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { Select } from "./Select";
 
 afterEach(() => {
@@ -85,10 +86,6 @@ describe("Select (compound API)", () => {
     const user = userEvent.setup();
     const onAction = vi.fn();
     const onSelect = vi.fn();
-    const items = [
-      { label: "First filter", value: "1" },
-      { label: "Second filter", value: "2" },
-    ];
 
     render(
       <Select.Root

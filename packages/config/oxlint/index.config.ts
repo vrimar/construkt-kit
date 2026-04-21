@@ -32,12 +32,6 @@ export default defineConfig({
     "no-constant-condition": "warn",
     "no-throw-literal": "error",
     "no-shadow": "warn",
-    "sort-imports": [
-      "warn",
-      {
-        allowSeparatedGroups: true,
-      },
-    ],
 
     "typescript/no-explicit-any": "off",
     "typescript/no-unused-vars": "warn",
@@ -70,7 +64,6 @@ export default defineConfig({
     "import/no-duplicates": "error",
     "import/no-cycle": "warn",
     "import/no-self-import": "error",
-    "import/no-default-export": "warn",
     "import/first": "error",
   },
 });

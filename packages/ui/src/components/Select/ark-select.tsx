@@ -5,6 +5,7 @@ import type { RefAttributes } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { type SelectVariantProps, select } from "styled-system/recipes";
 import type { HTMLStyledProps } from "styled-system/types";
+
 import type { WithRef } from "../../types";
 
 type Assign<T, U> = Omit<T, keyof U> & U;

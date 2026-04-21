@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoonIcon, SunIcon } from "lucide-react";
+
 import { Switch } from ".";
 import { HStack } from "../Layout";
 

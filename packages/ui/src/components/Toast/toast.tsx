@@ -3,6 +3,7 @@ import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@a
 import { CheckCircleIcon, CircleAlertIcon, CircleXIcon } from "lucide-react";
 import { Stack, createStyleContext, styled } from "styled-system/jsx";
 import { toast } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons/CloseButton";
 import { Icon, type IconProps } from "../Icon";
@@ -24,15 +25,15 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 function Indicator({ ref, ...props }: WithRef<IconProps, SVGSVGElement>) {
-  const toast = useToastContext();
+  const toastCtx = useToastContext();
 
-  const StatusIcon = iconMap[toast.type];
+  const StatusIcon = iconMap[toastCtx.type];
   if (!StatusIcon) return null;
 
   return (
     <Icon
       ref={ref}
-      data-type={toast.type}
+      data-type={toastCtx.type}
       {...props}
     >
       <StatusIcon />
@@ -60,21 +61,21 @@ export const Toaster = () => {
         toaster={toaster}
         insetInline={{ mdDown: "4" }}
       >
-        {(toast) => (
+        {(options) => (
           <Root>
-            {toast.type === "loading" ? <Spinner color="colorPalette.plain.fg" /> : <Indicator />}
+            {options.type === "loading" ? <Spinner color="colorPalette.plain.fg" /> : <Indicator />}
 
             <Stack
               gap="3"
               alignItems="start"
             >
               <Stack gap="1">
-                {toast.title && <Title>{toast.title}</Title>}
-                {toast.description && <Description>{toast.description}</Description>}
+                {options.title && <Title>{options.title}</Title>}
+                {options.description && <Description>{options.description}</Description>}
               </Stack>
-              {toast.action && <ActionTrigger>{toast.action.label}</ActionTrigger>}
+              {options.action && <ActionTrigger>{options.action.label}</ActionTrigger>}
             </Stack>
-            {toast.closable && (
+            {options.closable && (
               <CloseTrigger asChild>
                 <CloseButton size="sm" />
               </CloseTrigger>

@@ -7,6 +7,7 @@ import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react"
 import { createStyleContext, styled } from "styled-system/jsx";
 import { checkbox } from "styled-system/recipes";
 import type { HTMLStyledProps } from "styled-system/types";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(checkbox);
@@ -37,11 +38,10 @@ export const Indicator = ({ ref, ...props }: WithRef<HTMLStyledProps<"svg">, SVG
       <styled.svg
         ref={ref}
         viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
         strokeWidth="3px"
         strokeLinecap="round"
         strokeLinejoin="round"
+        style={{ fill: "none", stroke: "currentColor" }}
         {...props}
       >
         <title>Checkmark</title>

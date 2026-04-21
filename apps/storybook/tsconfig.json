@@ -2,24 +2,12 @@
   "extends": "@b3/config/typescript",
   "compilerOptions": {
     "paths": {
-      "*": [
-        "./*"
-      ],
-      "@storybook/react-vite": [
-        "./node_modules/@storybook/react-vite"
-      ],
-      "storybook/test": [
-        "./node_modules/storybook/test"
-      ],
-      "styled-system/*": [
-        "../../packages/ui/styled-system/*"
-      ],
-      "@b3/ui": [
-        "../../packages/ui/src/index.ts"
-      ],
-      "@b3/pages": [
-        "../../packages/pages/src/index.ts"
-      ]
+      "*": ["./*"],
+      "@storybook/react-vite": ["./node_modules/@storybook/react-vite"],
+      "storybook/test": ["./node_modules/storybook/test"],
+      "styled-system/*": ["../../packages/ui/styled-system/*"],
+      "@b3/ui": ["../../packages/ui/src/index.ts"],
+      "@b3/pages": ["../../packages/pages/src/index.ts"]
     }
   },
   "include": [

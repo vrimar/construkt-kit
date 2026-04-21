@@ -1,3 +1,4 @@
+import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -5,10 +6,9 @@ import {
   ChevronsRightIcon,
 } from "lucide-react";
 import { HStack } from "styled-system/jsx";
-import { Text } from "../Text";
 
-import type { Table } from "@tanstack/react-table";
 import { IconButton } from "../Buttons";
+import { Text } from "../Text";
 
 interface PaginationProps<TData> {
   table: Table<TData>;

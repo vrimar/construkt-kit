@@ -1,4 +1,5 @@
 import { VisuallyHidden } from "styled-system/jsx";
+
 import { Span } from "../Span";
 
 export interface DisplayValueProps<T> {

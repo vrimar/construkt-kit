@@ -10,11 +10,11 @@ import { SearchInput } from "../Input/SearchInput";
 import { VirtualScrollArea } from "../ScrollArea/VirtualScrollArea";
 import { Tooltip } from "../Tooltip";
 import {
-    collectBranchValues,
-    collectBranchesWithLeafDescendants,
-    collectLeafValues,
-    filterTreeCollection,
-    mergeFilteredValue,
+  collectBranchValues,
+  collectBranchesWithLeafDescendants,
+  collectLeafValues,
+  filterTreeCollection,
+  mergeFilteredValue,
 } from "./treeCollectionUtils";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
 import { DEFAULT_TREE_SIZE, TREE_ROW_HEIGHT_ESTIMATE, type TreeSize } from "./treeShared";

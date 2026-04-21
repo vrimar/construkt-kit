@@ -1,7 +1,7 @@
 import {
-    TagsInput as ArkTagsInput,
-    TagsInputContext,
-    useTagsInputContext,
+  TagsInput as ArkTagsInput,
+  TagsInputContext,
+  useTagsInputContext,
 } from "@ark-ui/react/tags-input";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";

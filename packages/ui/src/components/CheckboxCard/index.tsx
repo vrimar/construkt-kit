@@ -2,6 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import * as React from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { checkboxCard } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 import * as ArkCheckbox from "../Checkbox";
 
@@ -16,10 +17,7 @@ const CardAddon = withContext(ark.div, "addon");
 
 type CardRootProps = React.ComponentProps<typeof CardRoot>;
 
-export interface CheckboxCardProps extends Omit<
-  CardRootProps,
-  "onChange" | "defaultChecked"
-> {
+export interface CheckboxCardProps extends Omit<CardRootProps, "onChange" | "defaultChecked"> {
   icon?: React.ReactElement;
   label?: React.ReactNode;
   description?: React.ReactNode;

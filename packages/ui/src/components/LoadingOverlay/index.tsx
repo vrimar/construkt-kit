@@ -1,4 +1,5 @@
 import { Flex, type FlexProps, Stack } from "styled-system/jsx";
+
 import { Spinner, type SpinnerProps } from "../Spinner";
 import { Text } from "../Text";
 
@@ -6,17 +7,13 @@ export interface LoadingOverlayProps extends Omit<FlexProps, "fill"> {
   isActive: boolean;
   fill?: boolean;
   tip?: string;
-  align?: "center" | "flex-end" | "flex-start";
-  offset?: number;
   relative?: boolean;
   size?: SpinnerProps["size"];
 }
 
 export const LoadingOverlay = ({
-  align = "center",
   isActive,
   fill = true,
-  offset = 0,
   tip = "Loading...",
   relative,
   size = "xl",
@@ -25,13 +22,12 @@ export const LoadingOverlay = ({
   return (
     <Flex
       position={relative ? "relative" : "absolute"}
-      top={offset}
       left="0"
       zIndex="overlay"
       minHeight={relative ? "400px" : undefined}
       height="100%"
       width="100%"
-      alignItems={align}
+      alignItems="center"
       background={fill ? "bg/75" : undefined}
       justifyContent="center"
       opacity={isActive ? "1" : "0"}

@@ -2,6 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import { type ComponentProps, type ReactNode } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { inputGroup } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(inputGroup);

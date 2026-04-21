@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Link } from ".";
 import { HStack } from "../Layout";
 

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Avatar } from ".";
 import { HStack } from "../Layout";
 

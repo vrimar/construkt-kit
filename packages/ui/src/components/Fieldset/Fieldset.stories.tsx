@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Fieldset } from ".";
 import { Input } from "../Input";
 import { Box } from "../Layout";

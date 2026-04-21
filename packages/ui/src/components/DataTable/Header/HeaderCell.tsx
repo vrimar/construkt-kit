@@ -1,8 +1,8 @@
 import type { Header } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { Box, HStack } from "styled-system/jsx";
-import { Text } from "../../Text";
 
+import { Text } from "../../Text";
 import { ColumnSorter } from "./ColumnSorter";
 
 interface HeaderCellProps<TData> {

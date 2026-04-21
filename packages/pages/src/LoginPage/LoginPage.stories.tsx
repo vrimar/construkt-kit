@@ -1,6 +1,7 @@
 import { Box } from "@b3/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
+
 import { LoginPage } from "./index";
 
 const meta: Meta<typeof LoginPage> = {

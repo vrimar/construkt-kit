@@ -1,5 +1,6 @@
 declare module "@storybook/react-vite" {
-  export type Meta<TCmpOrArgs = import("@storybook/react").Args> = import("@storybook/react").Meta<TCmpOrArgs>;
+  export type Meta<TCmpOrArgs = import("@storybook/react").Args> =
+    import("@storybook/react").Meta<TCmpOrArgs>;
   export type Preview = import("@storybook/react").Preview;
   export type StorybookConfig = {
     stories?: string[];
@@ -11,7 +12,8 @@ declare module "@storybook/react-vite" {
       config: import("vite").UserConfig,
     ) => import("vite").UserConfig | Promise<import("vite").UserConfig>;
   };
-  export type StoryObj<TMetaOrCmpOrArgs = import("@storybook/react").Args> = import("@storybook/react").StoryObj<TMetaOrCmpOrArgs>;
+  export type StoryObj<TMetaOrCmpOrArgs = import("@storybook/react").Args> =
+    import("@storybook/react").StoryObj<TMetaOrCmpOrArgs>;
 }
 
 declare module "storybook/test" {

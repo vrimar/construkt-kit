@@ -3,6 +3,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createStyleContext } from "styled-system/jsx";
 import { numberInput } from "styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createStyleContext(numberInput);

@@ -1,5 +1,6 @@
 import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
+
 import type { WithRef } from "../../types";
 import * as Parts from "./parts";
 

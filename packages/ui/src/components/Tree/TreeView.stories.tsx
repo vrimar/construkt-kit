@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
+
 import { TreeView, createTreeCollection } from ".";
 import { Box, Flex } from "../Layout";
 
@@ -186,7 +187,7 @@ export const Basic: StoryObj = {
         defaultExpandedValue={["src", "components"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children!.map((node, index) => (
+          {collection.rootNode.children?.map((node, index) => (
             <TreeNode
               key={node.id}
               node={node}
@@ -213,7 +214,7 @@ export const WithCustomRender: StoryObj = {
         defaultExpandedValue={["src"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children!.map((node, index) => (
+          {collection.rootNode.children?.map((node, index) => (
             <CustomTreeNode
               key={node.id}
               node={node}
@@ -240,7 +241,7 @@ export const WithCheckboxes: StoryObj = {
         defaultExpandedValue={["src", "components"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children!.map((node, index) => (
+          {collection.rootNode.children?.map((node, index) => (
             <CheckboxTreeNode
               key={node.id}
               node={node}
@@ -275,7 +276,7 @@ export const Sizes: StoryObj = {
             size={size}
           >
             <TreeView.Tree>
-              {collection.rootNode.children!.map((node, index) => (
+              {collection.rootNode.children?.map((node, index) => (
                 <TreeNode
                   key={node.id}
                   node={node}

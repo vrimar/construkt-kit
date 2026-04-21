@@ -1,5 +1,6 @@
 import { comboboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
+
 import { input } from "./input";
 
 export const combobox = defineSlotRecipe({

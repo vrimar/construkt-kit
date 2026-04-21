@@ -1,8 +1,8 @@
 import { SearchIcon, XIcon } from "lucide-react";
-import { Input, type InputProps } from "./Input";
 
 import type { ButtonProps } from "../Buttons";
 import { IconButton } from "../Buttons";
+import { Input, type InputProps } from "./Input";
 import { InputGroup } from "./InputGroup";
 
 export interface SearchInputProps extends InputProps {
@@ -33,7 +33,8 @@ export const SearchInput = ({
     <InputGroup
       startElement={hasIcon && <SearchIcon />}
       endElement={
-        props.value && onClear && (
+        props.value &&
+        onClear && (
           <IconButton
             variant="plain"
             size={iconButtonSize}

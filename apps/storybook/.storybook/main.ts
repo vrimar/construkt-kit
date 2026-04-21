@@ -1,8 +1,9 @@
-// This file has been automatically migrated to valid ESM format by Storybook.
-import type { StorybookConfig } from "@storybook/react-vite";
 import { createRequire } from "node:module";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+
+// This file has been automatically migrated to valid ESM format by Storybook.
+import type { StorybookConfig } from "@storybook/react-vite";
 import checker from "vite-plugin-checker";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -27,7 +28,7 @@ const config: StorybookConfig = {
     sidebarOnboardingChecklist: false,
   },
 
-  viteFinal(config: Parameters<NonNullable<StorybookConfig["viteFinal"]>>[0]) {
+  viteFinal(configOptions: Parameters<NonNullable<StorybookConfig["viteFinal"]>>[0]) {
     const uiDir = path.resolve(__dirname, "../../../packages/ui");
 
     // Force a single React instance by resolving from this package's dependencies
@@ -41,9 +42,9 @@ const config: StorybookConfig = {
     );
 
     return {
-      ...config,
+      ...configOptions,
       plugins: [
-        ...(config.plugins ?? []),
+        ...(configOptions.plugins ?? []),
         {
           name: "resolve-ark-ui",
           enforce: "pre" as const,
@@ -66,9 +67,9 @@ const config: StorybookConfig = {
         checker({ typescript: true }),
       ],
       resolve: {
-        ...config.resolve,
+        ...configOptions.resolve,
         alias: [
-          ...(Array.isArray(config.resolve?.alias) ? config.resolve.alias : []),
+          ...(Array.isArray(configOptions.resolve?.alias) ? configOptions.resolve.alias : []),
           { find: "styled-system", replacement: path.resolve(uiDir, "styled-system") },
           { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },
           { find: "react/jsx-dev-runtime", replacement: path.join(reactDir, "jsx-dev-runtime") },
@@ -78,9 +79,9 @@ const config: StorybookConfig = {
         dedupe: ["react", "react-dom"],
       },
       optimizeDeps: {
-        ...config.optimizeDeps,
+        ...configOptions.optimizeDeps,
         include: [
-          ...(config.optimizeDeps?.include ?? []),
+          ...(configOptions.optimizeDeps?.include ?? []),
           "@tanstack/react-query",
           "react",
           "react-dom",
