@@ -35,7 +35,6 @@ const config: StorybookConfig = {
     const reactDir = path.dirname(require.resolve("react/package.json"));
     const reactDomDir = path.dirname(require.resolve("react-dom/package.json"));
 
-    // @ark-ui/react lives in packages/ui/node_modules but is symlinked to FlexTabs.Spa's
     // pnpm store instead of frontend-shared's. Tell Vite to resolve it from the correct location.
     const arkUiDir = path.dirname(
       require.resolve("@ark-ui/react/package.json", { paths: [uiDir] }),

@@ -19,7 +19,7 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
     <AuthLayout
       logo={logo}
       title="Welcome back"
-      description="Sign in to continue to FlexTabs."
+      description="Sign in to continue to App."
       showTitle
     >
       <form
