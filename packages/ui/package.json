@@ -34,9 +34,9 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "panda codegen",
-    "build": "panda codegen && tsdown",
-    "dev": "panda codegen && tsdown --watch",
+    "prepare": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "build": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs && tsdown",
+    "dev": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs && tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
     "lint:fix": "oxlint src --fix",
