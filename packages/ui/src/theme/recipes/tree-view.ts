@@ -59,6 +59,8 @@ export const treeView = defineSlotRecipe({
       alignItems: "center",
       justifyContent: "center",
       flexShrink: 0,
+      width: "var(--tree-icon-size)",
+      height: "var(--tree-icon-size)",
       transition: "rotate 0.2s",
       transformOrigin: "center",
       color: "fg.subtle",
@@ -115,6 +117,12 @@ export const treeView = defineSlotRecipe({
       },
     },
     itemIndicator: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      width: "var(--tree-icon-size)",
+      height: "var(--tree-icon-size)",
       color: "fg.subtle",
       _icon: {
         width: "1em",
