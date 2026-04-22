@@ -61,6 +61,15 @@ const TreeNodeCheckbox = () => (
   </TreeView.NodeCheckbox>
 );
 
+const TreeIndicatorSpacer = () => (
+  <Box
+    aria-hidden="true"
+    data-tree-indicator-spacer="true"
+    flexShrink={0}
+    boxSize="var(--tree-icon-size)"
+  />
+);
+
 const TreeRow = ({
   isBranch,
   checkable,
@@ -83,7 +92,7 @@ const TreeRow = ({
   const content = (
     <>
       <TreeRowIndentGuides indexPath={indexPath} />
-      {isBranch && <TreeView.BranchIndicator />}
+      {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
       {checkable && <TreeNodeCheckbox />}
       <Box
         flex="1"
@@ -247,6 +256,8 @@ export const TreeSelectList = <TNode extends TreeNode>({
     onCheckedChange: (details) => handleCheckedChange(details.checkedValue),
     expandedValue: visibleExpandedValue,
     onExpandedChange: (details) => handleExpandedChange(details.expandedValue),
+    selectedValue: [],
+    onSelectionChange: () => {}, // No selection management (focus only) since it interferes with checkbox interactions
   });
 
   const visibleNodes = tree.getVisibleNodes();

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TreeSelectList } from "./TreeSelectList";
 
-vi.mock("../VirtualScrollArea", () => ({
+vi.mock("../ScrollArea/VirtualScrollArea", () => ({
   VirtualScrollArea: ({
     items,
     children,
@@ -108,6 +108,29 @@ describe("TreeSelectList", () => {
     expect(srcRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(0);
     expect(componentsRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(1);
     expect(buttonRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(2);
+  });
+
+  it("renders a leaf indicator spacer so item content aligns with branch rows", () => {
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        defaultExpandedValue={["fruits"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+
+    const branchRow = screen
+      .getByText("Fruits")
+      .closest('[data-scope="tree-view"][data-part="branch-control"]');
+    const leafRow = screen.getByText("Apple").closest('[data-scope="tree-view"][data-part="item"]');
+
+    expect(
+      branchRow?.querySelector('[data-scope="tree-view"][data-part="branch-indicator"]'),
+    ).not.toBeNull();
+    expect(leafRow?.querySelector('[data-tree-indicator-spacer="true"]')).not.toBeNull();
   });
 
   it("renders a single check icon for a fully checked branch", () => {
