@@ -1,6 +1,6 @@
 {
   "name": "@b3/ui",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": false,
   "description": "Shared component library for B3 frontend apps",
   "author": "Vasil Rimar",
