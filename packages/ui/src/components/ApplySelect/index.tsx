@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { HStack } from "styled-system/jsx";
+import { HStack } from "@b3/styled-system/jsx";
 
 import { Button } from "../Buttons";
 import type {

@@ -1,1 +1,1 @@
-export { token } from "styled-system/tokens";
+export { token } from "@b3/styled-system/tokens";

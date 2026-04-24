@@ -1,6 +1,6 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { HStack } from "styled-system/jsx";
+import { HStack } from "@b3/styled-system/jsx";
 
 import { Button, IconButton } from "../Buttons";
 import { Text } from "../Text";

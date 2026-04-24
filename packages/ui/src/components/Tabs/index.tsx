@@ -1,7 +1,7 @@
 import { Tabs as ArkTabs, TabsContext } from "@ark-ui/react/tabs";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { tabs } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { tabs } from "@b3/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(tabs);
 

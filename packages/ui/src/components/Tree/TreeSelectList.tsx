@@ -3,7 +3,7 @@ import { useTreeView } from "@ark-ui/react/tree-view";
 import { CheckIcon, MinusIcon, SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { Box, Flex } from "styled-system/jsx";
+import { Box, Flex } from "@b3/styled-system/jsx";
 
 import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";

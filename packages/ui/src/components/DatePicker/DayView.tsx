@@ -1,5 +1,5 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 import { Button } from "../Buttons";
 import * as Parts from "./parts";

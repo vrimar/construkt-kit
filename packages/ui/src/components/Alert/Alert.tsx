@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
 import { InfoIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { alert } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { alert } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";

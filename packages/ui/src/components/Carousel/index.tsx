@@ -4,8 +4,8 @@ import {
   useCarouselContext,
 } from "@ark-ui/react/carousel";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { carousel } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { carousel } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

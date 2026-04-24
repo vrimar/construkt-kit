@@ -1,8 +1,8 @@
 import { Avatar as ArkAvatar, AvatarContext } from "@ark-ui/react/avatar";
 import { UserIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { avatar } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { avatar } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

@@ -7,8 +7,8 @@ import {
   Separator,
   type SeparatorProps,
 } from "react-resizable-panels";
-import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
-import { splitter } from "styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "@b3/styled-system/jsx";
+import { splitter } from "@b3/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(splitter);
 

@@ -1,7 +1,7 @@
 import { Progress as ArkProgress } from "@ark-ui/react/progress";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { progress } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { progress } from "@b3/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(progress);
 

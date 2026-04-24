@@ -25,7 +25,8 @@
         "types": "./dist/preset.d.cts",
         "default": "./dist/preset.cjs"
       }
-    }
+    },
+    "./panda.buildinfo.json": "./dist/panda.buildinfo.json"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -34,9 +35,9 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
-    "build": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs && tsdown",
-    "dev": "panda codegen && node ../../scripts/patch-panda-jsx-types.mjs && tsdown --watch",
+    "prepare": "pnpm --filter @b3/styled-system build",
+    "build": "pnpm --filter @b3/styled-system build && tsdown && panda ship --outfile dist/panda.buildinfo.json",
+    "dev": "pnpm --filter @b3/styled-system build && tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
     "lint:fix": "oxlint src --fix",
@@ -45,6 +46,8 @@
   },
   "dependencies": {
     "@ark-ui/react": "^5.36.1",
+    "@b3/preset": "workspace:*",
+    "@b3/styled-system": "workspace:*",
     "@b3/utils": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.24",

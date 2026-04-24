@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
 

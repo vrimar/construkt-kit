@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import { type ComponentProps, type ReactNode } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { inputGroup } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { inputGroup } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

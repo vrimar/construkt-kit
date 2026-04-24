@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
 import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
 import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
-import { createStyleContext, styled } from "styled-system/jsx";
-import { switchRecipe } from "styled-system/recipes";
+import { createStyleContext, styled } from "@b3/styled-system/jsx";
+import { switchRecipe } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

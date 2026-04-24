@@ -12,7 +12,7 @@ export {
   Stack,
   VStack,
   Wrap,
-} from "styled-system/jsx";
+} from "@b3/styled-system/jsx";
 
 export type {
   BoxProps,
@@ -28,9 +28,9 @@ export type {
   StackProps,
   VstackProps as VStackProps,
   WrapProps,
-} from "styled-system/jsx";
+} from "@b3/styled-system/jsx";
 
 /** Re-export `Divider` as `Separator` for backward compatibility. */
 /** Re-export `Divider` as `Separator` for backward compatibility. */
-export { Divider as Separator } from "styled-system/jsx";
-export type { DividerProps as SeparatorProps } from "styled-system/jsx";
+export { Divider as Separator } from "@b3/styled-system/jsx";
+export type { DividerProps as SeparatorProps } from "@b3/styled-system/jsx";

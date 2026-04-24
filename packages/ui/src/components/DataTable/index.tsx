@@ -8,7 +8,7 @@ import type {
 } from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import React, { useMemo } from "react";
-import { Box, type BoxProps, Stack } from "styled-system/jsx";
+import { Box, type BoxProps, Stack } from "@b3/styled-system/jsx";
 
 import { DataTableBody } from "./Body";
 import { DataTableHeader } from "./Header";

@@ -1,6 +1,6 @@
 import type { Header } from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 import { match } from "ts-pattern";
 
 import { dataTableClasses } from "../types";

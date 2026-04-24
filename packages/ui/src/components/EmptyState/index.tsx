@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { emptyState } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { emptyState } from "@b3/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(emptyState);
 

@@ -1,6 +1,6 @@
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 

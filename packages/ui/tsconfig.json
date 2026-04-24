@@ -4,8 +4,9 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "styled-system/*": ["./styled-system/*"]
+      "@b3/preset": ["../preset/src/index.ts"],
+      "@b3/styled-system/*": ["../styled-system/dist/*"]
     }
   },
-  "include": ["src", "styled-system"]
+  "include": ["src"]
 }

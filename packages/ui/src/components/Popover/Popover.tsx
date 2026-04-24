@@ -2,8 +2,8 @@ import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { popover } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { popover } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";

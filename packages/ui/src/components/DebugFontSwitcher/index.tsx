@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 import { Icon } from "../Icon";
 import { Input } from "../Input";

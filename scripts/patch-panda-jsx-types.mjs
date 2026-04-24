@@ -3,14 +3,28 @@ import path from "node:path";
 
 const packageRoot = process.argv[2] ? path.resolve(process.cwd(), process.argv[2]) : process.cwd();
 
-const createStyleContextTypesPath = path.join(
-  packageRoot,
-  "styled-system",
-  "jsx",
-  "create-style-context.d.ts",
-);
+const candidatePaths = [
+  path.join(packageRoot, "dist", "jsx", "create-style-context.d.ts"),
+  path.join(packageRoot, "jsx", "create-style-context.d.ts"),
+  path.join(packageRoot, "styled-system", "jsx", "create-style-context.d.ts"),
+];
 
-const source = await readFile(createStyleContextTypesPath, "utf8");
+let createStyleContextTypesPath;
+let source;
+
+for (const candidatePath of candidatePaths) {
+  try {
+    source = await readFile(candidatePath, "utf8");
+    createStyleContextTypesPath = candidatePath;
+    break;
+  } catch {
+    continue;
+  }
+}
+
+if (!createStyleContextTypesPath || source == null) {
+  throw new Error(`Could not find create-style-context.d.ts under ${packageRoot}`);
+}
 
 const replacements = ["StyleContextProvider", "StyleContextRootProvider", "StyleContextConsumer"];
 

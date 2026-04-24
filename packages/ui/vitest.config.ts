@@ -1,11 +1,12 @@
 import { resolve } from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
-      "styled-system": resolve(__dirname, "./styled-system"),
+      "@b3/styled-system": resolve(__dirname, "../styled-system/dist"),
     },
   },
   test: {

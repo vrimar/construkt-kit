@@ -7,7 +7,7 @@ node_modules/
 dist/
 build/
 out/
-styled-system/
+apps/*/styled-system/
 .next/
 .nuxt/
 .svelte-kit/

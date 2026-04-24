@@ -1,8 +1,8 @@
 import { Portal } from "@ark-ui/react/portal";
 import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@ark-ui/react/toast";
 import { CheckCircleIcon, CircleAlertIcon, CircleXIcon } from "lucide-react";
-import { Stack, createStyleContext, styled } from "styled-system/jsx";
-import { toast } from "styled-system/recipes";
+import { Stack, createStyleContext, styled } from "@b3/styled-system/jsx";
+import { toast } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons/CloseButton";

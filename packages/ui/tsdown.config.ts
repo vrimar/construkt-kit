@@ -1,4 +1,3 @@
-import path from "path";
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
@@ -10,21 +9,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  deps: { neverBundle: ["react", "react-dom"] },
-  plugins: [
-    {
-      name: "styled-system-resolver",
-      resolveId(id: string) {
-        if (id.startsWith("styled-system/")) {
-          return path.resolve(
-            import.meta.dirname,
-            "styled-system",
-            id.replace("styled-system/", ""),
-            "index.mjs",
-          );
-        }
-        return null;
-      },
-    },
-  ],
+  deps: { neverBundle: ["react", "react-dom", "@b3/preset", "@b3/styled-system"] },
 });

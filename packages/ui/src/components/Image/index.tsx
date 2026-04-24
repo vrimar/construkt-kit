@@ -1,5 +1,5 @@
-import { styled } from "styled-system/jsx";
-import type { HTMLStyledProps } from "styled-system/types";
+import { styled } from "@b3/styled-system/jsx";
+import type { HTMLStyledProps } from "@b3/styled-system/types";
 
 import type { WithRef } from "../../types";
 

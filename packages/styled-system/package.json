@@ -1,0 +1,55 @@
+{
+  "name": "@b3/styled-system",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Shared Panda CSS generated runtime for B3 frontend apps",
+  "type": "module",
+  "exports": {
+    "./css": {
+      "types": "./dist/css/index.d.ts",
+      "default": "./dist/css/index.mjs"
+    },
+    "./jsx": {
+      "types": "./dist/jsx/index.d.ts",
+      "default": "./dist/jsx/index.mjs"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "default": "./dist/patterns/index.mjs"
+    },
+    "./recipes": {
+      "types": "./dist/recipes/index.d.ts",
+      "default": "./dist/recipes/index.mjs"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "default": "./dist/tokens/index.mjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "pnpm --filter @b3/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "build": "pnpm --filter @b3/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "dev": "pnpm --filter @b3/preset build && panda codegen --watch",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt ."
+  },
+  "devDependencies": {
+    "@b3/config": "workspace:*",
+    "@b3/preset": "workspace:*",
+    "@pandacss/dev": "^1.10.0",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.5"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

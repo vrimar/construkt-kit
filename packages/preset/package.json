@@ -1,0 +1,41 @@
+{
+  "name": "@b3/preset",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Shared Panda CSS preset for B3 frontend apps",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint src --fix",
+    "format": "oxfmt src"
+  },
+  "dependencies": {
+    "@ark-ui/react": "^5.36.1"
+  },
+  "devDependencies": {
+    "@b3/config": "workspace:*",
+    "@pandacss/dev": "^1.10.0",
+    "tsdown": "^0.21.9"
+  }
+}

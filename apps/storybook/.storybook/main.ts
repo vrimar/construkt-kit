@@ -30,6 +30,7 @@ const config: StorybookConfig = {
 
   viteFinal(configOptions: Parameters<NonNullable<StorybookConfig["viteFinal"]>>[0]) {
     const uiDir = path.resolve(__dirname, "../../../packages/ui");
+    const styledSystemDir = path.resolve(__dirname, "../../../packages/styled-system");
 
     // Force a single React instance by resolving from this package's dependencies
     const reactDir = path.dirname(require.resolve("react/package.json"));
@@ -69,7 +70,10 @@ const config: StorybookConfig = {
         ...configOptions.resolve,
         alias: [
           ...(Array.isArray(configOptions.resolve?.alias) ? configOptions.resolve.alias : []),
-          { find: "styled-system", replacement: path.resolve(uiDir, "styled-system") },
+          {
+            find: /^@b3\/styled-system\/(.*)$/,
+            replacement: path.join(styledSystemDir, "dist") + "/$1",
+          },
           { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },
           { find: "react/jsx-dev-runtime", replacement: path.join(reactDir, "jsx-dev-runtime") },
           { find: /^react-dom($|\/)/, replacement: reactDomDir + "/" },

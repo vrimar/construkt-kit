@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";

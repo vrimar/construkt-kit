@@ -1,4 +1,4 @@
-import type { HTMLStyledProps } from "styled-system/jsx";
+import type { HTMLStyledProps } from "@b3/styled-system/jsx";
 
 import type { WithRef } from "../../types";
 import { AbsoluteCenter } from "../Layout/AbsoluteCenter";

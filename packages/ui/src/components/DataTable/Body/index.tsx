@@ -1,7 +1,7 @@
 import type { Row, Table } from "@tanstack/react-table";
 import { RefreshCwIcon } from "lucide-react";
 import React, { useEffect } from "react";
-import { Box, type BoxProps, Stack } from "styled-system/jsx";
+import { Box, type BoxProps, Stack } from "@b3/styled-system/jsx";
 
 import { Button } from "../../Buttons";
 import { LoadingOverlay } from "../../LoadingOverlay";

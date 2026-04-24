@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
 import { Slider as ArkSlider } from "@ark-ui/react/slider";
 import type { ComponentProps, ReactNode } from "react";
-import { HStack, createStyleContext } from "styled-system/jsx";
-import { slider } from "styled-system/recipes";
+import { HStack, createStyleContext } from "@b3/styled-system/jsx";
+import { slider } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

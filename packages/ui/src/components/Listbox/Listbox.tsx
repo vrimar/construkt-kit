@@ -9,8 +9,8 @@ import type {
   ReactNode,
   SyntheticEvent,
 } from "react";
-import { type HTMLStyledProps, createStyleContext } from "styled-system/jsx";
-import { type ListboxVariantProps, listbox } from "styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "@b3/styled-system/jsx";
+import { type ListboxVariantProps, listbox } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";

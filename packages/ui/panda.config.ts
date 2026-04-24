@@ -1,12 +1,12 @@
+import { b3Preset } from "@b3/preset";
 import { defineConfig } from "@pandacss/dev";
-
-import { b3Preset } from "./src/preset";
 
 export default defineConfig({
   preflight: true,
   presets: ["@pandacss/preset-base", b3Preset],
   include: ["./src/**/*.{ts,tsx}"],
   exclude: ["./src/**/*.stories.{ts,tsx}"],
-  outdir: "styled-system",
+  outdir: ".panda",
+  importMap: "@b3/styled-system",
   jsxFramework: "react",
 });

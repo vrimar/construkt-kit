@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { breadcrumb } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { breadcrumb } from "@b3/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(breadcrumb);
 

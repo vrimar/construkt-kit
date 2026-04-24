@@ -1,6 +1,6 @@
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Box, HStack } from "styled-system/jsx";
+import { Box, HStack } from "@b3/styled-system/jsx";
 
 import type { WithRef } from "../../types";
 import type { ButtonProps } from "../Buttons";

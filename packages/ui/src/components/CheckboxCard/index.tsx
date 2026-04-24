@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import * as React from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { checkboxCard } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { checkboxCard } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import * as ArkCheckbox from "../Checkbox";

@@ -1,4 +1,4 @@
-import { Box } from "styled-system/jsx";
+import { Box } from "@b3/styled-system/jsx";
 
 export const TreeRowIndentGuides = ({ indexPath }: { indexPath: number[] }) => {
   const ancestorDepths = Array.from(

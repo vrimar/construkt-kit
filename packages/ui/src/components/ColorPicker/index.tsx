@@ -2,8 +2,8 @@ import { ColorPicker as ArkColorPicker, ColorPickerContext } from "@ark-ui/react
 import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
-import { createStyleContext, styled } from "styled-system/jsx";
-import { colorPicker } from "styled-system/recipes";
+import { createStyleContext, styled } from "@b3/styled-system/jsx";
+import { colorPicker } from "@b3/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 export { parseColor } from "@ark-ui/react/color-picker";

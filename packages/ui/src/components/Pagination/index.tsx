@@ -5,8 +5,8 @@ import {
 } from "@ark-ui/react/pagination";
 import { EllipsisIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "styled-system/jsx";
-import { pagination } from "styled-system/recipes";
+import { createStyleContext } from "@b3/styled-system/jsx";
+import { pagination } from "@b3/styled-system/recipes";
 
 import { IconButton } from "../Buttons/IconButton";
 
