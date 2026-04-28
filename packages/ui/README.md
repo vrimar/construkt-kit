@@ -1,8 +1,8 @@
-# @construct-kit/ui
+# @construkt-kit/ui
 
-60+ UI components for Construct Kit apps, built on Panda CSS and Ark UI primitives.
+60+ UI components for Construkt Kit apps, built on Panda CSS and Ark UI primitives.
 
-> **Rule:** Consumers import from `@construct-kit/ui`. UI implementation code imports Panda helpers from `@construct-kit/styled-system/*`.
+> **Rule:** Consumers import from `@construkt-kit/ui`. UI implementation code imports Panda helpers from `@construkt-kit/styled-system/*`.
 
 ## Exports
 
@@ -42,9 +42,9 @@
 ### Panda CSS Utilities
 
 ```tsx
-import { css, cx, styled } from "@construct-kit/ui";
-import type { HTMLStyledProps, StyledComponent } from "@construct-kit/ui";
-import { token } from "@construct-kit/ui"; // design token accessor
+import { css, cx, styled } from "@construkt-kit/ui";
+import type { HTMLStyledProps, StyledComponent } from "@construkt-kit/ui";
+import { token } from "@construkt-kit/ui"; // design token accessor
 ```
 
 ### Types
@@ -74,8 +74,8 @@ One-liner. Use when wrapping a single element with a recipe:
 
 ```tsx
 import { ark } from "@ark-ui/react/factory";
-import { styled } from "@construct-kit/styled-system/jsx";
-import { badge } from "@construct-kit/styled-system/recipes";
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { badge } from "@construkt-kit/styled-system/recipes";
 
 export type BadgeProps = ComponentProps<typeof Badge>;
 export const Badge = styled(ark.div, badge);
@@ -89,8 +89,8 @@ Use `createStyleContext(recipe)` to wrap Ark UI compound parts with slot-based s
 
 ```tsx
 import { Dialog as ArkDialog } from "@ark-ui/react/dialog";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { dialog } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { dialog } from "@construkt-kit/styled-system/recipes";
 
 const { withRootProvider, withContext } = createStyleContext(dialog);
 
@@ -143,7 +143,7 @@ Key utilities:
 
 ## Theme Architecture
 
-`@construct-kit/preset` exports `constructKitPreset`, re-exported from `src/preset.ts` for compatibility, assembled from:
+`@construkt-kit/preset` exports `construktKitPreset`, re-exported from `src/preset.ts` for compatibility, assembled from:
 
 - `../preset/src/theme/tokens/` — primitive tokens (colors, spacing, fonts, radii, etc.)
 - `../preset/src/theme/semantic-tokens/` — light/dark mode tokens (`colors.ts`, `shadows.ts`)
@@ -154,12 +154,12 @@ Key utilities:
 - `../preset/src/theme/conditions.ts` — custom Panda CSS conditions
 - `../preset/src/theme/keyframes.ts`, `animation-styles.ts`, `text-styles.ts`, `layer-styles.ts`
 
-### `@construct-kit/styled-system` is the shared Panda runtime
+### `@construkt-kit/styled-system` is the shared Panda runtime
 
-- `@construct-kit/styled-system` is the generated Panda runtime package shared by `@construct-kit/ui` and consuming apps
-- Imports like `@construct-kit/styled-system/jsx`, `@construct-kit/styled-system/css`, and `@construct-kit/styled-system/recipes` resolve through that workspace package
-- `@pandacss/dev` is the **build-time tool** — used in `@construct-kit/preset`, `@construct-kit/styled-system`, and app-level Panda configs
-- `@construct-kit/ui` treats `@construct-kit/styled-system` as an external runtime dependency during dist builds
+- `@construkt-kit/styled-system` is the generated Panda runtime package shared by `@construkt-kit/ui` and consuming apps
+- Imports like `@construkt-kit/styled-system/jsx`, `@construkt-kit/styled-system/css`, and `@construkt-kit/styled-system/recipes` resolve through that workspace package
+- `@pandacss/dev` is the **build-time tool** — used in `@construkt-kit/preset`, `@construkt-kit/styled-system`, and app-level Panda configs
+- `@construkt-kit/ui` treats `@construkt-kit/styled-system` as an external runtime dependency during dist builds
 
 ### Token Path Syntax
 
@@ -193,19 +193,19 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 
 ## File Map
 
-| Path                                   | Purpose                               |
-| -------------------------------------- | ------------------------------------- |
-| `src/index.ts`                         | Public barrel export                  |
-| `src/preset.ts`                        | Compatibility re-export of `constructKitPreset` |
-| `src/types.ts`                         | Shared types (`WithRef`, etc.)        |
-| `src/components/index.tsx`             | Component barrel export               |
-| `src/components/<Name>/`               | Individual component folders          |
-| `src/hooks/`                           | Shared hooks                          |
-| `../preset/src/theme/recipes/`         | All component recipes                 |
-| `../preset/src/theme/tokens/`          | Primitive design tokens               |
-| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)          |
-| `../styled-system/dist/`               | Shared Panda CSS generated runtime    |
-| `panda.config.ts`                      | Panda CSS config                      |
+| Path                                   | Purpose                                         |
+| -------------------------------------- | ----------------------------------------------- |
+| `src/index.ts`                         | Public barrel export                            |
+| `src/preset.ts`                        | Compatibility re-export of `construktKitPreset` |
+| `src/types.ts`                         | Shared types (`WithRef`, etc.)                  |
+| `src/components/index.tsx`             | Component barrel export                         |
+| `src/components/<Name>/`               | Individual component folders                    |
+| `src/hooks/`                           | Shared hooks                                    |
+| `../preset/src/theme/recipes/`         | All component recipes                           |
+| `../preset/src/theme/tokens/`          | Primitive design tokens                         |
+| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                    |
+| `../styled-system/dist/`               | Shared Panda CSS generated runtime              |
+| `panda.config.ts`                      | Panda CSS config                                |
 
 ## Common Patterns
 
@@ -224,19 +224,19 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 - Colors: `token('colors.brand.500')` or `colorPalette` prop + recipe variants
 - Never use hardcoded colors (`#fff`, `rgb(...)`) — the Panda linter will reject them
 
-### Consuming @construct-kit/ui in apps
+### Consuming @construkt-kit/ui in apps
 
-Apps configure `panda.config.ts` with `presets: ["@pandacss/preset-base", constructKitPreset]` and `importMap: "@construct-kit/styled-system"`.
-Path alias `@construct-kit/ui` → `packages/ui/src` resolved by Vite/tsconfig.
+Apps configure `panda.config.ts` with `presets: ["@pandacss/preset-base", construktKitPreset]` and `importMap: "@construkt-kit/styled-system"`.
+Path alias `@construkt-kit/ui` → `packages/ui/src` resolved by Vite/tsconfig.
 
-Published consumers that do not scan `@construct-kit/ui` source can include `@construct-kit/ui/panda.buildinfo.json`
+Published consumers that do not scan `@construkt-kit/ui` source can include `@construkt-kit/ui/panda.buildinfo.json`
 in their Panda `include` list instead.
 
 ## Testing
 
 - **Runner:** Vitest with jsdom environment
 - **Setup:** `vitest.setup.ts` polyfills `ResizeObserver` and `IntersectionObserver` (not in jsdom)
-- **Aliases:** `@construct-kit/styled-system` → `../styled-system/dist` in `vitest.config.ts`
+- **Aliases:** `@construkt-kit/styled-system` → `../styled-system/dist` in `vitest.config.ts`
 - **Libraries:** `@testing-library/react` + `userEvent` for component interaction tests
 - **Pattern:** Tests verify non-obvious UX (e.g., interactive descendants in Select items don't trigger selection)
 

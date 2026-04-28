@@ -3,8 +3,8 @@ import {
   FileUploadContext,
   useFileUploadContext,
 } from "@ark-ui/react/file-upload";
-import { type HTMLStyledProps, Stack, createStyleContext } from "@construct-kit/styled-system/jsx";
-import { fileUpload } from "@construct-kit/styled-system/recipes";
+import { type HTMLStyledProps, Stack, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { fileUpload } from "@construkt-kit/styled-system/recipes";
 import { FileIcon, XIcon } from "lucide-react";
 import { type ComponentProps, useMemo } from "react";
 

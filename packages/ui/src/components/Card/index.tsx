@@ -1,6 +1,6 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { card } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { card } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(card);

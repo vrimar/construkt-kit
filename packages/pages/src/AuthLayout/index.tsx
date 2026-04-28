@@ -1,4 +1,4 @@
-import { Box, Stack, Text } from "@construct-kit/ui";
+import { Box, Stack, Text } from "@construkt-kit/ui";
 import type { ReactNode } from "react";
 
 interface AuthLayoutProps {

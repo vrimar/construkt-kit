@@ -1,6 +1,6 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext, styled } from "@construct-kit/styled-system/jsx";
-import { stat } from "@construct-kit/styled-system/recipes";
+import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
+import { stat } from "@construkt-kit/styled-system/recipes";
 import { InfoIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 

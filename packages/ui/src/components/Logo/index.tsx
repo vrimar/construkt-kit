@@ -11,7 +11,7 @@ export const Logo = ({ width = 200, height = "auto", color = "currentColor" }: L
     width={width}
     height={height}
     fill={color}
-    aria-label="Construct Kit"
+    aria-label="Construkt Kit"
     role="img"
   >
     <text

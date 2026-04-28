@@ -1,4 +1,4 @@
-import { Box } from "@construct-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import React from "react";
 
 import { TagsInput } from "../TagsInput";

@@ -7,7 +7,7 @@ import type { StorybookConfig } from "@storybook/react-vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const storybookBasePath = normalizeBasePath(process.env.CONSTRUCT_KIT_STORYBOOK_BASE_PATH);
+const storybookBasePath = normalizeBasePath(process.env.CONSTRUKT_KIT_STORYBOOK_BASE_PATH);
 
 const config: StorybookConfig = {
   stories: [
@@ -71,7 +71,7 @@ const config: StorybookConfig = {
         alias: [
           ...(Array.isArray(configOptions.resolve?.alias) ? configOptions.resolve.alias : []),
           {
-            find: /^@construct-kit\/styled-system\/(.*)$/,
+            find: /^@construkt-kit\/styled-system\/(.*)$/,
             replacement: path.join(styledSystemDir, "dist") + "/$1",
           },
           { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },

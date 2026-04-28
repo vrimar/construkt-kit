@@ -1,4 +1,4 @@
-import { Box } from "@construct-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import type { Header } from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 import { match } from "ts-pattern";

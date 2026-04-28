@@ -9,5 +9,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  deps: { neverBundle: ["react", "react-dom", "@construct-kit/preset", "@construct-kit/styled-system"] },
+  deps: {
+    neverBundle: ["react", "react-dom", "@construkt-kit/preset", "@construkt-kit/styled-system"],
+  },
 });

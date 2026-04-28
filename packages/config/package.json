@@ -1,7 +1,7 @@
 {
-  "name": "@construct-kit/config",
+  "name": "@construkt-kit/config",
   "version": "0.0.1",
-  "description": "Shared tool configuration for all Construct Kit frontend projects",
+  "description": "Shared tool configuration for all Construkt Kit frontend projects",
   "exports": {
     "./typescript": "./typescript/base.json",
     "./oxlint": "./oxlint/index.config.ts",

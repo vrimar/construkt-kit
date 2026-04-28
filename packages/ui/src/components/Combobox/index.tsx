@@ -4,8 +4,8 @@ import {
   useComboboxItemContext,
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
-import { type HTMLStyledProps, createStyleContext } from "@construct-kit/styled-system/jsx";
-import { type ComboboxVariantProps, combobox } from "@construct-kit/styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { type ComboboxVariantProps, combobox } from "@construkt-kit/styled-system/recipes";
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
 
 import type { WithRef } from "../../types";

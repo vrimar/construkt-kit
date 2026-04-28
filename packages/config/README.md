@@ -1,21 +1,21 @@
-# @construct-kit/config
+# @construkt-kit/config
 
-Shared tool configuration for Construct Kit frontend projects.
+Shared tool configuration for Construkt Kit frontend projects.
 
 ## Sub-paths
 
-| Import                  | Usage                                                              |
-| ----------------------- | ------------------------------------------------------------------ |
-| `@construct-kit/config/typescript` | `"extends": "@construct-kit/config/typescript"` in `tsconfig.json`            |
-| `@construct-kit/config/oxlint`     | `import baseConfig from "@construct-kit/config/oxlint"` in `oxlint.config.ts` |
-| `@construct-kit/config/oxfmt`      | `export { default } from "@construct-kit/config/oxfmt"` in `oxfmt.config.ts`  |
-| `@construct-kit/config/vite`       | `createViteConfig(overrides?)` factory                             |
-| `@construct-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                       |
-| `@construct-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen            |
+| Import                             | Usage                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------- |
+| `@construkt-kit/config/typescript` | `"extends": "@construkt-kit/config/typescript"` in `tsconfig.json`            |
+| `@construkt-kit/config/oxlint`     | `import baseConfig from "@construkt-kit/config/oxlint"` in `oxlint.config.ts` |
+| `@construkt-kit/config/oxfmt`      | `export { default } from "@construkt-kit/config/oxfmt"` in `oxfmt.config.ts`  |
+| `@construkt-kit/config/vite`       | `createViteConfig(overrides?)` factory                                        |
+| `@construkt-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                                  |
+| `@construkt-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen                       |
 
 ## Oxlint Config
 
-The shared `@construct-kit/config/oxlint` export now ships as a TypeScript config module.
+The shared `@construkt-kit/config/oxlint` export now ships as a TypeScript config module.
 Consume it from an `oxlint.config.ts` file and merge local overrides there.
 
 This requires the Node-based `oxlint` runtime with a Node version new enough to
@@ -23,7 +23,7 @@ execute TypeScript config files.
 
 ## Oxfmt Config
 
-The shared `@construct-kit/config/oxfmt` base enables Oxc import sorting via `sortImports: true`, so consuming packages inherit automatic import ordering without additional local config.
+The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `sortImports: true`, so consuming packages inherit automatic import ordering without additional local config.
 
 ## Vite Config
 

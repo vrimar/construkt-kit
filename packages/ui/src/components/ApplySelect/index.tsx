@@ -1,4 +1,4 @@
-import { HStack } from "@construct-kit/styled-system/jsx";
+import { HStack } from "@construkt-kit/styled-system/jsx";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { Button } from "../Buttons";

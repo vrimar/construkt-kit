@@ -1,6 +1,6 @@
-# @construct-kit/api
+# @construkt-kit/api
 
-HTTP client, typed error classes, and data-table types for Construct Kit frontend apps.
+HTTP client, typed error classes, and data-table types for Construkt Kit frontend apps.
 
 ## Exports
 
@@ -36,8 +36,8 @@ HTTP client, typed error classes, and data-table types for Construct Kit fronten
 ## Usage
 
 ```ts
-import { ApiError, NotFoundError, createApiClient } from "@construct-kit/api";
-import type { DataTableParams } from "@construct-kit/api";
+import { ApiError, NotFoundError, createApiClient } from "@construkt-kit/api";
+import type { DataTableParams } from "@construkt-kit/api";
 
 if (error instanceof NotFoundError) {
   /* 404 */
@@ -53,7 +53,7 @@ if (error instanceof ApiError) {
 
 `createApiClient(getToken)` accepts a **synchronous** callback (`() => string | null | undefined`), not a static token. The token is fetched at **call time** (not client creation), supporting token refresh.
 
-> **Sync/async gap:** `AuthProvider.getToken` from `@construct-kit/pages` returns `Promise<string | null>`, but `createApiClient` expects a sync getter. The recommended pattern is to cache the token synchronously in the app and pass the cached value:
+> **Sync/async gap:** `AuthProvider.getToken` from `@construkt-kit/pages` returns `Promise<string | null>`, but `createApiClient` expects a sync getter. The recommended pattern is to cache the token synchronously in the app and pass the cached value:
 >
 > ```ts
 > let cachedToken: string | null = null;
@@ -69,7 +69,7 @@ Non-JSON/text responses (Excel, PDF exports) return a Response-like object:
 { blob: () => Promise<Blob>, headers: Headers }
 ```
 
-Pair with `saveBlobResponse()` or `downloadFile()` from `@construct-kit/utils` for file downloads.
+Pair with `saveBlobResponse()` or `downloadFile()` from `@construkt-kit/utils` for file downloads.
 
 ### Error hierarchy
 
@@ -99,7 +99,7 @@ try {
 
 ### Kubb codegen integration
 
-Consuming apps generate typed API code using `createKubbConfig()` from `@construct-kit/config/kubb`. The config produces 3 output directories from an OpenAPI spec:
+Consuming apps generate typed API code using `createKubbConfig()` from `@construkt-kit/config/kubb`. The config produces 3 output directories from an OpenAPI spec:
 
 | Output dir | Contents                                        |
 | ---------- | ----------------------------------------------- |
@@ -115,7 +115,7 @@ Consuming apps generate typed API code using `createKubbConfig()` from `@constru
 4. Kubb `clientImportPath` option points generated `calls/` to that re-export
 5. Generated `hooks/` import from `calls/`, which use the configured client
 
-Query keys in generated hooks are prefixed with `"v5"` — bump this in `@construct-kit/config/kubb` when making breaking API changes to invalidate all caches.
+Query keys in generated hooks are prefixed with `"v5"` — bump this in `@construkt-kit/config/kubb` when making breaking API changes to invalidate all caches.
 
 Key Kubb options (via `createKubbConfig()`):
 
@@ -123,27 +123,27 @@ Key Kubb options (via `createKubbConfig()`):
 - `outputPath` — generated output root (default: `./src/api/gen`)
 - `clientImportPath` — where generated code imports the client from (default: `@/api/client`)
 
-## CLI: `construct-kit-api-gen`
+## CLI: `construkt-kit-api-gen`
 
-The package ships a `construct-kit-api-gen` binary that automates the full codegen workflow: fetch an OpenAPI spec from a running API, run Kubb codegen, and clean up.
+The package ships a `construkt-kit-api-gen` binary that automates the full codegen workflow: fetch an OpenAPI spec from a running API, run Kubb codegen, and clean up.
 
 ### Usage
 
 ```bash
 # Uses API_URL env var or specUrl from config
-npx construct-kit-api-gen
+npx construkt-kit-api-gen
 
 # Override the API base URL
-npx construct-kit-api-gen --url https://api.example.com
+npx construkt-kit-api-gen --url https://api.example.com
 
 # Use a custom config file (default: api.config.ts)
-npx construct-kit-api-gen --config my-api.config.ts
+npx construkt-kit-api-gen --config my-api.config.ts
 ```
 
 ### Config file (`api.config.ts`)
 
 ```ts
-import { createKubbConfig } from "@construct-kit/config/kubb";
+import { createKubbConfig } from "@construkt-kit/config/kubb";
 
 export const specUrl = "https://api.example.com";
 export default createKubbConfig({ clientImportPath: "@/api/client" });

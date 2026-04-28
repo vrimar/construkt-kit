@@ -1,1 +1,1 @@
-export { token } from "@construct-kit/styled-system/tokens";
+export { token } from "@construkt-kit/styled-system/tokens";

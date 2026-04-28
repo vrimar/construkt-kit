@@ -1,11 +1,11 @@
 {
-  "extends": "@construct-kit/config/typescript",
+  "extends": "@construkt-kit/config/typescript",
   "compilerOptions": {
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@construct-kit/preset": ["../preset/src/index.ts"],
-      "@construct-kit/styled-system/*": ["../styled-system/dist/*"]
+      "@construkt-kit/preset": ["../preset/src/index.ts"],
+      "@construkt-kit/styled-system/*": ["../styled-system/dist/*"]
     }
   },
   "include": ["src"]

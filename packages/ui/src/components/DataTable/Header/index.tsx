@@ -1,4 +1,4 @@
-import { Box } from "@construct-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import type { Table } from "@tanstack/react-table";
 
 import { DataTableHeaderCell } from "./HeaderCell";

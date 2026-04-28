@@ -25,14 +25,14 @@ const colorPaletteValues = [
 ];
 
 /**
- * Custom Construct Kit Panda CSS preset.
- * Provides the full Construct Kit design system: tokens, semantic tokens, recipes,
+ * Custom Construkt Kit Panda CSS preset.
+ * Provides the full Construkt Kit design system: tokens, semantic tokens, recipes,
  * conditions, keyframes, animations, and global CSS.
  *
  * Use with `@pandacss/preset-base` for CSS utility mappings and patterns.
  */
-export const constructKitPreset = definePreset({
-  name: "construct-kit-preset",
+export const construktKitPreset = definePreset({
+  name: "construkt-kit-preset",
   conditions,
   globalFontface,
   theme: {

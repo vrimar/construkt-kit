@@ -1,6 +1,6 @@
 import { Field } from "@ark-ui/react/field";
-import { styled } from "@construct-kit/styled-system/jsx";
-import { textarea } from "@construct-kit/styled-system/recipes";
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { textarea } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 export type TextareaProps = ComponentProps<typeof Textarea>;

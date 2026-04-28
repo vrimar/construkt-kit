@@ -1,1 +1,1 @@
-export { constructKitPreset } from "@construct-kit/preset";
+export { construktKitPreset } from "@construkt-kit/preset";

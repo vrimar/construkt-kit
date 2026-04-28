@@ -1,6 +1,6 @@
-# @construct-kit/utils
+# @construkt-kit/utils
 
-Stateless, framework-agnostic utilities shared across Construct Kit frontend apps.
+Stateless, framework-agnostic utilities shared across Construkt Kit frontend apps.
 
 ## Exports
 
@@ -18,5 +18,5 @@ Stateless, framework-agnostic utilities shared across Construct Kit frontend app
 ## Usage
 
 ```ts
-import { buildQueryString, addOrRemove, emailSchema } from "@construct-kit/utils";
+import { buildQueryString, addOrRemove, emailSchema } from "@construkt-kit/utils";
 ```

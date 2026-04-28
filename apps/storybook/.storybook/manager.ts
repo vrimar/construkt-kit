@@ -1,9 +1,9 @@
 import { addons } from "storybook/manager-api";
 import { create } from "storybook/theming/create";
 
-const constructKitTheme = create({
+const construktKitTheme = create({
   base: "light",
-  brandTitle: "Construct Kit Design System",
+  brandTitle: "Construkt Kit Design System",
   brandImage:
     "data:image/svg+xml," +
     encodeURIComponent(
@@ -12,5 +12,5 @@ const constructKitTheme = create({
 });
 
 addons.setConfig({
-  theme: constructKitTheme,
+  theme: construktKitTheme,
 });

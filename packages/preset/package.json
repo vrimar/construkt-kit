@@ -1,8 +1,8 @@
 {
-  "name": "@construct-kit/preset",
+  "name": "@construkt-kit/preset",
   "version": "0.0.1",
   "private": false,
-  "description": "Shared Panda CSS preset for Construct Kit frontend apps",
+  "description": "Shared Panda CSS preset for Construkt Kit frontend apps",
   "type": "module",
   "exports": {
     ".": {
@@ -34,7 +34,7 @@
     "@ark-ui/react": "^5.36.1"
   },
   "devDependencies": {
-    "@construct-kit/config": "workspace:*",
+    "@construkt-kit/config": "workspace:*",
     "@pandacss/dev": "^1.10.0",
     "tsdown": "^0.21.9"
   }

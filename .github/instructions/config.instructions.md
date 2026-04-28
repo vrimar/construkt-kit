@@ -8,14 +8,14 @@ Read `packages/config/README.md` for full options and usage.
 
 Sub-path exports — each consumed differently:
 
-| Sub-path                | Type      | Key export                                                                                               |
-| ----------------------- | --------- | -------------------------------------------------------------------------------------------------------- |
-| `@construct-kit/config/typescript` | JSON      | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                                     |
-| `@construct-kit/config/vite`       | Factory   | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
-| `@construct-kit/config/playwright` | Factory   | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
-| `@construct-kit/config/kubb`       | Factory   | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
-| `@construct-kit/config/oxlint`     | TS config | Shared base for `oxlint.config.ts` files                                                                 |
-| `@construct-kit/config/oxfmt`      | TS config | Shared `oxfmt.config.ts` base                                                                            |
+| Sub-path                           | Type      | Key export                                                                                               |
+| ---------------------------------- | --------- | -------------------------------------------------------------------------------------------------------- |
+| `@construkt-kit/config/typescript` | JSON      | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                                     |
+| `@construkt-kit/config/vite`       | Factory   | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
+| `@construkt-kit/config/playwright` | Factory   | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
+| `@construkt-kit/config/kubb`       | Factory   | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
+| `@construkt-kit/config/oxlint`     | TS config | Shared base for `oxlint.config.ts` files                                                                 |
+| `@construkt-kit/config/oxfmt`      | TS config | Shared `oxfmt.config.ts` base                                                                            |
 
 ## Key Patterns
 

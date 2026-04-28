@@ -1,4 +1,4 @@
-import { Box, type BoxProps, Stack } from "@construct-kit/styled-system/jsx";
+import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
 import type {
   ColumnDef,
   ColumnFiltersState,

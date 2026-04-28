@@ -1,8 +1,8 @@
 import { ColorPicker as ArkColorPicker, ColorPickerContext } from "@ark-ui/react/color-picker";
 import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
-import { createStyleContext, styled } from "@construct-kit/styled-system/jsx";
-import { colorPicker } from "@construct-kit/styled-system/recipes";
+import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
+import { colorPicker } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, RefObject } from "react";
 
 import type { WithRef } from "../../types";

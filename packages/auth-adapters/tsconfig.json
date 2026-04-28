@@ -1,4 +1,4 @@
 {
-  "extends": "@construct-kit/config/typescript",
+  "extends": "@construkt-kit/config/typescript",
   "include": ["src"]
 }

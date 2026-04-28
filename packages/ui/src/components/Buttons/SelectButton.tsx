@@ -1,4 +1,4 @@
-import { Box, HStack } from "@construct-kit/styled-system/jsx";
+import { Box, HStack } from "@construkt-kit/styled-system/jsx";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 

@@ -1,7 +1,7 @@
-# @construct-kit/preset
+# @construkt-kit/preset
 
-Shared Panda CSS preset for Construct Kit frontend apps.
+Shared Panda CSS preset for Construkt Kit frontend apps.
 
-Exports `constructKitPreset`, the source of truth for tokens, semantic tokens, recipes,
-conditions, keyframes, animation styles, and global CSS used by `@construct-kit/ui` and
+Exports `construktKitPreset`, the source of truth for tokens, semantic tokens, recipes,
+conditions, keyframes, animation styles, and global CSS used by `@construkt-kit/ui` and
 consumer apps that run Panda CSS.

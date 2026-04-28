@@ -1,4 +1,4 @@
-import { Box, HStack } from "@construct-kit/styled-system/jsx";
+import { Box, HStack } from "@construkt-kit/styled-system/jsx";
 import type { Header } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 

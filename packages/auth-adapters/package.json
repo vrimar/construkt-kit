@@ -1,5 +1,5 @@
 {
-  "name": "@construct-kit/auth-adapters",
+  "name": "@construkt-kit/auth-adapters",
   "version": "0.0.1",
   "private": false,
   "description": "Pre-built AuthProvider adapter implementations for Auth0",
@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@auth0/auth0-react": "^2.16.2",
-    "@construct-kit/config": "workspace:*",
-    "@construct-kit/pages": "workspace:*",
+    "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/pages": "workspace:*",
     "tsdown": "^0.21.9"
   }
 }

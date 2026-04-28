@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import { createContext, mergeProps } from "@ark-ui/react/utils";
-import { styled } from "@construct-kit/styled-system/jsx";
-import { type ButtonVariantProps, button } from "@construct-kit/styled-system/recipes";
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { type ButtonVariantProps, button } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, useMemo } from "react";
 
 import type { WithRef } from "../../types";

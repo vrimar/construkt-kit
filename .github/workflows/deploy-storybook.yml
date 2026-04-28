@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CONSTRUCT_KIT_STORYBOOK_BASE_PATH: /${{ github.event.repository.name }}/
+      CONSTRUKT_KIT_STORYBOOK_BASE_PATH: /${{ github.event.repository.name }}/
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

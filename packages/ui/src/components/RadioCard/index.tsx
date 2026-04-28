@@ -1,6 +1,6 @@
 import { RadioGroup, RadioGroupContext } from "@ark-ui/react/radio-group";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { radioCardGroup } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { radioCardGroup } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(radioCardGroup);

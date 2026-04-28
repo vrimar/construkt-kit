@@ -1,6 +1,6 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { breadcrumb } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { breadcrumb } from "@construkt-kit/styled-system/recipes";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 

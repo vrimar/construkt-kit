@@ -1,7 +1,7 @@
 import { Portal } from "@ark-ui/react/portal";
 import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@ark-ui/react/toast";
-import { Stack, createStyleContext, styled } from "@construct-kit/styled-system/jsx";
-import { toast } from "@construct-kit/styled-system/recipes";
+import { Stack, createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
+import { toast } from "@construkt-kit/styled-system/recipes";
 import { CheckCircleIcon, CircleAlertIcon, CircleXIcon } from "lucide-react";
 
 import type { WithRef } from "../../types";

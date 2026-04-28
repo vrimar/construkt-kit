@@ -1,25 +1,25 @@
 {
-  "name": "@construct-kit/storybook",
+  "name": "@construkt-kit/storybook",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "pnpm --filter @construct-kit/styled-system build && node ./scripts/run-storybook.mjs dev",
-    "build": "pnpm --filter @construct-kit/ui build && node ./scripts/run-storybook.mjs build",
+    "storybook": "pnpm --filter @construkt-kit/styled-system build && node ./scripts/run-storybook.mjs dev",
+    "build": "pnpm --filter @construkt-kit/ui build && node ./scripts/run-storybook.mjs build",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."
   },
   "dependencies": {
-    "@construct-kit/pages": "workspace:*",
-    "@construct-kit/ui": "workspace:*",
+    "@construkt-kit/pages": "workspace:*",
+    "@construkt-kit/ui": "workspace:*",
     "@fontsource-variable/inter": "^5.2.8"
   },
   "devDependencies": {
-    "@construct-kit/config": "workspace:*",
-    "@construct-kit/preset": "workspace:*",
-    "@construct-kit/styled-system": "workspace:*",
+    "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/preset": "workspace:*",
+    "@construkt-kit/styled-system": "workspace:*",
     "@pandacss/dev": "^1.10.0",
     "@storybook/addon-a11y": "^10.3.5",
     "@storybook/react-vite": "^10.3.5",

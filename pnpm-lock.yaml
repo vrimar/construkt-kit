@@ -29,23 +29,23 @@ importers:
 
   apps/storybook:
     dependencies:
-      '@construct-kit/pages':
+      '@construkt-kit/pages':
         specifier: workspace:*
         version: link:../../packages/pages
-      '@construct-kit/ui':
+      '@construkt-kit/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@construct-kit/preset':
+      '@construkt-kit/preset':
         specifier: workspace:*
         version: link:../../packages/preset
-      '@construct-kit/styled-system':
+      '@construkt-kit/styled-system':
         specifier: workspace:*
         version: link:../../packages/styled-system
       '@pandacss/dev':
@@ -103,7 +103,7 @@ importers:
         specifier: ^4
         version: 4.21.0
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
       tsdown:
@@ -119,10 +119,10 @@ importers:
       '@auth0/auth0-react':
         specifier: ^2.16.2
         version: 2.16.2(react-dom@19.2.5(react@19.2.4))(react@19.2.4)
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
-      '@construct-kit/pages':
+      '@construkt-kit/pages':
         specifier: workspace:*
         version: link:../pages
       tsdown:
@@ -168,10 +168,10 @@ importers:
         specifier: ^19.0.0
         version: 19.2.4(react@19.2.4)
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
-      '@construct-kit/ui':
+      '@construkt-kit/ui':
         specifier: workspace:*
         version: link:../ui
       '@storybook/react':
@@ -196,7 +196,7 @@ importers:
         specifier: ^5.36.1
         version: 5.36.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
       '@pandacss/dev':
@@ -208,10 +208,10 @@ importers:
 
   packages/styled-system:
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
-      '@construct-kit/preset':
+      '@construkt-kit/preset':
         specifier: workspace:*
         version: link:../preset
       '@pandacss/dev':
@@ -242,10 +242,10 @@ importers:
         specifier: ^19.0.0
         version: 19.2.4(react@19.2.4)
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
-      '@construct-kit/ui':
+      '@construkt-kit/ui':
         specifier: workspace:*
         version: link:../ui
       tsdown:
@@ -257,13 +257,13 @@ importers:
       '@ark-ui/react':
         specifier: ^5.36.1
         version: 5.36.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@construct-kit/preset':
+      '@construkt-kit/preset':
         specifier: workspace:*
         version: link:../preset
-      '@construct-kit/styled-system':
+      '@construkt-kit/styled-system':
         specifier: workspace:*
         version: link:../styled-system
-      '@construct-kit/utils':
+      '@construkt-kit/utils':
         specifier: workspace:*
         version: link:../utils
       '@tanstack/react-table':
@@ -288,7 +288,7 @@ importers:
         specifier: ^5.9.0
         version: 5.9.0
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
       '@pandacss/dev':
@@ -337,7 +337,7 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
-      '@construct-kit/config':
+      '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
       tsdown:

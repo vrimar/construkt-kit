@@ -1,4 +1,4 @@
-import { Flex, type FlexProps, Stack } from "@construct-kit/styled-system/jsx";
+import { Flex, type FlexProps, Stack } from "@construkt-kit/styled-system/jsx";
 
 import { Spinner, type SpinnerProps } from "../Spinner";
 import { Text } from "../Text";

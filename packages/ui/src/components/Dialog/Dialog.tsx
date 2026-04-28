@@ -1,8 +1,8 @@
 import { Dialog as ArkDialog, DialogContext, useDialogContext } from "@ark-ui/react/dialog";
 import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
-import { createStyleContext, styled } from "@construct-kit/styled-system/jsx";
-import { dialog } from "@construct-kit/styled-system/recipes";
+import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
+import { dialog } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, type RefObject } from "react";
 
 import type { WithRef } from "../../types";

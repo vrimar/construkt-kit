@@ -1,6 +1,6 @@
-# @construct-kit/pages
+# @construkt-kit/pages
 
-Shared auth page components for Construct Kit apps. Pages own layout — consuming apps wire behavior via props.
+Shared auth page components for Construkt Kit apps. Pages own layout — consuming apps wire behavior via props.
 
 ## Exports
 
@@ -29,7 +29,7 @@ interface AuthProvider {
 ## Usage
 
 ```tsx
-import { LoginPage } from "@construct-kit/pages";
+import { LoginPage } from "@construkt-kit/pages";
 
 <LoginPage
   onSubmit={(email, password) => mutate({ email, password })}

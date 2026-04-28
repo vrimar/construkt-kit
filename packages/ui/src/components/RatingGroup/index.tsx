@@ -3,8 +3,8 @@ import {
   useRatingGroupContext,
   useRatingGroupItemContext,
 } from "@ark-ui/react/rating-group";
-import { type HTMLStyledProps, createStyleContext } from "@construct-kit/styled-system/jsx";
-import { ratingGroup } from "@construct-kit/styled-system/recipes";
+import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { ratingGroup } from "@construkt-kit/styled-system/recipes";
 import { StarIcon } from "lucide-react";
 import { type ComponentProps, type ReactElement, cloneElement, isValidElement } from "react";
 

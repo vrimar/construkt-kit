@@ -1,8 +1,8 @@
 {
-  "name": "@construct-kit/api",
+  "name": "@construkt-kit/api",
   "version": "0.0.1",
   "private": false,
-  "description": "HTTP client, query factories, typed errors, and generated API types for Construct Kit apps",
+  "description": "HTTP client, query factories, typed errors, and generated API types for Construkt Kit apps",
   "type": "module",
   "exports": {
     ".": {
@@ -32,7 +32,7 @@
     "format": "oxfmt src"
   },
   "bin": {
-    "construct-kit-api-gen": "./bin/api-gen.mjs"
+    "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
     "@kubb/core": "^4.37.2",
@@ -40,7 +40,7 @@
     "tsx": "^4"
   },
   "devDependencies": {
-    "@construct-kit/config": "workspace:*",
+    "@construkt-kit/config": "workspace:*",
     "tsdown": "^0.21.9"
   }
 }

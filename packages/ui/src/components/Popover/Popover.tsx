@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { Portal } from "@ark-ui/react/portal";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { popover } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { popover } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, RefObject } from "react";
 
 import type { WithRef } from "../../types";

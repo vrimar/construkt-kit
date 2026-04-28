@@ -3,8 +3,8 @@ import {
   CarouselContext,
   useCarouselContext,
 } from "@ark-ui/react/carousel";
-import { createStyleContext } from "@construct-kit/styled-system/jsx";
-import { carousel } from "@construct-kit/styled-system/recipes";
+import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { carousel } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 import type { WithRef } from "../../types";

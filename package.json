@@ -1,5 +1,5 @@
 {
-  "name": "construct-kit",
+  "name": "construkt-kit",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -9,8 +9,8 @@
     "lint:fix": "turbo run lint:fix",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
-    "storybook": "pnpm --filter @construct-kit/storybook storybook",
-    "build-storybook": "pnpm --filter @construct-kit/storybook build",
+    "storybook": "pnpm --filter @construkt-kit/storybook storybook",
+    "build-storybook": "pnpm --filter @construkt-kit/storybook build",
     "changeset": "changeset",
     "version": "changeset version",
     "publish": "changeset publish",

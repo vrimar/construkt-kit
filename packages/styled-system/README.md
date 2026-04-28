@@ -1,7 +1,7 @@
-# @construct-kit/styled-system
+# @construkt-kit/styled-system
 
-Shared Panda CSS generated runtime for Construct Kit frontend apps.
+Shared Panda CSS generated runtime for Construkt Kit frontend apps.
 
 This package owns the generated `css`, `jsx`, `patterns`, `recipes`, `tokens`,
-and `types` entrypoints used by `@construct-kit/ui` and by consuming apps that run Panda.
+and `types` entrypoints used by `@construkt-kit/ui` and by consuming apps that run Panda.
 The generated runtime is emitted into `dist/` during package builds.

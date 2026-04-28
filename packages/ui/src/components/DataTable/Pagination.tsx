@@ -1,4 +1,4 @@
-import { HStack } from "@construct-kit/styled-system/jsx";
+import { HStack } from "@construkt-kit/styled-system/jsx";
 import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeftIcon,

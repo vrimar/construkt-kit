@@ -3,9 +3,9 @@ import {
   CheckboxContext,
   useCheckboxContext,
 } from "@ark-ui/react/checkbox";
-import { createStyleContext, styled } from "@construct-kit/styled-system/jsx";
-import { checkbox } from "@construct-kit/styled-system/recipes";
-import type { HTMLStyledProps } from "@construct-kit/styled-system/types";
+import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
+import { checkbox } from "@construkt-kit/styled-system/recipes";
+import type { HTMLStyledProps } from "@construkt-kit/styled-system/types";
 import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
 
 import type { WithRef } from "../../types";

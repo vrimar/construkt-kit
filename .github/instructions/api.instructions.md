@@ -11,7 +11,7 @@ Read `packages/api/README.md` for full exports and usage examples.
 - Error hierarchy: `ApiError` (base) → `ValidationError` (422), `NotFoundError` (404), `UnauthorizedError` (401)
 - `createApiClient` only throws `ApiError` for non-2xx responses — it does **not** auto-map to subclasses; subclasses are for app-level error construction
 - All error subclasses use `Object.setPrototypeOf` for correct `instanceof` in transpiled output
-- Non-JSON responses return `{ blob(), headers }` — pair with `saveBlobResponse()` / `downloadFile()` from `@construct-kit/utils`
+- Non-JSON responses return `{ blob(), headers }` — pair with `saveBlobResponse()` / `downloadFile()` from `@construkt-kit/utils`
 
 ## Param Normalization
 
@@ -19,7 +19,7 @@ Read `packages/api/README.md` for full exports and usage examples.
 
 ## Kubb Integration
 
-Consuming apps use `@construct-kit/config/kubb` (`createKubbConfig`) to generate 3 output dirs from an OpenAPI spec:
+Consuming apps use `@construkt-kit/config/kubb` (`createKubbConfig`) to generate 3 output dirs from an OpenAPI spec:
 
 - `dtos/` — TypeScript types from schemas
 - `calls/` — API call functions (import the app's client wrapper)
@@ -31,10 +31,10 @@ The generated `calls/` import from a path the app provides (`clientImportPath`),
 
 - Named exports only
 - `ApiErrorResponse` shape: `{ Message: string }` — matches backend contract
-- `createApiClient`'s `getToken` is sync; if the consuming app's auth is async (e.g., `AuthProvider.getToken` from `@construct-kit/pages`), resolve the token before passing it
+- `createApiClient`'s `getToken` is sync; if the consuming app's auth is async (e.g., `AuthProvider.getToken` from `@construkt-kit/pages`), resolve the token before passing it
 - Error subclasses (`NotFoundError`, etc.) are building blocks for app error handling — the client itself only throws `ApiError`
 
-## CLI: `construct-kit-api-gen`
+## CLI: `construkt-kit-api-gen`
 
 Ships as `bin/api-gen.mjs`. Fetches OpenAPI spec → runs Kubb codegen → cleans up.
 

@@ -1,4 +1,4 @@
-import type { HTMLStyledProps } from "@construct-kit/styled-system/jsx";
+import type { HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
 
 import type { WithRef } from "../../types";
 import { AbsoluteCenter } from "../Layout/AbsoluteCenter";

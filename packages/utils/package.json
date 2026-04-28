@@ -1,8 +1,8 @@
 {
-  "name": "@construct-kit/utils",
+  "name": "@construkt-kit/utils",
   "version": "0.0.1",
   "private": false,
-  "description": "Stateless, framework-agnostic utilities for Construct Kit frontend apps",
+  "description": "Stateless, framework-agnostic utilities for Construkt Kit frontend apps",
   "type": "module",
   "exports": {
     ".": {
@@ -35,7 +35,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@construct-kit/config": "workspace:*",
+    "@construkt-kit/config": "workspace:*",
     "tsdown": "^0.21.9"
   }
 }
