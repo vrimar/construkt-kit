@@ -34,8 +34,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "prepare": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
-    "build": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "prepare": "pnpm --filter @construct-kit/preset build && panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
+    "build": "pnpm --filter @construct-kit/preset build && panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
     "dev": "pnpm --filter @construct-kit/preset build && panda codegen --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
