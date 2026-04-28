@@ -1,14 +1,14 @@
 {
-  "extends": "@b3/config/typescript",
+  "extends": "@construct-kit/config/typescript",
   "compilerOptions": {
     "paths": {
       "*": ["./*"],
-      "@b3/preset": ["../../packages/preset/src/index.ts"],
-      "@b3/styled-system/*": ["../../packages/styled-system/dist/*"],
+      "@construct-kit/preset": ["../../packages/preset/src/index.ts"],
+      "@construct-kit/styled-system/*": ["../../packages/styled-system/dist/*"],
       "@storybook/react-vite": ["./node_modules/@storybook/react-vite"],
       "storybook/test": ["./node_modules/storybook/test"],
-      "@b3/ui": ["../../packages/ui/src/index.ts"],
-      "@b3/pages": ["../../packages/pages/src/index.ts"]
+      "@construct-kit/ui": ["../../packages/ui/src/index.ts"],
+      "@construct-kit/pages": ["../../packages/pages/src/index.ts"]
     }
   },
   "include": [

@@ -11,7 +11,7 @@ export const Logo = ({ width = 200, height = "auto", color = "currentColor" }: L
     width={width}
     height={height}
     fill={color}
-    aria-label="B3"
+    aria-label="Construct Kit"
     role="img"
   >
     <text
@@ -21,7 +21,7 @@ export const Logo = ({ width = 200, height = "auto", color = "currentColor" }: L
       fontWeight="700"
       fontSize="38"
     >
-      b3
+      ck
     </text>
   </svg>
 );

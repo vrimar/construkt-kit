@@ -6,7 +6,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
-      "@b3/styled-system": resolve(__dirname, "../styled-system/dist"),
+      "@construct-kit/styled-system": resolve(__dirname, "../styled-system/dist"),
     },
   },
   test: {

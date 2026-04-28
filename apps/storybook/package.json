@@ -1,25 +1,25 @@
 {
-  "name": "@b3/storybook",
+  "name": "@construct-kit/storybook",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "pnpm --filter @b3/styled-system build && storybook dev -p 6006",
-    "build": "pnpm --filter @b3/ui build && node -e \"const { spawnSync } = require('node:child_process'); process.env.B3_STORYBOOK_USE_BUILDINFO='1'; const pnpmExecPath = process.env.npm_execpath; if (!pnpmExecPath) throw new Error('npm_execpath is not set'); const result = spawnSync(process.execPath, [pnpmExecPath, 'exec', 'storybook', 'build'], { stdio: 'inherit', env: process.env }); if (result.error) throw result.error; process.exit(result.status ?? 1);\"",
+    "storybook": "pnpm --filter @construct-kit/styled-system build && storybook dev -p 6006",
+    "build": "pnpm --filter @construct-kit/ui build && node -e \"const { spawnSync } = require('node:child_process'); process.env.CONSTRUCT_KIT_STORYBOOK_USE_BUILDINFO='1'; const pnpmExecPath = process.env.npm_execpath; if (!pnpmExecPath) throw new Error('npm_execpath is not set'); const result = spawnSync(process.execPath, [pnpmExecPath, 'exec', 'storybook', 'build'], { stdio: 'inherit', env: process.env }); if (result.error) throw result.error; process.exit(result.status ?? 1);\"",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."
   },
   "dependencies": {
-    "@b3/pages": "workspace:*",
-    "@b3/ui": "workspace:*",
+    "@construct-kit/pages": "workspace:*",
+    "@construct-kit/ui": "workspace:*",
     "@fontsource-variable/inter": "^5.2.8"
   },
   "devDependencies": {
-    "@b3/config": "workspace:*",
-    "@b3/preset": "workspace:*",
-    "@b3/styled-system": "workspace:*",
+    "@construct-kit/config": "workspace:*",
+    "@construct-kit/preset": "workspace:*",
+    "@construct-kit/styled-system": "workspace:*",
     "@pandacss/dev": "^1.10.0",
     "@storybook/addon-a11y": "^10.3.5",
     "@storybook/react-vite": "^10.3.5",

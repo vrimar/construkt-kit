@@ -1,4 +1,4 @@
-import { Box } from "@b3/ui";
+import { Box } from "@construct-kit/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
@@ -39,7 +39,7 @@ export const WithLogo: Story = {
         fontSize="2xl"
         mb="4"
       >
-        B3 Portal
+        Construct Kit Portal
       </Box>
     ),
   },

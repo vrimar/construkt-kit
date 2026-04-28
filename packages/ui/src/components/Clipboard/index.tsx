@@ -1,8 +1,8 @@
 import { Clipboard as ArkClipboard, ClipboardContext } from "@ark-ui/react/clipboard";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { clipboard } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { clipboard } from "@construct-kit/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

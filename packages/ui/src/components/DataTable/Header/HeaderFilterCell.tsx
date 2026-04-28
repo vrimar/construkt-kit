@@ -1,5 +1,5 @@
 import type { Header } from "@tanstack/react-table";
-import { Box } from "@b3/styled-system/jsx";
+import { Box } from "@construct-kit/styled-system/jsx";
 
 import type { ColumnFilterValue } from "../types";
 import { DataTableHeaderFilterCellContent } from "./HeaderFilterCellContent";

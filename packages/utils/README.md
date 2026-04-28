@@ -1,6 +1,6 @@
-# @b3/utils
+# @construct-kit/utils
 
-Stateless, framework-agnostic utilities shared across B3 frontend apps.
+Stateless, framework-agnostic utilities shared across Construct Kit frontend apps.
 
 ## Exports
 
@@ -18,5 +18,5 @@ Stateless, framework-agnostic utilities shared across B3 frontend apps.
 ## Usage
 
 ```ts
-import { buildQueryString, addOrRemove, emailSchema } from "@b3/utils";
+import { buildQueryString, addOrRemove, emailSchema } from "@construct-kit/utils";
 ```

@@ -1,7 +1,7 @@
 import { RadioGroup } from "@ark-ui/react/radio-group";
 import type { ComponentProps, InputHTMLAttributes, Ref } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { radioGroup } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { radioGroup } from "@construct-kit/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

@@ -1,11 +1,11 @@
 {
-  "extends": "@b3/config/typescript",
+  "extends": "@construct-kit/config/typescript",
   "compilerOptions": {
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@b3/preset": ["../preset/src/index.ts"],
-      "@b3/styled-system/*": ["../styled-system/dist/*"]
+      "@construct-kit/preset": ["../preset/src/index.ts"],
+      "@construct-kit/styled-system/*": ["../styled-system/dist/*"]
     }
   },
   "include": ["src"]

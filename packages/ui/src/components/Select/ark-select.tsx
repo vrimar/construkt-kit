@@ -2,9 +2,9 @@ import { ark } from "@ark-ui/react/factory";
 import { Select, type SelectRootProps, useSelectItemContext } from "@ark-ui/react/select";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import type { RefAttributes } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { type SelectVariantProps, select } from "@b3/styled-system/recipes";
-import type { HTMLStyledProps } from "@b3/styled-system/types";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { type SelectVariantProps, select } from "@construct-kit/styled-system/recipes";
+import type { HTMLStyledProps } from "@construct-kit/styled-system/types";
 
 import type { WithRef } from "../../types";
 

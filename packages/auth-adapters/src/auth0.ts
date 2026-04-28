@@ -1,4 +1,4 @@
-import type { AuthProvider, LoginOptions } from "@b3/pages";
+import type { AuthProvider, LoginOptions } from "@construct-kit/pages";
 
 interface Auth0ClientLike {
   getAccessTokenSilently(): Promise<string>;

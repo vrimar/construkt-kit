@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @b3/api api-gen bin — fetches OpenAPI spec, runs kubb codegen, cleans up
+// @construct-kit/api api-gen bin — fetches OpenAPI spec, runs kubb codegen, cleans up
 
 import https from "node:https";
 import fs from "node:fs";

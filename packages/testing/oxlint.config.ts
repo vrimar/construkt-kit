@@ -1,3 +1,3 @@
-import baseConfig from "@b3/config/oxlint";
+import baseConfig from "@construct-kit/config/oxlint";
 
 export default baseConfig;

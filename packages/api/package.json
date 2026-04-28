@@ -1,8 +1,8 @@
 {
-  "name": "@b3/api",
+  "name": "@construct-kit/api",
   "version": "0.0.1",
   "private": false,
-  "description": "HTTP client, query factories, typed errors, and generated API types for B3 apps",
+  "description": "HTTP client, query factories, typed errors, and generated API types for Construct Kit apps",
   "type": "module",
   "exports": {
     ".": {
@@ -32,7 +32,7 @@
     "format": "oxfmt src"
   },
   "bin": {
-    "b3-api-gen": "./bin/api-gen.mjs"
+    "construct-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
     "@kubb/core": "^4.37.2",
@@ -40,7 +40,7 @@
     "tsx": "^4"
   },
   "devDependencies": {
-    "@b3/config": "workspace:*",
+    "@construct-kit/config": "workspace:*",
     "tsdown": "^0.21.9"
   }
 }

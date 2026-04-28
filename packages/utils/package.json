@@ -1,8 +1,8 @@
 {
-  "name": "@b3/utils",
+  "name": "@construct-kit/utils",
   "version": "0.0.1",
   "private": false,
-  "description": "Stateless, framework-agnostic utilities for B3 frontend apps",
+  "description": "Stateless, framework-agnostic utilities for Construct Kit frontend apps",
   "type": "module",
   "exports": {
     ".": {
@@ -35,7 +35,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@b3/config": "workspace:*",
+    "@construct-kit/config": "workspace:*",
     "tsdown": "^0.21.9"
   }
 }

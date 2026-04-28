@@ -1,4 +1,4 @@
-import { Alert, Button, Field, Input, Stack, useAutoFocus } from "@b3/ui";
+import { Alert, Button, Field, Input, Stack, useAutoFocus } from "@construct-kit/ui";
 import { type ReactNode, useState } from "react";
 
 import { AuthLayout } from "../AuthLayout";

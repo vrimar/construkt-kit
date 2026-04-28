@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
-import { Stack, type StackProps, styled } from "@b3/styled-system/jsx";
-import { skeleton } from "@b3/styled-system/recipes";
+import { Stack, type StackProps, styled } from "@construct-kit/styled-system/jsx";
+import { skeleton } from "@construct-kit/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

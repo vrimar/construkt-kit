@@ -1,8 +1,8 @@
 {
-  "name": "@b3/pages",
+  "name": "@construct-kit/pages",
   "version": "0.0.1",
   "private": false,
-  "description": "Shared full-page components (login, register, forgot password) for B3 apps",
+  "description": "Shared full-page components (login, register, forgot password) for Construct Kit apps",
   "type": "module",
   "exports": {
     ".": {
@@ -31,13 +31,13 @@
     "format": "oxfmt src"
   },
   "peerDependencies": {
-    "@b3/ui": "workspace:*",
+    "@construct-kit/ui": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@b3/config": "workspace:*",
-    "@b3/ui": "workspace:*",
+    "@construct-kit/config": "workspace:*",
+    "@construct-kit/ui": "workspace:*",
     "@storybook/react": "^10.3.5",
     "@storybook/test": "^8.6.17",
     "@types/react": "^19.2.14",

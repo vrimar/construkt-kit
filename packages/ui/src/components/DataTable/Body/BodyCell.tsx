@@ -1,5 +1,5 @@
 import { type Cell, flexRender } from "@tanstack/react-table";
-import { Box } from "@b3/styled-system/jsx";
+import { Box } from "@construct-kit/styled-system/jsx";
 
 interface BodyCellProps<TData> {
   cell: Cell<TData, unknown>;

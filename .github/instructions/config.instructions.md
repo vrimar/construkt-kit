@@ -10,12 +10,12 @@ Sub-path exports — each consumed differently:
 
 | Sub-path                | Type      | Key export                                                                                               |
 | ----------------------- | --------- | -------------------------------------------------------------------------------------------------------- |
-| `@b3/config/typescript` | JSON      | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                                     |
-| `@b3/config/vite`       | Factory   | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
-| `@b3/config/playwright` | Factory   | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
-| `@b3/config/kubb`       | Factory   | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
-| `@b3/config/oxlint`     | TS config | Shared base for `oxlint.config.ts` files                                                                 |
-| `@b3/config/oxfmt`      | TS config | Shared `oxfmt.config.ts` base                                                                            |
+| `@construct-kit/config/typescript` | JSON      | Base `tsconfig.json` (strict, ES2022, react-jsx, bundler resolution)                                     |
+| `@construct-kit/config/vite`       | Factory   | `createViteConfig(overrides?)` — includes React plugin, built-in `resolve.tsconfigPaths`, oxlint checker |
+| `@construct-kit/config/playwright` | Factory   | `createPlaywrightConfig(overrides?)` — Chromium-only, runs `pnpm dev` as webServer                       |
+| `@construct-kit/config/kubb`       | Factory   | `createKubbConfig(options?)` — OpenAPI codegen → `dtos/`, `calls/`, `hooks/`                             |
+| `@construct-kit/config/oxlint`     | TS config | Shared base for `oxlint.config.ts` files                                                                 |
+| `@construct-kit/config/oxfmt`      | TS config | Shared `oxfmt.config.ts` base                                                                            |
 
 ## Key Patterns
 
