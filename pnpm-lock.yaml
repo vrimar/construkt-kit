@@ -11,6 +11,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.31.0
         version: 2.31.0(@types/node@25.3.0)
+      '@construkt-kit/config':
+        specifier: workspace:*
+        version: link:packages/config
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20260421.2
         version: 7.0.0-dev.20260421.2
@@ -152,12 +155,22 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.1(vite@8.0.9(@types/node@25.3.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2))
+      oxfmt:
+        specifier: ^0.46.0
+        version: 0.46.0
+      oxlint:
+        specifier: ^1.61.0
+        version: 1.61.0(oxlint-tsgolint@0.21.1)
       vite:
         specifier: ^8.0.9
         version: 8.0.9(@types/node@25.3.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
       vite-plugin-checker:
         specifier: ^0.13.0
         version: 0.13.0(eslint@10.0.2(jiti@2.6.1))(optionator@0.9.4)(oxlint@1.61.0(oxlint-tsgolint@0.21.1))(typescript@6.0.2)(vite@8.0.9(@types/node@25.3.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2))
+    devDependencies:
+      tsdown:
+        specifier: ^0.21.9
+        version: 0.21.9(@typescript/native-preview@7.0.0-dev.20260421.2)(typescript@6.0.2)
 
   packages/pages:
     dependencies:

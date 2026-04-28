@@ -2,23 +2,72 @@
   "name": "@construkt-kit/config",
   "version": "0.0.1",
   "description": "Shared tool configuration for all Construkt Kit frontend projects",
+  "type": "module",
   "exports": {
     "./typescript": "./typescript/base.json",
-    "./oxlint": "./oxlint/index.config.ts",
-    "./oxfmt": "./oxfmt/index.config.ts",
-    "./vite": "./vite/index.ts",
-    "./playwright": "./playwright/index.ts",
-    "./kubb": "./kubb/index.ts"
+    "./vite": {
+      "import": {
+        "types": "./dist/vite/index.d.mts",
+        "default": "./dist/vite/index.mjs"
+      },
+      "require": {
+        "types": "./dist/vite/index.d.cts",
+        "default": "./dist/vite/index.cjs"
+      }
+    },
+    "./playwright": {
+      "import": {
+        "types": "./dist/playwright/index.d.mts",
+        "default": "./dist/playwright/index.mjs"
+      },
+      "require": {
+        "types": "./dist/playwright/index.d.cts",
+        "default": "./dist/playwright/index.cjs"
+      }
+    },
+    "./kubb": {
+      "import": {
+        "types": "./dist/kubb/index.d.mts",
+        "default": "./dist/kubb/index.mjs"
+      },
+      "require": {
+        "types": "./dist/kubb/index.d.cts",
+        "default": "./dist/kubb/index.cjs"
+      }
+    },
+    "./oxlint": {
+      "import": {
+        "types": "./dist/oxlint/index.d.mts",
+        "default": "./dist/oxlint/index.mjs"
+      },
+      "require": {
+        "types": "./dist/oxlint/index.d.cts",
+        "default": "./dist/oxlint/index.cjs"
+      }
+    },
+    "./oxfmt": {
+      "import": {
+        "types": "./dist/oxfmt/index.d.mts",
+        "default": "./dist/oxfmt/index.mjs"
+      },
+      "require": {
+        "types": "./dist/oxfmt/index.d.cts",
+        "default": "./dist/oxfmt/index.cjs"
+      }
+    }
   },
   "files": [
-    "typescript",
-    "oxlint",
-    "oxfmt",
-    "vite",
-    "playwright",
-    "kubb"
+    "dist",
+    "typescript"
   ],
-  "devDependencies": {},
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.9"
+  },
   "dependencies": {
     "@kubb/core": "^4.37.2",
     "@kubb/plugin-client": "^4.37.2",
@@ -30,5 +79,8 @@
     "vite": "^8.0.9",
     "vite-plugin-checker": "^0.13.0"
   },
-  "type": "module"
+  "peerDependencies": {
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0"
+  }
 }
