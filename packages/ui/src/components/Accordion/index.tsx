@@ -1,9 +1,9 @@
 import { AccordionContext, Accordion as ArkAccordion } from "@ark-ui/react/accordion";
 import { ark } from "@ark-ui/react/factory";
-import { ChevronDownIcon } from "lucide-react";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { accordion } from "@construct-kit/styled-system/recipes";
+import { ChevronDownIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(accordion);
 

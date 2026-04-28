@@ -1,8 +1,8 @@
 import { Portal } from "@ark-ui/react/portal";
 import { Tooltip as ArkTooltip } from "@ark-ui/react/tooltip";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { tooltip } from "@construct-kit/styled-system/recipes";
+import type { ComponentProps } from "react";
 
 import type { WithRef } from "../../types";
 

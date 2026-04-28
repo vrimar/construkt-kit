@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": false,
   "description": "Shared Panda CSS generated runtime for Construct Kit frontend apps",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     "./css": {
@@ -30,9 +33,6 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "prepare": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
     "build": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",

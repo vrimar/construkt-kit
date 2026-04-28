@@ -1,9 +1,9 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import { useTreeView } from "@ark-ui/react/tree-view";
+import { Box, Flex } from "@construct-kit/styled-system/jsx";
 import { CheckIcon, MinusIcon, SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { Box, Flex } from "@construct-kit/styled-system/jsx";
 
 import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";

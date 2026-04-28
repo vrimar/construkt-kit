@@ -1,5 +1,5 @@
-import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@construct-kit/styled-system/jsx";
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../Icon";
 import { Input } from "../Input";

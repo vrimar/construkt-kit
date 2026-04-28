@@ -1,5 +1,5 @@
-import React from "react";
 import { Box } from "@construct-kit/styled-system/jsx";
+import React from "react";
 
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";

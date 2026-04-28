@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
-import type { ComponentProps } from "react";
 import { styled } from "@construct-kit/styled-system/jsx";
 import { icon } from "@construct-kit/styled-system/recipes";
+import type { ComponentProps } from "react";
 
 export type IconProps = ComponentProps<typeof Icon>;
 export const Icon = styled(ark.svg, icon, {

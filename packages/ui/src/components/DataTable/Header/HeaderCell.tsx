@@ -1,6 +1,6 @@
+import { Box, HStack } from "@construct-kit/styled-system/jsx";
 import type { Header } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import { Box, HStack } from "@construct-kit/styled-system/jsx";
 
 import { Text } from "../../Text";
 import { ColumnSorter } from "./ColumnSorter";

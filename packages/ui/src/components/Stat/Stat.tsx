@@ -1,8 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
-import { InfoIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
 import { createStyleContext, styled } from "@construct-kit/styled-system/jsx";
 import { stat } from "@construct-kit/styled-system/recipes";
+import { InfoIcon } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
 
 import type { WithRef } from "../../types";
 import { Badge, type BadgeProps } from "../Badge";

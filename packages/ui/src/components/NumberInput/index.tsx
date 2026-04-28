@@ -1,8 +1,8 @@
 import { NumberInput as ArkNumberInput, NumberInputContext } from "@ark-ui/react/number-input";
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { numberInput } from "@construct-kit/styled-system/recipes";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
 import type { WithRef } from "../../types";
 

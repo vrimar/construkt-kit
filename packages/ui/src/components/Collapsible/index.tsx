@@ -1,7 +1,7 @@
 import { Collapsible as ArkCollapsible, CollapsibleContext } from "@ark-ui/react/collapsible";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { collapsible } from "@construct-kit/styled-system/recipes";
+import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(collapsible);
 
