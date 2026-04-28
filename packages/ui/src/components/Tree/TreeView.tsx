@@ -5,8 +5,8 @@ import {
 } from "@ark-ui/react/tree-view";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { type TreeViewVariantProps, treeView } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { type TreeViewVariantProps, treeView } from "@construct-kit/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(treeView);
 

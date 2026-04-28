@@ -1,7 +1,7 @@
-# @b3/preset
+# @construct-kit/preset
 
-Shared Panda CSS preset for B3 frontend apps.
+Shared Panda CSS preset for Construct Kit frontend apps.
 
-Exports `b3Preset`, the source of truth for tokens, semantic tokens, recipes,
-conditions, keyframes, animation styles, and global CSS used by `@b3/ui` and
+Exports `constructKitPreset`, the source of truth for tokens, semantic tokens, recipes,
+conditions, keyframes, animation styles, and global CSS used by `@construct-kit/ui` and
 consumer apps that run Panda CSS.

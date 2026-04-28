@@ -6,7 +6,7 @@ Read `packages/auth-adapters/README.md` for full usage and custom adapter exampl
 
 ## Quick Reference
 
-- `createAuth0AuthProvider(client: Auth0ClientLike)` → returns `AuthProvider` (from `@b3/pages`)
+- `createAuth0AuthProvider(client: Auth0ClientLike)` → returns `AuthProvider` (from `@construct-kit/pages`)
 - **Duck-typing**: accepts `Auth0ClientLike` interface, not the actual Auth0 SDK — no direct SDK dependency
 
 ## Auth0ClientLike Interface

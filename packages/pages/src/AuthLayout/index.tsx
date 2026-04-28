@@ -1,19 +1,15 @@
-import { Box, Stack, Text } from "@b3/ui";
+import { Box, Stack, Text } from "@construct-kit/ui";
 import type { ReactNode } from "react";
-
-import { DefaultAuthLogo } from "./DefaultAuthLogo";
 
 interface AuthLayoutProps {
   children: ReactNode;
   title?: string;
   description?: string;
   showTitle?: boolean;
-  logo?: ReactNode;
+  logo: ReactNode;
 }
 
 export const AuthLayout = ({ children, showTitle, title, description, logo }: AuthLayoutProps) => {
-  const logoEl = logo ?? <DefaultAuthLogo width={160} />;
-
   return (
     <Box
       display="flex"
@@ -76,7 +72,7 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
           transform: "translateY(clamp(-32px, -3vh, 0px))",
         }}
       >
-        <Box>{logoEl}</Box>
+        <Box>{logo}</Box>
         <Box
           bg="bg"
           borderRadius="xl"

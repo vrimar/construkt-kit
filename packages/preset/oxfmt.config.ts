@@ -1,3 +1,3 @@
-import config from "@b3/config/oxfmt";
+import config from "@construct-kit/config/oxfmt";
 
 export default config;

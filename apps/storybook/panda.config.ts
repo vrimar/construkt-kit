@@ -1,7 +1,7 @@
-import { b3Preset } from "@b3/preset";
+import { constructKitPreset } from "@construct-kit/preset";
 import { defineConfig } from "@pandacss/dev";
 
-const useUiBuildInfo = process.env.B3_STORYBOOK_USE_BUILDINFO === "1";
+const useUiBuildInfo = process.env.CONSTRUCT_KIT_STORYBOOK_USE_BUILDINFO === "1";
 
 const include = useUiBuildInfo
   ? [
@@ -13,10 +13,10 @@ const include = useUiBuildInfo
 
 export default defineConfig({
   preflight: true,
-  presets: ["@pandacss/preset-base", b3Preset],
+  presets: ["@pandacss/preset-base", constructKitPreset],
   include,
   exclude: [],
-  importMap: "@b3/styled-system",
+  importMap: "@construct-kit/styled-system",
   outdir: "styled-system",
   jsxFramework: "react",
 });

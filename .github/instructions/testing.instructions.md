@@ -7,15 +7,15 @@ Read `packages/testing/README.md` for current status.
 ## Quick Reference
 
 - **Status**: Stub — scaffolded but no public exports yet
-- **Purpose**: Shared test infrastructure for B3 apps (MSW request handlers, render helpers)
+- **Purpose**: Shared test infrastructure for Construct Kit apps (MSW request handlers, render helpers)
 - **Install as**: `devDependency` only
 
 ## Sub-path Exports
 
-| Sub-path               | Status | Intended purpose            |
-| ---------------------- | ------ | --------------------------- |
-| `@b3/testing`          | Stub   | Shared render helpers, etc. |
-| `@b3/testing/handlers` | Stub   | MSW request handlers        |
+| Sub-path                          | Status | Intended purpose            |
+| --------------------------------- | ------ | --------------------------- |
+| `@construct-kit/testing`          | Stub   | Shared render helpers, etc. |
+| `@construct-kit/testing/handlers` | Stub   | MSW request handlers        |
 
 ## Dependencies (scaffolded, not yet used)
 

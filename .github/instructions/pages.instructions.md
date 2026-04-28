@@ -25,8 +25,8 @@ interface AuthProvider {
 
 ## Dependencies
 
-- Uses `@b3/ui` components (`Button`, `Field`, `Input`, `Stack`, `Alert`)
-- `AuthProvider` type is consumed by `@b3/auth-adapters`
+- Uses `@construct-kit/ui` components (`Button`, `Field`, `Input`, `Stack`, `Alert`)
+- `AuthProvider` type is consumed by `@construct-kit/auth-adapters`
 - Consumed by apps (not by other monorepo packages)
 
 ## Conventions

@@ -1,26 +1,26 @@
-# @b3/\* Shared Library
+# @construct-kit/\* Shared Library
 
-Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm turbo dev`), **Tsdown**, **Changesets**.
+Monorepo providing `@construct-kit/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm turbo dev`), **Tsdown**, **Changesets**.
 
 > For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
 
 ## Packages
 
-- **`@b3/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import from `@b3/ui`, never `@ark-ui/*` or `styled-system/*`.
-- **`@b3/api`** — HTTP client (`createApiClient`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
-- **`@b3/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
-- **`@b3/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
-- **`@b3/config`** — Shared tool configs: `@b3/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
-- **`@b3/auth-adapters`** — `AuthProvider` adapters (Auth0).
-- **`@b3/testing`** — Test infrastructure (MSW request handlers for Storybook).
+- **`@construct-kit/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import from `@construct-kit/ui`, never `@ark-ui/*` or `styled-system/*`.
+- **`@construct-kit/api`** — HTTP client (`createApiClient`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
+- **`@construct-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
+- **`@construct-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
+- **`@construct-kit/config`** — Shared tool configs: `@construct-kit/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
+- **`@construct-kit/auth-adapters`** — `AuthProvider` adapters (Auth0).
+- **`@construct-kit/testing`** — Test infrastructure (MSW request handlers for Storybook).
 
 ## Key Dependencies
 
 - React 19 (peer dep — all packages specify `^19.0.0`)
 - Panda CSS (build-time CSS-in-JS)
 - Ark UI (headless component primitives)
-- Zod (validation schemas in @b3/utils)
-- Kubb (OpenAPI client codegen, configured via @b3/config/kubb)
+- Zod (validation schemas in @construct-kit/utils)
+- Kubb (OpenAPI client codegen, configured via @construct-kit/config/kubb)
 - TanStack Table (used by DataTable)
 - MSW (mock service worker, for Storybook/testing)
 
@@ -28,7 +28,7 @@ Monorepo providing `@b3/*` packages. Uses **pnpm workspaces**, **Turbo** (`pnpm 
 
 - Named exports only (no default exports)
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsdown.config.ts`
-- Consumed via path aliases (e.g., `@b3/ui` → `packages/ui/src`)
+- Consumed via path aliases (e.g., `@construct-kit/ui` → `packages/ui/src`)
 
 ## Build & Dev Commands
 
@@ -58,34 +58,34 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 ## Testing
 
 - **Unit tests**: Vitest (configured per-package via `vitest.config.ts`)
-- **E2E tests**: Playwright (configured via `@b3/config/playwright`)
-- **Mocking**: MSW (mock service worker) for Storybook and test suites via `@b3/testing`
+- **E2E tests**: Playwright (configured via `@construct-kit/config/playwright`)
+- **Mocking**: MSW (mock service worker) for Storybook and test suites via `@construct-kit/testing`
 
 ## Linting
 
-- Root `oxlint.config.ts` extends `@b3/config/oxlint` with type-aware checking enabled.
-- `@b3/ui` has an additional `oxlint.config.ts` that loads `@pandacss/eslint-plugin` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
+- Root `oxlint.config.ts` extends `@construct-kit/config/oxlint` with type-aware checking enabled.
+- `@construct-kit/ui` has an additional `oxlint.config.ts` that loads `@pandacss/eslint-plugin` — enforces `no-hardcoded-color`, `no-invalid-token-paths`, etc.
 - Run `pnpm lint` to check all packages. Per-package scripts use `oxlint src` or `oxlint .`, relying on local or root `oxlint.config.ts` resolution.
 
 ## Anti-Patterns (Do NOT)
 
-- Import from `@ark-ui/react` directly — always use the `@b3/ui` wrapper
-- Import from `styled-system/*` in consuming apps — use `css`/`styled`/`token` from `@b3/ui`
+- Import from `@ark-ui/react` directly — always use the `@construct-kit/ui` wrapper
+- Import from `styled-system/*` in consuming apps — use `css`/`styled`/`token` from `@construct-kit/ui`
 - Use hardcoded colors (`#hex`, `rgb()`, `hsl()`) — use Panda tokens
 - Use default exports — all packages use named exports only
-- Import between packages via relative paths — use `@b3/*` aliases
+- Import between packages via relative paths — use `@construct-kit/*` aliases
 - Add `react` or `react-dom` to package `dependencies` — they are peer deps
 
 ## Package Dependency Graph
 
 ```
-@b3/config         ← all packages (tool configs)
-@b3/utils          ← @b3/api, @b3/ui, @b3/pages, consuming apps
-@b3/ui             ← @b3/pages, consuming apps  (depends on @b3/utils)
-@b3/pages          ← consuming apps  (defines AuthProvider interface, depends on @b3/ui)
-@b3/auth-adapters  ← consuming apps  (implements AuthProvider, depends on @b3/pages for types)
-@b3/api            ← consuming apps  (HTTP client factory, uses @kubb/plugin-client)
-@b3/testing        ← storybook, test suites  (depends on @b3/ui, msw, @testing-library/react)
+@construct-kit/config         ← all packages (tool configs)
+@construct-kit/utils          ← @construct-kit/api, @construct-kit/ui, @construct-kit/pages, consuming apps
+@construct-kit/ui             ← @construct-kit/pages, consuming apps  (depends on @construct-kit/utils)
+@construct-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construct-kit/ui)
+@construct-kit/auth-adapters  ← consuming apps  (implements AuthProvider, depends on @construct-kit/pages for types)
+@construct-kit/api            ← consuming apps  (HTTP client factory, uses @kubb/plugin-client)
+@construct-kit/testing        ← storybook, test suites  (depends on @construct-kit/ui, msw, @testing-library/react)
 ```
 
 ## Design Principles
@@ -94,7 +94,7 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 - **Callback-driven** — pages/components use callbacks for navigation, never import a router
 - **Factory functions** — configs export `createXConfig()`, API exports `createApiClient()`
 - **Duck-typing** — `Auth0ClientLike` interface, not direct Auth0 SDK imports
-- **Stateless utilities** — `@b3/utils` has no framework deps, no side effects
+- **Stateless utilities** — `@construct-kit/utils` has no framework deps, no side effects
 
 ## Common Workflows
 

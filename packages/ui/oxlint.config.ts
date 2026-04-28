@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import baseConfig from "@b3/config/oxlint";
+import baseConfig from "@construct-kit/config/oxlint";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

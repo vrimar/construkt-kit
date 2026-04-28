@@ -1,8 +1,8 @@
 {
-  "name": "@b3/styled-system",
+  "name": "@construct-kit/styled-system",
   "version": "0.0.1",
   "private": false,
-  "description": "Shared Panda CSS generated runtime for B3 frontend apps",
+  "description": "Shared Panda CSS generated runtime for Construct Kit frontend apps",
   "type": "module",
   "exports": {
     "./css": {
@@ -34,17 +34,17 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "pnpm --filter @b3/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
-    "build": "pnpm --filter @b3/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
-    "dev": "pnpm --filter @b3/preset build && panda codegen --watch",
+    "prepare": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "build": "pnpm --filter @construct-kit/preset build && panda codegen && node ../../scripts/patch-panda-jsx-types.mjs",
+    "dev": "pnpm --filter @construct-kit/preset build && panda codegen --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."
   },
   "devDependencies": {
-    "@b3/config": "workspace:*",
-    "@b3/preset": "workspace:*",
+    "@construct-kit/config": "workspace:*",
+    "@construct-kit/preset": "workspace:*",
     "@pandacss/dev": "^1.10.0",
     "@types/react": "^19.2.14",
     "react": "^19.2.5"

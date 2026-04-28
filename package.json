@@ -1,5 +1,5 @@
 {
-  "name": "b3-frontend-shared",
+  "name": "construct-kit",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -9,8 +9,8 @@
     "lint:fix": "turbo run lint:fix",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
-    "storybook": "pnpm --filter @b3/storybook storybook",
-    "build-storybook": "pnpm --filter @b3/storybook build",
+    "storybook": "pnpm --filter @construct-kit/storybook storybook",
+    "build-storybook": "pnpm --filter @construct-kit/storybook build",
     "changeset": "changeset",
     "version": "changeset version",
     "publish": "changeset publish",

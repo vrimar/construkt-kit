@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { table } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { table } from "@construct-kit/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(table);
 

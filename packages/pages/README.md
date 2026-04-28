@@ -1,6 +1,6 @@
-# @b3/pages
+# @construct-kit/pages
 
-Shared auth page components for B3 apps. Pages own layout — consuming apps wire behavior via props.
+Shared auth page components for Construct Kit apps. Pages own layout — consuming apps wire behavior via props.
 
 ## Exports
 
@@ -29,7 +29,7 @@ interface AuthProvider {
 ## Usage
 
 ```tsx
-import { LoginPage } from "@b3/pages";
+import { LoginPage } from "@construct-kit/pages";
 
 <LoginPage
   onSubmit={(email, password) => mutate({ email, password })}

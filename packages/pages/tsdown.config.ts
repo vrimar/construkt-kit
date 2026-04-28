@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  deps: { neverBundle: ["react", "react-dom", "@b3/ui"] },
+  deps: { neverBundle: ["react", "react-dom", "@construct-kit/ui"] },
 });

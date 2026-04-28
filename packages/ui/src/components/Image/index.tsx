@@ -1,5 +1,5 @@
-import { styled } from "@b3/styled-system/jsx";
-import type { HTMLStyledProps } from "@b3/styled-system/types";
+import { styled } from "@construct-kit/styled-system/jsx";
+import type { HTMLStyledProps } from "@construct-kit/styled-system/types";
 
 import type { WithRef } from "../../types";
 

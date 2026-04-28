@@ -71,7 +71,7 @@ const config: StorybookConfig = {
         alias: [
           ...(Array.isArray(configOptions.resolve?.alias) ? configOptions.resolve.alias : []),
           {
-            find: /^@b3\/styled-system\/(.*)$/,
+            find: /^@construct-kit\/styled-system\/(.*)$/,
             replacement: path.join(styledSystemDir, "dist") + "/$1",
           },
           { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },

@@ -1,5 +1,5 @@
 import { Highlight } from "@ark-ui/react/highlight";
-import { token } from "@b3/styled-system/tokens";
+import { token } from "@construct-kit/styled-system/tokens";
 
 export interface SearchHighlightProps {
   text: string;

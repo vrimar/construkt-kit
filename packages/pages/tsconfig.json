@@ -1,5 +1,5 @@
 {
-  "extends": "@b3/config/typescript",
+  "extends": "@construct-kit/config/typescript",
   "include": ["src"],
   "exclude": ["src/**/*.stories.tsx", "src/**/*.stories.ts"]
 }

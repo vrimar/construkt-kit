@@ -1,1 +1,1 @@
-export { b3Preset } from "@b3/preset";
+export { constructKitPreset } from "@construct-kit/preset";

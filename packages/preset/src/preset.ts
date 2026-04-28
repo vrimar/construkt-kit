@@ -25,14 +25,14 @@ const colorPaletteValues = [
 ];
 
 /**
- * Custom B3 Panda CSS preset.
- * Provides the full B3 design system: tokens, semantic tokens, recipes,
+ * Custom Construct Kit Panda CSS preset.
+ * Provides the full Construct Kit design system: tokens, semantic tokens, recipes,
  * conditions, keyframes, animations, and global CSS.
  *
  * Use with `@pandacss/preset-base` for CSS utility mappings and patterns.
  */
-export const b3Preset = definePreset({
-  name: "b3-preset",
+export const constructKitPreset = definePreset({
+  name: "construct-kit-preset",
   conditions,
   globalFontface,
   theme: {

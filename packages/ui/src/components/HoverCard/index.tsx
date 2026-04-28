@@ -1,8 +1,8 @@
 import { HoverCard as ArkHoverCard, HoverCardContext } from "@ark-ui/react/hover-card";
 import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps, RefObject } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { hoverCard } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { hoverCard } from "@construct-kit/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 

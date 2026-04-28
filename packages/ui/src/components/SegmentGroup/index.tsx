@@ -1,7 +1,7 @@
 import { SegmentGroup as ArkSegmentGroup, SegmentGroupContext } from "@ark-ui/react/segment-group";
 import { type ComponentProps, type ReactNode } from "react";
-import { createStyleContext } from "@b3/styled-system/jsx";
-import { segmentGroup } from "@b3/styled-system/recipes";
+import { createStyleContext } from "@construct-kit/styled-system/jsx";
+import { segmentGroup } from "@construct-kit/styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(segmentGroup);
 
