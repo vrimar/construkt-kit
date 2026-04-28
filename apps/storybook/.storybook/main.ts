@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 // This file has been automatically migrated to valid ESM format by Storybook.
 import type { StorybookConfig } from "@storybook/react-vite";
-import checker from "vite-plugin-checker";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -64,7 +63,6 @@ const config: StorybookConfig = {
             return null;
           },
         },
-        checker({ typescript: true }),
       ],
       resolve: {
         ...configOptions.resolve,

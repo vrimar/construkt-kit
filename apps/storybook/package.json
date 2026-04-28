@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "pnpm --filter @construct-kit/styled-system build && storybook dev -p 6006",
-    "build": "pnpm --filter @construct-kit/ui build && node -e \"const { spawnSync } = require('node:child_process'); process.env.CONSTRUCT_KIT_STORYBOOK_USE_BUILDINFO='1'; const pnpmExecPath = process.env.npm_execpath; if (!pnpmExecPath) throw new Error('npm_execpath is not set'); const result = spawnSync(process.execPath, [pnpmExecPath, 'exec', 'storybook', 'build'], { stdio: 'inherit', env: process.env }); if (result.error) throw result.error; process.exit(result.status ?? 1);\"",
+    "storybook": "pnpm --filter @construct-kit/styled-system build && node ./scripts/run-storybook.mjs dev",
+    "build": "pnpm --filter @construct-kit/ui build && node ./scripts/run-storybook.mjs build",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
