@@ -1,5 +1,7 @@
 import type { CollectionItem } from "@ark-ui/react/collection";
 import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
+import { type HTMLStyledProps, createStyleContext } from "@construct-kit/styled-system/jsx";
+import { type ListboxVariantProps, listbox } from "@construct-kit/styled-system/recipes";
 import { CheckIcon } from "lucide-react";
 import type {
   ChangeEvent,
@@ -9,8 +11,6 @@ import type {
   ReactNode,
   SyntheticEvent,
 } from "react";
-import { type HTMLStyledProps, createStyleContext } from "@construct-kit/styled-system/jsx";
-import { type ListboxVariantProps, listbox } from "@construct-kit/styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";

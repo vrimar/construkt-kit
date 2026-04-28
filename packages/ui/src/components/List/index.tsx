@@ -1,6 +1,6 @@
 import { ark } from "@ark-ui/react/factory";
-import type { ComponentProps } from "react";
 import { styled } from "@construct-kit/styled-system/jsx";
+import type { ComponentProps } from "react";
 
 const ListRoot = styled(ark.ul);
 const ListItem = styled(ark.li);

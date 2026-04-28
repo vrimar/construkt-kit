@@ -3,10 +3,10 @@ import {
   PaginationContext,
   usePaginationContext,
 } from "@ark-ui/react/pagination";
-import { EllipsisIcon } from "lucide-react";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { pagination } from "@construct-kit/styled-system/recipes";
+import { EllipsisIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
 import { IconButton } from "../Buttons/IconButton";
 

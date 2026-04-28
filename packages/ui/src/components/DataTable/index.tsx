@@ -1,3 +1,4 @@
+import { Box, type BoxProps, Stack } from "@construct-kit/styled-system/jsx";
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -8,7 +9,6 @@ import type {
 } from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import React, { useMemo } from "react";
-import { Box, type BoxProps, Stack } from "@construct-kit/styled-system/jsx";
 
 import { DataTableBody } from "./Body";
 import { DataTableHeader } from "./Header";

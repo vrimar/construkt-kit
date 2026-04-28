@@ -1,7 +1,7 @@
 import { Editable as ArkEditable, EditableContext } from "@ark-ui/react/editable";
-import type { ComponentProps } from "react";
 import { createStyleContext } from "@construct-kit/styled-system/jsx";
 import { editable } from "@construct-kit/styled-system/recipes";
+import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(editable);
 

@@ -1,9 +1,9 @@
 import { Menu as ArkMenu, useMenuItemContext } from "@ark-ui/react/menu";
 import { Portal } from "@ark-ui/react/portal";
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import type { ComponentProps, ReactNode, RefObject } from "react";
 import { Box, type HTMLStyledProps, createStyleContext } from "@construct-kit/styled-system/jsx";
 import { menu } from "@construct-kit/styled-system/recipes";
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import type { ComponentProps, ReactNode, RefObject } from "react";
 
 import type { WithRef } from "../../types";
 
