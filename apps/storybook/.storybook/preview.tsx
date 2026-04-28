@@ -5,7 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import type { ReactElement } from "react";
 
-initialize();
+const storybookBasePath = import.meta.env.BASE_URL || "/";
+
+initialize({
+  serviceWorker: {
+    url: `${storybookBasePath}mockServiceWorker.js`,
+  },
+});
 
 function createTestQueryClient() {
   return new QueryClient({

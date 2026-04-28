@@ -7,6 +7,7 @@ import type { StorybookConfig } from "@storybook/react-vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
+const storybookBasePath = normalizeBasePath(process.env.CONSTRUCT_KIT_STORYBOOK_BASE_PATH);
 
 const config: StorybookConfig = {
   stories: [
@@ -42,6 +43,7 @@ const config: StorybookConfig = {
 
     return {
       ...configOptions,
+      base: storybookBasePath,
       plugins: [
         ...(configOptions.plugins ?? []),
         {
@@ -95,6 +97,20 @@ const config: StorybookConfig = {
 };
 
 export default config;
+
+function normalizeBasePath(value: string | undefined) {
+  if (!value) {
+    return "/";
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue || trimmedValue === "/") {
+    return "/";
+  }
+
+  return `/${trimmedValue.replace(/^\/+|\/+$/g, "")}/`;
+}
 
 function getAbsolutePath(value: string): any {
   return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
