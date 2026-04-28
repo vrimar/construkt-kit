@@ -97,7 +97,7 @@ export const SelectRoot = <T,>({
   activeItemStyle = "checkmark",
   children,
   contentWidth: controlledContentWidth,
-  emptySelectionLabel,
+  emptySelectionLabel = "Select item",
   getLabel,
   getTriggerLabel,
   getValue,
@@ -138,7 +138,11 @@ export const SelectRoot = <T,>({
       return item ? getLabel(item) : "";
     }
 
-    return emptySelectionLabel || `${selectedItems.length} Active`;
+    if (selectedItems.length > 1) {
+      return `${selectedItems.length} selected`;
+    }
+
+    return emptySelectionLabel;
   }, [emptySelectionLabel, getLabel, getValue, items, selectedItems]);
 
   const controlledOpen = open != null ? open : isOpen;
