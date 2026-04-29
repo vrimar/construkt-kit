@@ -27,9 +27,8 @@ export const Default: Story = {
           value={item.value}
         >
           <RadioCard.ItemHiddenInput />
-          <RadioCard.ItemControl>
-            <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
-          </RadioCard.ItemControl>
+          <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
+          <RadioCard.ItemControl />
         </RadioCard.Item>
       ))}
     </RadioCard.Root>
