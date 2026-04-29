@@ -40,11 +40,11 @@ export const numberInput = defineSlotRecipe({
       display: "flex",
       divideY: "1px",
       flexDirection: "column",
-      height: "calc(100% - 2px)",
+      bottom: "0",
+      height: "calc(var(--number-input-height) - 2px)",
       insetEnd: "0px",
       margin: "1px",
       position: "absolute",
-      top: "0",
       width: "var(--stepper-width)",
       zIndex: "1",
     },
@@ -74,24 +74,28 @@ export const numberInput = defineSlotRecipe({
     size: {
       sm: {
         control: {
+          "--number-input-height": "sizes.9",
           "--stepper-width": "sizes.4.5",
         },
         input: input.variants.size.sm,
       },
       md: {
         control: {
+          "--number-input-height": "sizes.10",
           "--stepper-width": "sizes.5",
         },
         input: input.variants.size.md,
       },
       lg: {
         control: {
+          "--number-input-height": "sizes.11",
           "--stepper-width": "sizes.5.5",
         },
         input: input.variants.size.lg,
       },
       xl: {
         control: {
+          "--number-input-height": "sizes.12",
           "--stepper-width": "sizes.6",
         },
         input: input.variants.size.xl,
