@@ -3,6 +3,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 export const radioCardGroup = defineSlotRecipe({
   className: "radio-card-group",
+  jsx: ["RadioCard", /RadioCard\..+/],
   slots: radioGroupAnatomy.keys(),
   base: {
     root: {
