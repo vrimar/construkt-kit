@@ -17,7 +17,6 @@ export * from "./ColorPicker";
 export * from "./Combobox";
 export * from "./DataTable";
 export * from "./DatePicker";
-export * from "./DebugFontSwitcher";
 export {
   DeleteDialog,
   Dialog,
