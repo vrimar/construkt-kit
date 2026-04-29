@@ -1,6 +1,10 @@
 import { ark } from "@ark-ui/react/factory";
 import { css, cx } from "@construkt-kit/styled-system/css";
-import { type HTMLStyledProps, createStyleContext, splitCssProps } from "@construkt-kit/styled-system/jsx";
+import {
+  type HTMLStyledProps,
+  createStyleContext,
+  splitCssProps,
+} from "@construkt-kit/styled-system/jsx";
 import { splitter } from "@construkt-kit/styled-system/recipes";
 import {
   Group,
