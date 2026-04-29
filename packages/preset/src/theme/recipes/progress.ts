@@ -9,6 +9,21 @@ export const progress = defineSlotRecipe({
       textStyle: "sm",
       position: "relative",
     },
+    circle: {
+      display: "block",
+      flexShrink: 0,
+      color: "colorPalette.solid.bg",
+      "--size": "sizes.10",
+      "--thickness": "2px",
+    },
+    circleTrack: {
+      stroke: "neutral.subtle.bg",
+    },
+    circleRange: {
+      stroke: "currentColor",
+      transitionProperty: "stroke-dashoffset",
+      transitionDuration: "slow",
+    },
     track: {
       overflow: "hidden",
       position: "relative",
@@ -56,6 +71,9 @@ export const progress = defineSlotRecipe({
         track: {
           bgColor: "neutral.subtle.bg",
         },
+        circleTrack: {
+          stroke: "neutral.subtle.bg",
+        },
         range: {
           bgColor: "colorPalette.solid.bg",
           color: "colorPalette.solid.fg",
@@ -64,6 +82,9 @@ export const progress = defineSlotRecipe({
       subtle: {
         track: {
           bgColor: "colorPalette.subtle.bg.active",
+        },
+        circleTrack: {
+          stroke: "colorPalette.subtle.bg.active",
         },
         range: {
           bgColor: "colorPalette.solid.bg",
@@ -74,6 +95,9 @@ export const progress = defineSlotRecipe({
         track: {
           borderWidth: "1px",
           borderColor: "colorPalette.outline.border",
+        },
+        circleTrack: {
+          stroke: "colorPalette.outline.border",
         },
         range: {
           bgColor: "colorPalette.solid.bg",
@@ -120,11 +144,41 @@ export const progress = defineSlotRecipe({
     },
 
     size: {
-      xs: { track: { h: "1.5" } },
-      sm: { track: { h: "2" } },
-      md: { track: { h: "2.5" } },
-      lg: { track: { h: "3" } },
-      xl: { track: { h: "3.5" } },
+      xs: {
+        circle: {
+          "--size": "sizes.8",
+          "--thickness": "2px",
+        },
+        track: { h: "1.5" },
+      },
+      sm: {
+        circle: {
+          "--size": "sizes.9",
+          "--thickness": "2px",
+        },
+        track: { h: "2" },
+      },
+      md: {
+        circle: {
+          "--size": "sizes.10",
+          "--thickness": "2px",
+        },
+        track: { h: "2.5" },
+      },
+      lg: {
+        circle: {
+          "--size": "sizes.11",
+          "--thickness": "3px",
+        },
+        track: { h: "3" },
+      },
+      xl: {
+        circle: {
+          "--size": "sizes.12",
+          "--thickness": "4px",
+        },
+        track: { h: "3.5" },
+      },
     },
   },
 });
