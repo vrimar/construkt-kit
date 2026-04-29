@@ -24,6 +24,7 @@ export const PasswordInput = ({ containerProps, size, ...props }: PasswordInputP
           label={isVisible ? "Hide password" : "Show password"}
           onClick={() => setIsVisible((prev) => !prev)}
           size="sm"
+          variant="plain"
         >
           {isVisible ? <EyeOffIcon /> : <EyeIcon />}
         </TooltipIconButton>
