@@ -18,5 +18,8 @@ export default defineConfig({
   exclude: [],
   importMap: "@construkt-kit/styled-system",
   outdir: "styled-system",
+  staticCss: {
+    recipes: "*",
+  },
   jsxFramework: "react",
 });
