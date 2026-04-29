@@ -45,7 +45,6 @@ export * from "./Link";
 export * from "./List";
 export * from "./Listbox";
 export * from "./LoadingOverlay";
-export * from "./Logo";
 export {
   Menu,
   type MenuContentProps,

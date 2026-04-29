@@ -35,7 +35,12 @@ import { LoginPage } from "@construkt-kit/pages";
   onSubmit={(email, password) => mutate({ email, password })}
   isLoading={isPending}
   onForgotPassword={() => navigate("/forgot-password")}
-  logo={<Logo />}
+  logo={
+    <img
+      src="/brand-mark.svg"
+      alt="Acme"
+    />
+  }
 />;
 ```
 

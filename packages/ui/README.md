@@ -28,7 +28,7 @@
 
 **Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `ContextMenu`, `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-**Misc:** `Actionbar`, `Clipboard`, `Collapsible`, `Icon`, `Logo`, `Pagination`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ToggleGroup`, `DebugFontSwitcher`, `Provider`
+**Misc:** `Actionbar`, `Clipboard`, `Collapsible`, `Icon`, `Pagination`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ToggleGroup`, `DebugFontSwitcher`, `Provider`
 
 ### Hooks
 
