@@ -22,7 +22,7 @@ export const Single: Story = {
 
 export const Range: Story = {
   render: () => (
-    <Box maxW="320px">
+    <Box>
       <Calendar
         selectionMode="range"
         onValueChange={fn()}
@@ -34,7 +34,7 @@ export const Range: Story = {
 export const RangeWithPresets: Story = {
   name: "Range + Presets",
   render: () => (
-    <Box maxW="320px">
+    <Box>
       <Calendar
         selectionMode="range"
         presets={defaultRangePresets}
