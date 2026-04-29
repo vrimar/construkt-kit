@@ -1,5 +1,6 @@
 import { ark } from "@ark-ui/react/factory";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { css, cx } from "@construkt-kit/styled-system/css";
+import { type HTMLStyledProps, createStyleContext, splitCssProps } from "@construkt-kit/styled-system/jsx";
 import { splitter } from "@construkt-kit/styled-system/recipes";
 import {
   Group,
@@ -10,12 +11,16 @@ import {
   type SeparatorProps,
 } from "react-resizable-panels";
 
-const { withProvider, withContext } = createStyleContext(splitter);
+const { withRootProvider, withContext } = createStyleContext(splitter);
 
-const StyledRoot = withProvider(ark.div, "root");
+const RootProvider = withRootProvider(Group);
 const StyledPanel = withContext(ark.div, "panel");
 const StyledResizeTrigger = withContext(ark.div, "resizeTrigger");
 type BoxProps = HTMLStyledProps<"div">;
+
+function toInlineStyleValue(value: unknown) {
+  return typeof value === "number" || typeof value === "string" ? value : undefined;
+}
 
 export type SplitterGroupProps = Pick<
   GroupProps,
@@ -38,31 +43,49 @@ function SplitterGroup({
   disabled,
   elementRef,
   groupRef,
+  height,
+  maxHeight,
+  maxWidth,
+  minHeight,
+  minWidth,
   onLayoutChange,
   onLayoutChanged,
   orientation,
   resizeTargetMinimumSize,
+  style,
+  width,
   ...boxProps
 }: SplitterGroupProps) {
+  const groupStyle = {
+    height: toInlineStyleValue(height),
+    maxHeight: toInlineStyleValue(maxHeight),
+    maxWidth: toInlineStyleValue(maxWidth),
+    minHeight: toInlineStyleValue(minHeight),
+    minWidth: toInlineStyleValue(minWidth),
+    width: toInlineStyleValue(width),
+    ...style,
+  };
+
+  const [cssProps, localProps] = splitCssProps(boxProps);
+  const { className, ...groupProps } = localProps;
+
   return (
-    <StyledRoot
-      asChild
-      {...boxProps}
+    <RootProvider
+      className={cx(splitter().root, css(cssProps), className)}
+      defaultLayout={defaultLayout}
+      disableCursor={disableCursor}
+      disabled={disabled}
+      elementRef={elementRef}
+      groupRef={groupRef}
+      onLayoutChange={onLayoutChange}
+      onLayoutChanged={onLayoutChanged}
+      orientation={orientation}
+      resizeTargetMinimumSize={resizeTargetMinimumSize}
+      style={groupStyle}
+      {...groupProps}
     >
-      <Group
-        defaultLayout={defaultLayout}
-        disableCursor={disableCursor}
-        disabled={disabled}
-        elementRef={elementRef}
-        groupRef={groupRef}
-        onLayoutChange={onLayoutChange}
-        onLayoutChanged={onLayoutChanged}
-        orientation={orientation}
-        resizeTargetMinimumSize={resizeTargetMinimumSize}
-      >
-        {children}
-      </Group>
-    </StyledRoot>
+      {children}
+    </RootProvider>
   );
 }
 
