@@ -14,7 +14,7 @@
     "changeset": "changeset",
     "version": "changeset version",
     "publish": "dotenv -e .env -- changeset publish",
-    "publish-local": "dotenv -e .env -- pnpm -r publish --access public",
+    "publish-local": "pnpm build && dotenv -e .env -- pnpm -r publish --access public",
     "update-deps": "pnpm update -r && pnpm update"
   },
   "devDependencies": {
@@ -31,5 +31,11 @@
     "node": ">=22.18",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "overrides": {
+      "pkg-types": "2.3.1",
+      "ts-evaluator": "2.0.0"
+    }
+  }
 }
