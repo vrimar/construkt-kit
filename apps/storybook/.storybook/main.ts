@@ -15,7 +15,7 @@ const config: StorybookConfig = {
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
   ],
 
-  addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("msw-storybook-addon")],
+  addons: [getAbsolutePath("@storybook/addon-a11y")],
 
   framework: {
     name: getAbsolutePath("@storybook/react-vite"),
@@ -44,6 +44,16 @@ const config: StorybookConfig = {
     return {
       ...configOptions,
       base: storybookBasePath,
+      build: {
+        ...configOptions.build,
+        rolldownOptions: {
+          ...configOptions.build?.rolldownOptions,
+          checks: {
+            ...configOptions.build?.rolldownOptions?.checks,
+            pluginTimings: false,
+          },
+        },
+      },
       plugins: [
         ...(configOptions.plugins ?? []),
         {
