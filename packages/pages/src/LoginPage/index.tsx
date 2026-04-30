@@ -8,9 +8,18 @@ export interface LoginPageProps {
   isLoading?: boolean;
   logo?: ReactNode;
   onForgotPassword?: () => void;
+  title?: string;
+  description?: string;
 }
 
-export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: LoginPageProps) {
+export function LoginPage({
+  onSubmit,
+  isLoading,
+  logo,
+  onForgotPassword,
+  title = "Welcome back",
+  description = "Sign in to continue to App.",
+}: LoginPageProps) {
   const emailInput = useAutoFocus();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,8 +27,8 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
   return (
     <AuthLayout
       logo={logo}
-      title="Welcome back"
-      description="Sign in to continue to App."
+      title={title}
+      description={description}
       showTitle
     >
       <form
@@ -34,12 +43,6 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
               ref={emailInput}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              bg="bg.subtle"
-              _focusVisible={{
-                borderColor: "brand.solid.bg",
-                boxShadow: "0 0 0 3px rgba(59,114,217,0.12)",
-                bg: "bg",
-              }}
             />
           </Field>
 
@@ -48,12 +51,6 @@ export function LoginPage({ onSubmit, isLoading, logo, onForgotPassword }: Login
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              bg="bg.subtle"
-              _focusVisible={{
-                borderColor: "brand.solid.bg",
-                boxShadow: "0 0 0 3px rgba(59,114,217,0.12)",
-                bg: "bg",
-              }}
             />
           </Field>
 

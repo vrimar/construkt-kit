@@ -11,6 +11,8 @@ export interface ResetPasswordPageProps {
   token?: string;
   isSuccess?: boolean;
   onBack?: () => void;
+  title?: string;
+  description?: string;
 }
 
 export function ResetPasswordPage({
@@ -21,6 +23,8 @@ export function ResetPasswordPage({
   token = "",
   isSuccess,
   onBack,
+  title = "Set new password",
+  description = "Choose a new password to secure your account.",
 }: ResetPasswordPageProps) {
   const passwordInput = useAutoFocus();
   const [password, setPassword] = useState("");
@@ -29,8 +33,8 @@ export function ResetPasswordPage({
   return (
     <AuthLayout
       logo={logo}
-      title="Set new password"
-      description="Choose a new password to secure your account."
+      title={title}
+      description={description}
       showTitle
     >
       {isSuccess ? (
@@ -63,12 +67,6 @@ export function ResetPasswordPage({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
-                bg="bg.subtle"
-                _focusVisible={{
-                  borderColor: "brand.solid.bg",
-                  boxShadow: "0 0 0 3px rgba(59,114,217,0.12)",
-                  bg: "bg",
-                }}
               />
             </Field>
 
@@ -77,12 +75,6 @@ export function ResetPasswordPage({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 type="password"
-                bg="bg.subtle"
-                _focusVisible={{
-                  borderColor: "brand.solid.bg",
-                  boxShadow: "0 0 0 3px rgba(59,114,217,0.12)",
-                  bg: "bg",
-                }}
               />
             </Field>
 

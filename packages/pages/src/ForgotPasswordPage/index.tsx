@@ -9,6 +9,8 @@ export interface ForgotPasswordPageProps {
   logo?: ReactNode;
   onBack?: () => void;
   isSuccess?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export function ForgotPasswordPage({
@@ -17,6 +19,8 @@ export function ForgotPasswordPage({
   logo,
   onBack,
   isSuccess,
+  title = "Reset password",
+  description = "Enter your email and we will send you a reset link.",
 }: ForgotPasswordPageProps) {
   const emailInput = useAutoFocus();
   const [email, setEmail] = useState("");
@@ -24,8 +28,8 @@ export function ForgotPasswordPage({
   return (
     <AuthLayout
       logo={logo}
-      title="Reset password"
-      description="Enter your email and we will send you a reset link."
+      title={title}
+      description={description}
       showTitle
     >
       {isSuccess ? (
@@ -58,12 +62,6 @@ export function ForgotPasswordPage({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
-                bg="bg.subtle"
-                _focusVisible={{
-                  borderColor: "brand.solid.bg",
-                  boxShadow: "0 0 0 3px rgba(59,114,217,0.12)",
-                  bg: "bg",
-                }}
               />
             </Field>
 
