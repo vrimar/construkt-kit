@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/auth-adapters",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "private": false,
   "description": "Pre-built AuthProvider adapter implementations for Auth0",
   "type": "module",

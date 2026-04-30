@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/config",
-  "version": "0.0.2",
+  "version": "0.1.1",
   "description": "Shared tool configuration for all Construkt Kit frontend projects",
   "type": "module",
   "exports": {

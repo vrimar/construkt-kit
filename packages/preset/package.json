@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/preset",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "private": false,
   "description": "Shared Panda CSS preset for Construkt Kit frontend apps",
   "type": "module",

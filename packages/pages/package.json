@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/pages",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "private": false,
   "description": "Shared full-page components (login, register, forgot password) for Construkt Kit apps",
   "type": "module",

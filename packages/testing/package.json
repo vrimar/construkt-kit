@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/testing",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "private": false,
   "description": "Shared test utilities — custom render, MSW handlers — for Construkt Kit apps (devDependency only)",
   "files": [
