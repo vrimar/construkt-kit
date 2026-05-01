@@ -13,7 +13,10 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <ToggleGroup.Root defaultValue={["bold"]}>
+    <ToggleGroup.Root
+      defaultValue={["bold"]}
+      multiple
+    >
       <ToggleGroup.Item
         value="bold"
         aria-label="Bold"
@@ -52,12 +55,14 @@ export const Single: Story = {
 export const Sizes: Story = {
   render: () => (
     <VStack gap="4">
-      {(["A", "B", "C"] as const).map((label) => (
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
         <ToggleGroup.Root
-          key={label}
+          key={size}
           defaultValue={["a"]}
+          multiple
+          size={size}
         >
-          <ToggleGroup.Item value="a">{label}</ToggleGroup.Item>
+          <ToggleGroup.Item value="a">A</ToggleGroup.Item>
           <ToggleGroup.Item value="b">B</ToggleGroup.Item>
           <ToggleGroup.Item value="c">C</ToggleGroup.Item>
         </ToggleGroup.Root>

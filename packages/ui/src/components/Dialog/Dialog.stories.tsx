@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Dialog } from ".";
 import { Button } from "../Buttons";
+import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Dialog",
@@ -31,6 +32,39 @@ export const Default: Story = {
         <Dialog.CloseTrigger />
       </Dialog.Content>
     </Dialog.Root>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <VStack
+      alignItems="flex-start"
+      gap="3"
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <Dialog.Root
+          key={size}
+          size={size}
+        >
+          <Dialog.Trigger asChild>
+            <Button variant="outline">Open {size}</Button>
+          </Dialog.Trigger>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Dialog {size}</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>This dialog uses the {size} size variant.</Dialog.Body>
+            <Dialog.Footer>
+              <Dialog.ActionTrigger asChild>
+                <Button variant="outline">Cancel</Button>
+              </Dialog.ActionTrigger>
+              <Button>Confirm</Button>
+            </Dialog.Footer>
+            <Dialog.CloseTrigger />
+          </Dialog.Content>
+        </Dialog.Root>
+      ))}
+    </VStack>
   ),
 };
 

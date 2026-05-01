@@ -74,12 +74,54 @@ export const InputGroupStory: Story = {
   ),
 };
 
+export const InputGroupSizes: Story = {
+  name: "InputGroup Sizes",
+  render: () => (
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <InputGroup
+          key={size}
+          size={size}
+          startElement="$"
+          endElement=".00"
+        >
+          <Input
+            size={size}
+            placeholder={`Amount (${size})`}
+          />
+        </InputGroup>
+      ))}
+    </VStack>
+  ),
+};
+
 export const PasswordInputStory: Story = {
   name: "PasswordInput",
   render: () => (
     <Box maxW="400px">
       <PasswordInput placeholder="Enter password" />
     </Box>
+  ),
+};
+
+export const PasswordInputSizes: Story = {
+  name: "PasswordInput Sizes",
+  render: () => (
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <PasswordInput
+          key={size}
+          size={size}
+          placeholder={`Password (${size})`}
+        />
+      ))}
+    </VStack>
   ),
 };
 
@@ -92,11 +134,50 @@ export const SearchInputStory: Story = {
   ),
 };
 
+export const SearchInputSizes: Story = {
+  name: "SearchInput Sizes",
+  render: () => (
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <SearchInput
+          key={size}
+          size={size}
+          value={`Query ${size}`}
+          onChange={() => {}}
+          onClear={() => {}}
+          placeholder={`Search (${size})`}
+        />
+      ))}
+    </VStack>
+  ),
+};
+
 export const TextareaStory: Story = {
   name: "Textarea",
   render: () => (
     <Box maxW="400px">
       <Textarea placeholder="Enter long text..." />
     </Box>
+  ),
+};
+
+export const TextareaSizes: Story = {
+  name: "Textarea Sizes",
+  render: () => (
+    <VStack
+      gap="2"
+      maxW="400px"
+    >
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <Textarea
+          key={size}
+          size={size}
+          placeholder={`Long-form text (${size})`}
+        />
+      ))}
+    </VStack>
   ),
 };

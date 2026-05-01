@@ -1,25 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
 
-import {
-  Button,
-  ButtonGroup,
-  CloseButton,
-  DeleteButton,
-  EditButton,
-  IconButton,
-  SelectButton,
-  TooltipIconButton,
-} from ".";
-import { HStack, VStack } from "../Layout";
+import { CloseButton, DeleteButton, EditButton, IconButton, TooltipIconButton } from ".";
+import { HStack } from "../Layout";
 
-const meta: Meta = {
+const meta: Meta<typeof IconButton> = {
   title: "Components/Buttons/IconButton",
+  component: IconButton,
   tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof IconButton>;
 
 export const Default: Story = {
   render: () => (
@@ -39,6 +31,23 @@ export const Default: Story = {
       >
         <InfoIcon />
       </IconButton>
+    </HStack>
+  ),
+};
+
+export const IconButtonSizes: Story = {
+  name: "IconButton Sizes",
+  render: () => (
+    <HStack gap="2">
+      {(["xs", "sm", "md", "lg"] as const).map((size) => (
+        <IconButton
+          key={size}
+          size={size}
+          aria-label={`Search ${size}`}
+        >
+          <SearchIcon />
+        </IconButton>
+      ))}
     </HStack>
   ),
 };
@@ -65,35 +74,4 @@ export const EditButtonStory: Story = {
 export const CloseButtonStory: Story = {
   name: "CloseButton",
   render: () => <CloseButton />,
-};
-
-export const SelectButtonStory: Story = {
-  name: "SelectButton",
-  render: () => (
-    <VStack
-      gap="2"
-      maxW="300px"
-    >
-      <SelectButton
-        label="Select an option"
-        hasValue={false}
-      />
-      <SelectButton
-        label="Selected value"
-        hasValue
-        onClear={() => {}}
-      />
-    </VStack>
-  ),
-};
-
-export const ButtonGroupStory: Story = {
-  name: "ButtonGroup",
-  render: () => (
-    <ButtonGroup>
-      <Button variant="outline">Left</Button>
-      <Button variant="outline">Center</Button>
-      <Button variant="outline">Right</Button>
-    </ButtonGroup>
-  ),
 };

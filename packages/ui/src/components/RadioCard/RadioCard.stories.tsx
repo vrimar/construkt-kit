@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RadioCard } from ".";
+import { HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/RadioCard",
@@ -32,5 +33,38 @@ export const Default: Story = {
         </RadioCard.Item>
       ))}
     </RadioCard.Root>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <HStack
+      gap="6"
+      alignItems="flex-start"
+    >
+      {(["md"] as const).map((size) => (
+        <RadioCard.Root
+          key={size}
+          defaultValue="starter"
+          maxW="280px"
+          size={size}
+        >
+          <RadioCard.Label>{size.toUpperCase()} plan selection</RadioCard.Label>
+          {[
+            { value: "starter", title: "Starter" },
+            { value: "pro", title: "Pro" },
+          ].map((item) => (
+            <RadioCard.Item
+              key={item.value}
+              value={item.value}
+            >
+              <RadioCard.ItemHiddenInput />
+              <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
+              <RadioCard.ItemControl />
+            </RadioCard.Item>
+          ))}
+        </RadioCard.Root>
+      ))}
+    </HStack>
   ),
 };
