@@ -7,14 +7,10 @@ export const splitter = defineSlotRecipe({
   base: {
     root: {
       display: "flex",
-      gap: "2",
     },
     panel: {
-      borderRadius: "lg",
       display: "flex",
       background: "colorPalette.surface.bg",
-      borderWidth: "1px",
-      p: "4",
     },
     resizeTrigger: {
       borderRadius: "lg",
