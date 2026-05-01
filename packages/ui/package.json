@@ -36,8 +36,8 @@
   ],
   "scripts": {
     "prepare": "pnpm --filter @construkt-kit/styled-system build",
-    "build": "pnpm --filter @construkt-kit/styled-system build && tsdown && panda ship --outfile dist/panda.buildinfo.json",
-    "dev": "pnpm --filter @construkt-kit/styled-system build && tsdown --watch",
+    "build": "tsdown && panda ship --outfile dist/panda.buildinfo.json",
+    "dev": "tsdown --watch",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src",
     "lint:fix": "oxlint src --fix",
