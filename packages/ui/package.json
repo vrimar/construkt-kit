@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/ui",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Shared component library for Construkt Kit frontend apps",
   "author": "Vasil Rimar",
@@ -12,7 +12,6 @@
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     },

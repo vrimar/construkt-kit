@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/pages",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Shared full-page components (login, register, forgot password) for Construkt Kit apps",
   "type": "module",
@@ -11,7 +11,6 @@
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     }
