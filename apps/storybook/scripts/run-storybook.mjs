@@ -16,7 +16,9 @@ if (mode === "build") {
     process.exit(typecheckResult);
   }
 
-  process.exit(runPnpmSync(["exec", "storybook", "build"]));
+  const storybookBuildResult = runPnpmSync(["exec", "storybook", "build"]);
+
+  process.exit(storybookBuildResult);
 } else if (mode === "dev") {
   const typecheckProcess = runPnpm(["exec", "tsgo", "--noEmit", "--watch", "--pretty"]);
   const storybookProcess = runPnpm(["exec", "storybook", "dev", "-p", "6006"]);
