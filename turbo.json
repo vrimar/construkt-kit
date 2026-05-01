@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["CONSTRUKT_KIT_STORYBOOK_BASE_PATH"],
       "outputs": ["dist/**", "storybook-static/**"]
     },
     "dev": {

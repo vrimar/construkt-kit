@@ -5,11 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import type { ReactElement } from "react";
 
-const storybookBasePath = import.meta.env.BASE_URL || "/";
-
 initialize({
   serviceWorker: {
-    url: `${storybookBasePath}mockServiceWorker.js`,
+    url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
   },
 });
 
