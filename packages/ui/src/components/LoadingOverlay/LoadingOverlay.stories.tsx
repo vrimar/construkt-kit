@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { LoadingOverlay } from ".";
-import { Box } from "../Layout";
+import { Box, Wrap } from "../Layout";
 
 const meta: Meta<typeof LoadingOverlay> = {
   title: "Components/LoadingOverlay",
@@ -27,6 +27,33 @@ export const Active: Story = {
     isActive: true,
     relative: true,
   },
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <Wrap gap="3">
+      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+        <Box
+          key={size}
+          w="120px"
+          h="80px"
+          position="relative"
+          borderWidth="1px"
+          borderColor="border.default"
+          borderRadius="md"
+          overflow="hidden"
+        >
+          <LoadingOverlay
+            isActive
+            relative
+            minHeight="80px"
+            size={size}
+            tip={size.toUpperCase()}
+          />
+        </Box>
+      ))}
+    </Wrap>
+  ),
 };
 
 export const WithCustomTip: Story = {

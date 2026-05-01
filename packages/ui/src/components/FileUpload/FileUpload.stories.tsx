@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FileUpload } from ".";
 import { Button } from "../Buttons";
-import { Box, Center } from "../Layout";
+import { Box, Center, VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/FileUpload",
@@ -25,6 +25,31 @@ export const Default: Story = {
         </FileUpload.ItemGroup>
       </FileUpload.Root>
     </Box>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <VStack
+      gap="4"
+      maxW="400px"
+    >
+      {(["md"] as const).map((size) => (
+        <FileUpload.Root
+          key={size}
+          maxFiles={3}
+          size={size}
+        >
+          <FileUpload.HiddenInput />
+          <FileUpload.Dropzone>
+            <Center p="10">Drop files here ({size})</Center>
+          </FileUpload.Dropzone>
+          <FileUpload.ItemGroup>
+            <FileUpload.Items />
+          </FileUpload.ItemGroup>
+        </FileUpload.Root>
+      ))}
+    </VStack>
   ),
 };
 

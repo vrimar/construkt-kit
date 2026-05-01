@@ -38,6 +38,23 @@ export const Variants: Story = {
   ),
 };
 
+export const Sizes: Story = {
+  render: () => (
+    <Grid gap="3">
+      {(["sm", "md", "lg"] as const).map((size) => (
+        <Alert
+          key={size}
+          size={size}
+          status="info"
+          title={`Alert ${size}`}
+        >
+          Size preview for the {size} alert variant.
+        </Alert>
+      ))}
+    </Grid>
+  ),
+};
+
 export const WithDescription: Story = {
   args: {
     status: "info",

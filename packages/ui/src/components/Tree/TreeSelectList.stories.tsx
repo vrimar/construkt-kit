@@ -104,31 +104,6 @@ export const WithoutToolbar: Story = {
   render: () => <BareTreeDemo />,
 };
 
-function SmallSizeDemo() {
-  const [selected, setSelected] = useState<string[]>(["carrot"]);
-
-  return (
-    <Box
-      maxW="400px"
-      borderWidth="1px"
-      borderColor="border.default"
-      borderRadius="lg"
-    >
-      <TreeSelectList
-        collection={collection}
-        value={selected}
-        onValueChange={setSelected}
-        size="sm"
-        maxHeight="320px"
-      />
-    </Box>
-  );
-}
-
-export const SmallSize: Story = {
-  render: () => <SmallSizeDemo />,
-};
-
 // --- Long list for virtual scroll testing ---
 
 function generateLargeTree(): DemoNode[] {
