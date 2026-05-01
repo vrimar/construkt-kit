@@ -6,6 +6,7 @@ import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-con
 export const treeView = defineSlotRecipe({
   className: "tree-view",
   slots: treeViewAnatomy.keys(),
+  staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
       colorPalette: "neutral",
