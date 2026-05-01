@@ -62,8 +62,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "dev": "tsdown --watch",
-    "prepublishOnly": "pnpm build"
+    "dev": "tsdown --watch"
   },
   "devDependencies": {
     "tsdown": "^0.21.9"

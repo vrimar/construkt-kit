@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "pnpm --filter @construkt-kit/styled-system build && node ./scripts/run-storybook.mjs dev",
-    "build": "pnpm --filter @construkt-kit/ui build && node ./scripts/run-storybook.mjs build",
+    "storybook": "node ./scripts/run-storybook.mjs dev",
+    "build": "node ./scripts/run-storybook.mjs build",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
