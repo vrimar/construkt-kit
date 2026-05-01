@@ -11,8 +11,6 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
-- **`@construkt-kit/auth-adapters`** — `AuthProvider` adapters (Auth0).
-- **`@construkt-kit/testing`** — Test infrastructure (MSW request handlers for Storybook).
 
 ## Key Dependencies
 
@@ -59,7 +57,7 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 
 - **Unit tests**: Vitest (configured per-package via `vitest.config.ts`)
 - **E2E tests**: Playwright (configured via `@construkt-kit/config/playwright`)
-- **Mocking**: MSW (mock service worker) for Storybook and test suites via `@construkt-kit/testing`
+- **Mocking**: MSW (mock service worker) for Storybook and test suites
 
 ## Linting
 
@@ -83,9 +81,7 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 @construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, consuming apps
 @construkt-kit/ui             ← @construkt-kit/pages, consuming apps  (depends on @construkt-kit/utils)
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
-@construkt-kit/auth-adapters  ← consuming apps  (implements AuthProvider, depends on @construkt-kit/pages for types)
 @construkt-kit/api            ← consuming apps  (HTTP client factory, uses @kubb/plugin-client)
-@construkt-kit/testing        ← storybook, test suites  (depends on @construkt-kit/ui, msw, @testing-library/react)
 ```
 
 ## Design Principles
@@ -93,7 +89,6 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 - **Adapter pattern** — auth pages accept interfaces, not specific SDKs
 - **Callback-driven** — pages/components use callbacks for navigation, never import a router
 - **Factory functions** — configs export `createXConfig()`, API exports `createApiClient()`
-- **Duck-typing** — `Auth0ClientLike` interface, not direct Auth0 SDK imports
 - **Stateless utilities** — `@construkt-kit/utils` has no framework deps, no side effects
 
 ## Common Workflows
@@ -103,7 +98,6 @@ Build tool: **tsdown** (`tsdown.config.ts` in each package). Output: ESM + CJS +
 | New UI component      | `packages/ui/src/components/Name/Name.tsx`, `.stories.tsx`, `index.ts` + barrel exports |
 | New utility function  | `packages/utils/src/<domain>.ts` + re-export from `index.ts`                            |
 | New API error class   | `packages/api/src/errors.ts` + re-export from `index.ts`                                |
-| New auth adapter      | `packages/auth-adapters/src/<provider>.ts` + re-export from `index.ts`                  |
 | New shared config     | `packages/config/<tool>/index.ts` + add sub-path in `package.json` exports              |
 | Add a Storybook story | `packages/ui/src/components/Name/Name.stories.tsx`                                      |
 | Version bump          | `pnpm changeset` → `pnpm changeset version` → commit                                    |

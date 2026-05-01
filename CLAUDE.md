@@ -12,8 +12,6 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
-- **`@construkt-kit/auth-adapters`** — `AuthProvider` adapters (Auth0).
-- **`@construkt-kit/testing`** — Test infrastructure (MSW request handlers for Storybook).
 
 ## Build & Dev Commands
 
@@ -50,9 +48,7 @@ All build/dev/test/lint/typecheck commands go through Turbo (`turbo run <task>` 
 @construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, consuming apps
 @construkt-kit/ui             ← @construkt-kit/pages, consuming apps  (depends on @construkt-kit/utils)
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
-@construkt-kit/auth-adapters  ← consuming apps  (implements AuthProvider, depends on @construkt-kit/pages for types)
 @construkt-kit/api            ← consuming apps  (HTTP client factory, uses @kubb/plugin-client)
-@construkt-kit/testing        ← storybook, test suites  (depends on @construkt-kit/ui, msw, @testing-library/react)
 ```
 
 ## Design Principles
@@ -60,5 +56,4 @@ All build/dev/test/lint/typecheck commands go through Turbo (`turbo run <task>` 
 - **Adapter pattern** — auth pages accept interfaces, not specific SDKs
 - **Callback-driven** — pages/components use callbacks for navigation, never import a router
 - **Factory functions** — configs export `createXConfig()`, API exports `createApiClient()`
-- **Duck-typing** — `Auth0ClientLike` interface, not direct Auth0 SDK imports
 - **Stateless utilities** — `@construkt-kit/utils` has no framework deps, no side effects
