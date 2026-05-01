@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ChevronDownIcon, XIcon } from "lucide-react";
 
-import { Combobox, createListCollection } from ".";
+import { Combobox, type ComboboxRootProps, useListCollection } from ".";
 import { VStack } from "../Layout";
 
 const meta: Meta = {
@@ -20,30 +19,48 @@ const items = [
   { label: "Solid", value: "solid" },
 ];
 
-const collection = createListCollection({ items });
+interface FrameworkComboboxProps {
+  label?: string;
+  placeholder?: string;
+  size?: ComboboxRootProps["size"];
+}
 
-export const Default: Story = {
-  render: () => (
-    <Combobox.Root collection={collection}>
-      <Combobox.Label>Framework</Combobox.Label>
+function FrameworkCombobox({
+  label = "Framework",
+  placeholder = "Select a framework",
+  size,
+}: FrameworkComboboxProps) {
+  const { collection, filter } = useListCollection({
+    initialItems: items,
+    filter: (itemText, query) => itemText.toLowerCase().includes(query.trim().toLowerCase()),
+  });
+
+  return (
+    <Combobox.Root
+      collection={collection}
+      size={size}
+      onInputValueChange={({ inputValue, reason }) => {
+        filter(reason === "input-change" ? inputValue : "");
+      }}
+    >
+      <Combobox.Label>{label}</Combobox.Label>
       <Combobox.Control>
-        <Combobox.Input placeholder="Select a framework" />
-        <Combobox.Trigger>
-          <ChevronDownIcon />
-        </Combobox.Trigger>
-        <Combobox.ClearTrigger>
-          <XIcon />
-        </Combobox.ClearTrigger>
+        <Combobox.Input placeholder={placeholder} />
+        <Combobox.IndicatorGroup>
+          <Combobox.ClearTrigger />
+          <Combobox.Trigger />
+        </Combobox.IndicatorGroup>
       </Combobox.Control>
       <Combobox.Positioner>
         <Combobox.Content>
+          <Combobox.Empty>No frameworks found.</Combobox.Empty>
           <Combobox.List>
             {collection.items.map((item) => (
               <Combobox.Item
                 key={item.value}
                 item={item}
               >
-                {item.label}
+                <Combobox.ItemText>{item.label}</Combobox.ItemText>
                 <Combobox.ItemIndicator />
               </Combobox.Item>
             ))}
@@ -51,7 +68,11 @@ export const Default: Story = {
         </Combobox.Content>
       </Combobox.Positioner>
     </Combobox.Root>
-  ),
+  );
+}
+
+export const Default: Story = {
+  render: () => <FrameworkCombobox />,
 };
 
 export const Sizes: Story = {
@@ -62,19 +83,12 @@ export const Sizes: Story = {
       maxW="320px"
     >
       {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
-        <Combobox.Root
+        <FrameworkCombobox
           key={size}
-          collection={collection}
+          label={size}
+          placeholder="Select a framework..."
           size={size}
-        >
-          <Combobox.Label>{size}</Combobox.Label>
-          <Combobox.Control>
-            <Combobox.Input placeholder="Select a framework..." />
-            <Combobox.Trigger>
-              <ChevronDownIcon />
-            </Combobox.Trigger>
-          </Combobox.Control>
-        </Combobox.Root>
+        />
       ))}
     </VStack>
   ),
