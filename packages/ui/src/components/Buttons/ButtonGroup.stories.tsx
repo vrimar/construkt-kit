@@ -24,10 +24,7 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="3"
-      align="flex-start"
-    >
+    <VStack gap="3">
       {(["xs", "sm", "md", "lg"] as const).map((size) => (
         <ButtonGroup
           key={size}
