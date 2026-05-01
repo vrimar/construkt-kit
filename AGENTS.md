@@ -6,15 +6,13 @@ Per-package AI instructions are in `.github/instructions/<package>.instructions.
 
 ## Instruction File Map
 
-| Working in                  | Load instruction file                                |
-| --------------------------- | ---------------------------------------------------- |
-| `packages/api/**`           | `.github/instructions/api.instructions.md`           |
-| `packages/auth-adapters/**` | `.github/instructions/auth-adapters.instructions.md` |
-| `packages/config/**`        | `.github/instructions/config.instructions.md`        |
-| `packages/pages/**`         | `.github/instructions/pages.instructions.md`         |
-| `packages/testing/**`       | `.github/instructions/testing.instructions.md`       |
-| `packages/ui/**`            | `.github/instructions/ui.instructions.md`            |
-| `packages/utils/**`         | `.github/instructions/utils.instructions.md`         |
+| Working in           | Load instruction file                         |
+| -------------------- | --------------------------------------------- |
+| `packages/api/**`    | `.github/instructions/api.instructions.md`    |
+| `packages/config/**` | `.github/instructions/config.instructions.md` |
+| `packages/pages/**`  | `.github/instructions/pages.instructions.md`  |
+| `packages/ui/**`     | `.github/instructions/ui.instructions.md`     |
+| `packages/utils/**`  | `.github/instructions/utils.instructions.md`  |
 
 Each instruction file has an `applyTo` frontmatter field matching its package glob, and references
 the package's `README.md` for full exports and examples.

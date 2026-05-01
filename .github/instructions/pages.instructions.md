@@ -26,7 +26,6 @@ interface AuthProvider {
 ## Dependencies
 
 - Uses `@construkt-kit/ui` components (`Button`, `Field`, `Input`, `Stack`, `Alert`)
-- `AuthProvider` type is consumed by `@construkt-kit/auth-adapters`
 - Consumed by apps (not by other monorepo packages)
 
 ## Conventions
