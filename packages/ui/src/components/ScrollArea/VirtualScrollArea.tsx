@@ -4,6 +4,9 @@ import { useRef } from "react";
 
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 
+const isInlineSizeValue = (value: unknown): value is string | number =>
+  typeof value === "string" || typeof value === "number";
+
 interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   /** The list of items to virtualize. */
   items: T[];
@@ -42,6 +45,18 @@ export const VirtualScrollArea = <T,>({
   ...scrollAreaProps
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
+  const { style, height, maxHeight, ...resolvedScrollAreaProps } = scrollAreaProps;
+
+  const resolvedStyle = {
+    ...style,
+    ...(isInlineSizeValue(height) ? { height } : {}),
+    ...(isInlineSizeValue(maxHeight) ? { maxHeight } : {}),
+  };
+
+  const resolvedHeightProps = {
+    ...(isInlineSizeValue(height) ? {} : { height }),
+    ...(isInlineSizeValue(maxHeight) ? {} : { maxHeight }),
+  };
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -63,7 +78,9 @@ export const VirtualScrollArea = <T,>({
     return (
       <ScrollArea
         ref={parentRef}
-        {...scrollAreaProps}
+        {...resolvedScrollAreaProps}
+        {...resolvedHeightProps}
+        style={resolvedStyle}
       >
         {header}
         <Box style={{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }}>
@@ -84,7 +101,9 @@ export const VirtualScrollArea = <T,>({
   return (
     <ScrollArea
       ref={parentRef}
-      {...scrollAreaProps}
+      {...resolvedScrollAreaProps}
+      {...resolvedHeightProps}
+      style={resolvedStyle}
     >
       {header}
       <Box
