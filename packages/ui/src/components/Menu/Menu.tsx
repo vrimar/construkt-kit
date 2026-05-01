@@ -114,10 +114,8 @@ function MenuCheckboxItem({
       ref={ref}
       {...props}
     >
-      <ItemIndicator>
-        <CheckIcon />
-      </ItemIndicator>
-      {children}
+      <ItemText>{children}</ItemText>
+      <ItemIndicator />
     </CheckboxItem>
   );
 }
@@ -128,10 +126,8 @@ function MenuRadioItem({ ref, children, ...rest }: WithRef<ComponentProps<typeof
       ref={ref}
       {...rest}
     >
-      <ItemIndicator>
-        <CheckIcon />
-      </ItemIndicator>
       <ItemText>{children}</ItemText>
+      <ItemIndicator />
     </RadioItem>
   );
 }

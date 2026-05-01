@@ -90,7 +90,7 @@ export const WithGroups: Story = {
 export const Sizes: Story = {
   render: () => (
     <Flex
-      gap="30"
+      gap="20"
       align="flex-start"
       p="4"
     >
@@ -119,11 +119,12 @@ export const Sizes: Story = {
 function TypesDemo() {
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(true);
+  const [underline, setUnderline] = useState(false);
   const [size, setSize] = useState("md");
 
   return (
     <Flex
-      gap="30"
+      gap="20"
       align="flex-start"
       p="4"
     >
@@ -151,7 +152,8 @@ function TypesDemo() {
           </Menu.CheckboxItem>
           <Menu.CheckboxItem
             value="underline"
-            checked={false}
+            checked={underline}
+            onCheckedChange={(checked) => setUnderline(!!checked)}
           >
             Underline
           </Menu.CheckboxItem>
