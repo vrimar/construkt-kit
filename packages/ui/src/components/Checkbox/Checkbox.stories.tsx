@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Checkbox } from ".";
-import { HStack } from "../Layout";
+import { HStack, Wrap } from "../Layout";
 
 const meta: Meta<typeof Checkbox> = {
   title: "Components/Checkbox",
@@ -40,4 +40,48 @@ export const Sizes: Story = {
       <Checkbox size="lg">Large</Checkbox>
     </HStack>
   ),
+};
+
+export const Variants: Story = {
+  render: () => (
+    <Wrap gap="4">
+      <Checkbox
+        variant="solid"
+        defaultChecked
+      >
+        Solid
+      </Checkbox>
+      <Checkbox
+        variant="surface"
+        defaultChecked
+      >
+        Surface
+      </Checkbox>
+      <Checkbox
+        variant="subtle"
+        defaultChecked
+      >
+        Subtle
+      </Checkbox>
+      <Checkbox
+        variant="outline"
+        defaultChecked
+      >
+        Outline
+      </Checkbox>
+      <Checkbox
+        variant="plain"
+        defaultChecked
+      >
+        Plain
+      </Checkbox>
+    </Wrap>
+  ),
+};
+
+export const Indeterminate: Story = {
+  args: {
+    children: "Indeterminate",
+    checked: "indeterminate",
+  },
 };
