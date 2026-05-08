@@ -80,8 +80,60 @@ export const scrollArea = defineSlotRecipe({
   defaultVariants: {
     size: "md",
     scrollbar: "auto",
+    fadeEdges: false,
   },
   variants: {
+    fadeEdges: {
+      true: {
+        root: {
+          "--scroll-area-fade-color": "white",
+          "--scroll-area-fade-size": "sizes.8",
+          _before: {
+            content: '""',
+            pointerEvents: "none",
+            position: "absolute",
+            insetInlineStart: "0",
+            insetInlineEnd: "0",
+            top: "0",
+            height: "var(--scroll-area-fade-size)",
+            backgroundImage:
+              "linear-gradient(to bottom, var(--scroll-area-fade-color) 0%, var(--scroll-area-fade-color) 30%, transparent 100%)",
+            opacity: "0",
+            transitionDuration: "normal",
+            transitionProperty: "opacity",
+            transitionTimingFunction: "default",
+            zIndex: "docked",
+          },
+          _after: {
+            content: '""',
+            pointerEvents: "none",
+            position: "absolute",
+            insetInlineStart: "0",
+            insetInlineEnd: "0",
+            bottom: "0",
+            height: "var(--scroll-area-fade-size)",
+            backgroundImage:
+              "linear-gradient(to top, var(--scroll-area-fade-color) 0%, var(--scroll-area-fade-color) 30%, transparent 100%)",
+            opacity: "0",
+            transitionDuration: "normal",
+            transitionProperty: "opacity",
+            transitionTimingFunction: "default",
+            zIndex: "docked",
+          },
+          "&:has([data-part=viewport][data-overflow-y]:not([data-at-top]))": {
+            _before: {
+              opacity: "1",
+            },
+          },
+          "&:has([data-part=viewport][data-overflow-y]:not([data-at-bottom]))": {
+            _after: {
+              opacity: "1",
+            },
+          },
+        },
+      },
+      false: {},
+    },
     scrollbar: {
       auto: {
         scrollbar: {
