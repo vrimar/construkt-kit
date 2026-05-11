@@ -1,7 +1,9 @@
+import { scrollArea } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useRef } from "react";
 
 import { ScrollArea } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box, Flex } from "../Layout";
 import { Text } from "../Text";
 
@@ -104,14 +106,10 @@ export const HorizontalScroll: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Flex
-      gap="6"
-      p="4"
-      align="flex-start"
-    >
-      {(["xs", "sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={scrollArea.variantMap.size}
+      renderPreview={(size) => (
         <ScrollArea
-          key={size}
           height="150px"
           width="200px"
           border="1px solid"
@@ -131,8 +129,8 @@ export const Sizes: Story = {
             ))}
           </Box>
         </ScrollArea>
-      ))}
-    </Flex>
+      )}
+    />
   ),
 };
 

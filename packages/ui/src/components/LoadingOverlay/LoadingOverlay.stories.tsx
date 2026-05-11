@@ -1,7 +1,9 @@
+import { spinner } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { LoadingOverlay } from ".";
-import { Box, Wrap } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 const meta: Meta<typeof LoadingOverlay> = {
   title: "Components/LoadingOverlay",
@@ -31,10 +33,10 @@ export const Active: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Wrap gap="3">
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={spinner.variantMap.size}
+      renderPreview={(size) => (
         <Box
-          key={size}
           w="120px"
           h="80px"
           position="relative"
@@ -48,11 +50,11 @@ export const Sizes: Story = {
             relative
             minHeight="80px"
             size={size}
-            tip={size.toUpperCase()}
+            tip="Loading..."
           />
         </Box>
-      ))}
-    </Wrap>
+      )}
+    />
   ),
 };
 

@@ -1,7 +1,9 @@
+import { pinInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { PinInput, type PinInputRootProps } from ".";
-import { Box, VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/PinInput",
@@ -74,16 +76,11 @@ export const Masked: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      p="4"
-    >
-      {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
-        <PinInput.Root
-          key={size}
-          size={size}
-        >
-          <PinInput.Label>{size}</PinInput.Label>
+    <SizePreviewTable
+      sizes={pinInput.variantMap.size}
+      renderPreview={(size) => (
+        <PinInput.Root size={size}>
+          <PinInput.Label>Pin</PinInput.Label>
           <PinInput.Control>
             {[0, 1, 2, 3].map((id) => (
               <PinInput.Input
@@ -94,7 +91,7 @@ export const Sizes: Story = {
           </PinInput.Control>
           <PinInput.HiddenInput />
         </PinInput.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

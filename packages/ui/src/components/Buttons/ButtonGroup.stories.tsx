@@ -1,7 +1,8 @@
+import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, ButtonGroup } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof ButtonGroup> = {
   title: "Components/Buttons/ButtonGroup",
@@ -24,17 +25,15 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="3">
-      {(["xs", "sm", "md", "lg"] as const).map((size) => (
-        <ButtonGroup
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={button.variantMap.size}
+      renderPreview={(size) => (
+        <ButtonGroup size={size}>
           <Button variant="outline">Left</Button>
           <Button variant="outline">Center</Button>
           <Button variant="outline">Right</Button>
         </ButtonGroup>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

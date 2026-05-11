@@ -1,7 +1,9 @@
+import { stat } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stat } from ".";
-import { Flex, HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { HStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Stat",
@@ -63,21 +65,15 @@ export const WithUnit: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Flex
-      gap="8"
-      p="4"
-      align="flex-start"
-    >
-      {(["sm", "md", "lg"] as const).map((size) => (
-        <Stat.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={stat.variantMap.size}
+      renderPreview={(size) => (
+        <Stat.Root size={size}>
           <Stat.Label>Revenue ({size})</Stat.Label>
           <Stat.ValueText>$12,340</Stat.ValueText>
           <Stat.HelpText>Last 30 days</Stat.HelpText>
         </Stat.Root>
-      ))}
-    </Flex>
+      )}
+    />
   ),
 };

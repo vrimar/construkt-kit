@@ -1,7 +1,9 @@
+import { badge } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Badge } from ".";
-import { HStack, Wrap } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Wrap } from "../Layout";
 
 const meta: Meta<typeof Badge> = {
   title: "Components/Badge",
@@ -30,11 +32,9 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="2">
-      <Badge size="xs">XSmall</Badge>
-      <Badge size="sm">Small</Badge>
-      <Badge size="md">Medium</Badge>
-      <Badge size="lg">Large</Badge>
-    </HStack>
+    <SizePreviewTable
+      sizes={badge.variantMap.size}
+      renderPreview={(size) => <Badge size={size}>{size}</Badge>}
+    />
   ),
 };

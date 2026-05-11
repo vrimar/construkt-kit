@@ -1,7 +1,8 @@
+import { segmentGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { SegmentGroup } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/SegmentGroup",
@@ -30,10 +31,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="4">
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={segmentGroup.variantMap.size}
+      renderPreview={(size) => (
         <SegmentGroup.Root
-          key={size}
           defaultValue="a"
           size={size}
         >
@@ -47,7 +48,7 @@ export const Sizes: Story = {
             <SegmentGroup.ItemHiddenInput />
           </SegmentGroup.Item>
         </SegmentGroup.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

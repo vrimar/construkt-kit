@@ -1,7 +1,8 @@
+import { tagsInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { TagsInput } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/TagsInput",
@@ -43,25 +44,21 @@ export const Empty: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      p="4"
-      maxW="400px"
-    >
-      {(["xs", "sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={tagsInput.variantMap.size}
+      renderPreview={(size) => (
         <TagsInput.Root
-          key={size}
           defaultValue={["React", "Vue"]}
           size={size}
         >
-          <TagsInput.Label>{size}</TagsInput.Label>
+          <TagsInput.Label>Tags</TagsInput.Label>
           <TagsInput.Control>
             <TagsInput.Items />
             <TagsInput.Input placeholder="Add tag..." />
           </TagsInput.Control>
           <TagsInput.HiddenInput />
         </TagsInput.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

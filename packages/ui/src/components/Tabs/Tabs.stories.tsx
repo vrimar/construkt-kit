@@ -1,7 +1,9 @@
+import { tabs } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Tabs } from ".";
-import { Box, VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box, Stack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Tabs",
@@ -31,8 +33,8 @@ export const Default: Story = {
 
 export const Variants: Story = {
   render: () => (
-    <VStack gap="6">
-      {(["line", "subtle", "enclosed"] as const).map((variant) => (
+    <Stack gap="6">
+      {tabs.variantMap.variant.map((variant) => (
         <Tabs.Root
           key={variant}
           defaultValue="a"
@@ -43,32 +45,32 @@ export const Variants: Story = {
             <Tabs.Trigger value="b">Tab B</Tabs.Trigger>
             <Tabs.Indicator />
           </Tabs.List>
-          <Tabs.Content value="a">Variant: {variant}</Tabs.Content>
-          <Tabs.Content value="b">Second tab</Tabs.Content>
+          <Tabs.Content value="a">Tab A Content</Tabs.Content>
+          <Tabs.Content value="b">Tab B Content</Tabs.Content>
         </Tabs.Root>
       ))}
-    </VStack>
+    </Stack>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="6">
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={tabs.variantMap.size}
+      renderPreview={(size) => (
         <Tabs.Root
-          key={size}
           defaultValue="a"
           size={size}
         >
           <Tabs.List>
-            <Tabs.Trigger value="a">Size {size}</Tabs.Trigger>
+            <Tabs.Trigger value="a">Tab A</Tabs.Trigger>
             <Tabs.Trigger value="b">Tab B</Tabs.Trigger>
             <Tabs.Indicator />
           </Tabs.List>
           <Tabs.Content value="a">Content</Tabs.Content>
           <Tabs.Content value="b">Content</Tabs.Content>
         </Tabs.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

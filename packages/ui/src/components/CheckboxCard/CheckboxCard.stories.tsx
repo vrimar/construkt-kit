@@ -1,6 +1,8 @@
+import { checkboxCard } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { CheckboxCard } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { VStack } from "../Layout";
 
 const meta: Meta<typeof CheckboxCard> = {
@@ -60,19 +62,15 @@ export const Group: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="3"
-      maxW="400px"
-      p="4"
-    >
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={checkboxCard.variantMap.size}
+      renderPreview={(size) => (
         <CheckboxCard
-          key={size}
           label={`Option (${size})`}
           description="Description text for this option."
           size={size}
         />
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

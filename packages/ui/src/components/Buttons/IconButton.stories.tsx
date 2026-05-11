@@ -1,7 +1,9 @@
+import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
 
 import { CloseButton, DeleteButton, EditButton, IconButton, TooltipIconButton } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack } from "../Layout";
 
 const meta: Meta<typeof IconButton> = {
@@ -38,17 +40,17 @@ export const Default: Story = {
 export const IconButtonSizes: Story = {
   name: "IconButton Sizes",
   render: () => (
-    <HStack gap="2">
-      {(["xs", "sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={button.variantMap.size}
+      renderPreview={(size) => (
         <IconButton
-          key={size}
           size={size}
           aria-label={`Search ${size}`}
         >
           <SearchIcon />
         </IconButton>
-      ))}
-    </HStack>
+      )}
+    />
   ),
 };
 

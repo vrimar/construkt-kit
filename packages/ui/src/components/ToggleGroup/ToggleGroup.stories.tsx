@@ -1,7 +1,8 @@
+import { toggleGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ToggleGroup } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/ToggleGroup",
@@ -54,10 +55,10 @@ export const Single: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="4">
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={toggleGroup.variantMap.size}
+      renderPreview={(size) => (
         <ToggleGroup.Root
-          key={size}
           defaultValue={["a"]}
           multiple
           size={size}
@@ -66,7 +67,7 @@ export const Sizes: Story = {
           <ToggleGroup.Item value="b">B</ToggleGroup.Item>
           <ToggleGroup.Item value="c">C</ToggleGroup.Item>
         </ToggleGroup.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

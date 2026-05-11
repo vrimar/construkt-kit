@@ -1,7 +1,9 @@
+import { checkbox } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Checkbox } from ".";
-import { HStack, Wrap } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Wrap } from "../Layout";
 
 const meta: Meta<typeof Checkbox> = {
   title: "Components/Checkbox",
@@ -34,11 +36,10 @@ export const Disabled: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="4">
-      <Checkbox size="sm">Small</Checkbox>
-      <Checkbox size="md">Medium</Checkbox>
-      <Checkbox size="lg">Large</Checkbox>
-    </HStack>
+    <SizePreviewTable
+      sizes={checkbox.variantMap.size}
+      renderPreview={(size) => <Checkbox size={size}>{size}</Checkbox>}
+    />
   ),
 };
 

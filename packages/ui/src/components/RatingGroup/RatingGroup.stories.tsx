@@ -1,7 +1,8 @@
+import { ratingGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RatingGroup } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/RatingGroup",
@@ -39,31 +40,19 @@ export const ReadOnly: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="4">
-      <RatingGroup.Root
-        count={5}
-        defaultValue={3}
-        size="sm"
-      >
-        <RatingGroup.Label>Small</RatingGroup.Label>
-        <RatingGroup.Control />
-      </RatingGroup.Root>
-      <RatingGroup.Root
-        count={5}
-        defaultValue={3}
-        size="md"
-      >
-        <RatingGroup.Label>Medium</RatingGroup.Label>
-        <RatingGroup.Control />
-      </RatingGroup.Root>
-      <RatingGroup.Root
-        count={5}
-        defaultValue={3}
-        size="lg"
-      >
-        <RatingGroup.Label>Large</RatingGroup.Label>
-        <RatingGroup.Control />
-      </RatingGroup.Root>
-    </VStack>
+    <SizePreviewTable
+      sizes={ratingGroup.variantMap.size}
+      renderPreview={(size) => (
+        <RatingGroup.Root
+          count={5}
+          defaultValue={3}
+          size={size}
+        >
+          <RatingGroup.Label>{size}</RatingGroup.Label>
+          <RatingGroup.Control />
+          <RatingGroup.HiddenInput />
+        </RatingGroup.Root>
+      )}
+    />
   ),
 };

@@ -1,8 +1,10 @@
+import { treeView } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
 
 import { TreeView, createTreeCollection } from ".";
-import { Box, Flex } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 interface Node {
   id: string;
@@ -256,14 +258,10 @@ export const WithCheckboxes: StoryObj = {
 
 export const Sizes: StoryObj = {
   render: () => (
-    <Flex
-      gap="6"
-      p="4"
-      align="flex-start"
-    >
-      {(["sm", "md"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={treeView.variantMap.size}
+      renderPreview={(size) => (
         <Box
-          key={size}
           minW="240px"
           border="1px solid"
           borderColor="border"
@@ -286,7 +284,7 @@ export const Sizes: StoryObj = {
             </TreeView.Tree>
           </TreeView.Root>
         </Box>
-      ))}
-    </Flex>
+      )}
+    />
   ),
 };

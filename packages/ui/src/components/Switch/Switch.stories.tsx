@@ -1,8 +1,9 @@
+import { switchRecipe } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoonIcon, SunIcon } from "lucide-react";
 
 import { Switch } from ".";
-import { HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof Switch> = {
   title: "Components/Switch",
@@ -35,11 +36,10 @@ export const Disabled: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="4">
-      <Switch size="sm">Small</Switch>
-      <Switch size="md">Medium</Switch>
-      <Switch size="lg">Large</Switch>
-    </HStack>
+    <SizePreviewTable
+      sizes={switchRecipe.variantMap.size}
+      renderPreview={(size) => <Switch size={size}>{size}</Switch>}
+    />
   ),
 };
 

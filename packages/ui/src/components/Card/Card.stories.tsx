@@ -1,3 +1,4 @@
+import { card } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Card } from ".";
@@ -31,7 +32,7 @@ export const Default: Story = {
 export const Variants: Story = {
   render: () => (
     <Wrap gap="4">
-      {(["elevated", "outline", "subtle"] as const).map((variant) => (
+      {card.variantMap.variant.map((variant) => (
         <Card.Root
           key={variant}
           variant={variant}

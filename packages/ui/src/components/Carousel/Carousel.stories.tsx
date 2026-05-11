@@ -1,8 +1,10 @@
+import { carousel } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Carousel } from ".";
-import { Center, VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Center } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Carousel",
@@ -48,14 +50,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="6"
-      p="4"
-      maxW="420px"
-    >
-      {(["md"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={carousel.variantMap.size}
+      renderPreview={(size) => (
         <Carousel.Root
-          key={size}
           slideCount={3}
           size={size}
         >
@@ -87,7 +85,7 @@ export const Sizes: Story = {
           </Carousel.ItemGroup>
           <Carousel.IndicatorGroup />
         </Carousel.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

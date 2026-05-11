@@ -1,7 +1,8 @@
+import { radioCardGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RadioCard } from ".";
-import { HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/RadioCard",
@@ -38,13 +39,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack
-      gap="6"
-      alignItems="flex-start"
-    >
-      {(["md"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={radioCardGroup.variantMap.size}
+      renderPreview={(size) => (
         <RadioCard.Root
-          key={size}
           defaultValue="starter"
           maxW="280px"
           size={size}
@@ -64,7 +62,7 @@ export const Sizes: Story = {
             </RadioCard.Item>
           ))}
         </RadioCard.Root>
-      ))}
-    </HStack>
+      )}
+    />
   ),
 };

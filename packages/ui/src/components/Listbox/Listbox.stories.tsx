@@ -1,10 +1,11 @@
+import { listbox } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Listbox, createListCollection } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { IconButton } from "../Buttons";
-import { Flex } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Listbox",
@@ -125,21 +126,18 @@ export const WithActions: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Flex
-      gap="10"
-      align="flex-start"
-      p="4"
-    >
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={listbox.variantMap.size}
+      pivot
+      renderPreview={(size) => (
         <Listbox
-          key={size}
           collection={countries}
-          label={size}
+          label="Countries"
           size={size}
           maxW="64"
         />
-      ))}
-    </Flex>
+      )}
+    />
   ),
 };
 

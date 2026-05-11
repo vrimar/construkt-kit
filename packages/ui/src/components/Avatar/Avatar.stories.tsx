@@ -1,7 +1,8 @@
+import { avatar } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Avatar } from ".";
-import { HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/Avatar",
@@ -41,15 +42,13 @@ export const WithIcon: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="2">
-      {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
-        <Avatar.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={avatar.variantMap.size}
+      renderPreview={(size) => (
+        <Avatar.Root size={size}>
           <Avatar.Fallback name="John Doe" />
         </Avatar.Root>
-      ))}
-    </HStack>
+      )}
+    />
   ),
 };

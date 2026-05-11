@@ -1,8 +1,9 @@
+import { dialog } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Dialog } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
-import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Dialog",
@@ -37,15 +38,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      alignItems="flex-start"
-      gap="3"
-    >
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
-        <Dialog.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={dialog.variantMap.size}
+      renderPreview={(size) => (
+        <Dialog.Root size={size}>
           <Dialog.Trigger asChild>
             <Button variant="outline">Open {size}</Button>
           </Dialog.Trigger>
@@ -63,8 +59,8 @@ export const Sizes: Story = {
             <Dialog.CloseTrigger />
           </Dialog.Content>
         </Dialog.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };
 

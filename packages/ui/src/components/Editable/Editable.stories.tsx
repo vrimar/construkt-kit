@@ -1,8 +1,9 @@
+import { editable } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Editable } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
-import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Editable",
@@ -50,14 +51,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      p="4"
-      maxW="400px"
-    >
-      {(["2xs", "xs", "sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={editable.variantMap.size}
+      renderPreview={(size) => (
         <Editable.Root
-          key={size}
           defaultValue={`Editable value (${size})`}
           size={size}
         >
@@ -67,7 +64,7 @@ export const Sizes: Story = {
             <Editable.Preview />
           </Editable.Area>
         </Editable.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

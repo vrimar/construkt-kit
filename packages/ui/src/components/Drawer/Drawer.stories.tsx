@@ -1,8 +1,9 @@
+import { drawer } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Drawer } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
-import { VStack } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Drawer",
@@ -35,15 +36,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      alignItems="flex-start"
-      gap="3"
-    >
-      {(["xs", "sm", "md", "lg", "xl", "full"] as const).map((size) => (
-        <Drawer.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={drawer.variantMap.size}
+      renderPreview={(size) => (
+        <Drawer.Root size={size}>
           <Drawer.Trigger asChild>
             <Button variant="outline">Open {size}</Button>
           </Drawer.Trigger>
@@ -59,8 +55,8 @@ export const Sizes: Story = {
             <Drawer.CloseTrigger />
           </Drawer.Content>
         </Drawer.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };
 

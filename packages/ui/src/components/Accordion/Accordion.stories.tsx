@@ -1,7 +1,9 @@
+import { accordion } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Accordion } from ".";
-import { Box, HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Accordion",
@@ -69,13 +71,10 @@ export const Multiple: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack
-      gap="6"
-      p="4"
-    >
-      {(["sm", "md"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={accordion.variantMap.size}
+      renderPreview={(size) => (
         <Accordion.Root
-          key={size}
           defaultValue={["item-1"]}
           collapsible
           size={size}
@@ -83,7 +82,7 @@ export const Sizes: Story = {
         >
           <Accordion.Item value="item-1">
             <Accordion.ItemTrigger>
-              Item ({size})
+              First Item
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
@@ -100,7 +99,7 @@ export const Sizes: Story = {
             </Accordion.ItemContent>
           </Accordion.Item>
         </Accordion.Root>
-      ))}
-    </HStack>
+      )}
+    />
   ),
 };

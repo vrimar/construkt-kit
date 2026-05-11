@@ -1,6 +1,9 @@
+import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Trash2 } from "lucide-react";
 
 import { Button } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack, Wrap } from "../Layout";
 
 const meta: Meta<typeof Button> = {
@@ -43,11 +46,19 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="2">
-      <Button size="xs">XSmall</Button>
-      <Button size="sm">Small</Button>
-      <Button size="md">Medium</Button>
-      <Button size="lg">Large</Button>
-    </HStack>
+    <SizePreviewTable
+      sizes={button.variantMap.size}
+      renderPreview={(size) => (
+        <HStack>
+          <Button size={size}>Label</Button>
+          <Button
+            size={size}
+            leftIcon={<Trash2 />}
+          >
+            Label
+          </Button>
+        </HStack>
+      )}
+    />
   ),
 };

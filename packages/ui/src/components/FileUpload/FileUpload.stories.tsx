@@ -1,8 +1,10 @@
+import { fileUpload } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FileUpload } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
-import { Box, Center, VStack } from "../Layout";
+import { Box, Center } from "../Layout";
 
 const meta: Meta = {
   title: "Components/FileUpload",
@@ -30,13 +32,10 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      maxW="400px"
-    >
-      {(["md"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={fileUpload.variantMap.size}
+      renderPreview={(size) => (
         <FileUpload.Root
-          key={size}
           maxFiles={3}
           size={size}
         >
@@ -48,8 +47,8 @@ export const Sizes: Story = {
             <FileUpload.Items />
           </FileUpload.ItemGroup>
         </FileUpload.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };
 

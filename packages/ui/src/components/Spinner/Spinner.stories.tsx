@@ -1,7 +1,8 @@
+import { spinner } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Spinner } from ".";
-import { HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof Spinner> = {
   title: "Components/Spinner",
@@ -16,13 +17,10 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="4">
-      <Spinner size="xs" />
-      <Spinner size="sm" />
-      <Spinner size="md" />
-      <Spinner size="lg" />
-      <Spinner size="xl" />
-    </HStack>
+    <SizePreviewTable
+      sizes={spinner.variantMap.size}
+      renderPreview={(size) => <Spinner size={size} />}
+    />
   ),
 };
 

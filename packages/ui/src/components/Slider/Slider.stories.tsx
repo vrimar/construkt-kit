@@ -1,7 +1,8 @@
+import { slider } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Slider } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof Slider> = {
   title: "Components/Slider",
@@ -32,22 +33,15 @@ export const Range: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="6"
-      maxW="300px"
-    >
-      <Slider
-        defaultValue={[30]}
-        size="sm"
-      />
-      <Slider
-        defaultValue={[50]}
-        size="md"
-      />
-      <Slider
-        defaultValue={[70]}
-        size="lg"
-      />
-    </VStack>
+    <SizePreviewTable
+      sizes={slider.variantMap.size}
+      renderPreview={(size) => (
+        <Slider
+          defaultValue={[50]}
+          size={size}
+          width="200px"
+        />
+      )}
+    />
   ),
 };

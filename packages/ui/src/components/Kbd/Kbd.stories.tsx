@@ -1,6 +1,8 @@
+import { kbd } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Kbd } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box, HStack } from "../Layout";
 
 const meta: Meta<typeof Kbd> = {
@@ -33,10 +35,9 @@ export const Combinations: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="2">
-      <Kbd size="sm">sm</Kbd>
-      <Kbd size="md">md</Kbd>
-      <Kbd size="lg">lg</Kbd>
-    </HStack>
+    <SizePreviewTable
+      sizes={kbd.variantMap.size}
+      renderPreview={(size) => <Kbd size={size}>{size}</Kbd>}
+    />
   ),
 };

@@ -1,8 +1,10 @@
+import { menu } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CopyIcon, PencilIcon, ShareIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Menu } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
 import { Flex } from "../Layout";
 
@@ -89,20 +91,22 @@ export const WithGroups: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Flex
-      gap="20"
-      align="flex-start"
-      p="4"
-    >
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={menu.variantMap.size}
+      pivot
+      renderPreview={(size) => (
         <Menu.Root
-          key={size}
           open
           onOpenChange={() => {}}
           size={size}
         >
           <Menu.Trigger asChild>
-            <Button variant="outline">{size}</Button>
+            <Button
+              size={size}
+              variant="outline"
+            >
+              Actions
+            </Button>
           </Menu.Trigger>
           <Menu.Content portalled={false}>
             <Menu.Item value="edit">Edit</Menu.Item>
@@ -111,8 +115,8 @@ export const Sizes: Story = {
             <Menu.Item value="delete">Delete</Menu.Item>
           </Menu.Content>
         </Menu.Root>
-      ))}
-    </Flex>
+      )}
+    />
   ),
 };
 

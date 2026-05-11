@@ -1,7 +1,8 @@
+import { combobox } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Combobox, type ComboboxRootProps, useListCollection } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/Combobox",
@@ -77,19 +78,14 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      p="4"
-      maxW="320px"
-    >
-      {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={combobox.variantMap.size}
+      renderPreview={(size) => (
         <FrameworkCombobox
-          key={size}
-          label={size}
           placeholder="Select a framework..."
           size={size}
         />
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

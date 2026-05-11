@@ -1,7 +1,9 @@
+import { icon } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { StarIcon } from "lucide-react";
 
 import { Icon } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack } from "../Layout";
 
 const meta: Meta<typeof Icon> = {
@@ -25,18 +27,13 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack
-      gap="4"
-      p="4"
-    >
-      {(["2xs", "xs", "sm", "md", "lg", "xl"] as const).map((size) => (
-        <Icon
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={icon.variantMap.size}
+      renderPreview={(size) => (
+        <Icon size={size}>
           <StarIcon />
         </Icon>
-      ))}
-    </HStack>
+      )}
+    />
   ),
 };

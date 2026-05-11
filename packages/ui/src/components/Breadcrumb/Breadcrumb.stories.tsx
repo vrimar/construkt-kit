@@ -1,7 +1,8 @@
+import { breadcrumb } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Breadcrumb } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta = {
   title: "Components/Breadcrumb",
@@ -51,15 +52,10 @@ export const WithEllipsis: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="4"
-      p="4"
-    >
-      {(["xs", "sm", "md", "lg"] as const).map((size) => (
-        <Breadcrumb.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={breadcrumb.variantMap.size}
+      renderPreview={(size) => (
+        <Breadcrumb.Root size={size}>
           <Breadcrumb.List>
             <Breadcrumb.Item>
               <Breadcrumb.Link href="#">Home</Breadcrumb.Link>
@@ -74,7 +70,7 @@ export const Sizes: Story = {
             </Breadcrumb.Item>
           </Breadcrumb.List>
         </Breadcrumb.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

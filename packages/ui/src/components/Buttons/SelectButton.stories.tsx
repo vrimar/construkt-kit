@@ -1,6 +1,8 @@
+import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { SelectButton } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { VStack } from "../Layout";
 
 const meta: Meta<typeof SelectButton> = {
@@ -33,19 +35,16 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="2"
-      maxW="300px"
-    >
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={button.variantMap.size}
+      renderPreview={(size) => (
         <SelectButton
-          key={size}
           size={size}
           label={`Selected value (${size})`}
           hasValue
           onClear={() => {}}
         />
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

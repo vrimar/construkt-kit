@@ -1,9 +1,11 @@
+import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontalIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { fn } from "storybook/test";
 
 import { Select } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
 const meta: Meta = {
@@ -33,6 +35,7 @@ interface ControlledSingleSelectStoryProps {
   emptySelectionLabel?: string;
   searchPlaceholder?: string;
   renderActions?: (item: Fruit) => ReactNode;
+  triggerProps?: ComponentProps<typeof Select>["triggerProps"];
 }
 
 interface ControlledMultiSelectStoryProps {
@@ -46,6 +49,7 @@ function ControlledSingleSelectStory({
   emptySelectionLabel,
   renderActions,
   searchPlaceholder,
+  triggerProps,
 }: ControlledSingleSelectStoryProps) {
   const [selected, setSelected] = useState<number | undefined>(initialSelected);
 
@@ -65,6 +69,7 @@ function ControlledSingleSelectStory({
         emptySelectionLabel={emptySelectionLabel}
         searchPlaceholder={searchPlaceholder}
         renderActions={renderActions}
+        triggerProps={triggerProps}
       />
     </Box>
   );
@@ -150,6 +155,15 @@ function ControlledCompoundStory() {
 }
 
 // --- Simple API ---
+
+export const Sizes: Story = {
+  render: () => (
+    <SizePreviewTable
+      sizes={button.variantMap.size}
+      renderPreview={(size) => <ControlledSingleSelectStory triggerProps={{ size }} />}
+    />
+  ),
+};
 
 export const Default: Story = {
   render: () => <ControlledSingleSelectStory />,

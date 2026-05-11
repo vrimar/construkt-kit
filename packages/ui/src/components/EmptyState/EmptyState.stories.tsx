@@ -1,7 +1,9 @@
+import { emptyState } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { EmptyState } from ".";
-import { Box, Wrap } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/EmptyState",
@@ -44,22 +46,17 @@ export const WithIndicator: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Wrap
-      gap="8"
-      p="4"
-    >
-      {(["sm", "md", "lg"] as const).map((size) => (
-        <EmptyState.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={emptyState.variantMap.size}
+      renderPreview={(size) => (
+        <EmptyState.Root size={size}>
           <EmptyState.Content>
             <EmptyState.Indicator>📭</EmptyState.Indicator>
             <EmptyState.Title>No results ({size})</EmptyState.Title>
             <EmptyState.Description>Try adjusting your filters.</EmptyState.Description>
           </EmptyState.Content>
         </EmptyState.Root>
-      ))}
-    </Wrap>
+      )}
+    />
   ),
 };

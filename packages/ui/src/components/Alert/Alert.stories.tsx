@@ -1,6 +1,8 @@
+import { alert } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Alert } from ".";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Grid } from "../Layout";
 
 const meta: Meta<typeof Alert> = {
@@ -40,18 +42,18 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Grid gap="3">
-      {(["sm", "md", "lg"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={alert.variantMap.size}
+      renderPreview={(size) => (
         <Alert
-          key={size}
           size={size}
           status="info"
           title={`Alert ${size}`}
         >
           Size preview for the {size} alert variant.
         </Alert>
-      ))}
-    </Grid>
+      )}
+    />
   ),
 };
 

@@ -1,7 +1,8 @@
+import { numberInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { NumberInput } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof NumberInput> = {
   title: "Components/NumberInput",
@@ -43,24 +44,20 @@ export const WithMinMax: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack
-      gap="3"
-      p="4"
-      maxW="320px"
-    >
-      {(["sm", "md", "lg", "xl"] as const).map((size) => (
+    <SizePreviewTable
+      sizes={numberInput.variantMap.size}
+      renderPreview={(size) => (
         <NumberInput
-          key={size}
           defaultValue="10"
           min={0}
           max={100}
           size={size}
         >
-          <NumberInput.Label>{size}</NumberInput.Label>
+          <NumberInput.Label>Value</NumberInput.Label>
           <NumberInput.Field />
           <NumberInput.Control />
         </NumberInput>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

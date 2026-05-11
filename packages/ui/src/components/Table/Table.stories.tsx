@@ -1,7 +1,9 @@
+import { table } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Table } from ".";
-import { Box, VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Table",
@@ -74,12 +76,10 @@ export const WithCaption: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="6">
-      {(["sm", "md"] as const).map((size) => (
-        <Table.Root
-          key={size}
-          size={size}
-        >
+    <SizePreviewTable
+      sizes={table.variantMap.size}
+      renderPreview={(size) => (
+        <Table.Root size={size}>
           <Table.Head>
             <Table.Row>
               <Table.Header>Size: {size}</Table.Header>
@@ -93,7 +93,7 @@ export const Sizes: Story = {
             </Table.Row>
           </Table.Body>
         </Table.Root>
-      ))}
-    </VStack>
+      )}
+    />
   ),
 };

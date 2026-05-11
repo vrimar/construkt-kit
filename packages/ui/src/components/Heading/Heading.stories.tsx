@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Heading } from ".";
-import { VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+
+const headingLevels = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
+type HeadingLevel = (typeof headingLevels)[number];
 
 const meta: Meta<typeof Heading> = {
   title: "Components/Heading",
@@ -19,14 +22,10 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="2">
-      <Heading as="h6">Heading h6</Heading>
-      <Heading as="h5">Heading h5</Heading>
-      <Heading as="h4">Heading h4</Heading>
-      <Heading as="h3">Heading h3</Heading>
-      <Heading as="h2">Heading h2</Heading>
-      <Heading as="h1">Heading h1</Heading>
-    </VStack>
+    <SizePreviewTable<HeadingLevel>
+      sizes={[...headingLevels]}
+      renderPreview={(level) => <Heading as={level}>{level.toUpperCase()}</Heading>}
+    />
   ),
 };
 

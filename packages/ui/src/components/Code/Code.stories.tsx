@@ -1,7 +1,9 @@
+import { code } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Code } from ".";
-import { HStack, Wrap } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Wrap } from "../Layout";
 
 const meta: Meta<typeof Code> = {
   title: "Components/Code",
@@ -31,11 +33,9 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="2">
-      <Code size="xs">xs</Code>
-      <Code size="sm">sm</Code>
-      <Code size="md">md</Code>
-      <Code size="lg">lg</Code>
-    </HStack>
+    <SizePreviewTable
+      sizes={code.variantMap.size}
+      renderPreview={(size) => <Code size={size}>{size}</Code>}
+    />
   ),
 };

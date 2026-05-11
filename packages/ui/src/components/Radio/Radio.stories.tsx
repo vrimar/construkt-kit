@@ -1,7 +1,8 @@
+import { radioGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Radio, RadioGroup } from ".";
-import { HStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
 const meta: Meta<typeof Radio> = {
   title: "Components/Radio",
@@ -24,25 +25,16 @@ export const Default: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <HStack gap="6">
-      <RadioGroup
-        defaultValue="a"
-        size="sm"
-      >
-        <Radio value="a">Small</Radio>
-      </RadioGroup>
-      <RadioGroup
-        defaultValue="a"
-        size="md"
-      >
-        <Radio value="a">Medium</Radio>
-      </RadioGroup>
-      <RadioGroup
-        defaultValue="a"
-        size="lg"
-      >
-        <Radio value="a">Large</Radio>
-      </RadioGroup>
-    </HStack>
+    <SizePreviewTable
+      sizes={radioGroup.variantMap.size}
+      renderPreview={(size) => (
+        <RadioGroup
+          defaultValue="a"
+          size={size}
+        >
+          <Radio value="a">{size}</Radio>
+        </RadioGroup>
+      )}
+    />
   ),
 };

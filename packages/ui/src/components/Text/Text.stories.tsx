@@ -1,7 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Text } from ".";
-import { Box, VStack } from "../Layout";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Box } from "../Layout";
+
+const textSizes = ["xs", "sm", "md", "lg", "xl"] as const;
+type TextSize = (typeof textSizes)[number];
 
 const meta: Meta<typeof Text> = {
   title: "Components/Text",
@@ -19,13 +23,12 @@ export const Default: Story = {};
 
 export const Sizes: Story = {
   render: () => (
-    <VStack gap="2">
-      <Text textStyle="xs">Extra Small</Text>
-      <Text textStyle="sm">Small</Text>
-      <Text textStyle="md">Medium</Text>
-      <Text textStyle="lg">Large</Text>
-      <Text textStyle="xl">Extra Large</Text>
-    </VStack>
+    <SizePreviewTable<TextSize>
+      sizes={[...textSizes]}
+      renderPreview={(size) => (
+        <Text textStyle={size}>The quick brown fox jumps over the lazy dog.</Text>
+      )}
+    />
   ),
 };
 
