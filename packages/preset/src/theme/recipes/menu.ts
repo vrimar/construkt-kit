@@ -12,7 +12,6 @@ export const menu = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       maxH: "min(var(--available-height), {sizes.96})",
-      minWidth: "max(var(--reference-width), {sizes.40})",
       outline: "0",
       overflow: "hidden",
       overflowY: "auto",
@@ -73,39 +72,63 @@ export const menu = defineSlotRecipe({
   defaultVariants: {
     size: "md",
   },
-
   variants: {
     size: {
       xs: {
-        content: { p: "1", gap: "0.5", textStyle: "xs" },
+        content: {
+          p: "1",
+          gap: "0.5",
+          textStyle: "xs",
+          minWidth: "max(var(--reference-width), {sizes.28})",
+        },
         item: { px: "1", minH: "7", gap: "2", _icon: { boxSize: "3.5" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "1", height: "7" },
         separator: { mx: "-1", my: "0.5" },
       },
       sm: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
+        content: {
+          p: "1",
+          gap: "0.5",
+          textStyle: "sm",
+          minWidth: "max(var(--reference-width), {sizes.32})",
+        },
         item: { px: "1.5", minH: "8", gap: "2", _icon: { boxSize: "4" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "1.5", height: "8" },
         separator: { mx: "-1.5", my: "0.5" },
       },
       md: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
+        content: {
+          p: "1",
+          gap: "0.5",
+          textStyle: "sm",
+          minWidth: "max(var(--reference-width), {sizes.40})",
+        },
         item: { px: "2", minH: "9", gap: "2", _icon: { boxSize: "4" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "2", height: "9" },
         separator: { mx: "-2", my: "0.5" },
       },
       lg: {
-        content: { p: "1", gap: "0.5", textStyle: "md" },
+        content: {
+          p: "1",
+          gap: "0.5",
+          textStyle: "md",
+          minWidth: "max(var(--reference-width), {sizes.48})",
+        },
         item: { px: "2.5", minH: "10", gap: "2", _icon: { boxSize: "4.5" } },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { px: "2.5", height: "10" },
         separator: { mx: "-2.5", my: "0.5" },
       },
       xl: {
-        content: { p: "1", gap: "1", textStyle: "lg" },
+        content: {
+          p: "1",
+          gap: "1",
+          textStyle: "lg",
+          minWidth: "max(var(--reference-width), {sizes.56})",
+        },
         item: { px: "3", minH: "11", gap: "3", _icon: { boxSize: "5" } },
         itemGroup: { gap: "1" },
         itemGroupLabel: { px: "3", height: "11" },
