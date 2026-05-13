@@ -32,7 +32,7 @@ export interface TooltipProps extends Omit<RootProps, "content"> {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-export const Tooltip = ({
+const TooltipComponent = ({
   ref,
   showArrow,
   children,
@@ -76,3 +76,12 @@ export const Tooltip = ({
     </Root>
   );
 };
+
+export const Tooltip = Object.assign(TooltipComponent, {
+  Root,
+  Arrow,
+  ArrowTip,
+  Content,
+  Positioner,
+  Trigger,
+});

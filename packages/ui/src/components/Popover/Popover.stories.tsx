@@ -31,6 +31,26 @@ export const Default: Story = {
   ),
 };
 
+export const TriggerWithTooltip: Story = {
+  render: () => (
+    <Popover.Root>
+      <Popover.Trigger
+        tooltip="Show details"
+        asChild
+      >
+        <Button variant="outline">Open Popover</Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        <Popover.Header>
+          <Popover.Title>Popover Title</Popover.Title>
+        </Popover.Header>
+        <Popover.Body>This trigger also shows a tooltip on hover.</Popover.Body>
+        <Popover.CloseTrigger />
+      </Popover.Content>
+    </Popover.Root>
+  ),
+};
+
 export const WithArrow: Story = {
   render: () => (
     <Popover.Root>

@@ -1,5 +1,5 @@
 import { ark } from "@ark-ui/react/factory";
-import { Popover as ArkPopover } from "@ark-ui/react/popover";
+import { Popover as ArkPopover, usePopoverContext } from "@ark-ui/react/popover";
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { popover } from "@construkt-kit/styled-system/recipes";
@@ -7,6 +7,7 @@ import type { ComponentProps, RefObject } from "react";
 
 import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
+import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(popover);
 
@@ -29,7 +30,7 @@ export const Description = withContext(ArkPopover.Description, "description");
 export const Indicator = withContext(ArkPopover.Indicator, "indicator");
 export const Positioner = withContext(ArkPopover.Positioner, "positioner");
 export const Title = withContext(ArkPopover.Title, "title");
-export const Trigger = withContext(ArkPopover.Trigger, "trigger");
+const StyledTrigger = withContext(ArkPopover.Trigger, "trigger");
 
 export const Body = withContext(ark.div, "body");
 export const Header = withContext(ark.div, "header");
@@ -85,6 +86,40 @@ function PopoverArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) 
     />
   );
 }
+
+export interface PopoverTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
+
+function PopoverTrigger({
+  ref,
+  tooltip,
+  tooltipProps,
+  children,
+  ...rest
+}: WithRef<PopoverTriggerProps, HTMLButtonElement>) {
+  const popoverApi = usePopoverContext();
+  const trigger = (
+    <StyledTrigger
+      ref={ref}
+      {...rest}
+    >
+      {children}
+    </StyledTrigger>
+  );
+
+  if (tooltip == null || tooltip === false || tooltipProps?.disabled) return trigger;
+
+  return (
+    <TriggerTooltip
+      triggerId={popoverApi.getTriggerProps({ value: rest.value ?? "" }).id ?? ""}
+      tooltip={tooltip}
+      tooltipProps={tooltipProps}
+    >
+      {trigger}
+    </TriggerTooltip>
+  );
+}
+
+export const Trigger = PopoverTrigger;
 
 function PopoverCloseTrigger({
   ref,

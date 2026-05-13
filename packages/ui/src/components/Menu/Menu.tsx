@@ -1,4 +1,4 @@
-import { Menu as ArkMenu, useMenuItemContext } from "@ark-ui/react/menu";
+import { Menu as ArkMenu, useMenuContext, useMenuItemContext } from "@ark-ui/react/menu";
 import { Portal } from "@ark-ui/react/portal";
 import { Box, type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { menu } from "@construkt-kit/styled-system/recipes";
@@ -6,6 +6,7 @@ import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode, RefObject } from "react";
 
 import type { WithRef } from "../../types";
+import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(menu);
 
@@ -32,7 +33,7 @@ export const Positioner = withContext(ArkMenu.Positioner, "positioner");
 export const RadioItem = withContext(ArkMenu.RadioItem, "item");
 export const RadioItemGroup = withContext(ArkMenu.RadioItemGroup, "itemGroup");
 export const Separator = withContext(ArkMenu.Separator, "separator");
-export const Trigger = withContext(ArkMenu.Trigger, "trigger");
+const StyledTrigger = withContext(ArkMenu.Trigger, "trigger");
 export const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
 
 export {
@@ -72,6 +73,40 @@ function MenuRoot({ placement, ...props }: MenuRootProps) {
     />
   );
 }
+
+export interface MenuTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
+
+function MenuTrigger({
+  ref,
+  tooltip,
+  tooltipProps,
+  children,
+  ...rest
+}: WithRef<MenuTriggerProps, HTMLButtonElement>) {
+  const menuApi = useMenuContext();
+  const trigger = (
+    <StyledTrigger
+      ref={ref}
+      {...rest}
+    >
+      {children}
+    </StyledTrigger>
+  );
+
+  if (tooltip == null || tooltip === false || tooltipProps?.disabled) return trigger;
+
+  return (
+    <TriggerTooltip
+      triggerId={menuApi.getTriggerProps({ value: rest.value ?? "" }).id ?? ""}
+      tooltip={tooltip}
+      tooltipProps={tooltipProps}
+    >
+      {trigger}
+    </TriggerTooltip>
+  );
+}
+
+export const Trigger = MenuTrigger;
 
 export interface MenuContentProps extends ComponentProps<typeof Content> {
   portalled?: boolean;

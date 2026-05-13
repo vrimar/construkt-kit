@@ -49,12 +49,18 @@ export {
   type MenuContentProps,
   type MenuItemProps,
   type MenuRootProps,
+  type MenuTriggerProps,
   type MenuTriggerItemProps,
 } from "./Menu";
 export { NumberInput, type NumberInputProps } from "./NumberInput";
 export * from "./Pagination";
 export * from "./PinInput";
-export { Popover, type PopoverContentProps, type PopoverRootProps } from "./Popover";
+export {
+  Popover,
+  type PopoverContentProps,
+  type PopoverRootProps,
+  type PopoverTriggerProps,
+} from "./Popover";
 export * from "./Progress";
 export { Radio, RadioGroup, type RadioProps } from "./Radio";
 export * from "./RadioCard";

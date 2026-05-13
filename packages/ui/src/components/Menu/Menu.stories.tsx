@@ -32,6 +32,25 @@ export const Default: Story = {
   ),
 };
 
+export const TriggerWithTooltip: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger
+        tooltip="Show actions"
+        asChild
+      >
+        <Button variant="outline">Open Menu</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item value="edit">Edit</Menu.Item>
+        <Menu.Item value="duplicate">Duplicate</Menu.Item>
+        <Menu.Separator />
+        <Menu.Item value="delete">Delete</Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
 export const WithIcons: Story = {
   render: () => (
     <Menu.Root>
