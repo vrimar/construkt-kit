@@ -93,7 +93,7 @@ export const input = {
       },
     },
     size: {
-      "2xs": { textStyle: "xs", px: "1.5", "--input-height": "sizes.7" },
+      "2xs": { textStyle: "xs", px: "1.5", "--input-height": "sizes.6" },
       xs: { textStyle: "sm", px: "2", "--input-height": "sizes.8" },
       sm: { textStyle: "sm", px: "2.5", "--input-height": "sizes.9" },
       md: { textStyle: "md", px: "3", "--input-height": "sizes.10" },
