@@ -1,14 +1,24 @@
 import { Flex, type FlexProps, Stack } from "@construkt-kit/styled-system/jsx";
 
-import { Spinner, type SpinnerProps } from "../Spinner";
+import { Spinner } from "../Spinner";
 import { Text } from "../Text";
+
+const tipFontSizeMap = {
+  inherit: undefined,
+  xs: "xs",
+  sm: "xs",
+  md: "sm",
+  lg: "sm",
+  xl: "md",
+  "2xl": "lg",
+} as const;
 
 export interface LoadingOverlayProps extends Omit<FlexProps, "fill"> {
   isActive: boolean;
   fill?: boolean;
   tip?: string;
   relative?: boolean;
-  size?: SpinnerProps["size"];
+  size?: keyof typeof tipFontSizeMap;
 }
 
 export const LoadingOverlay = ({
@@ -49,7 +59,14 @@ export const LoadingOverlay = ({
           color="brand.fg"
           size={size}
         />
-        {tip && <Text color="brand.fg">{tip}</Text>}
+        {tip && (
+          <Text
+            color="brand.fg"
+            fontSize={tipFontSizeMap[size]}
+          >
+            {tip}
+          </Text>
+        )}
       </Stack>
     </Flex>
   );
