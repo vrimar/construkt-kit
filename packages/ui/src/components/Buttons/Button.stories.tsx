@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
-import { HStack, Wrap } from "../Layout";
+import { HStack, Stack, Wrap } from "../Layout";
 
 const meta: Meta<typeof Button> = {
   title: "Components/Buttons/Button",
@@ -41,6 +41,43 @@ export const Variants: Story = {
       <Button variant="outline">Outline</Button>
       <Button variant="plain">Plain</Button>
     </Wrap>
+  ),
+};
+
+export const Colors: Story = {
+  render: () => (
+    <Wrap gap="2">
+      <Button>Neutral</Button>
+      <Button colorPalette="brand">Brand</Button>
+      <Button colorPalette="success">Success</Button>
+      <Button colorPalette="danger">Danger</Button>
+    </Wrap>
+  ),
+};
+
+const COLORS = ["neutral", "brand", "success", "danger"] as const;
+const VARIANTS = ["solid", "surface", "subtle", "outline", "plain"] as const;
+
+export const ColorVariants: Story = {
+  render: () => (
+    <Stack gap="2">
+      {COLORS.map((colorPalette) => (
+        <Wrap
+          key={colorPalette}
+          gap="2"
+        >
+          {VARIANTS.map((variant) => (
+            <Button
+              key={variant}
+              colorPalette={colorPalette}
+              variant={variant}
+            >
+              {colorPalette}
+            </Button>
+          ))}
+        </Wrap>
+      ))}
+    </Stack>
   ),
 };
 

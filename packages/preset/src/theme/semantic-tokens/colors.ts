@@ -62,6 +62,15 @@ function colorPalette(color: string) {
   };
 }
 
+/**
+ * Status/action palette: a full color palette plus a flat DEFAULT so the name
+ * resolves both as a bare color (`color: "success"`) and as a `colorPalette`
+ * (`colorPalette="success"`, used by recipes like button/badge).
+ */
+function statusPalette(color: string) {
+  return { DEFAULT: tv(`{colors.${color}.500}`, `{colors.${color}.400}`), ...colorPalette(color) };
+}
+
 const neutral = colorPalette("slate");
 neutral.surface.bg.DEFAULT = tv("white", "{colors.slate.800}");
 
@@ -103,11 +112,13 @@ export const colors = defineSemanticTokens.colors({
     success: tv("{colors.green.500}", "{colors.green.400}"),
     info: tv("{colors.blue.500}", "{colors.blue.400}"),
   },
-  // Status color aliases (general-purpose, usable on any CSS color property)
-  error: tv("{colors.red.500}", "{colors.red.400}"),
-  warning: tv("{colors.orange.500}", "{colors.orange.400}"),
-  success: tv("{colors.green.500}", "{colors.green.400}"),
-  info: tv("{colors.blue.500}", "{colors.blue.400}"),
+  // Status/action color aliases — full palettes usable both as a bare color
+  // (`color: "success"`) and as a `colorPalette` (`colorPalette="danger"`).
+  error: statusPalette("red"),
+  warning: statusPalette("orange"),
+  success: statusPalette("green"),
+  info: statusPalette("blue"),
+  danger: statusPalette("red"),
   /**
    * Neutral palette — the default "chrome" color for controls, surfaces, and
    * containers.  Recipes reference `neutral.*` so the neutral hue can be
