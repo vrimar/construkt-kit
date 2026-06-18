@@ -20,22 +20,16 @@
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "@construkt-kit/config": "workspace:*",
-    "@typescript/native-preview": "7.0.0-dev.20260421.2",
+    "@typescript/native-preview": "7.0.0-dev.20260617.2",
     "dotenv-cli": "^11.0.0",
-    "oxfmt": "^0.46.0",
-    "oxlint": "^1.61.0",
-    "oxlint-tsgolint": "^0.21.1",
-    "turbo": "^2.9.6"
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "oxlint-tsgolint": "^0.23.0",
+    "turbo": "^2.9.18"
   },
   "engines": {
     "node": ">=22.18",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.33.0",
-  "pnpm": {
-    "overrides": {
-      "pkg-types": "2.3.1",
-      "ts-evaluator": "2.0.0"
-    }
-  }
+  "packageManager": "pnpm@11.7.0"
 }

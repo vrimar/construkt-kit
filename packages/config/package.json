@@ -64,21 +64,21 @@
     "dev": "tsdown --watch"
   },
   "devDependencies": {
-    "tsdown": "^0.21.9"
+    "tsdown": "^0.22.3"
   },
   "dependencies": {
-    "@kubb/core": "^4.37.2",
-    "@kubb/plugin-client": "^4.37.2",
-    "@kubb/plugin-oas": "^4.37.2",
-    "@kubb/plugin-react-query": "^4.37.2",
-    "@kubb/plugin-ts": "^4.37.2",
-    "@playwright/test": "^1.59.1",
-    "@vitejs/plugin-react": "^6.0.1",
-    "vite": "^8.0.9",
-    "vite-plugin-checker": "^0.13.0"
+    "@kubb/core": "^4.38.1",
+    "@kubb/plugin-client": "^4.38.1",
+    "@kubb/plugin-oas": "^4.38.1",
+    "@kubb/plugin-react-query": "^4.38.1",
+    "@kubb/plugin-ts": "^4.38.1",
+    "@playwright/test": "^1.61.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.16",
+    "vite-plugin-checker": "^0.14.4"
   },
   "peerDependencies": {
-    "oxfmt": "^0.46.0",
+    "oxfmt": "^0.55.0",
     "oxlint": "^1.61.0"
   }
 }

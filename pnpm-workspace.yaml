@@ -1,3 +1,15 @@
 packages:
   - 'packages/*'
   - 'apps/*'
+
+allowBuilds:
+  es5-ext: false
+  esbuild: true
+  msw: false
+
+# pnpm 11 enables a supply-chain delay by default; disabled to allow latest releases
+minimumReleaseAge: 0
+
+overrides:
+  pkg-types: 2.3.1
+  ts-evaluator: 2.0.0

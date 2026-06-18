@@ -45,9 +45,9 @@
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
-    "@pandacss/dev": "^1.10.0",
-    "@types/react": "^19.2.14",
-    "react": "^19.2.5"
+    "@pandacss/dev": "^1.11.3",
+    "@types/react": "^19.2.17",
+    "react": "^19.2.7"
   },
   "peerDependencies": {
     "react": "^19.0.0"
