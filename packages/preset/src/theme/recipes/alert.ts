@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlIcon, controlPx, controlText } from "./control-size";
+
 export const alert = defineSlotRecipe({
   className: "alert",
   slots: ["root", "content", "description", "indicator", "title"],
@@ -39,40 +41,40 @@ export const alert = defineSlotRecipe({
     size: {
       sm: {
         root: {
-          gap: "2",
-          p: "3",
-          textStyle: "xs",
+          gap: controlGap("md"),
+          p: controlPx("md"),
+          ...controlText("xs"),
         },
         indicator: {
           _icon: {
-            width: "4",
-            height: "4",
+            width: controlIcon("md"),
+            height: controlIcon("md"),
           },
         },
       },
       md: {
         root: {
-          gap: "3",
-          p: "4",
-          textStyle: "sm",
+          gap: controlGap("2xl"),
+          p: controlPx("xl"),
+          ...controlText("sm"),
         },
         indicator: {
           _icon: {
-            width: "5",
-            height: "5",
+            width: controlIcon("lg"),
+            height: controlIcon("lg"),
           },
         },
       },
       lg: {
         root: {
           gap: "4",
-          p: "4",
-          textStyle: "md",
+          p: controlPx("xl"),
+          ...controlText("lg"),
         },
         indicator: {
           _icon: {
-            width: "6",
-            height: "6",
+            width: controlIcon("2xl"),
+            height: controlIcon("2xl"),
           },
         },
       },

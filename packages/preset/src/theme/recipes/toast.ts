@@ -1,6 +1,8 @@
 import { toastAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlText, surface } from "./control-size";
+
 export const toast = defineSlotRecipe({
   className: "toast",
   jsx: ["Toaster", /Toast\.+/],
@@ -12,12 +14,12 @@ export const toast = defineSlotRecipe({
       borderRadius: "lg",
       boxShadow: "lg",
       display: "flex",
-      gap: "4",
+      gap: surface("1rem"),
       height: "var(--height)",
       minWidth: "sm",
       opacity: "var(--opacity)",
       overflowWrap: "anywhere",
-      p: "4",
+      p: surface("1rem"),
       position: "relative",
       scale: "var(--scale)",
       transitionDuration: "slow",
@@ -46,17 +48,17 @@ export const toast = defineSlotRecipe({
     title: {
       color: "fg",
       fontWeight: "medium",
-      textStyle: "sm",
+      ...controlText("sm"),
     },
     description: {
       color: "fg.muted",
-      textStyle: "sm",
+      ...controlText("sm"),
     },
     actionTrigger: {
       color: "colorPalette.plain.fg",
       cursor: "pointer",
       fontWeight: "semibold",
-      textStyle: "sm",
+      ...controlText("sm"),
     },
     closeTrigger: {
       position: "absolute",

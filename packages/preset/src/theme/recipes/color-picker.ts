@@ -1,6 +1,8 @@
 import { colorPickerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlPx } from "./control-size";
+
 export const colorPicker = defineSlotRecipe({
   className: "color-picker",
   slots: colorPickerAnatomy.extendWith("valueSwatch").keys(),
@@ -23,9 +25,9 @@ export const colorPicker = defineSlotRecipe({
     trigger: {
       display: "grid",
       placeItems: "center",
-      width: "10",
-      height: "10",
-      minWidth: "10",
+      width: controlH("md"),
+      height: controlH("md"),
+      minWidth: controlH("md"),
       p: "0",
       bg: "bg",
       borderWidth: "1px",
@@ -79,8 +81,8 @@ export const colorPicker = defineSlotRecipe({
       appearance: "none",
       width: "full",
       minWidth: "0",
-      height: "10",
-      px: "3",
+      height: controlH("md"),
+      px: controlPx("md"),
       borderWidth: "1px",
       borderColor: "neutral.outline.border",
       borderRadius: "md",

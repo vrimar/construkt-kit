@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { visual } from "./control-size";
+
 export const scrollArea = defineSlotRecipe({
   className: "scroll-area",
   slots: ["root", "viewport", "content", "scrollbar", "thumb", "corner"],
@@ -161,10 +163,10 @@ export const scrollArea = defineSlotRecipe({
       },
     },
     size: {
-      xs: { root: { "--thumb-size": "sizes.1" } },
-      sm: { root: { "--thumb-size": "sizes.1.5" } },
-      md: { root: { "--thumb-size": "sizes.2" } },
-      lg: { root: { "--thumb-size": "sizes.2.5" } },
+      xs: { root: { "--thumb-size": visual("0.25rem") } },
+      sm: { root: { "--thumb-size": visual("0.375rem") } },
+      md: { root: { "--thumb-size": visual("0.5rem") } },
+      lg: { root: { "--thumb-size": visual("0.625rem") } },
     },
   },
 });

@@ -1,6 +1,8 @@
 import { dialogAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { surface } from "./control-size";
+
 export const dialog = defineSlotRecipe({
   className: "dialog",
   slots: dialogAnatomy.extendWith("header", "body", "footer").keys(),
@@ -61,8 +63,8 @@ export const dialog = defineSlotRecipe({
       textStyle: "sm",
       width: "100%",
       zIndex: "calc(var(--dialog-z-index) + var(--layer-index, 0))",
-      py: { base: "4", md: "6" },
-      gap: { base: "4", md: "6" },
+      py: { base: surface("1rem"), md: surface("1.5rem") },
+      gap: { base: surface("1rem"), md: surface("1.5rem") },
       _open: {
         animationDuration: "fast",
       },
@@ -73,8 +75,8 @@ export const dialog = defineSlotRecipe({
     header: {
       display: "flex",
       flexDirection: "column",
-      gap: "0.5",
-      px: { base: "4", md: "6" },
+      gap: surface("0.125rem"),
+      px: { base: surface("1rem"), md: surface("1.5rem") },
       flex: "0",
     },
     body: {
@@ -82,15 +84,15 @@ export const dialog = defineSlotRecipe({
       flex: "1",
       flexDirection: "column",
       alignItems: "stretch",
-      px: { base: "4", md: "6" },
+      px: { base: surface("1rem"), md: surface("1.5rem") },
     },
     footer: {
       display: "flex",
       alignItems: "center",
       justifyContent: "flex-end",
       flex: "0",
-      gap: "3",
-      px: { base: "4", md: "6" },
+      gap: surface("0.75rem"),
+      px: { base: surface("1rem"), md: surface("1.5rem") },
     },
   },
   defaultVariants: {
@@ -140,7 +142,7 @@ export const dialog = defineSlotRecipe({
       lg: { content: { maxW: "lg" } },
       xl: { content: { maxW: "xl" } },
       cover: {
-        positioner: { padding: "8" },
+        positioner: { padding: surface("2rem") },
         content: {
           width: "100%",
           height: "100%",

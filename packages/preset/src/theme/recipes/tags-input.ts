@@ -1,6 +1,8 @@
 import { tagsInputAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlText } from "./control-size";
+
 export const tagsInput = defineSlotRecipe({
   className: "tags-input",
   slots: tagsInputAnatomy.keys(),
@@ -176,12 +178,12 @@ export const tagsInput = defineSlotRecipe({
     size: {
       xs: {
         root: {
-          "--tags-input-height": "sizes.8",
+          "--tags-input-height": controlH("xs"),
           "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.5",
+          "--tags-input-item-height": "sizes.4.5",
           "--tags-input-item-px": "spacing.1",
           _icon: { boxSize: "3" },
-          textStyle: "xs",
+          ...controlText("xs"),
         },
         control: { gap: "1" },
         itemPreview: { gap: "1" },
@@ -189,42 +191,42 @@ export const tagsInput = defineSlotRecipe({
       },
       sm: {
         root: {
-          "--tags-input-height": "sizes.9",
+          "--tags-input-height": controlH("sm"),
           "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.6",
+          "--tags-input-item-height": "sizes.5",
           "--tags-input-item-px": "spacing.1.5",
           _icon: { boxSize: "3.5" },
-          textStyle: "sm",
+          ...controlText("sm"),
         },
         control: { gap: "1" },
         itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "4.5", me: "-0.5" },
+        itemDeleteTrigger: { boxSize: "4", me: "-0.5" },
       },
       md: {
         root: {
-          "--tags-input-height": "sizes.10",
+          "--tags-input-height": controlH("md"),
           "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.7",
+          "--tags-input-item-height": "sizes.6",
           "--tags-input-item-px": "spacing.2",
           _icon: { boxSize: "3.5" },
-          textStyle: "sm",
+          ...controlText("md"),
         },
         control: { gap: "1.5" },
         itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "5", me: "-1" },
+        itemDeleteTrigger: { boxSize: "4.5", me: "-1" },
       },
       lg: {
         root: {
-          "--tags-input-height": "sizes.11",
+          "--tags-input-height": controlH("lg"),
           "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.8",
+          "--tags-input-item-height": "sizes.7",
           "--tags-input-item-px": "spacing.2.5",
           _icon: { boxSize: "4" },
-          textStyle: "md",
+          ...controlText("lg"),
         },
         control: { gap: "1.5" },
         itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "6", me: "-1.5" },
+        itemDeleteTrigger: { boxSize: "5", me: "-1.5" },
       },
     },
   },

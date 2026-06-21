@@ -2,6 +2,7 @@ import { checkboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
+import { controlGap, controlBox, controlText } from "./control-size";
 
 export const checkbox = defineSlotRecipe({
   className: "checkbox",
@@ -41,19 +42,19 @@ export const checkbox = defineSlotRecipe({
   variants: {
     size: {
       sm: {
-        root: { gap: "2" },
-        label: { textStyle: "sm" },
-        control: { boxSize: "4.5", _icon: { boxSize: "3" } },
+        root: { gap: controlGap("sm") },
+        label: controlText("sm"),
+        control: { boxSize: controlBox("sm"), _icon: { boxSize: "2.5" } },
       },
       md: {
-        root: { gap: "3" },
-        label: { textStyle: "md" },
-        control: { boxSize: "5", _icon: { boxSize: "3.5" } },
+        root: { gap: controlGap("md") },
+        label: controlText("md"),
+        control: { boxSize: controlBox("md"), _icon: { boxSize: "3" } },
       },
       lg: {
-        root: { gap: "3" },
-        label: { textStyle: "lg" },
-        control: { boxSize: "5.5", _icon: { boxSize: "4" } },
+        root: { gap: controlGap("lg") },
+        label: controlText("lg"),
+        control: { boxSize: controlBox("lg"), _icon: { boxSize: "3.5" } },
       },
     },
 

@@ -1,6 +1,7 @@
 import { numberInputAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH } from "./control-size";
 import { input } from "./input";
 
 const trigger = {
@@ -74,29 +75,29 @@ export const numberInput = defineSlotRecipe({
     size: {
       sm: {
         control: {
-          "--number-input-height": "sizes.9",
-          "--stepper-width": "sizes.4.5",
+          "--number-input-height": controlH("sm"),
+          "--stepper-width": "sizes.4",
         },
         input: input.variants.size.sm,
       },
       md: {
         control: {
-          "--number-input-height": "sizes.10",
-          "--stepper-width": "sizes.5",
+          "--number-input-height": controlH("md"),
+          "--stepper-width": "sizes.4.5",
         },
         input: input.variants.size.md,
       },
       lg: {
         control: {
-          "--number-input-height": "sizes.11",
-          "--stepper-width": "sizes.5.5",
+          "--number-input-height": controlH("lg"),
+          "--stepper-width": "sizes.5",
         },
         input: input.variants.size.lg,
       },
       xl: {
         control: {
-          "--number-input-height": "sizes.12",
-          "--stepper-width": "sizes.6",
+          "--number-input-height": controlH("xl"),
+          "--stepper-width": "sizes.5.5",
         },
         input: input.variants.size.xl,
       },

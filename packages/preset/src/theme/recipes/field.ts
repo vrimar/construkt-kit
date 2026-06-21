@@ -1,6 +1,8 @@
 import { fieldAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { surface } from "./control-size";
+
 export const field = defineSlotRecipe({
   className: "field",
   slots: fieldAnatomy.keys(),
@@ -8,13 +10,13 @@ export const field = defineSlotRecipe({
     root: {
       display: "flex",
       flexDirection: "column",
-      gap: "1.5",
+      gap: surface("0.375rem"),
     },
     label: {
       alignItems: "center",
       color: "fg",
       display: "flex",
-      gap: "0.5",
+      gap: surface("0.125rem"),
       textAlign: "start",
       userSelect: "none",
       textStyle: "label",

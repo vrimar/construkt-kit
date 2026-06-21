@@ -1,6 +1,8 @@
 import { progressAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { visual } from "./control-size";
+
 export const progress = defineSlotRecipe({
   className: "progress",
   slots: progressAnatomy.keys(),
@@ -13,7 +15,7 @@ export const progress = defineSlotRecipe({
       display: "block",
       flexShrink: 0,
       color: "colorPalette.solid.bg",
-      "--size": "sizes.10",
+      "--size": visual("2.5rem"),
       "--thickness": "2px",
     },
     circleTrack: {
@@ -146,38 +148,38 @@ export const progress = defineSlotRecipe({
     size: {
       xs: {
         circle: {
-          "--size": "sizes.8",
+          "--size": visual("2rem"),
           "--thickness": "2px",
         },
-        track: { h: "1.5" },
+        track: { h: visual("0.375rem") },
       },
       sm: {
         circle: {
-          "--size": "sizes.9",
+          "--size": visual("2.25rem"),
           "--thickness": "2px",
         },
-        track: { h: "2" },
+        track: { h: visual("0.5rem") },
       },
       md: {
         circle: {
-          "--size": "sizes.10",
+          "--size": visual("2.5rem"),
           "--thickness": "2px",
         },
-        track: { h: "2.5" },
+        track: { h: visual("0.625rem") },
       },
       lg: {
         circle: {
-          "--size": "sizes.11",
+          "--size": visual("2.75rem"),
           "--thickness": "3px",
         },
-        track: { h: "3" },
+        track: { h: visual("0.75rem") },
       },
       xl: {
         circle: {
-          "--size": "sizes.12",
+          "--size": visual("3rem"),
           "--thickness": "4px",
         },
-        track: { h: "3.5" },
+        track: { h: visual("0.875rem") },
       },
     },
   },

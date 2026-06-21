@@ -1,6 +1,8 @@
 import { hoverCardAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlText, surface } from "./control-size";
+
 export const hoverCard = defineSlotRecipe({
   className: "hover-card",
   slots: hoverCardAnatomy.keys(),
@@ -11,9 +13,9 @@ export const hoverCard = defineSlotRecipe({
       flexDirection: "column",
       maxWidth: "80",
       outline: "0",
-      padding: "4",
+      padding: surface("1rem"),
       position: "relative",
-      textStyle: "sm",
+      ...controlText("sm"),
       transformOrigin: "var(--transform-origin)",
       zIndex: "popover",
       _open: {

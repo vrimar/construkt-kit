@@ -1,6 +1,8 @@
 import { listboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlPx, controlGap, controlIcon, controlText } from "./control-size";
+
 export const listbox = defineSlotRecipe({
   className: "listbox",
   slots: listboxAnatomy.keys(),
@@ -101,25 +103,40 @@ export const listbox = defineSlotRecipe({
   variants: {
     size: {
       sm: {
-        content: { p: "1", gap: "0.5", textStyle: "xs" },
-        item: { px: "1.5", minH: "8", gap: "2", _icon: { boxSize: "4" } },
+        content: { p: "1", gap: "0.5", ...controlText("xs") },
+        item: {
+          px: controlPx("sm"),
+          minH: controlH("sm"),
+          gap: controlGap("sm"),
+          _icon: { boxSize: controlIcon("sm") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "1.5", height: "8", textStyle: "xs" },
-        label: { textStyle: "sm" },
+        itemGroupLabel: { px: controlPx("sm"), height: controlH("sm"), ...controlText("xs") },
+        label: controlText("sm"),
       },
       md: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
-        item: { px: "2", minH: "9", gap: "2", _icon: { boxSize: "4" } },
+        content: { p: "1", gap: "0.5", ...controlText("sm") },
+        item: {
+          px: controlPx("md"),
+          minH: controlH("md"),
+          gap: controlGap("md"),
+          _icon: { boxSize: controlIcon("md") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2", height: "9", textStyle: "xs" },
-        label: { textStyle: "sm" },
+        itemGroupLabel: { px: controlPx("md"), height: controlH("md"), ...controlText("xs") },
+        label: controlText("sm"),
       },
       lg: {
-        content: { p: "1", gap: "0.5", textStyle: "md" },
-        item: { px: "2.5", minH: "10", gap: "2", _icon: { boxSize: "4.5" } },
+        content: { p: "1", gap: "0.5", ...controlText("md") },
+        item: {
+          px: controlPx("lg"),
+          minH: controlH("lg"),
+          gap: controlGap("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2.5", height: "10", textStyle: "sm" },
-        label: { textStyle: "md" },
+        itemGroupLabel: { px: controlPx("lg"), height: controlH("lg"), ...controlText("sm") },
+        label: controlText("md"),
       },
     },
   },

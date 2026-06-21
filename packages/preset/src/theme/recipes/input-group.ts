@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlIcon } from "./control-size";
+
 export const inputGroup = defineSlotRecipe({
   className: "input-group",
   slots: ["root", "element"],
@@ -28,53 +30,53 @@ export const inputGroup = defineSlotRecipe({
   variants: {
     size: {
       "2xs": {
-        element: { minW: "7", _icon: { boxSize: "3.5" } },
+        element: { minW: controlH("2xs"), _icon: { boxSize: controlIcon("2xs") } },
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "6!" },
-          "& > :is(input, button):not(:last-child)": { pe: "6!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("2xs")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("2xs")}!` },
         },
       },
       xs: {
-        element: { minW: "8", _icon: { boxSize: "4" } },
+        element: { minW: controlH("xs"), _icon: { boxSize: controlIcon("xs") } },
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "7!" },
-          "& > :is(input, button):not(:last-child)": { pe: "7!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("xs")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("xs")}!` },
         },
       },
       sm: {
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "8!" },
-          "& > :is(input, button):not(:last-child)": { pe: "8!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("sm")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("sm")}!` },
         },
-        element: { minW: "9", _icon: { boxSize: "4.5" } },
+        element: { minW: controlH("sm"), _icon: { boxSize: controlIcon("sm") } },
       },
       md: {
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "9!" },
-          "& > :is(input, button):not(:last-child)": { pe: "9!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("md")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("md")}!` },
         },
-        element: { minW: "10", _icon: { boxSize: "5" } },
+        element: { minW: controlH("md"), _icon: { boxSize: controlIcon("md") } },
       },
       lg: {
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "10!" },
-          "& > :is(input, button):not(:last-child)": { pe: "10!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("lg")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("lg")}!` },
         },
-        element: { minW: "11", _icon: { boxSize: "5" } },
+        element: { minW: controlH("lg"), _icon: { boxSize: controlIcon("lg") } },
       },
       xl: {
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "11!" },
-          "& > :is(input, button):not(:last-child)": { pe: "11!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("xl")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("xl")}!` },
         },
-        element: { minW: "11", _icon: { boxSize: "5.5" } },
+        element: { minW: controlH("xl"), _icon: { boxSize: controlIcon("xl") } },
       },
       "2xl": {
         root: {
-          "& > :is(input, button):not(:first-child)": { ps: "12!" },
-          "& > :is(input, button):not(:last-child)": { pe: "12!" },
+          "& > :is(input, button):not(:first-child)": { ps: `${controlH("2xl")}!` },
+          "& > :is(input, button):not(:last-child)": { pe: `${controlH("2xl")}!` },
         },
-        element: { minW: "12", _icon: { boxSize: "6" } },
+        element: { minW: controlH("2xl"), _icon: { boxSize: controlIcon("2xl") } },
       },
     },
   },

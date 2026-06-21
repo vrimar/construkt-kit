@@ -87,7 +87,8 @@ function PopoverArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) 
   );
 }
 
-export interface PopoverTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
+export interface PopoverTriggerProps
+  extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
 function PopoverTrigger({
   ref,

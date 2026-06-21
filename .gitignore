@@ -70,3 +70,5 @@ desktop.ini
 # Changesets
 .changeset/*.md
 !.changeset/config.json
+
+.claude

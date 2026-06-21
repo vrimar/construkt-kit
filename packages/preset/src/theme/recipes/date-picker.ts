@@ -1,6 +1,8 @@
 import { datePickerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH } from "./control-size";
+
 export const datePicker = defineSlotRecipe({
   className: "date-picker",
   slots: datePickerAnatomy.keys(),
@@ -40,7 +42,7 @@ export const datePicker = defineSlotRecipe({
     tableHeader: {
       color: "fg.muted",
       fontWeight: "semibold",
-      height: "10",
+      height: controlH("md"),
       textStyle: "sm",
     },
     viewControl: {

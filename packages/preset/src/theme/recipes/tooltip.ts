@@ -1,6 +1,8 @@
 import { tooltipAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlText, surface } from "./control-size";
+
 export const tooltip = defineSlotRecipe({
   className: "tooltip",
   slots: tooltipAnatomy.keys(),
@@ -15,9 +17,9 @@ export const tooltip = defineSlotRecipe({
       borderRadius: "md",
       boxShadow: "sm",
       fontWeight: "semibold",
-      px: "2",
-      py: "1.5",
-      textStyle: "xs",
+      px: surface("0.5rem"),
+      py: surface("0.375rem"),
+      ...controlText("xs"),
       maxWidth: "xs",
       _open: {
         animationStyle: "scale-fade-in",

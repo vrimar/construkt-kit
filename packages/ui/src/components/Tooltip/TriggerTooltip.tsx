@@ -15,7 +15,12 @@ interface TriggerTooltipProps {
   children: ReactNode;
 }
 
-export function TriggerTooltip({ triggerId, tooltip, tooltipProps, children }: TriggerTooltipProps) {
+export function TriggerTooltip({
+  triggerId,
+  tooltip,
+  tooltipProps,
+  children,
+}: TriggerTooltipProps) {
   const {
     showArrow,
     portalled = true,

@@ -1,6 +1,8 @@
 import { ratingGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { visual } from "./control-size";
+
 export const ratingGroup = defineSlotRecipe({
   className: "rating-group",
   slots: ratingGroupAnatomy.extendWith("itemIndicator").keys(),
@@ -67,11 +69,23 @@ export const ratingGroup = defineSlotRecipe({
 
   variants: {
     size: {
-      xs: { root: { gap: "2" }, itemIndicator: { width: "4", height: "4" } },
-      sm: { root: { gap: "2" }, itemIndicator: { width: "4.5", height: "4.5" } },
-      md: { root: { gap: "3" }, itemIndicator: { width: "5", height: "5" } },
-      lg: { root: { gap: "3" }, itemIndicator: { width: "5.5", height: "5.5" } },
-      xl: { root: { gap: "3" }, itemIndicator: { width: "6", height: "6" } },
+      xs: { root: { gap: "2" }, itemIndicator: { width: visual("1rem"), height: visual("1rem") } },
+      sm: {
+        root: { gap: "2" },
+        itemIndicator: { width: visual("1.125rem"), height: visual("1.125rem") },
+      },
+      md: {
+        root: { gap: "3" },
+        itemIndicator: { width: visual("1.25rem"), height: visual("1.25rem") },
+      },
+      lg: {
+        root: { gap: "3" },
+        itemIndicator: { width: visual("1.375rem"), height: visual("1.375rem") },
+      },
+      xl: {
+        root: { gap: "3" },
+        itemIndicator: { width: visual("1.5rem"), height: visual("1.5rem") },
+      },
     },
   },
 });

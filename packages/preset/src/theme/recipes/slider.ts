@@ -1,6 +1,8 @@
 import { sliderAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { visual } from "./control-size";
+
 export const slider = defineSlotRecipe({
   className: "slider",
   slots: sliderAnatomy.extendWith("markerIndicator").keys(),
@@ -75,8 +77,8 @@ export const slider = defineSlotRecipe({
     size: {
       sm: {
         root: {
-          "--slider-thumb-size": "sizes.4.5",
-          "--slider-track-size": "sizes.1.5",
+          "--slider-thumb-size": visual("1.125rem"),
+          "--slider-track-size": visual("0.375rem"),
           "--slider-marker-center": "7px",
           "--slider-marker-size": "sizes.1",
           "--slider-marker-inset": "3px",
@@ -84,8 +86,8 @@ export const slider = defineSlotRecipe({
       },
       md: {
         root: {
-          "--slider-thumb-size": "sizes.5",
-          "--slider-track-size": "sizes.2",
+          "--slider-thumb-size": visual("1.25rem"),
+          "--slider-track-size": visual("0.5rem"),
           "--slider-marker-center": "8px",
           "--slider-marker-size": "sizes.1",
           "--slider-marker-inset": "4px",
@@ -93,8 +95,8 @@ export const slider = defineSlotRecipe({
       },
       lg: {
         root: {
-          "--slider-thumb-size": "sizes.5.5",
-          "--slider-track-size": "sizes.2.5",
+          "--slider-thumb-size": visual("1.375rem"),
+          "--slider-track-size": visual("0.625rem"),
           "--slider-marker-center": "9px",
           "--slider-marker-size": "sizes.1",
           "--slider-marker-inset": "5px",

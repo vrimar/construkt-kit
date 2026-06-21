@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlText } from "./control-size";
+
 export const breadcrumb = defineSlotRecipe({
   className: "breadcrumb",
   slots: ["root", "list", "link", "item", "separator", "ellipsis"],
@@ -15,7 +17,7 @@ export const breadcrumb = defineSlotRecipe({
       borderRadius: "sm",
       display: "inline-flex",
       focusVisibleRing: "outside",
-      gap: "2",
+      gap: controlGap("md"),
       outline: "0",
       textDecoration: "none",
       transition: "color",
@@ -68,10 +70,10 @@ export const breadcrumb = defineSlotRecipe({
       },
     },
     size: {
-      xs: { list: { gap: "1", textStyle: "xs" } },
-      sm: { list: { gap: "1", textStyle: "sm" } },
-      md: { list: { gap: "1.5", textStyle: "md" } },
-      lg: { list: { gap: "2", textStyle: "lg" } },
+      xs: { list: { gap: controlGap("2xs"), ...controlText("xs") } },
+      sm: { list: { gap: controlGap("2xs"), ...controlText("sm") } },
+      md: { list: { gap: controlGap("xs"), ...controlText("lg") } },
+      lg: { list: { gap: controlGap("md"), ...controlText("2xl") } },
     },
   },
 });

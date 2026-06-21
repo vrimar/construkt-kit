@@ -1,5 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
+import { controlPx, controlText } from "./control-size";
+
 export const textarea = defineRecipe({
   className: "textarea",
   jsx: ["Textarea", "Field.Textarea"],
@@ -82,11 +84,36 @@ export const textarea = defineRecipe({
       },
     },
     size: {
-      xs: { textStyle: "sm", px: "2", py: "5px", scrollPaddingBottom: "5px" },
-      sm: { textStyle: "sm", px: "2.5", py: "7px", scrollPaddingBottom: "7px" },
-      md: { textStyle: "md", px: "3", py: "7px", scrollPaddingBottom: "7px" },
-      lg: { textStyle: "md", px: "3.5", py: "9px", scrollPaddingBottom: "9px" },
-      xl: { textStyle: "lg", px: "4", py: "9px", scrollPaddingBottom: "9px" },
+      xs: {
+        ...controlText("xs"),
+        px: controlPx("xs"),
+        py: "5px",
+        scrollPaddingBottom: "5px",
+      },
+      sm: {
+        ...controlText("sm"),
+        px: controlPx("sm"),
+        py: "7px",
+        scrollPaddingBottom: "7px",
+      },
+      md: {
+        ...controlText("md"),
+        px: controlPx("md"),
+        py: "7px",
+        scrollPaddingBottom: "7px",
+      },
+      lg: {
+        ...controlText("lg"),
+        px: controlPx("lg"),
+        py: "9px",
+        scrollPaddingBottom: "9px",
+      },
+      xl: {
+        ...controlText("xl"),
+        px: controlPx("xl"),
+        py: "9px",
+        scrollPaddingBottom: "9px",
+      },
     },
   },
 });

@@ -1,6 +1,8 @@
 import { carouselAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlIcon } from "./control-size";
+
 export const carousel = defineSlotRecipe({
   className: "carousel",
   slots: carouselAnatomy.keys(),
@@ -41,6 +43,54 @@ export const carousel = defineSlotRecipe({
       },
       focusVisibleRing: "outside",
     },
+    prevTrigger: {
+      alignItems: "center",
+      appearance: "none",
+      borderRadius: "md",
+      color: "fg.muted",
+      cursor: "pointer",
+      display: "inline-flex",
+      flexShrink: "0",
+      focusVisibleRing: "outside",
+      justifyContent: "center",
+      outline: "0",
+      transition: "colors",
+      userSelect: "none",
+      _hover: {
+        bg: "neutral.plain.bg.hover",
+        color: "fg",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
+      _icon: {
+        flexShrink: "0",
+      },
+    },
+    nextTrigger: {
+      alignItems: "center",
+      appearance: "none",
+      borderRadius: "md",
+      color: "fg.muted",
+      cursor: "pointer",
+      display: "inline-flex",
+      flexShrink: "0",
+      focusVisibleRing: "outside",
+      justifyContent: "center",
+      outline: "0",
+      transition: "colors",
+      userSelect: "none",
+      _hover: {
+        bg: "neutral.plain.bg.hover",
+        color: "fg",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
+      _icon: {
+        flexShrink: "0",
+      },
+    },
   },
   defaultVariants: {
     size: "md",
@@ -68,6 +118,16 @@ export const carousel = defineSlotRecipe({
         },
         indicator: {
           boxSize: "2.5",
+        },
+        prevTrigger: {
+          h: controlH("lg"),
+          w: controlH("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
+        nextTrigger: {
+          h: controlH("lg"),
+          w: controlH("lg"),
+          _icon: { boxSize: controlIcon("lg") },
         },
       },
     },

@@ -1,12 +1,14 @@
 import { popoverAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlText, surface } from "./control-size";
+
 export const popover = defineSlotRecipe({
   className: "popover",
   slots: popoverAnatomy.extendWith("header", "body", "footer").keys(),
   base: {
     content: {
-      "--popover-padding": "spacing.4",
+      "--popover-padding": surface("1rem"),
 
       layerStyle: "floating.surface",
       display: "flex",
@@ -14,7 +16,7 @@ export const popover = defineSlotRecipe({
       maxHeight: "var(--available-height)",
       outline: "0",
       position: "relative",
-      textStyle: "sm",
+      ...controlText("sm"),
       transformOrigin: "var(--transform-origin)",
       width: "xs",
       zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
@@ -30,11 +32,11 @@ export const popover = defineSlotRecipe({
     title: {
       color: "fg",
       fontWeight: "medium",
-      textStyle: "md",
+      ...controlText("lg"),
     },
     description: {
       color: "fg.muted",
-      textStyle: "sm",
+      ...controlText("sm"),
     },
     closeTrigger: {
       position: "absolute",
@@ -52,7 +54,7 @@ export const popover = defineSlotRecipe({
       display: "flex",
       alignItems: "center",
       justifyContent: "flex-end",
-      gap: "3",
+      gap: surface("0.75rem"),
       paddingInline: "var(--popover-padding)",
       paddingBottom: "var(--popover-padding)",
     },

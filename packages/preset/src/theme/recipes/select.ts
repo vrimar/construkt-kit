@@ -1,6 +1,8 @@
 import { selectAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlPx, controlGap, controlIcon, controlText } from "./control-size";
+
 export const select = defineSlotRecipe({
   className: "select",
   slots: selectAnatomy.extendWith("indicatorGroup").keys(),
@@ -133,39 +135,94 @@ export const select = defineSlotRecipe({
     },
     size: {
       xs: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
-        item: { px: "1", minH: "8", gap: "2", _icon: { boxSize: "3.5" } },
+        content: { p: "1", gap: "0.5", ...controlText("xs") },
+        item: {
+          px: controlPx("xs"),
+          minH: controlH("xs"),
+          gap: controlGap("xs"),
+          _icon: { boxSize: controlIcon("xs") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "1", height: "8" },
-        trigger: { px: "2", h: "8", textStyle: "sm", gap: "2", _icon: { boxSize: "3.5" } },
+        itemGroupLabel: { px: controlPx("xs"), height: controlH("xs") },
+        trigger: {
+          px: controlPx("xs"),
+          h: controlH("xs"),
+          ...controlText("xs"),
+          gap: controlGap("xs"),
+          _icon: { boxSize: controlIcon("xs") },
+        },
       },
       sm: {
-        content: { p: "1", gap: "0.5", textStyle: "sm" },
-        item: { px: "1.5", minH: "9", gap: "2", _icon: { boxSize: "4" } },
+        content: { p: "1", gap: "0.5", ...controlText("sm") },
+        item: {
+          px: controlPx("sm"),
+          minH: controlH("sm"),
+          gap: controlGap("sm"),
+          _icon: { boxSize: controlIcon("sm") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "1.5", height: "9" },
-        trigger: { px: "2.5", h: "9", textStyle: "sm", gap: "2", _icon: { boxSize: "4" } },
+        itemGroupLabel: { px: controlPx("sm"), height: controlH("sm") },
+        trigger: {
+          px: controlPx("sm"),
+          h: controlH("sm"),
+          ...controlText("sm"),
+          gap: controlGap("sm"),
+          _icon: { boxSize: controlIcon("sm") },
+        },
       },
       md: {
-        content: { p: "1", gap: "0.5", textStyle: "md" },
-        item: { px: "2", minH: "10", gap: "2", _icon: { boxSize: "4" } },
+        content: { p: "1", gap: "0.5", ...controlText("md") },
+        item: {
+          px: controlPx("md"),
+          minH: controlH("md"),
+          gap: controlGap("md"),
+          _icon: { boxSize: controlIcon("md") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2", height: "10" },
-        trigger: { px: "3", h: "10", textStyle: "md", gap: "2", _icon: { boxSize: "4" } },
+        itemGroupLabel: { px: controlPx("md"), height: controlH("md") },
+        trigger: {
+          px: controlPx("md"),
+          h: controlH("md"),
+          ...controlText("md"),
+          gap: controlGap("md"),
+          _icon: { boxSize: controlIcon("md") },
+        },
       },
       lg: {
-        content: { p: "1", gap: "0.5", textStyle: "md" },
-        item: { px: "2.5", minH: "11", gap: "2", _icon: { boxSize: "4.5" } },
+        content: { p: "1", gap: "0.5", ...controlText("lg") },
+        item: {
+          px: controlPx("lg"),
+          minH: controlH("lg"),
+          gap: controlGap("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2.5", height: "11" },
-        trigger: { px: "3.5", h: "11", textStyle: "md", gap: "2", _icon: { boxSize: "4.5" } },
+        itemGroupLabel: { px: controlPx("lg"), height: controlH("lg") },
+        trigger: {
+          px: controlPx("lg"),
+          h: controlH("lg"),
+          ...controlText("lg"),
+          gap: controlGap("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
       },
       xl: {
-        content: { p: "1", gap: "1", textStyle: "lg" },
-        item: { px: "3", minH: "12", gap: "3", _icon: { boxSize: "5" } },
+        content: { p: "1", gap: "1", ...controlText("xl") },
+        item: {
+          px: controlPx("xl"),
+          minH: controlH("xl"),
+          gap: controlGap("xl"),
+          _icon: { boxSize: controlIcon("xl") },
+        },
         itemGroup: { gap: "1" },
-        itemGroupLabel: { px: "3", height: "12" },
-        trigger: { px: "4", h: "12", textStyle: "lg", gap: "3", _icon: { boxSize: "5" } },
+        itemGroupLabel: { px: controlPx("xl"), height: controlH("xl") },
+        trigger: {
+          px: controlPx("xl"),
+          h: controlH("xl"),
+          ...controlText("xl"),
+          gap: controlGap("xl"),
+          _icon: { boxSize: controlIcon("xl") },
+        },
       },
     },
   },

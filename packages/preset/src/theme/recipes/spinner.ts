@@ -1,5 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
+import { visual } from "./control-size";
+
 export const spinner = defineRecipe({
   className: "spinner",
   base: {
@@ -22,12 +24,12 @@ export const spinner = defineRecipe({
   variants: {
     size: {
       inherit: { "--spinner-size": "1em" },
-      xs: { "--spinner-size": "sizes.3" },
-      sm: { "--spinner-size": "sizes.4" },
-      md: { "--spinner-size": "sizes.5" },
-      lg: { "--spinner-size": "sizes.6" },
-      xl: { "--spinner-size": "sizes.7" },
-      "2xl": { "--spinner-size": "sizes.8" },
+      xs: { "--spinner-size": visual("0.75rem") },
+      sm: { "--spinner-size": visual("1rem") },
+      md: { "--spinner-size": visual("1.25rem") },
+      lg: { "--spinner-size": visual("1.5rem") },
+      xl: { "--spinner-size": visual("1.75rem") },
+      "2xl": { "--spinner-size": visual("2rem") },
     },
   },
 });

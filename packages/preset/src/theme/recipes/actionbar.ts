@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlPx, controlText } from "./control-size";
+
 export const actionbar = defineSlotRecipe({
   className: "actionbar",
   slots: ["content", "separator", "selectionTrigger", "closeTrigger"],
@@ -11,8 +13,8 @@ export const actionbar = defineSlotRecipe({
       bg: "bg",
       borderRadius: "lg",
       boxShadow: "lg",
-      px: "3",
-      py: "2.5",
+      px: controlPx("md"),
+      py: controlGap("xl"),
     },
     separator: {
       width: "1px",
@@ -20,7 +22,7 @@ export const actionbar = defineSlotRecipe({
       bg: "border",
     },
     selectionTrigger: {
-      textStyle: "sm",
+      ...controlText("sm"),
       color: "fg.muted",
       cursor: "pointer",
     },

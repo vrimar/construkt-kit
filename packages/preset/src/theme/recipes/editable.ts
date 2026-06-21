@@ -1,6 +1,8 @@
 import { editableAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlPx, controlText } from "./control-size";
+
 export const editable = defineSlotRecipe({
   className: "editable",
   slots: editableAnatomy.keys(),
@@ -50,24 +52,24 @@ export const editable = defineSlotRecipe({
   variants: {
     size: {
       "2xs": {
-        preview: { textStyle: "xs", px: "2", py: "0.5" },
-        input: { textStyle: "xs", px: "2", py: "0.5" },
+        preview: { ...controlText("2xs"), px: controlPx("2xs"), py: "0.5" },
+        input: { ...controlText("2xs"), px: controlPx("2xs"), py: "0.5" },
       },
       xs: {
-        preview: { textStyle: "sm", px: "2.5", py: "1.5" },
-        input: { textStyle: "sm", px: "2.5", py: "1.5" },
+        preview: { ...controlText("xs"), px: controlPx("xs"), py: "1.5" },
+        input: { ...controlText("xs"), px: controlPx("xs"), py: "1.5" },
       },
       sm: {
-        preview: { textStyle: "sm", px: "3", py: "2" },
-        input: { textStyle: "sm", px: "3", py: "2" },
+        preview: { ...controlText("sm"), px: controlPx("sm"), py: "2" },
+        input: { ...controlText("sm"), px: controlPx("sm"), py: "2" },
       },
       md: {
-        preview: { textStyle: "sm", px: "3.5", py: "2.5" },
-        input: { textStyle: "sm", px: "3.5", py: "2.5" },
+        preview: { ...controlText("md"), px: controlPx("md"), py: "2.5" },
+        input: { ...controlText("md"), px: controlPx("md"), py: "2.5" },
       },
       lg: {
-        preview: { textStyle: "md", px: "4", py: "2.5" },
-        input: { textStyle: "md", px: "4", py: "2.5" },
+        preview: { ...controlText("lg"), px: controlPx("lg"), py: "2.5" },
+        input: { ...controlText("lg"), px: controlPx("lg"), py: "2.5" },
       },
     },
   },

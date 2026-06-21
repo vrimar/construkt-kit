@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { surface } from "./control-size";
+
 export const card = defineSlotRecipe({
   className: "card",
   slots: ["root", "header", "body", "footer", "title", "description"],
@@ -15,23 +17,23 @@ export const card = defineSlotRecipe({
     header: {
       display: "flex",
       flexDirection: "column",
-      gap: "1",
-      p: "6",
+      gap: surface("0.25rem"),
+      p: surface("1.5rem"),
     },
     body: {
       display: "flex",
       flex: "1",
       flexDirection: "column",
-      pb: "6",
-      px: "6",
+      pb: surface("1.5rem"),
+      px: surface("1.5rem"),
     },
     footer: {
       display: "flex",
       justifyContent: "flex-end",
-      gap: "3",
-      pb: "6",
-      pt: "2",
-      px: "6",
+      gap: surface("0.75rem"),
+      pb: surface("1.5rem"),
+      pt: surface("0.5rem"),
+      px: surface("1.5rem"),
     },
     title: {
       textStyle: "lg",

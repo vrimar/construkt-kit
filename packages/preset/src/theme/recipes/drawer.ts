@@ -1,6 +1,8 @@
 import { dialogAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { surface } from "./control-size";
+
 export const drawer = defineSlotRecipe({
   className: "drawer",
   slots: dialogAnatomy.extendWith("header", "body", "footer").keys(),
@@ -56,10 +58,10 @@ export const drawer = defineSlotRecipe({
     header: {
       display: "flex",
       flexDirection: "column",
-      gap: "1",
-      pt: { base: "4", md: "6" },
-      pb: "4",
-      px: { base: "4", md: "6" },
+      gap: surface("0.25rem"),
+      pt: { base: surface("1rem"), md: surface("1.5rem") },
+      pb: surface("1rem"),
+      px: { base: surface("1rem"), md: surface("1.5rem") },
       flex: "0",
     },
     body: {
@@ -68,16 +70,16 @@ export const drawer = defineSlotRecipe({
       alignItems: "flex-start",
       flex: "1",
       overflow: "auto",
-      p: { base: "4", md: "6" },
+      p: { base: surface("1rem"), md: surface("1.5rem") },
     },
     footer: {
       display: "flex",
       alignItems: "center",
       justifyContent: "flex-end",
       flex: "0",
-      gap: "3",
-      py: "4",
-      px: { base: "4", md: "6" },
+      gap: surface("0.75rem"),
+      py: surface("1rem"),
+      px: { base: surface("1rem"), md: surface("1.5rem") },
     },
     title: {
       color: "fg",

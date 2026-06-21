@@ -1,5 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
+import { controlPx, controlIcon, controlText } from "./control-size";
+
 export const inputAddon = defineRecipe({
   className: "input-addon",
   base: {
@@ -32,11 +34,31 @@ export const inputAddon = defineRecipe({
       },
     },
     size: {
-      xs: { textStyle: "sm", px: "2", _icon: { boxSize: "4" } },
-      sm: { textStyle: "sm", px: "2.5", _icon: { boxSize: "4.5" } },
-      md: { textStyle: "md", px: "3", _icon: { boxSize: "5" } },
-      lg: { textStyle: "md", px: "3.5", _icon: { boxSize: "5" } },
-      xl: { textStyle: "lg", px: "4", _icon: { boxSize: "5.5" } },
+      xs: {
+        ...controlText("xs"),
+        px: controlPx("xs"),
+        _icon: { boxSize: controlIcon("xs") },
+      },
+      sm: {
+        ...controlText("sm"),
+        px: controlPx("sm"),
+        _icon: { boxSize: controlIcon("sm") },
+      },
+      md: {
+        ...controlText("md"),
+        px: controlPx("md"),
+        _icon: { boxSize: controlIcon("md") },
+      },
+      lg: {
+        ...controlText("lg"),
+        px: controlPx("lg"),
+        _icon: { boxSize: controlIcon("lg") },
+      },
+      xl: {
+        ...controlText("xl"),
+        px: controlPx("xl"),
+        _icon: { boxSize: controlIcon("xl") },
+      },
     },
   },
 });

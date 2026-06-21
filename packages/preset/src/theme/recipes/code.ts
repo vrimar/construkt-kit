@@ -1,5 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
+import { controlText } from "./control-size";
+
 export const code = defineRecipe({
   className: "code",
   base: {
@@ -43,10 +45,10 @@ export const code = defineRecipe({
     },
     size: {
       xs: { textStyle: "2xs", height: "4", minWidth: "4", px: "0.5" },
-      sm: { textStyle: "xs", height: "4.5", minWidth: "4.5", px: "1" },
-      md: { textStyle: "sm", height: "5", minWidth: "5", px: "1" },
-      lg: { textStyle: "sm", height: "5.5", minWidth: "5.5", px: "1" },
-      xl: { textStyle: "md", height: "6", minWidth: "6", px: "1" },
+      sm: { ...controlText("xs"), height: "4.5", minWidth: "4.5", px: "1" },
+      md: { ...controlText("sm"), height: "5", minWidth: "5", px: "1" },
+      lg: { ...controlText("sm"), height: "5.5", minWidth: "5.5", px: "1" },
+      xl: { ...controlText("lg"), height: "6", minWidth: "6", px: "1" },
     },
   },
 });

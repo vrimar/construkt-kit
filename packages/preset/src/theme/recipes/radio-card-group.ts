@@ -1,6 +1,8 @@
 import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlBox, controlGap, controlPx, controlText } from "./control-size";
+
 export const radioCardGroup = defineSlotRecipe({
   className: "radio-card-group",
   jsx: ["RadioCard", /RadioCard\..+/],
@@ -140,9 +142,9 @@ export const radioCardGroup = defineSlotRecipe({
     },
     size: {
       md: {
-        item: { gap: "2", p: "4" },
-        itemControl: { boxSize: "5", _after: { boxSize: "2" } },
-        itemText: { textStyle: "sm" },
+        item: { gap: controlGap("md"), p: controlPx("xl") },
+        itemControl: { boxSize: controlBox("lg"), _after: { boxSize: "2" } },
+        itemText: { ...controlText("sm") },
       },
     },
   },

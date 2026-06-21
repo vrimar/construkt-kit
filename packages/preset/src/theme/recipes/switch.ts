@@ -1,6 +1,8 @@
 import { switchAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlFont } from "./control-size";
+
 export const switchRecipe = defineSlotRecipe({
   className: "switch",
   jsx: ["Switch", /Switch\.+/],
@@ -144,38 +146,38 @@ export const switchRecipe = defineSlotRecipe({
       xs: {
         root: {
           gap: "2",
-          "--switch-width": "sizes.8",
-          "--switch-height": "sizes.4",
+          "--switch-width": "sizes.7",
+          "--switch-height": "sizes.3.5",
           "--switch-indicator-font-size": "fontSizes.xs",
         },
-        label: { fontSize: "sm" },
+        label: { fontSize: controlFont("xs") },
       },
       sm: {
         root: {
           gap: "2",
-          "--switch-width": "sizes.9",
-          "--switch-height": "sizes.4.5",
+          "--switch-width": "sizes.8",
+          "--switch-height": "sizes.4",
           "--switch-indicator-font-size": "fontSizes.xs",
         },
-        label: { fontSize: "sm" },
+        label: { fontSize: controlFont("sm") },
       },
       md: {
+        root: {
+          gap: "3",
+          "--switch-width": "sizes.9",
+          "--switch-height": "sizes.4.5",
+          "--switch-indicator-font-size": "fontSizes.sm",
+        },
+        label: { fontSize: controlFont("md") },
+      },
+      lg: {
         root: {
           gap: "3",
           "--switch-width": "sizes.10",
           "--switch-height": "sizes.5",
           "--switch-indicator-font-size": "fontSizes.sm",
         },
-        label: { fontSize: "md" },
-      },
-      lg: {
-        root: {
-          gap: "3",
-          "--switch-width": "sizes.11",
-          "--switch-height": "sizes.5.5",
-          "--switch-indicator-font-size": "fontSizes.md",
-        },
-        label: { fontSize: "lg" },
+        label: { fontSize: controlFont("lg") },
       },
     },
   },

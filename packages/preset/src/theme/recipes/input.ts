@@ -1,5 +1,7 @@
 import type { RecipeConfig } from "@pandacss/dev";
 
+import { controlH, controlPx, controlText } from "./control-size";
+
 export const input = {
   className: "input",
   jsx: ["Input", "Field.Input", "SearchInput", "PasswordInput"],
@@ -93,13 +95,21 @@ export const input = {
       },
     },
     size: {
-      "2xs": { textStyle: "xs", px: "1.5", "--input-height": "sizes.6" },
-      xs: { textStyle: "sm", px: "2", "--input-height": "sizes.8" },
-      sm: { textStyle: "sm", px: "2.5", "--input-height": "sizes.9" },
-      md: { textStyle: "md", px: "3", "--input-height": "sizes.10" },
-      lg: { textStyle: "md", px: "3.5", "--input-height": "sizes.11" },
-      xl: { textStyle: "lg", px: "4", "--input-height": "sizes.12" },
-      "2xl": { textStyle: "3xl", px: "4.5", "--input-height": "sizes.16" },
+      "2xs": {
+        ...controlText("2xs"),
+        px: controlPx("2xs"),
+        "--input-height": controlH("2xs"),
+      },
+      xs: { ...controlText("xs"), px: controlPx("xs"), "--input-height": controlH("xs") },
+      sm: { ...controlText("sm"), px: controlPx("sm"), "--input-height": controlH("sm") },
+      md: { ...controlText("md"), px: controlPx("md"), "--input-height": controlH("md") },
+      lg: { ...controlText("lg"), px: controlPx("lg"), "--input-height": controlH("lg") },
+      xl: { ...controlText("xl"), px: controlPx("xl"), "--input-height": controlH("xl") },
+      "2xl": {
+        ...controlText("2xl"),
+        px: controlPx("2xl"),
+        "--input-height": controlH("2xl"),
+      },
     },
   },
 } satisfies RecipeConfig;

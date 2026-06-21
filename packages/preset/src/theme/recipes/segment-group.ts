@@ -1,6 +1,8 @@
 import { segmentGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlPx, controlIcon, controlText } from "./control-size";
+
 export const segmentGroup = defineSlotRecipe({
   className: "segment-group",
   slots: segmentGroupAnatomy.keys(),
@@ -86,11 +88,51 @@ export const segmentGroup = defineSlotRecipe({
 
   variants: {
     size: {
-      xs: { item: { h: "8", minW: "8", textStyle: "sm", px: "2.5", _icon: { boxSize: "4" } } },
-      sm: { item: { h: "9", minW: "9", textStyle: "sm", px: "3", _icon: { boxSize: "4" } } },
-      md: { item: { h: "10", minW: "10", textStyle: "sm", px: "3.5", _icon: { boxSize: "5" } } },
-      lg: { item: { h: "11", minW: "11", textStyle: "md", px: "4", _icon: { boxSize: "5" } } },
-      xl: { item: { h: "12", minW: "12", textStyle: "md", px: "4.5", _icon: { boxSize: "5.5" } } },
+      xs: {
+        item: {
+          h: controlH("xs"),
+          minW: controlH("xs"),
+          ...controlText("xs"),
+          px: controlPx("xs"),
+          _icon: { boxSize: controlIcon("xs") },
+        },
+      },
+      sm: {
+        item: {
+          h: controlH("sm"),
+          minW: controlH("sm"),
+          ...controlText("sm"),
+          px: controlPx("sm"),
+          _icon: { boxSize: controlIcon("sm") },
+        },
+      },
+      md: {
+        item: {
+          h: controlH("md"),
+          minW: controlH("md"),
+          ...controlText("md"),
+          px: controlPx("md"),
+          _icon: { boxSize: controlIcon("md") },
+        },
+      },
+      lg: {
+        item: {
+          h: controlH("lg"),
+          minW: controlH("lg"),
+          ...controlText("lg"),
+          px: controlPx("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
+      },
+      xl: {
+        item: {
+          h: controlH("xl"),
+          minW: controlH("xl"),
+          ...controlText("xl"),
+          px: controlPx("xl"),
+          _icon: { boxSize: controlIcon("xl") },
+        },
+      },
     },
     fitted: {
       true: {

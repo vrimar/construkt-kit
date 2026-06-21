@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlPx, controlText } from "./control-size";
+
 export const checkboxCard = defineSlotRecipe({
   className: "checkbox-card",
   slots: ["root", "control", "content", "label", "description", "addon"],
@@ -22,7 +24,7 @@ export const checkboxCard = defineSlotRecipe({
     control: {
       display: "flex",
       alignItems: "center",
-      gap: "3",
+      gap: controlGap("2xl"),
       flex: "1",
     },
     content: {
@@ -71,22 +73,22 @@ export const checkboxCard = defineSlotRecipe({
     },
     size: {
       sm: {
-        control: { p: "3" },
-        label: { textStyle: "xs" },
-        description: { textStyle: "xs" },
-        addon: { px: "3", py: "2" },
+        control: { p: controlPx("md") },
+        label: { ...controlText("xs") },
+        description: { ...controlText("xs") },
+        addon: { px: controlPx("md"), py: controlGap("md") },
       },
       md: {
-        control: { p: "4" },
-        label: { textStyle: "sm" },
-        description: { textStyle: "sm" },
-        addon: { px: "4", py: "3" },
+        control: { p: controlPx("xl") },
+        label: { ...controlText("sm") },
+        description: { ...controlText("sm") },
+        addon: { px: controlPx("xl"), py: controlGap("2xl") },
       },
       lg: {
-        control: { p: "5" },
-        label: { textStyle: "md" },
-        description: { textStyle: "md" },
-        addon: { px: "5", py: "4" },
+        control: { p: controlPx("2xl") },
+        label: { ...controlText("lg") },
+        description: { ...controlText("lg") },
+        addon: { px: controlPx("2xl"), py: "4" },
       },
     },
   },

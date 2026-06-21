@@ -1,6 +1,8 @@
 import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlH, controlPx, controlGap, controlIcon, controlText } from "./control-size";
+
 export const menu = defineSlotRecipe({
   className: "menu",
   slots: menuAnatomy.keys(),
@@ -78,60 +80,85 @@ export const menu = defineSlotRecipe({
         content: {
           p: "1",
           gap: "0.5",
-          textStyle: "xs",
+          ...controlText("xs"),
           minWidth: "max(var(--reference-width), {sizes.28})",
         },
-        item: { px: "1", minH: "7", gap: "2", _icon: { boxSize: "3.5" } },
+        item: {
+          px: controlPx("xs"),
+          minH: controlH("xs"),
+          gap: controlGap("xs"),
+          _icon: { boxSize: controlIcon("xs") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "1", height: "7" },
+        itemGroupLabel: { px: controlPx("xs"), height: controlH("xs") },
         separator: { mx: "-1", my: "0.5" },
       },
       sm: {
         content: {
           p: "1",
           gap: "0.5",
-          textStyle: "sm",
+          ...controlText("sm"),
           minWidth: "max(var(--reference-width), {sizes.32})",
         },
-        item: { px: "1.5", minH: "8", gap: "2", _icon: { boxSize: "4" } },
+        item: {
+          px: controlPx("sm"),
+          minH: controlH("sm"),
+          gap: controlGap("sm"),
+          _icon: { boxSize: controlIcon("sm") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "1.5", height: "8" },
+        itemGroupLabel: { px: controlPx("sm"), height: controlH("sm") },
         separator: { mx: "-1.5", my: "0.5" },
       },
       md: {
         content: {
           p: "1",
           gap: "0.5",
-          textStyle: "sm",
+          ...controlText("md"),
           minWidth: "max(var(--reference-width), {sizes.40})",
         },
-        item: { px: "2", minH: "9", gap: "2", _icon: { boxSize: "4" } },
+        item: {
+          px: controlPx("md"),
+          minH: controlH("md"),
+          gap: controlGap("md"),
+          _icon: { boxSize: controlIcon("md") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2", height: "9" },
+        itemGroupLabel: { px: controlPx("md"), height: controlH("md") },
         separator: { mx: "-2", my: "0.5" },
       },
       lg: {
         content: {
           p: "1",
           gap: "0.5",
-          textStyle: "md",
+          ...controlText("lg"),
           minWidth: "max(var(--reference-width), {sizes.48})",
         },
-        item: { px: "2.5", minH: "10", gap: "2", _icon: { boxSize: "4.5" } },
+        item: {
+          px: controlPx("lg"),
+          minH: controlH("lg"),
+          gap: controlGap("lg"),
+          _icon: { boxSize: controlIcon("lg") },
+        },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: "2.5", height: "10" },
+        itemGroupLabel: { px: controlPx("lg"), height: controlH("lg") },
         separator: { mx: "-2.5", my: "0.5" },
       },
       xl: {
         content: {
           p: "1",
           gap: "1",
-          textStyle: "lg",
+          ...controlText("xl"),
           minWidth: "max(var(--reference-width), {sizes.56})",
         },
-        item: { px: "3", minH: "11", gap: "3", _icon: { boxSize: "5" } },
+        item: {
+          px: controlPx("xl"),
+          minH: controlH("xl"),
+          gap: controlGap("xl"),
+          _icon: { boxSize: controlIcon("xl") },
+        },
         itemGroup: { gap: "1" },
-        itemGroupLabel: { px: "3", height: "11" },
+        itemGroupLabel: { px: controlPx("xl"), height: controlH("xl") },
         separator: { mx: "-3", my: "0" },
       },
     },

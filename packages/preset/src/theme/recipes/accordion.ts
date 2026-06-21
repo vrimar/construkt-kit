@@ -1,6 +1,8 @@
 import { accordionAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlPx, controlText } from "./control-size";
+
 export const accordion = defineSlotRecipe({
   className: "accordion",
   slots: accordionAnatomy.extendWith("itemBody").keys(),
@@ -22,7 +24,7 @@ export const accordion = defineSlotRecipe({
       gap: "3",
       justifyContent: "space-between",
       textAlign: "start",
-      textStyle: "lg",
+      ...controlText("2xl"),
       width: "full",
       focusVisibleRing: "outside",
       _disabled: {
@@ -74,31 +76,31 @@ export const accordion = defineSlotRecipe({
     size: {
       sm: {
         root: {
-          "--accordion-padding-x": "spacing.3",
-          "--accordion-padding-y": "spacing.2",
+          "--accordion-padding-x": controlPx("md"),
+          "--accordion-padding-y": controlGap("md"),
         },
         itemTrigger: {
-          textStyle: "sm",
+          ...controlText("sm"),
           py: "var(--accordion-padding-y)",
         },
       },
       md: {
         root: {
-          "--accordion-padding-x": "spacing.4",
-          "--accordion-padding-y": "spacing.2.5",
+          "--accordion-padding-x": controlPx("xl"),
+          "--accordion-padding-y": controlGap("xl"),
         },
         itemTrigger: {
-          textStyle: "md",
+          ...controlText("lg"),
           py: "var(--accordion-padding-y)",
         },
       },
       lg: {
         root: {
-          "--accordion-padding-x": "spacing.5",
-          "--accordion-padding-y": "spacing.3",
+          "--accordion-padding-x": controlPx("2xl"),
+          "--accordion-padding-y": controlGap("2xl"),
         },
         itemTrigger: {
-          textStyle: "lg",
+          ...controlText("2xl"),
           py: "var(--accordion-padding-y)",
         },
       },

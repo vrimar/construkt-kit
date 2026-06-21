@@ -1,6 +1,8 @@
 import { clipboardAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { surface } from "./control-size";
+
 export const clipboard = defineSlotRecipe({
   className: "clipboard",
   slots: clipboardAnatomy.keys(),
@@ -9,7 +11,7 @@ export const clipboard = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       alignItems: "flex-start",
-      gap: "1.5",
+      gap: surface("0.375rem"),
     },
     label: {
       display: "inline-flex",
@@ -17,7 +19,7 @@ export const clipboard = defineSlotRecipe({
       fontWeight: "medium",
       textStyle: "sm",
       color: "fg",
-      gap: "0.5",
+      gap: surface("0.125rem"),
     },
   },
 });

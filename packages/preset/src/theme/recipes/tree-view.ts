@@ -2,6 +2,7 @@ import { treeViewAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
+import { controlText } from "./control-size";
 
 export const treeView = defineSlotRecipe({
   className: "tree-view",
@@ -26,7 +27,7 @@ export const treeView = defineSlotRecipe({
     },
     label: {
       fontWeight: "medium",
-      textStyle: "sm",
+      ...controlText("sm"),
     },
     branch: {
       position: "relative",
@@ -156,7 +157,7 @@ export const treeView = defineSlotRecipe({
         tree: {
           "--tree-icon-size": "sizes.3",
           "--tree-indent": "spacing.4",
-          textStyle: "xs",
+          ...controlText("xs"),
         },
         branchControl: {
           py: "0.5",
@@ -174,7 +175,7 @@ export const treeView = defineSlotRecipe({
       md: {
         tree: {
           "--tree-icon-size": "sizes.3.5",
-          textStyle: "sm",
+          ...controlText("sm"),
         },
         branchControl: {
           py: "1",

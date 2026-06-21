@@ -1,5 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { controlGap, controlPx, controlText } from "./control-size";
+
 export const table = defineSlotRecipe({
   className: "table",
   slots: ["root", "body", "cell", "foot", "head", "header", "row", "caption"],
@@ -16,7 +18,7 @@ export const table = defineSlotRecipe({
       color: "fg.muted",
       textAlign: "start",
       textOverflow: "ellipsis",
-      textStyle: "sm",
+      ...controlText("sm"),
       whiteSpace: "nowrap",
       overflow: "hidden",
       boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
@@ -49,7 +51,7 @@ export const table = defineSlotRecipe({
       fontWeight: "semibold",
       textAlign: "start",
       whiteSpace: "nowrap",
-      textStyle: "xs",
+      ...controlText("xs"),
     },
     caption: {
       color: "fg.subtle",
@@ -105,14 +107,14 @@ export const table = defineSlotRecipe({
     },
     size: {
       sm: {
-        root: { textStyle: "xs" },
-        header: { px: "2", py: "2" },
-        cell: { px: "2", py: "2" },
+        root: { ...controlText("xs") },
+        header: { px: controlPx("xs"), py: controlGap("md") },
+        cell: { px: controlPx("xs"), py: controlGap("md") },
       },
       md: {
-        root: { textStyle: "sm" },
-        header: { px: "3", py: "3" },
-        cell: { px: "3", py: "3" },
+        root: { ...controlText("sm") },
+        header: { px: controlPx("md"), py: controlGap("2xl") },
+        cell: { px: controlPx("md"), py: controlGap("2xl") },
       },
     },
   },
