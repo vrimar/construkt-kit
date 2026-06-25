@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import type { DisplayValueProps } from ".";
 import { DisplayValue } from ".";
 
 const meta: Meta<typeof DisplayValue> = {
@@ -19,9 +20,9 @@ export const Empty: Story = {
   args: { value: null },
 };
 
-export const WithFormat: Story = {
+export const WithFormat: StoryObj<DisplayValueProps<number>> = {
   args: {
     value: 1234.56,
-    formatValue: (v: number) => `$${v.toFixed(2)}`,
+    formatValue: (v) => `$${v.toFixed(2)}`,
   },
 };

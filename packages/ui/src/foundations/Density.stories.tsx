@@ -71,7 +71,7 @@ const meta: Meta<DensityArgs> = {
 };
 
 export default meta;
-type Story = StoryObj<DensityArgs>;
+type Story = StoryObj<typeof meta>;
 
 const Controls = () => (
   <Stack
