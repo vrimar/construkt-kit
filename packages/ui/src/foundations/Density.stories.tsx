@@ -90,7 +90,8 @@ const Controls = () => (
 
 // One sample from each knob family, so an override visibly rescales all three together.
 const Showcase = () => (
-  <HStack
+  <Stack
+    direction={{ base: "column", md: "row" }}
     gap="8"
     alignItems="flex-start"
   >
@@ -124,7 +125,7 @@ const Showcase = () => (
         </HStack>
       </Stack>
     </Stack>
-  </HStack>
+  </Stack>
 );
 
 // Drive all five knobs at once; the wrapping container scopes them.
@@ -149,7 +150,8 @@ export const HeightOnly: Story = {
 // independent of the page-level defaults around it.
 export const NestedScope: Story = {
   render: () => (
-    <HStack
+    <Stack
+      direction={{ base: "column", md: "row" }}
       gap="10"
       alignItems="flex-start"
     >
@@ -171,13 +173,14 @@ export const NestedScope: Story = {
           <Showcase />
         </div>
       </Stack>
-    </HStack>
+    </Stack>
   ),
 };
 
 export const Comparison: Story = {
   render: () => (
-    <HStack
+    <Stack
+      direction={{ base: "column", md: "row" }}
       gap="10"
       alignItems="flex-start"
     >
@@ -197,6 +200,6 @@ export const Comparison: Story = {
           <Controls />
         </div>
       </Stack>
-    </HStack>
+    </Stack>
   ),
 };

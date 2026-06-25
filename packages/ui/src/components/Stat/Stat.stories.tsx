@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Stat } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
-import { HStack } from "../Layout";
+import { Wrap } from "../Layout";
 
 const meta: Meta = {
   title: "Components/Stat",
@@ -28,7 +28,7 @@ export const Default: Story = {
 
 export const WithTrend: Story = {
   render: () => (
-    <HStack gap="8">
+    <Wrap gap="8">
       <Stat.Root>
         <Stat.Label>Sales</Stat.Label>
         <Stat.ValueText>$12,340</Stat.ValueText>
@@ -39,7 +39,7 @@ export const WithTrend: Story = {
         <Stat.ValueText>$8,120</Stat.ValueText>
         <Stat.DownTrend>4%</Stat.DownTrend>
       </Stat.Root>
-    </HStack>
+    </Wrap>
   ),
 };
 

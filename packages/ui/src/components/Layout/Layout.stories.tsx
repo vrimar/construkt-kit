@@ -119,7 +119,7 @@ export const GridStory: Story = {
   name: "Grid",
   render: () => (
     <Grid
-      columns={3}
+      columns={{ base: 1, sm: 2, md: 3 }}
       gap="4"
     >
       <GridItem {...boxStyle}>Cell 1</GridItem>

@@ -4,6 +4,7 @@ import type { Preview } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import type { ReactElement } from "react";
+import { INITIAL_VIEWPORTS } from "storybook/viewport";
 
 initialize({
   serviceWorker: {
@@ -36,6 +37,11 @@ const preview: Preview = {
         date: /date$/i,
       },
     },
+    viewport: { options: INITIAL_VIEWPORTS },
+  },
+  initialGlobals: {
+    // Fluid/responsive canvas by default; the toolbar lets you pick a device.
+    viewport: { value: undefined, isRotated: false },
   },
 };
 

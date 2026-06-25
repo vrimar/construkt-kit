@@ -12,7 +12,8 @@ const meta: Meta<typeof LoadingOverlay> = {
   decorators: [
     (Story: any) => (
       <Box
-        w="400px"
+        w="full"
+        maxW="400px"
         h="200px"
       >
         <Story />

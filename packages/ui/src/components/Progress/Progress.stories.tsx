@@ -2,7 +2,7 @@ import { progress } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Progress } from ".";
-import { Table } from "../Table";
+import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 const meta: Meta = {
   title: "Components/Progress",
   tags: ["autodocs"],
@@ -57,32 +57,19 @@ export const Indeterminate: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <Table.Root maxWidth="420px">
-      <Table.Head>
-        <Table.Row>
-          <Table.Header>Size</Table.Header>
-          <Table.Header>Preview</Table.Header>
-        </Table.Row>
-      </Table.Head>
-      <Table.Body>
-        {progress.variantMap.size.map((size) => (
-          <Table.Row key={size}>
-            <Table.Cell>{size}</Table.Cell>
-            <Table.Cell>
-              <Progress.Root
-                key={size}
-                value={65}
-                size={size}
-              >
-                <Progress.Label>Progress</Progress.Label>
-                <Progress.Track>
-                  <Progress.Range />
-                </Progress.Track>
-              </Progress.Root>
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </Table.Body>
-    </Table.Root>
+    <SizePreviewTable
+      sizes={progress.variantMap.size}
+      renderPreview={(size) => (
+        <Progress.Root
+          value={65}
+          size={size}
+        >
+          <Progress.Label>Progress</Progress.Label>
+          <Progress.Track>
+            <Progress.Range />
+          </Progress.Track>
+        </Progress.Root>
+      )}
+    />
   ),
 };

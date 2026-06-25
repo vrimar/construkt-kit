@@ -235,7 +235,10 @@ function DataTableStory(props: {
 
 export const Default: Story = {
   render: () => (
-    <Box maxW="800px">
+    <Box
+      maxW="800px"
+      overflowX="auto"
+    >
       <DataTableStory data={data} />
     </Box>
   ),
@@ -243,7 +246,10 @@ export const Default: Story = {
 
 export const Loading: Story = {
   render: () => (
-    <Box maxW="800px">
+    <Box
+      maxW="800px"
+      overflowX="auto"
+    >
       <DataTableStory
         data={[]}
         loading
@@ -254,7 +260,10 @@ export const Loading: Story = {
 
 export const Empty: Story = {
   render: () => (
-    <Box maxW="800px">
+    <Box
+      maxW="800px"
+      overflowX="auto"
+    >
       <DataTableStory data={[]} />
     </Box>
   ),
