@@ -53,7 +53,6 @@ export const Sizes: Story = {
           max={100}
           size={size}
         >
-          <NumberInput.Label>Value</NumberInput.Label>
           <NumberInput.Field />
           <NumberInput.Control />
         </NumberInput>

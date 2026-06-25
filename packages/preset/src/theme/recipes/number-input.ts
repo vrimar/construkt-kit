@@ -32,6 +32,8 @@ export const numberInput = defineSlotRecipe({
     root: {
       isolation: "isolate",
       position: "relative",
+      display: "flex",
+      flexDirection: "column",
       _disabled: {
         layerStyle: "disabled",
       },
