@@ -17,6 +17,10 @@ export const segmentGroup = defineSlotRecipe({
       justifyContent: "center",
       isolation: "isolate",
       pos: "relative",
+      maxWidth: "100%",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": { display: "none" },
       _vertical: {
         flexDirection: "column",
         alignItems: "stretch",

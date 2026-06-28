@@ -15,6 +15,10 @@ export const toggleGroup = defineSlotRecipe({
       justifyContent: "center",
       isolation: "isolate",
       position: "relative",
+      maxWidth: "100%",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": { display: "none" },
       _vertical: {
         flexDirection: "column",
         alignItems: "stretch",

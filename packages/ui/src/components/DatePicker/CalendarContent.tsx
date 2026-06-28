@@ -2,6 +2,7 @@ import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { HStack, Stack } from "@construkt-kit/styled-system/jsx";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
+import { useIsMobile } from "../../hooks";
 import { Button, IconButton } from "../Buttons";
 import { Box, Separator } from "../Layout";
 import { Text } from "../Text";
@@ -28,12 +29,13 @@ export const CalendarContent = ({
 }: CalendarContentProps) => {
   const datePicker = useDatePickerContext();
   const hasPresets = showPresets && presets && presets.length > 0;
+  const isMobile = useIsMobile();
 
   return (
     <Box
       display="flex"
-      flexDirection="row"
-      alignItems="flex-start"
+      flexDirection={isMobile ? "column" : "row"}
+      alignItems={isMobile ? "stretch" : "flex-start"}
       gap="3"
     >
       {hasPresets && (
@@ -63,7 +65,7 @@ export const CalendarContent = ({
               </Parts.PresetTrigger>
             ))}
           </Stack>
-          <Separator orientation="vertical" />
+          <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         </>
       )}
       <Stack

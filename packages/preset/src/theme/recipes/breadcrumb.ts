@@ -11,6 +11,10 @@ export const breadcrumb = defineSlotRecipe({
       display: "flex",
       listStyle: "none",
       wordBreak: "break-word",
+      minWidth: "0",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": { display: "none" },
     },
     link: {
       alignItems: "center",

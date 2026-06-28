@@ -36,6 +36,7 @@ export const dialog = defineSlotRecipe({
       position: "fixed",
       top: 0,
       width: "100dvw",
+      px: { base: "4", sm: "0" },
       zIndex: "calc(var(--dialog-z-index) + var(--layer-index, 0))",
     },
 
@@ -150,6 +151,9 @@ export const dialog = defineSlotRecipe({
         },
       },
       full: {
+        positioner: {
+          px: "0",
+        },
         content: {
           maxW: "100dvw",
           minH: "100dvh",

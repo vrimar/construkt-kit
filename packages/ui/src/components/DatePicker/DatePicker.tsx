@@ -2,6 +2,7 @@ import type { DateValue } from "@ark-ui/react/date-picker";
 import { useDatePicker } from "@ark-ui/react/date-picker";
 import { ChevronDownIcon } from "lucide-react";
 
+import { useIsMobile } from "../../hooks";
 import { Button } from "../Buttons";
 import { CalendarContent } from "./CalendarContent";
 import { DatePickerContent } from "./DatePickerContent";
@@ -43,11 +44,14 @@ export const DatePicker = (props: DatePickerProps) => {
   const presets = "presets" in props ? props.presets : undefined;
   const showPresets = "showPresets" in props ? props.showPresets : undefined;
 
+  // A single month fits a phone; multi-month ranges overflow ~640px otherwise.
+  const months = useIsMobile() ? 1 : numOfMonths;
+
   const datePicker = useDatePicker({
     value: toArkValue(props),
     defaultValue: toArkDefaultValue(props),
     selectionMode,
-    numOfMonths,
+    numOfMonths: months,
     startOfWeek,
     locale,
     timeZone,
@@ -103,7 +107,7 @@ export const DatePicker = (props: DatePickerProps) => {
           portalRef={portalRef}
         >
           <CalendarContent
-            numOfMonths={numOfMonths}
+            numOfMonths={months}
             presets={presets}
             showPresets={showPresets}
             clearable={clearable}

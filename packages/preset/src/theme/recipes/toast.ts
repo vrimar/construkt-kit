@@ -16,7 +16,8 @@ export const toast = defineSlotRecipe({
       display: "flex",
       gap: surface("1rem"),
       height: "var(--height)",
-      minWidth: "sm",
+      // Don't force 384px on mobile — `width: full` + the Toaster's inset size it instead.
+      minWidth: { base: "0", md: "sm" },
       opacity: "var(--opacity)",
       overflowWrap: "anywhere",
       p: surface("1rem"),

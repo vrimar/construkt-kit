@@ -26,6 +26,10 @@ export const tabs = defineSlotRecipe({
       isolation: "isolate",
       _horizontal: {
         flexDirection: "row",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        scrollSnapType: "x proximity",
+        "&::-webkit-scrollbar": { display: "none" },
       },
       _vertical: {
         flexDirection: "column",
@@ -46,7 +50,12 @@ export const tabs = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
       },
-      width: "full",
+      // Natural width so horizontal tabs scroll instead of squishing; `fitted`/`_vertical` override.
+      flexShrink: 0,
+      scrollSnapAlign: "start",
+      _vertical: {
+        width: "full",
+      },
     },
     content: {
       focusVisibleRing: "inside",
@@ -195,6 +204,8 @@ export const tabs = defineSlotRecipe({
         },
         trigger: {
           flex: 1,
+          flexShrink: 1,
+          minWidth: 0,
           textAlign: "center",
           justifyContent: "center",
         },

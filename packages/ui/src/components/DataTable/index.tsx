@@ -10,7 +10,9 @@ import type {
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
+import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";
+import { DataTableCards } from "./Cards";
 import { DataTableHeader } from "./Header";
 import { DataTablePagination } from "./Pagination";
 import type { DataTableParams, TableFilterSelections } from "./types";
@@ -39,6 +41,12 @@ export type DataTableProps<TData extends object> = {
   showFiltersRow?: boolean;
   variant?: "default" | "basic";
   labels?: DataTableLabels;
+  /**
+   * How the table adapts below the `md` breakpoint.
+   * - `"scroll"` (default): keep the grid layout.
+   * - `"cards"`: render each row as a stacked label/value card.
+   */
+  mobileLayout?: "scroll" | "cards";
 };
 
 export const DataTable = <TData extends object>({
@@ -57,7 +65,11 @@ export const DataTable = <TData extends object>({
   getRowProps,
   variant,
   labels,
+  mobileLayout = "scroll",
 }: DataTableProps<TData>) => {
+  const isMobile = useIsMobile();
+  const showCards = mobileLayout === "cards" && isMobile;
+
   const sortingState = useMemo(
     () =>
       params?.orderBy
@@ -175,26 +187,37 @@ export const DataTable = <TData extends object>({
       boxShadow={variant === "basic" ? undefined : "xl"}
       minHeight="0"
     >
-      <Box
-        display="flex"
-        flexDirection="column"
-        flex="1"
-        minHeight="0"
-      >
-        <DataTableHeader
-          table={table}
-          showFiltersRow={showFiltersRow}
-        />
-        <DataTableBody
+      {showCards ? (
+        <DataTableCards
           loading={!!loading}
           table={table}
           onRowClick={handleRowClick}
           getRowProps={getRowProps}
-          renderSubRow={renderSubRow}
           onReset={onReset}
           labels={labels}
         />
-      </Box>
+      ) : (
+        <Box
+          display="flex"
+          flexDirection="column"
+          flex="1"
+          minHeight="0"
+        >
+          <DataTableHeader
+            table={table}
+            showFiltersRow={showFiltersRow}
+          />
+          <DataTableBody
+            loading={!!loading}
+            table={table}
+            onRowClick={handleRowClick}
+            getRowProps={getRowProps}
+            renderSubRow={renderSubRow}
+            onReset={onReset}
+            labels={labels}
+          />
+        </Box>
+      )}
 
       {showPagination && (
         <DataTablePagination
