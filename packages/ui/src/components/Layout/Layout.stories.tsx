@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 
 import {
   Box,
@@ -9,6 +10,7 @@ import {
   Grid,
   GridItem,
   HStack,
+  SimpleGrid,
   Spacer,
   Stack,
   VStack,
@@ -134,6 +136,79 @@ export const GridStory: Story = {
       <GridItem {...boxStyle}>Cell 5</GridItem>
     </Grid>
   ),
+};
+
+const SimpleGridDemo = () => {
+  const [columns, setColumns] = useState(3);
+  return (
+    <Stack gap="8">
+      <Stack gap="2">
+        <Box textStyle="sm">{"Static — columns={3}"}</Box>
+        <SimpleGrid
+          columns={3}
+          gap="4"
+        >
+          <Box {...boxStyle}>1</Box>
+          <Box {...boxStyle}>2</Box>
+          <Box {...boxStyle}>3</Box>
+        </SimpleGrid>
+      </Stack>
+
+      <Stack gap="2">
+        <Box textStyle="sm">{"Responsive — columns={{ base: 2, md: 3 }}"}</Box>
+        <SimpleGrid
+          columns={{ base: 2, md: 3 }}
+          gap="4"
+        >
+          <Box {...boxStyle}>1</Box>
+          <Box {...boxStyle}>2</Box>
+          <Box {...boxStyle}>3</Box>
+          <Box {...boxStyle}>4</Box>
+          <Box {...boxStyle}>5</Box>
+          <Box {...boxStyle}>6</Box>
+        </SimpleGrid>
+      </Stack>
+
+      <Stack gap="2">
+        <HStack gap="2">
+          <Box textStyle="sm">{"Runtime — columns={n}"}</Box>
+          <button
+            type="button"
+            onClick={() => setColumns((c) => (c % 4) + 1)}
+          >
+            columns: {columns} (click)
+          </button>
+        </HStack>
+        <SimpleGrid
+          columns={columns}
+          gap="4"
+        >
+          <Box {...boxStyle}>1</Box>
+          <Box {...boxStyle}>2</Box>
+          <Box {...boxStyle}>3</Box>
+          <Box {...boxStyle}>4</Box>
+        </SimpleGrid>
+      </Stack>
+
+      <Stack gap="2">
+        <Box textStyle="sm">{'Auto-fit — minChildWidth="12rem"'}</Box>
+        <SimpleGrid
+          minChildWidth="12rem"
+          gap="4"
+        >
+          <Box {...boxStyle}>1</Box>
+          <Box {...boxStyle}>2</Box>
+          <Box {...boxStyle}>3</Box>
+          <Box {...boxStyle}>4</Box>
+        </SimpleGrid>
+      </Stack>
+    </Stack>
+  );
+};
+
+export const SimpleGridStory: Story = {
+  name: "SimpleGrid",
+  render: () => <SimpleGridDemo />,
 };
 
 export const ContainerStory: Story = {

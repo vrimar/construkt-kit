@@ -1,10 +1,6 @@
-import { token } from "@construkt-kit/styled-system/tokens";
 import { useSyncExternalStore } from "react";
 
-export type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-
-/** Min-width (px) of a breakpoint, read from the generated Panda tokens. */
-const breakpointPx = (bp: Breakpoint): number => Number.parseFloat(token(`breakpoints.${bp}`));
+import { type Breakpoint, breakpointPx } from "../foundations/breakpoints";
 
 /**
  * Subscribe to a CSS media query. SSR-safe via `useSyncExternalStore` — the

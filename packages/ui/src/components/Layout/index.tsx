@@ -31,6 +31,7 @@ export type {
 } from "@construkt-kit/styled-system/jsx";
 
 /** Re-export `Divider` as `Separator` for backward compatibility. */
-/** Re-export `Divider` as `Separator` for backward compatibility. */
 export { Divider as Separator } from "@construkt-kit/styled-system/jsx";
 export type { DividerProps as SeparatorProps } from "@construkt-kit/styled-system/jsx";
+
+export { SimpleGrid, type SimpleGridProps } from "./SimpleGrid";
