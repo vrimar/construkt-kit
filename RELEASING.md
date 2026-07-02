@@ -1,44 +1,44 @@
 # Releasing
 
-Releases are automated with [Changesets](https://github.com/changesets/changesets)
-via `.github/workflows/release.yml`.
+Releases are cut **locally** with [Changesets](https://github.com/changesets/changesets).
+Nothing publishes from CI — CI only lint/typecheck/test/build/exports-gates pull
+requests (`.github/workflows/ci.yml`).
 
-## Normal flow (CI)
+## Flow
 
-1. In your feature branch, add a changeset describing the change:
+1. While working, add a changeset describing the change and commit the generated
+   `.changeset/*.md` file:
    ```bash
    pnpm changeset
    ```
-   Commit the generated `.changeset/*.md` file with your PR.
-2. When the PR merges to `main`, the Release workflow opens (or updates) a
-   **"Version Packages"** PR that applies the version bumps + changelogs.
-3. Merge the **Version Packages** PR. The workflow then runs `pnpm release`
-   (`changeset publish`), which publishes the changed packages to npm and pushes
-   git tags.
+2. When ready to publish, on an up-to-date `main`:
+   ```bash
+   pnpm run version-packages   # apply version bumps + changelogs + lockfile
+   git commit -am "Release"
+   pnpm run release            # build + validate exports + changeset publish
+   git push --follow-tags
+   ```
 
-Nothing is published from a developer machine.
+`pnpm run release` runs `pnpm build`, validates every published package's exports
+(`publint` + `arethetypeswrong`), then `changeset publish` — publishing changed
+packages to npm and creating git tags.
 
 ## One-time setup
 
-- **`NPM_TOKEN` repo secret** — a classic **Automation** token (npmjs → Access
-  Tokens → Classic Token → Automation). It bypasses 2FA; a "Publish" token fails
-  with `E403 … bypass 2fa … required`.
-- Enable **Settings → Actions → General → Allow GitHub Actions to create and
-  approve pull requests** (so the workflow can open the Version Packages PR).
+- **npm auth in `~/.npmrc`** — a classic **Automation** token (npmjs → Access
+  Tokens → Classic Token → Automation):
+  ```bash
+  npm config set //registry.npmjs.org/:_authToken "npm_…"
+  ```
+  It bypasses 2FA; a "Publish" token fails with `E403 … bypass 2fa … required`.
+  The committed `.npmrc` stays empty (pnpm 11 ignores env-var tokens there).
+- `git config tag.gpgsign false` — `changeset publish` uses lightweight tags.
 
-## Local publish (fallback only)
+## Notes
 
-Prefer CI. If you must publish locally:
-
-```bash
-# token in user-level ~/.npmrc (see .npmrc); must be an Automation token
-git config tag.gpgsign false   # changeset publish uses lightweight tags
-pnpm changeset                 # if not already added
-pnpm run version-packages
-git commit -am "Release"
-pnpm run release
-git push --follow-tags
-```
-
-Note: use `pnpm run version-packages` / `pnpm run release` — bare `pnpm version`
-and `pnpm publish` invoke pnpm's built-in commands, not these scripts.
+- Use `pnpm run version-packages` / `pnpm run release` — bare `pnpm version` and
+  `pnpm publish` invoke pnpm's built-in commands, not these scripts.
+- Publishing locally means npm **provenance** attestations are not generated (npm
+  only produces those from a supported CI environment). If provenance becomes a
+  requirement, move `version-packages` + `release` into a CI workflow with npm
+  OIDC trusted publishing.

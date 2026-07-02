@@ -4,8 +4,9 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     preset: "src/preset.ts",
+    panda: "src/panda.ts",
   },
-  format: ["esm", "cjs"],
+  format: ["esm"],
   dts: true,
   sourcemap: true,
   clean: true,
@@ -13,6 +14,13 @@ export default defineConfig({
     pluginTimings: false,
   },
   deps: {
-    neverBundle: ["react", "react-dom", "@construkt-kit/preset", "@construkt-kit/styled-system"],
+    // Regex (not a plain string) so the /recipes, /jsx… subpaths stay external for consumer codegen.
+    neverBundle: [
+      "react",
+      "react-dom",
+      "@construkt-kit/preset",
+      /^@construkt-kit\/styled-system(\/|$)/,
+      "@pandacss/dev",
+    ],
   },
 });

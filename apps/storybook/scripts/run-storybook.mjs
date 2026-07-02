@@ -8,7 +8,7 @@ if (!pnpmExecPath) {
 }
 
 if (mode === "build") {
-  process.env.CONSTRUCT_KIT_STORYBOOK_USE_BUILDINFO = "1";
+  process.env.CONSTRUKT_KIT_STORYBOOK_USE_BUILDINFO = "1";
 
   const typecheckResult = runPnpmSync(["exec", "tsgo", "--noEmit"]);
 

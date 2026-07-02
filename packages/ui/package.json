@@ -5,30 +5,27 @@
   "description": "Shared component library for Construkt Kit frontend apps",
   "author": "Vasil Rimar",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vrimar/construkt-kit.git",
+    "directory": "packages/ui"
+  },
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "default": "./dist/index.cjs"
-      }
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./preset": {
-      "import": {
-        "types": "./dist/preset.d.mts",
-        "default": "./dist/preset.mjs"
-      },
-      "require": {
-        "types": "./dist/preset.d.cts",
-        "default": "./dist/preset.cjs"
-      }
+      "types": "./dist/preset.d.mts",
+      "default": "./dist/preset.mjs"
+    },
+    "./panda": {
+      "types": "./dist/panda.d.mts",
+      "default": "./dist/panda.mjs"
     },
     "./panda.buildinfo.json": "./dist/panda.buildinfo.json"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "files": [
     "dist"
@@ -41,12 +38,11 @@
     "lint": "oxlint src",
     "lint:fix": "oxlint src --fix",
     "format": "oxfmt src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
   "dependencies": {
     "@ark-ui/react": "^5.37.2",
-    "@construkt-kit/preset": "workspace:*",
-    "@construkt-kit/styled-system": "workspace:*",
     "@construkt-kit/utils": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.5",
@@ -57,11 +53,15 @@
     "ts-pattern": "^5.9.0"
   },
   "peerDependencies": {
+    "@construkt-kit/preset": ">=0.2.0",
+    "@pandacss/dev": "^1.11.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/preset": "workspace:*",
+    "@construkt-kit/styled-system": "workspace:*",
     "@pandacss/dev": "^1.11.4",
     "@pandacss/eslint-plugin": "^0.3.2",
     "@storybook/react-vite": "^10.4.6",

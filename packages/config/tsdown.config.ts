@@ -8,7 +8,7 @@ export default defineConfig({
     "oxlint/index": "oxlint/index.config.ts",
     "oxfmt/index": "oxfmt/index.config.ts",
   },
-  format: ["esm", "cjs"],
+  format: ["esm"],
   dts: true,
   sourcemap: true,
   clean: true,

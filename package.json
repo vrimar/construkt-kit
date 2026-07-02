@@ -1,6 +1,10 @@
 {
   "name": "construkt-kit",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vrimar/construkt-kit.git"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -13,16 +17,18 @@
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",
     "changeset": "changeset",
     "version-packages": "changeset version && pnpm install --lockfile-only",
-    "release": "pnpm build && changeset publish",
+    "release": "pnpm build && pnpm turbo run check:exports && changeset publish",
     "update-deps": "pnpm update -r && pnpm update"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.4",
     "@changesets/cli": "^2.31.0",
     "@construkt-kit/config": "workspace:*",
     "@typescript/native-preview": "7.0.0-dev.20260701.1",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
+    "publint": "^0.3.21",
     "turbo": "^2.10.2"
   },
   "engines": {

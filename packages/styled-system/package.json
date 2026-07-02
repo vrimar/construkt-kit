@@ -1,8 +1,8 @@
 {
   "name": "@construkt-kit/styled-system",
   "version": "0.1.3",
-  "private": false,
-  "description": "Shared Panda CSS generated runtime for Construkt Kit frontend apps",
+  "private": true,
+  "description": "Internal Panda CSS runtime for building @construkt-kit/ui. Not published — consuming apps generate their own via panda codegen.",
   "files": [
     "dist"
   ],

@@ -6,6 +6,9 @@
       "env": ["CONSTRUKT_KIT_STORYBOOK_BASE_PATH"],
       "outputs": ["dist/**", "storybook-static/**"]
     },
+    "check:exports": {
+      "dependsOn": ["build"]
+    },
     "dev": {
       "dependsOn": ["^build"],
       "persistent": true
