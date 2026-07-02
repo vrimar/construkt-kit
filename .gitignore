@@ -67,8 +67,4 @@ desktop.ini
 .oxlintcache
 .parcel-cache/
 
-# Changesets
-.changeset/*.md
-!.changeset/config.json
-
 .claude
