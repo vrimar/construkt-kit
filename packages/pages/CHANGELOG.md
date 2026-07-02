@@ -1,6 +1,6 @@
-# @construkt-kit/preset
+# @construkt-kit/pages
 
-## 0.3.0
+## 0.2.0
 
 ### Minor Changes
 
@@ -13,9 +13,3 @@
 
   BREAKING: a CommonJS consumer on older Node that cannot use `require(esm)` can no longer load these
   packages. All supported consumers (Vite / Vitest / React 19 / Node ≥ 20.19) are unaffected.
-
-## 0.2.0
-
-### Minor Changes
-
-- Scale component surface from CSS-var knobs; add semantic button color palettes.
