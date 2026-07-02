@@ -19,8 +19,12 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
-    "lint": {},
-    "lint:fix": {},
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "lint:fix": {
+      "dependsOn": ["^build"]
+    },
     "format": {},
     "storybook": {
       "dependsOn": ["^build"],
