@@ -12,16 +12,14 @@
     "storybook": "turbo run storybook --filter @construkt-kit/storybook",
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",
     "changeset": "changeset",
-    "version": "changeset version",
-    "publish": "pnpm build && dotenv -e .env -- changeset publish",
-    "publish-local": "pnpm build && dotenv -e .env -- pnpm -r publish --access public",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
+    "release": "pnpm build && changeset publish",
     "update-deps": "pnpm update -r && pnpm update"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "@construkt-kit/config": "workspace:*",
     "@typescript/native-preview": "7.0.0-dev.20260701.1",
-    "dotenv-cli": "^11.0.0",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
