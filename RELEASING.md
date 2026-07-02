@@ -20,8 +20,15 @@ requests (`.github/workflows/ci.yml`).
    ```
 
 `pnpm run release` runs `pnpm build`, validates every published package's exports
-(`publint` + `arethetypeswrong`), then `changeset publish` — publishing changed
-packages to npm and creating git tags.
+(`publint` + `arethetypeswrong`), then `scripts/publish-packages.mjs` — which packs
+each changed package with `pnpm pack` (resolving `workspace:*`), uploads it with
+`npm publish`, and creates a git tag per package. It is idempotent: anything already
+on npm is skipped.
+
+> Why not `changeset publish`? Under pnpm 11, `pnpm publish` (which `changeset
+> publish` invokes) does not send the `~/.npmrc` auth token and fails with a
+> misleading E404. Plain `npm publish` authenticates correctly, so the script uses
+> `pnpm pack` + `npm publish`.
 
 ## One-time setup
 

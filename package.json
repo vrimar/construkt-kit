@@ -17,7 +17,7 @@
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",
     "changeset": "changeset",
     "version-packages": "changeset version && pnpm install --lockfile-only",
-    "release": "pnpm build && pnpm turbo run check:exports && changeset publish",
+    "release": "pnpm build && pnpm turbo run check:exports && node scripts/publish-packages.mjs",
     "update-deps": "pnpm update -r && pnpm update"
   },
   "devDependencies": {
