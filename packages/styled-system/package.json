@@ -37,7 +37,7 @@
     "prepare": "pnpm --filter @construkt-kit/preset build && panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
     "build": "panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
     "dev": "panda codegen --watch",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."

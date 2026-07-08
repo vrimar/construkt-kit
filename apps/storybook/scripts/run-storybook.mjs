@@ -10,7 +10,7 @@ if (!pnpmExecPath) {
 if (mode === "build") {
   process.env.CONSTRUKT_KIT_STORYBOOK_USE_BUILDINFO = "1";
 
-  const typecheckResult = runPnpmSync(["exec", "tsgo", "--noEmit"]);
+  const typecheckResult = runPnpmSync(["exec", "tsc", "--noEmit"]);
 
   if (typecheckResult !== 0) {
     process.exit(typecheckResult);
@@ -20,7 +20,7 @@ if (mode === "build") {
 
   process.exit(storybookBuildResult);
 } else if (mode === "dev") {
-  const typecheckProcess = runPnpm(["exec", "tsgo", "--noEmit", "--watch", "--pretty"]);
+  const typecheckProcess = runPnpm(["exec", "tsc", "--noEmit", "--watch", "--pretty"]);
   const storybookProcess = runPnpm(["exec", "storybook", "dev", "-p", "6006"]);
 
   let shuttingDown = false;

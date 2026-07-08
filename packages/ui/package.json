@@ -34,7 +34,7 @@
     "prepare": "pnpm --filter @construkt-kit/styled-system build",
     "build": "tsdown && panda ship --outfile dist/panda.buildinfo.json",
     "dev": "tsdown --watch",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "oxlint src",
     "lint:fix": "oxlint src --fix",
     "format": "oxfmt src",
