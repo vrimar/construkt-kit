@@ -30,7 +30,7 @@ export type DataTableSelectProps = {
   root?: Partial<
     Omit<
       ApplySelectRootProps<string>,
-      "children" | "getLabel" | "getValue" | "items" | "onApply" | "selected"
+      "children" | "items" | "onApply" | "selected"
     >
   >;
   search?: ApplySelectSearchProps;

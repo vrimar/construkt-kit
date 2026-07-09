@@ -18,11 +18,16 @@ export const ColumnSelectFilter = ({
   selectProps,
   onApply,
 }: ColumnSelectFilterProps) => {
+  const getLabel = useMemo(
+    () => selectProps?.root?.getLabel ?? ((item: string) => item),
+    [selectProps?.root?.getLabel],
+  );
+
   const triggerLabel = useMemo(() => {
     if (!selected || selected.length === 0) return `Filter by ${name}`;
-    if (selected.length === 1) return selected[0];
+    if (selected.length === 1) return getLabel(selected[0]);
     return `${selected.length} selected`;
-  }, [selected, name]);
+  }, [selected, name, getLabel]);
 
   return (
     <ApplySelect.Root
