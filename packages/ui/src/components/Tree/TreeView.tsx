@@ -3,14 +3,15 @@ import {
   TreeViewContext,
   TreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { ark } from "@ark-ui/react/factory";
+import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type TreeViewVariantProps, treeView } from "@construkt-kit/styled-system/recipes";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(treeView);
 
-type RootProps = TreeViewVariantProps;
+type RootProps = HTMLStyledProps<"div"> & TreeViewVariantProps;
 
 const Root = withProvider(ArkTreeView.Root, "root") as ArkTreeView.RootComponent<RootProps>;
 const RootProvider = withProvider(
@@ -35,9 +36,21 @@ const NodeProvider = ArkTreeView.NodeProvider;
 const NodeCheckbox = withContext(ArkTreeView.NodeCheckbox, "nodeCheckbox");
 const NodeCheckboxIndicator = ArkTreeView.NodeCheckboxIndicator;
 const NodeRenameInput = withContext(ArkTreeView.NodeRenameInput, "nodeRenameInput");
+// Not an Ark part — a drag-and-drop drop indicator that inherits the tree's size context.
+const DropIndicator = withContext(ark.div, "dropIndicator");
 
 export type TreeViewRootProps = ComponentProps<typeof Root>;
+export type { TreeViewVariantProps };
 
+/**
+ * Styled Ark UI TreeView primitives. Drive `Root` with a collection from
+ * `createTreeCollection`, recursing over nodes inside `NodeProvider` (needs
+ * `node` + `indexPath`) to render `Branch`/`Item` parts.
+ *
+ * `DropIndicator` is a low-level styled slot for drag-and-drop that expects a
+ * manually set `data-instruction` and inset — most consumers should use the
+ * higher-level `TreeDropIndicator` (from `./dnd`) instead.
+ */
 export const TreeView = {
   Root,
   RootProvider,
@@ -57,6 +70,7 @@ export const TreeView = {
   NodeCheckbox,
   NodeCheckboxIndicator,
   NodeRenameInput,
+  DropIndicator,
   Context: TreeViewContext,
   NodeContext: TreeViewNodeContext,
 };

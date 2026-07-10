@@ -1,8 +1,9 @@
 import { treeView } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
+import { useState } from "react";
 
-import { TreeView, createTreeCollection } from ".";
+import { DraggableTreeNode, TreeView, TreeViewDndProvider, createTreeCollection } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
@@ -254,6 +255,57 @@ export const WithCheckboxes: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
+};
+
+function DragAndDropExample() {
+  const [treeCollection, setTreeCollection] = useState(collection);
+
+  return (
+    <Box
+      maxW="320px"
+      border="1px solid"
+      borderColor="border"
+      rounded="md"
+      p="2"
+    >
+      <TreeView.Root
+        collection={treeCollection}
+        defaultExpandedValue={["src", "components"]}
+      >
+        <TreeViewDndProvider
+          collection={treeCollection}
+          onCollectionChange={setTreeCollection}
+        >
+          <TreeView.Tree>
+            {treeCollection.rootNode.children?.map((node, index) => (
+              <DraggableTreeNode
+                key={node.id}
+                node={node}
+                indexPath={[index]}
+                renderNode={({ node: treeNode, isBranch }) =>
+                  isBranch ? (
+                    <>
+                      <FolderIcon />
+                      <TreeView.BranchText>{treeNode.name}</TreeView.BranchText>
+                    </>
+                  ) : (
+                    <>
+                      <FileIcon />
+                      <TreeView.ItemText>{treeNode.name}</TreeView.ItemText>
+                    </>
+                  )
+                }
+              />
+            ))}
+          </TreeView.Tree>
+        </TreeViewDndProvider>
+      </TreeView.Root>
+    </Box>
+  );
+}
+
+export const WithDragAndDrop: StoryObj = {
+  render: () => <DragAndDropExample />,
 };
 
 export const Sizes: StoryObj = {

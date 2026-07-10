@@ -1,3 +1,4 @@
+import type { TreeCollection } from "@ark-ui/react/tree-view";
 import { createTreeCollection } from "@ark-ui/react/tree-view";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -244,5 +245,137 @@ describe("TreeSelectList", () => {
 
     expect(screen.queryByPlaceholderText("Search...")).toBeNull();
     expect(screen.queryByLabelText("Select all")).toBeNull();
+  });
+
+  // --- Drag and drop ---
+
+  it("makes rows draggable when onCollectionChange is provided", () => {
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={vi.fn()}
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+
+    expect(screen.getByText("Fruits").closest("[draggable='true']")).not.toBeNull();
+    expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
+  });
+
+  it("leaves rows non-draggable without onCollectionChange", () => {
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+
+    expect(screen.getByText("Fruits").closest("[draggable='true']")).toBeNull();
+  });
+
+  it("reorders a node via keyboard (Ctrl+ArrowDown) and commits the change", () => {
+    const onCollectionChange = vi.fn();
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={onCollectionChange}
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+
+    const apple = screen.getByText("Apple").closest("[draggable='true']");
+    expect(apple).not.toBeNull();
+    fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
+
+    expect(onCollectionChange).toHaveBeenCalledTimes(1);
+    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<DemoNode>;
+    expect(next.getNodeChildren(next.findNode("fruits") as DemoNode).map((n) => n.id)).toEqual([
+      "banana",
+      "apple",
+    ]);
+  });
+
+  it("keyboard reorder respects the canDrop veto", () => {
+    const onCollectionChange = vi.fn();
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={onCollectionChange}
+        canDrop={() => false}
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+    const apple = screen.getByText("Apple").closest("[draggable='true']");
+    fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
+    expect(onCollectionChange).not.toHaveBeenCalled();
+  });
+
+  it("keyboard outdent respects blockReparent", () => {
+    const onCollectionChange = vi.fn();
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={onCollectionChange}
+        blockReparent
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+    const carrot = screen.getByText("Carrot").closest("[draggable='true']");
+    fireEvent.keyDown(carrot as HTMLElement, { key: "ArrowLeft", ctrlKey: true });
+    expect(onCollectionChange).not.toHaveBeenCalled();
+  });
+
+  it("keyboard reorder respects isNodeDraggable", () => {
+    const onCollectionChange = vi.fn();
+    render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={onCollectionChange}
+        isNodeDraggable={() => false}
+        defaultExpandedValue={["fruits", "vegetables"]}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+    const apple = screen.getByText("Apple").closest("[draggable='true']");
+    fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
+    expect(onCollectionChange).not.toHaveBeenCalled();
+  });
+
+  it("renders an assistive-tech live region when DnD is enabled", () => {
+    const { container } = render(
+      <TreeSelectList
+        collection={fruitVegCollection}
+        value={[]}
+        onValueChange={vi.fn()}
+        onCollectionChange={vi.fn()}
+        showSearch={false}
+        showSelectAll={false}
+      />,
+    );
+
+    expect(container.querySelector("[aria-live]")).not.toBeNull();
   });
 });

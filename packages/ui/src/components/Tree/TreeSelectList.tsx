@@ -9,6 +9,9 @@ import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";
 import { VirtualScrollArea } from "../ScrollArea/VirtualScrollArea";
 import { Tooltip } from "../Tooltip";
+import { TreeViewDndProvider, type TreeViewDndProviderProps } from "./dnd/TreeDndContext";
+import { TreeDropIndicator } from "./dnd/TreeDropIndicator";
+import { useTreeNodeDnd } from "./dnd/useTreeNodeDnd";
 import {
   collectBranchValues,
   collectBranchesWithLeafDescendants,
@@ -51,6 +54,38 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   maxHeight?: string;
   /** Size variant. @default "md" */
   size?: TreeSize;
+  /**
+   * Enables drag-and-drop reordering. Called with the reordered collection after a drop.
+   * DnD is automatically disabled while a search filter is active.
+   */
+  onCollectionChange?: (collection: TreeCollection<TNode>) => void;
+  /** Whether a node may be dragged (DnD only). @default all nodes */
+  isNodeDraggable?: (node: TNode) => boolean;
+  /** Disable outdent (reparent) drops (DnD only). @default false */
+  blockReparent?: boolean;
+  /**
+   * ms a drag must hover a collapsed branch before it auto-expands, or `false` to disable
+   * hover auto-expand (DnD only). @default 500
+   */
+  autoExpandDelay?: number | false;
+  /** Side-effect after a drop (persist/analytics); reverts the optimistic change on reject. */
+  onDrop?: TreeViewDndProviderProps<TNode>["onDrop"];
+  /** Fired when a drag starts. */
+  onDragStart?: TreeViewDndProviderProps<TNode>["onDragStart"];
+  /** Fired when a drag ends. */
+  onDragEnd?: TreeViewDndProviderProps<TNode>["onDragEnd"];
+  /** Veto a specific drop (also suppresses the indicator for rejected targets). */
+  canDrop?: TreeViewDndProviderProps<TNode>["canDrop"];
+  /** Values to move when dragging one node (e.g. the current multi-selection). */
+  getDragValues?: TreeViewDndProviderProps<TNode>["getDragValues"];
+  /** Extra data attached to the drag payload for cross-surface drops. */
+  getExtraDragData?: TreeViewDndProviderProps<TNode>["getExtraDragData"];
+  /** Render custom drag-preview content. */
+  renderDragPreview?: TreeViewDndProviderProps<TNode>["renderDragPreview"];
+  /** Build the screen-reader announcement for a completed drop. */
+  getDropAnnouncement?: TreeViewDndProviderProps<TNode>["getDropAnnouncement"];
+  /** Auto-scroll speed near the viewport edges during a drag. @default "standard" */
+  autoScrollSpeed?: TreeViewDndProviderProps<TNode>["autoScrollSpeed"];
 }
 
 const TreeNodeCheckbox = () => (
@@ -70,60 +105,93 @@ const TreeIndicatorSpacer = () => (
   />
 );
 
-const TreeRow = ({
-  isBranch,
-  checkable,
-  indexPath,
-  children,
-  actions,
-  onPointerDown,
-}: {
+interface TreeRowProps {
   isBranch: boolean;
   checkable: boolean;
   indexPath: number[];
   children: ReactNode;
   actions: ReactNode | undefined;
   onPointerDown: (e: React.PointerEvent) => void;
-}) => {
-  // In virtualized mode nodes render flat (no Branch wrapper), so Ark UI
-  // cannot set --depth via DOM nesting. Set it explicitly from indexPath.
-  const depthStyle = { "--depth": indexPath.length } as React.CSSProperties;
+}
 
-  const content = (
-    <>
-      <TreeRowIndentGuides indexPath={indexPath} />
-      {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
-      {checkable && <TreeNodeCheckbox />}
-      <Box
-        flex="1"
-        minWidth="0"
-      >
-        {children}
-      </Box>
-      {actions && (
-        <Box
-          flexShrink={0}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {actions}
-        </Box>
-      )}
-    </>
-  );
-
-  return isBranch ? (
-    <TreeView.BranchControl
-      onPointerDown={onPointerDown}
-      style={depthStyle}
+const renderRowInner = ({
+  isBranch,
+  checkable,
+  indexPath,
+  children,
+  actions,
+  tail,
+}: TreeRowProps & { tail?: ReactNode }) => (
+  <>
+    <TreeRowIndentGuides indexPath={indexPath} />
+    {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
+    {checkable && <TreeNodeCheckbox />}
+    <Box
+      flex="1"
+      minWidth="0"
     >
-      {content}
+      {children}
+    </Box>
+    {actions && (
+      <Box
+        flexShrink={0}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {actions}
+      </Box>
+    )}
+    {tail}
+  </>
+);
+
+// In virtualized mode nodes render flat (no Branch wrapper), so Ark UI cannot set --depth via
+// DOM nesting — set it explicitly from indexPath.
+const depthStyleFor = (indexPath: number[]) => ({ "--depth": indexPath.length }) as React.CSSProperties;
+
+/** Row with no DnD wiring — used when the tree has no `onCollectionChange` (the common case). */
+const PlainTreeRow = (props: TreeRowProps) =>
+  props.isBranch ? (
+    <TreeView.BranchControl
+      onPointerDown={props.onPointerDown}
+      style={depthStyleFor(props.indexPath)}
+    >
+      {renderRowInner(props)}
     </TreeView.BranchControl>
   ) : (
     <TreeView.Item
-      onPointerDown={onPointerDown}
-      style={depthStyle}
+      onPointerDown={props.onPointerDown}
+      style={depthStyleFor(props.indexPath)}
     >
-      {content}
+      {renderRowInner(props)}
+    </TreeView.Item>
+  );
+
+/** Row wired for drag/keyboard reordering; only mounted under a `TreeViewDndProvider`. */
+const DndTreeRow = (props: TreeRowProps) => {
+  const { ref, isDragging, instruction, dragPreview } = useTreeNodeDnd();
+  const tail = (
+    <>
+      <TreeDropIndicator instruction={instruction} />
+      {dragPreview}
+    </>
+  );
+  return props.isBranch ? (
+    <TreeView.BranchControl
+      ref={ref}
+      data-dragging={isDragging || undefined}
+      onPointerDown={props.onPointerDown}
+      style={depthStyleFor(props.indexPath)}
+    >
+      {renderRowInner({ ...props, tail })}
+    </TreeView.BranchControl>
+  ) : (
+    <TreeView.Item
+      ref={ref}
+      data-dragging={isDragging || undefined}
+      onPointerDown={props.onPointerDown}
+      style={depthStyleFor(props.indexPath)}
+    >
+      {renderRowInner({ ...props, tail })}
     </TreeView.Item>
   );
 };
@@ -144,6 +212,19 @@ export const TreeSelectList = <TNode extends TreeNode>({
   onExpandedChange,
   maxHeight = "320px",
   size = DEFAULT_TREE_SIZE,
+  onCollectionChange,
+  isNodeDraggable,
+  blockReparent = false,
+  autoExpandDelay,
+  onDrop,
+  onDragStart,
+  onDragEnd,
+  canDrop,
+  getDragValues,
+  getExtraDragData,
+  renderDragPreview,
+  getDropAnnouncement,
+  autoScrollSpeed,
 }: TreeSelectListProps<TNode>) => {
   const [search, setSearch] = useState("");
   const selectAllButtonSize = size === "sm" ? "xs" : "sm";
@@ -262,9 +343,76 @@ export const TreeSelectList = <TNode extends TreeNode>({
 
   const visibleNodes = tree.getVisibleNodes();
 
+  // --- Drag and drop ---
+  // Reorder against the original (unfiltered) collection; disabled while searching so the
+  // rendered indexPaths (filteredCollection) always match the collection DnD mutates.
+  const dndActive = onCollectionChange != null && filteredCollection === collection;
+  const [scrollViewport, setScrollViewport] = useState<HTMLDivElement | null>(null);
+  // Non-DnD trees (the common case) render a plain row so every virtualized row skips the DnD hook.
+  const RowComponent = onCollectionChange ? DndTreeRow : PlainTreeRow;
+
   // --- Render ---
 
   const showToolbar = showSearch || showSelectAll;
+
+  const treeBody = (
+    <TreeView.RootProvider
+      value={tree as ReturnType<typeof useTreeView>}
+      size={size}
+    >
+      <TreeView.Tree>
+        <VirtualScrollArea
+          items={visibleNodes}
+          itemHeight={TREE_ROW_HEIGHT_ESTIMATE[size]}
+          getItemKey={(index) => filteredCollection.getNodeValue(visibleNodes[index].node)}
+          height={maxHeight}
+          maxHeight={maxHeight}
+          viewportRef={setScrollViewport}
+          measure
+          p="2"
+        >
+          {({ node, indexPath }) => {
+            const nodeState = tree.getNodeState({ node, indexPath });
+            const nodeValue = filteredCollection.getNodeValue(node);
+            const isBranch = nodeState.isBranch;
+            const checkable = resolvedIsNodeCheckable({ node, indexPath, isBranch });
+            const renderedNode = renderNode?.({ node, indexPath, isBranch });
+            const renderedActions = renderActions?.({ node, indexPath, isBranch });
+
+            return (
+              <TreeView.NodeProvider
+                key={nodeValue}
+                node={node}
+                indexPath={indexPath}
+              >
+                <RowComponent
+                  isBranch={isBranch}
+                  checkable={checkable}
+                  indexPath={indexPath}
+                  actions={renderedActions}
+                  onPointerDown={(e) => {
+                    if (e.button !== 0) return;
+                    tree.focus(nodeValue);
+                  }}
+                >
+                  {renderedNode ??
+                    (isBranch ? (
+                      <TreeView.BranchText>
+                        {filteredCollection.stringifyNode(node)}
+                      </TreeView.BranchText>
+                    ) : (
+                      <TreeView.ItemText>
+                        {filteredCollection.stringifyNode(node)}
+                      </TreeView.ItemText>
+                    ))}
+                </RowComponent>
+              </TreeView.NodeProvider>
+            );
+          }}
+        </VirtualScrollArea>
+      </TreeView.Tree>
+    </TreeView.RootProvider>
+  );
 
   return (
     <Flex direction="column">
@@ -313,61 +461,31 @@ export const TreeSelectList = <TNode extends TreeNode>({
           )}
         </Flex>
       )}
-      <TreeView.RootProvider
-        value={tree as ReturnType<typeof useTreeView>}
-        size={size}
-      >
-        <TreeView.Tree>
-          <VirtualScrollArea
-            items={visibleNodes}
-            itemHeight={TREE_ROW_HEIGHT_ESTIMATE[size]}
-            getItemKey={(index) => filteredCollection.getNodeValue(visibleNodes[index].node)}
-            height={maxHeight}
-            maxHeight={maxHeight}
-            measure
-            p="2"
-          >
-            {({ node, indexPath }) => {
-              const nodeState = tree.getNodeState({ node, indexPath });
-              const nodeValue = filteredCollection.getNodeValue(node);
-              const isBranch = nodeState.isBranch;
-              const checkable = resolvedIsNodeCheckable({ node, indexPath, isBranch });
-              const renderedNode = renderNode?.({ node, indexPath, isBranch });
-              const renderedActions = renderActions?.({ node, indexPath, isBranch });
-
-              return (
-                <TreeView.NodeProvider
-                  key={nodeValue}
-                  node={node}
-                  indexPath={indexPath}
-                >
-                  <TreeRow
-                    isBranch={isBranch}
-                    checkable={checkable}
-                    indexPath={indexPath}
-                    actions={renderedActions}
-                    onPointerDown={(e) => {
-                      if (e.button !== 0) return;
-                      tree.focus(nodeValue);
-                    }}
-                  >
-                    {renderedNode ??
-                      (isBranch ? (
-                        <TreeView.BranchText>
-                          {filteredCollection.stringifyNode(node)}
-                        </TreeView.BranchText>
-                      ) : (
-                        <TreeView.ItemText>
-                          {filteredCollection.stringifyNode(node)}
-                        </TreeView.ItemText>
-                      ))}
-                  </TreeRow>
-                </TreeView.NodeProvider>
-              );
-            }}
-          </VirtualScrollArea>
-        </TreeView.Tree>
-      </TreeView.RootProvider>
+      {onCollectionChange ? (
+        // Provider stays mounted; toggling `enabled` (e.g. when searching) never remounts the tree.
+        <TreeViewDndProvider
+          collection={collection}
+          onCollectionChange={onCollectionChange}
+          enabled={dndActive}
+          blockReparent={blockReparent}
+          autoExpandDelay={autoExpandDelay}
+          isNodeDraggable={isNodeDraggable}
+          onDrop={onDrop}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          canDrop={canDrop}
+          getDragValues={getDragValues}
+          getExtraDragData={getExtraDragData}
+          renderDragPreview={renderDragPreview}
+          getDropAnnouncement={getDropAnnouncement}
+          autoScrollSpeed={autoScrollSpeed}
+          scrollElement={scrollViewport}
+        >
+          {treeBody}
+        </TreeViewDndProvider>
+      ) : (
+        treeBody
+      )}
     </Flex>
   );
 };

@@ -6,7 +6,7 @@ import { controlText } from "./control-size";
 
 export const treeView = defineSlotRecipe({
   className: "tree-view",
-  slots: treeViewAnatomy.keys(),
+  slots: [...treeViewAnatomy.keys(), "dropIndicator"],
   staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
@@ -54,6 +54,9 @@ export const treeView = defineSlotRecipe({
       focusRingColor: "border.emphasized",
       _disabled: {
         layerStyle: "disabled",
+      },
+      "&[data-dragging]": {
+        opacity: "0.4",
       },
     },
     branchIndicator: {
@@ -117,6 +120,9 @@ export const treeView = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
       },
+      "&[data-dragging]": {
+        opacity: "0.4",
+      },
     },
     itemIndicator: {
       display: "inline-flex",
@@ -146,6 +152,37 @@ export const treeView = defineSlotRecipe({
       transition: "backgrounds, border-color, colors",
       _checked: checkboxControlCheckedState,
       _indeterminate: checkboxControlCheckedState,
+    },
+    dropIndicator: {
+      colorPalette: "blue",
+      position: "absolute",
+      insetInline: "0",
+      height: "2px",
+      bg: "colorPalette.solid.bg",
+      borderRadius: "full",
+      pointerEvents: "none",
+      zIndex: "1",
+      // leading dot at the indented start of the line
+      _before: {
+        content: '""',
+        position: "absolute",
+        insetBlockStart: "50%",
+        insetInlineStart: "0",
+        boxSize: "1.5",
+        transform: "translate(-50%, -50%)",
+        borderRadius: "full",
+        bg: "colorPalette.solid.bg",
+      },
+      // make-child: outline the whole row instead of a line
+      "&[data-instruction='make-child']": {
+        insetBlock: "0",
+        height: "auto",
+        bg: "transparent",
+        borderWidth: "2px",
+        borderColor: "colorPalette.solid.bg",
+        borderRadius: "sm",
+        _before: { display: "none" },
+      },
     },
   },
   defaultVariants: {
