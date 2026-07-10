@@ -29,6 +29,10 @@
     "format": "oxfmt src",
     "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
+  "dependencies": {
+    "lucide-react": "^1.23.0",
+    "password-validator": "^5.3.0"
+  },
   "peerDependencies": {
     "@construkt-kit/ui": ">=0.2.0",
     "react": "^19.0.0",

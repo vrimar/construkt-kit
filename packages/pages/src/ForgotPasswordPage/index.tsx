@@ -69,6 +69,7 @@ export function ForgotPasswordPage({
               w="100%"
               type="submit"
               loading={isLoading}
+              disabled={isLoading || !email}
               colorPalette="brand"
             >
               Send reset link
