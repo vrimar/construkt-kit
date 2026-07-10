@@ -1,5 +1,6 @@
 import "@fontsource-variable/inter";
 import "./storybook.css";
+import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
@@ -29,6 +30,12 @@ const preview: Preview = {
         <Story />
       </QueryClientProvider>
     ),
+    // Toolbar toggle adds the `dark` class to the preview <html> (matches the preset's `.dark &` condition).
+    withThemeByClassName({
+      themes: { light: "", dark: "dark" },
+      defaultTheme: "light",
+      parentSelector: "html",
+    }),
   ],
   parameters: {
     controls: {

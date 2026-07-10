@@ -19,7 +19,7 @@ export const SearchHighlight = ({ text, query }: SearchHighlightProps) => {
       query={words}
       ignoreCase
       matchAll
-      style={{ background: token("colors.yellow.100") }}
+      style={{ background: token("colors.highlight.bg"), color: token("colors.highlight.fg") }}
     />
   );
 };

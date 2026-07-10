@@ -88,7 +88,7 @@ export const scrollArea = defineSlotRecipe({
     fadeEdges: {
       true: {
         root: {
-          "--scroll-area-fade-color": "white",
+          "--scroll-area-fade-color": "{colors.bg}",
           "--scroll-area-fade-size": "sizes.8",
           _before: {
             content: '""',

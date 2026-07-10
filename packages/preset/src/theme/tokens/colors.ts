@@ -77,6 +77,23 @@ const slate = defineTokens.colors({
   950: { value: "#020617" },
 });
 
+// Radix Colors "slate" dark scale (12 steps). A purpose-built dark ramp — the
+// _dark side of the neutral chrome references this, while light stays Tailwind.
+const slateDark = defineTokens.colors({
+  1: { value: "#111113" },
+  2: { value: "#18191b" },
+  3: { value: "#212225" },
+  4: { value: "#272a2d" },
+  5: { value: "#2e3135" },
+  6: { value: "#363a3e" },
+  7: { value: "#43484e" },
+  8: { value: "#5a6169" },
+  9: { value: "#696e77" },
+  10: { value: "#777b84" },
+  11: { value: "#b0b4ba" },
+  12: { value: "#edeef0" },
+});
+
 const blue = defineTokens.colors({
   50: { value: "#eff6ff" },
   100: { value: "#dbeafe" },
@@ -211,6 +228,7 @@ export const colors = {
   brand,
   gray,
   slate,
+  slateDark,
   blue,
   red,
   green,

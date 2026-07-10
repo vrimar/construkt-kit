@@ -183,6 +183,33 @@ The theme redefines standard pseudo-selectors:
 | `_focusVisible`     | Uses `[data-focus-visible]` NOT `:focus-visible` — Ark UI keyboard-only detection                |
 | `_light`            | `:root &, .light &` — explicit light mode                                                        |
 
+### Dark mode
+
+Every semantic token carries a light and a dark value, so dark mode is a token flip — no per-component work. Activation is a `dark` class on an ancestor (Panda's `_dark: .dark &` condition); light is the `:root` default (no class needed). The neutral chrome (`bg`/`fg`/`border`/`neutral.*`) uses the **Radix "slate" dark ramp** (`colors.slateDark.1–12`) on the dark side while light stays Tailwind slate. `html { color-scheme }` also flips so native scrollbars, form controls, and autofill match.
+
+The runtime lives in `@construkt-kit/ui`:
+
+```tsx
+import { ColorModeProvider, useColorMode, ThemeToggle, colorModeScript } from "@construkt-kit/ui";
+
+// 1. Wrap the app. defaultMode: "light" | "dark" | "system" (default "system").
+<ColorModeProvider defaultMode="system">
+  <App />
+</ColorModeProvider>;
+
+// 2. (Optional) inline in <head> before hydration to avoid a light-mode flash:
+//    <script dangerouslySetInnerHTML={{ __html: colorModeScript }} />
+//    For a non-"system" default, match it: createColorModeScript({ defaultMode: "dark" }).
+
+// 3. Read/set the mode anywhere under the provider:
+const { mode, resolvedMode, setMode, toggle } = useColorMode();
+
+// 4. Or drop in the prebuilt button:
+<ThemeToggle />;
+```
+
+`ColorModeProvider` toggles the `dark` class + `color-scheme` on `<html>`, resolves `"system"` via `prefers-color-scheme`, and persists the choice to `localStorage` (`construkt-color-mode`). In Storybook, use the toolbar theme switcher (`@storybook/addon-themes`) to preview any story in dark.
+
 ### recipes vs slotRecipes
 
 Both are registered in `../preset/src/theme/recipes/index.ts`:

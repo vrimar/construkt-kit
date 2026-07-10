@@ -1,4 +1,7 @@
 export const globalCss = {
+  // color-scheme sits on root-matching selectors (the `.dark` class is on <html>), not the `_dark` condition.
+  ":where(:root, .light)": { colorScheme: "light" },
+  ".dark": { colorScheme: "dark" },
   html: {
     colorPalette: "brand",
     height: "100%",
@@ -21,7 +24,7 @@ export const globalCss = {
     width: "100%",
     overflow: "hidden",
     fontFamily: "body",
-    background: "canvas",
+    background: "bg",
     color: "fg",
   },
   ".App": {

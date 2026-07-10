@@ -1,6 +1,6 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual";
-import { useRef } from "react";
+import { type Ref, useCallback, useRef } from "react";
 
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 
@@ -20,6 +20,8 @@ interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   getItemKey?: (index: number) => React.Key;
   /** Content rendered before the virtualized list, inside the scroll container. */
   header?: React.ReactNode;
+  /** Ref to the scroll viewport element (e.g. for drag auto-scroll). */
+  viewportRef?: Ref<HTMLDivElement>;
 }
 
 interface FixedHeightProps<T> extends BaseProps<T> {
@@ -42,10 +44,23 @@ export const VirtualScrollArea = <T,>({
   getItemKey,
   measure,
   header,
+  viewportRef,
   ...scrollAreaProps
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const { style, height, maxHeight, ...resolvedScrollAreaProps } = scrollAreaProps;
+
+  // Read viewportRef through a ref so an inline-arrow prop can't churn setViewport's identity
+  // (which would detach/reattach the scroll element the virtualizer reads every commit).
+  const viewportRefProp = useRef(viewportRef);
+  viewportRefProp.current = viewportRef;
+
+  const setViewport = useCallback((element: HTMLDivElement | null) => {
+    parentRef.current = element;
+    const consumer = viewportRefProp.current;
+    if (typeof consumer === "function") consumer(element);
+    else if (consumer) consumer.current = element;
+  }, []);
 
   const resolvedStyle = {
     ...style,
@@ -77,7 +92,7 @@ export const VirtualScrollArea = <T,>({
 
     return (
       <ScrollArea
-        ref={parentRef}
+        ref={setViewport}
         {...resolvedScrollAreaProps}
         {...resolvedHeightProps}
         style={resolvedStyle}
@@ -100,7 +115,7 @@ export const VirtualScrollArea = <T,>({
 
   return (
     <ScrollArea
-      ref={parentRef}
+      ref={setViewport}
       {...resolvedScrollAreaProps}
       {...resolvedHeightProps}
       style={resolvedStyle}

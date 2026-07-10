@@ -79,6 +79,7 @@ export * from "./Table";
 export * from "./Tabs";
 export * from "./TagsInput";
 export * from "./Text";
+export * from "./ThemeToggle";
 export * from "./Toast";
 export * from "./ToggleGroup";
 export * from "./ToggleTip";
