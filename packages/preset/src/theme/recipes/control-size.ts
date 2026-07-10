@@ -15,6 +15,12 @@ export type ControlSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 const BASE_H = "var(--control-base-h, 2.25rem)";
 const STEP = "var(--control-step, 0.25rem)";
 const BASE_PX = "var(--control-base-px, 0.75rem)";
+// Compact item padding tracks --control-base-px 0.25rem tighter, so the px knob still rescales
+// dropdown/menu/listbox rows; override --control-base-px-compact to tune item inset alone.
+const BASE_PX_COMPACT = `var(--control-base-px-compact, calc(${BASE_PX} - 0.25rem))`;
+// Compact row height tracks --control-base-h one step tighter, so item rows sit denser than the
+// button/input control height; override --control-base-row-h to tune row height alone.
+const BASE_ROW_H = `var(--control-base-row-h, calc(${BASE_H} - ${STEP}))`;
 const BASE_GAP = "var(--control-base-gap, 0.5rem)";
 const BASE_ICON = "var(--control-base-icon, 1rem)";
 const BASE_BOX = "var(--control-base-box, 1.125rem)";
@@ -98,8 +104,18 @@ export const controlH = (size: ControlSize): string => {
   return `calc(${BASE_H} ${n < 0 ? "-" : "+"} ${Math.abs(n)} * ${STEP})`;
 };
 
+/** Compact row height for dense item rows (dropdown/menu/listbox), driven by --control-base-row-h. */
+export const controlHCompact = (size: ControlSize): string => {
+  const n = H_STEP[size];
+  if (n === 0) return BASE_ROW_H;
+  return `calc(${BASE_ROW_H} ${n < 0 ? "-" : "+"} ${Math.abs(n)} * ${STEP})`;
+};
+
 /** Inline horizontal padding, driven by --control-base-px. */
 export const controlPx = (size: ControlSize): string => off(BASE_PX, PX[size]);
+
+/** Compact horizontal padding for dense rows (dropdown/menu/listbox items), driven by --control-base-px-compact. */
+export const controlPxCompact = (size: ControlSize): string => off(BASE_PX_COMPACT, PX[size]);
 
 /** Inline gap / vertical padding, driven by --control-base-gap. */
 export const controlGap = (size: ControlSize): string => off(BASE_GAP, GAP[size]);

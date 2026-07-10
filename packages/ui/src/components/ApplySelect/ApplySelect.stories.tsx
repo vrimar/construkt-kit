@@ -1,89 +1,91 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { fn } from "storybook/test";
+import { useState } from "react";
 
 import { ApplySelect } from ".";
 import { Box } from "../Layout";
 
+const frameworks = [
+  { id: 1, name: "React" },
+  { id: 2, name: "Vue" },
+  { id: 3, name: "Angular" },
+  { id: 4, name: "Svelte" },
+];
+
 const meta: Meta = {
   title: "Components/ApplySelect",
-  tags: ["autodocs"],
+  component: ApplySelect,
+  decorators: [
+    (Story) => (
+      <Box
+        w="full"
+        maxW="320px"
+      >
+        <Story />
+      </Box>
+    ),
+  ],
 };
 
 export default meta;
 type Story = StoryObj;
 
-const items = [
-  { id: 1, name: "React" },
-  { id: 2, name: "Vue" },
-  { id: 3, name: "Angular" },
-  { id: 4, name: "Svelte" },
-  { id: 5, name: "Solid" },
-];
-
 export const Default: Story = {
-  render: () => (
-    <Box maxW="320px">
-      <ApplySelect.Root
-        items={items}
-        selected={[]}
-        getValue={(item) => item.id}
-        getLabel={(item) => item.name}
-        onApply={fn<(values: (typeof items)[number][]) => void>()}
-      >
-        <ApplySelect.Trigger label="Select Frameworks" />
-        <ApplySelect.Content>
-          <ApplySelect.Search />
-          <ApplySelect.List>
-            <ApplySelect.Items>
-              {(item: (typeof items)[number]) => (
-                <ApplySelect.Item
-                  key={item.id}
-                  item={item}
-                >
-                  <ApplySelect.ItemText />
-                  <ApplySelect.ItemIndicator />
-                </ApplySelect.Item>
-              )}
-            </ApplySelect.Items>
-            <ApplySelect.EmptyState />
-          </ApplySelect.List>
-          <ApplySelect.Actions />
-        </ApplySelect.Content>
-      </ApplySelect.Root>
-    </Box>
-  ),
+  render: function DefaultStory() {
+    const [value, setValue] = useState<number[]>([]);
+    return (
+      <ApplySelect
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select frameworks"
+        actions={{ toggleAll: true }}
+      />
+    );
+  },
 };
 
-export const WithToggleAll: Story = {
-  render: () => (
-    <Box maxW="320px">
+export const CustomRendering: Story = {
+  render: function CustomRenderingStory() {
+    const [value, setValue] = useState<number[]>([1]);
+    return (
+      <ApplySelect
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        renderItem={(item, state) => (
+          <span>
+            {item.name} {state.selected ? "✓" : ""}
+          </span>
+        )}
+        search={{ placeholder: "Find framework" }}
+      />
+    );
+  },
+};
+
+export const Compound: Story = {
+  render: function CompoundStory() {
+    const [value, setValue] = useState<number[]>([]);
+    return (
       <ApplySelect.Root
-        items={items}
-        selected={[1, 3]}
-        getValue={(item) => item.id}
-        getLabel={(item) => item.name}
-        onApply={fn<(values: (typeof items)[number][]) => void>()}
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        search
       >
-        <ApplySelect.Trigger label="Select All" />
+        <ApplySelect.Trigger />
         <ApplySelect.Content>
           <ApplySelect.Search />
-          <ApplySelect.List>
-            <ApplySelect.Items>
-              {(item: (typeof items)[number]) => (
-                <ApplySelect.Item
-                  key={item.id}
-                  item={item}
-                >
-                  <ApplySelect.ItemText />
-                  <ApplySelect.ItemIndicator />
-                </ApplySelect.Item>
-              )}
-            </ApplySelect.Items>
-            <ApplySelect.EmptyState />
-          </ApplySelect.List>
-          <ApplySelect.Actions hasToggleAll />
+          <ApplySelect.List />
+          <ApplySelect.Actions toggleAll />
         </ApplySelect.Content>
       </ApplySelect.Root>
-    </Box>
-  ),
+    );
+  },
 };

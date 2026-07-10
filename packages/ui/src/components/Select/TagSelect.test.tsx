@@ -4,44 +4,89 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TagSelect } from "./TagSelect";
 
-afterEach(() => {
-  cleanup();
-});
+const items = [
+  { id: 1, label: "One" },
+  { id: 2, label: "Two" },
+];
+
+afterEach(cleanup);
 
 describe("TagSelect", () => {
-  it("does not select an item when clicking a rendered action", async () => {
-    const user = userEvent.setup();
-    const onAction = vi.fn();
-    const onSelect = vi.fn();
-    const items = [
-      { label: "United States", value: "us" },
-      { label: "Canada", value: "ca" },
-    ];
-
+  it("renders numeric selected IDs through the typed item map", () => {
     render(
       <TagSelect
-        getLabel={(item) => item.label}
-        getValue={(item) => item.value}
         items={items}
-        onSelect={onSelect}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[1]}
+        onValueChange={vi.fn()}
+        renderTag={(item) => <span>Tag {item.label}</span>}
+      />,
+    );
+    expect(screen.getByText("Tag One")).not.toBeNull();
+  });
+
+  it("emits complete arrays when an item is toggled", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[]}
+        onValueChange={onValueChange}
         open
-        selected={[]}
-        renderActions={(item) => (
+        search={false}
+      />,
+    );
+    await userEvent.click(screen.getByText("One"));
+    expect(onValueChange).toHaveBeenCalledWith([1]);
+  });
+
+  it("configures search through the shared option", async () => {
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[]}
+        onValueChange={vi.fn()}
+        open
+        search={{
+          placeholder: "Find item",
+          filter: (item, query) => item.label.toLowerCase().startsWith(query.toLowerCase()),
+        }}
+      />,
+    );
+    await userEvent.type(screen.getByPlaceholderText("Find item"), "t");
+    expect(screen.getByText("Two")).not.toBeNull();
+    expect(screen.queryByText("One")).toBeNull();
+  });
+
+  it("keeps item actions from changing selection", async () => {
+    const onValueChange = vi.fn();
+    const onAction = vi.fn();
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[]}
+        onValueChange={onValueChange}
+        open
+        search={false}
+        renderItemActions={(item) => (
           <button
-            aria-label={`Open actions for ${item.label}`}
             type="button"
-            onClick={() => onAction(item.value)}
+            onClick={onAction}
           >
-            Action
+            Edit {item.label}
           </button>
         )}
       />,
     );
-
-    await user.click(screen.getByRole("button", { name: "Open actions for United States" }));
-
+    await userEvent.click(screen.getByRole("button", { name: "Edit One" }));
     expect(onAction).toHaveBeenCalledOnce();
-    expect(onAction).toHaveBeenCalledWith("us");
-    expect(onSelect).not.toHaveBeenCalled();
+    expect(onValueChange).not.toHaveBeenCalled();
   });
 });

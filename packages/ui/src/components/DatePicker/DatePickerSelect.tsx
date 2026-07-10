@@ -1,6 +1,7 @@
 import type { DateValue } from "@ark-ui/react/date-picker";
 import { useMemo } from "react";
 
+import { CloseButton } from "../Buttons/CloseButton";
 import { SelectButton } from "../Buttons/SelectButton";
 import { DatePicker } from "./DatePicker";
 import type { DatePickerProps, DatePickerSelectProps } from "./types";
@@ -26,13 +27,20 @@ export const DatePickerSelect = (props: DatePickerSelectProps) => {
     trigger: (
       <SelectButton
         hasValue={hasValue}
-        onClear={() => fireClear(props)}
         label={label || props.placeholder || "Select date"}
         variant="plain"
         width="100%"
         size="sm"
       />
     ),
+    triggerEndElement: hasValue ? (
+      <CloseButton
+        aria-label="Clear date"
+        disabled={props.disabled || props.readOnly}
+        onClick={() => fireClear(props)}
+        size="sm"
+      />
+    ) : undefined,
   } as DatePickerProps;
 
   return <DatePicker {...datePickerProps} />;

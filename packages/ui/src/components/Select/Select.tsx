@@ -1,277 +1,363 @@
-import { Box, HStack } from "@construkt-kit/styled-system/jsx";
-import React, { createContext, useContext, useEffect, useMemo } from "react";
+import { Box, HStack, type HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
+import {
+  type ChangeEvent,
+  type ComponentProps,
+  createContext,
+  type JSX,
+  type ReactElement,
+  type ReactNode,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type { SelectButtonProps } from "../Buttons";
 import { SelectButton } from "../Buttons";
-import { EmptyState } from "../EmptyState";
 import { SearchInput } from "../Input";
-import { type ListCollection, Listbox, type ListboxProps, useListCollection } from "../Listbox";
-import { Popover } from "../Popover";
+import { Listbox, ManagedList } from "../Listbox/Listbox";
+import type {
+  SelectionIndicatorPosition,
+  SelectionItemState,
+  SelectionItemsProps,
+  SelectionProps,
+  SelectionSearchOptions,
+  SelectionValue,
+  SelectionValueRenderContext,
+  SingleSelectionProps,
+  MultipleSelectionProps,
+} from "../Listbox/types";
+import {
+  type SelectionController,
+  useSelectionController,
+} from "../Listbox/useSelectionController";
+import { Popover, type PopoverTriggerProps } from "../Popover";
 
-export type SelectValue = string | number;
+export type SelectValue = SelectionValue;
 
-type PopoverContentProps = React.ComponentProps<typeof Popover.Content>;
-type PopoverRootProps = React.ComponentProps<typeof Popover.Root>;
+type PopoverContentProps = ComponentProps<typeof Popover.Content>;
+type PopoverRootProps = ComponentProps<typeof Popover.Root>;
+type ManagedItemProps = Partial<Omit<ComponentProps<typeof Listbox.Item>, "children" | "item">>;
 
-interface SelectContextValue<T> {
-  activeItemStyle: "checkmark" | "none";
-  collection: ListCollection<T>;
-  contentWidth: number | undefined;
-  filter: (value: string) => void;
-  getLabel: (item: T) => string;
-  getValue: (item: T) => SelectValue;
-  hasSelected: boolean;
-  isMultiSelect: boolean;
-  triggerLabel: string;
+interface SelectContextValue {
+  controller: SelectionController<unknown, SelectionValue>;
+  contentWidth?: number;
+  matchTriggerWidth: boolean;
+  indicatorPosition: SelectionIndicatorPosition;
+  placeholder: ReactNode;
+  triggerValue: ReactNode;
+  hasValue: boolean;
+  loading?: boolean;
+  emptyMessage?: ReactNode;
+  virtual?: boolean;
+  scrollToIndexRef: { current: ((index: number) => void) | undefined };
+  renderItem?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
+  renderItemActions?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
+  getItemProps?: (item: unknown) => ManagedItemProps;
 }
 
-const SelectContext = createContext<SelectContextValue<unknown> | null>(null);
-const SelectItemContext = createContext<unknown | null>(null);
+const SelectContext = createContext<SelectContextValue | null>(null);
 
-const useSelectContext = <T,>() => {
+const useSelectContext = () => {
   const context = useContext(SelectContext);
-
-  if (context == null)
+  if (context == null) {
     throw new Error("Select compound components must be used within Select.Root");
-
-  return context as SelectContextValue<T>;
+  }
+  return context;
 };
 
-const useSelectItemContext = <T,>() => useContext(SelectItemContext) as T | null;
+interface SelectRenderProps<T, V extends SelectionValue> {
+  renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  getItemProps?: (item: T) => ManagedItemProps;
+}
 
-export interface SelectRootProps<T> {
-  items: readonly T[];
-  selected: SelectValue | SelectValue[] | undefined;
-  onSelect: (item: T) => unknown;
-  getValue: (item: T) => SelectValue;
-  getLabel: (item: T) => string;
-  emptySelectionLabel?: string;
-  getTriggerLabel?: (label: string) => string;
-  activeItemStyle?: "checkmark" | "none";
+interface SelectRootBaseProps<T, V extends SelectionValue>
+  extends SelectionItemsProps<T, V>, SelectRenderProps<T, V> {
+  children: ReactNode;
+  placeholder?: ReactNode;
+  renderValue?: (context: SelectionValueRenderContext<T, V>) => ReactNode;
+  indicatorPosition?: SelectionIndicatorPosition;
   contentWidth?: number;
+  /** Match content width to the trigger. @default true */
   matchTriggerWidth?: boolean;
   open?: boolean;
-  onOpenChange?: (value: boolean) => unknown;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => unknown;
   placement?: PopoverRootProps["placement"];
-  listboxProps?: Partial<ListboxProps>;
-  children: React.ReactNode;
+  actionsVisibility?: "hover" | "always";
+  listboxProps?: Partial<ComponentProps<typeof Listbox.Root>>;
+  search?: boolean | SelectionSearchOptions<T>;
+  loading?: boolean;
+  emptyMessage?: ReactNode;
+  virtual?: boolean;
 }
 
-export interface SelectTriggerProps extends Partial<SelectButtonProps> {
-  children?: React.ReactNode;
+export type SelectRootProps<T, V extends SelectionValue = SelectionValue> = SelectRootBaseProps<
+  T,
+  V
+> &
+  SelectionProps<V>;
+
+export interface SelectTriggerProps extends Omit<PopoverTriggerProps, "children"> {
+  children?: ReactElement;
+  buttonProps?: Partial<SelectButtonProps>;
 }
 
-type SearchInputProps = React.ComponentProps<typeof SearchInput>;
+type SearchInputProps = ComponentProps<typeof SearchInput>;
 
-export interface SelectSearchProps extends Omit<SearchInputProps, "onChange"> {
-  children?: React.ReactNode;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+export interface SelectSearchProps extends Omit<
+  SearchInputProps,
+  "defaultValue" | "onChange" | "value"
+> {
+  children?: ReactNode;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export type SelectContentProps = Partial<PopoverContentProps>;
-export type SelectListProps = React.ComponentProps<typeof Listbox.Content>;
+export type SelectListProps = HTMLStyledProps<"div">;
+export type SelectItemProps<T> = Omit<ComponentProps<typeof Listbox.Item>, "item"> & { item: T };
+export type SelectItemTextProps = ComponentProps<typeof Listbox.ItemText>;
+export type SelectItemIndicatorProps = ComponentProps<typeof Listbox.ItemIndicator>;
+export type SelectItemActionsProps = ComponentProps<typeof Listbox.ItemActions>;
+export type SelectFooterProps = ComponentProps<typeof Box>;
 
-export interface SelectItemsProps<T> {
-  children: (item: T) => React.ReactNode;
+const MIN_CONTENT_WIDTH = 140;
+
+function getDefaultValueLabel<T, V extends SelectionValue>(
+  selectedValues: readonly V[],
+  selectedItems: readonly T[],
+  getItemLabel: (item: T) => string,
+  placeholder: ReactNode,
+): ReactNode {
+  if (selectedValues.length === 0) return placeholder;
+  if (selectedValues.length === 1) {
+    return selectedItems[0] == null ? "1 selected" : getItemLabel(selectedItems[0]);
+  }
+  return `${selectedValues.length} selected`;
 }
 
-export interface SelectItemProps<T> extends Omit<
-  React.ComponentProps<typeof Listbox.Item>,
-  "item"
-> {
-  item: T;
+interface SelectPopoverProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  placement?: PopoverRootProps["placement"];
+  matchTriggerWidth?: boolean;
+  contentWidth?: number;
+  children: ReactNode;
 }
 
-export type SelectItemTextProps = React.ComponentProps<typeof Listbox.ItemText>;
-export type SelectItemIndicatorProps = React.ComponentProps<typeof Listbox.ItemIndicator>;
-
-export interface SelectEmptyStateProps {
-  children?: React.ReactNode;
-}
-
-export type SelectFooterProps = React.ComponentProps<typeof Box>;
-
-const minContentWidth = 140;
-
-export const SelectRoot = <T,>({
-  activeItemStyle = "checkmark",
-  children,
-  contentWidth: controlledContentWidth,
-  emptySelectionLabel = "Select item",
-  getLabel,
-  getTriggerLabel,
-  getValue,
-  items,
-  listboxProps,
-  matchTriggerWidth = true,
-  onOpenChange,
-  onSelect,
+function SelectPopover({
   open,
+  onOpenChange,
   placement,
-  selected,
-}: SelectRootProps<T>) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const isMultiSelect = Array.isArray(selected);
-
-  const selectedItems = useMemo(
-    () => (selected == null ? [] : Array.isArray(selected) ? selected : [selected]),
-    [selected],
-  );
-
-  const { collection, filter, set } = useListCollection<T>({
-    initialItems: items as T[],
-    itemToString: (item: T) => getLabel(item),
-    itemToValue: (item: T) => String(getValue(item)),
-    filter: (itemText: string, filterText: string) =>
-      itemText.toLowerCase().includes(filterText.toLowerCase()),
-  });
-
-  useEffect(() => {
-    set(items as T[]);
-  }, [items, set]);
-
-  const hasSelected = selectedItems.length > 0;
-
-  const label = useMemo(() => {
-    if (selectedItems.length === 1) {
-      const item = items.find((entry) => getValue(entry) === selectedItems[0]);
-      return item ? getLabel(item) : "";
-    }
-
-    if (selectedItems.length > 1) {
-      return `${selectedItems.length} selected`;
-    }
-
-    return emptySelectionLabel;
-  }, [emptySelectionLabel, getLabel, getValue, items, selectedItems]);
-
-  const controlledOpen = open != null ? open : isOpen;
-
-  const handleOpenChange = (value: boolean) => {
-    if (open != null) {
-      if (onOpenChange != null) onOpenChange(value);
-      return;
-    }
-
-    setIsOpen(value);
-  };
-
-  const handleValueChange = (details: { value: string[] }) => {
-    const prevValues = selectedItems.map(String);
-    const newValues = details.value;
-    const changedValue =
-      newValues.find((value) => !prevValues.includes(value)) ??
-      prevValues.find((value) => !newValues.includes(value));
-
-    if (changedValue == null) return;
-
-    const item = items.find((entry: T) => String(getValue(entry)) === changedValue);
-
-    if (item == null) return;
-
-    onSelect(item);
-
-    if (!isMultiSelect) handleOpenChange(false);
-  };
-
-  const contextValue = useMemo<SelectContextValue<T>>(
-    () => ({
-      activeItemStyle,
-      collection,
-      contentWidth: controlledContentWidth,
-      filter,
-      getLabel,
-      getValue,
-      hasSelected,
-      isMultiSelect,
-      triggerLabel: getTriggerLabel ? getTriggerLabel(label) : label,
-    }),
-    [
-      activeItemStyle,
-      collection,
-      controlledContentWidth,
-      filter,
-      getLabel,
-      getTriggerLabel,
-      getValue,
-      hasSelected,
-      isMultiSelect,
-      label,
-    ],
-  );
-
+  matchTriggerWidth = true,
+  contentWidth,
+  children,
+}: SelectPopoverProps) {
   return (
-    <SelectContext.Provider value={contextValue as SelectContextValue<unknown>}>
-      <Popover.Root
-        lazyMount
-        open={controlledOpen}
-        onOpenChange={({ open: nextOpen }) => handleOpenChange(nextOpen)}
-        positioning={{
-          placement,
-          sameWidth: matchTriggerWidth && controlledContentWidth == null,
-        }}
-      >
-        <Listbox.Root
-          {...listboxProps}
-          collection={collection as ListCollection<unknown>}
-          value={selectedItems.map(String)}
-          onValueChange={handleValueChange}
-          selectionMode={isMultiSelect ? "multiple" : "single"}
-        >
-          {children}
-        </Listbox.Root>
-      </Popover.Root>
-    </SelectContext.Provider>
+    <Popover.Root
+      lazyMount
+      open={open}
+      onOpenChange={({ open: nextOpen }) => onOpenChange?.(nextOpen)}
+      positioning={{ placement, sameWidth: matchTriggerWidth && contentWidth == null }}
+    >
+      {children}
+    </Popover.Root>
   );
-};
+}
 
-export const SelectTrigger = ({ children, ...props }: SelectTriggerProps) => {
-  const { hasSelected, triggerLabel } = useSelectContext<unknown>();
-
-  return (
-    <Popover.Trigger asChild>
-      {children ?? (
-        <SelectButton
-          {...props}
-          hasValue={props.hasValue ?? hasSelected}
-          label={props.label ?? triggerLabel}
-          sublabel={props.sublabel}
-        />
-      )}
-    </Popover.Trigger>
-  );
-};
-
-export const SelectContent = ({ children, ...props }: SelectContentProps) => {
-  const { contentWidth } = useSelectContext<unknown>();
-
+function SelectPopoverContent({
+  contentWidth,
+  matchTriggerWidth = true,
+  children,
+  ...props
+}: SelectContentProps & { contentWidth?: number; matchTriggerWidth?: boolean }) {
   return (
     <Popover.Content
-      minW={minContentWidth}
-      {...(contentWidth != null ? { width: contentWidth } : {})}
+      minW={contentWidth == null ? MIN_CONTENT_WIDTH : undefined}
+      {...(contentWidth != null
+        ? { width: contentWidth }
+        : matchTriggerWidth
+          ? { width: "full" }
+          : {})}
       p="0"
       {...props}
     >
       {children}
     </Popover.Content>
   );
-};
+}
 
-export const SelectSearch = ({
+function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
+  const {
+    actionsVisibility,
+    children,
+    contentWidth,
+    defaultOpen = false,
+    emptyMessage,
+    getItemLabel,
+    getItemProps,
+    getItemValue,
+    indicatorPosition = "end",
+    isItemDisabled,
+    items,
+    listboxProps,
+    loading,
+    matchTriggerWidth = true,
+    onOpenChange,
+    open,
+    placeholder = "Select item",
+    placement,
+    renderItem,
+    renderItemActions,
+    renderValue,
+    search,
+    selectionMode = "single",
+    value,
+    virtual,
+    onValueChange,
+  } = props;
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const resolvedOpen = open ?? internalOpen;
+  const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (open == null) setInternalOpen(nextOpen);
+    if (!nextOpen) controller.search.reset();
+    onOpenChange?.(nextOpen);
+  }
+
+  const controller = useSelectionController<T, V>({
+    items,
+    getItemValue,
+    getItemLabel,
+    isItemDisabled,
+    selectionMode,
+    value,
+    onValueChange: (nextValue) => {
+      (onValueChange as (value: V | V[] | null) => unknown)(nextValue);
+      if (selectionMode === "single") handleOpenChange(false);
+    },
+    search,
+  });
+
+  const triggerValue = renderValue
+    ? renderValue({ value, selectedItems: controller.selectedItems })
+    : getDefaultValueLabel(
+        controller.selectedValues,
+        controller.selectedItems,
+        getItemLabel,
+        placeholder,
+      );
+
+  const contextValue = useMemo<SelectContextValue>(
+    () => ({
+      controller: controller as SelectionController<unknown, SelectionValue>,
+      contentWidth,
+      matchTriggerWidth,
+      indicatorPosition,
+      placeholder,
+      triggerValue,
+      hasValue: controller.selectedValues.length > 0,
+      loading,
+      emptyMessage,
+      virtual,
+      scrollToIndexRef,
+      renderItem: renderItem as SelectContextValue["renderItem"],
+      renderItemActions: renderItemActions as SelectContextValue["renderItemActions"],
+      getItemProps: getItemProps as SelectContextValue["getItemProps"],
+    }),
+    [
+      contentWidth,
+      controller,
+      emptyMessage,
+      getItemProps,
+      indicatorPosition,
+      loading,
+      matchTriggerWidth,
+      placeholder,
+      renderItem,
+      renderItemActions,
+      triggerValue,
+      virtual,
+    ],
+  );
+
+  return (
+    <SelectContext.Provider value={contextValue}>
+      <SelectPopover
+        open={resolvedOpen}
+        onOpenChange={handleOpenChange}
+        placement={placement}
+        matchTriggerWidth={matchTriggerWidth}
+        contentWidth={contentWidth}
+      >
+        <Listbox.Root
+          {...listboxProps}
+          actionsVisibility={actionsVisibility}
+          indicatorPosition={indicatorPosition}
+          collection={controller.collection}
+          value={controller.encodedValue}
+          onValueChange={controller.handleValueChange}
+          selectionMode={selectionMode}
+          deselectable={selectionMode === "single" ? false : undefined}
+          scrollToIndexFn={
+            virtual
+              ? (details) => scrollToIndexRef.current?.(details.index)
+              : listboxProps?.scrollToIndexFn
+          }
+        >
+          {children}
+        </Listbox.Root>
+      </SelectPopover>
+    </SelectContext.Provider>
+  );
+}
+
+function SelectTrigger({ children, buttonProps, ...triggerProps }: SelectTriggerProps) {
+  const { hasValue, triggerValue } = useSelectContext();
+
+  return (
+    <Popover.Trigger
+      {...triggerProps}
+      asChild
+    >
+      {children ?? (
+        <SelectButton
+          {...buttonProps}
+          hasValue={buttonProps?.hasValue ?? hasValue}
+          label={buttonProps?.label ?? triggerValue}
+        />
+      )}
+    </Popover.Trigger>
+  );
+}
+
+function SelectContent({ children, ...props }: SelectContentProps) {
+  const { contentWidth, matchTriggerWidth } = useSelectContext();
+  return (
+    <SelectPopoverContent
+      contentWidth={contentWidth}
+      matchTriggerWidth={matchTriggerWidth}
+      {...props}
+    >
+      {children}
+    </SelectPopoverContent>
+  );
+}
+
+function SelectSearch({
   children,
   css,
   onChange,
-  placeholder = "Search...",
+  placeholder,
   size = "sm",
   variant = "plain",
   ...props
-}: SelectSearchProps) => {
-  const { filter } = useSelectContext<unknown>();
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    filter(event.target.value);
-    onChange?.(event);
-  };
+}: SelectSearchProps) {
+  const { controller } = useSelectContext();
+  if (!controller.search.showInput) return null;
+  const resolvedPlaceholder = placeholder ?? controller.search.placeholder;
 
   return (
     <HStack
@@ -280,155 +366,115 @@ export const SelectSearch = ({
       borderColor="border"
     >
       <SearchInput
+        aria-label={resolvedPlaceholder}
         {...props}
-        placeholder={placeholder}
-        onChange={handleChange}
+        autoFocus={props.autoFocus ?? controller.search.autoFocus}
+        placeholder={resolvedPlaceholder}
+        value={controller.search.query}
+        onChange={(event) => {
+          controller.search.setQuery(event.target.value);
+          onChange?.(event);
+        }}
+        onClear={() => controller.search.setQuery("")}
         size={size}
         css={{ flex: 1, ...css }}
         variant={variant}
       />
-      {children}
+      {children ?? controller.search.endElement}
     </HStack>
   );
-};
-
-export const SelectList = ({ children, ...props }: SelectListProps) => (
-  <Listbox.Content {...props}>{children}</Listbox.Content>
-);
-
-export const SelectItems = <T,>({ children }: SelectItemsProps<T>) => {
-  const { collection } = useSelectContext<T>();
-
-  return <>{collection.items.map((item) => children(item))}</>;
-};
-
-export const SelectItem = <T,>({ children, item, ...props }: SelectItemProps<T>) => (
-  <SelectItemContext.Provider value={item}>
-    <Listbox.Item
-      {...props}
-      item={item}
-    >
-      {children}
-    </Listbox.Item>
-  </SelectItemContext.Provider>
-);
-
-export const SelectItemText = ({ children, ...props }: SelectItemTextProps) => {
-  const { collection } = useSelectContext<unknown>();
-  const item = useSelectItemContext<unknown>();
-
-  return (
-    <Listbox.ItemText {...props}>
-      {children ?? (item != null ? collection.stringifyItem(item) : null)}
-    </Listbox.ItemText>
-  );
-};
-
-export const SelectItemIndicator = (props: SelectItemIndicatorProps) => {
-  const { activeItemStyle } = useSelectContext<unknown>();
-
-  if (activeItemStyle === "none") return null;
-
-  return <Listbox.ItemIndicator {...props} />;
-};
-
-export const SelectEmptyState = ({ children = "No items available" }: SelectEmptyStateProps) => {
-  const { collection } = useSelectContext<unknown>();
-
-  if (collection.items.length > 0) return null;
-
-  return (
-    <EmptyState.Root size="sm">
-      <EmptyState.Content>
-        <EmptyState.Description>{children}</EmptyState.Description>
-      </EmptyState.Content>
-    </EmptyState.Root>
-  );
-};
-
-export const SelectFooter = ({ children, ...props }: SelectFooterProps) => (
-  <Box {...props}>{children}</Box>
-);
-
-// --- Simple API ---
-
-export interface SelectProps<T> extends Omit<SelectRootProps<T>, "children"> {
-  /** Label displayed on the trigger button */
-  label?: string;
-  /** Placeholder for the search input (enables search when set) */
-  searchPlaceholder?: string;
-  /** Extra content rendered next to the search input */
-  searchExtra?: React.ReactNode;
-  /** Content displayed when the collection is empty */
-  emptyMessage?: React.ReactNode;
-  /** Render custom content after each item's text */
-  renderActions?: (item: T) => React.ReactNode;
-  /** Render custom item content (replaces default ItemText + ItemIndicator) */
-  renderItem?: (item: T) => React.ReactNode;
-  /** Props forwarded to the trigger button */
-  triggerProps?: Partial<SelectTriggerProps>;
-  /** Props forwarded to the content popover */
-  contentProps?: Partial<SelectContentProps>;
-  /** Props forwarded to the list container */
-  listProps?: Partial<SelectListProps>;
-  /** Content rendered below the list */
-  footer?: React.ReactNode;
-  /** Override children for full compound control inside SelectRoot */
-  children?: React.ReactNode;
 }
 
-const SelectSimple = <T,>({
-  label,
-  searchPlaceholder,
-  searchExtra,
-  emptyMessage,
-  renderActions,
-  renderItem,
+function SelectList(props: SelectListProps) {
+  const {
+    controller,
+    emptyMessage,
+    getItemProps,
+    indicatorPosition,
+    loading,
+    renderItem,
+    renderItemActions,
+    scrollToIndexRef,
+    virtual,
+  } = useSelectContext();
+
+  return (
+    <ManagedList
+      controller={controller}
+      loading={loading}
+      emptyMessage={emptyMessage}
+      indicatorPosition={indicatorPosition}
+      renderItem={renderItem}
+      renderItemActions={renderItemActions}
+      getItemProps={getItemProps}
+      contentProps={props}
+      virtual={virtual}
+      scrollToIndexRef={scrollToIndexRef}
+    />
+  );
+}
+
+const SelectItem = Listbox.Item;
+const SelectItemText = Listbox.ItemText;
+const SelectItemActions = Listbox.ItemActions;
+
+function SelectItemIndicator(props: SelectItemIndicatorProps) {
+  const { indicatorPosition } = useSelectContext();
+  if (indicatorPosition === "none") return null;
+  return <Listbox.ItemIndicator {...props} />;
+}
+
+function SelectEmptyState({ children = "No items available" }: { children?: ReactNode }) {
+  const { controller } = useSelectContext();
+  if (controller.collection.items.length > 0) return null;
+  return <Listbox.EmptyState>{children}</Listbox.EmptyState>;
+}
+
+function SelectFooter({ children, ...props }: SelectFooterProps) {
+  return <Box {...props}>{children}</Box>;
+}
+
+interface SelectSimpleProps<T, V extends SelectionValue> extends Omit<
+  SelectRootBaseProps<T, V>,
+  "children"
+> {
+  triggerProps?: SelectTriggerProps;
+  contentProps?: SelectContentProps;
+  listProps?: SelectListProps;
+  footer?: ReactNode;
+}
+
+export type SelectProps<T, V extends SelectionValue = SelectionValue> = SelectSimpleProps<T, V> &
+  SelectionProps<V>;
+
+function SelectSimple<T, V extends SelectionValue>(
+  props: SelectSimpleProps<T, V> & SingleSelectionProps<V>,
+): JSX.Element;
+function SelectSimple<T, V extends SelectionValue>(
+  props: SelectSimpleProps<T, V> & MultipleSelectionProps<V>,
+): JSX.Element;
+function SelectSimple<T, V extends SelectionValue>({
   triggerProps,
   contentProps,
   listProps,
   footer,
-  children,
+  search,
   ...rootProps
-}: SelectProps<T>) => (
-  <SelectRoot {...rootProps}>
-    {children ?? (
-      <>
-        <SelectTrigger
-          {...triggerProps}
-          label={triggerProps?.label ?? label}
-        />
-        <SelectContent {...contentProps}>
-          {searchPlaceholder && (
-            <SelectSearch placeholder={searchPlaceholder}>{searchExtra}</SelectSearch>
-          )}
-          <SelectList {...listProps}>
-            <SelectItems<T>>
-              {(item) => (
-                <SelectItem
-                  key={String(rootProps.getValue(item))}
-                  item={item}
-                >
-                  {renderItem ? (
-                    renderItem(item)
-                  ) : (
-                    <>
-                      <SelectItemText />
-                      {renderActions?.(item)}
-                      <SelectItemIndicator />
-                    </>
-                  )}
-                </SelectItem>
-              )}
-            </SelectItems>
-            <SelectEmptyState>{emptyMessage}</SelectEmptyState>
-          </SelectList>
-          {footer && <SelectFooter>{footer}</SelectFooter>}
-        </SelectContent>
-      </>
-    )}
-  </SelectRoot>
-);
+}: SelectProps<T, V>) {
+  return (
+    <SelectRoot
+      {...rootProps}
+      search={search}
+    >
+      <SelectTrigger {...triggerProps} />
+      <SelectContent {...contentProps}>
+        {search !== false && search != null && <SelectSearch />}
+        <SelectList {...listProps} />
+        {footer != null && <SelectFooter>{footer}</SelectFooter>}
+      </SelectContent>
+    </SelectRoot>
+  );
+}
 
 export const Select = Object.assign(SelectSimple, {
   Root: SelectRoot,
@@ -436,10 +482,10 @@ export const Select = Object.assign(SelectSimple, {
   Content: SelectContent,
   Search: SelectSearch,
   List: SelectList,
-  Items: SelectItems,
   Item: SelectItem,
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
+  ItemActions: SelectItemActions,
   EmptyState: SelectEmptyState,
   Footer: SelectFooter,
 });

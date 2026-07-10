@@ -1,6 +1,8 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import React from "react";
+import { type ReactNode, useMemo } from "react";
 
+import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
+import { encodeSelectionValue } from "../Listbox/useSelectionController";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
 import type {
@@ -8,90 +10,82 @@ import type {
   SelectListProps,
   SelectRootProps,
   SelectTriggerProps,
-  SelectValue,
 } from "./Select";
 import { Select } from "./Select";
 
-const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
+type TagSelectRootProps<T, V extends SelectionValue> = Omit<
+  SelectRootProps<T, V>,
+  "children" | "onValueChange" | "selectionMode" | "value"
+>;
 
-export interface TagSelectProps<T> extends Omit<
-  SelectRootProps<T>,
-  "children" | "contentWidth" | "onSelect" | "selected"
-> {
+export interface TagSelectProps<
+  T,
+  V extends SelectionValue = SelectionValue,
+> extends TagSelectRootProps<T, V> {
+  value: readonly V[];
+  onValueChange: (value: V[]) => unknown;
   contentProps?: SelectContentProps;
-  footer?: React.ReactNode;
+  footer?: ReactNode;
   listProps?: SelectListProps;
-  renderActions?: (item: T) => React.ReactNode;
-  renderLabel?: (item: T) => React.ReactNode;
-  searchExtra?: React.ReactNode;
-  searchPlaceholder?: string;
-  searchable?: boolean;
-  selected: SelectValue[];
-  onSelect: (items: T) => unknown;
-  renderTag?: (item: T) => React.ReactNode;
-  placeholder?: string;
+  renderTag?: (item: T) => ReactNode;
+  tagPlaceholder?: ReactNode;
   triggerProps?: Omit<SelectTriggerProps, "children">;
+  /** Search defaults to enabled. */
+  search?: boolean | SelectionSearchOptions<T>;
 }
 
-export const TagSelect = <T,>({
+export function TagSelect<T, V extends SelectionValue>({
   contentProps,
   footer,
-  getLabel,
-  getValue,
+  getItemLabel,
+  getItemValue,
   items,
   listProps,
-  renderActions,
-  renderLabel,
-  selected,
-  searchExtra,
-  searchPlaceholder = "Search...",
-  searchable = true,
-  onSelect,
-  placeholder,
+  onValueChange,
   renderTag,
+  search = true,
+  tagPlaceholder,
   triggerProps,
-  ...props
-}: TagSelectProps<T>) => {
+  value,
+  ...rootProps
+}: TagSelectProps<T, V>) {
+  const itemByValue = useMemo(
+    () => new Map(items.map((item) => [encodeSelectionValue(getItemValue(item)), item])),
+    [getItemValue, items],
+  );
+
   const trigger = (
     <Box width="full">
       <TagsInput.Root
         cursor="pointer"
-        value={selected as string[]}
+        value={value.map(encodeSelectionValue)}
       >
         <TagsInput.Control outline="none">
-          {renderTag ? (
-            <TagsInput.Context>
-              {({ value }) =>
-                value.map((id, index) => {
-                  const item = items.find((entry) => getValue(entry) === id);
+          {value.map((nativeValue, index) => {
+            const encodedValue = encodeSelectionValue(nativeValue);
+            const item = itemByValue.get(encodedValue);
+            if (item == null) return null;
 
-                  if (!item) return null;
-
-                  return (
-                    <TagsInput.Item
-                      key={id}
-                      index={index}
-                      value={id}
-                    >
-                      <TagsInput.ItemPreview>
-                        {renderTag(item)}
-                        <TagsInput.ItemText>{getLabel(item)}</TagsInput.ItemText>
-                      </TagsInput.ItemPreview>
-                      <TagsInput.ItemInput />
-                    </TagsInput.Item>
-                  );
-                })
-              }
-            </TagsInput.Context>
-          ) : (
-            <TagsInput.Items />
-          )}
-          {selected.length === 0 && (
+            return (
+              <TagsInput.Item
+                key={encodedValue}
+                index={index}
+                value={encodedValue}
+              >
+                <TagsInput.ItemPreview>
+                  {renderTag?.(item)}
+                  <TagsInput.ItemText>{getItemLabel(item)}</TagsInput.ItemText>
+                </TagsInput.ItemPreview>
+                <TagsInput.ItemInput />
+              </TagsInput.Item>
+            );
+          })}
+          {value.length === 0 && (
             <Text
               ml="1"
               color="fg.subtle"
             >
-              {placeholder}
+              {tagPlaceholder}
             </Text>
           )}
         </TagsInput.Control>
@@ -101,35 +95,21 @@ export const TagSelect = <T,>({
 
   return (
     <Select.Root
-      {...props}
-      getLabel={getLabel}
-      getValue={getValue}
+      {...rootProps}
       items={items}
-      onSelect={onSelect}
-      selected={selected}
+      getItemLabel={getItemLabel}
+      getItemValue={getItemValue}
+      value={value}
+      onValueChange={onValueChange}
+      selectionMode="multiple"
+      search={search}
     >
       <Select.Trigger {...triggerProps}>{trigger}</Select.Trigger>
       <Select.Content {...contentProps}>
-        {searchable && <Select.Search placeholder={searchPlaceholder}>{searchExtra}</Select.Search>}
-        <Select.List {...listProps}>
-          <Select.Items>
-            {(item: T) => (
-              <Select.Item
-                key={String(getValue(item))}
-                item={item}
-              >
-                <Select.ItemText>{renderLabel ? renderLabel(item) : undefined}</Select.ItemText>
-                {renderActions && (
-                  <div {...{ [LISTBOX_ACTION_ATTRIBUTE]: "" }}>{renderActions(item)}</div>
-                )}
-                <Select.ItemIndicator />
-              </Select.Item>
-            )}
-          </Select.Items>
-          <Select.EmptyState />
-        </Select.List>
+        {search !== false && <Select.Search />}
+        <Select.List {...listProps} />
         {footer}
       </Select.Content>
     </Select.Root>
   );
-};
+}

@@ -50,9 +50,9 @@ export const DataTableHeaderFilterCellContent = <TData,>({
         <ColumnSelectFilter
           name={name}
           filterValues={filterValues}
-          selected={filterValue ?? []}
+          value={filterValue ?? []}
           selectProps={column.columnDef.meta?.selectProps}
-          onApply={handleChange}
+          onValueChange={handleChange}
         />
       );
     default:

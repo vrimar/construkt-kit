@@ -1,5 +1,5 @@
-import { Box, HStack } from "@construkt-kit/styled-system/jsx";
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { HStack } from "@construkt-kit/styled-system/jsx";
+import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { WithRef } from "../../types";
@@ -11,7 +11,6 @@ export interface SelectButtonProps extends ButtonProps {
   sublabel?: ReactNode;
   hasValue: boolean;
   label: ReactNode;
-  onClear?: () => unknown;
 }
 
 export const SelectButton = ({
@@ -19,13 +18,8 @@ export const SelectButton = ({
   sublabel,
   label,
   hasValue,
-  onClear,
   ...props
 }: WithRef<SelectButtonProps, HTMLButtonElement>) => {
-  const handleClear = () => {
-    if (onClear) onClear();
-  };
-
   return (
     <Button
       ref={ref}
@@ -44,20 +38,7 @@ export const SelectButton = ({
         >
           {label}
         </Text>
-        <HStack gap="0">
-          {hasValue && onClear ? (
-            <Box
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClear();
-              }}
-            >
-              <XIcon />
-            </Box>
-          ) : (
-            <ChevronDownIcon />
-          )}
-        </HStack>
+        <ChevronDownIcon />
       </HStack>
     </Button>
   );

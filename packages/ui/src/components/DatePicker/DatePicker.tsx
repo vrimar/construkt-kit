@@ -31,6 +31,7 @@ export const DatePicker = (props: DatePickerProps) => {
     defaultView,
     clearable,
     trigger,
+    triggerEndElement,
     placeholder = "Select date",
     formatValue,
     portalled = true,
@@ -100,6 +101,7 @@ export const DatePicker = (props: DatePickerProps) => {
       <Parts.Root width="100%">
         <Parts.Control>
           <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
+          {triggerEndElement}
         </Parts.Control>
 
         <DatePickerContent

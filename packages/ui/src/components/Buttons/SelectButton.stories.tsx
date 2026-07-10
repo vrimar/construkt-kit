@@ -27,7 +27,6 @@ export const Default: Story = {
       <SelectButton
         label="Selected value"
         hasValue
-        onClear={() => {}}
       />
     </VStack>
   ),
@@ -42,7 +41,6 @@ export const Sizes: Story = {
           size={size}
           label={`Selected value (${size})`}
           hasValue
-          onClear={() => {}}
         />
       )}
     />

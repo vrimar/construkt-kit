@@ -44,7 +44,6 @@ import { radioGroup } from "./radio-group";
 import { ratingGroup } from "./rating-group";
 import { scrollArea } from "./scroll-area";
 import { segmentGroup } from "./segment-group";
-import { select } from "./select";
 import { skeleton } from "./skeleton";
 import { slider } from "./slider";
 import { spinner } from "./spinner";
@@ -115,7 +114,6 @@ export const slotRecipes = {
   ratingGroup,
   scrollArea,
   segmentGroup,
-  select,
   slider,
   splitter,
   stat,

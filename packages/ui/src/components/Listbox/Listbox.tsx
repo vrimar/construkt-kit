@@ -1,21 +1,37 @@
-import type { CollectionItem } from "@ark-ui/react/collection";
 import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { Box, type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type ListboxVariantProps, listbox } from "@construkt-kit/styled-system/recipes";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "lucide-react";
-import type {
-  ChangeEvent,
-  ComponentProps,
-  MouseEvent,
-  MouseEventHandler,
-  ReactNode,
-  SyntheticEvent,
+import {
+  type ChangeEvent,
+  type ComponentProps,
+  type JSX,
+  type MouseEvent,
+  type MouseEventHandler,
+  type ReactNode,
+  type Ref,
+  type SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
 } from "react";
 
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput } from "../Input";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
+import type {
+  SelectionIndicatorPosition,
+  SelectionItemsProps,
+  SelectionItemState,
+  SelectionProps,
+  SelectionSearchOptions,
+  SelectionValue,
+  SingleSelectionProps,
+  MultipleSelectionProps,
+} from "./types";
+import { type SelectionController, useSelectionController } from "./useSelectionController";
 
 export { createListCollection, useListCollection } from "@ark-ui/react/collection";
 export type { CollectionItem, ListCollection } from "@ark-ui/react/collection";
@@ -42,7 +58,7 @@ const Label = withContext(ArkListbox.Label, "label");
 const ValueText = withContext(ArkListbox.ValueText, "valueText");
 
 const StyledItemIndicator = withContext(ArkListbox.ItemIndicator, "itemIndicator");
-const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
+export const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
 const INTERACTIVE_ITEM_SELECTOR = [
   `[${LISTBOX_ACTION_ATTRIBUTE}]`,
   "button",
@@ -77,7 +93,6 @@ function isEventFromItemAction(event: MouseEvent<HTMLDivElement>) {
 function stopItemSelection(event: MouseEvent<HTMLDivElement>) {
   if (!isEventFromItemAction(event)) return;
 
-  event.preventDefault();
   event.stopPropagation();
 }
 
@@ -105,7 +120,10 @@ function Content({
 
   return (
     <ScrollArea.Root {...resolvedScrollAreaProps}>
-      <ScrollArea.Viewport asChild>
+      <ScrollArea.Viewport
+        asChild
+        role="listbox"
+      >
         <StyledContent
           ref={ref}
           {...props}
@@ -140,122 +158,346 @@ function Item({ ref, onMouseDown, onClick, ...props }: WithRef<ItemProps, HTMLDi
   );
 }
 
-function ItemActions({ children }: { children: ReactNode }) {
+function ItemActions({
+  children,
+  onClick,
+  onMouseDown,
+  onPointerDown,
+  ...props
+}: HTMLStyledProps<"div">) {
   const stopPropagation = (event: SyntheticEvent) => {
-    event.preventDefault();
     event.stopPropagation();
   };
 
   return (
-    <div
-      data-listbox-item-action=""
-      onPointerDownCapture={stopPropagation}
-      onMouseDownCapture={stopPropagation}
-      onClick={stopPropagation}
+    <Box
+      {...{ [LISTBOX_ACTION_ATTRIBUTE]: "" }}
+      display="inline-flex"
+      alignItems="center"
+      gap="1"
+      flexShrink="0"
+      role="presentation"
+      {...props}
+      onPointerDown={(event) => {
+        stopPropagation(event);
+        onPointerDown?.(event);
+      }}
+      onMouseDown={(event) => {
+        stopPropagation(event);
+        onMouseDown?.(event);
+      }}
+      onClick={(event) => {
+        stopPropagation(event);
+        onClick?.(event);
+      }}
     >
       {children}
-    </div>
+    </Box>
+  );
+}
+
+/** Presentational empty-state block. Callers own the visibility condition. */
+function ListboxEmptyState({ children = "No items available" }: { children?: ReactNode }) {
+  return (
+    <EmptyState.Root
+      size="sm"
+      role="status"
+      aria-live="polite"
+    >
+      <EmptyState.Content>
+        <EmptyState.Description>{children}</EmptyState.Description>
+      </EmptyState.Content>
+    </EmptyState.Root>
   );
 }
 
 // --- Simplified API ---
 
-export interface ListboxProps<
-  T extends CollectionItem = CollectionItem,
-> extends ArkListbox.RootComponentProps<T, RootProps> {
-  /** Label text displayed above the list */
-  label?: string;
-  /** Placeholder for the search input (enables search when set) */
-  searchPlaceholder?: string;
-  /** Called when the search input value changes */
-  onSearchChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-  /** Content displayed when the collection is empty */
-  emptyMessage?: ReactNode;
-  /** Render custom content after each item's text */
-  renderActions?: (item: T) => ReactNode;
+const VIRTUAL_ITEM_HEIGHT = 36;
+const VIRTUAL_DEFAULT_MAX_HEIGHT = "20rem";
+
+export interface ListboxItemRenderProps<T, V extends SelectionValue> {
+  item: T;
+  index: number;
+  state: SelectionItemState<V>;
 }
 
-function ListboxSimple<T extends CollectionItem>({
-  ref,
-  label,
-  searchPlaceholder,
-  onSearchChange,
+type ManagedItemProps = Partial<Omit<ComponentProps<typeof Item>, "children" | "item">>;
+
+interface ListboxManagedProps<T, V extends SelectionValue> extends SelectionItemsProps<T, V> {
+  label?: string;
+  search?: boolean | SelectionSearchOptions<T>;
+  emptyMessage?: ReactNode;
+  loading?: boolean;
+  indicatorPosition?: SelectionIndicatorPosition;
+  renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  getItemProps?: (item: T) => ManagedItemProps;
+  contentProps?: HTMLStyledProps<"div">;
+  virtual?: boolean;
+}
+
+type ListboxBaseProps<T, V extends SelectionValue> = Omit<
+  ArkListbox.RootComponentProps<T, RootProps>,
+  | "activeItemStyle"
+  | "children"
+  | "collection"
+  | "deselectable"
+  | "onValueChange"
+  | "selectionMode"
+  | "value"
+> &
+  ListboxManagedProps<T, V>;
+
+export type ListboxProps<T = unknown, V extends SelectionValue = SelectionValue> = ListboxBaseProps<
+  T,
+  V
+> &
+  SelectionProps<V>;
+
+// Mounted only in virtual mode, so `useVirtualizer` never runs for plain lists.
+function VirtualList<T>({
+  items,
+  renderRow,
+  contentProps,
+  getItemKey,
+  scrollToIndexRef,
+}: {
+  items: T[];
+  renderRow: (item: T, index: number) => ReactNode;
+  contentProps?: HTMLStyledProps<"div">;
+  getItemKey: (index: number) => string | number;
+  scrollToIndexRef: { current: ((index: number) => void) | undefined };
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => VIRTUAL_ITEM_HEIGHT,
+    overscan: 10,
+    getItemKey,
+  });
+
+  // Expose scrollToIndex to the parent's Ark `scrollToIndexFn` (keyboard nav past the rendered window).
+  useEffect(() => {
+    scrollToIndexRef.current = (index) => virtualizer.scrollToIndex(index);
+    return () => {
+      scrollToIndexRef.current = undefined;
+    };
+  }, [virtualizer, scrollToIndexRef]);
+
+  const virtualItems = virtualizer.getVirtualItems();
+  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
+  const paddingBottom =
+    virtualItems.length > 0
+      ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
+      : 0;
+
+  // Rows sit in normal flow and self-measure via `measureElement`, so variable heights (size
+  // variants, multi-line items) are respected instead of being clamped to the estimate.
+  return (
+    <Content
+      ref={scrollRef}
+      {...contentProps}
+      maxHeight={contentProps?.maxHeight ?? VIRTUAL_DEFAULT_MAX_HEIGHT}
+    >
+      <Box style={{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }}>
+        {virtualItems.map((virtualItem) => (
+          <Box
+            key={virtualItem.key}
+            data-index={virtualItem.index}
+            ref={virtualizer.measureElement}
+          >
+            {renderRow(items[virtualItem.index], virtualItem.index)}
+          </Box>
+        ))}
+      </Box>
+    </Content>
+  );
+}
+
+interface ManagedListProps<T, V extends SelectionValue> {
+  controller: SelectionController<T, V>;
+  loading?: boolean;
+  emptyMessage?: ReactNode;
+  indicatorPosition?: SelectionIndicatorPosition;
+  renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  getItemProps?: (item: T) => ManagedItemProps;
+  contentProps?: HTMLStyledProps<"div">;
+  virtual?: boolean;
+  scrollToIndexRef?: { current: ((index: number) => void) | undefined };
+}
+
+export function ManagedList<T, V extends SelectionValue>({
+  controller,
+  loading,
   emptyMessage = "No items available",
-  renderActions,
-  children,
-  ...rest
-}: WithRef<ListboxProps<T>>) {
-  const collection = rest.collection;
-  const grouped = collection.group?.() ?? [];
-  const isGrouped = grouped.length > 0 && grouped[0]?.[0] !== undefined;
+  indicatorPosition = "end",
+  renderItem,
+  renderItemActions,
+  getItemProps,
+  contentProps,
+  virtual,
+  scrollToIndexRef: providedScrollToIndexRef,
+}: ManagedListProps<T, V>) {
+  const { collection } = controller;
+  const renderRow = (item: T, index: number) => {
+    const state = controller.getItemState(item);
+    return (
+      <Item
+        key={collection.getItemValue(item) ?? index}
+        item={item}
+        {...getItemProps?.(item)}
+      >
+        <ItemText>{renderItem ? renderItem(item, state) : collection.stringifyItem(item)}</ItemText>
+        {renderItemActions && <ItemActions>{renderItemActions(item, state)}</ItemActions>}
+        {indicatorPosition !== "none" && <ItemIndicator />}
+      </Item>
+    );
+  };
+
+  const grouped = useMemo(() => collection.group?.() ?? [], [collection]);
+  const isGrouped = grouped.length > 0 && grouped[0]?.[0] != null && grouped[0][0] !== "";
+  const isEmpty = collection.items.length === 0;
+  const emptyBlock = !loading && isEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>;
+  const useVirtual = virtual === true && !isGrouped;
+  const internalScrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
+  const scrollToIndexRef = providedScrollToIndexRef ?? internalScrollToIndexRef;
+
+  if (useVirtual) {
+    if (isEmpty) return emptyBlock;
+    return (
+      <VirtualList
+        items={collection.items}
+        renderRow={renderRow}
+        contentProps={contentProps}
+        getItemKey={(index) => collection.getItemValue(collection.items[index]) ?? index}
+        scrollToIndexRef={scrollToIndexRef}
+      />
+    );
+  }
+
+  return (
+    <Content {...contentProps}>
+      {isGrouped
+        ? grouped.map(([group, groupItems]) => (
+            <ItemGroup key={String(group)}>
+              <ItemGroupLabel>{String(group)}</ItemGroupLabel>
+              {groupItems.map(renderRow)}
+            </ItemGroup>
+          ))
+        : collection.items.map(renderRow)}
+      {emptyBlock}
+    </Content>
+  );
+}
+
+function ListboxSimple<T, V extends SelectionValue>(
+  props: ListboxBaseProps<T, V> & SingleSelectionProps<V> & { ref?: Ref<HTMLDivElement> },
+): JSX.Element;
+function ListboxSimple<T, V extends SelectionValue>(
+  props: ListboxBaseProps<T, V> & MultipleSelectionProps<V> & { ref?: Ref<HTMLDivElement> },
+): JSX.Element;
+function ListboxSimple<T, V extends SelectionValue>(
+  props: ListboxProps<T, V> & { ref?: Ref<HTMLDivElement> },
+) {
+  const {
+    ref,
+    items,
+    getItemValue,
+    getItemLabel,
+    isItemDisabled,
+    selectionMode = "single",
+    value,
+    onValueChange,
+    label,
+    search,
+    emptyMessage,
+    loading,
+    indicatorPosition = "end",
+    renderItem,
+    renderItemActions,
+    getItemProps,
+    contentProps,
+    virtual,
+    ...rest
+  } = props;
+  const controller = useSelectionController<T, V>({
+    items,
+    getItemValue,
+    getItemLabel,
+    isItemDisabled,
+    selectionMode,
+    value,
+    onValueChange: onValueChange as (value: V | V[] | null) => unknown,
+    search,
+    searchDefaultEnabled: true,
+  });
+  const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
 
   return (
     <Root
       ref={ref}
+      collection={controller.collection}
+      value={controller.encodedValue}
+      onValueChange={controller.handleValueChange}
+      selectionMode={selectionMode}
+      deselectable={selectionMode === "single" ? false : undefined}
+      indicatorPosition={indicatorPosition}
       {...rest}
+      scrollToIndexFn={
+        virtual ? (details) => scrollToIndexRef.current?.(details.index) : rest.scrollToIndexFn
+      }
     >
       {label && <Label>{label}</Label>}
-      {children ?? (
-        <>
-          {searchPlaceholder && (
-            <Input asChild>
-              <SearchInput
-                placeholder={searchPlaceholder}
-                onChange={onSearchChange}
-                size="sm"
-              />
-            </Input>
-          )}
-          <Content>
-            {isGrouped
-              ? grouped.map(([group, items]) => (
-                  <ItemGroup key={String(group)}>
-                    <ItemGroupLabel>{String(group)}</ItemGroupLabel>
-                    {items.map((item) => (
-                      <Item
-                        key={collection.getItemValue(item)}
-                        item={item}
-                      >
-                        <ItemText>{collection.stringifyItem(item)}</ItemText>
-                        {renderActions && <ItemActions>{renderActions(item)}</ItemActions>}
-                        <ItemIndicator />
-                      </Item>
-                    ))}
-                  </ItemGroup>
-                ))
-              : collection.items.map((item) => (
-                  <Item
-                    key={collection.getItemValue(item)}
-                    item={item}
-                  >
-                    <ItemText>{collection.stringifyItem(item)}</ItemText>
-                    {renderActions && <ItemActions>{renderActions(item)}</ItemActions>}
-                    <ItemIndicator />
-                  </Item>
-                ))}
-            {collection.items.length === 0 && (
-              <EmptyState.Root size="sm">
-                <EmptyState.Content>
-                  <EmptyState.Description>{emptyMessage}</EmptyState.Description>
-                </EmptyState.Content>
-              </EmptyState.Root>
-            )}
-          </Content>
-        </>
+      {controller.search.showInput && (
+        <Box
+          borderBottomWidth="1px"
+          borderColor="border"
+        >
+          <SearchInput
+            autoFocus={controller.search.autoFocus}
+            aria-label={controller.search.placeholder}
+            placeholder={controller.search.placeholder}
+            value={controller.search.query}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              controller.search.setQuery(event.target.value)
+            }
+            onClear={() => controller.search.setQuery("")}
+            size="sm"
+            variant="plain"
+          />
+          {controller.search.endElement}
+        </Box>
       )}
+      <ManagedList
+        controller={controller}
+        loading={loading}
+        emptyMessage={emptyMessage}
+        indicatorPosition={indicatorPosition}
+        renderItem={renderItem}
+        renderItemActions={renderItemActions}
+        getItemProps={getItemProps}
+        contentProps={contentProps}
+        virtual={virtual}
+        scrollToIndexRef={scrollToIndexRef}
+      />
     </Root>
   );
 }
 
-export type ListboxRootProps = RootProps;
+export type ListboxRootProps = ComponentProps<typeof Root>;
 
 export const Listbox = Object.assign(ListboxSimple, {
   Root,
   RootProvider,
   Content,
   Empty,
+  EmptyState: ListboxEmptyState,
   Input,
   Item,
+  ItemActions,
   ItemGroup,
   ItemGroupLabel,
   ItemIndicator,

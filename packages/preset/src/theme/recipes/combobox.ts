@@ -1,7 +1,14 @@
 import { comboboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlH, controlPx, controlGap, controlIcon, controlText } from "./control-size";
+import {
+  controlHCompact,
+  controlPx,
+  controlPxCompact,
+  controlGap,
+  controlIcon,
+  controlText,
+} from "./control-size";
 import { input } from "./input";
 
 export const combobox = defineSlotRecipe({
@@ -132,15 +139,15 @@ export const combobox = defineSlotRecipe({
         },
         content: { p: "1", gap: "0.5", ...controlText("xs") },
         item: {
-          px: controlPx("xs"),
-          minH: controlH("xs"),
+          px: controlPxCompact("xs"),
+          minH: controlHCompact("xs"),
           gap: controlGap("xs"),
           _icon: { boxSize: controlIcon("xs") },
         },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPx("xs"), height: controlH("xs") },
+        itemGroupLabel: { px: controlPxCompact("xs"), height: controlHCompact("xs") },
         indicatorGroup: { px: controlPx("xs"), _icon: { boxSize: controlIcon("xs") } },
-        empty: { px: controlPx("xs"), minH: controlH("xs") },
+        empty: { px: controlPxCompact("xs"), minH: controlHCompact("xs") },
       },
       sm: {
         input: {
@@ -149,15 +156,15 @@ export const combobox = defineSlotRecipe({
         },
         content: { p: "1", gap: "0.5", ...controlText("sm") },
         item: {
-          px: controlPx("sm"),
-          minH: controlH("sm"),
+          px: controlPxCompact("sm"),
+          minH: controlHCompact("sm"),
           gap: controlGap("sm"),
           _icon: { boxSize: controlIcon("sm") },
         },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPx("sm"), height: controlH("sm") },
+        itemGroupLabel: { px: controlPxCompact("sm"), height: controlHCompact("sm") },
         indicatorGroup: { px: controlPx("sm"), _icon: { boxSize: controlIcon("sm") } },
-        empty: { px: controlPx("sm"), minH: controlH("sm") },
+        empty: { px: controlPxCompact("sm"), minH: controlHCompact("sm") },
       },
       md: {
         input: {
@@ -167,14 +174,14 @@ export const combobox = defineSlotRecipe({
         content: { p: "1", gap: "0.5", ...controlText("md") },
         indicatorGroup: { px: controlPx("md"), _icon: { boxSize: controlIcon("md") } },
         item: {
-          px: controlPx("md"),
-          minH: controlH("md"),
+          px: controlPxCompact("md"),
+          minH: controlHCompact("md"),
           gap: controlGap("md"),
           _icon: { boxSize: controlIcon("md") },
         },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPx("md"), height: controlH("md") },
-        empty: { px: controlPx("md"), minH: controlH("md") },
+        itemGroupLabel: { px: controlPxCompact("md"), height: controlHCompact("md") },
+        empty: { px: controlPxCompact("md"), minH: controlHCompact("md") },
       },
       lg: {
         input: {
@@ -183,15 +190,15 @@ export const combobox = defineSlotRecipe({
         },
         content: { p: "1", gap: "0.5", ...controlText("lg") },
         item: {
-          px: controlPx("lg"),
-          minH: controlH("lg"),
+          px: controlPxCompact("lg"),
+          minH: controlHCompact("lg"),
           gap: controlGap("lg"),
           _icon: { boxSize: controlIcon("lg") },
         },
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPx("lg"), height: controlH("lg") },
+        itemGroupLabel: { px: controlPxCompact("lg"), height: controlHCompact("lg") },
         indicatorGroup: { px: controlPx("lg"), _icon: { boxSize: controlIcon("lg") } },
-        empty: { px: controlPx("lg"), minH: controlH("lg") },
+        empty: { px: controlPxCompact("lg"), minH: controlHCompact("lg") },
       },
       xl: {
         input: {
@@ -200,15 +207,15 @@ export const combobox = defineSlotRecipe({
         },
         content: { p: "1", gap: "1", ...controlText("xl") },
         item: {
-          px: controlPx("xl"),
-          minH: controlH("xl"),
+          px: controlPxCompact("xl"),
+          minH: controlHCompact("xl"),
           gap: controlGap("xl"),
           _icon: { boxSize: controlIcon("xl") },
         },
         itemGroup: { gap: "1" },
-        itemGroupLabel: { px: controlPx("xl"), height: controlH("xl") },
+        itemGroupLabel: { px: controlPxCompact("xl"), height: controlHCompact("xl") },
         indicatorGroup: { px: controlPx("xl"), _icon: { boxSize: controlIcon("xl") } },
-        empty: { px: controlPx("xl"), minH: controlH("xl") },
+        empty: { px: controlPxCompact("xl"), minH: controlHCompact("xl") },
       },
     },
   },

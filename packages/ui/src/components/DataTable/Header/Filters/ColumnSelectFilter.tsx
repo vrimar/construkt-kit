@@ -6,68 +6,50 @@ import type { ColumnFilterValue, DataTableSelectProps } from "../../types";
 interface ColumnSelectFilterProps {
   name: string;
   filterValues: string[];
-  selected: string[];
+  value: string[];
   selectProps?: DataTableSelectProps;
-  onApply: (value: ColumnFilterValue) => unknown;
+  onValueChange: (value: ColumnFilterValue) => unknown;
 }
 
 export const ColumnSelectFilter = ({
   name,
   filterValues,
-  selected,
+  value,
   selectProps,
-  onApply,
+  onValueChange,
 }: ColumnSelectFilterProps) => {
   const getLabel = useMemo(
-    () => selectProps?.root?.getLabel ?? ((item: string) => item),
-    [selectProps?.root?.getLabel],
+    () => selectProps?.getItemLabel ?? ((item: string) => item),
+    [selectProps?.getItemLabel],
   );
 
   const triggerLabel = useMemo(() => {
-    if (!selected || selected.length === 0) return `Filter by ${name}`;
-    if (selected.length === 1) return getLabel(selected[0]);
-    return `${selected.length} selected`;
-  }, [selected, name, getLabel]);
+    if (value.length === 0) return `Filter by ${name}`;
+    if (value.length === 1) return getLabel(value[0]);
+    return `${value.length} selected`;
+  }, [value, name, getLabel]);
+
+  const { getItemLabel: _getItemLabel, triggerProps, ...applySelectProps } = selectProps ?? {};
 
   return (
-    <ApplySelect.Root
+    <ApplySelect
+      {...applySelectProps}
       items={filterValues}
-      selected={selected}
-      getLabel={(item) => item}
-      getValue={(item) => item}
-      onApply={onApply}
+      value={value}
+      getItemLabel={getLabel}
+      getItemValue={(item) => item}
+      onValueChange={(values) => onValueChange(values.length === 0 ? undefined : values)}
       placement="bottom-end"
-      {...selectProps?.root}
-    >
-      <ApplySelect.Trigger
-        label={triggerLabel}
-        size="sm"
-        width="100%"
-        variant="plain"
-        {...selectProps?.trigger}
-      />
-      <ApplySelect.Content {...selectProps?.content}>
-        <ApplySelect.Search {...selectProps?.search} />
-        <ApplySelect.List {...selectProps?.list}>
-          <ApplySelect.Items>
-            {(item: string) => (
-              <ApplySelect.Item
-                key={item}
-                item={item}
-              >
-                <ApplySelect.ItemText />
-                <ApplySelect.ItemIndicator />
-              </ApplySelect.Item>
-            )}
-          </ApplySelect.Items>
-          <ApplySelect.EmptyState />
-        </ApplySelect.List>
-        <ApplySelect.Actions
-          cancelText="Reset"
-          onReset={() => onApply(undefined)}
-          {...selectProps?.actions}
-        />
-      </ApplySelect.Content>
-    </ApplySelect.Root>
+      triggerProps={{
+        ...triggerProps,
+        buttonProps: {
+          label: triggerLabel,
+          size: "sm",
+          width: "100%",
+          variant: "plain",
+          ...triggerProps?.buttonProps,
+        },
+      }}
+    />
   );
 };

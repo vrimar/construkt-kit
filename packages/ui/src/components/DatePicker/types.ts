@@ -75,6 +75,7 @@ export type CalendarProps = SingleCalendarProps | RangeCalendarProps | MultipleC
 
 interface DatePickerExtraProps {
   trigger?: ReactNode;
+  triggerEndElement?: ReactNode;
   placeholder?: string;
   formatValue?: (value: DateValue) => string;
   portalled?: boolean;
@@ -91,9 +92,9 @@ export type DatePickerProps =
   | (MultipleCalendarProps & DatePickerExtraProps);
 
 export type DatePickerSelectProps =
-  | (SingleCalendarProps & Omit<DatePickerExtraProps, "trigger">)
-  | (RangeCalendarProps & Omit<DatePickerExtraProps, "trigger">)
-  | (MultipleCalendarProps & Omit<DatePickerExtraProps, "trigger">);
+  | (SingleCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">)
+  | (RangeCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">)
+  | (MultipleCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">);
 
 /** Convert any CalendarProps/DatePickerProps value to DateValue[] for Ark UI.
  * Returns undefined when no value is provided (uncontrolled mode). */

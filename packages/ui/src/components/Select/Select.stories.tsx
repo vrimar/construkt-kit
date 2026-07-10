@@ -1,214 +1,104 @@
-import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { MoreHorizontalIcon } from "lucide-react";
-import { useState, type ComponentProps, type ReactNode } from "react";
-import { fn } from "storybook/test";
+import { useState } from "react";
 
 import { Select } from ".";
-import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
+
+const fruits = [
+  { id: 1, name: "Apple" },
+  { id: 2, name: "Banana" },
+  { id: 3, name: "Cherry" },
+];
 
 const meta: Meta = {
   title: "Components/Select",
-  tags: ["autodocs"],
+  component: Select,
+  decorators: [
+    (Story) => (
+      <Box
+        w="full"
+        maxW="320px"
+      >
+        <Story />
+      </Box>
+    ),
+  ],
 };
 
 export default meta;
 type Story = StoryObj;
 
-const items = [
-  { id: 1, name: "Apple" },
-  { id: 2, name: "Banana" },
-  { id: 3, name: "Cherry" },
-  { id: 4, name: "Date" },
-  { id: 5, name: "Elderberry" },
-];
-
-type Fruit = (typeof items)[number];
-
-const getValue = (item: Fruit) => item.id;
-const getLabel = (item: Fruit) => item.name;
-const onSelect = fn<(item: Fruit) => void>();
-
-interface ControlledSingleSelectStoryProps {
-  initialSelected?: number;
-  emptySelectionLabel?: string;
-  searchPlaceholder?: string;
-  renderActions?: (item: Fruit) => ReactNode;
-  triggerProps?: ComponentProps<typeof Select>["triggerProps"];
-}
-
-interface ControlledMultiSelectStoryProps {
-  initialSelected: number[];
-  emptySelectionLabel?: string;
-  searchPlaceholder?: string;
-}
-
-function ControlledSingleSelectStory({
-  initialSelected,
-  emptySelectionLabel,
-  renderActions,
-  searchPlaceholder,
-  triggerProps,
-}: ControlledSingleSelectStoryProps) {
-  const [selected, setSelected] = useState<number | undefined>(initialSelected);
-
-  const handleSelect = (item: Fruit) => {
-    onSelect(item);
-    setSelected(getValue(item));
-  };
-
-  return (
-    <Box maxW="320px">
-      <Select
-        items={items}
-        selected={selected}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={handleSelect}
-        emptySelectionLabel={emptySelectionLabel}
-        searchPlaceholder={searchPlaceholder}
-        renderActions={renderActions}
-        triggerProps={triggerProps}
-      />
-    </Box>
-  );
-}
-
-function ControlledMultiSelectStory({
-  initialSelected,
-  emptySelectionLabel,
-  searchPlaceholder,
-}: ControlledMultiSelectStoryProps) {
-  const [selected, setSelected] = useState<number[]>(initialSelected);
-
-  const handleSelect = (item: Fruit) => {
-    onSelect(item);
-    setSelected((previous) => {
-      const value = getValue(item);
-
-      return previous.includes(value)
-        ? previous.filter((entry) => entry !== value)
-        : [...previous, value];
-    });
-  };
-
-  return (
-    <Box maxW="320px">
-      <Select
-        items={items}
-        selected={selected}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={handleSelect}
-        emptySelectionLabel={emptySelectionLabel}
-        searchPlaceholder={searchPlaceholder}
-      />
-    </Box>
-  );
-}
-
-function ControlledCompoundStory() {
-  const [selected, setSelected] = useState<number[]>([1, 3]);
-
-  const handleSelect = (item: Fruit) => {
-    onSelect(item);
-    setSelected((previous) => {
-      const value = getValue(item);
-
-      return previous.includes(value)
-        ? previous.filter((entry) => entry !== value)
-        : [...previous, value];
-    });
-  };
-
-  return (
-    <Box maxW="320px">
-      <Select.Root
-        items={items}
-        selected={selected}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={handleSelect}
-      >
-        <Select.Trigger />
-        <Select.Content>
-          <Select.Search placeholder="Search fruits..." />
-          <Select.List>
-            <Select.Items>
-              {(item: Fruit) => (
-                <Select.Item
-                  key={item.id}
-                  item={item}
-                >
-                  <Select.ItemText />
-                  <Select.ItemIndicator />
-                </Select.Item>
-              )}
-            </Select.Items>
-            <Select.EmptyState />
-          </Select.List>
-        </Select.Content>
-      </Select.Root>
-    </Box>
-  );
-}
-
-// --- Simple API ---
-
-export const Sizes: Story = {
-  render: () => (
-    <SizePreviewTable
-      sizes={button.variantMap.size}
-      renderPreview={(size) => <ControlledSingleSelectStory triggerProps={{ size }} />}
-    />
-  ),
-};
-
 export const Default: Story = {
-  render: () => <ControlledSingleSelectStory />,
+  render: function DefaultStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Select
+        items={fruits}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select fruit"
+      />
+    );
+  },
 };
 
-export const WithSearch: Story = {
-  render: () => (
-    <ControlledSingleSelectStory
-      emptySelectionLabel="Select fruit"
-      searchPlaceholder="Search fruits..."
-    />
-  ),
+export const Searchable: Story = {
+  render: function SearchableStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Select
+        items={fruits}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select fruit"
+        search={{ placeholder: "Search fruits...", autoFocus: true }}
+      />
+    );
+  },
 };
 
-export const WithSelected: Story = {
-  render: () => <ControlledSingleSelectStory initialSelected={2} />,
+export const Multiple: Story = {
+  render: function MultipleStory() {
+    const [value, setValue] = useState<number[]>([]);
+    return (
+      <Select
+        items={fruits}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        selectionMode="multiple"
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select fruits"
+        search
+      />
+    );
+  },
 };
-
-export const MultiSelect: Story = {
-  render: () => (
-    <ControlledMultiSelectStory
-      initialSelected={[1, 3]}
-      searchPlaceholder="Search..."
-    />
-  ),
-};
-
-export const WithActions: Story = {
-  render: () => (
-    <ControlledSingleSelectStory
-      renderActions={(item) => (
-        <button
-          type="button"
-          aria-label={`Edit ${item.name}`}
-          onClick={() => alert(`Edit ${item.name}`)}
-        >
-          <MoreHorizontalIcon size={14} />
-        </button>
-      )}
-    />
-  ),
-};
-
-// --- Compound API ---
 
 export const Compound: Story = {
-  render: () => <ControlledCompoundStory />,
+  render: function CompoundStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Select.Root
+        items={fruits}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        renderItem={(item) => <strong>{item.name}</strong>}
+        search
+      >
+        <Select.Trigger buttonProps={{ label: "Custom select" }} />
+        <Select.Content>
+          <Select.Search />
+          <Select.List />
+          <Select.Footer p="2">Choose one fruit</Select.Footer>
+        </Select.Content>
+      </Select.Root>
+    );
+  },
 };

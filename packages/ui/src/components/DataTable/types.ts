@@ -1,14 +1,7 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 import "@tanstack/react-table";
 
-import type {
-  ApplySelectActionsProps,
-  ApplySelectContentProps,
-  ApplySelectRootProps,
-  ApplySelectSearchProps,
-  ApplySelectTriggerProps,
-} from "../ApplySelect";
-import type { SelectListProps } from "../Select";
+import type { ApplySelectProps } from "../ApplySelect";
 
 export type ColumnFilterType = "input" | "select" | "date";
 export type Column<TData> = {
@@ -23,18 +16,13 @@ export type DataTableFilters = Record<string, string[] | undefined>;
 
 export type DataTableSortType = "asc" | "desc" | "";
 
-export type DataTableSelectProps = {
-  actions?: ApplySelectActionsProps;
-  content?: ApplySelectContentProps;
-  list?: SelectListProps;
-  root?: Partial<
-    Omit<
-      ApplySelectRootProps<string>,
-      "children" | "items" | "onApply" | "selected"
-    >
-  >;
-  search?: ApplySelectSearchProps;
-  trigger?: ApplySelectTriggerProps;
+export type DataTableSelectProps = Partial<
+  Omit<
+    ApplySelectProps<string, string>,
+    "getItemLabel" | "getItemValue" | "items" | "onValueChange" | "value"
+  >
+> & {
+  getItemLabel?: (item: string) => string;
 };
 
 export type DataTableParams = {

@@ -1,232 +1,279 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Select } from "./Select";
 
-afterEach(() => {
-  cleanup();
-});
-
-const items = [
-  { label: "First filter", value: "1" },
-  { label: "Second filter", value: "2" },
+const options = [
+  { id: 1, label: "Alpha" },
+  { id: 2, label: "Beta" },
+  { id: 3, label: "Gamma" },
 ];
 
-const getValue = (item: (typeof items)[number]) => item.value;
-const getLabel = (item: (typeof items)[number]) => item.label;
+afterEach(cleanup);
 
-describe("Select (compound API)", () => {
-  it("applies explicit contentWidth to content", () => {
+describe("Select", () => {
+  it("infers generic items and emits native numeric values", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={onValueChange}
+        open
+        renderItem={(item) => <span>Option: {item.label}</span>}
+      />,
+    );
+
+    await userEvent.click(screen.getByText("Option: Beta"));
+    expect(onValueChange).toHaveBeenCalledWith(2);
+  });
+
+  it("supports conventional compound composition with Root render callbacks", () => {
     render(
       <Select.Root
-        getLabel={(item) => item.label}
-        getValue={(item) => item.value}
-        items={items}
-        contentWidth={300}
-        onSelect={vi.fn()}
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
         open
-        selected={undefined}
+        renderItem={(item, state) => (
+          <span>
+            {item.label}:{String(state.selected)}
+          </span>
+        )}
       >
-        <Select.Trigger label="Filter" />
-        <Select.Content data-testid="select-content">
-          <Select.List>
-            <Select.Items>
-              {(item: (typeof items)[number]) => (
-                <Select.Item
-                  key={item.value}
-                  item={item}
-                >
-                  <Select.ItemText />
-                </Select.Item>
-              )}
-            </Select.Items>
-          </Select.List>
+        <Select.Trigger buttonProps={{ label: "Choose" }} />
+        <Select.Content data-testid="content">
+          <Select.List />
         </Select.Content>
       </Select.Root>,
     );
 
-    expect(screen.getByTestId("select-content").className).toContain("w_300");
+    expect(screen.getByText("Alpha:false")).not.toBeNull();
+    expect(screen.getByTestId("content")).not.toBeNull();
   });
 
-  it("does not set content width when matchTriggerWidth is false", () => {
-    render(
-      <Select.Root
-        getLabel={(item) => item.label}
-        getValue={(item) => item.value}
-        items={items}
-        matchTriggerWidth={false}
-        onSelect={vi.fn()}
-        open
-        selected={undefined}
-      >
-        <Select.Trigger label="Filter" />
-        <Select.Content data-testid="select-content">
-          <Select.List>
-            <Select.Items>
-              {(item: (typeof items)[number]) => (
-                <Select.Item
-                  key={item.value}
-                  item={item}
-                >
-                  <Select.ItemText />
-                </Select.Item>
-              )}
-            </Select.Items>
-          </Select.List>
-        </Select.Content>
-      </Select.Root>,
-    );
-
-    const className = screen.getByTestId("select-content").className;
-    expect(className).not.toMatch(/(?:^|\s)w_\d+/);
-  });
-
-  it("does not select an item when clicking an interactive descendant inside Select.Item", async () => {
-    const user = userEvent.setup();
-    const onAction = vi.fn();
-    const onSelect = vi.fn();
-
-    render(
-      <Select.Root
-        getLabel={(item) => item.label}
-        getValue={(item) => item.value}
-        items={items}
-        onSelect={onSelect}
-        open
-        selected={undefined}
-      >
-        <Select.Trigger />
-        <Select.Content>
-          <Select.List>
-            <Select.Items>
-              {(item: (typeof items)[number]) => (
-                <Select.Item
-                  key={item.value}
-                  item={item}
-                >
-                  <Select.ItemText />
-                  <div>
-                    <button
-                      aria-label={`Edit ${item.label}`}
-                      type="button"
-                      onClick={() => onAction(item.value)}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </Select.Item>
-              )}
-            </Select.Items>
-          </Select.List>
-        </Select.Content>
-      </Select.Root>,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit First filter" }));
-
-    expect(onAction).toHaveBeenCalledOnce();
-    expect(onAction).toHaveBeenCalledWith("1");
-    expect(onSelect).not.toHaveBeenCalled();
-  });
-});
-
-describe("Select (simple API)", () => {
-  it("renders items using the simple API", () => {
+  it("uses trigger width by default", () => {
     render(
       <Select
-        items={items}
-        selected={undefined}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={vi.fn()}
-        label="Filter"
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        open
+      />,
+    );
+    expect(screen.getByRole("listbox").closest("[data-part='content']")?.className).toContain(
+      "w_full",
+    );
+  });
+
+  it("applies an explicit content width", () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        contentWidth={320}
+        open
+      />,
+    );
+    expect(screen.getByRole("listbox").closest("[data-part='content']")?.className).toContain(
+      "w_320",
+    );
+  });
+
+  it("filters through the unified search option", async () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        search={{
+          placeholder: "Search options",
+          filter: (item, query) => item.label.toLowerCase().startsWith(query.toLowerCase()),
+        }}
         open
       />,
     );
 
-    expect(screen.getByText("First filter")).toBeDefined();
-    expect(screen.getByText("Second filter")).toBeDefined();
+    await userEvent.type(screen.getByPlaceholderText("Search options"), "g");
+    expect(screen.getByText("Gamma")).not.toBeNull();
+    expect(screen.queryByText("Alpha")).toBeNull();
   });
 
-  it("renders a search input when searchPlaceholder is set", () => {
+  it("does not render search when omitted", () => {
     render(
       <Select
-        items={items}
-        selected={undefined}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={vi.fn()}
-        label="Filter"
-        searchPlaceholder="Search..."
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
         open
       />,
     );
-
-    expect(screen.getByPlaceholderText("Search...")).toBeDefined();
-  });
-
-  it("does not render a search input when searchPlaceholder is omitted", () => {
-    render(
-      <Select
-        items={items}
-        selected={undefined}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={vi.fn()}
-        label="Filter"
-        open
-      />,
-    );
-
     expect(screen.queryByRole("searchbox")).toBeNull();
   });
 
-  it("renders empty state when items is empty", () => {
+  it("renders the configured empty state", () => {
     render(
       <Select
-        items={[]}
-        selected={undefined}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={vi.fn()}
-        label="Filter"
-        emptyMessage="Nothing here"
+        items={[] as typeof options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        emptyMessage="Nothing found"
+        open
+      />,
+    );
+    expect(screen.getByText("Nothing found")).not.toBeNull();
+  });
+
+  it("emits complete arrays in multiple mode", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        selectionMode="multiple"
+        value={[1]}
+        onValueChange={onValueChange}
+        open
+      />,
+    );
+    await userEvent.click(screen.getByText("Beta"));
+    expect(onValueChange).toHaveBeenCalledWith([1, 2]);
+  });
+
+  it("notifies open changes in uncontrolled mode", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        onOpenChange={onOpenChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+  });
+
+  it("resets an uncontrolled search query after close", async () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        search
+        defaultOpen
+      />,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "beta");
+    expect(screen.queryByText("Alpha")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+    expect(screen.getByText("Alpha")).not.toBeNull();
+    expect((screen.getByPlaceholderText("Search...") as HTMLInputElement).value).toBe("");
+  });
+
+  it("keeps item actions interactive without selecting the row", async () => {
+    const onValueChange = vi.fn();
+    const onAction = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={onValueChange}
+        renderItemActions={(item) => (
+          <button
+            type="button"
+            onClick={onAction}
+          >
+            Edit {item.label}
+          </button>
+        )}
         open
       />,
     );
 
-    expect(screen.getByText("Nothing here")).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: "Edit Alpha" }));
+    expect(onAction).toHaveBeenCalledOnce();
+    expect(onValueChange).not.toHaveBeenCalled();
   });
 
-  it("supports children escape hatch for compound usage", () => {
+  it("forwards trigger props when custom children are used", () => {
+    render(
+      <Select.Root
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+      >
+        <Select.Trigger aria-label="Custom trigger">
+          <button type="button">Open</button>
+        </Select.Trigger>
+        <Select.Content>
+          <Select.List />
+        </Select.Content>
+      </Select.Root>,
+    );
+    expect(screen.getByRole("button", { name: "Custom trigger" })).not.toBeNull();
+  });
+
+  it("renders a custom controlled value label", () => {
+    function Example() {
+      const [value, setValue] = useState<number | null>(1);
+      return (
+        <Select
+          items={options}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.label}
+          value={value}
+          onValueChange={setValue}
+          renderValue={({ selectedItems }) => `Chosen: ${selectedItems[0]?.label}`}
+        />
+      );
+    }
+    render(<Example />);
+    expect(screen.getByRole("button", { name: "Chosen: Alpha" })).not.toBeNull();
+  });
+
+  it("applies logical indicator placement", () => {
     render(
       <Select
-        items={items}
-        selected={undefined}
-        getValue={getValue}
-        getLabel={getLabel}
-        onSelect={vi.fn()}
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={1}
+        onValueChange={vi.fn()}
+        indicatorPosition="start"
         open
-      >
-        <Select.Trigger label="Custom" />
-        <Select.Content>
-          <Select.List>
-            <Select.Items>
-              {(item: (typeof items)[number]) => (
-                <Select.Item
-                  key={item.value}
-                  item={item}
-                >
-                  <Select.ItemText />
-                </Select.Item>
-              )}
-            </Select.Items>
-          </Select.List>
-        </Select.Content>
-      </Select>,
+      />,
     );
-
-    expect(screen.getByText("First filter")).toBeDefined();
+    expect(screen.getByRole("listbox").className).toContain(
+      "listbox__content--indicatorPosition_start",
+    );
   });
 });
