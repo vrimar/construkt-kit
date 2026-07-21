@@ -67,7 +67,7 @@ export const listbox = defineSlotRecipe({
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
-      fontWeight: "semibold",
+      fontWeight: "medium",
     },
     itemIndicator: {
       display: "flex",
