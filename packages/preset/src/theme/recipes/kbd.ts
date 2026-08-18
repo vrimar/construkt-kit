@@ -48,7 +48,7 @@ export const kbd = defineRecipe({
       },
     },
     size: {
-      xs: { textStyle: "2xs", height: "4", minWidth: "4", px: "0.5" },
+      xs: { fontSize: "2xs", height: "4", minWidth: "4", px: "0.5" },
       sm: { ...controlText("xs"), height: "4.5", minWidth: "4.5", px: "1" },
       md: { ...controlText("sm"), height: "5", minWidth: "5", px: "1" },
       lg: { ...controlText("sm"), height: "5.5", minWidth: "5.5", px: "1" },
