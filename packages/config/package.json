@@ -55,7 +55,7 @@
     "vite-plugin-checker": "^0.14.5"
   },
   "peerDependencies": {
-    "oxfmt": "^0.55.0",
-    "oxlint": "^1.61.0"
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.79.0"
   }
 }
