@@ -24,7 +24,7 @@ export const breadcrumb = defineSlotRecipe({
       gap: controlGap("md"),
       outline: "0",
       textDecoration: "none",
-      transition: "color",
+      transition: "colors",
       _icon: { boxSize: "1em" },
     },
     item: {
