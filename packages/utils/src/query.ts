@@ -12,7 +12,7 @@ export function buildQueryString(object: unknown) {
       for (let i = 0; i < value.length; i++) {
         destructure(key + "[" + i + "]", value[i]);
       }
-    } else if (Object.prototype.toString.call(value) === "[object Object]") {
+    } else if (isPlainObject(value)) {
       for (const i in value) {
         destructure(key + "[" + i + "]", value[i]);
       }
@@ -29,13 +29,11 @@ export function buildQueryString(object: unknown) {
 export const saveBlobResponse = (response: Response, fallbackName: string = "download") => {
   return response.blob().then((blob) => {
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download =
+    downloadFile(
+      url,
       sanitizeFilename(getFileName(response.headers.get("Content-Disposition") ?? "")) ||
-      fallbackName;
-    a.click();
-    a.remove();
+        fallbackName,
+    );
     window.URL.revokeObjectURL(url);
   });
 };

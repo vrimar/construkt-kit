@@ -22,14 +22,11 @@ export function addOrRemoveByKey<T, K>(arr: T[], value: T, key: (item: T) => K) 
 }
 
 export function getFirstItemId<T extends { id: number }>(arr?: T[]) {
-  if (!arr || arr.length === 0) return 0;
-  return arr[0].id;
+  return arr?.[0]?.id ?? 0;
 }
 
 export function getLastItemId<T extends { id: number }>(arr?: T[]) {
-  if (!arr) return 0;
-  if (arr.length === 0) return 0;
-  return arr[arr.length - 1].id;
+  return arr?.[arr.length - 1]?.id ?? 0;
 }
 
 export function findInTree<T>(
