@@ -1,11 +1,9 @@
-import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
-import { RefreshCwIcon } from "lucide-react";
+import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
 import React, { useEffect } from "react";
 
-import { Button } from "../../Buttons";
 import { LoadingOverlay } from "../../LoadingOverlay";
 import { ScrollArea } from "../../ScrollArea";
-import { Text } from "../../Text";
+import { DataTableEmptyState } from "../EmptyState";
 import type { DataTableInstance, DataTableRow } from "../types";
 import { BodyCell } from "./BodyCell";
 
@@ -51,30 +49,12 @@ export const DataTableBody = <TData extends object>({
     >
       <LoadingOverlay isActive={loading} />
       {hasEmptyMessage && (
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          width="100%"
-          height="100%"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Stack>
-            <Text fontSize="lg">{noResultsLabel}</Text>
-            {onReset && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onReset}
-              >
-                <RefreshCwIcon />
-                {resetFiltersLabel}
-              </Button>
-            )}
-          </Stack>
-        </Box>
+        <DataTableEmptyState
+          layout="fill"
+          noResultsLabel={noResultsLabel}
+          resetFiltersLabel={resetFiltersLabel}
+          onReset={onReset}
+        />
       )}
       {rows.map((row) => {
         return (

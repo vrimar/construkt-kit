@@ -1,11 +1,10 @@
 import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
-import { RefreshCwIcon } from "lucide-react";
 import type React from "react";
 
-import { Button } from "../Buttons";
 import { LoadingOverlay } from "../LoadingOverlay";
 import { Text } from "../Text";
+import { DataTableEmptyState } from "./EmptyState";
 import type { DataTableInstance, DataTableRow } from "./types";
 
 interface DataTableCardsProps<TData extends object> {
@@ -47,26 +46,12 @@ export const DataTableCards = <TData extends object>({
     >
       <LoadingOverlay isActive={loading} />
       {hasEmptyMessage && (
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          py="10"
-        >
-          <Stack alignItems="center">
-            <Text fontSize="lg">{noResultsLabel}</Text>
-            {onReset && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onReset}
-              >
-                <RefreshCwIcon />
-                {resetFiltersLabel}
-              </Button>
-            )}
-          </Stack>
-        </Box>
+        <DataTableEmptyState
+          layout="flow"
+          noResultsLabel={noResultsLabel}
+          resetFiltersLabel={resetFiltersLabel}
+          onReset={onReset}
+        />
       )}
       <Stack gap="2">
         {rows.map((row) => (
