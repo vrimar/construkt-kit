@@ -22,12 +22,14 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 | `pnpm build`     | Build all packages (`dist/`)        |
 | `pnpm test`      | Run all tests                       |
 | `pnpm typecheck` | Type-check all packages             |
-| `pnpm lint`      | Lint all packages (oxlint)          |
+| `pnpm lint`      | Lint the repo in one type-aware pass |
 | `pnpm format`    | Format all packages (oxfmt)         |
 | `pnpm storybook` | Start Storybook dev server          |
 | `pnpm release`   | Build, gate exports, publish to npm |
 
-All build/dev/test/lint/typecheck commands go through Turbo (`turbo run <task>` via root scripts).
+Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
+Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint
+honours `options.typeAware` only in the config it loads as its root.
 
 ## Conventions
 

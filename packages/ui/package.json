@@ -35,8 +35,6 @@
     "build": "tsdown && panda ship --outfile dist/panda.buildinfo.json",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src --threads=4",
-    "lint:fix": "oxlint src --fix --threads=4",
     "format": "oxfmt src",
     "test": "vitest run",
     "check:exports": "publint --strict && attw --pack . --profile esm-only"

@@ -7,8 +7,6 @@
     "storybook": "node ./scripts/run-storybook.mjs dev",
     "build": "node ./scripts/run-storybook.mjs build",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."
   },
   "dependencies": {

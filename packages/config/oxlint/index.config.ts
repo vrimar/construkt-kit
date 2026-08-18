@@ -46,8 +46,8 @@ export default defineConfig({
     "typescript/no-non-null-assertion": "warn",
     "typescript/prefer-optional-chain": "warn",
     "typescript/no-unnecessary-type-assertion": "warn",
-    "typescript/no-misused-promises": "off",
-    "typescript/no-floating-promises": "off",
+    "typescript/no-misused-promises": "warn",
+    "typescript/no-floating-promises": "warn",
 
     "react/jsx-key": "error",
     "react/no-danger": "error",

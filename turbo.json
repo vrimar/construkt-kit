@@ -19,11 +19,20 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
-    "lint": {
-      "dependsOn": ["^build"]
-    },
-    "lint:fix": {
-      "dependsOn": ["^build"]
+    "//#lint": {
+      // Type-aware rules read each package's built types; these three pull in
+      // every other package's build transitively.
+      "dependsOn": ["@construkt-kit/ui#build", "@construkt-kit/pages#build", "@construkt-kit/api#build"],
+      "inputs": [
+        "oxlint.config.ts",
+        "packages/*/src/**",
+        "packages/*/bin/**",
+        "packages/config/{oxlint,vite,playwright,kubb,oxfmt}/**",
+        "packages/*/*.config.ts",
+        "packages/*/vitest.setup.ts",
+        "apps/*/.storybook/**",
+        "apps/*/*.config.ts"
+      ]
     },
     "format": {},
     "storybook": {

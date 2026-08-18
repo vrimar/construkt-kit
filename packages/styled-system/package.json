@@ -38,8 +38,6 @@
     "build": "panda codegen --clean && node ./scripts/patch-panda-jsx-types.mjs",
     "dev": "panda codegen --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
     "format": "oxfmt ."
   },
   "devDependencies": {

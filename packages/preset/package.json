@@ -24,8 +24,6 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src",
-    "lint:fix": "oxlint src --fix",
     "format": "oxfmt src",
     "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
