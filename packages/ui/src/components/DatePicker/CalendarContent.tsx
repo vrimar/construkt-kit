@@ -1,12 +1,10 @@
-import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { HStack, Stack } from "@construkt-kit/styled-system/jsx";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { useIsMobile } from "../../hooks";
-import { Button, IconButton } from "../Buttons";
+import { Button } from "../Buttons";
 import { Box, Separator } from "../Layout";
-import { Text } from "../Text";
 import { DatePickerDayView } from "./DayView";
+import { DatePickerViewControl } from "./GridView";
 import { DatePickerMonthView } from "./MonthView";
 import * as Parts from "./parts";
 import type { RangePreset } from "./types";
@@ -27,7 +25,6 @@ export const CalendarContent = ({
   clearable,
   onClear,
 }: CalendarContentProps) => {
-  const datePicker = useDatePickerContext();
   const hasPresets = showPresets && presets && presets.length > 0;
   const isMobile = useIsMobile();
 
@@ -76,46 +73,7 @@ export const CalendarContent = ({
           <Parts.ArkDatePicker.Context>
             {() => (
               <>
-                <Parts.ViewControl>
-                  <HStack>
-                    <Parts.PrevTrigger asChild>
-                      <IconButton
-                        size="xs"
-                        variant="plain"
-                      >
-                        <ChevronLeftIcon />
-                      </IconButton>
-                    </Parts.PrevTrigger>
-                    <Parts.ViewTrigger asChild>
-                      <Button
-                        size="xs"
-                        variant="plain"
-                      >
-                        <Text fontWeight="bold">{datePicker.visibleRangeText.start}</Text>
-                      </Button>
-                    </Parts.ViewTrigger>
-                  </HStack>
-
-                  {numOfMonths > 1 && (
-                    <Parts.ViewTrigger asChild>
-                      <Button
-                        size="xs"
-                        variant="plain"
-                      >
-                        <Text fontWeight="bold">{datePicker.visibleRangeText.end}</Text>
-                      </Button>
-                    </Parts.ViewTrigger>
-                  )}
-
-                  <Parts.NextTrigger asChild>
-                    <IconButton
-                      size="xs"
-                      variant="plain"
-                    >
-                      <ChevronRightIcon />
-                    </IconButton>
-                  </Parts.NextTrigger>
-                </Parts.ViewControl>
+                <DatePickerViewControl endLabel={numOfMonths > 1} />
 
                 <HStack
                   gap="5"
