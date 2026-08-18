@@ -12,17 +12,10 @@ import { semanticTokens } from "./theme/semantic-tokens";
 import { textStyles } from "./theme/text-styles";
 import { tokens } from "./theme/tokens";
 
-const colorPaletteValues = [
-  "brand",
-  "neutral",
-  "slate",
-  "gray",
-  "blue",
-  "red",
-  "green",
-  "orange",
-  "yellow",
-];
+// A full palette is any semantic colour carrying the `solid` role; bg/fg/border groups are not.
+const colorPaletteValues = Object.entries(semanticTokens.colors)
+  .filter(([, value]) => typeof value === "object" && value !== null && "solid" in value)
+  .map(([name]) => name);
 
 /**
  * Custom Construkt Kit Panda CSS preset.
