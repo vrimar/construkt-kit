@@ -1,6 +1,6 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
 
@@ -27,10 +27,12 @@ function formatDateValue(item: DateValue): string {
 
 export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps) => {
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(dateValue));
+  const [syncedDateValue, setSyncedDateValue] = useState(dateValue);
 
-  useEffect(() => {
+  if (dateValue !== syncedDateValue) {
+    setSyncedDateValue(dateValue);
     setInternalValue(parseDateValue(dateValue));
-  }, [dateValue]);
+  }
 
   const handleValueChange = (value: DateValue[]) => {
     setInternalValue(value);

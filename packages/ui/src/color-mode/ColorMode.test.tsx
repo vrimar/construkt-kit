@@ -33,7 +33,7 @@ function installLocalStorageMock() {
 }
 
 function mockMatchMedia(matches: boolean) {
-  window.matchMedia = ((query: string) => ({
+  window.matchMedia = (query: string): MediaQueryList => ({
     matches,
     media: query,
     onchange: null,
@@ -42,7 +42,7 @@ function mockMatchMedia(matches: boolean) {
     addListener: () => {},
     removeListener: () => {},
     dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
+  });
 }
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (

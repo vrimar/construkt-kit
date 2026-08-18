@@ -1,3 +1,4 @@
+import { css as cssFn } from "@construkt-kit/styled-system/css";
 import { Box, HStack, type HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
 import {
   type ChangeEvent,
@@ -377,7 +378,7 @@ function SelectSearch({
         }}
         onClear={() => controller.search.setQuery("")}
         size={size}
-        css={{ flex: 1, ...css }}
+        css={cssFn.raw({ flex: 1 }, css)}
         variant={variant}
       />
       {children ?? controller.search.endElement}

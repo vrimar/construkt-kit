@@ -121,9 +121,9 @@ export function fireValueChange(
 ): void {
   if (!props.onValueChange) return;
   if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    (props.onValueChange as (v: DateValue[]) => void)(arkValue);
+    props.onValueChange(arkValue);
   } else {
-    (props.onValueChange as (v: DateValue | undefined) => void)(arkValue[0] ?? undefined);
+    props.onValueChange(arkValue[0] ?? undefined);
   }
 }
 
@@ -131,9 +131,9 @@ export function fireValueChange(
 export function fireClear(props: CalendarProps | DatePickerProps): void {
   if (!props.onValueChange) return;
   if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    (props.onValueChange as (v: DateValue[]) => void)([]);
+    props.onValueChange([]);
   } else {
-    (props.onValueChange as (v: DateValue | undefined) => void)(undefined);
+    props.onValueChange(undefined);
   }
 }
 

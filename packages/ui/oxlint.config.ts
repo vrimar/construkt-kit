@@ -7,6 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
   ...baseConfig,
+  // Loads panda.config.ts by spawning esbuild; that fork fails with ENOMEM once oxlint's
+  // peak RSS is high enough, after which every rule below silently reports nothing and
+  // the run still exits 0. The root lint script caps --threads to keep RSS down and
+  // greps stderr for the failure.
   jsPlugins: ["@pandacss/eslint-plugin"],
   settings: {
     "@pandacss/configPath": path.resolve(__dirname, "panda.config.ts"),

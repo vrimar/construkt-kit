@@ -64,11 +64,16 @@ export function useSelectionController<T, V extends SelectionValue>({
         : search === true || searchDefaultEnabled
           ? {}
           : undefined;
+  // Read only from event handlers and Ark's filter callback, so syncing after commit is
+  // soon enough and keeps the callbacks below stable across renders.
   const searchOptionsRef = useRef(searchOptions);
-  searchOptionsRef.current = searchOptions;
-
   const filterRef = useRef(searchOptions?.filter);
-  filterRef.current = searchOptions?.filter;
+
+  useEffect(() => {
+    searchOptionsRef.current = searchOptions;
+    filterRef.current = searchOptions?.filter;
+  });
+
   const filterPredicate = useCallback(
     (itemText: string, query: string, item: T) =>
       filterRef.current ? filterRef.current(item, query) : defaultSearchMatch(itemText, query),

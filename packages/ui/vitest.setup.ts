@@ -25,16 +25,17 @@ class IntersectionObserver {
 globalThis.ResizeObserver = ResizeObserver;
 globalThis.IntersectionObserver = IntersectionObserver;
 
-Element.prototype.scrollTo ??= () => {};
+if (!("scrollTo" in Element.prototype)) {
+  Element.prototype.scrollTo = () => {};
+}
 
-globalThis.matchMedia ??= (query: string) =>
-  ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addEventListener() {},
-    removeEventListener() {},
-    addListener() {},
-    removeListener() {},
-    dispatchEvent: () => false,
-  }) as unknown as MediaQueryList;
+globalThis.matchMedia ??= (query: string): MediaQueryList => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+  dispatchEvent: () => false,
+});

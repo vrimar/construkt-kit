@@ -27,7 +27,7 @@ export function buildQueryString(object: unknown) {
 }
 
 export const saveBlobResponse = (response: Response, fallbackName: string = "download") => {
-  response.blob().then((blob) => {
+  return response.blob().then((blob) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -67,7 +67,7 @@ function getFileName(disposition: string): string {
     if (filenameStart >= 0) {
       const partialDisposition = disposition.slice(filenameStart);
       const matches = asciiFilenameRegex.exec(partialDisposition);
-      if (matches != null && matches[2]) {
+      if (matches?.[2]) {
         fileName = matches[2];
       }
     }

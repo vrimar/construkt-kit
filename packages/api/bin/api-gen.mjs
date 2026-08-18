@@ -27,7 +27,7 @@ const unregister = register();
 const { default: kubbConfig, specUrl: configSpecUrl } = await import(
   pathToFileURL(configPath).href
 );
-unregister();
+await unregister();
 
 // --- Resolve spec base URL --------------------------------------------------
 // Priority: --url flag > API_URL env > specUrl export from config

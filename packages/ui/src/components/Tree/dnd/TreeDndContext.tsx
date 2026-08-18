@@ -173,8 +173,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
   // Keep collection / consumer callbacks current for the monitor and stable wrappers without
   // re-registering (and without letting inline callbacks churn the memoized context value).
   const collectionRef = useRef(collection);
-  collectionRef.current = collection;
-  const latestHandlers = {
+  const handlers = useRef({
     onCollectionChange,
     onDrop,
     onDragStart,
@@ -186,9 +185,24 @@ export function TreeViewDndProvider<T extends TreeNode>({
     getDropAnnouncement,
     isNodeDraggable,
     autoScrollSpeed,
-  };
-  const handlers = useRef(latestHandlers);
-  handlers.current = latestHandlers;
+  });
+
+  useEffect(() => {
+    collectionRef.current = collection;
+    handlers.current = {
+      onCollectionChange,
+      onDrop,
+      onDragStart,
+      onDragEnd,
+      canDrop,
+      getDragValues,
+      getExtraDragData,
+      renderDragPreview,
+      getDropAnnouncement,
+      isNodeDraggable,
+      autoScrollSpeed,
+    };
+  });
 
   // Toggle a silent marker so identical consecutive messages still change the live region's text
   // node (screen readers re-announce the change but don't voice the zero-width space).

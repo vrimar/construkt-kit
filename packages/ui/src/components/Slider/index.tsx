@@ -41,7 +41,7 @@ export const Slider = ({
     return mark;
   });
 
-  const hasMarkLabel = !!marks?.some((mark) => mark.label);
+  const hasMarkLabel = marks?.some((mark) => !!mark.label) ?? false;
 
   return (
     <Root

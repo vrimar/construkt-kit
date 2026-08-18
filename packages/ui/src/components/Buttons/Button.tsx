@@ -28,8 +28,8 @@ export interface ButtonProps extends BaseButtonProps, ButtonLoadingProps, Button
 export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement>) => {
   const propsContext = useButtonPropsContext();
   const buttonProps = useMemo(
-    () => mergeProps<ButtonProps>(propsContext, { ref, ...props }),
-    [propsContext, ref, props],
+    () => mergeProps<ButtonProps>(propsContext, props),
+    [propsContext, props],
   );
 
   const {

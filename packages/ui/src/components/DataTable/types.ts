@@ -64,6 +64,8 @@ export const dataTableFeatures = tableFeatures({
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
+  // The slots are typed `object`; dropping these casts silently untypes columnDef.meta.
+  // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
   columnMeta: {} as DataTableColumnMeta,
   tableMeta: {} as DataTableTableMeta,
 });

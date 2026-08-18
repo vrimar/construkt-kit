@@ -60,6 +60,9 @@ export default defineConfig({
 
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
+    // Only ever reports that a third-party hook returns unmemoizable functions, which no
+    // change on our side can resolve.
+    "react/incompatible-library": "off",
 
     "import/no-duplicates": "error",
     "import/no-cycle": "warn",

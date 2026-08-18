@@ -192,7 +192,7 @@ describe("Select", () => {
     await userEvent.click(screen.getByRole("button", { name: "Select item" }));
     await userEvent.click(screen.getByRole("button", { name: "Select item" }));
     expect(screen.getByText("Alpha")).not.toBeNull();
-    expect((screen.getByPlaceholderText("Search...") as HTMLInputElement).value).toBe("");
+    expect(screen.getByPlaceholderText<HTMLInputElement>("Search...").value).toBe("");
   });
 
   it("keeps item actions interactive without selecting the row", async () => {

@@ -120,9 +120,12 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
 
   // Latest node geometry / api, read inside handlers (drag time) so registration is stable.
   const snapshotRef = useRef(nodeState);
-  snapshotRef.current = nodeState;
   const apiRef = useRef(api);
-  apiRef.current = api;
+
+  useEffect(() => {
+    snapshotRef.current = nodeState;
+    apiRef.current = api;
+  });
   const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

@@ -1,20 +1,8 @@
 import { HStack } from "@construkt-kit/styled-system/jsx";
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 
 import { Button } from "../Buttons";
-import type {
-  SelectionSearchOptions,
-  SelectionValue,
-  SelectionValueRenderContext,
-} from "../Listbox";
+import type { SelectionSearchOptions, SelectionValue } from "../Listbox";
 import { encodeSelectionValue } from "../Listbox/useSelectionController";
 import type {
   SelectContentProps,
@@ -200,12 +188,14 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const [draft, setDraft] = useState<V[]>([...value]);
   const resolvedOpen = open ?? internalOpen;
+  const [syncedOpen, setSyncedOpen] = useState(resolvedOpen);
+  const [syncedValue, setSyncedValue] = useState(value);
 
-  useEffect(() => {
-    if (!resolvedOpen) {
-      setDraft((current) => (sameValueSet(current, value) ? current : [...value]));
-    }
-  }, [resolvedOpen, value]);
+  if (syncedOpen !== resolvedOpen || syncedValue !== value) {
+    setSyncedOpen(resolvedOpen);
+    setSyncedValue(value);
+    if (!resolvedOpen && !sameValueSet(draft, value)) setDraft([...value]);
+  }
 
   const close = useCallback(() => {
     if (open == null) setInternalOpen(false);
@@ -239,7 +229,7 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
     [getItemValue, items, value],
   );
   const triggerValue = renderValue
-    ? renderValue({ value, selectedItems } as SelectionValueRenderContext<T, V>)
+    ? renderValue({ value, selectedItems })
     : getDefaultAppliedLabel(items, value, getItemValue, getItemLabel, placeholder);
 
   const contextValue = useMemo<ApplySelectContextValue>(

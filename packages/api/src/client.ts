@@ -11,6 +11,16 @@ import type { ApiErrorResponse } from "./errors";
 
 export type { Client, RequestConfig, ResponseConfig, ResponseErrorConfig };
 
+function stringifyParam(value: unknown): string {
+  if (value === null) return "null";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return value.toString();
+  }
+  if (value instanceof Date) return value.toISOString();
+  return JSON.stringify(value) ?? "";
+}
+
 export function createApiClient(getToken: () => string | null | undefined): Client {
   return async <TResponseData, TRequestData = unknown>(
     config: RequestConfig<TRequestData>,
@@ -20,15 +30,14 @@ export function createApiClient(getToken: () => string | null | undefined): Clie
 
     const normalizedParams = new URLSearchParams();
     Object.entries((config.params as Record<string, unknown>) ?? {}).forEach(([key, value]) => {
-      if (value !== undefined)
-        normalizedParams.append(key, value === null ? "null" : String(value));
+      if (value !== undefined) normalizedParams.append(key, stringifyParam(value));
     });
 
     let url = [baseURL, config.url].filter(Boolean).join("");
     if (config.params) url += `?${normalizedParams}`;
 
     const rawResponse = await fetch(url, {
-      credentials: (credentials as RequestCredentials) || "same-origin",
+      credentials: credentials || "same-origin",
       method: config.method?.toUpperCase(),
       body:
         config.data instanceof FormData

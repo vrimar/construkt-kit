@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDebounce } from "react-use";
 
 import { SearchInput } from "../../../Input";
@@ -13,6 +13,12 @@ interface ColumnSearchInputProps {
 
 export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputProps) => {
   const [tempValue, setTempValue] = useState(value);
+  const [syncedValue, setSyncedValue] = useState(value);
+
+  if (value !== syncedValue) {
+    setSyncedValue(value);
+    setTempValue(value);
+  }
 
   useDebounce(
     () => {
@@ -21,10 +27,6 @@ export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputPr
     DEBOUNCE_DELAY_MS,
     [tempValue, value],
   );
-
-  useEffect(() => {
-    setTempValue(value);
-  }, [value]);
 
   const handleClear = () => onChange("");
 
