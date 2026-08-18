@@ -1,6 +1,22 @@
 import { defineRecipe } from "@pandacss/dev";
 
-import { controlH, controlPx, controlGap, controlIcon, controlText } from "./control-size";
+import {
+  type ControlSize,
+  controlH,
+  controlPx,
+  controlGap,
+  controlIcon,
+  controlText,
+} from "./control-size";
+
+const tier = (size: ControlSize) => ({
+  h: controlH(size),
+  minW: controlH(size),
+  ...controlText(size),
+  px: controlPx(size),
+  gap: controlGap(size),
+  _icon: { boxSize: controlIcon(size) },
+});
 
 export const button = defineRecipe({
   className: "button",
@@ -126,62 +142,13 @@ export const button = defineRecipe({
       },
     },
     size: {
-      "2xs": {
-        h: controlH("2xs"),
-        minW: controlH("2xs"),
-        ...controlText("2xs"),
-        px: controlPx("2xs"),
-        gap: controlGap("2xs"),
-        _icon: { boxSize: controlIcon("2xs") },
-      },
-      xs: {
-        h: controlH("xs"),
-        minW: controlH("xs"),
-        ...controlText("xs"),
-        px: controlPx("xs"),
-        gap: controlGap("xs"),
-        _icon: { boxSize: controlIcon("xs") },
-      },
-      sm: {
-        h: controlH("sm"),
-        minW: controlH("sm"),
-        ...controlText("sm"),
-        px: controlPx("sm"),
-        gap: controlGap("sm"),
-        _icon: { boxSize: controlIcon("sm") },
-      },
-      md: {
-        h: controlH("md"),
-        minW: controlH("md"),
-        ...controlText("md"),
-        px: controlPx("md"),
-        gap: controlGap("md"),
-        _icon: { boxSize: controlIcon("md") },
-      },
-      lg: {
-        h: controlH("lg"),
-        minW: controlH("lg"),
-        ...controlText("lg"),
-        px: controlPx("lg"),
-        gap: controlGap("lg"),
-        _icon: { boxSize: controlIcon("lg") },
-      },
-      xl: {
-        h: controlH("xl"),
-        minW: controlH("xl"),
-        ...controlText("xl"),
-        px: controlPx("xl"),
-        gap: controlGap("xl"),
-        _icon: { boxSize: controlIcon("xl") },
-      },
-      "2xl": {
-        h: controlH("2xl"),
-        minW: controlH("2xl"),
-        ...controlText("2xl"),
-        px: controlPx("2xl"),
-        gap: controlGap("2xl"),
-        _icon: { boxSize: controlIcon("2xl") },
-      },
+      "2xs": tier("2xs"),
+      xs: tier("xs"),
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
+      xl: tier("xl"),
+      "2xl": tier("2xl"),
     },
   },
 });

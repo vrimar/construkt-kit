@@ -1,7 +1,17 @@
 import { toggleGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlH, controlPx, controlIcon, controlText } from "./control-size";
+import { type ControlSize, controlH, controlPx, controlIcon, controlText } from "./control-size";
+
+const tier = (size: ControlSize) => ({
+  item: {
+    h: controlH(size),
+    minW: controlH(size),
+    ...controlText(size),
+    px: controlPx(size),
+    _icon: { boxSize: controlIcon(size) },
+  },
+});
 
 export const toggleGroup = defineSlotRecipe({
   className: "toggle-group",
@@ -122,51 +132,11 @@ export const toggleGroup = defineSlotRecipe({
       },
     },
     size: {
-      xs: {
-        item: {
-          h: controlH("xs"),
-          minW: controlH("xs"),
-          ...controlText("xs"),
-          px: controlPx("xs"),
-          _icon: { boxSize: controlIcon("xs") },
-        },
-      },
-      sm: {
-        item: {
-          h: controlH("sm"),
-          minW: controlH("sm"),
-          ...controlText("sm"),
-          px: controlPx("sm"),
-          _icon: { boxSize: controlIcon("sm") },
-        },
-      },
-      md: {
-        item: {
-          h: controlH("md"),
-          minW: controlH("md"),
-          ...controlText("md"),
-          px: controlPx("md"),
-          _icon: { boxSize: controlIcon("md") },
-        },
-      },
-      lg: {
-        item: {
-          h: controlH("lg"),
-          minW: controlH("lg"),
-          ...controlText("lg"),
-          px: controlPx("lg"),
-          _icon: { boxSize: controlIcon("lg") },
-        },
-      },
-      xl: {
-        item: {
-          h: controlH("xl"),
-          minW: controlH("xl"),
-          ...controlText("xl"),
-          px: controlPx("xl"),
-          _icon: { boxSize: controlIcon("xl") },
-        },
-      },
+      xs: tier("xs"),
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
+      xl: tier("xl"),
     },
     fitted: {
       true: {

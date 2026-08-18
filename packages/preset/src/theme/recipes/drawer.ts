@@ -102,37 +102,12 @@ export const drawer = defineSlotRecipe({
   },
   variants: {
     size: {
-      xs: {
-        content: {
-          maxW: "xs",
-        },
-      },
-      sm: {
-        content: {
-          maxW: "sm",
-        },
-      },
-      md: {
-        content: {
-          maxW: "md",
-        },
-      },
-      lg: {
-        content: {
-          maxW: "lg",
-        },
-      },
-      xl: {
-        content: {
-          maxW: "xl",
-        },
-      },
-      full: {
-        content: {
-          maxW: "100vw",
-          h: "100dvh",
-        },
-      },
+      xs: { content: { maxW: "xs" } },
+      sm: { content: { maxW: "sm" } },
+      md: { content: { maxW: "md" } },
+      lg: { content: { maxW: "lg" } },
+      xl: { content: { maxW: "xl" } },
+      full: { content: { maxW: "100vw", h: "100dvh" } },
     },
     placement: {
       start: {

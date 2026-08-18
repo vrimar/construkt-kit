@@ -1,7 +1,13 @@
 import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlGap, controlBox, controlText } from "./control-size";
+import { type ControlSize, controlGap, controlBox, controlText } from "./control-size";
+
+const tier = (size: ControlSize) => ({
+  item: { gap: controlGap(size) },
+  itemControl: { boxSize: controlBox(size) },
+  itemText: controlText(size),
+});
 
 export const radioGroup = defineSlotRecipe({
   className: "radio-group",
@@ -88,21 +94,9 @@ export const radioGroup = defineSlotRecipe({
       },
     },
     size: {
-      sm: {
-        item: { gap: controlGap("sm") },
-        itemControl: { boxSize: controlBox("sm") },
-        itemText: controlText("sm"),
-      },
-      md: {
-        item: { gap: controlGap("md") },
-        itemControl: { boxSize: controlBox("md") },
-        itemText: controlText("md"),
-      },
-      lg: {
-        item: { gap: controlGap("lg") },
-        itemControl: { boxSize: controlBox("lg") },
-        itemText: controlText("lg"),
-      },
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
     },
   },
 });
