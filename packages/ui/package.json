@@ -54,7 +54,7 @@
     "ts-pattern": "^5.9.0"
   },
   "peerDependencies": {
-    "@construkt-kit/preset": ">=0.2.0",
+    "@construkt-kit/preset": ">=0.4.0",
     "@pandacss/dev": "^1.11.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
