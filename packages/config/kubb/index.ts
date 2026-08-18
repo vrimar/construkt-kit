@@ -17,10 +17,8 @@ export function createKubbConfig({
   clientImportPath = "@/api/client",
 }: KubbConfigOptions = {}) {
   return defineConfig({
-    root: ".",
     input: { path: inputPath },
     output: { path: outputPath, clean: true },
-    hooks: { done: [] },
     plugins: [
       pluginOas({ generators: [] }),
       pluginTs({
