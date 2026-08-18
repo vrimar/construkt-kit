@@ -28,7 +28,6 @@ import { heading } from "./heading";
 import { hoverCard } from "./hover-card";
 import { icon } from "./icon";
 import { input } from "./input";
-import { inputAddon } from "./input-addon";
 import { inputGroup } from "./input-group";
 import { kbd } from "./kbd";
 import { link } from "./link";
@@ -69,7 +68,6 @@ export const recipes = {
   heading,
   icon,
   input,
-  inputAddon,
   kbd,
   link,
   skeleton,

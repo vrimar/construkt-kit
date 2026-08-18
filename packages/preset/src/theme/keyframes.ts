@@ -30,14 +30,6 @@ export const keyframes = defineKeyframes({
     from: { height: "var(--height)" },
     to: { height: "0" },
   },
-  "expand-width": {
-    from: { width: "0" },
-    to: { width: "var(--width)" },
-  },
-  "collapse-width": {
-    from: { width: "var(--width)" },
-    to: { width: "0" },
-  },
   // fade
   "fade-in": {
     from: { opacity: "0" },
@@ -141,21 +133,5 @@ export const keyframes = defineKeyframes({
       insetInlineStart: "var(--animate-to-x)",
       insetBlockStart: "var(--animate-to-y)",
     },
-  },
-  "chat-fade-in": {
-    from: { opacity: "0", transform: "translateY(4px)" },
-    to: { opacity: "1", transform: "translateY(0)" },
-  },
-  "status-pulse-soft": {
-    "0%, 100%": { opacity: "0.4" },
-    "50%": { opacity: "1" },
-  },
-  "think-fade-in": {
-    from: { opacity: "0", transform: "translateY(4px)" },
-    to: { opacity: "1", transform: "translateY(0)" },
-  },
-  "dot-bounce": {
-    "0%, 80%, 100%": { transform: "scale(0)" },
-    "40%": { transform: "scale(1)" },
   },
 });
