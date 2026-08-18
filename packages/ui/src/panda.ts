@@ -23,18 +23,22 @@ const resolveBuildInfo = (specifier: string) => {
   return undefined;
 };
 
-const CONSTRUKT_BUILDINFO = (() => {
-  const resolved = resolveBuildInfo("@construkt-kit/ui/panda.buildinfo.json");
-  if (!resolved) {
-    throw new Error(
-      "@construkt-kit/ui/panda.buildinfo.json could not be resolved — is @construkt-kit/ui installed?",
-    );
-  }
-  return resolved;
-})();
+// Every @construkt-kit package that ships styles belongs here. Only ui is required — apps that
+// install a subset must still load this config.
+const BUILDINFO_PACKAGES: Array<{ name: string; required?: boolean }> = [
+  { name: "@construkt-kit/ui", required: true },
+  { name: "@construkt-kit/pages" },
+];
 
-// Optional on purpose: apps that don't install pages must still load this config.
-const PAGES_BUILDINFO = resolveBuildInfo("@construkt-kit/pages/panda.buildinfo.json");
+const BUILDINFO_INCLUDES = BUILDINFO_PACKAGES.flatMap(({ name, required }) => {
+  const specifier = `${name}/panda.buildinfo.json`;
+  const resolved = resolveBuildInfo(specifier);
+  if (resolved) return [resolved];
+  if (required) {
+    throw new Error(`${specifier} could not be resolved — is ${name} installed?`);
+  }
+  return [];
+});
 
 // Pre-wires a consumer panda.config; `presets`/`include` append, other fields override.
 export function createConstruktPandaConfig(overrides: Config = {}): Config {
@@ -48,6 +52,6 @@ export function createConstruktPandaConfig(overrides: Config = {}): Config {
     staticCss: { recipes: "*" },
     ...rest,
     presets: ["@pandacss/preset-base", construktKitPreset, ...presets],
-    include: [CONSTRUKT_BUILDINFO, ...(PAGES_BUILDINFO ? [PAGES_BUILDINFO] : []), ...include],
+    include: [...BUILDINFO_INCLUDES, ...include],
   });
 }
