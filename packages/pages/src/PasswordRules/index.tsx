@@ -61,7 +61,7 @@ export const PasswordRulesPopover = ({ isOpen, password, children }: PasswordRul
               return (
                 <HStack
                   key={rule}
-                  color={failed ? "red.600" : "green.700"}
+                  color={failed ? "fg.error" : "fg.success"}
                 >
                   {failed ? <XIcon size={16} /> : <CheckIcon size={16} />}
                   <Text fontSize="sm">{label}</Text>

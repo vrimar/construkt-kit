@@ -110,7 +110,7 @@ export function ResetPasswordPage({
                   />
                 </Popover.Trigger>
                 <Popover.Content p="4">
-                  <Text color="red.600">Passwords do not match.</Text>
+                  <Text color="fg.error">Passwords do not match.</Text>
                 </Popover.Content>
               </Popover.Root>
             </Field>
