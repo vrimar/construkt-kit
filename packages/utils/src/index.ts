@@ -1,4 +1,5 @@
 export * from "./array";
+export * from "./data-table";
 export * from "./date";
 export * from "./enum";
 export * from "./number";

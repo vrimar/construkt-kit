@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/utils": "workspace:*",
     "tsdown": "^0.22.14"
   }
 }

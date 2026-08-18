@@ -114,6 +114,9 @@ importers:
       '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
+      '@construkt-kit/utils':
+        specifier: workspace:*
+        version: link:../utils
       tsdown:
         specifier: ^0.22.14
         version: 0.22.14(@arethetypeswrong/core@0.18.5)(oxc-resolver@11.24.2)(publint@0.3.23)(tsx@4.23.12)(typescript@6.0.2)(unrun@0.2.36)
@@ -280,6 +283,9 @@ importers:
       '@construkt-kit/styled-system':
         specifier: workspace:*
         version: link:../styled-system
+      '@construkt-kit/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@pandacss/dev':
         specifier: ^1.12.0
         version: 1.12.0(jsdom@30.0.1)(typescript@6.0.2)
