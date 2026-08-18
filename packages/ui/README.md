@@ -257,7 +257,8 @@ Apps configure `panda.config.ts` with `presets: ["@pandacss/preset-base", constr
 Path alias `@construkt-kit/ui` → `packages/ui/src` resolved by Vite/tsconfig.
 
 Published consumers that do not scan `@construkt-kit/ui` source can include `@construkt-kit/ui/panda.buildinfo.json`
-in their Panda `include` list instead.
+in their Panda `include` list instead. `createConstruktPandaConfig` from `@construkt-kit/ui/panda` does this for you,
+and also picks up `@construkt-kit/pages/panda.buildinfo.json` when that package is installed.
 
 ## Testing
 

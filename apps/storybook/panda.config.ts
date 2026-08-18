@@ -7,7 +7,8 @@ const include = useUiBuildInfo
   ? [
       "../../packages/ui/dist/panda.buildinfo.json",
       "../../packages/ui/src/**/*.stories.{ts,tsx}",
-      "../../packages/pages/src/**/*.{ts,tsx}",
+      "../../packages/pages/dist/panda.buildinfo.json",
+      "../../packages/pages/src/**/*.stories.{ts,tsx}",
     ]
   : ["../../packages/ui/src/**/*.{ts,tsx}", "../../packages/pages/src/**/*.{ts,tsx}"];
 

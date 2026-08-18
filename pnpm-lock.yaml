@@ -176,9 +176,15 @@ importers:
       '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
+      '@construkt-kit/preset':
+        specifier: workspace:*
+        version: link:../preset
       '@construkt-kit/ui':
         specifier: workspace:*
         version: link:../ui
+      '@pandacss/dev':
+        specifier: ^1.12.0
+        version: 1.12.0(jsdom@30.0.1)(typescript@6.0.2)
       '@storybook/react-vite':
         specifier: ^10.5.9
         version: 10.5.9(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(esbuild@0.28.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.59.0)(storybook@10.5.9(@types/react@19.2.18)(prettier@3.8.1)(react@19.2.8))(typescript@7.0.2)(vite@8.2.1(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.6.1)(tsx@4.23.12)(yaml@2.8.2))
