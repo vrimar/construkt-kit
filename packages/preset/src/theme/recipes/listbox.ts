@@ -1,13 +1,7 @@
 import { listboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import {
-  controlHCompact,
-  controlPxCompact,
-  controlGap,
-  controlIcon,
-  controlText,
-} from "./control-size";
+import { controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
 
 export const listbox = defineSlotRecipe({
   className: "listbox",
@@ -146,66 +140,30 @@ export const listbox = defineSlotRecipe({
     size: {
       xs: {
         content: { p: "1", gap: "0.5", ...controlText("2xs") },
-        item: {
-          px: controlPxCompact("xs"),
-          minH: controlHCompact("xs"),
-          gap: controlGap("xs"),
-          _icon: { boxSize: controlIcon("xs") },
-        },
+        item: dropdownItem("xs"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: {
-          px: controlPxCompact("xs"),
-          height: controlHCompact("xs"),
-          ...controlText("2xs"),
-        },
+        itemGroupLabel: { ...dropdownItemGroupLabel("xs"), ...controlText("2xs") },
         label: controlText("xs"),
       },
       sm: {
         content: { p: "1", gap: "0.5", ...controlText("xs") },
-        item: {
-          px: controlPxCompact("sm"),
-          minH: controlHCompact("sm"),
-          gap: controlGap("sm"),
-          _icon: { boxSize: controlIcon("sm") },
-        },
+        item: dropdownItem("sm"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: {
-          px: controlPxCompact("sm"),
-          height: controlHCompact("sm"),
-          ...controlText("xs"),
-        },
+        itemGroupLabel: { ...dropdownItemGroupLabel("sm"), ...controlText("xs") },
         label: controlText("sm"),
       },
       md: {
         content: { p: "1", gap: "0.5", ...controlText("sm") },
-        item: {
-          px: controlPxCompact("md"),
-          minH: controlHCompact("md"),
-          gap: controlGap("md"),
-          _icon: { boxSize: controlIcon("md") },
-        },
+        item: dropdownItem("md"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: {
-          px: controlPxCompact("md"),
-          height: controlHCompact("md"),
-          ...controlText("xs"),
-        },
+        itemGroupLabel: { ...dropdownItemGroupLabel("md"), ...controlText("xs") },
         label: controlText("sm"),
       },
       lg: {
         content: { p: "1", gap: "0.5", ...controlText("md") },
-        item: {
-          px: controlPxCompact("lg"),
-          minH: controlHCompact("lg"),
-          gap: controlGap("lg"),
-          _icon: { boxSize: controlIcon("lg") },
-        },
+        item: dropdownItem("lg"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: {
-          px: controlPxCompact("lg"),
-          height: controlHCompact("lg"),
-          ...controlText("sm"),
-        },
+        itemGroupLabel: { ...dropdownItemGroupLabel("lg"), ...controlText("sm") },
         label: controlText("md"),
       },
     },

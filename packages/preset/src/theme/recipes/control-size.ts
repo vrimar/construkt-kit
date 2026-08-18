@@ -135,6 +135,20 @@ export const controlText = (size: ControlSize) => ({
   lineHeight: off(BASE_FONT, LH[size]),
 });
 
+/** Dense row shared by the dropdown family (menu / listbox / combobox items). */
+export const dropdownItem = (size: ControlSize) => ({
+  px: controlPxCompact(size),
+  minH: controlHCompact(size),
+  gap: controlGap(size),
+  _icon: { boxSize: controlIcon(size) },
+});
+
+/** Group-label box for the dropdown family; callers add their own text style. */
+export const dropdownItemGroupLabel = (size: ControlSize) => ({
+  px: controlPxCompact(size),
+  height: controlHCompact(size),
+});
+
 /** Container/overlay padding — proportional multiplier knob. Pass a rem literal (e.g. "1rem"). */
 export const surface = (rem: string): string => `calc(${rem} * var(--surface-scale, 1))`;
 

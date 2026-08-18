@@ -1,13 +1,7 @@
 import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import {
-  controlHCompact,
-  controlPxCompact,
-  controlGap,
-  controlIcon,
-  controlText,
-} from "./control-size";
+import { controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
 
 export const menu = defineSlotRecipe({
   className: "menu",
@@ -89,14 +83,9 @@ export const menu = defineSlotRecipe({
           ...controlText("xs"),
           minWidth: "max(var(--reference-width), {sizes.28})",
         },
-        item: {
-          px: controlPxCompact("xs"),
-          minH: controlHCompact("xs"),
-          gap: controlGap("xs"),
-          _icon: { boxSize: controlIcon("xs") },
-        },
+        item: dropdownItem("xs"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPxCompact("xs"), height: controlHCompact("xs") },
+        itemGroupLabel: dropdownItemGroupLabel("xs"),
         separator: { mx: "-1", my: "0.5" },
       },
       sm: {
@@ -106,14 +95,9 @@ export const menu = defineSlotRecipe({
           ...controlText("sm"),
           minWidth: "max(var(--reference-width), {sizes.32})",
         },
-        item: {
-          px: controlPxCompact("sm"),
-          minH: controlHCompact("sm"),
-          gap: controlGap("sm"),
-          _icon: { boxSize: controlIcon("sm") },
-        },
+        item: dropdownItem("sm"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPxCompact("sm"), height: controlHCompact("sm") },
+        itemGroupLabel: dropdownItemGroupLabel("sm"),
         separator: { mx: "-1.5", my: "0.5" },
       },
       md: {
@@ -123,14 +107,9 @@ export const menu = defineSlotRecipe({
           ...controlText("md"),
           minWidth: "max(var(--reference-width), {sizes.40})",
         },
-        item: {
-          px: controlPxCompact("md"),
-          minH: controlHCompact("md"),
-          gap: controlGap("md"),
-          _icon: { boxSize: controlIcon("md") },
-        },
+        item: dropdownItem("md"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPxCompact("md"), height: controlHCompact("md") },
+        itemGroupLabel: dropdownItemGroupLabel("md"),
         separator: { mx: "-2", my: "0.5" },
       },
       lg: {
@@ -140,14 +119,9 @@ export const menu = defineSlotRecipe({
           ...controlText("lg"),
           minWidth: "max(var(--reference-width), {sizes.48})",
         },
-        item: {
-          px: controlPxCompact("lg"),
-          minH: controlHCompact("lg"),
-          gap: controlGap("lg"),
-          _icon: { boxSize: controlIcon("lg") },
-        },
+        item: dropdownItem("lg"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: { px: controlPxCompact("lg"), height: controlHCompact("lg") },
+        itemGroupLabel: dropdownItemGroupLabel("lg"),
         separator: { mx: "-2.5", my: "0.5" },
       },
       xl: {
@@ -157,14 +131,9 @@ export const menu = defineSlotRecipe({
           ...controlText("xl"),
           minWidth: "max(var(--reference-width), {sizes.56})",
         },
-        item: {
-          px: controlPxCompact("xl"),
-          minH: controlHCompact("xl"),
-          gap: controlGap("xl"),
-          _icon: { boxSize: controlIcon("xl") },
-        },
+        item: dropdownItem("xl"),
         itemGroup: { gap: "1" },
-        itemGroupLabel: { px: controlPxCompact("xl"), height: controlHCompact("xl") },
+        itemGroupLabel: dropdownItemGroupLabel("xl"),
         separator: { mx: "-3", my: "0" },
       },
     },
