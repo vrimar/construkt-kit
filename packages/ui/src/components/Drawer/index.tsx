@@ -37,10 +37,12 @@ function DrawerContent({ ref, portalled = true, portalRef, ...rest }: WithRef<Dr
       container={portalRef}
     >
       <Backdrop />
-      <Content
-        ref={ref}
-        {...rest}
-      />
+      <Positioner>
+        <Content
+          ref={ref}
+          {...rest}
+        />
+      </Positioner>
     </Portal>
   );
 }
