@@ -1,15 +1,13 @@
 import { Portal } from "@ark-ui/react/portal";
 import { InfoIcon } from "lucide-react";
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import { IconButton } from "../Buttons";
 import * as ArkPopover from "../Popover";
 
-export interface ToggleTipProps extends ArkPopover.RootProps {
+export interface ToggleTipProps extends ArkPopover.RootProps, PortalledProps {
   showArrow?: boolean;
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
   content?: ReactNode;
 }
 

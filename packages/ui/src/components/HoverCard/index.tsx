@@ -2,9 +2,9 @@ import { HoverCard as ArkHoverCard, HoverCardContext } from "@ark-ui/react/hover
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { hoverCard } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(hoverCard);
 
@@ -34,10 +34,7 @@ function HoverCardRoot({ placement, ...rest }: HoverCardRootProps) {
   );
 }
 
-export interface HoverCardContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
-}
+export interface HoverCardContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function HoverCardContent({
   ref,

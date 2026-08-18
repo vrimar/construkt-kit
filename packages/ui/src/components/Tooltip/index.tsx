@@ -4,7 +4,7 @@ import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { tooltip } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(tooltip);
 
@@ -21,10 +21,8 @@ const Trigger = withContext(ArkTooltip.Trigger, "trigger");
 
 export { TooltipContext as Context } from "@ark-ui/react/tooltip";
 
-export interface TooltipProps extends Omit<RootProps, "content"> {
+export interface TooltipProps extends Omit<RootProps, "content">, PortalledProps {
   showArrow?: boolean;
-  portalled?: boolean;
-  portalRef?: React.RefObject<HTMLElement | null>;
   children: React.ReactNode | undefined;
   content: React.ReactNode | string;
   contentProps?: ContentProps;

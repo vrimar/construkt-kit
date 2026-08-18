@@ -1,5 +1,7 @@
 import type { DateValue } from "@ark-ui/react/date-picker";
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode } from "react";
+
+import type { PortalledProps } from "../../types";
 
 export type DateView = "day" | "month" | "year";
 
@@ -73,13 +75,11 @@ export type MultipleCalendarProps = CalendarBaseProps & {
 
 export type CalendarProps = SingleCalendarProps | RangeCalendarProps | MultipleCalendarProps;
 
-interface DatePickerExtraProps {
+interface DatePickerExtraProps extends PortalledProps {
   trigger?: ReactNode;
   triggerEndElement?: ReactNode;
   placeholder?: string;
   formatValue?: (value: DateValue) => string;
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;

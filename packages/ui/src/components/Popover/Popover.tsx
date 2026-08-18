@@ -3,9 +3,9 @@ import { Popover as ArkPopover, usePopoverContext } from "@ark-ui/react/popover"
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { popover } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
 import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
 
@@ -48,10 +48,7 @@ function PopoverRoot({ placement, ...rest }: PopoverRootProps) {
   );
 }
 
-export interface PopoverContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
-}
+export interface PopoverContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function PopoverContent({
   ref,

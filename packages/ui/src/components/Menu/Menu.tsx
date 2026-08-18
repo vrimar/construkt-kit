@@ -3,9 +3,9 @@ import { Portal } from "@ark-ui/react/portal";
 import { Box, type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { menu } from "@construkt-kit/styled-system/recipes";
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
-import type { ComponentProps, ReactNode, RefObject } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(menu);
@@ -105,10 +105,7 @@ function MenuTrigger({
 
 export const Trigger = MenuTrigger;
 
-export interface MenuContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
-}
+export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function MenuContent({ ref, portalled = true, portalRef, ...rest }: WithRef<MenuContentProps>) {
   return (

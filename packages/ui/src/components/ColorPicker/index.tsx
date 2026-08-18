@@ -3,9 +3,9 @@ import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { colorPicker } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 export { parseColor } from "@ark-ui/react/color-picker";
 
 const { withRootProvider, withContext } = createStyleContext(colorPicker);
@@ -57,10 +57,7 @@ const TriggerSwatch = styled(ark.div, {
 
 export type ColorPickerRootProps = ComponentProps<typeof Root>;
 
-export interface ColorPickerContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement | null>;
-}
+export interface ColorPickerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function ColorPickerContent({
   ref,
@@ -84,9 +81,7 @@ function ColorPickerContent({
   );
 }
 
-export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children"> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement | null>;
+export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children">, PortalledProps {
   withAlpha?: boolean;
   swatches?: string[];
 }

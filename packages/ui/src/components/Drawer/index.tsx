@@ -3,9 +3,9 @@ import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { drawer } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 
 const { withRootProvider, withContext } = createStyleContext(drawer);
 
@@ -28,10 +28,7 @@ const Footer = withContext(ark.div, "footer");
 
 export type DrawerRootProps = ComponentProps<typeof Root>;
 
-export interface DrawerContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
-}
+export interface DrawerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function DrawerContent({ ref, portalled = true, portalRef, ...rest }: WithRef<DrawerContentProps>) {
   return (

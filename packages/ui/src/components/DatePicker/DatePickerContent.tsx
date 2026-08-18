@@ -1,13 +1,11 @@
 import { Portal } from "@ark-ui/react/portal";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import * as Parts from "./parts";
 
-export interface DatePickerContentProps extends ComponentProps<typeof Parts.Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement | null>;
-}
+export interface DatePickerContentProps
+  extends ComponentProps<typeof Parts.Content>, PortalledProps {}
 
 export function DatePickerContent({
   ref,

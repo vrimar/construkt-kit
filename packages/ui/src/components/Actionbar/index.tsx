@@ -2,9 +2,9 @@ import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { actionbar } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, RefObject } from "react";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import { Popover } from "../Popover";
 import { Positioner as PopoverPositioner } from "../Popover/Popover";
 
@@ -19,10 +19,7 @@ const CloseTrigger = withContext(ark.button, "closeTrigger");
 
 export type ActionBarRootProps = ComponentProps<typeof Root>;
 
-export interface ActionBarContentProps extends ComponentProps<typeof Content> {
-  portalled?: boolean;
-  portalRef?: RefObject<HTMLElement>;
-}
+export interface ActionBarContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 function ActionBarContent({
   ref,
