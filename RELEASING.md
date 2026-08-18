@@ -11,8 +11,7 @@ schedules a package for release.
 
 On an up-to-date `main`:
 
-1. For each package you are releasing, bump `version` in its `package.json` and add
-   an entry to its `CHANGELOG.md`.
+1. For each package you are releasing, bump `version` in its `package.json`.
 2. Refresh the lockfile so the `workspace:*` links pick up the new versions:
    ```bash
    pnpm install --lockfile-only
