@@ -14,9 +14,6 @@ export type RootProps = ComponentProps<typeof Root>;
 export const Root = withRootProvider(ArkMenu.Root, {
   defaultProps: { unmountOnExit: true, lazyMount: true },
 });
-export const RootProvider = withRootProvider(ArkMenu.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
 export const Arrow = withContext(ArkMenu.Arrow, "arrow");
 export const ArrowTip = withContext(ArkMenu.ArrowTip, "arrowTip");
 export const CheckboxItem = withContext(ArkMenu.CheckboxItem, "item");

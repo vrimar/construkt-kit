@@ -16,9 +16,6 @@ export type RootProps = ComponentProps<typeof Root>;
 export const Root = withRootProvider(ArkPopover.Root, {
   defaultProps: { unmountOnExit: true, lazyMount: true },
 });
-export const RootProvider = withRootProvider(ArkPopover.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
 export const Anchor = withContext(ArkPopover.Anchor, "anchor");
 export const ArrowTip = withContext(ArkPopover.ArrowTip, "arrowTip");
 export const Arrow = withContext(ArkPopover.Arrow, "arrow", {
