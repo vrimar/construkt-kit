@@ -1,33 +1,9 @@
 import { HStack, Popover, Stack, Text } from "@construkt-kit/ui";
+import { passwordRules, passwordSchema } from "@construkt-kit/utils";
 import { CheckIcon, XIcon } from "lucide-react";
-import PasswordValidator from "password-validator";
 import { type ReactElement, useMemo } from "react";
 
-const ruleLabels: Record<string, string> = {
-  min: "At least 8 characters in length",
-  lowercase: "Lower case letters (a-z)",
-  uppercase: "Upper case letters (A-Z)",
-  digits: "Numbers (i.e. 0-9)",
-  symbols: "Special characters (e.g. !@#$%^&*)",
-};
-
-export const passwordRuleSchema = new PasswordValidator()
-  .min(8)
-  .has()
-  .lowercase(1)
-  .has()
-  .uppercase(1)
-  .has()
-  .digits(1)
-  .has()
-  .symbols(1);
-
-export const isPasswordValid = (password: string) =>
-  passwordRuleSchema.validate(password) as boolean;
-
-interface FailedRule {
-  validation: string;
-}
+export const isPasswordValid = (password: string) => passwordSchema.safeParse(password).success;
 
 export interface PasswordRulesPopoverProps {
   isOpen: boolean;
@@ -36,10 +12,10 @@ export interface PasswordRulesPopoverProps {
 }
 
 export const PasswordRulesPopover = ({ isOpen, password, children }: PasswordRulesPopoverProps) => {
-  const failedRules = useMemo(() => {
-    const failed = passwordRuleSchema.validate(password, { details: true }) as FailedRule[];
-    return new Set(failed.map((rule) => rule.validation));
-  }, [password]);
+  const failedRules = useMemo(
+    () => new Set(passwordRules.filter((rule) => !rule.test(password)).map((rule) => rule.id)),
+    [password],
+  );
 
   return (
     <Popover.Root
@@ -55,12 +31,12 @@ export const PasswordRulesPopover = ({ isOpen, password, children }: PasswordRul
         <Stack gap="4">
           <Text>Password Rules</Text>
           <Stack>
-            {Object.entries(ruleLabels).map(([rule, label]) => {
-              const failed = failedRules.has(rule);
+            {passwordRules.map(({ id, label }) => {
+              const failed = failedRules.has(id);
 
               return (
                 <HStack
-                  key={rule}
+                  key={id}
                   color={failed ? "fg.error" : "fg.success"}
                 >
                   {failed ? <XIcon size={16} /> : <CheckIcon size={16} />}
