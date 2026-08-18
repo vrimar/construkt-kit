@@ -34,12 +34,12 @@
     "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
-    "@kubb/core": "^4.39.2",
-    "@kubb/plugin-client": "^4.39.2",
-    "tsx": "^4.22.4"
+    "@kubb/core": "^4.39.3",
+    "@kubb/plugin-client": "^4.39.3",
+    "tsx": "^4.23.12"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
-    "tsdown": "^0.22.3"
+    "tsdown": "^0.22.14"
   }
 }

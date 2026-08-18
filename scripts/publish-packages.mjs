@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Reliable local publish.
 //
-// Why this exists instead of `changeset publish`: under pnpm 11, `pnpm publish`
-// (which `changeset publish` shells out to) does not send the ~/.npmrc auth token
-// and fails every publish with a misleading E404. Plain `npm publish` authenticates
-// correctly. So we pack with pnpm (which resolves the `workspace:*` protocol into
-// real versions) and upload the resulting tarball with npm.
+// Why pack-then-publish instead of `pnpm publish`: under pnpm 11, `pnpm publish`
+// does not send the ~/.npmrc auth token and fails every publish with a misleading
+// E404. Plain `npm publish` authenticates correctly. So we pack with pnpm (which
+// resolves the `workspace:*` protocol into real versions) and upload the resulting
+// tarball with npm.
 //
 // Publishes every non-private workspace package whose current version isn't yet on
 // the registry, then creates an (unsigned, annotated) git tag per published package

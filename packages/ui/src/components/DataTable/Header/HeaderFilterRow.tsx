@@ -1,13 +1,15 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import type { Table } from "@tanstack/react-table";
 
+import type { DataTableInstance } from "../types";
 import { DataTableHeaderFilterCell } from "./HeaderFilterCell";
 
-interface HeaderFilterRowProps<TData> {
-  table: Table<TData>;
+interface HeaderFilterRowProps<TData extends object> {
+  table: DataTableInstance<TData>;
 }
 
-export const DataTableHeaderFilterRow = <TData,>({ table }: HeaderFilterRowProps<TData>) => {
+export const DataTableHeaderFilterRow = <TData extends object>({
+  table,
+}: HeaderFilterRowProps<TData>) => {
   const selections = table.options.meta?.selections ?? {};
 
   const groups = table.getHeaderGroups();

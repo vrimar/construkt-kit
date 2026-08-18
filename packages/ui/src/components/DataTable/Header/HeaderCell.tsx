@@ -1,15 +1,15 @@
 import { Box, HStack } from "@construkt-kit/styled-system/jsx";
-import type { Header } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 
 import { Text } from "../../Text";
+import type { DataTableHeader } from "../types";
 import { ColumnSorter } from "./ColumnSorter";
 
-interface HeaderCellProps<TData> {
-  header: Header<TData, unknown>;
+interface HeaderCellProps<TData extends object> {
+  header: DataTableHeader<TData>;
 }
 
-export const DataTableHeaderCell = <TData,>({ header }: HeaderCellProps<TData>) => {
+export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
   const column = header.column;
   const isVisible = column.columnDef?.meta?.isVisible ?? true;
   const sortable = column.getCanSort();

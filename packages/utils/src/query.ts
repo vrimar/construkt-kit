@@ -56,8 +56,10 @@ function getFileName(disposition: string): string {
 
   let fileName = "";
 
-  if (utf8FilenameRegex.test(disposition)) {
-    fileName = decodeURIComponent(utf8FilenameRegex.exec(disposition)![1]);
+  const utf8Match = utf8FilenameRegex.exec(disposition);
+
+  if (utf8Match) {
+    fileName = decodeURIComponent(utf8Match[1]);
   } else {
     // prevent ReDos attacks by anchoring the ascii regex to string start and
     //  slicing off everything before 'filename='
@@ -76,6 +78,8 @@ function getFileName(disposition: string): string {
 
 /** Strip path traversal and other unsafe characters from a filename. */
 function sanitizeFilename(name: string): string {
-  // Remove path separators and null bytes
-  return name.replace(/[\\/:\x00]/g, "").replace(/\.\./g, "");
+  return name
+    .replaceAll("\0", "")
+    .replace(/[\\/:]/g, "")
+    .replace(/\.\./g, "");
 }

@@ -1,17 +1,18 @@
 import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
-import { type Row, type Table, flexRender } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 import { RefreshCwIcon } from "lucide-react";
 import type React from "react";
 
 import { Button } from "../Buttons";
 import { LoadingOverlay } from "../LoadingOverlay";
 import { Text } from "../Text";
+import type { DataTableInstance, DataTableRow } from "./types";
 
-interface DataTableCardsProps<TData> {
-  table: Table<TData>;
+interface DataTableCardsProps<TData extends object> {
+  table: DataTableInstance<TData>;
   loading: boolean;
-  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: Row<TData>) => void;
-  getRowProps?: (row: Row<TData>) => BoxProps;
+  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
+  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
   onReset?: () => unknown;
   labels?: {
     noResults?: string;
@@ -23,7 +24,7 @@ interface DataTableCardsProps<TData> {
  * Mobile layout for DataTable: renders each row as a stacked label/value card
  * instead of the horizontally-scrolling grid. Enabled via `mobileLayout="cards"`.
  */
-export const DataTableCards = <TData,>({
+export const DataTableCards = <TData extends object>({
   table,
   loading,
   onRowClick,

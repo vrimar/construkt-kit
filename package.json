@@ -15,20 +15,17 @@
     "typecheck": "turbo run typecheck",
     "storybook": "turbo run storybook --filter @construkt-kit/storybook",
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",
-    "changeset": "changeset",
-    "version-packages": "changeset version && pnpm install --lockfile-only",
     "release": "pnpm build && pnpm turbo run check:exports && node scripts/publish-packages.mjs",
     "update-deps": "pnpm update -r && pnpm update"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.4",
-    "@changesets/cli": "^2.31.0",
+    "@arethetypeswrong/cli": "^0.18.5",
     "@construkt-kit/config": "workspace:*",
-    "oxfmt": "^0.57.0",
-    "oxlint": "^1.72.0",
-    "oxlint-tsgolint": "^0.24.0",
-    "publint": "^0.3.21",
-    "turbo": "^2.10.2",
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.79.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "publint": "^0.3.23",
+    "turbo": "^2.10.11",
     "typescript": "^7.0.2"
   },
   "engines": {

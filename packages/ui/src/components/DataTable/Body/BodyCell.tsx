@@ -1,11 +1,13 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import { type Cell, flexRender } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 
-interface BodyCellProps<TData> {
-  cell: Cell<TData, unknown>;
+import type { DataTableCell } from "../types";
+
+interface BodyCellProps<TData extends object> {
+  cell: DataTableCell<TData>;
 }
 
-export const BodyCell = <TData,>({ cell }: BodyCellProps<TData>) => {
+export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) => {
   const isVisible = cell.column.columnDef?.meta?.isVisible ?? true;
   const width = cell.column.columnDef?.meta?.width ?? cell.column.getSize();
   const widthPx = width ? `${width}px` : "auto";

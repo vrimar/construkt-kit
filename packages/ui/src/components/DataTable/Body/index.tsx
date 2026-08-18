@@ -1,5 +1,4 @@
 import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
-import type { Row, Table } from "@tanstack/react-table";
 import { RefreshCwIcon } from "lucide-react";
 import React, { useEffect } from "react";
 
@@ -7,22 +6,23 @@ import { Button } from "../../Buttons";
 import { LoadingOverlay } from "../../LoadingOverlay";
 import { ScrollArea } from "../../ScrollArea";
 import { Text } from "../../Text";
+import type { DataTableInstance, DataTableRow } from "../types";
 import { BodyCell } from "./BodyCell";
 
-interface DataTableBodyProps<TData> {
-  table: Table<TData>;
-  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: Row<TData>) => void;
+interface DataTableBodyProps<TData extends object> {
+  table: DataTableInstance<TData>;
+  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
   loading: boolean;
-  getRowProps?: (row: Row<TData>) => BoxProps;
+  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
   onReset?: () => unknown;
-  renderSubRow?: (row: Row<TData>) => React.ReactNode;
+  renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
   labels?: {
     noResults?: string;
     resetFilters?: string;
   };
 }
 
-export const DataTableBody = <TData,>({
+export const DataTableBody = <TData extends object>({
   table,
   loading,
   onRowClick,
@@ -33,7 +33,7 @@ export const DataTableBody = <TData,>({
 }: DataTableBodyProps<TData>) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
-  const page = table.getState().pagination.pageIndex;
+  const page = table.state.pagination.pageIndex;
   const hasEmptyMessage = rows.length === 0 && !loading;
   const noResultsLabel = labels?.noResults ?? "No results available.";
   const resetFiltersLabel = labels?.resetFilters ?? "Reset filters";

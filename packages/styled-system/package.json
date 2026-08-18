@@ -34,8 +34,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "prepare": "pnpm --filter @construkt-kit/preset build && panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
-    "build": "panda codegen && node ./scripts/patch-panda-jsx-types.mjs",
+    "prepare": "pnpm --filter @construkt-kit/preset build && panda codegen --clean && node ./scripts/patch-panda-jsx-types.mjs",
+    "build": "panda codegen --clean && node ./scripts/patch-panda-jsx-types.mjs",
     "dev": "panda codegen --watch",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
@@ -45,9 +45,9 @@
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
-    "@pandacss/dev": "^1.11.4",
-    "@types/react": "^19.2.17",
-    "react": "^19.2.7"
+    "@pandacss/dev": "^1.12.0",
+    "@types/react": "^19.2.18",
+    "react": "^19.2.8"
   },
   "peerDependencies": {
     "react": "^19.0.0"

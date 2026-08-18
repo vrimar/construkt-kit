@@ -1,19 +1,22 @@
 import { useTreeViewContext, useTreeViewNodeContext } from "@ark-ui/react/tree-view";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
-import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview";
-import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
 import {
   attachInstruction,
   extractInstruction,
   type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
+import {
+  draggable,
+  dropTargetForElements,
+} from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/utils/combine";
+import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/pointer-outside-of-preview";
+import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/set-custom-native-drag-preview";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 
-import { TreeDragPreview } from "./TreeDragPreview";
 import { TREE_DND_INSTANCE_KEY, useTreeDndContext } from "./TreeDndContext";
+import { TreeDragPreview } from "./TreeDragPreview";
 import {
   getItemMode,
   isDescendantValue,
@@ -163,7 +166,11 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
         dragHandle: handle ?? undefined,
         canDrag: () => canDrag(value),
         // Reserved keys last so consumer extra data can't clobber the instance id / value.
-        getInitialData: () => ({ ...getExtraDragData(value), [TREE_DND_INSTANCE_KEY]: instanceId, value }),
+        getInitialData: () => ({
+          ...getExtraDragData(value),
+          [TREE_DND_INSTANCE_KEY]: instanceId,
+          value,
+        }),
         onGenerateDragPreview: ({ nativeSetDragImage }) => {
           // Always a compact offset chip (never the full-row native image) so target + indicator stay visible.
           setCustomNativeDragPreview({
@@ -200,7 +207,11 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           const block: Instruction["type"][] = [];
           if (blockReparent) block.push("reparent");
           if (!isBranch) block.push("make-child"); // never nest into a leaf
-          const indent = readCssLengthPx(el, "--tree-indent", indentPerLevel ?? FALLBACK_INDENT_PER_LEVEL);
+          const indent = readCssLengthPx(
+            el,
+            "--tree-indent",
+            indentPerLevel ?? FALLBACK_INDENT_PER_LEVEL,
+          );
           const baseInset = readCssLengthPx(el, "--tree-padding-inline", 0);
           return attachInstruction(
             { [TREE_DND_INSTANCE_KEY]: instanceId, value },

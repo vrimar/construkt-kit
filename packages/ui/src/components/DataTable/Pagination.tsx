@@ -1,5 +1,4 @@
 import { HStack } from "@construkt-kit/styled-system/jsx";
-import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -9,9 +8,10 @@ import {
 
 import { IconButton } from "../Buttons";
 import { Text } from "../Text";
+import type { DataTableInstance } from "./types";
 
-interface PaginationProps<TData> {
-  table: Table<TData>;
+interface PaginationProps<TData extends object> {
+  table: DataTableInstance<TData>;
   totalItems: number;
   size: "xs" | "sm" | "md" | "lg";
   labels?: {
@@ -21,13 +21,13 @@ interface PaginationProps<TData> {
   };
 }
 
-export const DataTablePagination = <TData,>({
+export const DataTablePagination = <TData extends object>({
   table,
   totalItems,
   labels,
 }: PaginationProps<TData>) => {
   const pageCount = table.getPageCount();
-  const page = table.getState().pagination.pageIndex;
+  const page = table.state.pagination.pageIndex;
   const itemsLabel = labels?.items ?? "Items";
   const pageLabel = labels?.page ?? "Page";
   const outOfLabel = labels?.outOf ?? "out of";

@@ -1,9 +1,9 @@
+import { ark } from "@ark-ui/react/factory";
 import {
   TreeView as ArkTreeView,
   TreeViewContext,
   TreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
-import { ark } from "@ark-ui/react/factory";
 import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type TreeViewVariantProps, treeView } from "@construkt-kit/styled-system/recipes";
 import { ChevronRightIcon } from "lucide-react";

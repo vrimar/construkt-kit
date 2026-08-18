@@ -25,7 +25,11 @@ function installLocalStorageMock() {
       store[key] = String(value);
     },
   };
-  Object.defineProperty(window, "localStorage", { value: mock, configurable: true, writable: true });
+  Object.defineProperty(window, "localStorage", {
+    value: mock,
+    configurable: true,
+    writable: true,
+  });
 }
 
 function mockMatchMedia(matches: boolean) {

@@ -1,6 +1,6 @@
 # Construkt Kit Frontend Shared — AI Instructions
 
-Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**, **Changesets**.
+Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases are cut locally — see `RELEASING.md`.
 
 > For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
 > Full AI instructions are in `.github/copilot-instructions.md`.
@@ -25,7 +25,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 | `pnpm lint`      | Lint all packages (oxlint)          |
 | `pnpm format`    | Format all packages (oxfmt)         |
 | `pnpm storybook` | Start Storybook dev server          |
-| `pnpm changeset` | Create a changeset for versioning   |
+| `pnpm release`   | Build, gate exports, publish to npm |
 
 All build/dev/test/lint/typecheck commands go through Turbo (`turbo run <task>` via root scripts).
 

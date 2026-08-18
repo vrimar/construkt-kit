@@ -3,9 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
-      "@construkt-kit/preset": ["../preset/src/index.ts"],
-      "@construkt-kit/styled-system/*": ["../styled-system/dist/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

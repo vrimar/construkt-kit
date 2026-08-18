@@ -1,34 +1,38 @@
 # Releasing
 
-Releases are cut **locally** with [Changesets](https://github.com/changesets/changesets).
-Nothing publishes from CI — CI only lint/typecheck/test/build/exports-gates pull
-requests (`.github/workflows/ci.yml`).
+Releases are cut **locally**. Nothing publishes from CI — CI only
+lint/typecheck/test/build/exports-gates pull requests (`.github/workflows/ci.yml`).
+
+Versions are bumped by hand. `scripts/publish-packages.mjs` publishes whatever
+version each `package.json` currently declares, so bumping a version is what
+schedules a package for release.
 
 ## Flow
 
-1. While working, add a changeset describing the change and commit the generated
-   `.changeset/*.md` file:
+On an up-to-date `main`:
+
+1. For each package you are releasing, bump `version` in its `package.json` and add
+   an entry to its `CHANGELOG.md`.
+2. Refresh the lockfile so the `workspace:*` links pick up the new versions:
    ```bash
-   pnpm changeset
+   pnpm install --lockfile-only
    ```
-2. When ready to publish, on an up-to-date `main`:
+3. Commit, then publish:
    ```bash
-   pnpm run version-packages   # apply version bumps + changelogs + lockfile
    git commit -am "Release"
-   pnpm run release            # build + validate exports + changeset publish
+   pnpm run release
    git push --follow-tags
    ```
 
 `pnpm run release` runs `pnpm build`, validates every published package's exports
 (`publint` + `arethetypeswrong`), then `scripts/publish-packages.mjs` — which packs
-each changed package with `pnpm pack` (resolving `workspace:*`), uploads it with
+each package with `pnpm pack` (resolving `workspace:*`), uploads it with
 `npm publish`, and creates a git tag per package. It is idempotent: anything already
-on npm is skipped.
+on npm is skipped, so a package whose version you did not bump is a no-op.
 
-> Why not `changeset publish`? Under pnpm 11, `pnpm publish` (which `changeset
-> publish` invokes) does not send the `~/.npmrc` auth token and fails with a
-> misleading E404. Plain `npm publish` authenticates correctly, so the script uses
-> `pnpm pack` + `npm publish`.
+> Why `pnpm pack` + `npm publish` rather than `pnpm publish`? Under pnpm 11,
+> `pnpm publish` does not send the `~/.npmrc` auth token and fails with a
+> misleading E404. Plain `npm publish` authenticates correctly.
 
 ## One-time setup
 
@@ -39,13 +43,11 @@ on npm is skipped.
   ```
   It bypasses 2FA; a "Publish" token fails with `E403 … bypass 2fa … required`.
   The committed `.npmrc` stays empty (pnpm 11 ignores env-var tokens there).
-- `git config tag.gpgsign false` — `changeset publish` uses lightweight tags.
 
 ## Notes
 
-- Use `pnpm run version-packages` / `pnpm run release` — bare `pnpm version` and
-  `pnpm publish` invoke pnpm's built-in commands, not these scripts.
+- Use `pnpm run release` — bare `pnpm publish` invokes pnpm's built-in command, not
+  this script.
 - Publishing locally means npm **provenance** attestations are not generated (npm
   only produces those from a supported CI environment). If provenance becomes a
-  requirement, move `version-packages` + `release` into a CI workflow with npm
-  OIDC trusted publishing.
+  requirement, move `release` into a CI workflow with npm OIDC trusted publishing.

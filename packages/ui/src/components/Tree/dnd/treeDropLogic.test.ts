@@ -194,7 +194,9 @@ describe("getItemMode", () => {
   });
 
   it("is standard otherwise", () => {
-    expect(getItemMode({ isBranch: false, isExpanded: false, isLastChild: false })).toBe("standard");
+    expect(getItemMode({ isBranch: false, isExpanded: false, isLastChild: false })).toBe(
+      "standard",
+    );
   });
 });
 

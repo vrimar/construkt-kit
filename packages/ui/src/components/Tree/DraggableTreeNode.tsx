@@ -39,11 +39,19 @@ export function DraggableTreeNode<T extends TreeNode>({
   const isBranch = collection.isBranchNode(node);
   const label = collection.stringifyNode(node);
 
-  const content = renderNode?.({ node, indexPath, isBranch }) ??
-    (isBranch ? <TreeView.BranchText>{label}</TreeView.BranchText> : <TreeView.ItemText>{label}</TreeView.ItemText>);
+  const content =
+    renderNode?.({ node, indexPath, isBranch }) ??
+    (isBranch ? (
+      <TreeView.BranchText>{label}</TreeView.BranchText>
+    ) : (
+      <TreeView.ItemText>{label}</TreeView.ItemText>
+    ));
 
   return (
-    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+    <TreeView.NodeProvider
+      node={node}
+      indexPath={indexPath}
+    >
       {isBranch ? (
         <TreeView.Branch>
           <DraggableRow isBranch>{content}</DraggableRow>
@@ -70,7 +78,10 @@ function DraggableRow({ isBranch, children }: { isBranch: boolean; children: Rea
 
   if (isBranch) {
     return (
-      <TreeView.BranchControl ref={ref} data-dragging={isDragging || undefined}>
+      <TreeView.BranchControl
+        ref={ref}
+        data-dragging={isDragging || undefined}
+      >
         <TreeView.BranchIndicator />
         {children}
         <TreeDropIndicator instruction={instruction} />
@@ -80,7 +91,10 @@ function DraggableRow({ isBranch, children }: { isBranch: boolean; children: Rea
   }
 
   return (
-    <TreeView.Item ref={ref} data-dragging={isDragging || undefined}>
+    <TreeView.Item
+      ref={ref}
+      data-dragging={isDragging || undefined}
+    >
       {children}
       <TreeDropIndicator instruction={instruction} />
       {dragPreview}

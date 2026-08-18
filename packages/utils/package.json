@@ -30,11 +30,11 @@
     "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
   "dependencies": {
-    "dayjs": "^1.11.21",
+    "dayjs": "^1.11.23",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
-    "tsdown": "^0.22.3"
+    "tsdown": "^0.22.14"
   }
 }

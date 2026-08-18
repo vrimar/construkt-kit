@@ -14,13 +14,8 @@ export default defineConfig({
     pluginTimings: false,
   },
   deps: {
-    // Regex (not a plain string) so the /recipes, /jsx… subpaths stay external for consumer codegen.
-    neverBundle: [
-      "react",
-      "react-dom",
-      "@construkt-kit/preset",
-      /^@construkt-kit\/styled-system(\/|$)/,
-      "@pandacss/dev",
-    ],
+    // @construkt-kit/styled-system is private and unpublished, so it must be bundled:
+    // consumers reach the Panda runtime through this package's re-exports.
+    neverBundle: ["react", "react-dom", "@construkt-kit/preset", "@pandacss/dev"],
   },
 });

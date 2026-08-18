@@ -180,7 +180,12 @@ export function moveNodeByKeyboard<T extends TreeNode>(
       if (path.length < 2) return null; // already at root
       to = [...parentPath.slice(0, -1), parentPath[parentPath.length - 1] + 1];
       target = collection.at(parentPath);
-      instruction = { type: "reparent", currentLevel, desiredLevel: currentLevel - 1, indentPerLevel: 0 };
+      instruction = {
+        type: "reparent",
+        currentLevel,
+        desiredLevel: currentLevel - 1,
+        indentPerLevel: 0,
+      };
       break;
   }
   if (!to || !target || !instruction) return null;

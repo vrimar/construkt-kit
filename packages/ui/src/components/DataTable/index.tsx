@@ -1,13 +1,11 @@
 import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
 import type {
-  ColumnDef,
   ColumnFiltersState,
   PaginationState,
-  Row,
   SortingState,
   Updater,
 } from "@tanstack/react-table";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { useTable } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
 import { useIsMobile } from "../../hooks";
@@ -15,7 +13,30 @@ import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
 import { DataTableHeader } from "./Header";
 import { DataTablePagination } from "./Pagination";
-import type { DataTableParams, TableFilterSelections } from "./types";
+import type {
+  DataTableColumnDef,
+  DataTableParams,
+  DataTableRow,
+  TableFilterSelections,
+} from "./types";
+import { dataTableFeatures } from "./types";
+
+export type {
+  DataTableCell,
+  DataTableColumnDef,
+  DataTableColumnMeta,
+  DataTableFeatures,
+  DataTableFilters,
+  DataTableHeader as DataTableHeaderType,
+  DataTableInstance,
+  DataTableParams,
+  DataTableRow,
+  DataTableSelectProps,
+  DataTableSortType,
+  DataTableTableMeta,
+  TableFilterSelections,
+} from "./types";
+export { dataTableFeatures } from "./types";
 
 export type DataTableLabels = {
   noResults?: string;
@@ -28,14 +49,14 @@ export type DataTableLabels = {
 export type DataTableProps<TData extends object> = {
   data: TData[];
   totalItems: number;
-  columns: ColumnDef<TData, string>[];
+  columns: DataTableColumnDef<TData, any>[];
   loading?: boolean;
   params: DataTableParams;
   onParamChange: (params: DataTableParams) => unknown;
-  onRowClick?: (row: Row<TData>) => unknown;
+  onRowClick?: (row: DataTableRow<TData>) => unknown;
   onReset?: () => unknown;
-  getRowProps?: (row: Row<TData>) => BoxProps;
-  renderSubRow?: (row: Row<TData>) => React.ReactNode;
+  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
+  renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
   selections?: TableFilterSelections;
   showPagination?: boolean;
   showFiltersRow?: boolean;
@@ -142,7 +163,8 @@ export const DataTable = <TData extends object>({
     });
   };
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     columns,
     data,
     pageCount,
@@ -160,7 +182,6 @@ export const DataTable = <TData extends object>({
     onColumnFiltersChange: handleFilterChange,
     onSortingChange: handleSort,
     onPaginationChange: handlePagination,
-    getCoreRowModel: getCoreRowModel(),
     defaultColumn: {
       size: 0,
       minSize: 0,
@@ -168,7 +189,7 @@ export const DataTable = <TData extends object>({
     },
   });
 
-  const handleRowClick = (e: React.MouseEvent<HTMLDivElement>, row: Row<TData>) => {
+  const handleRowClick = (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
     if (!onRowClick) return;
     const target = e.target as HTMLElement;
     if (target.closest("[data-scope=menu]") || target.closest("button") || target.closest("a"))

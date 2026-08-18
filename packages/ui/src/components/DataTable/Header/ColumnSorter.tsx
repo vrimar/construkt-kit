@@ -1,16 +1,19 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import type { Header } from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 import { match } from "ts-pattern";
 
+import type { DataTableHeader } from "../types";
 import { dataTableClasses } from "../types";
 
-interface ColumnSorterProps<TData> {
-  header: Header<TData, unknown>;
+interface ColumnSorterProps<TData extends object> {
+  header: DataTableHeader<TData>;
   onSort: () => unknown;
 }
 
-export const ColumnSorter = <TData,>({ header, onSort }: ColumnSorterProps<TData>) => {
+export const ColumnSorter = <TData extends object>({
+  header,
+  onSort,
+}: ColumnSorterProps<TData>) => {
   const column = header.column;
   const sort = column.getIsSorted();
 

@@ -1,17 +1,15 @@
-import type { Header } from "@tanstack/react-table";
-
-import type { ColumnFilterValue } from "../types";
+import type { ColumnFilterValue, DataTableHeader } from "../types";
 import { ColumnDateFilter } from "./Filters/ColumnDateFilter";
 import { ColumnSearchInput } from "./Filters/ColumnSearchInput";
 import { ColumnSelectFilter } from "./Filters/ColumnSelectFilter";
 
-interface HeaderFilterCellContentProps<TData> {
-  header: Header<TData, unknown>;
+interface HeaderFilterCellContentProps<TData extends object> {
+  header: DataTableHeader<TData>;
   filterValues: string[];
   onChange: (value: ColumnFilterValue) => unknown;
 }
 
-export const DataTableHeaderFilterCellContent = <TData,>({
+export const DataTableHeaderFilterCellContent = <TData extends object>({
   header,
   filterValues,
   onChange,

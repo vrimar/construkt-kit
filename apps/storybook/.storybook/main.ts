@@ -15,10 +15,7 @@ const config: StorybookConfig = {
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
   ],
 
-  addons: [
-    getAbsolutePath("@storybook/addon-a11y"),
-    getAbsolutePath("@storybook/addon-themes"),
-  ],
+  addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-themes")],
 
   framework: {
     name: getAbsolutePath("@storybook/react-vite"),

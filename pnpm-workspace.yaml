@@ -5,7 +5,6 @@ packages:
 allowBuilds:
   es5-ext: false
   esbuild: true
-  msw: false
 
 # pnpm 11 enables a supply-chain delay by default; disabled to allow latest releases
 minimumReleaseAge: 0

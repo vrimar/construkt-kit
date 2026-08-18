@@ -14,26 +14,24 @@
   "dependencies": {
     "@construkt-kit/pages": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
-    "@fontsource-variable/inter": "^5.2.8"
+    "@fontsource-variable/inter": "^5.3.0"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/styled-system": "workspace:*",
-    "@pandacss/dev": "^1.11.4",
-    "@storybook/addon-a11y": "^10.4.6",
-    "@storybook/addon-themes": "^10.4.6",
-    "@storybook/react-vite": "^10.4.6",
-    "@tanstack/react-query": "^5.101.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
-    "msw": "~2.14.6",
-    "msw-storybook-addon": "^2.0.7",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "storybook": "^10.4.6",
-    "vite": "^8.1.2",
-    "vite-plugin-checker": "^0.14.4"
+    "@pandacss/dev": "^1.12.0",
+    "@storybook/addon-a11y": "^10.5.9",
+    "@storybook/addon-themes": "^10.5.9",
+    "@storybook/react-vite": "^10.5.9",
+    "@tanstack/react-query": "^5.101.4",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "storybook": "^10.5.9",
+    "vite": "^8.2.1",
+    "vite-plugin-checker": "^0.14.5"
   }
 }

@@ -1,7 +1,13 @@
 import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlHCompact, controlPxCompact, controlGap, controlIcon, controlText } from "./control-size";
+import {
+  controlHCompact,
+  controlPxCompact,
+  controlGap,
+  controlIcon,
+  controlText,
+} from "./control-size";
 
 export const menu = defineSlotRecipe({
   className: "menu",

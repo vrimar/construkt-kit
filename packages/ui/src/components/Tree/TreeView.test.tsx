@@ -26,11 +26,19 @@ const collection = createTreeCollection<Node>({
 
 function renderTree() {
   return render(
-    <TreeView.Root collection={collection} defaultExpandedValue={["src"]} data-testid="root">
+    <TreeView.Root
+      collection={collection}
+      defaultExpandedValue={["src"]}
+      data-testid="root"
+    >
       <TreeView.Label>Files</TreeView.Label>
       <TreeView.Tree>
         {collection.rootNode.children?.map((node, index) => (
-          <TreeView.NodeProvider key={node.id} node={node} indexPath={[index]}>
+          <TreeView.NodeProvider
+            key={node.id}
+            node={node}
+            indexPath={[index]}
+          >
             <TreeView.Branch>
               <TreeView.BranchControl data-testid="branch-control">
                 <TreeView.BranchIndicator data-testid="chevron" />

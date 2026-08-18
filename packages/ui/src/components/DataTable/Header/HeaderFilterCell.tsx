@@ -1,15 +1,14 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import type { Header } from "@tanstack/react-table";
 
-import type { ColumnFilterValue } from "../types";
+import type { ColumnFilterValue, DataTableHeader } from "../types";
 import { DataTableHeaderFilterCellContent } from "./HeaderFilterCellContent";
 
-interface HeaderFilterCellProps<TData> {
-  header: Header<TData, unknown>;
+interface HeaderFilterCellProps<TData extends object> {
+  header: DataTableHeader<TData>;
   filterValues: string[];
 }
 
-export const DataTableHeaderFilterCell = <TData,>({
+export const DataTableHeaderFilterCell = <TData extends object>({
   header,
   filterValues,
 }: HeaderFilterCellProps<TData>) => {

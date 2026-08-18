@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
+
 import { construktKitPreset } from "@construkt-kit/preset";
 import { type Config, defineConfig } from "@pandacss/dev";
 
@@ -14,12 +15,16 @@ const CONSTRUKT_BUILDINFO = (() => {
     try {
       // Anchor `createRequire` at a file inside `base` (the file need not exist); a trailing-slash
       // directory URL resolves node_modules from the parent instead.
-      return createRequire(pathToFileURL(`${base}/noop.js`).href).resolve("@construkt-kit/ui/panda.buildinfo.json");
+      return createRequire(pathToFileURL(`${base}/noop.js`).href).resolve(
+        "@construkt-kit/ui/panda.buildinfo.json",
+      );
     } catch {
       // try the next base
     }
   }
-  throw new Error("@construkt-kit/ui/panda.buildinfo.json could not be resolved — is @construkt-kit/ui installed?");
+  throw new Error(
+    "@construkt-kit/ui/panda.buildinfo.json could not be resolved — is @construkt-kit/ui installed?",
+  );
 })();
 
 // Pre-wires a consumer panda.config; `presets`/`include` append, other fields override.

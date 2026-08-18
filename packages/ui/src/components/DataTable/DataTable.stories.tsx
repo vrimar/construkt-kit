@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { DataTable } from ".";
 import { Box } from "../Layout";
-import type { DataTableParams } from "./types";
+import type { DataTableParams, dataTableFeatures } from "./types";
 
 const meta: Meta = {
   title: "Components/DataTable",
@@ -22,7 +22,7 @@ interface Person {
   createdAt: string;
 }
 
-const columnHelper = createColumnHelper<Person>();
+const columnHelper = createColumnHelper<typeof dataTableFeatures, Person>();
 
 const columns = [
   columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),

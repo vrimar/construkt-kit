@@ -146,7 +146,8 @@ const renderRowInner = ({
 
 // In virtualized mode nodes render flat (no Branch wrapper), so Ark UI cannot set --depth via
 // DOM nesting — set it explicitly from indexPath.
-const depthStyleFor = (indexPath: number[]) => ({ "--depth": indexPath.length }) as React.CSSProperties;
+const depthStyleFor = (indexPath: number[]) =>
+  ({ "--depth": indexPath.length }) as React.CSSProperties;
 
 /** Row with no DnD wiring — used when the tree has no `onCollectionChange` (the common case). */
 const PlainTreeRow = (props: TreeRowProps) =>

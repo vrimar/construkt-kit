@@ -1,7 +1,7 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
-import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import type { CSSProperties, MutableRefObject, ReactNode } from "react";
 import {
   createContext,
@@ -47,7 +47,11 @@ export interface TreeDndContextValue<T extends TreeNode = TreeNode> {
   /** Stable predicate — resolves the node lazily so an inline `isNodeDraggable` never churns. */
   canDrag: (value: string) => boolean;
   /** Stable predicate vetoing a specific drop (target + relationship rules). */
-  canDrop: (details: { sourceValue: string; targetValue: string; instruction: TreeDropInstruction }) => boolean;
+  canDrop: (details: {
+    sourceValue: string;
+    targetValue: string;
+    instruction: TreeDropInstruction;
+  }) => boolean;
   /** Values moved when dragging `value` (multi-drag selection). Defaults to `[value]`. */
   getDragValues: (value: string) => string[];
   /** Extra data merged into the drag payload (e.g. for cross-surface drops). */
@@ -85,7 +89,11 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
   /** Fired when any drag in this tree ends (dropped or cancelled). */
   onDragEnd?: () => void;
   /** Veto a specific reorder; also suppresses the drop indicator for rejected targets. */
-  canDrop?: (details: { sourceValue: string; targetValue: string; instruction: TreeDropInstruction }) => boolean;
+  canDrop?: (details: {
+    sourceValue: string;
+    targetValue: string;
+    instruction: TreeDropInstruction;
+  }) => boolean;
   /** Values to move when dragging `value` (e.g. the current multi-selection). Default `[value]`. */
   getDragValues?: (value: string) => string[];
   /** Extra data attached to the drag payload for cross-surface drops. */
