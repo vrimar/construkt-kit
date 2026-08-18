@@ -44,7 +44,6 @@
     "@atlaskit/pragmatic-drag-and-drop": "^3.0.0",
     "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.1",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.1.0",
-    "@construkt-kit/utils": "workspace:*",
     "@tanstack/react-table": "^9.1.2",
     "@tanstack/react-virtual": "^3.14.10",
     "dayjs": "^1.11.23",
