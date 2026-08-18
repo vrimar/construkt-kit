@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const packageRoot = process.argv[2] ? path.resolve(process.cwd(), process.argv[2]) : process.cwd();
+const outDir = path.join(process.cwd(), "dist");
 
 // Panda emits these as file-local declarations, but they appear in the public
 // types of components built on them, so consumers cannot name them.
@@ -18,30 +18,9 @@ const patches = [
   },
 ];
 
-const roots = [
-  path.join(packageRoot, "dist"),
-  packageRoot,
-  path.join(packageRoot, "styled-system"),
-];
-
 for (const { file, types, keyword } of patches) {
-  let targetPath;
-  let source;
-
-  for (const root of roots) {
-    const candidatePath = path.join(root, file);
-    try {
-      source = await readFile(candidatePath, "utf8");
-      targetPath = candidatePath;
-      break;
-    } catch {
-      continue;
-    }
-  }
-
-  if (!targetPath || source == null) {
-    throw new Error(`Could not find ${file} under ${packageRoot}`);
-  }
+  const targetPath = path.join(outDir, file);
+  const source = await readFile(targetPath, "utf8");
 
   let patchedSource = source;
 
