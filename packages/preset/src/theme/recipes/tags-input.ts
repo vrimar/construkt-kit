@@ -3,6 +3,17 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH, controlText } from "./control-size";
 
+const controlFocusRing = {
+  outlineWidth: "1px",
+  outlineStyle: "solid",
+  outlineColor: "var(--focus-color)",
+  borderColor: "var(--focus-color)",
+  _invalid: {
+    outlineColor: "var(--error-color)",
+    borderColor: "var(--error-color)",
+  },
+};
+
 export const tagsInput = defineSlotRecipe({
   className: "tags-input",
   slots: tagsInputAnatomy.keys(),
@@ -105,16 +116,7 @@ export const tagsInput = defineSlotRecipe({
       outline: {
         control: {
           borderWidth: "1px",
-          _focusVisible: {
-            outlineWidth: "1px",
-            outlineStyle: "solid",
-            outlineColor: "var(--focus-color)",
-            borderColor: "var(--focus-color)",
-            _invalid: {
-              outlineColor: "var(--error-color)",
-              borderColor: "var(--error-color)",
-            },
-          },
+          _focusVisible: controlFocusRing,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",
@@ -130,16 +132,7 @@ export const tagsInput = defineSlotRecipe({
           color: "neutral.subtle.fg",
           borderWidth: "1px",
           borderColor: "transparent",
-          _focusVisible: {
-            outlineWidth: "1px",
-            outlineStyle: "solid",
-            outlineColor: "var(--focus-color)",
-            borderColor: "var(--focus-color)",
-            _invalid: {
-              outlineColor: "var(--error-color)",
-              borderColor: "var(--error-color)",
-            },
-          },
+          _focusVisible: controlFocusRing,
         },
         itemPreview: {
           bg: "neutral.surface.bg",
@@ -155,16 +148,7 @@ export const tagsInput = defineSlotRecipe({
           bg: "neutral.surface.bg",
           borderWidth: "1px",
           borderColor: "neutral.surface.border",
-          _focusVisible: {
-            outlineWidth: "1px",
-            outlineStyle: "solid",
-            outlineColor: "var(--focus-color)",
-            borderColor: "var(--focus-color)",
-            _invalid: {
-              outlineColor: "var(--error-color)",
-              borderColor: "var(--error-color)",
-            },
-          },
+          _focusVisible: controlFocusRing,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",
