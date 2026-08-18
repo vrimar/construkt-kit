@@ -41,9 +41,6 @@
     "check:exports": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./typescript"
   },
   "devDependencies": {
-    "tsdown": "^0.22.14"
-  },
-  "dependencies": {
     "@kubb/core": "^4.39.3",
     "@kubb/plugin-client": "^4.39.3",
     "@kubb/plugin-oas": "^4.39.3",
@@ -51,11 +48,34 @@
     "@kubb/plugin-ts": "^4.39.3",
     "@playwright/test": "^1.62.1",
     "@vitejs/plugin-react": "^6.0.5",
+    "tsdown": "^0.22.14",
     "vite": "^8.2.1",
     "vite-plugin-checker": "^0.14.5"
   },
   "peerDependencies": {
+    "@kubb/core": "^4.39.3",
+    "@kubb/plugin-client": "^4.39.3",
+    "@kubb/plugin-oas": "^4.39.3",
+    "@kubb/plugin-react-query": "^4.39.3",
+    "@kubb/plugin-ts": "^4.39.3",
+    "@playwright/test": "^1.62.1",
+    "@vitejs/plugin-react": "^6.0.5",
     "oxfmt": "^0.64.0",
-    "oxlint": "^1.79.0"
+    "oxlint": "^1.79.0",
+    "vite": "^8.2.1",
+    "vite-plugin-checker": "^0.14.5"
+  },
+  "peerDependenciesMeta": {
+    "@kubb/core": { "optional": true },
+    "@kubb/plugin-client": { "optional": true },
+    "@kubb/plugin-oas": { "optional": true },
+    "@kubb/plugin-react-query": { "optional": true },
+    "@kubb/plugin-ts": { "optional": true },
+    "@playwright/test": { "optional": true },
+    "@vitejs/plugin-react": { "optional": true },
+    "oxfmt": { "optional": true },
+    "oxlint": { "optional": true },
+    "vite": { "optional": true },
+    "vite-plugin-checker": { "optional": true }
   }
 }
