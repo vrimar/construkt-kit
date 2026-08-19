@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/utils",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": false,
   "description": "Stateless, framework-agnostic utilities for Construkt Kit frontend apps",
   "type": "module",
