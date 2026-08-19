@@ -1,4 +1,12 @@
 {
   "extends": "./typescript/base.json",
-  "include": ["vite", "playwright", "kubb", "oxlint", "oxfmt"]
+  "include": [
+    "vite",
+    "playwright",
+    "kubb",
+    "oxlint",
+    "oxfmt",
+    "tsdown",
+    "internal"
+  ]
 }

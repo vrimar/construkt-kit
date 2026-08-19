@@ -29,6 +29,10 @@
     "./oxfmt": {
       "types": "./dist/oxfmt/index.d.mts",
       "default": "./dist/oxfmt/index.mjs"
+    },
+    "./tsdown": {
+      "types": "./dist/tsdown/index.d.mts",
+      "default": "./dist/tsdown/index.mjs"
     }
   },
   "files": [
@@ -38,7 +42,9 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:exports": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./typescript"
+    "check:exports": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./typescript",
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt --config ./dist/oxfmt/index.mjs vite playwright kubb oxlint oxfmt tsdown internal"
   },
   "devDependencies": {
     "@kubb/core": "^4.39.3",
@@ -62,20 +68,46 @@
     "@vitejs/plugin-react": "^6.0.5",
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
+    "tsdown": "^0.22.14",
     "vite": "^8.2.1",
     "vite-plugin-checker": "^0.14.5"
   },
   "peerDependenciesMeta": {
-    "@kubb/core": { "optional": true },
-    "@kubb/plugin-client": { "optional": true },
-    "@kubb/plugin-oas": { "optional": true },
-    "@kubb/plugin-react-query": { "optional": true },
-    "@kubb/plugin-ts": { "optional": true },
-    "@playwright/test": { "optional": true },
-    "@vitejs/plugin-react": { "optional": true },
-    "oxfmt": { "optional": true },
-    "oxlint": { "optional": true },
-    "vite": { "optional": true },
-    "vite-plugin-checker": { "optional": true }
+    "@kubb/core": {
+      "optional": true
+    },
+    "@kubb/plugin-client": {
+      "optional": true
+    },
+    "@kubb/plugin-oas": {
+      "optional": true
+    },
+    "@kubb/plugin-react-query": {
+      "optional": true
+    },
+    "@kubb/plugin-ts": {
+      "optional": true
+    },
+    "@playwright/test": {
+      "optional": true
+    },
+    "@vitejs/plugin-react": {
+      "optional": true
+    },
+    "oxfmt": {
+      "optional": true
+    },
+    "oxlint": {
+      "optional": true
+    },
+    "tsdown": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "vite-plugin-checker": {
+      "optional": true
+    }
   }
 }

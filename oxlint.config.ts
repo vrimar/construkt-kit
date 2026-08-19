@@ -1,9 +1,6 @@
-import { defineConfig } from "oxlint";
+import { createOxlintConfig } from "@construkt-kit/config/oxlint";
 
-import baseConfig from "@construkt-kit/config/oxlint";
-
-export default defineConfig({
-  ...baseConfig,
+export default createOxlintConfig({
   ignorePatterns: ["**/dist/**", "**/storybook-static/**", "**/styled-system/**"],
   overrides: [
     {

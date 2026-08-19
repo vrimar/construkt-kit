@@ -1,10 +1,3 @@
-import { defineConfig } from "tsdown";
+import { createTsdownConfig } from "@construkt-kit/config/tsdown";
 
-export default defineConfig({
-  entry: { index: "src/index.ts" },
-  format: ["esm"],
-  dts: true,
-  sourcemap: true,
-  clean: true,
-  deps: { neverBundle: ["dayjs", "zod"] },
-});
+export default createTsdownConfig({ neverBundle: ["dayjs", "zod"] });

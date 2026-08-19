@@ -1,6 +1,10 @@
 import { defineConfig } from "oxlint";
 
-export default defineConfig({
+import { deepMerge } from "../internal/merge";
+
+type OxlintConfig = ReturnType<typeof defineConfig>;
+
+const baseConfig = defineConfig({
   plugins: ["react", "typescript", "import"],
   env: {
     browser: true,
@@ -70,3 +74,11 @@ export default defineConfig({
     "import/first": "error",
   },
 });
+
+export function createOxlintConfig(overrides: Partial<OxlintConfig> = {}): OxlintConfig {
+  return deepMerge(baseConfig, overrides);
+}
+
+export type { OxlintConfig };
+
+export default baseConfig;

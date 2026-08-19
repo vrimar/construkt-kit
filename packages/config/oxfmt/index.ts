@@ -1,6 +1,10 @@
 import { defineConfig } from "oxfmt";
 
-export default defineConfig({
+import { deepMerge } from "../internal/merge";
+
+type OxfmtConfig = ReturnType<typeof defineConfig>;
+
+const baseConfig = defineConfig({
   semi: true,
   singleQuote: false,
   trailingComma: "all",
@@ -9,3 +13,11 @@ export default defineConfig({
   tabWidth: 2,
   sortImports: true,
 });
+
+export function createOxfmtConfig(overrides: Partial<OxfmtConfig> = {}): OxfmtConfig {
+  return deepMerge(baseConfig, overrides);
+}
+
+export type { OxfmtConfig };
+
+export default baseConfig;
