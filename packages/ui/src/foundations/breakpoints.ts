@@ -1,7 +1,8 @@
+import type { BreakpointToken } from "@construkt-kit/styled-system/tokens";
 import { token } from "@construkt-kit/styled-system/tokens";
 
 /** Responsive breakpoint keys, aligned with the Panda tokens in @construkt-kit/preset. */
-export type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+export type Breakpoint = BreakpointToken;
 
 /** A breakpoint key, or the implicit `base` (no media query). */
 export type BreakpointOrBase = "base" | Breakpoint;
@@ -9,8 +10,20 @@ export type BreakpointOrBase = "base" | Breakpoint;
 /** A value that can vary per breakpoint. */
 export type ResponsiveValue<T> = T | Partial<Record<BreakpointOrBase, T>>;
 
+// Keyed by Breakpoint so a token added to the preset fails to compile until it is ordered here.
+const breakpointOrder = {
+  xs: 0,
+  sm: 1,
+  md: 2,
+  lg: 3,
+  xl: 4,
+  "2xl": 5,
+} satisfies Record<Breakpoint, number>;
+
 /** Non-base breakpoints, ascending. */
-export const breakpoints: readonly Breakpoint[] = ["xs", "sm", "md", "lg", "xl", "2xl"];
+export const breakpoints: readonly Breakpoint[] = (
+  Object.keys(breakpointOrder) as Breakpoint[]
+).sort((a, b) => breakpointOrder[a] - breakpointOrder[b]);
 
 /** Min-width of a breakpoint as a CSS length (e.g. "768px"), from the generated tokens. */
 export const breakpointMinWidth = (bp: Breakpoint): string => token(`breakpoints.${bp}`);
