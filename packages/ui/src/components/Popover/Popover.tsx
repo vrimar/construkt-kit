@@ -86,8 +86,10 @@ function PopoverCloseTrigger({
 export const Popover = {
   Root: PopoverRoot,
   Content: PopoverContent,
+  Anchor,
   Arrow: PopoverArrow,
   CloseTrigger: PopoverCloseTrigger,
+  Indicator,
   Title,
   Description,
   Footer,
