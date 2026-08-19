@@ -28,29 +28,21 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
         position="absolute"
         inset="0"
         pointerEvents="none"
-        style={{
-          background: "rgba(255, 255, 255, 0.16)",
-        }}
+        bg="bg/16"
       />
       <Box
         position="absolute"
         inset="0"
         opacity="0.42"
         pointerEvents="none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.09) 1.8px, transparent 1.95px), linear-gradient(rgba(15, 23, 42, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.055) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
+        backgroundImage="radial-gradient(circle at 0 0, token(colors.border.emphasized) 1.8px, transparent 1.95px), linear-gradient(token(colors.border) 1px, transparent 1px), linear-gradient(90deg, token(colors.border) 1px, transparent 1px)"
+        backgroundSize="48px 48px"
       />
       <Box
         position="absolute"
         inset="0"
         pointerEvents="none"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.44) 18%, rgba(255, 255, 255, 0.12) 34%, transparent 62%)",
-        }}
+        backgroundImage="radial-gradient(circle at 50% 42%, token(colors.bg) 0%, token(colors.bg/44) 18%, token(colors.bg/12) 34%, transparent 62%)"
       />
       <Box
         position="absolute"
@@ -80,9 +72,7 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
           borderColor="border.default"
           p={{ base: "6", md: "8" }}
           width="100%"
-          style={{
-            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.07), 0 2px 6px rgba(15, 23, 42, 0.04)",
-          }}
+          boxShadow="lg"
         >
           <Stack gap="6">
             {showTitle && title && (
