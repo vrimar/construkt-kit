@@ -42,6 +42,7 @@
     "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
     "@pandacss/dev": "^1.12.0",
+    "@pandacss/preset-base": "^1.12.0",
     "@storybook/react-vite": "^10.5.9",
     "@types/react": "^19.2.18",
     "storybook": "^10.5.9",

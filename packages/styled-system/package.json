@@ -44,6 +44,7 @@
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
     "@pandacss/dev": "^1.12.0",
+    "@pandacss/preset-base": "^1.12.0",
     "@types/react": "^19.2.18",
     "react": "^19.2.8"
   },
