@@ -1,28 +1,17 @@
-import {
-  Alert,
-  Button,
-  Field,
-  PasswordInput,
-  Popover,
-  Stack,
-  Text,
-  useAutoFocus,
-} from "@construkt-kit/ui";
-import { type ReactNode, useState } from "react";
+import { Field, PasswordInput, Popover, Text, useAutoFocus } from "@construkt-kit/ui";
+import { useState } from "react";
 
+import { AuthForm, AuthSuccess } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import { isPasswordValid, PasswordRulesPopover } from "../PasswordRules";
+import type { AuthPageProps } from "../types";
 
-export interface ResetPasswordPageProps {
+export interface ResetPasswordPageProps extends AuthPageProps {
   onSubmit: (email: string, token: string, password: string, confirmPassword: string) => void;
-  isLoading?: boolean;
-  logo?: ReactNode;
   email?: string;
   token?: string;
   isSuccess?: boolean;
   onBack?: () => void;
-  title?: string;
-  description?: string;
 }
 
 export function ResetPasswordPage({
@@ -44,7 +33,6 @@ export function ResetPasswordPage({
 
   const passwordValid = isPasswordValid(password);
   const confirmValid = password === confirmPassword;
-  const isDisabled = isLoading || !password || !passwordValid || !confirmPassword || !confirmValid;
 
   return (
     <AuthLayout
@@ -54,78 +42,55 @@ export function ResetPasswordPage({
       showTitle
     >
       {isSuccess ? (
-        <Stack gap="4">
-          <Alert
-            status="success"
-            title="Your password has been reset successfully."
-          />
-          {onBack && (
-            <Button
-              variant="plain"
-              onClick={onBack}
-              colorPalette="brand"
-            >
-              Back to login
-            </Button>
-          )}
-        </Stack>
+        <AuthSuccess
+          title="Your password has been reset successfully."
+          onBack={onBack}
+        />
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit(email, token, password, confirmPassword);
-          }}
+        <AuthForm
+          onSubmit={() => onSubmit(email, token, password, confirmPassword)}
+          submitLabel="Reset password"
+          isLoading={isLoading}
+          isSubmitDisabled={!password || !passwordValid || !confirmPassword || !confirmValid}
         >
-          <Stack gap="4">
-            <Field label="New password">
-              <PasswordRulesPopover
-                isOpen={isRulesOpen && password.length > 0}
-                password={password}
-              >
-                <PasswordInput
-                  ref={passwordInput}
-                  value={password}
-                  onFocus={() => setIsRulesOpen(true)}
-                  onBlur={() => setIsRulesOpen(false)}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </PasswordRulesPopover>
-            </Field>
-
-            <Field label="Confirm password">
-              <Popover.Root
-                lazyMount
-                unmountOnExit
-                autoFocus={false}
-                modal={false}
-                open={isConfirmFocused && !confirmValid}
-                placement="right"
-              >
-                <Popover.Trigger>
-                  <PasswordInput
-                    value={confirmPassword}
-                    onFocus={() => setIsConfirmFocused(true)}
-                    onBlur={() => setIsConfirmFocused(false)}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </Popover.Trigger>
-                <Popover.Content p="4">
-                  <Text color="fg.error">Passwords do not match.</Text>
-                </Popover.Content>
-              </Popover.Root>
-            </Field>
-
-            <Button
-              w="100%"
-              type="submit"
-              loading={isLoading}
-              disabled={isDisabled}
-              colorPalette="brand"
+          <Field label="New password">
+            <PasswordRulesPopover
+              isOpen={isRulesOpen && password.length > 0}
+              password={password}
             >
-              Reset password
-            </Button>
-          </Stack>
-        </form>
+              <PasswordInput
+                ref={passwordInput}
+                value={password}
+                onFocus={() => setIsRulesOpen(true)}
+                onBlur={() => setIsRulesOpen(false)}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </PasswordRulesPopover>
+          </Field>
+
+          <Field label="Confirm password">
+            <Popover.Root
+              lazyMount
+              unmountOnExit
+              autoFocus={false}
+              modal={false}
+              open={isConfirmFocused && !confirmValid}
+              placement="right"
+            >
+              <Popover.Trigger>
+                <PasswordInput
+                  value={confirmPassword}
+                  onFocus={() => setIsConfirmFocused(true)}
+                  onBlur={() => setIsConfirmFocused(false)}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Popover.Trigger>
+              <Popover.Content p="4">
+                <Text color="fg.error">Passwords do not match.</Text>
+              </Popover.Content>
+            </Popover.Root>
+          </Field>
+        </AuthForm>
       )}
     </AuthLayout>
   );

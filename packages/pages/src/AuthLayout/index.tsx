@@ -1,7 +1,7 @@
 import { Box, Stack, Text } from "@construkt-kit/ui";
 import type { ReactNode } from "react";
 
-interface AuthLayoutProps {
+export interface AuthLayoutProps {
   children: ReactNode;
   title?: string;
   description?: string;

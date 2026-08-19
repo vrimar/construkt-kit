@@ -1,16 +1,14 @@
-import { Alert, Button, Field, Input, Stack, useAutoFocus } from "@construkt-kit/ui";
-import { type ReactNode, useState } from "react";
+import { Field, Input, useAutoFocus } from "@construkt-kit/ui";
+import { useState } from "react";
 
+import { AuthForm, AuthLinkButton, AuthSuccess } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
+import type { AuthPageProps } from "../types";
 
-export interface ForgotPasswordPageProps {
+export interface ForgotPasswordPageProps extends AuthPageProps {
   onSubmit: (email: string) => void;
-  isLoading?: boolean;
-  logo?: ReactNode;
   onBack?: () => void;
   isSuccess?: boolean;
-  title?: string;
-  description?: string;
 }
 
 export function ForgotPasswordPage({
@@ -33,60 +31,27 @@ export function ForgotPasswordPage({
       showTitle
     >
       {isSuccess ? (
-        <Stack gap="4">
-          <Alert
-            status="success"
-            title="Check your email for a link to reset your password."
-          />
-          {onBack && (
-            <Button
-              variant="plain"
-              onClick={onBack}
-              colorPalette="brand"
-            >
-              Back to login
-            </Button>
-          )}
-        </Stack>
+        <AuthSuccess
+          title="Check your email for a link to reset your password."
+          onBack={onBack}
+        />
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit(email);
-          }}
+        <AuthForm
+          onSubmit={() => onSubmit(email)}
+          submitLabel="Send reset link"
+          isLoading={isLoading}
+          isSubmitDisabled={!email}
+          footer={onBack && <AuthLinkButton onClick={onBack}>Back to login</AuthLinkButton>}
         >
-          <Stack gap="4">
-            <Field label="Email">
-              <Input
-                ref={emailInput}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-              />
-            </Field>
-
-            <Button
-              w="100%"
-              type="submit"
-              loading={isLoading}
-              disabled={isLoading || !email}
-              colorPalette="brand"
-            >
-              Send reset link
-            </Button>
-
-            {onBack && (
-              <Button
-                type="button"
-                variant="plain"
-                onClick={onBack}
-                colorPalette="brand"
-              >
-                Back to login
-              </Button>
-            )}
-          </Stack>
-        </form>
+          <Field label="Email">
+            <Input
+              ref={emailInput}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+            />
+          </Field>
+        </AuthForm>
       )}
     </AuthLayout>
   );

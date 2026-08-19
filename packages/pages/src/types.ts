@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export interface LoginOptions {
   redirectUri?: string;
 }
@@ -19,4 +21,12 @@ export interface AuthProvider {
   logout: () => Promise<void>;
   isAuthenticated: () => Promise<boolean> | boolean;
   getUser: () => Promise<User | null> | User | null;
+}
+
+/** Fields every auth page accepts. */
+export interface AuthPageProps {
+  isLoading?: boolean;
+  logo?: ReactNode;
+  title?: string;
+  description?: string;
 }
