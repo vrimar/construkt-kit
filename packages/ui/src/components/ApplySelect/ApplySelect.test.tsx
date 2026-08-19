@@ -72,7 +72,7 @@ describe("ApplySelect", () => {
 
   it("selects and clears the complete collection through Toggle All", async () => {
     const onValueChange = vi.fn();
-    const { rerender } = render(
+    render(
       <ApplySelect
         items={frameworks}
         getItemValue={(item) => item.id}
@@ -88,7 +88,10 @@ describe("ApplySelect", () => {
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onValueChange).toHaveBeenCalledWith([1, 2, 3]);
 
-    rerender(
+    // Apply closes the popover, and `defaultOpen` only applies on mount — remount to
+    // reopen rather than racing the close.
+    cleanup();
+    render(
       <ApplySelect
         items={frameworks}
         getItemValue={(item) => item.id}
