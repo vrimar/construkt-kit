@@ -15,9 +15,10 @@
     "typecheck": "turbo run typecheck",
     "storybook": "turbo run storybook --filter @construkt-kit/storybook",
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",
-    "release": "pnpm build && pnpm check:css && pnpm turbo run check:exports && node scripts/publish-packages.mjs",
+    "release": "pnpm build && pnpm check:css && pnpm check:deps && pnpm turbo run check:exports && node scripts/publish-packages.mjs",
     "update-deps": "pnpm update -r && pnpm update",
-    "check:css": "node scripts/check-preset-css.mjs"
+    "check:css": "node scripts/check-preset-css.mjs",
+    "check:deps": "node scripts/check-deps.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

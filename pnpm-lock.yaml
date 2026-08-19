@@ -50,6 +50,9 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
     devDependencies:
+      '@ark-ui/react':
+        specifier: ^5.38.2
+        version: 5.38.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@construkt-kit/config':
         specifier: workspace:*
         version: link:../../packages/config
