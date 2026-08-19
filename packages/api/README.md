@@ -75,19 +75,19 @@ Pair with `saveBlobResponse()` or `downloadFile()` from `@construkt-kit/utils` f
 
 All errors extend `ApiError` which uses `Object.setPrototypeOf(this, new.target.prototype)` — required for proper `instanceof` checks in transpiled TypeScript. Subclasses hardcode their status: `ValidationError` → 422, `NotFoundError` → 404, `UnauthorizedError` → 401.
 
-**Note:** `createApiClient` only throws `ApiError` for non-2xx responses — it does **not** auto-map status codes to subclasses. The subclasses are building blocks for app-level error handling:
+`createApiClient` classifies non-2xx responses onto the narrowest class available — 401 → `UnauthorizedError`, 404 → `NotFoundError`, 422 → `ValidationError`, anything else → `ApiError`. So `instanceof` works directly:
 
 ```ts
 try {
   await apiCall();
 } catch (error) {
-  if (error instanceof ApiError) {
-    if (error.status === 404) throw new NotFoundError(error.message);
-    if (error.status === 422) throw new ValidationError(error.code, error.message);
-    if (error.status === 401) throw new UnauthorizedError(error.message);
-  }
+  if (error instanceof NotFoundError) return null;
+  if (error instanceof UnauthorizedError) return signOut();
+  if (error instanceof ApiError) reportError(error.code, error.message);
 }
 ```
+
+`code` is a stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_SERVER_ERROR`), derived from the status text when there is no dedicated subclass.
 
 ### Param normalization
 

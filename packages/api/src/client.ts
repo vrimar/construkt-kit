@@ -6,7 +6,7 @@ import type {
 } from "@kubb/plugin-client/clients/fetch";
 import { getConfig, client as kubbClient } from "@kubb/plugin-client/clients/fetch";
 
-import { ApiError } from "./errors";
+import { toApiError } from "./errors";
 import type { ApiErrorResponse } from "./errors";
 
 export type { Client, RequestConfig, ResponseConfig, ResponseErrorConfig };
@@ -78,7 +78,7 @@ export function createApiClient(getToken: () => string | null | undefined): Clie
 
     if (response.status < 200 || response.status >= 300) {
       const errorData = response.data as ApiErrorResponse;
-      throw new ApiError(
+      throw toApiError(
         response.status,
         response.statusText,
         errorData?.Message ?? "An error has occurred.",
