@@ -15,7 +15,7 @@ Standard variant names across all recipes, from most visual weight to least:
 **Special cases:**
 
 - **Input / Textarea** also have `flushed` (bottom border only) and `colored` (colorPalette-aware outline).
-  Default variants use `neutral.*` tokens (swappable neutral palette, defaults to gray).
+  Default variants use `neutral.*` tokens (swappable neutral palette, defaults to slate).
 - **Skeleton** uses `animation` (not `variant`) with values `pulse`, `shine`, `none`.
 
 ## Size Tiers
@@ -28,7 +28,7 @@ Standard variant names across all recipes, from most visual weight to least:
 | Default    | `xs` `sm` `md` `lg` `xl`             | Code, Kbd, Progress                                  |
 | Compact    | `sm` `md` `lg`                       | Accordion, Alert, Checkbox, RadioGroup, Slider, Stat |
 | Minimal    | `xs` `sm` `md` `lg`                  | Switch                                               |
-| Per-recipe | varies                               | Textarea (xs–xl), Toggle Group (none)                |
+| Per-recipe | varies                               | Textarea (xs–xl), Toggle Group (xs–xl)               |
 
 ## Defaults
 
@@ -44,7 +44,7 @@ Form controls (Input, Textarea) default to `neutral.*` tokens; use the `colored`
 
 Recipes use `neutral.*` (not `gray.*`) for default chrome — control surfaces, borders, backgrounds.
 `neutral` is defined in `semantic-tokens/colors.ts` as an alias for a color palette (slate by default).
-To change the neutral hue globally, update the single `neutral: colorPalette("slate")` line to another palette.
+To change the neutral hue globally, point the single `colorPalette("slate", "slateDark", …)` call in that file at another palette.
 
 | I'm styling…           | Use              |
 | ---------------------- | ---------------- |

@@ -14,6 +14,9 @@ Shared auth page components for Construkt Kit apps. Pages own layout — consumi
 
 ## AuthProvider Interface
 
+Shipped as a type for apps to implement against their auth SDK. The pages themselves take plain
+callbacks (`onSubmit`, `onForgotPassword`, …) and never receive a provider.
+
 ```ts
 interface AuthProvider {
   getToken: () => Promise<string | null>;
@@ -56,5 +59,5 @@ is installed. Apps that build their Panda config by hand must add it to `include
 ## Rules
 
 - Accept navigation callbacks as props — never import a specific router
-- Accept an `AuthProvider` adapter — never import a specific auth SDK
+- Accept auth callbacks as props — never import a specific auth SDK
 - Never reach into app-specific state
