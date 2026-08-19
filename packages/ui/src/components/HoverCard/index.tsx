@@ -1,10 +1,11 @@
 import { HoverCard as ArkHoverCard, HoverCardContext } from "@ark-ui/react/hover-card";
-import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { hoverCard } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { PortalledProps } from "../../types";
+import { createPlacementRoot } from "../placementRoot";
+import { createPortalledContent } from "../portalledContent";
 
 const { withRootProvider, withContext } = createStyleContext(hoverCard);
 
@@ -25,38 +26,11 @@ export interface HoverCardRootProps extends RootProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-function HoverCardRoot({ placement, ...rest }: HoverCardRootProps) {
-  return (
-    <Root
-      positioning={{ placement }}
-      {...rest}
-    />
-  );
-}
+const HoverCardRoot = createPlacementRoot<HoverCardRootProps>(Root);
 
 export interface HoverCardContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-function HoverCardContent({
-  ref,
-  portalled = true,
-  portalRef,
-  ...rest
-}: WithRef<HoverCardContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Positioner>
-        <Content
-          animation="none"
-          ref={ref}
-          {...rest}
-        />
-      </Positioner>
-    </Portal>
-  );
-}
+const HoverCardContent = createPortalledContent(Positioner, Content);
 
 export const HoverCard = {
   Root: HoverCardRoot,

@@ -6,9 +6,9 @@ import {
 import { ark } from "@ark-ui/react/factory";
 import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type ComboboxVariantProps, combobox } from "@construkt-kit/styled-system/recipes";
-import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 
-import type { WithRef } from "../../types";
+import { createItemIndicator } from "../itemIndicator";
 
 const { withProvider, withContext } = createStyleContext(combobox);
 
@@ -44,23 +44,10 @@ const Trigger = withContext(ArkCombobox.Trigger, "trigger", {
 
 const StyledItemIndicator = withContext(ArkCombobox.ItemIndicator, "itemIndicator");
 
-function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
-  const item = useComboboxItemContext();
-
-  return item.selected ? (
-    <StyledItemIndicator
-      ref={ref}
-      {...props}
-    >
-      <CheckIcon />
-    </StyledItemIndicator>
-  ) : (
-    <svg
-      aria-hidden="true"
-      focusable="false"
-    />
-  );
-}
+const ItemIndicator = createItemIndicator(
+  StyledItemIndicator,
+  () => useComboboxItemContext().selected,
+);
 
 export type ComboboxRootProps = RootProps;
 

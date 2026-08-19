@@ -1,7 +1,7 @@
-import { Portal } from "@ark-ui/react/portal";
-import type { ReactNode } from "react";
+import type { ComponentProps, ElementType, ReactElement, ReactNode } from "react";
 
 import { Tooltip, type TooltipProps } from ".";
+import type { WithRef } from "../../types";
 
 export type WithTooltipProps = {
   tooltip?: ReactNode;
@@ -21,42 +21,43 @@ export function TriggerTooltip({
   tooltipProps,
   children,
 }: TriggerTooltipProps) {
-  const {
-    showArrow,
-    portalled = true,
-    portalRef,
-    contentProps,
-    placement = "top",
-    ...rootProps
-  } = tooltipProps ?? {};
-
   return (
-    <Tooltip.Root
+    <Tooltip
       ids={{ trigger: triggerId }}
-      positioning={{ placement }}
-      openDelay={300}
-      closeDelay={0}
-      {...rootProps}
+      content={tooltip}
+      {...tooltipProps}
     >
-      <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-      <Portal
-        disabled={!portalled}
-        container={portalRef}
-      >
-        <Tooltip.Positioner zIndex="tooltip">
-          <Tooltip.Content
-            zIndex="tooltip"
-            {...contentProps}
-          >
-            {showArrow && (
-              <Tooltip.Arrow>
-                <Tooltip.ArrowTip />
-              </Tooltip.Arrow>
-            )}
-            {tooltip}
-          </Tooltip.Content>
-        </Tooltip.Positioner>
-      </Portal>
-    </Tooltip.Root>
+      {children}
+    </Tooltip>
   );
+}
+
+/** Wraps a floating-surface trigger so `tooltip` renders against the trigger's own Ark id. */
+export function withTriggerTooltip<T extends ElementType>(
+  StyledTrigger: T,
+  useTriggerId: (value: string) => string,
+) {
+  const TriggerElement: ElementType = StyledTrigger;
+
+  return function TooltipTrigger({
+    tooltip,
+    tooltipProps,
+    children,
+    ...rest
+  }: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>): ReactElement {
+    const triggerId = useTriggerId((rest as { value?: string }).value ?? "");
+    const trigger = <TriggerElement {...rest}>{children}</TriggerElement>;
+
+    if (tooltip == null || tooltip === false || tooltipProps?.disabled) return trigger;
+
+    return (
+      <TriggerTooltip
+        triggerId={triggerId}
+        tooltip={tooltip}
+        tooltipProps={tooltipProps}
+      >
+        {trigger}
+      </TriggerTooltip>
+    );
+  };
 }

@@ -1,11 +1,11 @@
 import { ColorPicker as ArkColorPicker, ColorPickerContext } from "@ark-ui/react/color-picker";
 import { ark } from "@ark-ui/react/factory";
-import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { colorPicker } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { PortalledProps } from "../../types";
+import { createPortalledContent } from "../portalledContent";
 export { parseColor } from "@ark-ui/react/color-picker";
 
 const { withRootProvider, withContext } = createStyleContext(colorPicker);
@@ -59,27 +59,7 @@ export type ColorPickerRootProps = ComponentProps<typeof Root>;
 
 export interface ColorPickerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-function ColorPickerContent({
-  ref,
-  portalled = true,
-  portalRef,
-  ...rest
-}: WithRef<ColorPickerContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Positioner>
-        <Content
-          animation="none"
-          ref={ref}
-          {...rest}
-        />
-      </Positioner>
-    </Portal>
-  );
-}
+const ColorPickerContent = createPortalledContent(Positioner, Content);
 
 export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children">, PortalledProps {
   withAlpha?: boolean;

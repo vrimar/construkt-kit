@@ -1,30 +1,10 @@
-import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { PortalledProps } from "../../types";
+import { createPortalledContent } from "../portalledContent";
 import * as Parts from "./parts";
 
 export interface DatePickerContentProps
   extends ComponentProps<typeof Parts.Content>, PortalledProps {}
 
-export function DatePickerContent({
-  ref,
-  portalled = true,
-  portalRef,
-  ...rest
-}: WithRef<DatePickerContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Parts.Positioner>
-        <Parts.Content
-          animation="none"
-          ref={ref}
-          {...rest}
-        />
-      </Parts.Positioner>
-    </Portal>
-  );
-}
+export const DatePickerContent = createPortalledContent(Parts.Positioner, Parts.Content);

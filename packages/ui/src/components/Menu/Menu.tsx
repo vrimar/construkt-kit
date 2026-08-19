@@ -1,12 +1,14 @@
 import { Menu as ArkMenu, useMenuContext, useMenuItemContext } from "@ark-ui/react/menu";
-import { Portal } from "@ark-ui/react/portal";
-import { Box, type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
+import { Box, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { menu } from "@construkt-kit/styled-system/recipes";
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
-import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
+import { createItemIndicator } from "../itemIndicator";
+import { createPlacementRoot } from "../placementRoot";
+import { createPortalledContent } from "../portalledContent";
+import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(menu);
 
@@ -40,89 +42,28 @@ export {
 
 const StyledItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator");
 
-export const ItemIndicator = ({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) => {
-  const item = useMenuItemContext();
-
-  return item.checked ? (
-    <StyledItemIndicator
-      ref={ref}
-      {...props}
-    >
-      <CheckIcon />
-    </StyledItemIndicator>
-  ) : (
-    <svg
-      aria-hidden="true"
-      focusable="false"
-    />
-  );
-};
+export const ItemIndicator = createItemIndicator(
+  StyledItemIndicator,
+  () => useMenuItemContext().checked === true,
+);
 
 export interface MenuRootProps extends RootProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-function MenuRoot({ placement, ...props }: MenuRootProps) {
-  return (
-    <Root
-      positioning={{ placement }}
-      {...props}
-    />
-  );
-}
+const MenuRoot = createPlacementRoot<MenuRootProps>(Root);
 
 export interface MenuTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-function MenuTrigger({
-  ref,
-  tooltip,
-  tooltipProps,
-  children,
-  ...rest
-}: WithRef<MenuTriggerProps, HTMLButtonElement>) {
-  const menuApi = useMenuContext();
-  const trigger = (
-    <StyledTrigger
-      ref={ref}
-      {...rest}
-    >
-      {children}
-    </StyledTrigger>
-  );
+const useMenuTriggerId = (value: string) => useMenuContext().getTriggerProps({ value }).id ?? "";
 
-  if (tooltip == null || tooltip === false || tooltipProps?.disabled) return trigger;
-
-  return (
-    <TriggerTooltip
-      triggerId={menuApi.getTriggerProps({ value: rest.value ?? "" }).id ?? ""}
-      tooltip={tooltip}
-      tooltipProps={tooltipProps}
-    >
-      {trigger}
-    </TriggerTooltip>
-  );
-}
+const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerId);
 
 export const Trigger = MenuTrigger;
 
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-function MenuContent({ ref, portalled = true, portalRef, ...rest }: WithRef<MenuContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Positioner>
-        <Content
-          animation="none"
-          ref={ref}
-          {...rest}
-        />
-      </Positioner>
-    </Portal>
-  );
-}
+const MenuContent = createPortalledContent(Positioner, Content);
 
 function MenuArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) {
   return (

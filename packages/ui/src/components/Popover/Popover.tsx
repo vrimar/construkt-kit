@@ -1,13 +1,14 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover, usePopoverContext } from "@ark-ui/react/popover";
-import { Portal } from "@ark-ui/react/portal";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { popover } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
-import { TriggerTooltip, type WithTooltipProps } from "../Tooltip/TriggerTooltip";
+import { createPlacementRoot } from "../placementRoot";
+import { createPortalledContent } from "../portalledContent";
+import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(popover);
 
@@ -39,38 +40,11 @@ export interface PopoverRootProps extends RootProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-function PopoverRoot({ placement, ...rest }: PopoverRootProps) {
-  return (
-    <Root
-      positioning={{ placement }}
-      {...rest}
-    />
-  );
-}
+const PopoverRoot = createPlacementRoot<PopoverRootProps>(Root);
 
 export interface PopoverContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-function PopoverContent({
-  ref,
-  portalled = true,
-  portalRef,
-  ...rest
-}: WithRef<PopoverContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Positioner>
-        <Content
-          animation="none"
-          ref={ref}
-          {...rest}
-        />
-      </Positioner>
-    </Portal>
-  );
-}
+const PopoverContent = createPortalledContent(Positioner, Content);
 
 function PopoverArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) {
   return (
@@ -84,35 +58,10 @@ function PopoverArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) 
 export interface PopoverTriggerProps
   extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-function PopoverTrigger({
-  ref,
-  tooltip,
-  tooltipProps,
-  children,
-  ...rest
-}: WithRef<PopoverTriggerProps, HTMLButtonElement>) {
-  const popoverApi = usePopoverContext();
-  const trigger = (
-    <StyledTrigger
-      ref={ref}
-      {...rest}
-    >
-      {children}
-    </StyledTrigger>
-  );
+const usePopoverTriggerId = (value: string) =>
+  usePopoverContext().getTriggerProps({ value }).id ?? "";
 
-  if (tooltip == null || tooltip === false || tooltipProps?.disabled) return trigger;
-
-  return (
-    <TriggerTooltip
-      triggerId={popoverApi.getTriggerProps({ value: rest.value ?? "" }).id ?? ""}
-      tooltip={tooltip}
-      tooltipProps={tooltipProps}
-    >
-      {trigger}
-    </TriggerTooltip>
-  );
-}
+const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerId);
 
 export const Trigger = PopoverTrigger;
 
