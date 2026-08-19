@@ -7,4 +7,5 @@ export default defineConfig({
   outdir: "dist",
   importMap: "@construkt-kit/styled-system",
   jsxFramework: "react",
+  staticCss: { recipes: "*" },
 });
