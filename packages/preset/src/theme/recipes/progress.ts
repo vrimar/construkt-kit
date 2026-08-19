@@ -129,8 +129,8 @@ export const progress = defineSlotRecipe({
           backgroundSize: `var(--stripe-size) var(--stripe-size)`,
           "--stripe-size": "1rem",
           "--stripe-color": {
-            _light: "rgba(255, 255, 255, 0.3)",
-            _dark: "rgba(0, 0, 0, 0.3)",
+            _light: "{colors.white.a5}",
+            _dark: "{colors.black.a5}",
           },
         },
       },

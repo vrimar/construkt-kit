@@ -22,6 +22,7 @@ const BASE_PX_COMPACT = `var(--control-base-px-compact, calc(${BASE_PX} - 0.25re
 // button/input control height; override --control-base-row-h to tune row height alone.
 const BASE_ROW_H = `var(--control-base-row-h, calc(${BASE_H} - ${STEP}))`;
 const BASE_GAP = "var(--control-base-gap, 0.5rem)";
+const BASE_PY = "var(--control-base-py, 0.4375rem)";
 const BASE_ICON = "var(--control-base-icon, 1rem)";
 const BASE_BOX = "var(--control-base-box, 1.125rem)";
 const BASE_FONT = "var(--control-base-font, 0.875rem)";
@@ -55,6 +56,15 @@ const GAP: Record<ControlSize, number> = {
   sm: -0.125,
   md: 0,
   lg: 0,
+  xl: 0.125,
+  "2xl": 0.25,
+};
+const PY: Record<ControlSize, number> = {
+  "2xs": -0.25,
+  xs: -0.125,
+  sm: 0,
+  md: 0,
+  lg: 0.125,
   xl: 0.125,
   "2xl": 0.25,
 };
@@ -119,6 +129,9 @@ export const controlPxCompact = (size: ControlSize): string => off(BASE_PX_COMPA
 
 /** Inline gap / vertical padding, driven by --control-base-gap. */
 export const controlGap = (size: ControlSize): string => off(BASE_GAP, GAP[size]);
+
+/** Inline vertical padding for multi-line controls, driven by --control-base-py. */
+export const controlPy = (size: ControlSize): string => off(BASE_PY, PY[size]);
 
 /** Inline icon box size, driven by --control-base-icon. */
 export const controlIcon = (size: ControlSize): string => off(BASE_ICON, ICON[size]);
