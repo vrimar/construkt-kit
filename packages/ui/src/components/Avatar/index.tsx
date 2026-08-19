@@ -33,6 +33,7 @@ function Fallback({ ref, name, children, asChild, ...rest }: WithRef<AvatarFallb
   return (
     <StyledFallback
       ref={ref}
+      asChild={asChild}
       {...rest}
     >
       {fallbackContent}

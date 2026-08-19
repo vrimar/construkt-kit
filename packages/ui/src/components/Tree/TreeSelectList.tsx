@@ -3,7 +3,7 @@ import { useTreeView } from "@ark-ui/react/tree-view";
 import { Box, Flex } from "@construkt-kit/styled-system/jsx";
 import { CheckIcon, MinusIcon, SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { IconButton } from "../Buttons";
 import { SearchInput } from "../Input/SearchInput";
@@ -146,8 +146,9 @@ const renderRowInner = ({
 
 // In virtualized mode nodes render flat (no Branch wrapper), so Ark UI cannot set --depth via
 // DOM nesting — set it explicitly from indexPath.
-const depthStyleFor = (indexPath: number[]) =>
-  ({ "--depth": indexPath.length }) as React.CSSProperties;
+const depthStyleFor = (indexPath: number[]): React.CSSProperties & { "--depth": number } => ({
+  "--depth": indexPath.length,
+});
 
 /** Row with no DnD wiring — used when the tree has no `onCollectionChange` (the common case). */
 const PlainTreeRow = (props: TreeRowProps) =>
@@ -315,20 +316,15 @@ export const TreeSelectList = <TNode extends TreeNode>({
     [filteredCollection, rootNodes],
   );
 
-  const resolvedIsNodeCheckable = ({
-    node,
-    indexPath,
-    isBranch,
-  }: {
-    node: TNode;
-    indexPath: number[];
-    isBranch: boolean;
-  }) => {
-    if (isBranch && !selectableSubtrees.has(filteredCollection.getNodeValue(node))) {
-      return false;
-    }
-    return isNodeCheckable?.({ node, indexPath, isBranch }) ?? true;
-  };
+  const resolvedIsNodeCheckable = useCallback(
+    ({ node, indexPath, isBranch }: { node: TNode; indexPath: number[]; isBranch: boolean }) => {
+      if (isBranch && !selectableSubtrees.has(filteredCollection.getNodeValue(node))) {
+        return false;
+      }
+      return isNodeCheckable?.({ node, indexPath, isBranch }) ?? true;
+    },
+    [filteredCollection, isNodeCheckable, selectableSubtrees],
+  );
 
   // --- Tree view hook ---
 

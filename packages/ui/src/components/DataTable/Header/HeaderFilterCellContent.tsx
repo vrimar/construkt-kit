@@ -18,7 +18,8 @@ export const DataTableHeaderFilterCellContent = <TData extends object>({
   const filterable = column.getCanFilter();
   const name = typeof column.columnDef.header === "string" ? column.columnDef.header : column.id;
   const type = column.columnDef.meta?.type || "input";
-  const filterValue = column.getFilterValue() as string[];
+  const rawFilterValue = column.getFilterValue();
+  const filterValue = Array.isArray(rawFilterValue) ? (rawFilterValue as string[]) : [];
 
   const handleChange = (value: ColumnFilterValue) => {
     if (typeof value === "string" && value) value = [value];
@@ -33,13 +34,13 @@ export const DataTableHeaderFilterCellContent = <TData extends object>({
         <ColumnSearchInput
           name={name}
           onChange={handleChange}
-          value={filterValue ? filterValue[0] : ""}
+          value={filterValue[0] ?? ""}
         />
       );
     case "date":
       return (
         <ColumnDateFilter
-          dateValue={filterValue ? filterValue[0] : ""}
+          dateValue={filterValue[0] ?? ""}
           onChange={handleChange}
         />
       );
@@ -48,7 +49,7 @@ export const DataTableHeaderFilterCellContent = <TData extends object>({
         <ColumnSelectFilter
           name={name}
           filterValues={filterValues}
-          value={filterValue ?? []}
+          value={filterValue}
           selectProps={column.columnDef.meta?.selectProps}
           onValueChange={handleChange}
         />
