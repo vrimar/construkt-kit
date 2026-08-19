@@ -1,7 +1,8 @@
 import type { KeyboardEvent, ReactNode } from "react";
 
 import type { ButtonProps } from "../Buttons";
-import { Button, CloseButton } from "../Buttons";
+import { Button } from "../Buttons";
+import { isPlainEnter } from "../Form/submitOnEnter";
 import { Dialog } from "./Dialog";
 
 export interface SubmitDialogProps {
@@ -34,15 +35,8 @@ export const SubmitDialog = ({
   autoFocusButton,
 }: SubmitDialogProps) => {
   const handleKeyDown = (event: KeyboardEvent) => {
-    const target = event.target as HTMLElement;
-    if (
-      event.key === "Enter" &&
-      onSubmit &&
-      target.tagName !== "TEXTAREA" &&
-      !target.isContentEditable
-    ) {
-      onSubmit();
-    }
+    if (!onSubmit || !isPlainEnter(event)) return;
+    onSubmit();
   };
 
   return (
@@ -79,14 +73,7 @@ export const SubmitDialog = ({
             </Button>
           </Dialog.Footer>
         )}
-        <Dialog.CloseTrigger asChild>
-          <CloseButton
-            size="sm"
-            position="absolute"
-            top="2"
-            insetEnd="2"
-          />
-        </Dialog.CloseTrigger>
+        <Dialog.CloseTrigger />
       </Dialog.Content>
     </Dialog.Root>
   );

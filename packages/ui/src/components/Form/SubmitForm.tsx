@@ -4,6 +4,7 @@ import { ApiErrorAlert } from "../Alert";
 import { Button } from "../Buttons";
 import type { StackProps } from "../Layout";
 import { HStack, Stack } from "../Layout";
+import { isPlainEnter } from "./submitOnEnter";
 
 interface SubmitFormProps extends StackProps {
   children: ReactNode;
@@ -24,10 +25,8 @@ export const SubmitForm = ({
   ...props
 }: SubmitFormProps) => {
   const handleKeyDown = (event: KeyboardEvent) => {
-    const target = event.target as HTMLElement;
-    if (event.key === "Enter" && target.tagName !== "TEXTAREA" && onSubmit) {
-      onSubmit();
-    }
+    if (!onSubmit || !isPlainEnter(event)) return;
+    onSubmit();
   };
 
   return (
