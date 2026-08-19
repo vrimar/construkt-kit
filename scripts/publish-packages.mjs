@@ -43,6 +43,9 @@ function isOnRegistry(name, version) {
   }
 }
 
+// `pnpm run release --otp=123456` reaches this script; without it npm prompts.
+const otpArgs = process.argv.slice(2).filter((arg) => arg.startsWith('--otp'))
+
 const tmp = mkdtempSync(join(tmpdir(), 'ck-publish-'))
 const published = []
 let skipped = 0
@@ -62,7 +65,8 @@ for (const dir of workspacePackageDirs()) {
   const tarball = join(tmp, `${pkg.name.replace(/^@/, '').replace(/\//g, '-')}-${pkg.version}.tgz`)
 
   console.log(`publish ${pkg.name}@${pkg.version}`)
-  run('npm', ['publish', tarball, '--access', 'public'], { stdio: ['ignore', 'inherit', 'inherit'] })
+  // stdin stays attached so npm can prompt for the 2FA one-time password.
+  run('npm', ['publish', tarball, '--access', 'public', ...otpArgs], { stdio: 'inherit' })
 
   const tag = `${pkg.name}@${pkg.version}`
   try {

@@ -35,13 +35,15 @@ on npm is skipped, so a package whose version you did not bump is a no-op.
 
 ## One-time setup
 
-- **npm auth in `~/.npmrc`** — a classic **Automation** token (npmjs → Access
-  Tokens → Classic Token → Automation):
-  ```bash
-  npm config set //registry.npmjs.org/:_authToken "npm_…"
-  ```
-  It bypasses 2FA; a "Publish" token fails with `E403 … bypass 2fa … required`.
-  The committed `.npmrc` stays empty (pnpm 11 ignores env-var tokens there).
+- **npm auth** — `npm login`, which writes a session token to `~/.npmrc`. The
+  committed `.npmrc` stays empty (pnpm 11 ignores env-var tokens there).
+
+  Publishing needs a 2FA challenge: either answer the prompt, or pass the code
+  through — `pnpm run release --otp=123456`. Unpublishing always needs it too.
+
+  A 2FA-bypass token is no longer a way around this. Since 2026-07-31 npm blocks
+  such tokens from account and package management, and they lose publish entirely
+  in January 2027; the successor for automation is OIDC trusted publishing from CI.
 
 ## Notes
 
