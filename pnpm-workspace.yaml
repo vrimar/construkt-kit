@@ -5,6 +5,9 @@ packages:
 allowBuilds:
   es5-ext: false
   esbuild: true
+  # Transitive optional peer of @vitest/mocker; its postinstall only copies the browser
+  # service worker, which nothing here uses.
+  msw: false
 
 # pnpm 11 enables a supply-chain delay by default; disabled to allow latest releases
 minimumReleaseAge: 0
