@@ -48,6 +48,10 @@ const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]>
   return { onParamChange };
 };
 
+// The ScrollArea viewport is itself focusable, so a row tab stop is the nearer one.
+const focusableRow = (text: string) =>
+  screen.getByText(text).closest<HTMLElement>('[tabindex]:not([data-scope="scroll-area"])');
+
 afterEach(cleanup);
 
 describe("DataTable", () => {
@@ -123,5 +127,65 @@ describe("DataTable", () => {
     renderTable({ data: [], totalItems: 0 });
 
     expect(screen.getByText("No results available.")).toBeTruthy();
+  });
+
+  it("resets filters from the empty state", async () => {
+    const onReset = vi.fn();
+    renderTable({ data: [], totalItems: 0, onReset });
+
+    await userEvent.click(screen.getByRole("button", { name: "Reset filters" }));
+    expect(onReset).toHaveBeenCalledOnce();
+  });
+
+  it("reports the clicked row", async () => {
+    const onRowClick = vi.fn();
+    renderTable({ onRowClick });
+
+    await userEvent.click(screen.getByText("Alice"));
+    expect(onRowClick).toHaveBeenCalledOnce();
+    expect(onRowClick.mock.calls[0][0].original).toEqual(data[0]);
+  });
+
+  it("ignores a click that lands on a control inside the row", async () => {
+    const onRowClick = vi.fn();
+    const onAction = vi.fn();
+    const withAction = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.display({
+        id: "actions",
+        cell: () => (
+          <button
+            type="button"
+            onClick={onAction}
+          >
+            Edit
+          </button>
+        ),
+      }),
+    ];
+    renderTable({ columns: withAction, onRowClick, showFiltersRow: false });
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    expect(onAction).toHaveBeenCalled();
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("activates a row from the keyboard", async () => {
+    const onRowClick = vi.fn();
+    renderTable({ onRowClick });
+
+    const row = focusableRow("Alice");
+    row?.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onRowClick).toHaveBeenCalledOnce();
+
+    await userEvent.keyboard(" ");
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves rows out of the tab order when they are not clickable", () => {
+    renderTable();
+
+    expect(focusableRow("Alice")).toBeNull();
   });
 });

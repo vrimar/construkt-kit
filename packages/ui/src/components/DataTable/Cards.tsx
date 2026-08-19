@@ -1,40 +1,24 @@
-import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
+import { Box, Stack } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
-import type React from "react";
 
 import { LoadingOverlay } from "../LoadingOverlay";
 import { Text } from "../Text";
+import { useDataTableContext } from "./context";
 import { DataTableEmptyState } from "./EmptyState";
-import type { DataTableInstance, DataTableRow } from "./types";
+import type { DataTableInstance } from "./types";
 
 interface DataTableCardsProps<TData extends object> {
   table: DataTableInstance<TData>;
-  loading: boolean;
-  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
-  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
-  onReset?: () => unknown;
-  labels?: {
-    noResults?: string;
-    resetFilters?: string;
-  };
 }
 
 /**
  * Mobile layout for DataTable: renders each row as a stacked label/value card
  * instead of the horizontally-scrolling grid. Enabled via `mobileLayout="cards"`.
  */
-export const DataTableCards = <TData extends object>({
-  table,
-  loading,
-  onRowClick,
-  getRowProps,
-  onReset,
-  labels,
-}: DataTableCardsProps<TData>) => {
+export const DataTableCards = <TData extends object>({ table }: DataTableCardsProps<TData>) => {
+  const { loading, onRowClick, onRowKeyDown, getRowProps } = useDataTableContext<TData>();
   const rows = table.getRowModel().rows;
   const hasEmptyMessage = rows.length === 0 && !loading;
-  const noResultsLabel = labels?.noResults ?? "No results available.";
-  const resetFiltersLabel = labels?.resetFilters ?? "Reset filters";
 
   return (
     <Box
@@ -45,14 +29,7 @@ export const DataTableCards = <TData extends object>({
       p="2"
     >
       <LoadingOverlay isActive={loading} />
-      {hasEmptyMessage && (
-        <DataTableEmptyState
-          layout="flow"
-          noResultsLabel={noResultsLabel}
-          resetFiltersLabel={resetFiltersLabel}
-          onReset={onReset}
-        />
-      )}
+      {hasEmptyMessage && <DataTableEmptyState layout="flow" />}
       <Stack gap="2">
         {rows.map((row) => (
           <Box
@@ -65,9 +42,11 @@ export const DataTableCards = <TData extends object>({
             borderColor="border"
             borderRadius="md"
             bg="bg"
-            cursor="pointer"
+            cursor={onRowClick ? "pointer" : undefined}
             _hover={{ bg: "bg.subtle" }}
-            onClick={(e) => onRowClick(e, row)}
+            tabIndex={onRowClick ? 0 : undefined}
+            onClick={onRowClick && ((e) => onRowClick(e, row))}
+            onKeyDown={onRowKeyDown && ((e) => onRowKeyDown(e, row))}
             {...getRowProps?.(row)}
           >
             {row.getVisibleCells().map((cell) => {

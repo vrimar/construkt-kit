@@ -6,11 +6,12 @@ import type {
   Updater,
 } from "@tanstack/react-table";
 import { useTable } from "@tanstack/react-table";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 
 import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
+import { DataTableProvider, type DataTableContextValue } from "./context";
 import { DataTableHeader } from "./Header";
 import { DataTablePagination } from "./Pagination";
 import type {
@@ -70,6 +71,10 @@ export type DataTableProps<TData extends object> = {
   mobileLayout?: "scroll" | "cards";
 };
 
+const isNestedControl = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  !!(target.closest("[data-scope=menu]") || target.closest("button") || target.closest("a"));
+
 export const DataTable = <TData extends object>({
   data,
   params,
@@ -93,7 +98,7 @@ export const DataTable = <TData extends object>({
 
   const sortingState = useMemo(
     () =>
-      params?.orderBy
+      params.orderBy
         ? [
             {
               desc: params.orderType === "desc",
@@ -101,7 +106,7 @@ export const DataTable = <TData extends object>({
             },
           ]
         : [],
-    [params],
+    [params.orderBy, params.orderType],
   );
 
   const paginationState = useMemo(
@@ -109,7 +114,7 @@ export const DataTable = <TData extends object>({
       pageIndex: params.page - 1,
       pageSize: params.pageSize,
     }),
-    [params],
+    [params.page, params.pageSize],
   );
 
   const filtersState = useMemo(
@@ -118,50 +123,59 @@ export const DataTable = <TData extends object>({
         id: key,
         value: params.filters[key],
       })),
-    [params],
+    [params.filters],
   );
 
   const pageCount = Math.ceil(totalItems / paginationState.pageSize);
 
-  const handlePagination = (updateFn: Updater<PaginationState>) => {
-    const state = typeof updateFn === "function" ? updateFn(paginationState) : updateFn;
-    onParamChange({
-      ...params,
-      page: state.pageIndex + 1,
-      pageSize: state.pageSize,
-    });
-  };
+  const handlePagination = useCallback(
+    (updateFn: Updater<PaginationState>) => {
+      const state = typeof updateFn === "function" ? updateFn(paginationState) : updateFn;
+      onParamChange({
+        ...params,
+        page: state.pageIndex + 1,
+        pageSize: state.pageSize,
+      });
+    },
+    [onParamChange, paginationState, params],
+  );
 
-  const handleSort = (updateFn: Updater<SortingState>) => {
-    const columnSorts = typeof updateFn === "function" ? updateFn(sortingState) : updateFn;
-    const hasSort = columnSorts.length > 0;
+  const handleSort = useCallback(
+    (updateFn: Updater<SortingState>) => {
+      const columnSorts = typeof updateFn === "function" ? updateFn(sortingState) : updateFn;
+      const hasSort = columnSorts.length > 0;
 
-    const orderBy = hasSort ? columnSorts[0].id : "";
-    const orderType = hasSort ? (columnSorts[0].desc ? "desc" : "asc") : "";
+      const orderBy = hasSort ? columnSorts[0].id : "";
+      const orderType = hasSort ? (columnSorts[0].desc ? "desc" : "asc") : "";
 
-    onParamChange({
-      ...params,
-      orderBy,
-      orderType,
-    });
-  };
+      onParamChange({
+        ...params,
+        orderBy,
+        orderType,
+      });
+    },
+    [onParamChange, params, sortingState],
+  );
 
-  const handleFilterChange = (updateFn: Updater<ColumnFiltersState>) => {
-    const filters = typeof updateFn === "function" ? updateFn(filtersState) : updateFn;
+  const handleFilterChange = useCallback(
+    (updateFn: Updater<ColumnFiltersState>) => {
+      const filters = typeof updateFn === "function" ? updateFn(filtersState) : updateFn;
 
-    const filtersById = filters.reduce(
-      (obj, curr) => ({
-        ...obj,
-        [curr.id]: curr.value,
-      }),
-      {},
-    );
+      const filtersById = filters.reduce(
+        (obj, curr) => ({
+          ...obj,
+          [curr.id]: curr.value,
+        }),
+        {},
+      );
 
-    onParamChange({
-      ...params,
-      filters: filtersById,
-    });
-  };
+      onParamChange({
+        ...params,
+        filters: filtersById,
+      });
+    },
+    [filtersState, onParamChange, params],
+  );
 
   const table = useTable({
     features: dataTableFeatures,
@@ -189,65 +203,78 @@ export const DataTable = <TData extends object>({
     },
   });
 
-  const handleRowClick = (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
-    if (!onRowClick) return;
-    const target = e.target as HTMLElement;
-    if (target.closest("[data-scope=menu]") || target.closest("button") || target.closest("a"))
-      return;
-    onRowClick(row);
-  };
+  const handleRowClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
+      if (!onRowClick || isNestedControl(e.target)) return;
+      onRowClick(row);
+    },
+    [onRowClick],
+  );
+
+  const handleRowKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
+      if (!onRowClick || (e.key !== "Enter" && e.key !== " ")) return;
+      if (isNestedControl(e.target)) return;
+      e.preventDefault();
+      onRowClick(row);
+    },
+    [onRowClick],
+  );
+
+  const contextValue = useMemo<DataTableContextValue<TData>>(
+    () => ({
+      loading: !!loading,
+      onRowClick: onRowClick && handleRowClick,
+      onRowKeyDown: onRowClick && handleRowKeyDown,
+      getRowProps,
+      onReset,
+      noResultsLabel: labels?.noResults ?? "No results available.",
+      resetFiltersLabel: labels?.resetFilters ?? "Reset filters",
+    }),
+    [getRowProps, handleRowClick, handleRowKeyDown, labels, loading, onReset, onRowClick],
+  );
 
   return (
-    <Stack
-      position="relative"
-      bg="bg"
-      width="100%"
-      flex="1"
-      borderWidth={variant === "basic" ? undefined : "1px"}
-      borderRadius="sm"
-      boxShadow={variant === "basic" ? undefined : "xl"}
-      minHeight="0"
-    >
-      {showCards ? (
-        <DataTableCards
-          loading={!!loading}
-          table={table}
-          onRowClick={handleRowClick}
-          getRowProps={getRowProps}
-          onReset={onReset}
-          labels={labels}
-        />
-      ) : (
-        <Box
-          display="flex"
-          flexDirection="column"
-          flex="1"
-          minHeight="0"
-        >
-          <DataTableHeader
+    <DataTableProvider value={contextValue}>
+      <Stack
+        position="relative"
+        bg="bg"
+        width="100%"
+        flex="1"
+        borderWidth={variant === "basic" ? undefined : "1px"}
+        borderRadius="sm"
+        boxShadow={variant === "basic" ? undefined : "xl"}
+        minHeight="0"
+      >
+        {showCards ? (
+          <DataTableCards table={table} />
+        ) : (
+          <Box
+            display="flex"
+            flexDirection="column"
+            flex="1"
+            minHeight="0"
+          >
+            <DataTableHeader
+              table={table}
+              showFiltersRow={showFiltersRow}
+            />
+            <DataTableBody
+              table={table}
+              renderSubRow={renderSubRow}
+            />
+          </Box>
+        )}
+
+        {showPagination && (
+          <DataTablePagination
             table={table}
-            showFiltersRow={showFiltersRow}
-          />
-          <DataTableBody
-            loading={!!loading}
-            table={table}
-            onRowClick={handleRowClick}
-            getRowProps={getRowProps}
-            renderSubRow={renderSubRow}
-            onReset={onReset}
+            totalItems={totalItems}
+            size={variant === "basic" ? "xs" : "md"}
             labels={labels}
           />
-        </Box>
-      )}
-
-      {showPagination && (
-        <DataTablePagination
-          table={table}
-          totalItems={totalItems}
-          size={variant === "basic" ? "xs" : "md"}
-          labels={labels}
-        />
-      )}
-    </Stack>
+        )}
+      </Stack>
+    </DataTableProvider>
   );
 };

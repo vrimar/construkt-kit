@@ -1,40 +1,27 @@
-import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import React, { useEffect } from "react";
 
 import { LoadingOverlay } from "../../LoadingOverlay";
 import { ScrollArea } from "../../ScrollArea";
+import { useDataTableContext } from "../context";
 import { DataTableEmptyState } from "../EmptyState";
 import type { DataTableInstance, DataTableRow } from "../types";
 import { BodyCell } from "./BodyCell";
 
 interface DataTableBodyProps<TData extends object> {
   table: DataTableInstance<TData>;
-  onRowClick: (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
-  loading: boolean;
-  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
-  onReset?: () => unknown;
   renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
-  labels?: {
-    noResults?: string;
-    resetFilters?: string;
-  };
 }
 
 export const DataTableBody = <TData extends object>({
   table,
-  loading,
-  onRowClick,
-  getRowProps,
-  onReset,
   renderSubRow,
-  labels,
 }: DataTableBodyProps<TData>) => {
+  const { loading, onRowClick, onRowKeyDown, getRowProps } = useDataTableContext<TData>();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const page = table.state.pagination.pageIndex;
   const hasEmptyMessage = rows.length === 0 && !loading;
-  const noResultsLabel = labels?.noResults ?? "No results available.";
-  const resetFiltersLabel = labels?.resetFilters ?? "Reset filters";
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
@@ -48,14 +35,7 @@ export const DataTableBody = <TData extends object>({
       ref={scrollRef}
     >
       <LoadingOverlay isActive={loading} />
-      {hasEmptyMessage && (
-        <DataTableEmptyState
-          layout="fill"
-          noResultsLabel={noResultsLabel}
-          resetFiltersLabel={resetFiltersLabel}
-          onReset={onReset}
-        />
-      )}
+      {hasEmptyMessage && <DataTableEmptyState layout="fill" />}
       {rows.map((row) => {
         return (
           <React.Fragment key={row.id}>
@@ -63,10 +43,12 @@ export const DataTableBody = <TData extends object>({
               display="flex"
               paddingX="2"
               width="100%"
-              onClick={(e) => onRowClick(e, row)}
+              tabIndex={onRowClick ? 0 : undefined}
+              onClick={onRowClick && ((e) => onRowClick(e, row))}
+              onKeyDown={onRowKeyDown && ((e) => onRowKeyDown(e, row))}
               borderBottomWidth="1px"
               borderBottomColor="border"
-              cursor="pointer"
+              cursor={onRowClick ? "pointer" : undefined}
               _last={{
                 borderBottom: "none",
               }}
