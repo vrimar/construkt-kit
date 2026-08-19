@@ -34,6 +34,10 @@ export const useFileSelect = <TMultiple extends boolean = false>(
   const urlsRef = useRef<string[]>([]);
 
   useEffect(() => {
+    optionsRef.current = options;
+  });
+
+  useEffect(() => {
     return () => {
       for (const url of urlsRef.current) {
         URL.revokeObjectURL(url);
