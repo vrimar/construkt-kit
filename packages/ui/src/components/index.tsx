@@ -8,7 +8,11 @@ export * from "./Breadcrumb";
 export * from "./Buttons";
 export * from "./Card";
 export * from "./Carousel";
-export { Checkbox, type CheckboxProps } from "./Checkbox";
+export {
+  Checkbox,
+  type CheckboxProps,
+  type CheckedState as CheckboxCheckedState,
+} from "./Checkbox";
 export * from "./CheckboxCard";
 export * from "./Clipboard";
 export * from "./Code";
@@ -44,6 +48,7 @@ export {
   type MenuRootProps,
   type MenuTriggerProps,
   type MenuTriggerItemProps,
+  type SelectionDetails as MenuSelectionDetails,
 } from "./Menu";
 export * from "./NumberInput";
 export * from "./Pagination";
