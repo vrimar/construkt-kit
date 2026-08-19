@@ -58,6 +58,7 @@ export function LoginPage({
             w="100%"
             type="submit"
             loading={isLoading}
+            disabled={isLoading || !email || !password}
             colorPalette="brand"
           >
             Login
