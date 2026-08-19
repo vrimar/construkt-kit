@@ -24,6 +24,7 @@ interface PaginationProps<TData extends object> {
 export const DataTablePagination = <TData extends object>({
   table,
   totalItems,
+  size,
   labels,
 }: PaginationProps<TData>) => {
   const pageCount = table.getPageCount();
@@ -81,7 +82,7 @@ export const DataTablePagination = <TData extends object>({
             variant="outline"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
-            size="sm"
+            size={size}
           >
             <ChevronsLeftIcon />
           </IconButton>
@@ -89,7 +90,7 @@ export const DataTablePagination = <TData extends object>({
             variant="outline"
             onClick={table.previousPage}
             disabled={!table.getCanPreviousPage()}
-            size="sm"
+            size={size}
           >
             <ChevronLeftIcon />
           </IconButton>
@@ -98,7 +99,7 @@ export const DataTablePagination = <TData extends object>({
             variant="outline"
             onClick={table.nextPage}
             disabled={!table.getCanNextPage()}
-            size="sm"
+            size={size}
           >
             <ChevronRightIcon />
           </IconButton>
@@ -106,7 +107,7 @@ export const DataTablePagination = <TData extends object>({
             variant="outline"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
-            size="sm"
+            size={size}
           >
             <ChevronsRightIcon />
           </IconButton>
