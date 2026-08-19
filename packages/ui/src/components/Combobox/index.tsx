@@ -24,7 +24,7 @@ const RootProvider = withProvider(
 ) as ArkCombobox.RootProviderComponent<RootProps>;
 
 const ClearTrigger = withContext(ArkCombobox.ClearTrigger, "clearTrigger", {
-  defaultProps: { children: <XIcon /> },
+  defaultProps: { children: <XIcon />, "aria-label": "Clear selection" },
 });
 const Content = withContext(ArkCombobox.Content, "content");
 const Control = withContext(ArkCombobox.Control, "control");

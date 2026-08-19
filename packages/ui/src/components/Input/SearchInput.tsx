@@ -38,6 +38,7 @@ export const SearchInput = ({
           <IconButton
             variant="plain"
             size={iconButtonSize}
+            aria-label="Clear search"
             onClick={onClear}
           >
             <XIcon />

@@ -3,6 +3,8 @@ import { Flex, type FlexProps, Stack } from "@construkt-kit/styled-system/jsx";
 import { Spinner } from "../Spinner";
 import { Text } from "../Text";
 
+const RELATIVE_MIN_HEIGHT = { base: "240px", md: "400px" } as const;
+
 const tipFontSizeMap = {
   inherit: undefined,
   xs: "xs",
@@ -31,10 +33,13 @@ export const LoadingOverlay = ({
 }: LoadingOverlayProps) => {
   return (
     <Flex
+      role="status"
+      aria-busy={isActive}
+      aria-live="polite"
       position={relative ? "relative" : "absolute"}
       left="0"
       zIndex="overlay"
-      minHeight={relative ? { base: "240px", md: "400px" } : undefined}
+      minHeight={relative ? RELATIVE_MIN_HEIGHT : undefined}
       height="100%"
       width="100%"
       alignItems="center"

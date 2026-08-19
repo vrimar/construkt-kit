@@ -80,6 +80,7 @@ export const DataTablePagination = <TData extends object>({
         <HStack alignSelf="flex-end">
           <IconButton
             variant="outline"
+            aria-label="First page"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
             size={size}
@@ -88,6 +89,7 @@ export const DataTablePagination = <TData extends object>({
           </IconButton>
           <IconButton
             variant="outline"
+            aria-label="Previous page"
             onClick={table.previousPage}
             disabled={!table.getCanPreviousPage()}
             size={size}
@@ -97,6 +99,7 @@ export const DataTablePagination = <TData extends object>({
 
           <IconButton
             variant="outline"
+            aria-label="Next page"
             onClick={table.nextPage}
             disabled={!table.getCanNextPage()}
             size={size}
@@ -105,6 +108,7 @@ export const DataTablePagination = <TData extends object>({
           </IconButton>
           <IconButton
             variant="outline"
+            aria-label="Last page"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
             size={size}
