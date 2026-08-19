@@ -1,23 +1,22 @@
-import type { DateValue } from "@ark-ui/react/date-picker";
 import { useMemo } from "react";
 
 import { CloseButton } from "../Buttons/CloseButton";
 import { SelectButton } from "../Buttons/SelectButton";
 import { DatePicker } from "./DatePicker";
+import { formatDateValue } from "./format";
 import type { DatePickerProps, DatePickerSelectProps } from "./types";
-import { fireClear, toArkValue } from "./types";
-
-function formatDateValue(value: DateValue): string {
-  return `${value.year}-${String(value.month).padStart(2, "0")}-${String(value.day).padStart(2, "0")}`;
-}
+import { fireClear } from "./types";
 
 export const DatePickerSelect = (props: DatePickerSelectProps) => {
-  const value = toArkValue(props) ?? [];
+  const rawValue = props.value;
+  const value = useMemo(
+    () => (rawValue === undefined ? [] : Array.isArray(rawValue) ? rawValue : [rawValue]),
+    [rawValue],
+  );
 
   const label = useMemo(() => {
     const fmt = props.formatValue ?? formatDateValue;
     return value.map(fmt).join(" – ");
-    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [value, props.formatValue]);
 
   const hasValue = value.length > 0;

@@ -1,4 +1,3 @@
-import type { DateValue } from "@ark-ui/react/date-picker";
 import { useDatePicker } from "@ark-ui/react/date-picker";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -6,14 +5,10 @@ import { useIsMobile } from "../../hooks";
 import { Button } from "../Buttons";
 import { CalendarContent } from "./CalendarContent";
 import { DatePickerContent } from "./DatePickerContent";
+import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
 import type { DatePickerProps } from "./types";
 import { fireClear, fireValueChange, toArkDefaultValue, toArkValue } from "./types";
-
-function formatDateValue(value: DateValue, formatValue?: (v: DateValue) => string): string {
-  if (formatValue) return formatValue(value);
-  return `${value.year}-${String(value.month).padStart(2, "0")}-${String(value.day).padStart(2, "0")}`;
-}
 
 export const DatePicker = (props: DatePickerProps) => {
   const {
@@ -72,17 +67,7 @@ export const DatePicker = (props: DatePickerProps) => {
     },
   });
 
-  const displayLabel = (() => {
-    const arkValue = datePicker.value;
-    if (arkValue.length === 0) return placeholder;
-    if (selectionMode === "range" && arkValue.length === 2) {
-      return `${formatDateValue(arkValue[0], formatValue)} – ${formatDateValue(arkValue[1], formatValue)}`;
-    }
-    if (selectionMode === "multiple") {
-      return arkValue.map((v) => formatDateValue(v, formatValue)).join(", ");
-    }
-    return formatDateValue(arkValue[0], formatValue);
-  })();
+  const displayLabel = getDisplayLabel(datePicker.value, selectionMode, placeholder, formatValue);
 
   const defaultTrigger = (
     <Button

@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
+import { formatDateValue } from "../../../DatePicker/format";
 
 const DATE_RANGE_SEPARATOR = "<>";
 
@@ -19,10 +20,6 @@ function parseDateValue(dateValue: string): DateValue[] {
   const end = dayjs(dateTokens[1]);
   if (!start.isValid() || !end.isValid()) return [];
   return [parseDate(start.toDate()), parseDate(end.toDate())];
-}
-
-function formatDateValue(item: DateValue): string {
-  return `${item.year}-${String(item.month).padStart(2, "0")}-${String(item.day).padStart(2, "0")}`;
 }
 
 export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps) => {
