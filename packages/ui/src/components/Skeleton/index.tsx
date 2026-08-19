@@ -11,6 +11,8 @@ export const Skeleton = styled(ark.div, skeleton);
 export type SkeletonCircleProps = ComponentProps<typeof SkeletonCircle>;
 export const SkeletonCircle = styled(ark.div, skeleton, { defaultProps: { circle: true } });
 
+const LAST_LINE_WIDTH = "80%";
+
 export interface SkeletonTextProps extends SkeletonProps {
   /**
    * Number of lines to display
@@ -36,7 +38,7 @@ export const SkeletonText = ({
         <Skeleton
           key={index}
           height="4"
-          _last={{ maxW: noOfLines === 1 ? "100%" : "80%" }}
+          _last={{ maxW: noOfLines === 1 ? "100%" : LAST_LINE_WIDTH }}
           {...skeletonProps}
         />
       ))}

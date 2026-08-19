@@ -6,6 +6,8 @@ import type { PortalledProps, WithRef } from "../../types";
 import { IconButton } from "../Buttons";
 import * as ArkPopover from "../Popover";
 
+const TRIGGER_GUTTER = 4;
+
 export interface ToggleTipProps extends ArkPopover.RootProps, PortalledProps {
   showArrow?: boolean;
   content?: ReactNode;
@@ -23,7 +25,7 @@ export const ToggleTip = ({
   return (
     <ArkPopover.Root
       {...rest}
-      positioning={{ gutter: 4, ...rest.positioning }}
+      positioning={{ gutter: TRIGGER_GUTTER, ...rest.positioning }}
     >
       <ArkPopover.Trigger asChild>{children}</ArkPopover.Trigger>
       <Portal

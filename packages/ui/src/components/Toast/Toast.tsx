@@ -41,16 +41,19 @@ function Indicator({ ref, ...props }: WithRef<IconProps, SVGSVGElement>) {
   );
 }
 
+const APP_HEADER_HEIGHT = "80px";
+const VIEWPORT_INSET = "40px";
+
 export const toaster: ReturnType<typeof createToaster> = createToaster({
   placement: "top-end",
   pauseOnPageIdle: true,
   overlap: true,
   max: 5,
   offsets: {
-    top: "80px",
+    top: APP_HEADER_HEIGHT,
     bottom: "0px",
     left: "0px",
-    right: "40px",
+    right: VIEWPORT_INSET,
   },
 });
 
