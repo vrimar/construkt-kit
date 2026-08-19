@@ -2,6 +2,7 @@ import { popoverAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlText, surface } from "./control-size";
+import { floatingArrow } from "./floating-arrow";
 
 export const popover = defineSlotRecipe({
   className: "popover",
@@ -59,13 +60,7 @@ export const popover = defineSlotRecipe({
       paddingInline: "var(--popover-padding)",
       paddingBottom: "var(--popover-padding)",
     },
-    arrow: {
-      "--arrow-size": "sizes.3",
-      "--arrow-background": "colors.neutral.surface.bg",
-    },
-    arrowTip: {
-      borderTopWidth: "0.5px",
-      borderInlineStartWidth: "0.5px",
-    },
+    arrow: floatingArrow.arrow,
+    arrowTip: floatingArrow.arrowTip,
   },
 });

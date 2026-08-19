@@ -1,5 +1,11 @@
 import { defineLayerStyles } from "@pandacss/dev";
 
+const floatingSurface = {
+  background: "neutral.surface.bg",
+  borderWidth: "1px",
+  borderColor: "neutral.surface.border",
+} as const;
+
 export const layerStyles = defineLayerStyles({
   disabled: {
     value: {
@@ -9,29 +15,12 @@ export const layerStyles = defineLayerStyles({
     },
   },
   "dropdown.surface": {
-    value: {
-      background: "neutral.surface.bg",
-      borderWidth: "1px",
-      borderColor: "neutral.surface.border",
-      borderRadius: "md",
-      boxShadow: "md",
-    },
+    value: { ...floatingSurface, borderRadius: "md", boxShadow: "md" },
   },
   "floating.surface": {
-    value: {
-      background: "neutral.surface.bg",
-      borderWidth: "1px",
-      borderColor: "neutral.surface.border",
-      borderRadius: "lg",
-      boxShadow: "md",
-    },
+    value: { ...floatingSurface, borderRadius: "lg", boxShadow: "md" },
   },
   "modal.surface": {
-    value: {
-      background: "neutral.surface.bg",
-      borderWidth: "1px",
-      borderColor: "neutral.surface.border",
-      boxShadow: "lg",
-    },
+    value: { ...floatingSurface, boxShadow: "lg" },
   },
 });

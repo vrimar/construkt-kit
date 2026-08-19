@@ -2,6 +2,11 @@ import type { RecipeConfig } from "@pandacss/dev";
 
 import { controlH, controlPx, controlText } from "./control-size";
 
+const invalidRing = {
+  focusRingColor: "border.error",
+  borderColor: "border.error",
+} as const;
+
 export const input = {
   className: "input",
   jsx: ["Input", "Field.Input", "SearchInput", "PasswordInput"],
@@ -30,10 +35,7 @@ export const input = {
         borderWidth: "1px",
         borderColor: "neutral.outline.border",
         focusVisibleRing: "inside",
-        _invalid: {
-          focusRingColor: "border.error",
-          borderColor: "border.error",
-        },
+        _invalid: invalidRing,
       },
       surface: {
         bg: "neutral.surface.bg",
@@ -41,10 +43,7 @@ export const input = {
         borderColor: "neutral.surface.border",
         focusVisibleRing: "inside",
 
-        _invalid: {
-          focusRingColor: "border.error",
-          borderColor: "border.error",
-        },
+        _invalid: invalidRing,
       },
       subtle: {
         borderWidth: "1px",
@@ -53,10 +52,7 @@ export const input = {
         color: "neutral.subtle.fg",
         focusVisibleRing: "inside",
 
-        _invalid: {
-          focusRingColor: "border.error",
-          borderColor: "border.error",
-        },
+        _invalid: invalidRing,
       },
       flushed: {
         borderBottomWidth: "1px",
@@ -82,10 +78,7 @@ export const input = {
         borderColor: "colorPalette.outline.border",
         focusVisibleRing: "inside",
         focusRingColor: "colorPalette.solid.bg",
-        _invalid: {
-          focusRingColor: "border.error",
-          borderColor: "border.error",
-        },
+        _invalid: invalidRing,
       },
       plain: {
         focusVisibleRing: "none",
