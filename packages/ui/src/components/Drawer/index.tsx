@@ -28,15 +28,23 @@ const Footer = withContext(ark.div, "footer");
 
 export type DrawerRootProps = ComponentProps<typeof Root>;
 
-export interface DrawerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
+export interface DrawerContentProps extends ComponentProps<typeof Content>, PortalledProps {
+  backdrop?: boolean;
+}
 
-function DrawerContent({ ref, portalled = true, portalRef, ...rest }: WithRef<DrawerContentProps>) {
+function DrawerContent({
+  ref,
+  portalled = true,
+  portalRef,
+  backdrop = true,
+  ...rest
+}: WithRef<DrawerContentProps>) {
   return (
     <Portal
       disabled={!portalled}
       container={portalRef}
     >
-      <Backdrop />
+      {backdrop && <Backdrop />}
       <Positioner>
         <Content
           ref={ref}
