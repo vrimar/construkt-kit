@@ -8,7 +8,7 @@ export function isValidNumber(value: unknown): boolean {
 }
 
 export function toInt(input: number | string | null | undefined): number {
-  if (isStrictlyNumeric(input)) return input;
+  if (isStrictlyNumeric(input)) return Math.trunc(input);
   if (input == null) return 0;
   const parsed = Number(input);
   return isNaN(parsed) ? 0 : Math.trunc(parsed);

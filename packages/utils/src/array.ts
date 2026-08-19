@@ -10,8 +10,7 @@ export function transformArray<T>(arraySrc: T[], getKey: (item: T) => string | n
 }
 
 export function addOrRemove<T>(arr: T[], value: T) {
-  if (arr.find((v) => v === value)) return arr.filter((v) => v !== value);
-  else return [...arr, value];
+  return addOrRemoveByKey(arr, value, (item) => item);
 }
 
 export function addOrRemoveByKey<T, K>(arr: T[], value: T, key: (item: T) => K) {
