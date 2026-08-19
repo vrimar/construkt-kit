@@ -59,11 +59,12 @@ await fetchSpec(specUrl, inputPath);
 // --- Run kubb code generation -----------------------------------------------
 
 const { build } = await import("@kubb/core");
-await build({ config: kubbConfig });
-
-// --- Clean up temporary spec file -------------------------------------------
-
-fs.unlinkSync(inputPath);
+try {
+  await build({ config: kubbConfig });
+} finally {
+  // --- Clean up temporary spec file -----------------------------------------
+  fs.unlinkSync(inputPath);
+}
 
 console.log("API generation complete.");
 
