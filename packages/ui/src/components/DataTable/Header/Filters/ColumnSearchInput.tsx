@@ -25,7 +25,7 @@ export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputPr
       if (tempValue !== value) onChange(tempValue);
     },
     DEBOUNCE_DELAY_MS,
-    [tempValue, value],
+    [tempValue],
   );
 
   const handleClear = () => onChange("");

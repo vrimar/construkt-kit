@@ -5,7 +5,7 @@ export const useDebounceQuery = (initialQuery = "", delay = 500) => {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [immediateQuery, setImmediateQuery] = useState(initialQuery);
 
-  useDebounce(() => setDebouncedQuery(immediateQuery), delay, [immediateQuery]);
+  useDebounce(() => setDebouncedQuery(immediateQuery), delay, [immediateQuery, delay]);
 
   const handleQueryChange = (value: string) => {
     setImmediateQuery(value);
