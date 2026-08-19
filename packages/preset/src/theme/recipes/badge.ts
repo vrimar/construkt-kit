@@ -1,6 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
 import { controlFont, controlIcon, controlPx } from "./control-size";
+import { paletteVariant } from "./palette";
 
 export const badge = defineRecipe({
   className: "badge",
@@ -20,25 +21,10 @@ export const badge = defineRecipe({
   },
   variants: {
     variant: {
-      solid: {
-        bg: "colorPalette.solid.bg",
-        color: "colorPalette.solid.fg",
-      },
-      surface: {
-        bg: "colorPalette.surface.bg",
-        borderWidth: "1px",
-        borderColor: "colorPalette.surface.border",
-        color: "colorPalette.surface.fg",
-      },
-      subtle: {
-        bg: "colorPalette.subtle.bg",
-        color: "colorPalette.subtle.fg",
-      },
-      outline: {
-        borderWidth: "1px",
-        borderColor: "colorPalette.outline.border",
-        color: "colorPalette.outline.fg",
-      },
+      solid: paletteVariant.solid,
+      surface: paletteVariant.surface,
+      subtle: paletteVariant.subtle,
+      outline: paletteVariant.outline,
     },
     size: {
       xs: { fontSize: "2xs", px: "1", h: "4", gap: "0.5", _icon: { boxSize: "2" } },

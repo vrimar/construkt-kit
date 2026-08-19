@@ -1,6 +1,8 @@
 import { avatarAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { paletteVariant } from "./palette";
+
 export const avatar = defineSlotRecipe({
   className: "avatar",
   slots: avatarAnatomy.keys(),
@@ -111,33 +113,10 @@ export const avatar = defineSlotRecipe({
       },
     },
     variant: {
-      solid: {
-        root: {
-          bg: "colorPalette.solid.bg",
-          color: "colorPalette.solid.fg",
-        },
-      },
-      surface: {
-        root: {
-          bg: "colorPalette.surface.bg",
-          borderWidth: "1px",
-          borderColor: "colorPalette.surface.border",
-          color: "colorPalette.surface.fg",
-        },
-      },
-      subtle: {
-        root: {
-          bg: "colorPalette.subtle.bg",
-          color: "colorPalette.subtle.fg",
-        },
-      },
-      outline: {
-        root: {
-          borderWidth: "1px",
-          borderColor: "colorPalette.outline.border",
-          color: "colorPalette.outline.fg",
-        },
-      },
+      solid: { root: paletteVariant.solid },
+      surface: { root: paletteVariant.surface },
+      subtle: { root: paletteVariant.subtle },
+      outline: { root: paletteVariant.outline },
     },
     shape: {
       square: {},

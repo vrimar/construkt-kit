@@ -3,6 +3,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 import { controlGap, controlBox, controlText } from "./control-size";
+import { paletteVariant } from "./palette";
 
 export const checkbox = defineSlotRecipe({
   className: "checkbox",
@@ -69,35 +70,17 @@ export const checkbox = defineSlotRecipe({
           },
         },
       },
-      surface: {
-        control: {
-          bg: "colorPalette.surface.bg",
-          borderWidth: "1px",
-          borderColor: "colorPalette.surface.border",
-          color: "colorPalette.surface.fg",
-        },
-      },
-      subtle: {
-        control: {
-          bg: "colorPalette.subtle.bg",
-          color: "colorPalette.subtle.fg",
-        },
-      },
+      surface: { control: paletteVariant.surface },
+      subtle: { control: paletteVariant.subtle },
       outline: {
         control: {
-          borderWidth: "1px",
-          borderColor: "colorPalette.outline.border",
-          color: "colorPalette.outline.fg",
+          ...paletteVariant.outline,
           _checked: {
             borderColor: "colorPalette.solid.bg",
           },
         },
       },
-      plain: {
-        control: {
-          color: "colorPalette.plain.fg",
-        },
-      },
+      plain: { control: paletteVariant.plain },
     },
   },
 });

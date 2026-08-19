@@ -1,6 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
 import { controlText } from "./control-size";
+import { paletteVariant } from "./palette";
 
 export const kbd = defineRecipe({
   className: "kbd",
@@ -24,28 +25,11 @@ export const kbd = defineRecipe({
 
   variants: {
     variant: {
-      solid: {
-        bg: "colorPalette.solid.bg",
-        color: "colorPalette.solid.fg",
-      },
-      surface: {
-        bg: "colorPalette.surface.bg",
-        borderWidth: "1px",
-        borderColor: "colorPalette.surface.border",
-        color: "colorPalette.surface.fg",
-      },
-      outline: {
-        borderWidth: "1px",
-        borderColor: "colorPalette.outline.border",
-        color: "colorPalette.outline.fg",
-      },
-      subtle: {
-        bg: "colorPalette.subtle.bg",
-        color: "colorPalette.subtle.fg",
-      },
-      plain: {
-        color: "colorPalette.plain.fg",
-      },
+      solid: paletteVariant.solid,
+      surface: paletteVariant.surface,
+      outline: paletteVariant.outline,
+      subtle: paletteVariant.subtle,
+      plain: paletteVariant.plain,
     },
     size: {
       xs: { fontSize: "2xs", height: "4", minWidth: "4", px: "0.5" },
