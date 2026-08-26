@@ -44,7 +44,11 @@ function isOnRegistry(name, version) {
 }
 
 // `pnpm run release --otp=123456` reaches this script; without it npm prompts.
+// Under trusted publishing (CI) npm authenticates over OIDC and never asks.
 const otpArgs = process.argv.slice(2).filter((arg) => arg.startsWith('--otp'))
+
+// npm only mints provenance attestations from a supported CI environment.
+const provenanceArgs = process.env.GITHUB_ACTIONS ? ['--provenance'] : []
 
 const tmp = mkdtempSync(join(tmpdir(), 'ck-publish-'))
 const published = []
@@ -66,7 +70,9 @@ for (const dir of workspacePackageDirs()) {
 
   console.log(`publish ${pkg.name}@${pkg.version}`)
   // stdin stays attached so npm can prompt for the 2FA one-time password.
-  run('npm', ['publish', tarball, '--access', 'public', ...otpArgs], { stdio: 'inherit' })
+  run('npm', ['publish', tarball, '--access', 'public', ...provenanceArgs, ...otpArgs], {
+    stdio: 'inherit',
+  })
 
   const tag = `${pkg.name}@${pkg.version}`
   try {
