@@ -17,11 +17,7 @@ export type TableFilterSelections = Record<string, string[]>;
 
 export type ColumnFilterValue = string | string[] | undefined;
 
-export type {
-  DataTableFilters,
-  DataTableParams,
-  DataTableSortType,
-} from "@construkt-kit/utils";
+export type { DataTableFilters, DataTableParams, DataTableSortType } from "@construkt-kit/utils";
 
 export type DataTableSelectProps = Partial<
   Omit<
@@ -32,11 +28,14 @@ export type DataTableSelectProps = Partial<
   getItemLabel?: (item: string) => string;
 };
 
+export type DataTableColumnAlign = "start" | "center" | "end";
+
 export type DataTableColumnMeta = {
   type?: ColumnFilterType;
   selectProps?: DataTableSelectProps;
   width?: number;
   isVisible?: boolean;
+  align?: DataTableColumnAlign;
 };
 
 export type DataTableTableMeta = {

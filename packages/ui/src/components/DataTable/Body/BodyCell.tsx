@@ -11,6 +11,7 @@ export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) =
   const isVisible = cell.column.columnDef?.meta?.isVisible ?? true;
   const width = cell.column.columnDef?.meta?.width ?? cell.column.getSize();
   const widthPx = width ? `${width}px` : "auto";
+  const align = cell.column.columnDef?.meta?.align ?? "start";
 
   if (!isVisible) return null;
 
@@ -20,13 +21,13 @@ export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) =
     <Box
       display="flex"
       alignItems="center"
-      justifyContent="flex-start"
       flex="1"
       p="2"
       fontSize="sm"
       style={{
         minWidth: widthPx,
         maxWidth: widthPx,
+        justifyContent: align,
       }}
       overflow="hidden"
       title={typeof titleValue === "string" ? titleValue : undefined}

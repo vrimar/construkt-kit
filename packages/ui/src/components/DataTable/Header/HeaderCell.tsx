@@ -16,6 +16,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   const sort = column.getIsSorted();
   const width = column.columnDef.meta?.width ?? column.getSize();
   const widthPx = width ? `${width}px` : "auto";
+  const align = column.columnDef.meta?.align ?? "start";
 
   if (!isVisible) return null;
 
@@ -44,6 +45,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       style={{
         minWidth: widthPx,
         maxWidth: widthPx,
+        justifyContent: align,
       }}
       css={{
         "&:hover .data-table__column-sorter": {

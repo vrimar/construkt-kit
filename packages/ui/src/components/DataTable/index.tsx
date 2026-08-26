@@ -24,6 +24,7 @@ import { dataTableFeatures } from "./types";
 
 export type {
   DataTableCell,
+  DataTableColumnAlign,
   DataTableColumnDef,
   DataTableColumnMeta,
   DataTableFeatures,

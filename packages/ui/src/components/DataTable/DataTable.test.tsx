@@ -123,6 +123,34 @@ describe("DataTable", () => {
     expect(screen.queryByText("Admin")).toBeNull();
   });
 
+  it("aligns header and body cells from the column meta", () => {
+    const aligned = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.display({
+        id: "score",
+        header: "Score",
+        cell: () => "42",
+        meta: { align: "center" },
+      }),
+      columnHelper.accessor("role", { header: "Role", meta: { align: "end" } }),
+    ];
+    renderTable({ columns: aligned, showFiltersRow: false });
+
+    const alignOf = (el: Element | null) =>
+      el instanceof HTMLElement ? el.style.justifyContent : "";
+    const bodyCell = (text: string) => alignOf(screen.getAllByText(text)[0].parentElement);
+    const headerCell = (text: string) =>
+      alignOf(screen.getByText(text).parentElement?.parentElement ?? null);
+
+    expect(bodyCell("Alice")).toBe("start");
+    expect(bodyCell("42")).toBe("center");
+    expect(bodyCell("Admin")).toBe("end");
+
+    expect(headerCell("Name")).toBe("start");
+    expect(headerCell("Score")).toBe("center");
+    expect(headerCell("Role")).toBe("end");
+  });
+
   it("renders the empty message when there are no rows", () => {
     renderTable({ data: [], totalItems: 0 });
 

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
 
-import { DataTable } from ".";
+import { DataTable, type DataTableProps } from ".";
 import { Box } from "../Layout";
 import type { DataTableParams, dataTableFeatures } from "./types";
 
@@ -29,6 +29,22 @@ const columns = [
   columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
   columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
   columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
+];
+
+const alignedColumns = [
+  columnHelper.accessor("id", { header: "ID", meta: { align: "end", width: 80 } }),
+  columnHelper.accessor("name", {
+    header: "Name (start)",
+    meta: { type: "input", align: "start" },
+  }),
+  columnHelper.accessor("role", {
+    header: "Role (center)",
+    meta: { type: "select", align: "center" },
+  }),
+  columnHelper.accessor("createdAt", {
+    header: "Created At (end)",
+    meta: { type: "date", align: "end" },
+  }),
 ];
 
 const roleSelections = ["Admin", "User", "Editor"];
@@ -214,6 +230,7 @@ function DataTableStory(props: {
   data: Person[];
   loading?: boolean;
   variant?: "default" | "basic";
+  columns?: DataTableProps<Person>["columns"];
 }) {
   const [params, setParams] = useState<DataTableParams>(defaultParams);
   const filtered = applyFiltersAndSorting(props.data, params);
@@ -221,7 +238,7 @@ function DataTableStory(props: {
 
   return (
     <DataTable
-      columns={columns}
+      columns={props.columns ?? columns}
       data={paged}
       totalItems={filtered.length}
       params={params}
@@ -275,5 +292,19 @@ export const Basic: Story = {
       data={data}
       variant="basic"
     />
+  ),
+};
+
+export const Aligned: Story = {
+  render: () => (
+    <Box
+      maxW="800px"
+      overflowX="auto"
+    >
+      <DataTableStory
+        data={data}
+        columns={alignedColumns}
+      />
+    </Box>
   ),
 };
