@@ -123,7 +123,7 @@ describe("DataTable", () => {
     expect(screen.queryByText("Admin")).toBeNull();
   });
 
-  it("aligns header and body cells from the column meta", () => {
+  it("aligns body cells from the column meta and leaves headers at the start", () => {
     const aligned = [
       columnHelper.accessor("name", { header: "Name" }),
       columnHelper.display({
@@ -146,9 +146,29 @@ describe("DataTable", () => {
     expect(bodyCell("42")).toBe("center");
     expect(bodyCell("Admin")).toBe("end");
 
-    expect(headerCell("Name")).toBe("start");
-    expect(headerCell("Score")).toBe("center");
-    expect(headerCell("Role")).toBe("end");
+    for (const header of ["Name", "Score", "Role"]) expect(headerCell(header)).toBe("");
+  });
+
+  it("keeps the sorter out of flow so it never indents the header label", () => {
+    const aligned = [
+      columnHelper.accessor("name", { header: "Name", enableSorting: true }),
+      columnHelper.accessor("role", {
+        header: "Role",
+        enableSorting: false,
+        meta: { align: "end" },
+      }),
+    ];
+    renderTable({ columns: aligned, showFiltersRow: false });
+
+    const labelBox = (text: string) => screen.getByText(text).parentElement as HTMLElement;
+    const sorterOf = (text: string) =>
+      labelBox(text).querySelector<HTMLElement>(".data-table__column-sorter");
+
+    expect(labelBox("Name").style.maxWidth).toBe("calc(100% - 22px)");
+    expect(sorterOf("Name")?.style.marginLeft).toBe("4px");
+
+    expect(labelBox("Role").style.maxWidth).toBe("100%");
+    expect(sorterOf("Role")).toBeNull();
   });
 
   it("renders the empty message when there are no rows", () => {

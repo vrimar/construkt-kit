@@ -45,6 +45,10 @@ const alignedColumns = [
     header: "Created At (end)",
     meta: { type: "date", align: "end" },
   }),
+  columnHelper.accessor("email", {
+    header: "Email Address (truncated)",
+    meta: { type: "input", align: "start", width: 140 },
+  }),
 ];
 
 const roleSelections = ["Admin", "User", "Editor"];

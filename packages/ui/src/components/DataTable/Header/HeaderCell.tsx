@@ -1,9 +1,9 @@
-import { Box, HStack } from "@construkt-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
 
 import { Text } from "../../Text";
 import type { DataTableHeader } from "../types";
-import { ColumnSorter } from "./ColumnSorter";
+import { ColumnSorter, columnSorterGutter } from "./ColumnSorter";
 
 interface HeaderCellProps<TData extends object> {
   header: DataTableHeader<TData>;
@@ -16,7 +16,10 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   const sort = column.getIsSorted();
   const width = column.columnDef.meta?.width ?? column.getSize();
   const widthPx = width ? `${width}px` : "auto";
-  const align = column.columnDef.meta?.align ?? "start";
+  const label = column.columnDef.header;
+
+  // The sorter is out of flow: without this reservation it would overlap a full-width label.
+  const labelMaxWidth = sortable ? `calc(100% - ${columnSorterGutter}px)` : "100%";
 
   if (!isVisible) return null;
 
@@ -33,6 +36,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   return (
     <Box
       display="flex"
+      alignItems="center"
       key={header.id}
       flex="1"
       px="2"
@@ -41,11 +45,11 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       fontSize="sm"
       borderRightWidth="1px"
       borderRightColor="border"
+      overflow="hidden"
       userSelect="none"
       style={{
         minWidth: widthPx,
         maxWidth: widthPx,
-        justifyContent: align,
       }}
       css={{
         "&:hover .data-table__column-sorter": {
@@ -53,18 +57,24 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
         },
       }}
     >
-      <HStack
+      <Box
+        position="relative"
+        display="flex"
         alignItems="center"
-        gap="3"
+        minWidth="0"
+        style={{ maxWidth: labelMaxWidth }}
       >
-        <Text>{flexRender(column.columnDef.header, header.getContext())}</Text>
-        <HStack gap="1">
-          <ColumnSorter
-            header={header}
-            onSort={handleSort}
-          />
-        </HStack>
-      </HStack>
+        <Text
+          truncate
+          title={typeof label === "string" ? label : undefined}
+        >
+          {flexRender(label, header.getContext())}
+        </Text>
+        <ColumnSorter
+          header={header}
+          onSort={handleSort}
+        />
+      </Box>
     </Box>
   );
 };

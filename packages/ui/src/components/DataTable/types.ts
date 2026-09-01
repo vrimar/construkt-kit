@@ -35,6 +35,7 @@ export type DataTableColumnMeta = {
   selectProps?: DataTableSelectProps;
   width?: number;
   isVisible?: boolean;
+  /** Aligns body cell content. Header labels stay at the start regardless. */
   align?: DataTableColumnAlign;
 };
 
