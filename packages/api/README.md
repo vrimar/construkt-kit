@@ -93,9 +93,28 @@ try {
 
 `createApiClient` converts `config.params` to `URLSearchParams`. Rules:
 
-- `undefined` values are **omitted**
+- `undefined` values are **omitted**; no `?` is appended when nothing survives
 - `null` becomes the string `"null"`
-- All other values are stringified via `String(value)`
+- Arrays are repeated per element (`ids=1&ids=2`)
+- `Date` values become ISO strings; other objects are JSON-encoded
+- Primitives are stringified
+
+### Headers and body
+
+Headers layer in this order, later wins: `setApiConfig({ headers })`, the per-request
+`headers` (record or tuple form), then `Authorization` from `getToken`.
+
+- `FormData`, `URLSearchParams`, `Blob`, `ArrayBuffer`, typed arrays and streams pass through
+  untouched; for `FormData` the `Content-Type` header is removed so fetch can set the boundary
+- With an `application/x-www-form-urlencoded` content type, a plain object is form-encoded with
+  the param rules above, except that `null` is omitted
+- A string body is sent as-is when a non-JSON content type is given
+- Anything else is JSON-encoded (`bigint` as a string) and, if no content type was given,
+  sent as `application/json`
+
+Responses: JSON content types are parsed, `text/*` is read as text, `204`/`205`/`304` and
+empty bodies yield `{}`, and everything else is exposed as a blob. Non-2xx statuses other
+than `304` throw an `ApiError`.
 
 ### Kubb codegen integration
 
