@@ -11,7 +11,7 @@ import {
 
 import type { ApplySelectProps } from "../ApplySelect";
 
-export type ColumnFilterType = "input" | "select" | "date";
+export type ColumnFilterType = "input" | "select" | "date" | "number";
 
 export type TableFilterSelections = Record<string, string[]>;
 

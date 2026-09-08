@@ -1,3 +1,4 @@
+import { matchesNumberFilter, parseNumberFilter } from "@construkt-kit/utils";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createColumnHelper } from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
@@ -69,6 +70,7 @@ const actionsColumn = columnHelper.display({
 });
 
 const columns = [
+  columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 150 } }),
   columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
   columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
   columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
@@ -242,17 +244,34 @@ const defaultParams: DataTableParams = {
   filters: {},
 };
 
-function applyFiltersAndSorting(items: Person[], params: DataTableParams): Person[] {
+function numberColumnIds(columnDefs: DataTableProps<Person>["columns"]): Set<string> {
+  const ids = new Set<string>();
+  for (const def of columnDefs) {
+    const id = def.id ?? ("accessorKey" in def ? String(def.accessorKey) : undefined);
+    if (id && def.meta?.type === "number") ids.add(id);
+  }
+  return ids;
+}
+
+function applyFiltersAndSorting(
+  items: Person[],
+  params: DataTableParams,
+  numberColumns: Set<string>,
+): Person[] {
   let result = [...items];
 
   // Apply filters
   for (const [key, values] of Object.entries(params.filters)) {
     if (!values || values.length === 0) continue;
+    const numberFilters = numberColumns.has(key) ? values.map(parseNumberFilter) : [];
     result = result.filter((row) => {
-      const cell = String(row[key as keyof Person] ?? "");
+      const cell = row[key as keyof Person] ?? "";
+      if (numberColumns.has(key))
+        return numberFilters.some((f) => f && matchesNumberFilter(Number(cell), f));
       // For input/date filters, values is a single-element array with a search string
       // For select filters, values is an array of selected options
-      return values.some((v) => cell === v || cell.toLowerCase().includes(v.toLowerCase()));
+      const text = String(cell);
+      return values.some((v) => text === v || text.toLowerCase().includes(v.toLowerCase()));
     });
   }
 
@@ -282,12 +301,13 @@ function DataTableStory(props: {
   columns?: DataTableProps<Person>["columns"];
 }) {
   const [params, setParams] = useState<DataTableParams>(defaultParams);
-  const filtered = applyFiltersAndSorting(props.data, params);
+  const activeColumns = props.columns ?? columns;
+  const filtered = applyFiltersAndSorting(props.data, params, numberColumnIds(activeColumns));
   const paged = paginate(filtered, params);
 
   return (
     <DataTable
-      columns={props.columns ?? columns}
+      columns={activeColumns}
       data={paged}
       totalItems={filtered.length}
       params={params}

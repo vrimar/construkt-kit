@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -169,6 +169,47 @@ describe("DataTable", () => {
 
     expect(labelBox("Role").style.maxWidth).toBe("100%");
     expect(sorterOf("Role")).toBeNull();
+  });
+
+  it("reports an operator-encoded value for a numeric column filter", async () => {
+    const numeric = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.accessor("id", { header: "ID", meta: { type: "number" } }),
+    ];
+    const onParamChange = vi.fn();
+    const StatefulTable = () => {
+      const [current, setCurrent] = useState(params);
+      return (
+        <DataTable
+          data={data}
+          totalItems={25}
+          columns={numeric}
+          params={current}
+          onParamChange={(next: DataTableParams) => {
+            onParamChange(next);
+            setCurrent(next);
+          }}
+        />
+      );
+    };
+    render(<StatefulTable />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Equals" }));
+    await userEvent.click(await screen.findByText("Greater or equal", { exact: false }));
+    await userEvent.type(screen.getByPlaceholderText("Filter ID"), "100");
+
+    await waitFor(
+      () =>
+        expect(onParamChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ filters: { id: ["gte:100"] } }),
+        ),
+      { timeout: 1500 },
+    );
+
+    await userEvent.clear(screen.getByPlaceholderText("Filter ID"));
+    await waitFor(() =>
+      expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} })),
+    );
   });
 
   it("renders the empty message when there are no rows", () => {

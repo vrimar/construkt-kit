@@ -1,5 +1,6 @@
 import type { ColumnFilterValue, DataTableHeader } from "../types";
 import { ColumnDateFilter } from "./Filters/ColumnDateFilter";
+import { ColumnNumberFilter } from "./Filters/ColumnNumberFilter";
 import { ColumnSearchInput } from "./Filters/ColumnSearchInput";
 import { ColumnSelectFilter } from "./Filters/ColumnSelectFilter";
 
@@ -41,6 +42,14 @@ export const DataTableHeaderFilterCellContent = <TData extends object>({
       return (
         <ColumnDateFilter
           dateValue={filterValue[0] ?? ""}
+          onChange={handleChange}
+        />
+      );
+    case "number":
+      return (
+        <ColumnNumberFilter
+          name={name}
+          value={filterValue[0] ?? ""}
           onChange={handleChange}
         />
       );

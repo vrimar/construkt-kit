@@ -24,6 +24,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "format": "oxfmt src",
     "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
-    "tsdown": "^0.22.14"
+    "tsdown": "^0.22.14",
+    "vitest": "^4.1.11"
   }
 }

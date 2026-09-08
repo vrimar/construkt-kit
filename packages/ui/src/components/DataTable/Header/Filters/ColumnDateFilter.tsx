@@ -1,20 +1,20 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
+import { FILTER_RANGE_SEPARATOR } from "@construkt-kit/utils";
 import dayjs from "dayjs";
 import { useState } from "react";
 
+import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
 import { formatDateValue } from "../../../DatePicker/format";
-
-const DATE_RANGE_SEPARATOR = "<>";
 
 interface ColumnDateFilterProps {
   dateValue: string;
   onChange: (value?: string) => unknown;
 }
 
-function parseDateValue(dateValue: string): DateValue[] {
+function parseDateValue(dateValue: string | undefined): DateValue[] {
   if (!dateValue) return [];
-  const dateTokens = dateValue.split(DATE_RANGE_SEPARATOR);
+  const dateTokens = dateValue.split(FILTER_RANGE_SEPARATOR);
   if (dateTokens.length !== 2) return [];
   const start = dayjs(dateTokens[0]);
   const end = dayjs(dateTokens[1]);
@@ -24,24 +24,23 @@ function parseDateValue(dateValue: string): DateValue[] {
 
 export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps) => {
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(dateValue));
-  const [syncedDateValue, setSyncedDateValue] = useState(dateValue);
-
-  if (dateValue !== syncedDateValue) {
-    setSyncedDateValue(dateValue);
-    setInternalValue(parseDateValue(dateValue));
-  }
+  const emit = useControlledMirror<string | undefined>({
+    value: dateValue || undefined,
+    onValueChange: onChange,
+    onExternalChange: (next) => setInternalValue(parseDateValue(next)),
+  });
 
   const handleValueChange = (value: DateValue[]) => {
     setInternalValue(value);
     if (value.length === 2)
-      onChange(`${formatDateValue(value[0])}${DATE_RANGE_SEPARATOR}${formatDateValue(value[1])}`);
-    else if (value.length === 0) onChange(undefined);
+      emit(`${formatDateValue(value[0])}${FILTER_RANGE_SEPARATOR}${formatDateValue(value[1])}`);
+    else if (value.length === 0) emit(undefined);
   };
 
   const handleOpenChange = (open: boolean) => {
     if (!open && internalValue.length === 1) {
       setInternalValue([]);
-      onChange(undefined);
+      emit(undefined);
     }
   };
 

@@ -50,6 +50,7 @@ export {
   type MenuTriggerItemProps,
   type SelectionDetails as MenuSelectionDetails,
 } from "./Menu";
+export * from "./NumberFilter";
 export * from "./NumberInput";
 export * from "./Pagination";
 export * from "./PinInput";

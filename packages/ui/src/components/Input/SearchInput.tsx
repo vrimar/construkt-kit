@@ -1,26 +1,13 @@
 import { SearchIcon, XIcon } from "lucide-react";
 
-import type { ButtonProps } from "../Buttons";
 import { IconButton } from "../Buttons";
 import { Input, type InputProps } from "./Input";
-import { InputGroup } from "./InputGroup";
+import { InputGroup, type InputGroupSize, inputGroupButtonSize } from "./InputGroup";
 
 export interface SearchInputProps extends InputProps {
   onClear?: () => unknown;
   hasIcon?: boolean;
 }
-
-type InputGroupSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-
-const iconButtonSizeMap: Record<InputGroupSize, ButtonProps["size"]> = {
-  "2xs": "2xs",
-  xs: "2xs",
-  sm: "xs",
-  md: "sm",
-  lg: "md",
-  xl: "lg",
-  "2xl": "xl",
-};
 
 export const SearchInput = ({
   hasIcon = true,
@@ -28,7 +15,7 @@ export const SearchInput = ({
   size = "md",
   ...props
 }: SearchInputProps) => {
-  const iconButtonSize = iconButtonSizeMap[size as InputGroupSize];
+  const iconButtonSize = inputGroupButtonSize[size as InputGroupSize];
   return (
     <InputGroup
       startElement={hasIcon && <SearchIcon />}

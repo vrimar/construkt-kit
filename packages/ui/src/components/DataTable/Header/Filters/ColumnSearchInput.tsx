@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useDebounce } from "react-use";
 
+import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { SearchInput } from "../../../Input";
-
-const DEBOUNCE_DELAY_MS = 500;
+import { FILTER_DEBOUNCE_MS } from "./constants";
 
 interface ColumnSearchInputProps {
   name: string;
@@ -13,22 +13,24 @@ interface ColumnSearchInputProps {
 
 export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputProps) => {
   const [tempValue, setTempValue] = useState(value);
-  const [syncedValue, setSyncedValue] = useState(value);
-
-  if (value !== syncedValue) {
-    setSyncedValue(value);
-    setTempValue(value);
-  }
+  const emit = useControlledMirror({
+    value,
+    onValueChange: onChange,
+    onExternalChange: setTempValue,
+  });
 
   useDebounce(
     () => {
-      if (tempValue !== value) onChange(tempValue);
+      if (tempValue !== value) emit(tempValue);
     },
-    DEBOUNCE_DELAY_MS,
+    FILTER_DEBOUNCE_MS,
     [tempValue],
   );
 
-  const handleClear = () => onChange("");
+  const handleClear = () => {
+    setTempValue("");
+    emit("");
+  };
 
   return (
     <SearchInput
