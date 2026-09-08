@@ -78,11 +78,12 @@ const columns = [
   actionsColumn,
 ];
 
-const alignedColumns = [
-  columnHelper.accessor("id", { header: "ID", meta: { align: "end", width: 80 } }),
-  columnHelper.accessor("name", {
-    header: "Name (start)",
-    meta: { type: "input", align: "start" },
+const constrainedColumns = [
+  columnHelper.accessor("id", { header: "ID", meta: { type: "number", minWidth: 200 } }),
+  columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
+  columnHelper.accessor("email", {
+    header: "Email Address (truncated)",
+    meta: { type: "input", width: 140 },
   }),
   columnHelper.accessor("role", {
     header: "Role (center)",
@@ -90,12 +91,20 @@ const alignedColumns = [
   }),
   columnHelper.accessor("createdAt", {
     header: "Created At (end)",
-    meta: { type: "date", align: "end" },
+    meta: { type: "date", align: "end", minWidth: 160 },
   }),
-  columnHelper.accessor("email", {
-    header: "Email Address (truncated)",
-    meta: { type: "input", align: "start", width: 140 },
+  columnHelper.display({
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (row.original.id % 2 ? "Active" : "Invited"),
   }),
+  columnHelper.display({
+    id: "score",
+    header: "Score",
+    meta: { align: "end", width: 96 },
+    cell: ({ row }) => row.original.id * 7,
+  }),
+  actionsColumn,
 ];
 
 const roleSelections = ["Admin", "User", "Editor"];
@@ -323,8 +332,9 @@ function DataTableStory(props: {
 export const Default: Story = {
   render: () => (
     <Box
+      display="flex"
       maxW="800px"
-      overflowX="auto"
+      height="420px"
     >
       <DataTableStory data={data} />
     </Box>
@@ -333,10 +343,7 @@ export const Default: Story = {
 
 export const Loading: Story = {
   render: () => (
-    <Box
-      maxW="800px"
-      overflowX="auto"
-    >
+    <Box maxW="800px">
       <DataTableStory
         data={[]}
         loading
@@ -347,10 +354,7 @@ export const Loading: Story = {
 
 export const Empty: Story = {
   render: () => (
-    <Box
-      maxW="800px"
-      overflowX="auto"
-    >
+    <Box maxW="800px">
       <DataTableStory data={[]} />
     </Box>
   ),
@@ -365,15 +369,16 @@ export const Basic: Story = {
   ),
 };
 
-export const Aligned: Story = {
+export const Constrained: Story = {
   render: () => (
     <Box
-      maxW="800px"
-      overflowX="auto"
+      display="flex"
+      maxW="480px"
+      height="360px"
     >
       <DataTableStory
         data={data}
-        columns={alignedColumns}
+        columns={constrainedColumns}
       />
     </Box>
   ),

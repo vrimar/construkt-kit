@@ -8,27 +8,17 @@ interface BodyCellProps<TData extends object> {
 }
 
 export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) => {
-  const isVisible = cell.column.columnDef?.meta?.isVisible ?? true;
-  const width = cell.column.columnDef?.meta?.width ?? cell.column.getSize();
-  const widthPx = width ? `${width}px` : "auto";
   const align = cell.column.columnDef?.meta?.align ?? "start";
-
-  if (!isVisible) return null;
-
   const titleValue = cell.getValue();
 
   return (
     <Box
+      role="cell"
       display="flex"
       alignItems="center"
-      flex="1"
       p="2"
       fontSize="sm"
-      style={{
-        minWidth: widthPx,
-        maxWidth: widthPx,
-        justifyContent: align,
-      }}
+      style={{ justifyContent: align }}
       overflow="hidden"
       title={typeof titleValue === "string" ? titleValue : undefined}
       position="relative"

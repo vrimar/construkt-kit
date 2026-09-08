@@ -11,17 +11,19 @@ interface HeaderCellProps<TData extends object> {
 
 export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
   const column = header.column;
-  const isVisible = column.columnDef?.meta?.isVisible ?? true;
   const sortable = column.getCanSort();
   const sort = column.getIsSorted();
-  const width = column.columnDef.meta?.width ?? column.getSize();
-  const widthPx = width ? `${width}px` : "auto";
   const label = column.columnDef.header;
+  const ariaSort = sort
+    ? sort === "asc"
+      ? "ascending"
+      : "descending"
+    : sortable
+      ? "none"
+      : undefined;
 
   // The sorter is out of flow: without this reservation it would overlap a full-width label.
   const labelMaxWidth = sortable ? `calc(100% - ${columnSorterGutter}px)` : "100%";
-
-  if (!isVisible) return null;
 
   const handleSort = () => {
     if (!sortable) return;
@@ -35,10 +37,11 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
 
   return (
     <Box
+      role="columnheader"
+      aria-sort={ariaSort}
       display="flex"
       alignItems="center"
       key={header.id}
-      flex="1"
       px="2"
       py="1"
       fontWeight="medium"
@@ -47,10 +50,6 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
-      style={{
-        minWidth: widthPx,
-        maxWidth: widthPx,
-      }}
       css={{
         "&:hover .data-table__column-sorter": {
           visibility: "visible",

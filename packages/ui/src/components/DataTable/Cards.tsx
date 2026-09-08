@@ -50,9 +50,6 @@ export const DataTableCards = <TData extends object>({ table }: DataTableCardsPr
             {...getRowProps?.(row)}
           >
             {row.getVisibleCells().map((cell) => {
-              const isVisible = cell.column.columnDef?.meta?.isVisible ?? true;
-              if (!isVisible) return null;
-
               const header = cell.column.columnDef.header;
               const label = typeof header === "string" ? header : null;
 

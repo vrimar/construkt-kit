@@ -34,6 +34,8 @@ export type DataTableColumnMeta = {
   type?: ColumnFilterType;
   selectProps?: DataTableSelectProps;
   width?: number;
+  /** Floor for a growing column, in px. Ignored when `width` is set. */
+  minWidth?: number;
   isVisible?: boolean;
   /** Aligns body cell content. Header labels stay at the start regardless. */
   align?: DataTableColumnAlign;
@@ -86,4 +88,5 @@ export type DataTableInstance<TData extends object> = ReactTable<DataTableFeatur
 
 export const dataTableClasses = {
   columnSorter: "data-table__column-sorter",
+  row: "data-table__row",
 };

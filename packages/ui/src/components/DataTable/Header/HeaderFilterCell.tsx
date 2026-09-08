@@ -13,27 +13,18 @@ export const DataTableHeaderFilterCell = <TData extends object>({
   filterValues,
 }: HeaderFilterCellProps<TData>) => {
   const column = header.column;
-  const isVisible = column.columnDef?.meta?.isVisible ?? true;
-  const width = column.columnDef?.meta?.width ?? column.getSize();
-  const widthPx = width ? `${width}px` : "auto";
-
-  if (!isVisible) return null;
 
   const handleChange = (value: ColumnFilterValue) => column.setFilterValue(value);
 
   return (
     <Box
       key={header.id}
+      role="cell"
       display="flex"
-      flex="1"
       fontWeight="medium"
       borderRightWidth="1px"
       borderRightColor="border"
       overflow="hidden"
-      style={{
-        minWidth: widthPx,
-        maxWidth: widthPx,
-      }}
     >
       <DataTableHeaderFilterCellContent
         header={header}

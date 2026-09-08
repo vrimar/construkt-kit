@@ -1,4 +1,4 @@
-import { Box, type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
+import { type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
 import type {
   ColumnFiltersState,
   PaginationState,
@@ -11,8 +11,8 @@ import React, { useCallback, useMemo } from "react";
 import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
+import { DEFAULT_MIN_COLUMN_WIDTH } from "./columnTemplate";
 import { DataTableProvider, type DataTableContextValue } from "./context";
-import { DataTableHeader } from "./Header";
 import { DataTablePagination } from "./Pagination";
 import type {
   DataTableColumnDef,
@@ -97,6 +97,11 @@ export const DataTable = <TData extends object>({
   const isMobile = useIsMobile();
   const showCards = mobileLayout === "cards" && isMobile;
 
+  const visibleColumns = useMemo(
+    () => columns.filter((column) => column.meta?.isVisible !== false),
+    [columns],
+  );
+
   const sortingState = useMemo(
     () =>
       params.orderBy
@@ -180,7 +185,7 @@ export const DataTable = <TData extends object>({
 
   const table = useTable({
     features: dataTableFeatures,
-    columns,
+    columns: visibleColumns,
     data,
     pageCount,
     state: {
@@ -199,7 +204,7 @@ export const DataTable = <TData extends object>({
     onPaginationChange: handlePagination,
     defaultColumn: {
       size: 0,
-      minSize: 0,
+      minSize: DEFAULT_MIN_COLUMN_WIDTH,
       maxSize: 1000,
     },
   });
@@ -250,21 +255,11 @@ export const DataTable = <TData extends object>({
         {showCards ? (
           <DataTableCards table={table} />
         ) : (
-          <Box
-            display="flex"
-            flexDirection="column"
-            flex="1"
-            minHeight="0"
-          >
-            <DataTableHeader
-              table={table}
-              showFiltersRow={showFiltersRow}
-            />
-            <DataTableBody
-              table={table}
-              renderSubRow={renderSubRow}
-            />
-          </Box>
+          <DataTableBody
+            table={table}
+            showFiltersRow={showFiltersRow}
+            renderSubRow={renderSubRow}
+          />
         )}
 
         {showPagination && (

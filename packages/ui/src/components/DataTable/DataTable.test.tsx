@@ -52,6 +52,11 @@ const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]>
 const focusableRow = (text: string) =>
   screen.getByText(text).closest<HTMLElement>('[tabindex]:not([data-scope="scroll-area"])');
 
+const rows = () => Array.from(document.querySelectorAll<HTMLElement>(".data-table__row"));
+
+const columnTemplate = () =>
+  screen.getByRole("table").style.getPropertyValue("--data-table-columns");
+
 afterEach(cleanup);
 
 describe("DataTable", () => {
@@ -80,15 +85,40 @@ describe("DataTable", () => {
     render(<StatefulTable />);
 
     const sorter = () => document.querySelector(".data-table__column-sorter") as Element;
+    const nameHeader = () => screen.getByRole("columnheader", { name: "Name" });
+
+    expect(nameHeader().getAttribute("aria-sort")).toBe("none");
 
     await userEvent.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBe("asc");
+    expect(nameHeader().getAttribute("aria-sort")).toBe("ascending");
 
     await userEvent.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBe("desc");
+    expect(nameHeader().getAttribute("aria-sort")).toBe("descending");
 
     await userEvent.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBeNull();
+    expect(nameHeader().getAttribute("aria-sort")).toBe("none");
+  });
+
+  it("exposes table semantics", () => {
+    const semantic = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.accessor("role", { header: "Role", enableSorting: false }),
+    ];
+    renderTable({ columns: semantic });
+
+    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.getAllByRole("rowgroup")).toHaveLength(2);
+    expect(screen.getAllByRole("row")).toHaveLength(4);
+    expect(screen.getAllByRole("columnheader").map((el) => el.textContent)).toEqual([
+      "Name",
+      "Role",
+    ]);
+    expect(screen.getByRole("columnheader", { name: "Role" }).hasAttribute("aria-sort")).toBe(
+      false,
+    );
   });
 
   it("reports page changes through onParamChange", async () => {
@@ -121,6 +151,45 @@ describe("DataTable", () => {
 
     expect(screen.getByText("Alice")).toBeTruthy();
     expect(screen.queryByText("Admin")).toBeNull();
+    expect(screen.queryByText("Role")).toBeNull();
+  });
+
+  it("drives every row from one column template", () => {
+    renderTable();
+
+    expect(columnTemplate()).not.toBe("");
+    expect(rows().length).toBeGreaterThanOrEqual(3);
+    for (const row of rows())
+      expect(row.style.gridTemplateColumns).toBe("var(--data-table-columns)");
+  });
+
+  it("pins a column at its meta width and floors the rest", () => {
+    const sized = [
+      columnHelper.accessor("id", { header: "ID", meta: { width: 80 } }),
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.accessor("role", { header: "Role", meta: { minWidth: 200 } }),
+    ];
+    renderTable({ columns: sized, showFiltersRow: false });
+
+    expect(columnTemplate()).toBe("80px minmax(120px, 1fr) minmax(200px, 1fr)");
+  });
+
+  it("holds rows at the sum of their column minimums", () => {
+    renderTable();
+
+    for (const row of rows()) expect(row.style.minWidth).toBe("min-content");
+  });
+
+  it("drops a hidden column from the template", () => {
+    const hidden = [
+      columnHelper.accessor("id", { header: "ID" }),
+      columnHelper.accessor("name", { header: "Name", meta: { isVisible: false } }),
+      columnHelper.accessor("role", { header: "Role" }),
+    ];
+    renderTable({ columns: hidden });
+
+    expect(columnTemplate()).toBe("minmax(120px, 1fr) minmax(120px, 1fr)");
+    for (const row of rows()) expect(row.children.length).toBe(2);
   });
 
   it("aligns body cells from the column meta and leaves headers at the start", () => {
