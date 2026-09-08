@@ -135,6 +135,22 @@ describe("NumberFilter", () => {
     expect(screen.getByPlaceholderText("Amount")).toHaveProperty("value", "7");
   });
 
+  it("clears both operands and the filter from the clear button", async () => {
+    const { onValueChange } = renderFilter({ value: { operator: "between", value: 10, to: 20 } });
+
+    await userEvent.click(screen.getByRole("button", { name: "Clear filter" }));
+
+    expect(onValueChange).toHaveBeenLastCalledWith(undefined);
+    expect(screen.getByPlaceholderText("From")).toHaveProperty("value", "");
+    expect(screen.getByPlaceholderText("To")).toHaveProperty("value", "");
+  });
+
+  it("shows no clear button while both operands are empty", () => {
+    renderFilter();
+
+    expect(screen.queryByRole("button", { name: "Clear filter" })).toBeNull();
+  });
+
   it("only offers the configured operators", async () => {
     renderFilter({ operators: ["gt", "lt"] });
 

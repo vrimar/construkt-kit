@@ -5,6 +5,7 @@ import {
   type NumberFilterValue,
   isValidNumber,
 } from "@construkt-kit/utils";
+import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounce } from "react-use";
 
@@ -37,6 +38,8 @@ export interface NumberFilterProps {
   toPlaceholder?: string;
   /** Overrides for the operator menu labels. */
   operatorLabels?: Partial<Record<NumberFilterOperator, string>>;
+  /** Accessible name for the clear button. */
+  clearLabel?: string;
   /** Forwarded to the operand input(s); `id` and `name` go to the first input only. */
   inputProps?: InputProps;
   disabled?: boolean;
@@ -76,6 +79,7 @@ export const NumberFilter = ({
   fromPlaceholder = "From",
   toPlaceholder = "To",
   operatorLabels: labelOverrides,
+  clearLabel = "Clear filter",
   inputProps,
   disabled,
 }: NumberFilterProps) => {
@@ -122,6 +126,12 @@ export const NumberFilter = ({
     if (text.trim() === "" && value) emit(undefined);
   };
 
+  const handleClear = () => {
+    setFromText("");
+    setToText("");
+    if (value) emit(undefined);
+  };
+
   const handleOperatorChange = (next: NumberFilterOperator) => {
     setOperator(next);
     const candidate = deriveValue(next, fromText, toText);
@@ -129,6 +139,17 @@ export const NumberFilter = ({
   };
 
   const labelFor = (op: NumberFilterOperator) => labelOverrides?.[op] ?? operatorLabels[op];
+
+  const clearButton = (fromText !== "" || toText !== "") && !disabled && (
+    <IconButton
+      size={inputGroupButtonSize[size as InputGroupSize]}
+      variant="plain"
+      aria-label={clearLabel}
+      onClick={handleClear}
+    >
+      <XIcon />
+    </IconButton>
+  );
 
   const operatorTrigger = (
     <Menu.Root placement="bottom-start">
@@ -169,24 +190,27 @@ export const NumberFilter = ({
     disabled,
   };
 
+  const isBetween = operator === "between";
+
   const fromInput = (
     <InputGroup
       size={size}
       startElement={operatorTrigger}
+      endElement={!isBetween && clearButton}
     >
       <Input
         {...sharedInputProps}
         {...managedInputProps}
         id={id}
         name={name}
-        placeholder={operator === "between" ? fromPlaceholder : placeholder}
+        placeholder={isBetween ? fromPlaceholder : placeholder}
         value={fromText}
         onChange={(e) => handleTextChange(setFromText, e.target.value)}
       />
     </InputGroup>
   );
 
-  if (operator !== "between") return fromInput;
+  if (!isBetween) return fromInput;
 
   return (
     <HStack
@@ -194,13 +218,18 @@ export const NumberFilter = ({
       width="100%"
     >
       {fromInput}
-      <Input
-        {...sharedInputProps}
-        {...managedInputProps}
-        placeholder={toPlaceholder}
-        value={toText}
-        onChange={(e) => handleTextChange(setToText, e.target.value)}
-      />
+      <InputGroup
+        size={size}
+        endElement={clearButton}
+      >
+        <Input
+          {...sharedInputProps}
+          {...managedInputProps}
+          placeholder={toPlaceholder}
+          value={toText}
+          onChange={(e) => handleTextChange(setToText, e.target.value)}
+        />
+      </InputGroup>
     </HStack>
   );
 };
