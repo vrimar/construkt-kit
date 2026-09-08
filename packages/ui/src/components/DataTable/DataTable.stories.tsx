@@ -1,9 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createColumnHelper } from "@tanstack/react-table";
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
+import { fn } from "storybook/test";
 
 import { DataTable, type DataTableProps } from ".";
+import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
+import { Menu } from "../Menu";
 import type { DataTableParams, dataTableFeatures } from "./types";
 
 const meta: Meta = {
@@ -24,11 +28,52 @@ interface Person {
 
 const columnHelper = createColumnHelper<typeof dataTableFeatures, Person>();
 
+const onRowClick = fn().mockName("onRowClick");
+const onAction = fn().mockName("onAction");
+
+const actionsColumn = columnHelper.display({
+  id: "actions",
+  meta: { align: "end", width: 64 },
+  cell: ({ row }) => (
+    <Menu.Root
+      placement="bottom-end"
+      onSelect={({ value }) => onAction(value, row.original)}
+    >
+      <Menu.Trigger asChild>
+        <IconButton
+          variant="plain"
+          size="sm"
+          aria-label="Actions"
+        >
+          <EllipsisIcon />
+        </IconButton>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="edit"
+          icon={<PencilIcon />}
+        >
+          Edit
+        </Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          value="delete"
+          icon={<TrashIcon />}
+          color="fg.error"
+        >
+          Delete
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+});
+
 const columns = [
   columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
   columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
   columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
   columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
+  actionsColumn,
 ];
 
 const alignedColumns = [
@@ -250,6 +295,7 @@ function DataTableStory(props: {
       loading={props.loading}
       variant={props.variant}
       selections={{ role: roleSelections }}
+      onRowClick={onRowClick}
     />
   );
 }

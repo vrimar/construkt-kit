@@ -73,7 +73,7 @@ export type DataTableProps<TData extends object> = {
 };
 
 const isNestedControl = (target: EventTarget | null) =>
-  target instanceof HTMLElement &&
+  target instanceof Element &&
   !!(target.closest("[data-scope=menu]") || target.closest("button") || target.closest("a"));
 
 export const DataTable = <TData extends object>({

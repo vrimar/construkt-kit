@@ -218,6 +218,31 @@ describe("DataTable", () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 
+  it("ignores a click on an icon inside a control in the row", async () => {
+    const onRowClick = vi.fn();
+    const onAction = vi.fn();
+    const withIconAction = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.display({
+        id: "actions",
+        cell: () => (
+          <button
+            type="button"
+            aria-label="Edit"
+            onClick={onAction}
+          >
+            <svg data-testid="edit-icon" />
+          </button>
+        ),
+      }),
+    ];
+    renderTable({ columns: withIconAction, onRowClick, showFiltersRow: false });
+
+    await userEvent.click(screen.getAllByTestId("edit-icon")[0]);
+    expect(onAction).toHaveBeenCalled();
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
   it("activates a row from the keyboard", async () => {
     const onRowClick = vi.fn();
     renderTable({ onRowClick });
