@@ -173,7 +173,7 @@ importers:
   packages/pages:
     dependencies:
       '@construkt-kit/utils':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../utils
       lucide-react:
         specifier: ^1.32.0
@@ -268,7 +268,7 @@ importers:
         specifier: ^2.1.0
         version: 2.2.0
       '@construkt-kit/utils':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../utils
       '@tanstack/react-table':
         specifier: ^9.1.2
