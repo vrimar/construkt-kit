@@ -5,8 +5,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
-      "@construkt-kit/styled-system": resolve(__dirname, "../styled-system/dist"),
+      "@": resolve(import.meta.dirname, "./src"),
+      "@construkt-kit/styled-system": resolve(import.meta.dirname, "../styled-system/dist"),
     },
   },
   test: {

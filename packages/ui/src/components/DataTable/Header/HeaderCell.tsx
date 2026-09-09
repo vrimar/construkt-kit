@@ -28,10 +28,8 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   const handleSort = () => {
     if (!sortable) return;
 
-    if (!sort)
-      column.toggleSorting(false); // unsorted → asc
-    else if (sort === "asc")
-      column.toggleSorting(true); // asc → desc
+    if (!sort) column.toggleSorting(false); // unsorted → asc
+    else if (sort === "asc") column.toggleSorting(true); // asc → desc
     else column.clearSorting(); // desc → clear
   };
 

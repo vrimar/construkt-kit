@@ -1,5 +1,1 @@
-export type {
-  DataTableFilters,
-  DataTableParams,
-  DataTableSortType,
-} from "@construkt-kit/utils";
+export type { DataTableFilters, DataTableParams, DataTableSortType } from "@construkt-kit/utils";

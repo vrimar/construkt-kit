@@ -126,7 +126,9 @@ describe("NumberFilter", () => {
     const { rerender } = render(<Harness forced={undefined} />);
 
     await userEvent.type(screen.getByPlaceholderText("Amount"), "7");
-    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith({ operator: "eq", value: 7 }));
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({ operator: "eq", value: 7 }),
+    );
 
     rerender(<Harness forced={undefined} />);
     await userEvent.clear(screen.getByPlaceholderText("Amount"));

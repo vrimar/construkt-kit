@@ -37,7 +37,12 @@ export class UnauthorizedError extends ApiError {
 
 /** `"Internal Server Error"` → `"INTERNAL_SERVER_ERROR"`; falls back to the status. */
 function toErrorCode(status: number, statusText: string): string {
-  return statusText.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_") || `HTTP_${status}`;
+  return (
+    statusText
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "_") || `HTTP_${status}`
+  );
 }
 
 /** Maps a non-2xx response onto the narrowest error class available. */
