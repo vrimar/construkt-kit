@@ -51,6 +51,4 @@ jobs:
 
       - name: Push package tags
         run: |
-          # Not --tags: that re-pushes the release-* trigger tag, which the remote
-          # already has, and the rejected ref fails the whole step.
           git push origin 'refs/tags/@construkt-kit/*:refs/tags/@construkt-kit/*'
