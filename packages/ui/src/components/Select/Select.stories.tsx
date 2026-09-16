@@ -10,6 +10,13 @@ const fruits = [
   { id: 3, name: "Cherry" },
 ];
 
+const produce = [
+  { id: 1, name: "Apple", kind: "Fruit" },
+  { id: 2, name: "Carrot", kind: "Vegetable" },
+  { id: 3, name: "Banana", kind: "Fruit" },
+  { id: 4, name: "Spinach", kind: "Vegetable" },
+];
+
 const meta: Meta = {
   title: "Components/Select",
   component: Select,
@@ -73,6 +80,26 @@ export const Multiple: Story = {
         value={value}
         onValueChange={setValue}
         placeholder="Select fruits"
+        search
+      />
+    );
+  },
+};
+
+export const Grouped: Story = {
+  render: function GroupedStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Select
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort="asc"
+        renderGroupLabel={(group, groupItems) => `${group} (${groupItems.length})`}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select produce"
         search
       />
     );

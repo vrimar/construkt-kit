@@ -324,6 +324,8 @@ export const ApplySelect = Object.assign(ApplySelectSimple, {
   ItemText: Select.ItemText,
   ItemIndicator: Select.ItemIndicator,
   ItemActions: Select.ItemActions,
+  ItemGroup: Select.ItemGroup,
+  ItemGroupLabel: Select.ItemGroupLabel,
   EmptyState: Select.EmptyState,
   Footer: Select.Footer,
   Actions: ApplySelectActions,

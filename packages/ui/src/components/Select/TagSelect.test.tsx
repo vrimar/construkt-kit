@@ -63,6 +63,31 @@ describe("TagSelect", () => {
     expect(screen.queryByText("One")).toBeNull();
   });
 
+  it("forwards grouping to the managed list", () => {
+    render(
+      <TagSelect
+        items={[
+          { id: 1, label: "Apple", kind: "Fruit" },
+          { id: 2, label: "Carrot", kind: "Vegetable" },
+          { id: 3, label: "Banana", kind: "Fruit" },
+        ]}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        groupBy={(item) => item.kind}
+        value={[]}
+        onValueChange={vi.fn()}
+        open
+        search={false}
+      />,
+    );
+    expect(screen.getAllByRole("group")).toHaveLength(2);
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Apple",
+      "Banana",
+      "Carrot",
+    ]);
+  });
+
   it("keeps item actions from changing selection", async () => {
     const onValueChange = vi.fn();
     const onAction = vi.fn();

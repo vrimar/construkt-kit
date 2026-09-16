@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +10,23 @@ const fruits = [
   { id: 2, name: "Banana" },
   { id: 3, name: "Cherry" },
 ] as const;
+
+const produce = [
+  { id: 1, name: "Apple", kind: "Fruit" },
+  { id: 2, name: "Carrot", kind: "Vegetable" },
+  { id: 3, name: "Banana", kind: "Fruit" },
+];
+
+const groupLabels = () =>
+  screen
+    .getAllByRole("group")
+    .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
+
+const optionValues = () =>
+  screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));
+
+const highlightedValue = () =>
+  document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
 
 afterEach(cleanup);
 
@@ -257,6 +274,223 @@ describe("Listbox", () => {
     expect(screen.queryByText("No items available")).toBeNull();
   });
 
+  it("renders group headings and nests items under their group", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    const groups = screen.getAllByRole("group");
+    expect(groups).toHaveLength(2);
+    expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
+    expect(within(groups[0]).getByText("Banana")).not.toBeNull();
+    expect(within(groups[1]).queryByText("Apple")).toBeNull();
+    expect(optionValues()).toEqual(["n:1", "n:3", "n:2"]);
+    expect(groups[0].getAttribute("aria-labelledby")).toBe(
+      groups[0].querySelector("[data-part='item-group-label']")?.id,
+    );
+  });
+
+  it("orders group headings with groupSort", () => {
+    const { rerender } = render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort="desc"
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+    expect(groupLabels()).toEqual(["Vegetable", "Fruit"]);
+
+    rerender(
+      <Listbox
+        items={[...produce]}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort={["Vegetable", "Fruit"]}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+    expect(groupLabels()).toEqual(["Vegetable", "Fruit"]);
+    expect(optionValues()).toEqual(["n:2", "n:1", "n:3"]);
+  });
+
+  it("keeps grouping while searching and drops emptied groups", async () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search
+      />,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "Ban");
+    expect(groupLabels()).toEqual(["Fruit"]);
+    expect(optionValues()).toEqual(["n:3"]);
+    expect(screen.queryByText("Carrot")).toBeNull();
+  });
+
+  it("navigates in group order rather than item order", async () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    await userEvent.tab();
+    expect(screen.getByRole("listbox")).toBe(document.activeElement);
+    expect(highlightedValue()).toBe("n:1");
+    await userEvent.keyboard("{ArrowDown}");
+    expect(highlightedValue()).toBe("n:3");
+    await userEvent.keyboard("{ArrowDown}");
+    expect(highlightedValue()).toBe("n:2");
+    await userEvent.keyboard("{Home}");
+    expect(highlightedValue()).toBe("n:1");
+    await userEvent.keyboard("{End}");
+    expect(highlightedValue()).toBe("n:2");
+    await userEvent.keyboard("{ArrowUp}");
+    expect(highlightedValue()).toBe("n:3");
+  });
+
+  it("ignores virtualization while grouped but keeps the height capped", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+        virtual
+      />,
+    );
+
+    expect(screen.getAllByRole("group")).toHaveLength(2);
+    expect(document.querySelector("[data-index]")).toBeNull();
+    expect(screen.getByRole("listbox").className).toContain("max-h_20rem");
+  });
+
+  it("keeps navigation order matching render order when groupBy toggles off", async () => {
+    const view = (groupBy?: (item: (typeof produce)[number]) => string) => (
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={groupBy}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />
+    );
+    const { rerender } = render(view((item) => item.kind));
+    rerender(view(undefined));
+
+    const rendered = optionValues();
+    await userEvent.tab();
+    expect(highlightedValue()).toBe(rendered[0]);
+    await userEvent.keyboard("{ArrowDown}");
+    expect(highlightedValue()).toBe(rendered[1]);
+    await userEvent.keyboard("{ArrowDown}");
+    expect(highlightedValue()).toBe(rendered[2]);
+  });
+
+  it("omits the heading for an empty group key", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => (item.kind === "Fruit" ? "" : item.kind)}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    expect(screen.getAllByRole("group")).toHaveLength(2);
+    expect(groupLabels()).toEqual([null, "Vegetable"]);
+  });
+
+  it("renders group headings through renderGroupLabel", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        renderGroupLabel={(group, groupItems) => `${group} (${groupItems.length})`}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    expect(groupLabels()).toEqual(["Fruit (2)", "Vegetable (1)"]);
+  });
+
+  it("shows only the empty state when a grouped collection has no items", () => {
+    render(
+      <Listbox
+        items={[] as typeof produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    expect(screen.queryAllByRole("group")).toHaveLength(0);
+    expect(screen.getByText("No items available")).not.toBeNull();
+  });
+
+  it("keeps grouping props off the DOM", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort={["Vegetable", "Fruit"]}
+        renderGroupLabel={(group) => group}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+
+    const root = screen.getByRole("listbox").closest("[data-scope='listbox'][data-part='root']");
+    expect(root?.hasAttribute("groupby")).toBe(false);
+    expect(root?.hasAttribute("groupsort")).toBe(false);
+    expect(root?.hasAttribute("rendergrouplabel")).toBe(false);
+  });
+
   it("keeps the advanced collection API on Listbox.Root", () => {
     const collection = createListCollection({
       items: [
@@ -269,13 +503,24 @@ describe("Listbox", () => {
     render(
       <Listbox.Root collection={collection}>
         <Listbox.Content>
-          <Listbox.ItemGroup>
-            <Listbox.ItemGroupLabel>Americas</Listbox.ItemGroupLabel>
-          </Listbox.ItemGroup>
+          {collection.group().map(([region, regionItems]) => (
+            <Listbox.ItemGroup key={region}>
+              <Listbox.ItemGroupLabel>{region}</Listbox.ItemGroupLabel>
+              {regionItems.map((item) => (
+                <Listbox.Item
+                  key={item.value}
+                  item={item}
+                >
+                  <Listbox.ItemText>{item.label}</Listbox.ItemText>
+                </Listbox.Item>
+              ))}
+            </Listbox.ItemGroup>
+          ))}
         </Listbox.Content>
       </Listbox.Root>,
     );
-    expect(screen.getByText("Americas")).not.toBeNull();
+    expect(groupLabels()).toEqual(["Americas"]);
+    expect(optionValues()).toEqual(["north", "south"]);
   });
 
   it("renders content inside a scroll area", () => {

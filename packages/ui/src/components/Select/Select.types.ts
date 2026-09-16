@@ -5,6 +5,7 @@ import type { SelectButtonProps } from "../Buttons";
 import type { SearchInput } from "../Input";
 import type { Listbox } from "../Listbox/Listbox";
 import type {
+  SelectionGroupLabelRenderer,
   SelectionIndicatorPosition,
   SelectionItemState,
   SelectionItemsProps,
@@ -26,6 +27,7 @@ export type ManagedItemProps = Partial<
 export interface SelectRenderProps<T, V extends SelectionValue> {
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderGroupLabel?: SelectionGroupLabelRenderer<T>;
   getItemProps?: (item: T) => ManagedItemProps;
 }
 
@@ -77,6 +79,8 @@ export type SelectItemProps<T> = Omit<ComponentProps<typeof Listbox.Item>, "item
 export type SelectItemTextProps = ComponentProps<typeof Listbox.ItemText>;
 export type SelectItemIndicatorProps = ComponentProps<typeof Listbox.ItemIndicator>;
 export type SelectItemActionsProps = ComponentProps<typeof Listbox.ItemActions>;
+export type SelectItemGroupProps = ComponentProps<typeof Listbox.ItemGroup>;
+export type SelectItemGroupLabelProps = ComponentProps<typeof Listbox.ItemGroupLabel>;
 export type SelectFooterProps = ComponentProps<typeof Box>;
 
 export interface SelectSimpleProps<T, V extends SelectionValue> extends Omit<

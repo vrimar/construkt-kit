@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { Listbox } from "../Listbox";
 import { Select } from "./Select";
 
 const options = [
@@ -10,6 +11,20 @@ const options = [
   { id: 2, label: "Beta" },
   { id: 3, label: "Gamma" },
 ];
+
+const produce = [
+  { id: 1, name: "Apple", kind: "Fruit" },
+  { id: 2, name: "Carrot", kind: "Vegetable" },
+  { id: 3, name: "Banana", kind: "Fruit" },
+];
+
+const groupLabels = () =>
+  screen
+    .getAllByRole("group")
+    .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
+
+const optionValues = () =>
+  screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));
 
 afterEach(cleanup);
 
@@ -258,6 +273,69 @@ describe("Select", () => {
     }
     render(<Example />);
     expect(screen.getByRole("button", { name: "Chosen: Alpha" })).not.toBeNull();
+  });
+
+  it("renders grouped items in the popover list", () => {
+    render(
+      <Select
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        open
+      />,
+    );
+
+    expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
+    expect(optionValues()).toEqual(["n:1", "n:3", "n:2"]);
+  });
+
+  it("threads renderGroupLabel through the compound context", () => {
+    render(
+      <Select.Root
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        renderGroupLabel={(group, groupItems) => `${group} (${groupItems.length})`}
+        value={null}
+        onValueChange={vi.fn()}
+        open
+      >
+        <Select.Trigger />
+        <Select.Content>
+          <Select.List />
+        </Select.Content>
+      </Select.Root>,
+    );
+
+    expect(groupLabels()).toEqual(["Fruit (2)", "Vegetable (1)"]);
+  });
+
+  it("keeps grouping while searching", async () => {
+    render(
+      <Select
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={null}
+        onValueChange={vi.fn()}
+        search
+        defaultOpen
+      />,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "Car");
+    expect(groupLabels()).toEqual(["Vegetable"]);
+    expect(optionValues()).toEqual(["n:2"]);
+  });
+
+  it("exposes the listbox group parts", () => {
+    expect(Select.ItemGroup).toBe(Listbox.ItemGroup);
+    expect(Select.ItemGroupLabel).toBe(Listbox.ItemGroupLabel);
   });
 
   it("applies logical indicator placement", () => {

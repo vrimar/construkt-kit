@@ -106,6 +106,32 @@ describe("ApplySelect", () => {
     expect(screen.getByRole("button", { name: "Clear All" })).not.toBeNull();
   });
 
+  it("groups items without disturbing Toggle All", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <ApplySelect
+        items={[
+          { id: 1, name: "React", kind: "Library" },
+          { id: 2, name: "Vue", kind: "Framework" },
+          { id: 3, name: "Angular", kind: "Framework" },
+        ]}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        value={[]}
+        onValueChange={onValueChange}
+        defaultOpen
+        search={false}
+        actions={{ toggleAll: true }}
+      />,
+    );
+
+    expect(screen.getAllByRole("group")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(onValueChange).toHaveBeenCalledWith([1, 2, 3]);
+  });
+
   it("keeps the applied value on the trigger while editing the draft", async () => {
     render(
       <ApplySelect

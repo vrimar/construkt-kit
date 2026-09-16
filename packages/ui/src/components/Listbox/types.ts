@@ -3,11 +3,22 @@ import type { ReactNode } from "react";
 /** Stable scalar value used to identify a selection item. */
 export type SelectionValue = string | number;
 
+export type SelectionGroupSort = ((a: string, b: string) => number) | string[] | "asc" | "desc";
+
+export type SelectionGroupLabelRenderer<T> = (group: string, items: readonly T[]) => ReactNode;
+
 export interface SelectionItemsProps<T, V extends SelectionValue> {
   items: readonly T[];
   getItemValue: (item: T) => V;
   getItemLabel: (item: T) => string;
   isItemDisabled?: (item: T) => boolean;
+  /**
+   * Groups items under headings. Read when the collection is rebuilt (`items` identity or the
+   * search query changes), so pass a new `items` array to regroup at runtime. Disables `virtual`.
+   */
+  groupBy?: (item: T, index: number) => string;
+  /** Orders the group headings. Defaults to first-seen order. */
+  groupSort?: SelectionGroupSort;
 }
 
 export interface SingleSelectionProps<V extends SelectionValue> {

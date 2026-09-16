@@ -1,7 +1,12 @@
 import { type ListCollection, useListCollection } from "@ark-ui/react/collection";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { SelectionItemState, SelectionSearchOptions, SelectionValue } from "./types";
+import type {
+  SelectionGroupSort,
+  SelectionItemState,
+  SelectionSearchOptions,
+  SelectionValue,
+} from "./types";
 
 export type SelectionValueChangeDetails = { value: string[] };
 
@@ -16,6 +21,8 @@ interface UseSelectionControllerParams<T, V extends SelectionValue> {
   getItemValue: (item: T) => V;
   getItemLabel: (item: T) => string;
   isItemDisabled?: (item: T) => boolean;
+  groupBy?: (item: T, index: number) => string;
+  groupSort?: SelectionGroupSort;
   selectionMode: "single" | "multiple";
   value: V | readonly V[] | null;
   onValueChange: (value: V | V[] | null) => unknown;
@@ -49,6 +56,8 @@ export function useSelectionController<T, V extends SelectionValue>({
   getItemValue,
   getItemLabel,
   isItemDisabled,
+  groupBy,
+  groupSort,
   selectionMode,
   value,
   onValueChange,
@@ -109,6 +118,8 @@ export function useSelectionController<T, V extends SelectionValue>({
     itemToString: getItemLabel,
     itemToValue: (item) => encodeSelectionValue(getItemValue(item)),
     isItemDisabled,
+    groupBy,
+    groupSort,
     filter: filterPredicate,
   });
 

@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useContext } from "react";
 
 import type {
+  SelectionGroupLabelRenderer,
   SelectionIndicatorPosition,
   SelectionItemState,
   SelectionValue,
@@ -22,6 +23,7 @@ export interface SelectContextValue {
   scrollToIndexRef: { current: ((index: number) => void) | undefined };
   renderItem?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
   renderItemActions?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
+  renderGroupLabel?: SelectionGroupLabelRenderer<unknown>;
   getItemProps?: (item: unknown) => ManagedItemProps;
 }
 

@@ -148,6 +148,7 @@ export function SelectList(props: SelectListProps) {
     getItemProps,
     indicatorPosition,
     loading,
+    renderGroupLabel,
     renderItem,
     renderItemActions,
     scrollToIndexRef,
@@ -162,6 +163,7 @@ export function SelectList(props: SelectListProps) {
       indicatorPosition={indicatorPosition}
       renderItem={renderItem}
       renderItemActions={renderItemActions}
+      renderGroupLabel={renderGroupLabel}
       getItemProps={getItemProps}
       contentProps={props}
       virtual={virtual}
@@ -173,6 +175,8 @@ export function SelectList(props: SelectListProps) {
 export const SelectItem = Listbox.Item;
 export const SelectItemText = Listbox.ItemText;
 export const SelectItemActions = Listbox.ItemActions;
+export const SelectItemGroup = Listbox.ItemGroup;
+export const SelectItemGroupLabel = Listbox.ItemGroupLabel;
 
 export function SelectItemIndicator(props: SelectItemIndicatorProps) {
   const { indicatorPosition } = useSelectContext();

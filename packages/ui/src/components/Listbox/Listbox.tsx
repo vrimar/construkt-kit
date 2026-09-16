@@ -22,6 +22,7 @@ import { EmptyState } from "../EmptyState";
 import { SearchInput } from "../Input";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
 import type {
+  SelectionGroupLabelRenderer,
   SelectionIndicatorPosition,
   SelectionItemsProps,
   SelectionItemState,
@@ -232,6 +233,7 @@ interface ListboxManagedProps<T, V extends SelectionValue> extends SelectionItem
   indicatorPosition?: SelectionIndicatorPosition;
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderGroupLabel?: SelectionGroupLabelRenderer<T>;
   getItemProps?: (item: T) => ManagedItemProps;
   contentProps?: HTMLStyledProps<"div">;
   virtual?: boolean;
@@ -323,6 +325,7 @@ interface ManagedListProps<T, V extends SelectionValue> {
   indicatorPosition?: SelectionIndicatorPosition;
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderGroupLabel?: SelectionGroupLabelRenderer<T>;
   getItemProps?: (item: T) => ManagedItemProps;
   contentProps?: HTMLStyledProps<"div">;
   virtual?: boolean;
@@ -336,6 +339,7 @@ export function ManagedList<T, V extends SelectionValue>({
   indicatorPosition = "end",
   renderItem,
   renderItemActions,
+  renderGroupLabel,
   getItemProps,
   contentProps,
   virtual,
@@ -357,11 +361,16 @@ export function ManagedList<T, V extends SelectionValue>({
     );
   };
 
-  const grouped = useMemo(() => collection.group?.() ?? [], [collection]);
-  const isGrouped = grouped.length > 0 && grouped[0]?.[0] != null && grouped[0][0] !== "";
+  const groups = useMemo(() => collection.group(), [collection]);
+  // Not the groupBy prop: the collection drives Ark's keyboard order and lags the prop by a rebuild.
+  const grouped = !(groups.length === 1 && groups[0][0] === "");
   const isEmpty = collection.items.length === 0;
   const emptyBlock = !loading && isEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>;
-  const useVirtual = virtual === true && !isGrouped;
+  const useVirtual = virtual === true && !grouped;
+  const resolvedContentProps =
+    virtual === true && grouped
+      ? { maxHeight: VIRTUAL_DEFAULT_MAX_HEIGHT, ...contentProps }
+      : contentProps;
   const internalScrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
   const scrollToIndexRef = providedScrollToIndexRef ?? internalScrollToIndexRef;
 
@@ -379,11 +388,15 @@ export function ManagedList<T, V extends SelectionValue>({
   }
 
   return (
-    <Content {...contentProps}>
-      {isGrouped
-        ? grouped.map(([group, groupItems]) => (
-            <ItemGroup key={String(group)}>
-              <ItemGroupLabel>{String(group)}</ItemGroupLabel>
+    <Content {...resolvedContentProps}>
+      {grouped
+        ? groups.map(([group, groupItems]) => (
+            <ItemGroup key={group}>
+              {group !== "" && (
+                <ItemGroupLabel>
+                  {renderGroupLabel ? renderGroupLabel(group, groupItems) : group}
+                </ItemGroupLabel>
+              )}
               {groupItems.map(renderRow)}
             </ItemGroup>
           ))
@@ -408,6 +421,8 @@ function ListboxSimple<T, V extends SelectionValue>(
     getItemValue,
     getItemLabel,
     isItemDisabled,
+    groupBy,
+    groupSort,
     selectionMode = "single",
     value,
     onValueChange,
@@ -418,6 +433,7 @@ function ListboxSimple<T, V extends SelectionValue>(
     indicatorPosition = "end",
     renderItem,
     renderItemActions,
+    renderGroupLabel,
     getItemProps,
     contentProps,
     virtual,
@@ -428,6 +444,8 @@ function ListboxSimple<T, V extends SelectionValue>(
     getItemValue,
     getItemLabel,
     isItemDisabled,
+    groupBy,
+    groupSort,
     selectionMode,
     value,
     onValueChange: onValueChange as (value: V | V[] | null) => unknown,
@@ -447,7 +465,9 @@ function ListboxSimple<T, V extends SelectionValue>(
       indicatorPosition={indicatorPosition}
       {...rest}
       scrollToIndexFn={
-        virtual ? (details) => scrollToIndexRef.current?.(details.index) : rest.scrollToIndexFn
+        virtual && groupBy == null
+          ? (details) => scrollToIndexRef.current?.(details.index)
+          : rest.scrollToIndexFn
       }
     >
       {label && <Label>{label}</Label>}
@@ -478,6 +498,7 @@ function ListboxSimple<T, V extends SelectionValue>(
         indicatorPosition={indicatorPosition}
         renderItem={renderItem}
         renderItemActions={renderItemActions}
+        renderGroupLabel={renderGroupLabel}
         getItemProps={getItemProps}
         contentProps={contentProps}
         virtual={virtual}

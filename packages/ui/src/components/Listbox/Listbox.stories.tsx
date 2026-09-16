@@ -11,6 +11,13 @@ const items = [
   { id: 4, name: "Dragon fruit" },
 ];
 
+const produce = [
+  { id: 1, name: "Apple", kind: "Fruit" },
+  { id: 2, name: "Carrot", kind: "Vegetable" },
+  { id: 3, name: "Banana", kind: "Fruit" },
+  { id: 4, name: "Spinach", kind: "Vegetable" },
+];
+
 const meta: Meta = {
   title: "Components/Listbox",
   component: Listbox,
@@ -86,6 +93,25 @@ export const IndicatorPositions: Story = {
       ))}
     </HStack>
   ),
+};
+
+export const Grouped: Story = {
+  render: function GroupedStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort="asc"
+        value={value}
+        onValueChange={setValue}
+        search
+        maxW="64"
+      />
+    );
+  },
 };
 
 export const Virtualized: Story = {

@@ -17,6 +17,8 @@ import {
   SelectFooter,
   SelectItem,
   SelectItemActions,
+  SelectItemGroup,
+  SelectItemGroupLabel,
   SelectItemIndicator,
   SelectItemText,
   SelectList,
@@ -30,6 +32,8 @@ export type {
   SelectContentProps,
   SelectFooterProps,
   SelectItemActionsProps,
+  SelectItemGroupLabelProps,
+  SelectItemGroupProps,
   SelectItemIndicatorProps,
   SelectItemProps,
   SelectItemTextProps,
@@ -64,6 +68,8 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     getItemLabel,
     getItemProps,
     getItemValue,
+    groupBy,
+    groupSort,
     indicatorPosition = "end",
     isItemDisabled,
     items,
@@ -74,6 +80,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     open,
     placeholder = "Select item",
     placement,
+    renderGroupLabel,
     renderItem,
     renderItemActions,
     renderValue,
@@ -98,6 +105,8 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     getItemValue,
     getItemLabel,
     isItemDisabled,
+    groupBy,
+    groupSort,
     selectionMode,
     value,
     onValueChange: (nextValue) => {
@@ -131,6 +140,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
       scrollToIndexRef,
       renderItem: renderItem as SelectContextValue["renderItem"],
       renderItemActions: renderItemActions as SelectContextValue["renderItemActions"],
+      renderGroupLabel: renderGroupLabel as SelectContextValue["renderGroupLabel"],
       getItemProps: getItemProps as SelectContextValue["getItemProps"],
     }),
     [
@@ -142,6 +152,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
       loading,
       matchTriggerWidth,
       placeholder,
+      renderGroupLabel,
       renderItem,
       renderItemActions,
       triggerValue,
@@ -168,7 +179,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
           selectionMode={selectionMode}
           deselectable={selectionMode === "single" ? false : undefined}
           scrollToIndexFn={
-            virtual
+            virtual && groupBy == null
               ? (details) => scrollToIndexRef.current?.(details.index)
               : listboxProps?.scrollToIndexFn
           }
@@ -219,6 +230,8 @@ export const Select = Object.assign(SelectSimple, {
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   ItemActions: SelectItemActions,
+  ItemGroup: SelectItemGroup,
+  ItemGroupLabel: SelectItemGroupLabel,
   EmptyState: SelectEmptyState,
   Footer: SelectFooter,
 });

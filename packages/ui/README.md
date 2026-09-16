@@ -20,7 +20,7 @@
 
 **Form:** `Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `PinInput`, `ColorPicker`
 
-**Selection / Dropdowns:** `Select`, `SelectList`, `SelectListItem`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox`
+**Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
 **Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
 
@@ -215,7 +215,7 @@ const { mode, resolvedMode, setMode, toggle } = useColorMode();
 Both are registered in `../preset/src/theme/recipes/index.ts`:
 
 - **`recipes`** (simple `cva()`): `badge`, `button`, `code`, `heading`, `icon`, `input`, `kbd`, `link`, `skeleton`, `spinner`, `text`, `textarea`, etc. — single-element components
-- **`slotRecipes`** (compound `sva()`): `accordion`, `dialog`, `menu`, `select`, `tabs`, etc. — multi-slot components using `createStyleContext()`
+- **`slotRecipes`** (compound `sva()`): `accordion`, `dialog`, `menu`, `listbox`, `tabs`, etc. — multi-slot components using `createStyleContext()`
 - Naming exception: `switchRecipe` key (not `switch` — JS reserved word)
 
 ## File Map
