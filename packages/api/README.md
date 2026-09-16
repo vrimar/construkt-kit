@@ -1,19 +1,22 @@
 # @construkt-kit/api
 
-HTTP client, typed error classes, and data-table types for Construkt Kit frontend apps.
+Configuration for the Kubb-generated HTTP client, typed error classes, and data-table types for
+Construkt Kit frontend apps.
 
 ## Exports
 
 ### Client
 
-| Export                | Description                                                           |
-| --------------------- | --------------------------------------------------------------------- |
-| `createApiClient`     | Factory — creates fetch-based HTTP client with Bearer token injection |
-| `setApiConfig`        | Configure the Kubb client (base URL, etc.)                            |
-| `Client`              | HTTP client type (re-exported from `@kubb/plugin-client`)             |
-| `RequestConfig`       | Request configuration type                                            |
-| `ResponseConfig`      | Response configuration type                                           |
-| `ResponseErrorConfig` | Error response configuration type                                     |
+| Export                       | Description                                                            |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| `configureApiClient`         | Points a generated Kubb client at an API; returns a disposer            |
+| `fetchTransport`             | Fetch transport used by default — JSON, text, SSE and binary responses |
+| `ApiClient`                  | Structural type of the generated client this package drives            |
+| `ApiRequest`                 | Resolved request handed to a transport                                  |
+| `ApiTransport`               | Transport signature (`ApiRequest` → `ApiTransportResult`)              |
+| `ApiTransportResult`         | What a transport returns (parsed body plus native request/response)     |
+| `ApiResponseError`           | Non-2xx response the error interceptor maps                             |
+| `ConfigureApiClientOptions`  | `{ baseURL, getToken, transport? }`                                     |
 
 ### Error Classes
 
@@ -23,6 +26,7 @@ HTTP client, typed error classes, and data-table types for Construkt Kit fronten
 | `ValidationError`   | 422 error (extends `ApiError`)                 |
 | `NotFoundError`     | 404 error (extends `ApiError`)                 |
 | `UnauthorizedError` | 401 error (extends `ApiError`)                 |
+| `toApiError`        | Maps a status onto the narrowest class          |
 | `ApiErrorResponse`  | Interface — `{ Message: string }`              |
 
 ### Data-Table Types
@@ -35,9 +39,27 @@ HTTP client, typed error classes, and data-table types for Construkt Kit fronten
 
 ## Usage
 
+Kubb generates its own fetch runtime into `<output>/.kubb/client.ts`. This package configures that
+client; it never replaces it.
+
 ```ts
-import { ApiError, NotFoundError, createApiClient } from "@construkt-kit/api";
-import type { DataTableParams } from "@construkt-kit/api";
+import { configureApiClient } from "@construkt-kit/api";
+
+import { client } from "@/api/gen/.kubb/client";
+
+const dispose = configureApiClient(client, {
+  baseURL: "https://api.example.com",
+  getToken: () => authToken,
+});
+```
+
+Generated calls and hooks then work unchanged:
+
+```ts
+import { ApiError, NotFoundError } from "@construkt-kit/api";
+
+// Hook: resolves to the body, errors surface on `error`
+const { data: project, error } = useGetApiProjectsId({ path: { id } });
 
 if (error instanceof NotFoundError) {
   /* 404 */
@@ -45,37 +67,68 @@ if (error instanceof NotFoundError) {
 if (error instanceof ApiError) {
   /* any API error */
 }
+
+// Call function: awaitable, `.unwrap()` for the body alone
+const project = await getApiProjectsId({ path: { id } }).unwrap();
 ```
 
 ## Key Patterns
 
 ### Token callback
 
-`createApiClient(getToken)` accepts a **synchronous** callback (`() => string | null | undefined`), not a static token. The token is fetched at **call time** (not client creation), supporting token refresh.
+`getToken` is a **synchronous** callback (`() => string | null | undefined`) read on every request,
+so token refresh needs no reconfiguration. The resulting `Authorization: Bearer` header replaces one
+set through `client.setConfig({ headers })` whatever its casing, and when the callback returns
+nothing the header is removed — so a logout stops sending the old token.
 
-> **Sync/async gap:** `AuthProvider.getToken` from `@construkt-kit/pages` returns `Promise<string | null>`, but `createApiClient` expects a sync getter. The recommended pattern is to cache the token synchronously in the app and pass the cached value:
+> **Sync/async gap:** `AuthProvider.getToken` from `@construkt-kit/pages` returns
+> `Promise<string | null>`. Cache the token in the app and hand over the cached value:
 >
 > ```ts
 > let cachedToken: string | null = null;
 > // Update cachedToken when auth state changes
-> const client = createApiClient(() => cachedToken);
+> configureApiClient(client, { baseURL, getToken: () => cachedToken });
 > ```
 
-### Binary responses
+### Disposer
 
-Non-JSON/text responses (Excel, PDF exports) return a Response-like object:
+`configureApiClient` returns a function that removes the interceptors it registered. Call it before
+re-configuring the same client, so a hot reload does not stack interceptors.
+
+### Response bodies
+
+`fetchTransport` decides how to read a response:
+
+- JSON content types are parsed; an unparseable body is passed through as text
+- `text/*` is read as text, `text/event-stream` as the raw stream
+- every other media type becomes a `Blob` — the Kubb runtime would decode it as text
+- `204`/`205` and empty bodies resolve to `undefined`
+- an explicit per-operation `responseType` (`blob`, `arraybuffer`, `stream`, `text`, `json`) wins
+
+Only 2xx counts as success, so a `304` raises an `ApiError` rather than resolving empty. Send
+conditional requests (`If-None-Match`, `If-Modified-Since`) only where the caller handles that.
+
+Generated hooks resolve to the body alone. For a download, call the generated function directly and
+read the filename off the response — the body is already consumed, so use `data`, not `response.blob()`:
 
 ```ts
-{ blob: () => Promise<Blob>, headers: Headers }
-```
+import { saveBlob } from "@construkt-kit/utils";
 
-Pair with `saveBlobResponse()` or `downloadFile()` from `@construkt-kit/utils` for file downloads.
+const { data, response } = await postApiExportsExcel({ body });
+
+saveBlob(data as Blob, response.headers.get("Content-Disposition"), "export.xlsx");
+```
 
 ### Error hierarchy
 
-All errors extend `ApiError` which uses `Object.setPrototypeOf(this, new.target.prototype)` — required for proper `instanceof` checks in transpiled TypeScript. Subclasses hardcode their status: `ValidationError` → 422, `NotFoundError` → 404, `UnauthorizedError` → 401.
+All errors extend `ApiError`, which uses `Object.setPrototypeOf(this, new.target.prototype)` —
+required for `instanceof` checks in transpiled TypeScript. Subclasses hardcode their status:
+`ValidationError` → 422, `NotFoundError` → 404, `UnauthorizedError` → 401.
 
-`createApiClient` classifies non-2xx responses onto the narrowest class available — 401 → `UnauthorizedError`, 404 → `NotFoundError`, 422 → `ValidationError`, anything else → `ApiError`. So `instanceof` works directly:
+Non-2xx responses are raised through an error interceptor, so `instanceof` works directly. This
+applies while `throwOnError` is on, which is the default and what the generated hooks use; a call
+that opts out with `throwOnError: false` gets the raw body on `error` and can map it with
+`toApiError`:
 
 ```ts
 try {
@@ -87,64 +140,56 @@ try {
 }
 ```
 
-`code` is a stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_SERVER_ERROR`), derived from the status text when there is no dedicated subclass.
+The message comes from a `{ Message }` body, falling back to `"An error has occurred."`. `code` is a
+stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_SERVER_ERROR`), derived
+from the status text when there is no dedicated subclass. Network failures reject with the underlying
+`TypeError`, not an `ApiError`.
 
-### Param normalization
+### Custom transport
 
-`createApiClient` converts `config.params` to `URLSearchParams`. Rules:
+Pass `transport` to wrap `fetchTransport` — telemetry, retries, or response fixups:
 
-- `undefined` values are **omitted**; no `?` is appended when nothing survives
-- `null` becomes the string `"null"`
-- Arrays are repeated per element (`ids=1&ids=2`)
-- `Date` values become ISO strings; other objects are JSON-encoded
-- Primitives are stringified
+```ts
+configureApiClient(client, {
+  baseURL,
+  getToken,
+  transport: async (request) => {
+    const startedAt = performance.now();
+    const result = await fetchTransport(request);
+    track("api_call", {
+      endpoint: new URL(request.url).pathname,
+      durationMs: performance.now() - startedAt,
+    });
 
-### Headers and body
-
-Headers layer in this order, later wins: `setApiConfig({ headers })`, the per-request
-`headers` (record or tuple form), then `Authorization` from `getToken`.
-
-- `FormData`, `URLSearchParams`, `Blob`, `ArrayBuffer`, typed arrays and streams pass through
-  untouched; for `FormData` the `Content-Type` header is removed so fetch can set the boundary
-- With an `application/x-www-form-urlencoded` content type, a plain object is form-encoded with
-  the param rules above, except that `null` is omitted
-- A string body is sent as-is when a non-JSON content type is given
-- Anything else is JSON-encoded (`bigint` as a string) and, if no content type was given,
-  sent as `application/json`
-
-Responses: JSON content types are parsed, `text/*` is read as text, `204`/`205`/`304` and
-empty bodies yield `{}`, and everything else is exposed as a blob. Non-2xx statuses other
-than `304` throw an `ApiError`.
+    return result;
+  },
+});
+```
 
 ### Kubb codegen integration
 
-Consuming apps generate typed API code using `createKubbConfig()` from `@construkt-kit/config/kubb`. The config produces 3 output directories from an OpenAPI spec:
+Consuming apps generate typed API code with `createKubbConfig()` from `@construkt-kit/config/kubb`:
 
-| Output dir | Contents                                        |
-| ---------- | ----------------------------------------------- |
-| `dtos/`    | TypeScript types generated from OpenAPI schemas |
-| `calls/`   | API call functions (typed fetch wrappers)       |
-| `hooks/`   | React Query hooks grouped by API path           |
+| Output dir     | Contents                                                |
+| -------------- | ------------------------------------------------------- |
+| `dtos/`        | TypeScript types generated from OpenAPI schemas         |
+| `calls/`       | One function per operation, returning the full result   |
+| `hooks/`       | React Query hooks grouped by API path                   |
+| `.kubb/`       | The bundled fetch runtime (`client`, `createClient`)    |
 
-**How it connects to `createApiClient`:**
+Every generated function takes one grouped options object — `{ path, query, body, headers }` — and
+resolves to `{ status, data, error, request, response }`. Add `.unwrap()` for the body alone, which
+is what the hooks do.
 
-1. App creates a client: `const client = createApiClient(() => authToken)`
-2. App calls `setApiConfig({ baseURL: "https://api.example.com" })`
-3. App re-exports the configured client from a known path (default: `@/api/client`)
-4. Kubb `clientImportPath` option points generated `calls/` to that re-export
-5. Generated `hooks/` import from `calls/`, which use the configured client
-
-Query keys in generated hooks are prefixed with `"v5"` — bump this in `@construkt-kit/config/kubb` when making breaking API changes to invalidate all caches.
-
-Key Kubb options (via `createKubbConfig()`):
+Options (via `createKubbConfig()`):
 
 - `inputPath` — OpenAPI spec location (default: `./src/api/openapi.json`)
 - `outputPath` — generated output root (default: `./src/api/gen`)
-- `clientImportPath` — where generated code imports the client from (default: `@/api/client`)
+- `overrides` — merged over the generated config
 
 ## CLI: `construkt-kit-api-gen`
 
-The package ships a `construkt-kit-api-gen` binary that automates the full codegen workflow: fetch an OpenAPI spec from a running API, run Kubb codegen, and clean up.
+Fetches an OpenAPI spec from a running API, runs Kubb codegen, and deletes the downloaded spec.
 
 ### Usage
 
@@ -157,6 +202,9 @@ npx construkt-kit-api-gen --url https://api.example.com
 
 # Use a custom config file (default: api.config.ts)
 npx construkt-kit-api-gen --config my-api.config.ts
+
+# Generate from a spec on disk; nothing is downloaded or deleted
+npx construkt-kit-api-gen --input ./spec/openapi.json
 ```
 
 ### Config file (`api.config.ts`)
@@ -165,7 +213,7 @@ npx construkt-kit-api-gen --config my-api.config.ts
 import { createKubbConfig } from "@construkt-kit/config/kubb";
 
 export const specUrl = "https://api.example.com";
-export default createKubbConfig({ clientImportPath: "@/api/client" });
+export default createKubbConfig();
 ```
 
 ### URL resolution priority
@@ -174,4 +222,5 @@ export default createKubbConfig({ clientImportPath: "@/api/client" });
 2. `API_URL` environment variable
 3. `specUrl` named export from config file
 
-The spec is fetched from `{baseUrl}/openapi/v1.json`, saved temporarily, passed to Kubb, then deleted.
+The spec is fetched from `{baseUrl}/openapi/v1.json`, saved to the config's `input` path, passed to
+Kubb, then deleted. Generation problems are printed and exit the process with code 1.

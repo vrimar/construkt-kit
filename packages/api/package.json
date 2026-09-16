@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/api",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": false,
   "description": "HTTP client, query factories, typed errors, and generated API types for Construkt Kit apps",
   "type": "module",
@@ -24,22 +24,27 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p test --noEmit",
     "test": "vitest run",
-    "format": "oxfmt src",
+    "format": "oxfmt src test",
+    "gen:fixture": "node bin/api-gen.mjs --config test/api.config.ts --input test/fixtures/openapi.json",
     "check:exports": "publint --strict && attw --pack . --profile esm-only"
   },
   "bin": {
     "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
-    "@kubb/core": "^4.39.3",
-    "@kubb/plugin-client": "^4.39.3",
+    "kubb": "^5.2.6",
     "tsx": "^4.23.12"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/utils": "workspace:*",
+    "@kubb/adapter-oas": "^5.2.6",
+    "@kubb/plugin-fetch": "^5.4.1",
+    "@kubb/plugin-react-query": "^5.1.2",
+    "@kubb/plugin-ts": "^5.0.2",
+    "@tanstack/react-query": "^5.90.2",
     "tsdown": "^0.23.0",
     "vitest": "^5.0.0"
   }

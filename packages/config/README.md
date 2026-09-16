@@ -31,24 +31,31 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 
 ## Kubb Config (OpenAPI Codegen)
 
-`createKubbConfig(options?)` generates a Kubb config that produces 3 output directories:
+`createKubbConfig(options?)` generates a Kubb v5 config that produces 3 output directories plus the
+bundled fetch runtime:
 
 | Output dir | Content                               | Plugin             |
 | ---------- | ------------------------------------- | ------------------ |
 | `dtos/`    | TypeScript types from OpenAPI schemas | `pluginTs`         |
-| `calls/`   | API call functions                    | `pluginClient`     |
+| `calls/`   | API call functions                    | `pluginFetch`      |
 | `hooks/`   | React Query hooks (grouped by path)   | `pluginReactQuery` |
+| `.kubb/`   | Fetch client runtime                  | `pluginFetch`      |
 
 Options (all optional):
 
-| Option             | Default                  | Description                    |
-| ------------------ | ------------------------ | ------------------------------ |
-| `inputPath`        | `./src/api/openapi.json` | Path to OpenAPI spec           |
-| `outputPath`       | `./src/api/gen`          | Output directory               |
-| `clientImportPath` | `@/api/client`           | Import path for the API client |
+| Option       | Default                  | Description                                |
+| ------------ | ------------------------ | ------------------------------------------ |
+| `inputPath`  | `./src/api/openapi.json` | Path to OpenAPI spec                       |
+| `outputPath` | `./src/api/gen`          | Output directory                           |
+| `overrides`  | `{}`                     | Merged over the config; arrays replace     |
 
 Key behaviors:
 
-- **Query key versioning**: All React Query keys are prefixed with `"v5"` for cache invalidation on breaking API changes
-- **Path params as objects**: `pathParamsType: "object"` — route params are passed as `{ id }` not positional args
-- **Inline params**: `paramsType: "inline"` — params are inlined into hook signatures
+- **Grouped arguments**: every call and hook takes one `{ path, query, body, headers }` object
+- **Hooks opted in**: `hooks: true` — `use*` wrappers alongside the `queryOptions` helpers
+- **Named barrels**: an `index.ts` per output directory and one at the root
+- **`int64` as `number`**: `integerType: "number"`, matching what `JSON.parse` produces
+- **Client configuration**: apps wire the generated `.kubb/client` up with `configureApiClient` from `@construkt-kit/api`
+
+The peer Kubb packages (`kubb`, `@kubb/adapter-oas`, `@kubb/plugin-ts`, `@kubb/plugin-fetch`,
+`@kubb/plugin-react-query`) are optional — install them in apps that run codegen.

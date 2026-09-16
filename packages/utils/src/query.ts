@@ -26,17 +26,31 @@ export function buildQueryString(object: unknown) {
   return args.join("&");
 }
 
-export const saveBlobResponse = (response: Response, fallbackName: string = "download") => {
-  return response.blob().then((blob) => {
-    const url = window.URL.createObjectURL(blob);
-    downloadFile(
-      url,
-      sanitizeFilename(getFileName(response.headers.get("Content-Disposition") ?? "")) ||
-        fallbackName,
-    );
-    window.URL.revokeObjectURL(url);
-  });
+/** Saves a blob under the name a `Content-Disposition` header carries, or `fallbackName`. */
+export const saveBlob = (
+  blob: Blob,
+  contentDisposition?: string | null,
+  fallbackName: string = "download",
+) => {
+  const url = window.URL.createObjectURL(blob);
+  downloadFile(url, fileNameFromContentDisposition(contentDisposition) || fallbackName);
+  window.URL.revokeObjectURL(url);
 };
+
+/**
+ * Saves a response body as a file. The response must be unread — a client that already parsed
+ * the body (such as a generated Kubb call) hands you a blob, so use {@link saveBlob} instead.
+ */
+export const saveBlobResponse = (response: Response, fallbackName: string = "download") => {
+  return response
+    .blob()
+    .then((blob) => saveBlob(blob, response.headers.get("Content-Disposition"), fallbackName));
+};
+
+/** Reads the filename out of a `Content-Disposition` header, stripped of unsafe characters. */
+export function fileNameFromContentDisposition(disposition?: string | null): string {
+  return sanitizeFilename(getFileName(disposition ?? ""));
+}
 
 export function downloadFile(url: string, filename: string) {
   const a = document.createElement("a");

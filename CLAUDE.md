@@ -8,7 +8,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 ## Packages
 
 - **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import from `@construkt-kit/ui`, never `@ark-ui/*` or `styled-system/*`.
-- **`@construkt-kit/api`** — HTTP client (`createApiClient`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
+- **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
@@ -50,12 +50,12 @@ honours `options.typeAware` only in the config it loads as its root.
 @construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, consuming apps
 @construkt-kit/ui             ← @construkt-kit/pages, consuming apps  (depends on @construkt-kit/utils)
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
-@construkt-kit/api            ← consuming apps  (HTTP client factory, uses @kubb/plugin-client)
+@construkt-kit/api            ← consuming apps  (configures the generated Kubb fetch client)
 ```
 
 ## Design Principles
 
 - **Adapter pattern** — auth pages accept interfaces, not specific SDKs
 - **Callback-driven** — pages/components use callbacks for navigation, never import a router
-- **Factory functions** — configs export `createXConfig()`, API exports `createApiClient()`
+- **Factory functions** — configs export `createXConfig()`, API exports `configureApiClient()`
 - **Stateless utilities** — `@construkt-kit/utils` has no framework deps, no side effects

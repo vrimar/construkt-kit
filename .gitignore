@@ -19,6 +19,7 @@ apps/*/styled-system/
 storybook-static/
 
 # Test outputs
+packages/api/test/gen/
 coverage/
 test-results/
 playwright-report/

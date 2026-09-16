@@ -1,0 +1,5 @@
+{
+  "extends": "@construkt-kit/config/typescript",
+  "compilerOptions": { "noEmit": true },
+  "include": ["."]
+}

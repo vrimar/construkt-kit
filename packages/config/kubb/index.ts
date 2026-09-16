@@ -1,58 +1,53 @@
-import { type UserConfig, defineConfig } from "@kubb/core";
-import { pluginClient } from "@kubb/plugin-client";
-import { pluginOas } from "@kubb/plugin-oas";
+import { adapterOas } from "@kubb/adapter-oas";
+import { pluginFetch } from "@kubb/plugin-fetch";
 import { pluginReactQuery } from "@kubb/plugin-react-query";
-import { QueryKey } from "@kubb/plugin-react-query/components";
 import { pluginTs } from "@kubb/plugin-ts";
+import type { UserConfig } from "kubb";
+import { defineConfig } from "kubb/config";
 
 import { deepMerge } from "../internal/merge";
 
 export interface KubbConfigOptions {
   inputPath?: string;
   outputPath?: string;
-  clientImportPath?: string;
-  /** Merged over the generated config; arrays (notably `plugins`) replace rather than concat. */
+  /**
+   * Merged over the generated config; arrays (notably `plugins`) and `adapter` replace rather
+   * than merge.
+   */
   overrides?: Partial<UserConfig>;
 }
 
 export function createKubbConfig({
   inputPath = "./src/api/openapi.json",
   outputPath = "./src/api/gen",
-  clientImportPath = "@/api/client",
   overrides = {},
-}: KubbConfigOptions = {}) {
-  const base = defineConfig({
-    input: { path: inputPath },
-    output: { path: outputPath, clean: true },
+}: KubbConfigOptions = {}): UserConfig {
+  const base: UserConfig = {
+    input: inputPath,
+    output: { path: outputPath, clean: true, barrel: { type: "named" } },
+    adapter: adapterOas({ integerType: "number" }),
     plugins: [
-      pluginOas({ generators: [] }),
       pluginTs({
         output: {
           path: "./dtos",
-          banner(oas) {
-            return `// version: ${oas.api.info.version}`;
+          barrel: { type: "named" },
+          banner(meta) {
+            return `// version: ${meta.version}`;
           },
         },
       }),
-      pluginClient({
-        output: { path: "./calls" },
-        importPath: clientImportPath,
-        pathParamsType: "object",
-      }),
+      pluginFetch({ output: { path: "./calls", barrel: { type: "named" } } }),
       pluginReactQuery({
-        client: { importPath: clientImportPath },
-        output: { path: "./hooks" },
+        output: { path: "./hooks", barrel: { type: "named", nested: true } },
         group: { type: "path" },
-        queryKey(props) {
-          const keys = QueryKey.getTransformer(props);
-          return ['"v5"', ...keys];
-        },
-        paramsType: "inline",
-        pathParamsType: "object",
-        suspense: false,
+        hooks: true,
       }),
     ],
-  });
+  };
 
-  return deepMerge(base, overrides);
+  const merged = deepMerge(base, overrides);
+  if (overrides.adapter) merged.adapter = overrides.adapter;
+
+  // Runs after the merge; an `overrides.plugins` array would otherwise drop the barrel plugin.
+  return defineConfig(merged);
 }

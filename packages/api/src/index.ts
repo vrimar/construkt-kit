@@ -1,3 +1,4 @@
 export * from "./errors";
-export * from "./client";
+export * from "./configure";
+export * from "./transport";
 export * from "./data-table";

@@ -13,11 +13,16 @@
       "dependsOn": ["^build"],
       "persistent": true
     },
+    "gen:fixture": {
+      "dependsOn": ["^build"],
+      "inputs": ["bin/**", "test/api.config.ts", "test/fixtures/**"],
+      "outputs": ["test/gen/**"]
+    },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build", "gen:fixture"]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "gen:fixture"]
     },
     "//#lint": {
       // Type-aware rules read each package's built types; these three pull in
@@ -27,6 +32,8 @@
         "oxlint.config.ts",
         "packages/*/src/**",
         "packages/*/bin/**",
+        "packages/*/test/**",
+        "!packages/*/test/gen/**",
         "packages/config/{oxlint,vite,playwright,kubb,oxfmt}/**",
         "packages/*/*.config.ts",
         "packages/*/vitest.setup.ts",
