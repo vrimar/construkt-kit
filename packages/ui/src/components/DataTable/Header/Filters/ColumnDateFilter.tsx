@@ -1,40 +1,34 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
-import { FILTER_RANGE_SEPARATOR } from "@construkt-kit/utils";
-import dayjs from "dayjs";
+import {
+  formatIsoDate,
+  parseDateRangeFilter,
+  serializeDateRangeFilter,
+} from "@construkt-kit/utils";
 import { useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
-import { formatDateValue } from "../../../DatePicker/format";
-
-interface ColumnDateFilterProps {
-  dateValue: string;
-  onChange: (value?: string) => unknown;
-}
+import type { ColumnFilterProps } from "../../types";
 
 function parseDateValue(dateValue: string | undefined): DateValue[] {
-  if (!dateValue) return [];
-  const dateTokens = dateValue.split(FILTER_RANGE_SEPARATOR);
-  if (dateTokens.length !== 2) return [];
-  const start = dayjs(dateTokens[0]);
-  const end = dayjs(dateTokens[1]);
-  if (!start.isValid() || !end.isValid()) return [];
-  return [parseDate(start.toDate()), parseDate(end.toDate())];
+  const range = dateValue ? parseDateRangeFilter(dateValue) : undefined;
+  return range ? range.map((bound) => parseDate(bound)) : [];
 }
 
-export const ColumnDateFilter = ({ dateValue, onChange }: ColumnDateFilterProps) => {
-  const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(dateValue));
+export const ColumnDateFilter = ({ value, onChange }: ColumnFilterProps) => {
+  const current = value[0];
+  const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(current));
   const emit = useControlledMirror<string | undefined>({
-    value: dateValue || undefined,
-    onValueChange: onChange,
+    value: current || undefined,
+    onValueChange: (next) => onChange(next ? [next] : undefined),
     onExternalChange: (next) => setInternalValue(parseDateValue(next)),
   });
 
-  const handleValueChange = (value: DateValue[]) => {
-    setInternalValue(value);
-    if (value.length === 2)
-      emit(`${formatDateValue(value[0])}${FILTER_RANGE_SEPARATOR}${formatDateValue(value[1])}`);
-    else if (value.length === 0) emit(undefined);
+  const handleValueChange = (next: DateValue[]) => {
+    setInternalValue(next);
+    if (next.length === 2)
+      emit(serializeDateRangeFilter(formatIsoDate(next[0]), formatIsoDate(next[1])));
+    else if (next.length === 0) emit(undefined);
   };
 
   const handleOpenChange = (open: boolean) => {

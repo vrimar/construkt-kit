@@ -1,36 +1,48 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
+import type { ComponentType } from "react";
 
-import type { ColumnFilterValue, DataTableHeader } from "../types";
-import { DataTableHeaderFilterCellContent } from "./HeaderFilterCellContent";
+import type { ColumnFilterProps, ColumnFilterType, DataTableHeader } from "../types";
+import { ColumnDateFilter } from "./Filters/ColumnDateFilter";
+import { ColumnNumberFilter } from "./Filters/ColumnNumberFilter";
+import { ColumnSearchInput } from "./Filters/ColumnSearchInput";
+import { ColumnSelectFilter } from "./Filters/ColumnSelectFilter";
+
+const columnFilters: Record<ColumnFilterType, ComponentType<ColumnFilterProps>> = {
+  input: ColumnSearchInput,
+  date: ColumnDateFilter,
+  number: ColumnNumberFilter,
+  select: ColumnSelectFilter,
+};
 
 interface HeaderFilterCellProps<TData extends object> {
   header: DataTableHeader<TData>;
-  filterValues: string[];
 }
 
 export const DataTableHeaderFilterCell = <TData extends object>({
   header,
-  filterValues,
 }: HeaderFilterCellProps<TData>) => {
   const column = header.column;
-
-  const handleChange = (value: ColumnFilterValue) => column.setFilterValue(value);
+  const { meta } = column.columnDef;
+  const ColumnFilter = columnFilters[meta?.type ?? "input"];
+  const filterValue = column.getFilterValue();
 
   return (
     <Box
-      key={header.id}
       role="cell"
       display="flex"
-      fontWeight="medium"
       borderRightWidth="1px"
       borderRightColor="border"
       overflow="hidden"
     >
-      <DataTableHeaderFilterCellContent
-        header={header}
-        filterValues={filterValues}
-        onChange={handleChange}
-      />
+      {column.getCanFilter() && (
+        <ColumnFilter
+          columnId={column.id}
+          label={typeof column.columnDef.header === "string" ? column.columnDef.header : column.id}
+          meta={meta}
+          value={Array.isArray(filterValue) ? (filterValue as string[]) : []}
+          onChange={(value) => column.setFilterValue(value)}
+        />
+      )}
     </Box>
   );
 };

@@ -5,7 +5,7 @@ import type {
   SortingState,
   Updater,
 } from "@tanstack/react-table";
-import { useTable } from "@tanstack/react-table";
+import { functionalUpdate, useTable } from "@tanstack/react-table";
 import React, { useCallback, useMemo } from "react";
 
 import { useIsMobile } from "../../hooks";
@@ -16,6 +16,7 @@ import { DataTableProvider, type DataTableContextValue } from "./context";
 import { DataTablePagination } from "./Pagination";
 import type {
   DataTableColumnDef,
+  DataTableLabels,
   DataTableParams,
   DataTableRow,
   TableFilterSelections,
@@ -31,6 +32,7 @@ export type {
   DataTableFilters,
   DataTableHeader as DataTableHeaderType,
   DataTableInstance,
+  DataTableLabels,
   DataTableParams,
   DataTableRow,
   DataTableSelectProps,
@@ -39,14 +41,6 @@ export type {
   TableFilterSelections,
 } from "./types";
 export { dataTableFeatures } from "./types";
-
-export type DataTableLabels = {
-  noResults?: string;
-  resetFilters?: string;
-  items?: string;
-  page?: string;
-  outOf?: string;
-};
 
 export type DataTableProps<TData extends object> = {
   data: TData[];
@@ -72,9 +66,31 @@ export type DataTableProps<TData extends object> = {
   mobileLayout?: "scroll" | "cards";
 };
 
-const isNestedControl = (target: EventTarget | null) =>
-  target instanceof Element &&
-  !!(target.closest("[data-scope=menu]") || target.closest("button") || target.closest("a"));
+const defaultLabels: Required<DataTableLabels> = {
+  noResults: "No results available.",
+  resetFilters: "Reset filters",
+  items: "Items",
+  page: "Page",
+  outOf: "out of",
+  filterBy: "Filter by",
+  firstPage: "First page",
+  previousPage: "Previous page",
+  nextPage: "Next page",
+  lastPage: "Last page",
+};
+
+const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableLabels> => {
+  const resolved = { ...defaultLabels };
+  for (const key of Object.keys(defaultLabels) as (keyof DataTableLabels)[]) {
+    resolved[key] = labels?.[key] ?? defaultLabels[key];
+  }
+  return resolved;
+};
+
+// Portalled overlays re-dispatch React events through the row without being inside it.
+const isNestedControl = (event: React.SyntheticEvent<HTMLDivElement>) =>
+  !(event.target instanceof Element && event.currentTarget.contains(event.target)) ||
+  !!event.target.closest("button, a");
 
 export const DataTable = <TData extends object>({
   data,
@@ -136,7 +152,7 @@ export const DataTable = <TData extends object>({
 
   const handlePagination = useCallback(
     (updateFn: Updater<PaginationState>) => {
-      const state = typeof updateFn === "function" ? updateFn(paginationState) : updateFn;
+      const state = functionalUpdate(updateFn, paginationState);
       onParamChange({
         ...params,
         page: state.pageIndex + 1,
@@ -148,7 +164,7 @@ export const DataTable = <TData extends object>({
 
   const handleSort = useCallback(
     (updateFn: Updater<SortingState>) => {
-      const columnSorts = typeof updateFn === "function" ? updateFn(sortingState) : updateFn;
+      const columnSorts = functionalUpdate(updateFn, sortingState);
       const hasSort = columnSorts.length > 0;
 
       const orderBy = hasSort ? columnSorts[0].id : "";
@@ -165,19 +181,13 @@ export const DataTable = <TData extends object>({
 
   const handleFilterChange = useCallback(
     (updateFn: Updater<ColumnFiltersState>) => {
-      const filters = typeof updateFn === "function" ? updateFn(filtersState) : updateFn;
-
-      const filtersById = filters.reduce(
-        (obj, curr) => ({
-          ...obj,
-          [curr.id]: curr.value,
-        }),
-        {},
-      );
+      const filters = functionalUpdate(updateFn, filtersState);
 
       onParamChange({
         ...params,
-        filters: filtersById,
+        filters: Object.fromEntries(
+          filters.map((filter) => [filter.id, filter.value as string[] | undefined]),
+        ),
       });
     },
     [filtersState, onParamChange, params],
@@ -193,9 +203,6 @@ export const DataTable = <TData extends object>({
       pagination: paginationState,
       columnFilters: filtersState,
     },
-    meta: {
-      selections,
-    },
     manualSorting: true,
     manualPagination: true,
     manualFiltering: true,
@@ -209,35 +216,34 @@ export const DataTable = <TData extends object>({
     },
   });
 
-  const handleRowClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
-      if (!onRowClick || isNestedControl(e.target)) return;
-      onRowClick(row);
-    },
-    [onRowClick],
-  );
-
-  const handleRowKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>, row: DataTableRow<TData>) => {
-      if (!onRowClick || (e.key !== "Enter" && e.key !== " ")) return;
-      if (isNestedControl(e.target)) return;
-      e.preventDefault();
-      onRowClick(row);
-    },
-    [onRowClick],
+  const getRowInteractionProps = useCallback(
+    (row: DataTableRow<TData>): BoxProps => ({
+      ...(onRowClick && {
+        tabIndex: 0,
+        cursor: "pointer",
+        onClick: (e: React.MouseEvent<HTMLDivElement>) => {
+          if (!isNestedControl(e)) onRowClick(row);
+        },
+        onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+          if ((e.key !== "Enter" && e.key !== " ") || isNestedControl(e)) return;
+          e.preventDefault();
+          onRowClick(row);
+        },
+      }),
+      ...getRowProps?.(row),
+    }),
+    [getRowProps, onRowClick],
   );
 
   const contextValue = useMemo<DataTableContextValue<TData>>(
     () => ({
       loading: !!loading,
-      onRowClick: onRowClick && handleRowClick,
-      onRowKeyDown: onRowClick && handleRowKeyDown,
-      getRowProps,
+      getRowInteractionProps,
       onReset,
-      noResultsLabel: labels?.noResults ?? "No results available.",
-      resetFiltersLabel: labels?.resetFilters ?? "Reset filters",
+      labels: resolveLabels(labels),
+      selections,
     }),
-    [getRowProps, handleRowClick, handleRowKeyDown, labels, loading, onReset, onRowClick],
+    [getRowInteractionProps, labels, loading, onReset, selections],
   );
 
   return (
@@ -267,7 +273,6 @@ export const DataTable = <TData extends object>({
             table={table}
             totalItems={totalItems}
             size={variant === "basic" ? "xs" : "md"}
-            labels={labels}
           />
         )}
       </Stack>

@@ -1,10 +1,9 @@
 import { Box, Stack } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
 
-import { LoadingOverlay } from "../LoadingOverlay";
 import { Text } from "../Text";
 import { useDataTableContext } from "./context";
-import { DataTableEmptyState } from "./EmptyState";
+import { DataTableStatus } from "./EmptyState";
 import type { DataTableInstance } from "./types";
 
 interface DataTableCardsProps<TData extends object> {
@@ -16,9 +15,8 @@ interface DataTableCardsProps<TData extends object> {
  * instead of the horizontally-scrolling grid. Enabled via `mobileLayout="cards"`.
  */
 export const DataTableCards = <TData extends object>({ table }: DataTableCardsProps<TData>) => {
-  const { loading, onRowClick, onRowKeyDown, getRowProps } = useDataTableContext<TData>();
+  const { getRowInteractionProps } = useDataTableContext<TData>();
   const rows = table.getRowModel().rows;
-  const hasEmptyMessage = rows.length === 0 && !loading;
 
   return (
     <Box
@@ -28,8 +26,10 @@ export const DataTableCards = <TData extends object>({ table }: DataTableCardsPr
       overflowY="auto"
       p="2"
     >
-      <LoadingOverlay isActive={loading} />
-      {hasEmptyMessage && <DataTableEmptyState layout="flow" />}
+      <DataTableStatus
+        layout="flow"
+        isEmpty={rows.length === 0}
+      />
       <Stack gap="2">
         {rows.map((row) => (
           <Box
@@ -42,12 +42,8 @@ export const DataTableCards = <TData extends object>({ table }: DataTableCardsPr
             borderColor="border"
             borderRadius="md"
             bg="bg"
-            cursor={onRowClick ? "pointer" : undefined}
             _hover={{ bg: "bg.subtle" }}
-            tabIndex={onRowClick ? 0 : undefined}
-            onClick={onRowClick && ((e) => onRowClick(e, row))}
-            onKeyDown={onRowKeyDown && ((e) => onRowKeyDown(e, row))}
-            {...getRowProps?.(row)}
+            {...getRowInteractionProps(row)}
           >
             {row.getVisibleCells().map((cell) => {
               const header = cell.column.columnDef.header;

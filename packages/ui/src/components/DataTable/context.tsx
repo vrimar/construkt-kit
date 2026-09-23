@@ -1,17 +1,14 @@
 import type { BoxProps } from "@construkt-kit/styled-system/jsx";
-import type React from "react";
 import { createContext, useContext } from "react";
 
-import type { DataTableRow } from "./types";
+import type { DataTableLabels, DataTableRow, TableFilterSelections } from "./types";
 
 export interface DataTableContextValue<TData extends object = any> {
   loading: boolean;
-  onRowClick?: (e: React.MouseEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
-  onRowKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>, row: DataTableRow<TData>) => void;
-  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
+  getRowInteractionProps: (row: DataTableRow<TData>) => BoxProps;
   onReset?: () => unknown;
-  noResultsLabel: string;
-  resetFiltersLabel: string;
+  labels: Required<DataTableLabels>;
+  selections: TableFilterSelections | undefined;
 }
 
 const DataTableContext = createContext<DataTableContextValue | null>(null);

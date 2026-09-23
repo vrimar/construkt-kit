@@ -8,30 +8,23 @@ import {
 
 import { IconButton } from "../Buttons";
 import { Text } from "../Text";
+import { useDataTableContext } from "./context";
 import type { DataTableInstance } from "./types";
 
 interface PaginationProps<TData extends object> {
   table: DataTableInstance<TData>;
   totalItems: number;
   size: "xs" | "sm" | "md" | "lg";
-  labels?: {
-    items?: string;
-    page?: string;
-    outOf?: string;
-  };
 }
 
 export const DataTablePagination = <TData extends object>({
   table,
   totalItems,
   size,
-  labels,
 }: PaginationProps<TData>) => {
+  const { labels } = useDataTableContext();
   const pageCount = table.getPageCount();
   const page = table.state.pagination.pageIndex;
-  const itemsLabel = labels?.items ?? "Items";
-  const pageLabel = labels?.page ?? "Page";
-  const outOfLabel = labels?.outOf ?? "out of";
 
   return (
     <HStack
@@ -52,21 +45,21 @@ export const DataTablePagination = <TData extends object>({
           >
             {totalItems}{" "}
           </Text>
-          {itemsLabel}
+          {labels.items}
         </Text>
       </HStack>
 
       <HStack gap="8">
         {totalItems > 0 ? (
           <Text>
-            {pageLabel}{" "}
+            {labels.page}{" "}
             <Text
               as="span"
               fontWeight="bold"
             >
               {page + 1}
             </Text>{" "}
-            {outOfLabel}{" "}
+            {labels.outOf}{" "}
             <Text
               as="span"
               fontWeight="bold"
@@ -80,7 +73,7 @@ export const DataTablePagination = <TData extends object>({
         <HStack alignSelf="flex-end">
           <IconButton
             variant="outline"
-            aria-label="First page"
+            aria-label={labels.firstPage}
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
             size={size}
@@ -89,7 +82,7 @@ export const DataTablePagination = <TData extends object>({
           </IconButton>
           <IconButton
             variant="outline"
-            aria-label="Previous page"
+            aria-label={labels.previousPage}
             onClick={table.previousPage}
             disabled={!table.getCanPreviousPage()}
             size={size}
@@ -99,7 +92,7 @@ export const DataTablePagination = <TData extends object>({
 
           <IconButton
             variant="outline"
-            aria-label="Next page"
+            aria-label={labels.nextPage}
             onClick={table.nextPage}
             disabled={!table.getCanNextPage()}
             size={size}
@@ -108,7 +101,7 @@ export const DataTablePagination = <TData extends object>({
           </IconButton>
           <IconButton
             variant="outline"
-            aria-label="Last page"
+            aria-label={labels.lastPage}
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
             size={size}

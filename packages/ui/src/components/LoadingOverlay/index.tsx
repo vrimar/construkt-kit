@@ -1,26 +1,30 @@
+import { css } from "@construkt-kit/styled-system/css";
 import { Flex, type FlexProps, Stack } from "@construkt-kit/styled-system/jsx";
+import type { spinner } from "@construkt-kit/styled-system/recipes";
 
 import { Spinner } from "../Spinner";
 import { Text } from "../Text";
 
 const RELATIVE_MIN_HEIGHT = { base: "240px", md: "400px" } as const;
 
-const tipFontSizeMap = {
+type SpinnerSize = (typeof spinner.variantMap.size)[number];
+
+const tipFontSizeClass: Record<SpinnerSize, string | undefined> = {
   inherit: undefined,
-  xs: "xs",
-  sm: "xs",
-  md: "sm",
-  lg: "sm",
-  xl: "md",
-  "2xl": "lg",
-} as const;
+  xs: css({ fontSize: "xs" }),
+  sm: css({ fontSize: "xs" }),
+  md: css({ fontSize: "sm" }),
+  lg: css({ fontSize: "sm" }),
+  xl: css({ fontSize: "md" }),
+  "2xl": css({ fontSize: "lg" }),
+};
 
 export interface LoadingOverlayProps extends Omit<FlexProps, "fill"> {
   isActive: boolean;
   fill?: boolean;
   tip?: string;
   relative?: boolean;
-  size?: keyof typeof tipFontSizeMap;
+  size?: SpinnerSize;
 }
 
 export const LoadingOverlay = ({
@@ -37,7 +41,7 @@ export const LoadingOverlay = ({
       aria-busy={isActive}
       aria-live="polite"
       position={relative ? "relative" : "absolute"}
-      left="0"
+      inset="0"
       zIndex="overlay"
       minHeight={relative ? RELATIVE_MIN_HEIGHT : undefined}
       height="100%"
@@ -67,7 +71,7 @@ export const LoadingOverlay = ({
         {tip && (
           <Text
             color="brand.fg"
-            fontSize={tipFontSizeMap[size]}
+            className={tipFontSizeClass[size]}
           >
             {tip}
           </Text>

@@ -25,14 +25,6 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   // The sorter is out of flow: without this reservation it would overlap a full-width label.
   const labelMaxWidth = sortable ? `calc(100% - ${columnSorterGutter}px)` : "100%";
 
-  const handleSort = () => {
-    if (!sortable) return;
-
-    if (!sort) column.toggleSorting(false); // unsorted → asc
-    else if (sort === "asc") column.toggleSorting(true); // asc → desc
-    else column.clearSorting(); // desc → clear
-  };
-
   return (
     <Box
       role="columnheader"
@@ -48,11 +40,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
-      css={{
-        "&:hover .data-table__column-sorter": {
-          visibility: "visible",
-        },
-      }}
+      css={{ "&:hover [data-part=column-sorter]": { visibility: "visible" } }}
     >
       <Box
         position="relative"
@@ -67,10 +55,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
         >
           {flexRender(label, header.getContext())}
         </Text>
-        <ColumnSorter
-          header={header}
-          onSort={handleSort}
-        />
+        <ColumnSorter header={header} />
       </Box>
     </Box>
   );

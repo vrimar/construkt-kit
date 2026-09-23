@@ -15,8 +15,6 @@ export type ColumnFilterType = "input" | "select" | "date" | "number";
 
 export type TableFilterSelections = Record<string, string[]>;
 
-export type ColumnFilterValue = string | string[] | undefined;
-
 export type { DataTableFilters, DataTableParams, DataTableSortType } from "@construkt-kit/utils";
 
 export type DataTableSelectProps = Partial<
@@ -44,6 +42,28 @@ export type DataTableColumnMeta = {
 export type DataTableTableMeta = {
   selections: TableFilterSelections | undefined;
 };
+
+export type DataTableLabels = {
+  noResults?: string;
+  resetFilters?: string;
+  items?: string;
+  page?: string;
+  outOf?: string;
+  /** Prefix of every column filter placeholder, followed by the column name. */
+  filterBy?: string;
+  firstPage?: string;
+  previousPage?: string;
+  nextPage?: string;
+  lastPage?: string;
+};
+
+export interface ColumnFilterProps {
+  columnId: string;
+  label: string;
+  meta: DataTableColumnMeta | undefined;
+  value: string[];
+  onChange: (value: string[] | undefined) => void;
+}
 
 /**
  * Feature set backing {@link DataTable}. Sorting, filtering and pagination are
@@ -85,8 +105,3 @@ export type DataTableHeader<TData extends object, TValue = unknown> = Header<
   TValue
 >;
 export type DataTableInstance<TData extends object> = ReactTable<DataTableFeatures, TData>;
-
-export const dataTableClasses = {
-  columnSorter: "data-table__column-sorter",
-  row: "data-table__row",
-};

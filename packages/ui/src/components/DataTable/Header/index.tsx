@@ -1,7 +1,7 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
 
-import { gridRowStyle } from "../columnTemplate";
-import { type DataTableInstance, dataTableClasses } from "../types";
+import { DataTableGridRow } from "../GridRow";
+import type { DataTableInstance } from "../types";
 import { DataTableHeaderCell } from "./HeaderCell";
 import { DataTableHeaderFilterRow } from "./HeaderFilterRow";
 
@@ -28,23 +28,14 @@ export const DataTableHeader = <TData extends object>({
       bg="bg"
     >
       {groups.map((headerGroup) => (
-        <Box
-          key={headerGroup.id}
-          role="row"
-          className={dataTableClasses.row}
-          paddingX="2"
-          display="grid"
-          borderBottomWidth="1px"
-          borderColor="border"
-          style={gridRowStyle}
-        >
+        <DataTableGridRow key={headerGroup.id}>
           {headerGroup.headers.map((header) => (
             <DataTableHeaderCell
               key={header.id}
               header={header}
             />
           ))}
-        </Box>
+        </DataTableGridRow>
       ))}
       {showFiltersRow && <DataTableHeaderFilterRow table={table} />}
     </Box>

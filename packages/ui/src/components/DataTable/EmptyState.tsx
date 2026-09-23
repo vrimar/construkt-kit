@@ -1,40 +1,47 @@
 import { RefreshCwIcon } from "lucide-react";
 
 import { Button } from "../Buttons";
-import { Box, Stack } from "../Layout";
-import { Text } from "../Text";
+import { EmptyState } from "../EmptyState";
+import { LoadingOverlay } from "../LoadingOverlay";
 import { useDataTableContext } from "./context";
 
 interface DataTableEmptyStateProps {
-  /** `fill` absolutely covers the scroll viewport; `flow` sits in the document flow. */
+  /** `fill` grows to fill the table body; `flow` takes only its own height. */
   layout: "fill" | "flow";
 }
 
 export const DataTableEmptyState = ({ layout }: DataTableEmptyStateProps) => {
-  const { noResultsLabel, resetFiltersLabel, onReset } = useDataTableContext();
+  const { labels, onReset } = useDataTableContext();
 
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      {...(layout === "fill"
-        ? { position: "absolute", top: "0", left: "0", width: "100%", height: "100%" }
-        : { py: "10" })}
-    >
-      <Stack alignItems={layout === "flow" ? "center" : undefined}>
-        <Text fontSize="lg">{noResultsLabel}</Text>
-        {onReset && (
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={onReset}
-          >
-            <RefreshCwIcon />
-            {resetFiltersLabel}
-          </Button>
-        )}
-      </Stack>
-    </Box>
+    <EmptyState.Root flex={layout === "fill" ? "1" : undefined}>
+      <EmptyState.Content>
+        <EmptyState.Title>{labels.noResults}</EmptyState.Title>
+      </EmptyState.Content>
+      {onReset && (
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={onReset}
+        >
+          <RefreshCwIcon />
+          {labels.resetFilters}
+        </Button>
+      )}
+    </EmptyState.Root>
+  );
+};
+
+export const DataTableStatus = ({
+  layout,
+  isEmpty,
+}: DataTableEmptyStateProps & { isEmpty: boolean }) => {
+  const { loading } = useDataTableContext();
+
+  return (
+    <>
+      <LoadingOverlay isActive={loading} />
+      {!loading && isEmpty && <DataTableEmptyState layout={layout} />}
+    </>
   );
 };

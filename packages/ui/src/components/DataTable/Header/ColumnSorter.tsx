@@ -1,34 +1,38 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
-import { match } from "ts-pattern";
 
 import type { DataTableHeader } from "../types";
-import { dataTableClasses } from "../types";
 
 const iconSize = 18;
 const iconGap = 4;
 
 export const columnSorterGutter = iconSize + iconGap;
 
+const sortIcons = { asc: ArrowUpIcon, desc: ArrowDownIcon };
+
 interface ColumnSorterProps<TData extends object> {
   header: DataTableHeader<TData>;
-  onSort: () => unknown;
 }
 
-export const ColumnSorter = <TData extends object>({
-  header,
-  onSort,
-}: ColumnSorterProps<TData>) => {
+export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps<TData>) => {
   const column = header.column;
   const sort = column.getIsSorted();
 
   if (!column.getCanSort()) return null;
 
+  const SortIcon = sort ? sortIcons[sort] : ArrowUpDownIcon;
+
+  const handleSort = () => {
+    if (!sort) column.toggleSorting(false); // unsorted → asc
+    else if (sort === "asc") column.toggleSorting(true); // asc → desc
+    else column.clearSorting(); // desc → clear
+  };
+
   return (
     <Box
-      className={dataTableClasses.columnSorter}
+      data-part="column-sorter"
       data-sorted={sort || undefined}
-      onClick={onSort}
+      onClick={handleSort}
       cursor="pointer"
       position="absolute"
       left="100%"
@@ -47,12 +51,7 @@ export const ColumnSorter = <TData extends object>({
         _hover: { color: "colorPalette.fg" },
       }}
     >
-      {match(sort)
-        .with("asc", () => <ArrowUpIcon size={iconSize} />)
-        .with("desc", () => <ArrowDownIcon size={iconSize} />)
-        .otherwise(() => (
-          <ArrowUpDownIcon size={iconSize} />
-        ))}
+      <SortIcon size={iconSize} />
     </Box>
   );
 };

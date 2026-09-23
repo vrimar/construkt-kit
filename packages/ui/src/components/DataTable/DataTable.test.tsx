@@ -1,8 +1,8 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { DataTable } from ".";
 import type { DataTableParams, dataTableFeatures } from "./types";
@@ -52,12 +52,10 @@ const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]>
 const focusableRow = (text: string) =>
   screen.getByText(text).closest<HTMLElement>('[tabindex]:not([data-scope="scroll-area"])');
 
-const rows = () => Array.from(document.querySelectorAll<HTMLElement>(".data-table__row"));
+const rows = () => screen.getAllByRole("row");
 
 const columnTemplate = () =>
   screen.getByRole("table").style.getPropertyValue("--data-table-columns");
-
-afterEach(cleanup);
 
 describe("DataTable", () => {
   it("renders a header and a cell per column for every row", () => {
@@ -84,7 +82,7 @@ describe("DataTable", () => {
     };
     render(<StatefulTable />);
 
-    const sorter = () => document.querySelector(".data-table__column-sorter") as Element;
+    const sorter = () => document.querySelector('[data-part="column-sorter"]') as Element;
     const nameHeader = () => screen.getByRole("columnheader", { name: "Name" });
 
     expect(nameHeader().getAttribute("aria-sort")).toBe("none");
@@ -231,7 +229,7 @@ describe("DataTable", () => {
 
     const labelBox = (text: string) => screen.getByText(text).parentElement as HTMLElement;
     const sorterOf = (text: string) =>
-      labelBox(text).querySelector<HTMLElement>(".data-table__column-sorter");
+      labelBox(text).querySelector<HTMLElement>('[data-part="column-sorter"]');
 
     expect(labelBox("Name").style.maxWidth).toBe("calc(100% - 22px)");
     expect(sorterOf("Name")?.style.marginLeft).toBe("4px");
@@ -265,7 +263,7 @@ describe("DataTable", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Equals" }));
     await userEvent.click(await screen.findByText("Greater or equal", { exact: false }));
-    await userEvent.type(screen.getByPlaceholderText("Filter ID"), "100");
+    await userEvent.type(screen.getByPlaceholderText("Filter by ID"), "100");
 
     await waitFor(
       () =>
@@ -275,7 +273,7 @@ describe("DataTable", () => {
       { timeout: 1500 },
     );
 
-    await userEvent.clear(screen.getByPlaceholderText("Filter ID"));
+    await userEvent.clear(screen.getByPlaceholderText("Filter by ID"));
     await waitFor(() =>
       expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} })),
     );

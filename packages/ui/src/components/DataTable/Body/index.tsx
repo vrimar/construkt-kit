@@ -1,13 +1,13 @@
 import { Box } from "@construkt-kit/styled-system/jsx";
 import React, { type CSSProperties, useEffect } from "react";
 
-import { LoadingOverlay } from "../../LoadingOverlay";
 import { ScrollArea } from "../../ScrollArea";
-import { columnTemplateVar, getColumnTemplate, gridRowStyle } from "../columnTemplate";
+import { columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
-import { DataTableEmptyState } from "../EmptyState";
+import { DataTableStatus } from "../EmptyState";
+import { DataTableGridRow } from "../GridRow";
 import { DataTableHeader } from "../Header";
-import { type DataTableInstance, type DataTableRow, dataTableClasses } from "../types";
+import type { DataTableInstance, DataTableRow } from "../types";
 import { BodyCell } from "./BodyCell";
 
 interface DataTableBodyProps<TData extends object> {
@@ -21,11 +21,10 @@ export const DataTableBody = <TData extends object>({
   showFiltersRow,
   renderSubRow,
 }: DataTableBodyProps<TData>) => {
-  const { loading, onRowClick, onRowKeyDown, getRowProps } = useDataTableContext<TData>();
+  const { getRowInteractionProps } = useDataTableContext<TData>();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const page = table.state.pagination.pageIndex;
-  const hasEmptyMessage = rows.length === 0 && !loading;
   const columnTemplate = getColumnTemplate(table.getVisibleLeafColumns());
 
   useEffect(() => {
@@ -54,37 +53,27 @@ export const DataTableBody = <TData extends object>({
       <Box
         role="rowgroup"
         position="relative"
+        display="flex"
+        flexDirection="column"
         flex="1"
         minWidth="min-content"
         py="2"
       >
-        <LoadingOverlay
-          isActive={loading}
-          top="0"
+        <DataTableStatus
+          layout="fill"
+          isEmpty={rows.length === 0}
         />
-        {hasEmptyMessage && <DataTableEmptyState layout="fill" />}
         {rows.map((row) => {
           return (
             <React.Fragment key={row.id}>
-              <Box
-                role="row"
-                className={dataTableClasses.row}
-                display="grid"
-                paddingX="2"
-                style={gridRowStyle}
-                tabIndex={onRowClick ? 0 : undefined}
-                onClick={onRowClick && ((e) => onRowClick(e, row))}
-                onKeyDown={onRowKeyDown && ((e) => onRowKeyDown(e, row))}
-                borderBottomWidth="1px"
-                borderBottomColor="border"
-                cursor={onRowClick ? "pointer" : undefined}
+              <DataTableGridRow
                 _last={{
                   borderBottom: "none",
                 }}
                 _hover={{
                   bg: "bg.subtle",
                 }}
-                {...getRowProps?.(row)}
+                {...getRowInteractionProps(row)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <BodyCell
@@ -92,7 +81,7 @@ export const DataTableBody = <TData extends object>({
                     cell={cell}
                   />
                 ))}
-              </Box>
+              </DataTableGridRow>
 
               {row.getIsExpanded() && renderSubRow && renderSubRow(row)}
             </React.Fragment>

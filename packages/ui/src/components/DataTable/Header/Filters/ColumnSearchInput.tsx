@@ -3,25 +3,23 @@ import { useDebounce } from "react-use";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { SearchInput } from "../../../Input";
+import { useDataTableContext } from "../../context";
+import type { ColumnFilterProps } from "../../types";
 import { FILTER_DEBOUNCE_MS } from "./constants";
 
-interface ColumnSearchInputProps {
-  name: string;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputProps) => {
-  const [tempValue, setTempValue] = useState(value);
+export const ColumnSearchInput = ({ label, value, onChange }: ColumnFilterProps) => {
+  const { labels } = useDataTableContext();
+  const current = value[0] ?? "";
+  const [tempValue, setTempValue] = useState(current);
   const emit = useControlledMirror({
-    value,
-    onValueChange: onChange,
+    value: current,
+    onValueChange: (next: string) => onChange(next ? [next] : undefined),
     onExternalChange: setTempValue,
   });
 
   useDebounce(
     () => {
-      if (tempValue !== value) emit(tempValue);
+      if (tempValue !== current) emit(tempValue);
     },
     FILTER_DEBOUNCE_MS,
     [tempValue],
@@ -38,11 +36,7 @@ export const ColumnSearchInput = ({ name, value, onChange }: ColumnSearchInputPr
       autoComplete="off"
       onClear={handleClear}
       onChange={(e) => setTempValue(e.target.value)}
-      placeholder={`Search by ${name}`}
-      _placeholder={{
-        color: "fg.subtle",
-      }}
-      fontWeight="normal"
+      placeholder={`${labels.filterBy} ${label}`}
       hasIcon={false}
       value={tempValue}
       variant="plain"
