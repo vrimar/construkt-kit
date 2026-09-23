@@ -4,8 +4,8 @@ import { alert } from "@construkt-kit/styled-system/recipes";
 import { InfoIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
+import { statusIcons } from "../statusIcons";
 
 const { withProvider, withContext } = createStyleContext(alert);
 
@@ -18,7 +18,7 @@ const Content = withContext(ark.div, "content");
 type IndicatorProps = ComponentProps<typeof StyledIndicator>;
 const StyledIndicator = withContext(ark.span, "indicator");
 
-function Indicator({ ref, children, ...props }: WithRef<IndicatorProps, HTMLSpanElement>) {
+function Indicator({ ref, children, ...props }: IndicatorProps) {
   return (
     <StyledIndicator
       ref={ref}
@@ -48,13 +48,15 @@ function AlertComponent({
   startElement,
   endElement,
   ...rest
-}: WithRef<AlertProps>) {
+}: AlertProps) {
+  const StatusIcon = typeof rest.status === "string" ? statusIcons[rest.status] : undefined;
+
   return (
     <Root
       ref={ref}
       {...rest}
     >
-      {startElement || <Indicator>{icon}</Indicator>}
+      {startElement || <Indicator>{icon ?? (StatusIcon && <StatusIcon />)}</Indicator>}
       {children ? (
         <Content>
           <Title>{title}</Title>

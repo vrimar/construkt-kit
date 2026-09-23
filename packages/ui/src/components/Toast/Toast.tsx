@@ -2,12 +2,12 @@ import { Portal } from "@ark-ui/react/portal";
 import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@ark-ui/react/toast";
 import { Stack, createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { toast } from "@construkt-kit/styled-system/recipes";
-import { CheckCircleIcon, CircleAlertIcon, CircleXIcon } from "lucide-react";
 
 import type { WithRef } from "../../types";
-import { CloseButton } from "../Buttons/CloseButton";
+import { createCloseTrigger } from "../closeTrigger";
 import { Icon, type IconProps } from "../Icon";
 import { Spinner } from "../Spinner";
+import { statusIcons } from "../statusIcons";
 
 const { withProvider, withContext } = createStyleContext(toast);
 
@@ -15,19 +15,13 @@ const Root = withProvider(Toast.Root, "root");
 const Title = withContext(Toast.Title, "title");
 const Description = withContext(Toast.Description, "description");
 const ActionTrigger = withContext(Toast.ActionTrigger, "actionTrigger");
-const CloseTrigger = withContext(Toast.CloseTrigger, "closeTrigger");
+const CloseTrigger = createCloseTrigger(withContext(Toast.CloseTrigger, "closeTrigger"));
 const StyledToaster = styled(ArkToaster);
-
-const iconMap: Record<string, React.ElementType> = {
-  warning: CircleAlertIcon,
-  success: CheckCircleIcon,
-  error: CircleXIcon,
-};
 
 function Indicator({ ref, ...props }: WithRef<IconProps, SVGSVGElement>) {
   const toastCtx = useToastContext();
 
-  const StatusIcon = iconMap[toastCtx.type];
+  const StatusIcon = statusIcons[toastCtx.type];
   if (!StatusIcon) return null;
 
   return (
@@ -78,11 +72,7 @@ export const Toaster = () => {
               </Stack>
               {options.action && <ActionTrigger>{options.action.label}</ActionTrigger>}
             </Stack>
-            {options.closable && (
-              <CloseTrigger asChild>
-                <CloseButton size="sm" />
-              </CloseTrigger>
-            )}
+            {options.closable && <CloseTrigger />}
           </Root>
         )}
       </StyledToaster>
