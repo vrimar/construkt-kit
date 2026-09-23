@@ -15,16 +15,14 @@ import {
   type SeparatorProps,
 } from "react-resizable-panels";
 
+import { splitInlineSizes } from "../../foundations/cssSize";
+
 const { withRootProvider, withContext } = createStyleContext(splitter);
 
 const RootProvider = withRootProvider(Group);
 const StyledPanel = withContext(ark.div, "panel");
 const StyledResizeTrigger = withContext(ark.div, "resizeTrigger");
 type BoxProps = HTMLStyledProps<"div">;
-
-function toInlineStyleValue(value: unknown) {
-  return typeof value === "number" || typeof value === "string" ? value : undefined;
-}
 
 export type SplitterGroupProps = Pick<
   GroupProps,
@@ -47,30 +45,24 @@ function SplitterGroup({
   disabled,
   elementRef,
   groupRef,
-  height,
-  maxHeight,
-  maxWidth,
-  minHeight,
-  minWidth,
   onLayoutChange,
   onLayoutChanged,
   orientation,
   resizeTargetMinimumSize,
   style,
-  width,
   ...boxProps
 }: SplitterGroupProps) {
-  const groupStyle = {
-    height: toInlineStyleValue(height),
-    maxHeight: toInlineStyleValue(maxHeight),
-    maxWidth: toInlineStyleValue(maxWidth),
-    minHeight: toInlineStyleValue(minHeight),
-    minWidth: toInlineStyleValue(minWidth),
-    width: toInlineStyleValue(width),
-    ...style,
-  };
+  const [sizeStyle, sizedBoxProps] = splitInlineSizes(boxProps, [
+    "height",
+    "maxHeight",
+    "maxWidth",
+    "minHeight",
+    "minWidth",
+    "width",
+  ]);
+  const groupStyle = { ...sizeStyle, ...style };
 
-  const [cssProps, localProps] = splitCssProps(boxProps);
+  const [cssProps, localProps] = splitCssProps(sizedBoxProps);
   const { className, ...groupProps } = localProps;
 
   return (

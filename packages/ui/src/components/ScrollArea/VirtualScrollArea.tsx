@@ -2,10 +2,9 @@ import { Box } from "@construkt-kit/styled-system/jsx";
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual";
 import { type Ref, useCallback, useRef } from "react";
 
+import { splitInlineSizes } from "../../foundations/cssSize";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
-
-const isInlineSizeValue = (value: unknown): value is string | number =>
-  typeof value === "string" || typeof value === "number";
+import { VirtualRows } from "./VirtualRows";
 
 interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   /** The list of items to virtualize. */
@@ -48,7 +47,12 @@ export const VirtualScrollArea = <T,>({
   ...scrollAreaProps
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
-  const { style, height, maxHeight, ...resolvedScrollAreaProps } = scrollAreaProps;
+  const { style, ...sizedScrollAreaProps } = scrollAreaProps;
+  const [sizeStyle, resolvedScrollAreaProps] = splitInlineSizes(sizedScrollAreaProps, [
+    "height",
+    "maxHeight",
+  ]);
+  const resolvedStyle = { ...style, ...sizeStyle };
 
   // Read viewportRef through a ref so an inline-arrow prop can't churn setViewport's identity
   // (which would detach/reattach the scroll element the virtualizer reads every commit).
@@ -62,53 +66,25 @@ export const VirtualScrollArea = <T,>({
     else if (consumer) consumer.current = element;
   }, []);
 
-  const resolvedStyle = {
-    ...style,
-    ...(isInlineSizeValue(height) ? { height } : {}),
-    ...(isInlineSizeValue(maxHeight) ? { maxHeight } : {}),
-  };
-
-  const resolvedHeightProps = {
-    ...(isInlineSizeValue(height) ? {} : { height }),
-    ...(isInlineSizeValue(maxHeight) ? {} : { maxHeight }),
-  };
-
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
     estimateSize: typeof itemHeight === "function" ? itemHeight : () => itemHeight,
     overscan,
     getItemKey,
-    ...(measure ? {} : { measureElement: undefined }),
   });
 
   if (measure) {
-    const virtualItems = virtualizer.getVirtualItems();
-    const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
-    const paddingBottom =
-      virtualItems.length > 0
-        ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
-        : 0;
-
     return (
       <ScrollArea
         ref={setViewport}
         {...resolvedScrollAreaProps}
-        {...resolvedHeightProps}
         style={resolvedStyle}
       >
         {header}
-        <Box style={{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }}>
-          {virtualItems.map((virtualItem) => (
-            <Box
-              key={virtualItem.key}
-              data-index={virtualItem.index}
-              ref={virtualizer.measureElement}
-            >
-              {children(items[virtualItem.index], virtualItem.index, virtualItem)}
-            </Box>
-          ))}
-        </Box>
+        <VirtualRows virtualizer={virtualizer}>
+          {(virtualItem) => children(items[virtualItem.index], virtualItem.index, virtualItem)}
+        </VirtualRows>
       </ScrollArea>
     );
   }
@@ -117,7 +93,6 @@ export const VirtualScrollArea = <T,>({
     <ScrollArea
       ref={setViewport}
       {...resolvedScrollAreaProps}
-      {...resolvedHeightProps}
       style={resolvedStyle}
     >
       {header}

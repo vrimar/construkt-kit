@@ -2,7 +2,7 @@ import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
 import { useId } from "react";
 
 import { type BreakpointOrBase, responsiveVarRules } from "../../foundations/breakpoints";
-import type { WithRef } from "../../types";
+import { toCssSize } from "../../foundations/cssSize";
 
 type ResponsiveColumns = Partial<Record<BreakpointOrBase, number>>;
 
@@ -22,8 +22,6 @@ export interface SimpleGridProps extends Omit<BoxProps, "columns"> {
 
 /** Scoped custom property so a parent `--columns` can't leak in via inheritance. */
 const COLUMN_VAR = "--simple-grid-columns" as const;
-
-const toWidth = (value: string | number) => (typeof value === "number" ? `${value}px` : value);
 
 /**
  * Responsive CSS grid of equal-width columns. The column count is written to a custom
@@ -46,14 +44,14 @@ export const SimpleGrid = ({
   style,
   children,
   ...rest
-}: WithRef<SimpleGridProps>) => {
+}: SimpleGridProps) => {
   const gridId = useId();
 
   const columnStyle: Record<string, string | number> = {};
   let responsiveRules = "";
 
   if (minChildWidth) {
-    columnStyle.gridTemplateColumns = `repeat(auto-fill, minmax(${toWidth(minChildWidth)}, 1fr))`;
+    columnStyle.gridTemplateColumns = `repeat(auto-fit, minmax(${toCssSize(minChildWidth)}, 1fr))`;
   } else if (typeof columns === "number") {
     columnStyle[COLUMN_VAR] = Math.max(1, columns);
   } else if (columns != null) {
