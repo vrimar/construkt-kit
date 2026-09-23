@@ -22,14 +22,6 @@ export const popover = defineSlotRecipe({
       width: "xs",
       maxWidth: "calc(100vw - {spacing.4})",
       zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
-      _open: {
-        animationStyle: "scale-fade-in",
-        animationDuration: "fast",
-      },
-      _closed: {
-        animationStyle: "scale-fade-out",
-        animationDuration: "faster",
-      },
     },
     title: {
       color: "fg",
@@ -43,7 +35,7 @@ export const popover = defineSlotRecipe({
     closeTrigger: {
       position: "absolute",
       top: "1",
-      right: "1",
+      insetEnd: "1",
     },
     header: {
       display: "flex",

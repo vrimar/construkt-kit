@@ -43,14 +43,6 @@ export const combobox = defineSlotRecipe({
       outline: "0",
       overflowY: "auto",
       zIndex: "dropdown",
-      _open: {
-        animationStyle: "slide-fade-in",
-        animationDuration: "slow",
-      },
-      _closed: {
-        animationStyle: "slide-fade-out",
-        animationDuration: "fastest",
-      },
       "&[data-empty]:not(:has([data-scope=combobox][data-part=empty]))": {
         opacity: 0,
       },

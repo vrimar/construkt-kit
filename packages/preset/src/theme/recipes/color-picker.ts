@@ -52,12 +52,6 @@ export const colorPicker = defineSlotRecipe({
       maxWidth: "sm",
       p: "4",
       zIndex: "popover",
-      _open: {
-        animation: "fadeIn 0.25s ease-out",
-      },
-      _closed: {
-        animation: "fadeOut 0.2s ease-out",
-      },
       _hidden: {
         display: "none",
       },

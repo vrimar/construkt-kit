@@ -19,14 +19,6 @@ export const menu = defineSlotRecipe({
       overflowY: "auto",
       position: "relative",
       zIndex: "calc(var(--menu-z-index) + var(--layer-index, 0))",
-      _open: {
-        animationStyle: "slide-fade-in",
-        animationDuration: "fast",
-      },
-      _closed: {
-        animationStyle: "slide-fade-out",
-        animationDuration: "faster",
-      },
     },
     item: {
       alignItems: "center",

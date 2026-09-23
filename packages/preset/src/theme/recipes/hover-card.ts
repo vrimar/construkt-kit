@@ -19,14 +19,6 @@ export const hoverCard = defineSlotRecipe({
       ...controlText("sm"),
       transformOrigin: "var(--transform-origin)",
       zIndex: "popover",
-      _open: {
-        animationStyle: "slide-fade-in",
-        animationDuration: "fast",
-      },
-      _closed: {
-        animationStyle: "slide-fade-out",
-        animationDuration: "faster",
-      },
     },
     arrow: floatingArrow.arrow,
     arrowTip: floatingArrow.arrowTip,

@@ -7,10 +7,8 @@ export const tooltip = defineSlotRecipe({
   className: "tooltip",
   slots: tooltipAnatomy.keys(),
   base: {
-    positioner: {
-      zIndex: "tooltip",
-    },
     content: {
+      zIndex: "tooltip",
       "--tooltip-bg": "colors.neutral.solid.bg",
       bg: "var(--tooltip-bg)",
       color: "colorPalette.solid.fg",
@@ -21,14 +19,6 @@ export const tooltip = defineSlotRecipe({
       py: surface("0.375rem"),
       ...controlText("xs"),
       maxWidth: "xs",
-      _open: {
-        animationStyle: "scale-fade-in",
-        animationDuration: "fast",
-      },
-      _closed: {
-        animationStyle: "scale-fade-out",
-        animationDuration: "faster",
-      },
     },
     arrow: {
       "--arrow-size": "sizes.2",
