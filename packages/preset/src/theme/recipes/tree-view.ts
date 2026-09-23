@@ -96,6 +96,7 @@ export const treeView = defineSlotRecipe({
         "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)) + (var(--tree-icon-size) * 0.5))",
       width: "1px",
       bg: "border",
+      pointerEvents: "none",
     },
     item: {
       display: "flex",
@@ -156,7 +157,9 @@ export const treeView = defineSlotRecipe({
     dropIndicator: {
       colorPalette: "blue",
       position: "absolute",
-      insetInline: "0",
+      insetInlineStart:
+        "calc(var(--tree-padding-inline) + (var(--drop-level, 0) * var(--tree-indent)))",
+      insetInlineEnd: "0",
       height: "2px",
       bg: "colorPalette.solid.bg",
       borderRadius: "full",
@@ -173,8 +176,21 @@ export const treeView = defineSlotRecipe({
         borderRadius: "full",
         bg: "colorPalette.solid.bg",
       },
+      "&[data-instruction='reorder-above']": {
+        insetBlockStart: "0",
+        transform: "translateY(-50%)",
+      },
+      "&[data-instruction='reorder-below']": {
+        insetBlockEnd: "0",
+        transform: "translateY(50%)",
+      },
+      "&[data-instruction='reparent']": {
+        insetBlockEnd: "0",
+        transform: "translateY(50%)",
+      },
       // make-child: outline the whole row instead of a line
       "&[data-instruction='make-child']": {
+        insetInlineStart: "0",
         insetBlock: "0",
         height: "auto",
         bg: "transparent",
