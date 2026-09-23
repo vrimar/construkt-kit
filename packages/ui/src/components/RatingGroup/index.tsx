@@ -1,5 +1,7 @@
 import {
   RatingGroup as ArkRatingGroup,
+  RatingGroupContext,
+  RatingGroupItemContext,
   useRatingGroupContext,
   useRatingGroupItemContext,
 } from "@ark-ui/react/rating-group";
@@ -45,7 +47,6 @@ function ItemIndicator({
   return (
     <StyledItemIndicator
       ref={ref}
-      cursor="pointer"
       {...rest}
       data-highlighted={item.highlighted ? "" : undefined}
       data-checked={item.checked ? "" : undefined}
@@ -91,4 +92,6 @@ export const RatingGroup = {
   Items,
   Label,
   HiddenInput,
+  Context: RatingGroupContext,
+  ItemContext: RatingGroupItemContext,
 };

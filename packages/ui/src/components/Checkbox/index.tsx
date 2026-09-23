@@ -6,6 +6,7 @@ import {
 import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { checkbox } from "@construkt-kit/styled-system/recipes";
 import type { HTMLStyledProps } from "@construkt-kit/styled-system/types";
+import { CheckIcon, MinusIcon } from "lucide-react";
 import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
 
 import type { WithRef } from "../../types";
@@ -27,31 +28,28 @@ export {
   type CheckboxCheckedState as CheckedState,
 } from "@ark-ui/react/checkbox";
 
+const CheckGlyph = styled(CheckIcon);
+const MinusGlyph = styled(MinusIcon);
+
 export const Indicator = ({ ref, ...props }: WithRef<HTMLStyledProps<"svg">, SVGSVGElement>) => {
-  const { indeterminate, checked } = useCheckboxContext();
+  const { indeterminate } = useCheckboxContext();
+  const Glyph = indeterminate ? MinusGlyph : CheckGlyph;
 
   return (
     <ArkCheckbox.Indicator
       indeterminate={indeterminate}
       asChild
     >
-      <styled.svg
+      <Glyph
         ref={ref}
-        viewBox="0 0 24 24"
-        strokeWidth="3px"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ fill: "none", stroke: "currentColor" }}
+        strokeWidth={3}
         {...props}
-      >
-        <title>Checkmark</title>
-        {indeterminate ? <path d="M5 12h14" /> : checked ? <path d="M20 6 9 17l-5-5" /> : null}
-      </styled.svg>
+      />
     </ArkCheckbox.Indicator>
   );
 };
 
-export interface CheckboxProps extends RootProps {
+export interface CheckboxProps extends Omit<RootProps, "ref"> {
   icon?: ReactNode;
   inputProps?: InputHTMLAttributes<HTMLInputElement>;
   rootRef?: Ref<HTMLLabelElement>;
@@ -68,7 +66,6 @@ function CheckboxSimple({
   return (
     <Root
       ref={rootRef}
-      cursor="pointer"
       {...rest}
     >
       <HiddenInput

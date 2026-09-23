@@ -2,7 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
 import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { switchRecipe } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
+import type { ComponentProps, ElementType, InputHTMLAttributes, ReactNode, Ref } from "react";
 
 import type { WithRef } from "../../types";
 
@@ -13,52 +13,31 @@ const Root = withProvider(ArkSwitch.Root, "root");
 const Label = withContext(ArkSwitch.Label, "label");
 const Thumb = withContext(ArkSwitch.Thumb, "thumb");
 const HiddenInput = ArkSwitch.HiddenInput;
-const Control = withContext(ArkSwitch.Control, "control", {
-  defaultProps: { children: <Thumb /> },
-});
+const Control = withContext(ArkSwitch.Control, "control");
 
-interface IndicatorProps extends ComponentProps<typeof StyledIndicator> {
+interface CheckedSwapProps {
   fallback?: ReactNode | undefined;
+  children?: ReactNode;
 }
 
-const StyledIndicator = withContext(ark.span, "indicator");
-function Indicator({ ref, fallback, children, ...rest }: WithRef<IndicatorProps, HTMLSpanElement>) {
-  const api = useSwitchContext();
-  return (
-    <StyledIndicator
-      ref={ref}
-      data-checked={api.checked ? "" : undefined}
-      {...rest}
-    >
-      {api.checked ? children : fallback}
-    </StyledIndicator>
-  );
+function createCheckedSwap(Base: ElementType) {
+  return function CheckedSwap({ fallback, children, ...rest }: CheckedSwapProps) {
+    const api = useSwitchContext();
+    return (
+      <Base
+        data-checked={api.checked ? "" : undefined}
+        {...rest}
+      >
+        {api.checked ? children : fallback}
+      </Base>
+    );
+  };
 }
 
-interface ThumbIndicatorProps extends ComponentProps<typeof StyledThumbIndicator> {
-  fallback?: ReactNode | undefined;
-}
+const Indicator = createCheckedSwap(withContext(ark.span, "indicator"));
+const ThumbIndicator = createCheckedSwap(styled(ark.span));
 
-const StyledThumbIndicator = styled(ark.span);
-function ThumbIndicator({
-  ref,
-  fallback,
-  children,
-  ...rest
-}: WithRef<ThumbIndicatorProps, HTMLSpanElement>) {
-  const api = useSwitchContext();
-  return (
-    <StyledThumbIndicator
-      ref={ref}
-      data-checked={api.checked ? "" : undefined}
-      {...rest}
-    >
-      {api.checked ? children : fallback}
-    </StyledThumbIndicator>
-  );
-}
-
-export interface SwitchProps extends RootProps {
+export interface SwitchProps extends Omit<RootProps, "ref"> {
   inputProps?: InputHTMLAttributes<HTMLInputElement>;
   rootRef?: Ref<HTMLLabelElement>;
   trackLabel?: { on: ReactNode; off: ReactNode };
@@ -77,7 +56,6 @@ export const Switch = ({
   return (
     <Root
       ref={rootRef}
-      cursor="pointer"
       {...rest}
     >
       <HiddenInput
@@ -86,9 +64,7 @@ export const Switch = ({
       />
       <Control>
         <Thumb>
-          {thumbLabel && (
-            <ThumbIndicator fallback={thumbLabel?.off}>{thumbLabel?.on}</ThumbIndicator>
-          )}
+          {thumbLabel && <ThumbIndicator fallback={thumbLabel.off}>{thumbLabel.on}</ThumbIndicator>}
         </Thumb>
         {trackLabel && <Indicator fallback={trackLabel.off}>{trackLabel.on}</Indicator>}
       </Control>

@@ -4,8 +4,6 @@ import { HStack, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { slider } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ReactNode } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(slider);
 
 type RootProps = ComponentProps<typeof Root>;
@@ -27,37 +25,28 @@ export interface SliderProps extends RootProps {
   showValue?: boolean;
 }
 
-export const Slider = ({
-  ref,
-  marks: marksProp,
-  label,
-  showValue,
-  ...rest
-}: WithRef<SliderProps>) => {
+export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: SliderProps) => {
   const value = rest.defaultValue ?? rest.value;
 
-  const marks = marksProp?.map((mark) => {
-    if (typeof mark === "number") return { value: mark, label: undefined };
-    return mark;
-  });
+  const marks = marksProp?.map((mark) =>
+    typeof mark === "number" ? { value: mark, label: undefined } : mark,
+  );
 
   const hasMarkLabel = marks?.some((mark) => !!mark.label) ?? false;
 
   return (
     <Root
       ref={ref}
-      cursor="pointer"
       thumbAlignment="center"
       {...rest}
     >
-      {label && !showValue && <Label fontWeight="medium">{label}</Label>}
-      {label && showValue && (
+      {label && (
         <HStack justify="space-between">
-          <Label fontWeight="medium">{label}</Label>
-          <ValueText />
+          <Label>{label}</Label>
+          {showValue && <ValueText />}
         </HStack>
       )}
-      <Control mb={hasMarkLabel ? "4" : undefined}>
+      <Control data-has-mark-label={hasMarkLabel || undefined}>
         <Track>
           <Range />
         </Track>
@@ -72,21 +61,15 @@ export const Slider = ({
       </Control>
       {marks?.length && (
         <MarkerGroup>
-          {marks.map((mark, index) => {
-            const markValue = typeof mark === "number" ? mark : mark.value;
-            const markLabel = typeof mark === "number" ? undefined : mark.label;
-
-            return (
-              <Marker
-                key={index}
-                value={markValue}
-                fontSize="md"
-              >
-                <MarkerIndicator />
-                {markLabel}
-              </Marker>
-            );
-          })}
+          {marks.map((mark, index) => (
+            <Marker
+              key={index}
+              value={mark.value}
+            >
+              <MarkerIndicator />
+              {mark.label}
+            </Marker>
+          ))}
         </MarkerGroup>
       )}
     </Root>

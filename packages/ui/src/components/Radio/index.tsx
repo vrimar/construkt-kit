@@ -14,7 +14,7 @@ const ItemControl = withContext(RadioGroup.ItemControl, "itemControl");
 const ItemText = withContext(RadioGroup.ItemText, "itemText");
 const ItemHiddenInput = RadioGroup.ItemHiddenInput;
 
-export interface RadioProps extends ItemProps {
+export interface RadioProps extends Omit<ItemProps, "ref"> {
   rootRef?: Ref<HTMLLabelElement>;
   inputProps?: InputHTMLAttributes<HTMLInputElement>;
 }
@@ -35,8 +35,8 @@ export const Radio = ({
         ref={ref}
         {...inputProps}
       />
-      <ItemControl cursor="pointer" />
-      {children && <ItemText cursor="pointer">{children}</ItemText>}
+      <ItemControl />
+      {children != null && <ItemText>{children}</ItemText>}
     </Item>
   );
 };
