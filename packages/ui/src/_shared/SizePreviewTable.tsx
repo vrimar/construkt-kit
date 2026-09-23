@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { Box } from "../components/Layout";
 import { Table } from "../components/Table";
 
 interface Props<T extends string> {
@@ -12,11 +11,7 @@ interface Props<T extends string> {
 export const SizePreviewTable = <T extends string>({ sizes, renderPreview, pivot }: Props<T>) => {
   if (pivot) {
     return (
-      // Many size columns sit side-by-side; let them scroll inside the canvas on narrow screens.
-      <Box
-        overflowX="auto"
-        maxW="full"
-      >
+      <Table.ScrollArea>
         <Table.Root>
           <Table.Head>
             <Table.Row>
@@ -33,15 +28,12 @@ export const SizePreviewTable = <T extends string>({ sizes, renderPreview, pivot
             </Table.Row>
           </Table.Body>
         </Table.Root>
-      </Box>
+      </Table.ScrollArea>
     );
   }
 
   return (
-    <Box
-      overflowX="auto"
-      maxW={{ base: "full", sm: "420px" }}
-    >
+    <Table.ScrollArea maxWidth={{ base: "full", sm: "420px" }}>
       <Table.Root>
         <Table.Head>
           <Table.Row>
@@ -58,6 +50,6 @@ export const SizePreviewTable = <T extends string>({ sizes, renderPreview, pivot
           ))}
         </Table.Body>
       </Table.Root>
-    </Box>
+    </Table.ScrollArea>
   );
 };
