@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import calendar from "dayjs/plugin/calendar";
+// dayjs has no exports map, so Node ESM needs the file extension.
+import calendar from "dayjs/plugin/calendar.js";
 
 dayjs.extend(calendar);
 
