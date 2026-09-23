@@ -1,29 +1,16 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
+import type { CSSProperties } from "react";
 
-export const TreeRowIndentGuides = ({ indexPath }: { indexPath: number[] }) => {
-  const ancestorDepths = Array.from(
-    { length: Math.max(0, indexPath.length - 1) },
-    (_, index) => index + 1,
-  );
+import { FlatIndentGuide } from "./TreeView";
 
-  if (ancestorDepths.length === 0) return null;
-
-  return ancestorDepths.map((depth) => (
-    <Box
-      key={depth}
-      aria-hidden="true"
-      data-part="branch-indent-guide"
-      data-scope="tree-view"
-      data-virtualized="true"
-      position="absolute"
-      top="0"
-      bottom="0"
-      width="1px"
-      bg="border"
-      pointerEvents="none"
-      style={{
-        insetInlineStart: `calc(var(--tree-padding-inline) + ((${depth} - 1) * var(--tree-indent)) + (var(--tree-icon-size) * 0.5))`,
-      }}
-    />
-  ));
-};
+export const TreeRowIndentGuides = ({ indexPath }: { indexPath: number[] }) =>
+  Array.from({ length: Math.max(0, indexPath.length - 1) }, (_, index) => {
+    const style: CSSProperties & { "--depth": number } = { "--depth": index + 1 };
+    return (
+      <FlatIndentGuide
+        key={index}
+        aria-hidden="true"
+        data-virtualized="true"
+        style={style}
+      />
+    );
+  });

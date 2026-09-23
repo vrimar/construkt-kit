@@ -19,6 +19,7 @@ import { TREE_DND_INSTANCE_KEY, useTreeDndContext } from "./TreeDndContext";
 import { TreeDragPreview } from "./TreeDragPreview";
 import {
   getItemMode,
+  instructionLevel,
   isDescendantValue,
   isLastChildOfParent,
   type TreeKeyboardMove,
@@ -41,13 +42,6 @@ const FALLBACK_INDENT_PER_LEVEL = 20;
 
 /** No-op ref used when DnD is disabled so the row doesn't churn state on mount. */
 const NOOP_REF = () => {};
-
-/** The level the indicator renders at for an instruction (matches TreeDropIndicator). */
-function instructionLevel(instruction: Instruction): number | undefined {
-  if (instruction.type === "reparent") return instruction.desiredLevel;
-  if (instruction.type === "instruction-blocked") return undefined;
-  return instruction.currentLevel;
-}
 
 /**
  * Whether two instructions render an identical indicator. `extractInstruction` returns a fresh

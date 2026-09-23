@@ -1,9 +1,15 @@
 import { treeView } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CheckIcon, FileIcon, FolderIcon, MinusIcon } from "lucide-react";
+import { FileIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
 
-import { DraggableTreeNode, TreeView, TreeViewDndProvider, createTreeCollection } from ".";
+import {
+  DraggableTreeNode,
+  type TreeNodeRenderDetails,
+  TreeView,
+  TreeViewDndProvider,
+  createTreeCollection,
+} from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
@@ -61,120 +67,36 @@ const collection = createTreeCollection<Node>({
   },
 });
 
+const renderWithIcons = ({ node, isBranch }: TreeNodeRenderDetails<Node>) =>
+  isBranch ? (
+    <>
+      <FolderIcon />
+      <TreeView.BranchText>{node.name}</TreeView.BranchText>
+    </>
+  ) : (
+    <>
+      <FileIcon />
+      <TreeView.ItemText>{node.name}</TreeView.ItemText>
+    </>
+  );
+
+const renderWithCheckbox = ({ node, isBranch }: TreeNodeRenderDetails<Node>) => (
+  <>
+    <TreeView.NodeCheckbox />
+    {isBranch ? (
+      <TreeView.BranchText>{node.name}</TreeView.BranchText>
+    ) : (
+      <TreeView.ItemText>{node.name}</TreeView.ItemText>
+    )}
+  </>
+);
+
 const meta: Meta = {
   title: "Components/TreeView",
   tags: ["autodocs"],
 };
 
 export default meta;
-
-function TreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return (
-    <TreeView.NodeProvider
-      key={node.id}
-      node={node}
-      indexPath={indexPath}
-    >
-      {node.children ? (
-        <TreeView.Branch>
-          <TreeView.BranchControl>
-            <TreeView.BranchIndicator />
-            <TreeView.BranchText>{node.name}</TreeView.BranchText>
-          </TreeView.BranchControl>
-          <TreeView.BranchContent>
-            {node.children.map((child, index) => (
-              <TreeNode
-                key={child.id}
-                node={child}
-                indexPath={[...indexPath, index]}
-              />
-            ))}
-          </TreeView.BranchContent>
-        </TreeView.Branch>
-      ) : (
-        <TreeView.Item>
-          <TreeView.ItemText>{node.name}</TreeView.ItemText>
-        </TreeView.Item>
-      )}
-    </TreeView.NodeProvider>
-  );
-}
-
-function CustomTreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return (
-    <TreeView.NodeProvider
-      key={node.id}
-      node={node}
-      indexPath={indexPath}
-    >
-      {node.children ? (
-        <TreeView.Branch>
-          <TreeView.BranchControl>
-            <TreeView.BranchIndicator />
-            <FolderIcon />
-            <TreeView.BranchText>{node.name}</TreeView.BranchText>
-          </TreeView.BranchControl>
-          <TreeView.BranchContent>
-            {node.children.map((child, index) => (
-              <CustomTreeNode
-                key={child.id}
-                node={child}
-                indexPath={[...indexPath, index]}
-              />
-            ))}
-          </TreeView.BranchContent>
-        </TreeView.Branch>
-      ) : (
-        <TreeView.Item>
-          <FileIcon />
-          <TreeView.ItemText>{node.name}</TreeView.ItemText>
-        </TreeView.Item>
-      )}
-    </TreeView.NodeProvider>
-  );
-}
-
-function CheckboxTreeNode({ node, indexPath }: { node: Node; indexPath: number[] }) {
-  return (
-    <TreeView.NodeProvider
-      key={node.id}
-      node={node}
-      indexPath={indexPath}
-    >
-      {node.children ? (
-        <TreeView.Branch>
-          <TreeView.BranchControl>
-            <TreeView.NodeCheckbox>
-              <TreeView.NodeCheckboxIndicator indeterminate={<MinusIcon />}>
-                <CheckIcon />
-              </TreeView.NodeCheckboxIndicator>
-            </TreeView.NodeCheckbox>
-            <TreeView.BranchIndicator />
-            <TreeView.BranchText>{node.name}</TreeView.BranchText>
-          </TreeView.BranchControl>
-          <TreeView.BranchContent>
-            {node.children.map((child, index) => (
-              <CheckboxTreeNode
-                key={child.id}
-                node={child}
-                indexPath={[...indexPath, index]}
-              />
-            ))}
-          </TreeView.BranchContent>
-        </TreeView.Branch>
-      ) : (
-        <TreeView.Item>
-          <TreeView.NodeCheckbox>
-            <TreeView.NodeCheckboxIndicator indeterminate={<MinusIcon />}>
-              <CheckIcon />
-            </TreeView.NodeCheckboxIndicator>
-          </TreeView.NodeCheckbox>
-          <TreeView.ItemText>{node.name}</TreeView.ItemText>
-        </TreeView.Item>
-      )}
-    </TreeView.NodeProvider>
-  );
-}
 
 export const Basic: StoryObj = {
   render: () => (
@@ -191,7 +113,7 @@ export const Basic: StoryObj = {
       >
         <TreeView.Tree>
           {collection.rootNode.children?.map((node, index) => (
-            <TreeNode
+            <DraggableTreeNode
               key={node.id}
               node={node}
               indexPath={[index]}
@@ -218,10 +140,11 @@ export const WithCustomRender: StoryObj = {
       >
         <TreeView.Tree>
           {collection.rootNode.children?.map((node, index) => (
-            <CustomTreeNode
+            <DraggableTreeNode
               key={node.id}
               node={node}
               indexPath={[index]}
+              renderNode={renderWithIcons}
             />
           ))}
         </TreeView.Tree>
@@ -245,10 +168,11 @@ export const WithCheckboxes: StoryObj = {
       >
         <TreeView.Tree>
           {collection.rootNode.children?.map((node, index) => (
-            <CheckboxTreeNode
+            <DraggableTreeNode
               key={node.id}
               node={node}
               indexPath={[index]}
+              renderNode={renderWithCheckbox}
             />
           ))}
         </TreeView.Tree>
@@ -282,19 +206,7 @@ function DragAndDropExample() {
                 key={node.id}
                 node={node}
                 indexPath={[index]}
-                renderNode={({ node: treeNode, isBranch }) =>
-                  isBranch ? (
-                    <>
-                      <FolderIcon />
-                      <TreeView.BranchText>{treeNode.name}</TreeView.BranchText>
-                    </>
-                  ) : (
-                    <>
-                      <FileIcon />
-                      <TreeView.ItemText>{treeNode.name}</TreeView.ItemText>
-                    </>
-                  )
-                }
+                renderNode={renderWithIcons}
               />
             ))}
           </TreeView.Tree>
@@ -327,7 +239,7 @@ export const Sizes: StoryObj = {
           >
             <TreeView.Tree>
               {collection.rootNode.children?.map((node, index) => (
-                <TreeNode
+                <DraggableTreeNode
                   key={node.id}
                   node={node}
                   indexPath={[index]}

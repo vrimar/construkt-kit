@@ -42,5 +42,6 @@ export {
   mergeFilteredValue,
 } from "./treeCollectionUtils";
 export { TreeRowIndentGuides } from "./TreeRowIndentGuides";
+export type { TreeNodeRenderDetails } from "./TreeRow";
 export { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
 export { TreeView, type TreeViewRootProps, type TreeViewVariantProps } from "./TreeView";

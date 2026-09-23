@@ -1,19 +1,21 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 
+import { matchesQuery, normalizeQuery } from "../Listbox/managed";
+
 export const filterTreeCollection = <TNode extends TreeNode>(
   collection: TreeCollection<TNode>,
   query: string,
   searchPredicate?: (node: TNode, query: string) => boolean,
 ) => {
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = normalizeQuery(query);
 
   if (!normalizedQuery) return collection;
 
-  return collection.filter((node) => {
-    if (searchPredicate) return searchPredicate(node, normalizedQuery);
-
-    return collection.stringifyNode(node).toLowerCase().includes(normalizedQuery);
-  });
+  return collection.filter((node) =>
+    searchPredicate
+      ? searchPredicate(node, normalizedQuery)
+      : matchesQuery(collection.stringifyNode(node), normalizedQuery),
+  );
 };
 
 export const collectLeafValues = <TNode extends TreeNode>(

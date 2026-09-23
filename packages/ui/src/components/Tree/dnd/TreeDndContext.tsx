@@ -2,7 +2,8 @@ import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
-import type { CSSProperties, MutableRefObject, ReactNode } from "react";
+import { VisuallyHidden } from "@construkt-kit/styled-system/jsx";
+import type { MutableRefObject, ReactNode } from "react";
 import {
   createContext,
   useCallback,
@@ -127,18 +128,6 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
 
 const DEFAULT_AUTO_EXPAND_DELAY_MS = 500;
 
-const srOnly: CSSProperties = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  padding: 0,
-  margin: "-1px",
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
-
 const defaultDropAnnouncement = <T extends TreeNode>({
   sourceValues,
   nextCollection,
@@ -172,8 +161,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
   // Keep collection / consumer callbacks current for the monitor and stable wrappers without
   // re-registering (and without letting inline callbacks churn the memoized context value).
-  const collectionRef = useRef(collection);
-  const handlers = useRef({
+  const latest = {
     onCollectionChange,
     onDrop,
     onDragStart,
@@ -185,23 +173,13 @@ export function TreeViewDndProvider<T extends TreeNode>({
     getDropAnnouncement,
     isNodeDraggable,
     autoScrollSpeed,
-  });
+  };
+  const collectionRef = useRef(collection);
+  const handlers = useRef(latest);
 
   useEffect(() => {
     collectionRef.current = collection;
-    handlers.current = {
-      onCollectionChange,
-      onDrop,
-      onDragStart,
-      onDragEnd,
-      canDrop,
-      getDragValues,
-      getExtraDragData,
-      renderDragPreview,
-      getDropAnnouncement,
-      isNodeDraggable,
-      autoScrollSpeed,
-    };
+    handlers.current = latest;
   });
 
   // Toggle a silent marker so identical consecutive messages still change the live region's text
@@ -260,17 +238,16 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
   const moveByKeyboard = useCallback(
     (value: string, move: TreeKeyboardMove): boolean => {
-      const h = handlers.current;
       if (!canDrag(value)) return false;
       if (move === "outdent" && blockReparent) return false;
       const result = moveNodeByKeyboard(collectionRef.current, value, move);
       if (!result) return false;
       if (
-        h.canDrop?.({
+        !canDropWrapped({
           sourceValue: value,
           targetValue: result.targetValue,
           instruction: result.instruction,
-        }) === false
+        })
       ) {
         return false;
       }
@@ -283,7 +260,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
       });
       return true;
     },
-    [blockReparent, canDrag, performMove],
+    [blockReparent, canDrag, canDropWrapped, performMove],
   );
 
   useEffect(() => {
@@ -292,8 +269,10 @@ export function TreeViewDndProvider<T extends TreeNode>({
       canMonitor: ({ source }) => source.data[TREE_DND_INSTANCE_KEY] === instanceId,
       onDragStart: ({ source }) => {
         const sourceValue = String(source.data.value);
-        const sourceValues = handlers.current.getDragValues?.(sourceValue) ?? [sourceValue];
-        handlers.current.onDragStart?.({ sourceValue, sourceValues });
+        handlers.current.onDragStart?.({
+          sourceValue,
+          sourceValues: getDragValuesWrapped(sourceValue),
+        });
       },
       onDrop: ({ source, location }) => {
         handlers.current.onDragEnd?.();
@@ -304,9 +283,9 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
         const sourceValue = String(source.data.value);
         const targetValue = String(target.data.value);
-        if (handlers.current.canDrop?.({ sourceValue, targetValue, instruction }) === false) return;
+        if (!canDropWrapped({ sourceValue, targetValue, instruction })) return;
 
-        const sourceValues = handlers.current.getDragValues?.(sourceValue) ?? [sourceValue];
+        const sourceValues = getDragValuesWrapped(sourceValue);
         const previous = collectionRef.current;
         const next = applyTreeDrop(previous, { sourceValues, targetValue, instruction });
         if (!next) return;
@@ -320,7 +299,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
         });
       },
     });
-  }, [instanceId, enabled, performMove]);
+  }, [instanceId, enabled, canDropWrapped, getDragValuesWrapped, performMove]);
 
   // Edge auto-scroll; re-binds when the scroll element mounts/changes, constrained to vertical.
   useEffect(() => {
@@ -367,14 +346,13 @@ export function TreeViewDndProvider<T extends TreeNode>({
   return (
     <TreeDndContext.Provider value={value as TreeDndContextValue}>
       {children}
-      <div
+      <VisuallyHidden
         aria-live="polite"
         aria-atomic="true"
         role="status"
-        style={srOnly}
       >
         {announcement}
-      </div>
+      </VisuallyHidden>
     </TreeDndContext.Provider>
   );
 }

@@ -1,7 +1,7 @@
 import type { TreeCollection } from "@ark-ui/react/tree-view";
 import { createTreeCollection } from "@ark-ui/react/tree-view";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { TreeSelectList } from "./TreeSelectList";
 
@@ -14,10 +14,6 @@ vi.mock("../ScrollArea/VirtualScrollArea", () => ({
     children: (item: unknown, index: number) => React.ReactNode;
   }) => <>{items.map((item, index) => children(item, index))}</>,
 }));
-
-afterEach(() => {
-  cleanup();
-});
 
 interface TestNode {
   id: string;
@@ -180,7 +176,7 @@ describe("TreeSelectList", () => {
 
   // --- Filtering / selection preservation (from TreeSelect tests) ---
 
-  it("preserves hidden selections when filtered checkbox changes", () => {
+  it("preserves hidden selections when a filtered checkbox changes", async () => {
     const onValueChange = vi.fn();
 
     render(
@@ -193,16 +189,13 @@ describe("TreeSelectList", () => {
 
     fireEvent.change(screen.getByPlaceholderText("Search..."), { target: { value: "app" } });
 
-    // After filtering to show only "Apple", check it
-    const appleCheckbox = screen.getByText("Apple").closest('[data-scope="tree-view"]');
+    const appleCheckbox = screen
+      .getByText("Apple")
+      .closest('[data-scope="tree-view"][data-part="item"]')
+      ?.querySelector('[data-scope="tree-view"][data-part="node-checkbox"]');
+    fireEvent.click(appleCheckbox as Element);
 
-    // Simulate pointer-down on the apple item to toggle it
-    if (appleCheckbox) {
-      fireEvent.pointerDown(appleCheckbox);
-    }
-
-    // The carrot selection should be preserved even though it's filtered out
-    // Note: full integration test; behavior depends on Ark UI state machine
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(["carrot", "apple"]));
   });
 
   it("defaults to md size", () => {
@@ -214,22 +207,7 @@ describe("TreeSelectList", () => {
       />,
     );
 
-    // The tree root should have size="md" via RootProvider
-    const treeRoot = container.querySelector('[data-scope="tree-view"]');
-    expect(treeRoot).toBeTruthy();
-  });
-
-  it("defaults to 320px max height", () => {
-    const { container } = render(
-      <TreeSelectList
-        collection={fruitVegCollection}
-        value={[]}
-        onValueChange={vi.fn()}
-      />,
-    );
-
-    // Component renders and uses the default maxHeight
-    expect(container.firstChild).toBeTruthy();
+    expect(container.querySelector('[class*="tree-view__root--size_md"]')).not.toBeNull();
   });
 
   it("hides search and select-all when both are disabled", () => {

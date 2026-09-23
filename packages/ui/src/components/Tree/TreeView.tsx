@@ -6,7 +6,7 @@ import {
 } from "@ark-ui/react/tree-view";
 import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type TreeViewVariantProps, treeView } from "@construkt-kit/styled-system/recipes";
-import { ChevronRightIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, MinusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
 const { withProvider, withContext } = createStyleContext(treeView);
@@ -33,11 +33,20 @@ const Item = withContext(ArkTreeView.Item, "item");
 const ItemIndicator = withContext(ArkTreeView.ItemIndicator, "itemIndicator");
 const ItemText = withContext(ArkTreeView.ItemText, "itemText");
 const NodeProvider = ArkTreeView.NodeProvider;
-const NodeCheckbox = withContext(ArkTreeView.NodeCheckbox, "nodeCheckbox");
 const NodeCheckboxIndicator = ArkTreeView.NodeCheckboxIndicator;
+const NodeCheckbox = withContext(ArkTreeView.NodeCheckbox, "nodeCheckbox", {
+  defaultProps: {
+    children: (
+      <NodeCheckboxIndicator indeterminate={<MinusIcon />}>
+        <CheckIcon />
+      </NodeCheckboxIndicator>
+    ),
+  },
+});
 const NodeRenameInput = withContext(ArkTreeView.NodeRenameInput, "nodeRenameInput");
 // Not an Ark part — a drag-and-drop drop indicator that inherits the tree's size context.
 const DropIndicator = withContext(ark.div, "dropIndicator");
+export const FlatIndentGuide = withContext(ark.div, "branchIndentGuide");
 
 export type TreeViewRootProps = ComponentProps<typeof Root>;
 export type { TreeViewVariantProps };

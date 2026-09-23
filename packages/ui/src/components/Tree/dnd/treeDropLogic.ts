@@ -96,6 +96,12 @@ function getDestinationIndexPath(targetPath: number[], instruction: Instruction)
   }
 }
 
+export function instructionLevel(instruction: Instruction): number | undefined {
+  if (instruction.type === "reparent") return instruction.desiredLevel;
+  if (instruction.type === "instruction-blocked") return undefined;
+  return instruction.currentLevel;
+}
+
 /**
  * Hitbox item mode for a row. `"expanded"` takes precedence so `make-child` drops land
  * above an open branch's children; `"last-in-group"` enables reparent (outdent).
@@ -150,35 +156,38 @@ export function moveNodeByKeyboard<T extends TreeNode>(
   const currentLevel = path.length - 1;
   const siblings = collection.getSiblingNodes(path);
 
-  let to: number[] | null = null;
+  if (move === "indent") {
+    if (index === 0) return null;
+    const prev = siblings[index - 1];
+    if (!collection.isBranchNode(prev)) return null; // don't turn a leaf into a branch
+    const next = collection.move(
+      [path],
+      [...parentPath, index - 1, collection.getNodeChildren(prev).length],
+    );
+    if (next.isEqual(collection)) return null;
+    return {
+      next,
+      targetValue: collection.getNodeValue(prev),
+      instruction: { type: "make-child", currentLevel, indentPerLevel: 0 },
+    };
+  }
+
   let target: T | undefined;
   let instruction: Instruction | undefined;
 
   switch (move) {
     case "up":
       if (index === 0) return null;
-      to = [...parentPath, index - 1];
       target = siblings[index - 1];
       instruction = { type: "reorder-above", currentLevel, indentPerLevel: 0 };
       break;
     case "down":
       if (index >= siblings.length - 1) return null;
-      to = [...parentPath, index + 2];
       target = siblings[index + 1];
       instruction = { type: "reorder-below", currentLevel, indentPerLevel: 0 };
       break;
-    case "indent": {
-      if (index === 0) return null;
-      const prev = siblings[index - 1];
-      if (!collection.isBranchNode(prev)) return null; // don't turn a leaf into a branch
-      to = [...parentPath, index - 1, collection.getNodeChildren(prev).length];
-      target = prev;
-      instruction = { type: "make-child", currentLevel, indentPerLevel: 0 };
-      break;
-    }
     case "outdent":
       if (path.length < 2) return null; // already at root
-      to = [...parentPath.slice(0, -1), parentPath[parentPath.length - 1] + 1];
       target = collection.at(parentPath);
       instruction = {
         type: "reparent",
@@ -188,9 +197,9 @@ export function moveNodeByKeyboard<T extends TreeNode>(
       };
       break;
   }
-  if (!to || !target || !instruction) return null;
+  if (!target || !instruction) return null;
 
-  const next = collection.move([path], to);
-  if (next.isEqual(collection)) return null;
-  return { next, targetValue: collection.getNodeValue(target), instruction };
+  const targetValue = collection.getNodeValue(target);
+  const next = applyTreeDrop(collection, { sourceValues: [value], targetValue, instruction });
+  return next ? { next, targetValue, instruction } : null;
 }

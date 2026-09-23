@@ -2,6 +2,7 @@ import type { Instruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-
 import type { ComponentProps, CSSProperties } from "react";
 
 import { TreeView } from "../TreeView";
+import { instructionLevel } from "./treeDropLogic";
 
 type DropIndicatorColorPalette = ComponentProps<typeof TreeView.DropIndicator>["colorPalette"];
 
@@ -20,22 +21,9 @@ export function TreeDropIndicator({
 }) {
   if (!instruction || instruction.type === "instruction-blocked") return null;
 
-  const style: CSSProperties = {};
-
-  if (instruction.type !== "make-child") {
-    const level =
-      instruction.type === "reparent" ? instruction.desiredLevel : instruction.currentLevel;
-    style.insetInlineStart = `calc(var(--tree-padding-inline) + (${level} * var(--tree-indent)))`;
-  }
-
-  if (instruction.type === "reorder-above") {
-    style.insetBlockStart = 0;
-    style.transform = "translateY(-50%)";
-  } else if (instruction.type === "reorder-below" || instruction.type === "reparent") {
-    style.insetBlockStart = "auto";
-    style.insetBlockEnd = 0;
-    style.transform = "translateY(50%)";
-  }
+  const style: CSSProperties & { "--drop-level"?: number } = {
+    "--drop-level": instructionLevel(instruction),
+  };
 
   return (
     <TreeView.DropIndicator
