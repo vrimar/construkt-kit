@@ -4,20 +4,21 @@ import { hoverCard } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 import type { PortalledProps } from "../../types";
+import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 
 const { withRootProvider, withContext } = createStyleContext(hoverCard);
 
 type RootProps = ComponentProps<typeof Root>;
-const Root = withRootProvider(ArkHoverCard.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
+const Root = withRootProvider(ArkHoverCard.Root, { defaultProps: lazyOverlayDefaults });
 const RootProvider = withRootProvider(ArkHoverCard.RootProvider, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
+  defaultProps: lazyOverlayDefaults,
 });
-const Arrow = withContext(ArkHoverCard.Arrow, "arrow");
 const ArrowTip = withContext(ArkHoverCard.ArrowTip, "arrowTip");
+const Arrow = withContext(ArkHoverCard.Arrow, "arrow", {
+  defaultProps: { children: <ArrowTip /> },
+});
 const Content = withContext(ArkHoverCard.Content, "content");
 const Positioner = withContext(ArkHoverCard.Positioner, "positioner");
 const Trigger = withContext(ArkHoverCard.Trigger, "trigger");

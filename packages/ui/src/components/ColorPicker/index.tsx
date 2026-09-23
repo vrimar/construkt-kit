@@ -5,16 +5,15 @@ import { colorPicker } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 import type { PortalledProps } from "../../types";
+import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPortalledContent } from "../portalledContent";
 export { parseColor } from "@ark-ui/react/color-picker";
 
 const { withRootProvider, withContext } = createStyleContext(colorPicker);
 
-const Root = withRootProvider(ArkColorPicker.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
+const Root = withRootProvider(ArkColorPicker.Root, { defaultProps: lazyOverlayDefaults });
 const RootProvider = withRootProvider(ArkColorPicker.RootProvider, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
+  defaultProps: lazyOverlayDefaults,
 });
 const Area = withContext(ArkColorPicker.Area, "area");
 const AreaBackground = withContext(ArkColorPicker.AreaBackground, "areaBackground");

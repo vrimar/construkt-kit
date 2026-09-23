@@ -1,4 +1,9 @@
-import { Menu as ArkMenu, useMenuContext, useMenuItemContext } from "@ark-ui/react/menu";
+import {
+  Menu as ArkMenu,
+  MenuContext,
+  useMenuContext,
+  useMenuItemContext,
+} from "@ark-ui/react/menu";
 import { Box, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { menu } from "@construkt-kit/styled-system/recipes";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
@@ -6,6 +11,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { createItemIndicator } from "../itemIndicator";
+import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
@@ -13,11 +19,11 @@ import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerToo
 const { withRootProvider, withContext } = createStyleContext(menu);
 
 export type RootProps = ComponentProps<typeof Root>;
-export const Root = withRootProvider(ArkMenu.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
-export const Arrow = withContext(ArkMenu.Arrow, "arrow");
+export const Root = withRootProvider(ArkMenu.Root, { defaultProps: lazyOverlayDefaults });
 export const ArrowTip = withContext(ArkMenu.ArrowTip, "arrowTip");
+export const Arrow = withContext(ArkMenu.Arrow, "arrow", {
+  defaultProps: { children: <ArrowTip /> },
+});
 export const CheckboxItem = withContext(ArkMenu.CheckboxItem, "item");
 export const Content = withContext(ArkMenu.Content, "content");
 export const ContextTrigger = withContext(ArkMenu.ContextTrigger, "contextTrigger");
@@ -64,15 +70,6 @@ export const Trigger = MenuTrigger;
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
 const MenuContent = createPortalledContent(Positioner, Content);
-
-function MenuArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) {
-  return (
-    <Arrow
-      ref={ref}
-      {...props}
-    />
-  );
-}
 
 function MenuCheckboxItem({
   ref,
@@ -155,7 +152,7 @@ function MenuTriggerItem({ ref, startIcon, children, ...rest }: WithRef<MenuTrig
 export const Menu = {
   Root: MenuRoot,
   Content: MenuContent,
-  Arrow: MenuArrow,
+  Arrow,
   CheckboxItem: MenuCheckboxItem,
   RadioItem: MenuRadioItem,
   Item: MenuItem,
@@ -166,4 +163,5 @@ export const Menu = {
   Separator,
   ItemText,
   Trigger,
+  Context: MenuContext,
 };

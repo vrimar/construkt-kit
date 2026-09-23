@@ -1,22 +1,20 @@
 import { ark } from "@ark-ui/react/factory";
-import { Popover as ArkPopover, usePopoverContext } from "@ark-ui/react/popover";
+import { Popover as ArkPopover, PopoverContext, usePopoverContext } from "@ark-ui/react/popover";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { popover } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
-import { CloseButton } from "../Buttons";
+import type { PortalledProps } from "../../types";
+import { createCloseTrigger } from "../closeTrigger";
+import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createStyleContext(popover);
 
-// Primitives — exported for sibling components (ToggleTip), not re-exported from barrel
 export type RootProps = ComponentProps<typeof Root>;
-export const Root = withRootProvider(ArkPopover.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
+export const Root = withRootProvider(ArkPopover.Root, { defaultProps: lazyOverlayDefaults });
 export const Anchor = withContext(ArkPopover.Anchor, "anchor");
 export const ArrowTip = withContext(ArkPopover.ArrowTip, "arrowTip");
 export const Arrow = withContext(ArkPopover.Arrow, "arrow", {
@@ -46,15 +44,6 @@ export interface PopoverContentProps extends ComponentProps<typeof Content>, Por
 
 const PopoverContent = createPortalledContent(Positioner, Content);
 
-function PopoverArrow({ ref, ...props }: WithRef<ComponentProps<typeof Arrow>>) {
-  return (
-    <Arrow
-      {...props}
-      ref={ref}
-    />
-  );
-}
-
 export interface PopoverTriggerProps
   extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
@@ -65,35 +54,19 @@ const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerId);
 
 export const Trigger = PopoverTrigger;
 
-function PopoverCloseTrigger({
-  ref,
-  ...props
-}: WithRef<ComponentProps<typeof CloseTrigger>, HTMLButtonElement>) {
-  return (
-    <CloseTrigger
-      position="absolute"
-      top="1"
-      insetEnd="1"
-      {...props}
-      asChild
-      ref={ref}
-    >
-      <CloseButton size="sm" />
-    </CloseTrigger>
-  );
-}
-
 export const Popover = {
   Root: PopoverRoot,
   Content: PopoverContent,
   Anchor,
-  Arrow: PopoverArrow,
-  CloseTrigger: PopoverCloseTrigger,
+  Arrow,
+  CloseTrigger: createCloseTrigger(CloseTrigger),
   Indicator,
+  Positioner,
   Title,
   Description,
   Footer,
   Header,
   Body,
   Trigger,
+  Context: PopoverContext,
 };

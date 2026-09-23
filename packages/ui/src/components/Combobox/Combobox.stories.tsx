@@ -52,22 +52,20 @@ function FrameworkCombobox({
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
-      <Combobox.Positioner>
-        <Combobox.Content>
-          <Combobox.Empty>No frameworks found.</Combobox.Empty>
-          <Combobox.List>
-            {collection.items.map((item) => (
-              <Combobox.Item
-                key={item.value}
-                item={item}
-              >
-                <Combobox.ItemText>{item.label}</Combobox.ItemText>
-                <Combobox.ItemIndicator />
-              </Combobox.Item>
-            ))}
-          </Combobox.List>
-        </Combobox.Content>
-      </Combobox.Positioner>
+      <Combobox.Content>
+        <Combobox.Empty>No frameworks found.</Combobox.Empty>
+        <Combobox.List>
+          {collection.items.map((item) => (
+            <Combobox.Item
+              key={item.value}
+              item={item}
+            >
+              <Combobox.ItemText>{item.label}</Combobox.ItemText>
+              <Combobox.ItemIndicator />
+            </Combobox.Item>
+          ))}
+        </Combobox.List>
+      </Combobox.Content>
     </Combobox.Root>
   );
 }

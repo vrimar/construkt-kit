@@ -1,51 +1,30 @@
 import { ark } from "@ark-ui/react/factory";
-import { Portal } from "@ark-ui/react/portal";
+import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { actionbar } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { PortalledProps } from "../../types";
+import { createCloseTrigger } from "../closeTrigger";
 import { Popover } from "../Popover";
-import { Positioner as PopoverPositioner } from "../Popover/Popover";
+import { createPortalledContent } from "../portalledContent";
 
 const { withRootProvider, withContext } = createStyleContext(actionbar);
 
 const Root = withRootProvider(Popover.Root);
-const Positioner = PopoverPositioner;
 const Content = withContext(ark.div, "content");
 const Separator = withContext(ark.div, "separator");
 const SelectionTrigger = withContext(ark.button, "selectionTrigger");
-const CloseTrigger = withContext(ark.button, "closeTrigger");
+const CloseTrigger = withContext(ArkPopover.CloseTrigger, "closeTrigger");
 
 export type ActionBarRootProps = ComponentProps<typeof Root>;
 
 export interface ActionBarContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-function ActionBarContent({
-  ref,
-  portalled = true,
-  portalRef,
-  ...rest
-}: WithRef<ActionBarContentProps>) {
-  return (
-    <Portal
-      disabled={!portalled}
-      container={portalRef}
-    >
-      <Positioner>
-        <Content
-          ref={ref}
-          {...rest}
-        />
-      </Positioner>
-    </Portal>
-  );
-}
-
 export const ActionBar = {
   Root,
-  Content: ActionBarContent,
+  Content: createPortalledContent(Popover.Positioner, Content),
   Separator,
   SelectionTrigger,
-  CloseTrigger,
+  CloseTrigger: createCloseTrigger(CloseTrigger),
 };

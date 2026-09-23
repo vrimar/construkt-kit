@@ -7,8 +7,11 @@ import { ark } from "@ark-ui/react/factory";
 import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { type ComboboxVariantProps, combobox } from "@construkt-kit/styled-system/recipes";
 import { ChevronsUpDownIcon, XIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
+import type { PortalledProps } from "../../types";
 import { createItemIndicator } from "../itemIndicator";
+import { createPortalledContent } from "../portalledContent";
 
 const { withProvider, withContext } = createStyleContext(combobox);
 
@@ -26,7 +29,7 @@ const RootProvider = withProvider(
 const ClearTrigger = withContext(ArkCombobox.ClearTrigger, "clearTrigger", {
   defaultProps: { children: <XIcon />, "aria-label": "Clear selection" },
 });
-const Content = withContext(ArkCombobox.Content, "content");
+const StyledContent = withContext(ArkCombobox.Content, "content");
 const Control = withContext(ArkCombobox.Control, "control");
 const Empty = withContext(ArkCombobox.Empty, "empty");
 const IndicatorGroup = withContext(ark.div, "indicatorGroup");
@@ -44,12 +47,17 @@ const Trigger = withContext(ArkCombobox.Trigger, "trigger", {
 
 const StyledItemIndicator = withContext(ArkCombobox.ItemIndicator, "itemIndicator");
 
+const Content = createPortalledContent(Positioner, StyledContent);
+
 const ItemIndicator = createItemIndicator(
   StyledItemIndicator,
   () => useComboboxItemContext().selected,
 );
 
-export type ComboboxRootProps = RootProps;
+export type ComboboxRootProps = ComponentProps<typeof Root>;
+
+export interface ComboboxContentProps
+  extends ComponentProps<typeof StyledContent>, PortalledProps {}
 
 export const Combobox = {
   Root,

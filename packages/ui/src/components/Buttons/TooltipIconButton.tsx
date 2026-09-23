@@ -4,8 +4,8 @@ import { Tooltip } from "../Tooltip";
 import type { ButtonProps } from "./Button";
 import { IconButton } from "./IconButton";
 
-interface TooltipIconButtonProps extends ButtonProps {
-  tooltipProps?: TooltipProps;
+export interface TooltipIconButtonProps extends ButtonProps {
+  tooltipProps?: Omit<TooltipProps, "children" | "content">;
   label: string;
 }
 

@@ -19,9 +19,7 @@ export const Default: Story = {
         <Button variant="outline">Hover me</Button>
       </HoverCard.Trigger>
       <HoverCard.Content>
-        <HoverCard.Arrow>
-          <HoverCard.ArrowTip />
-        </HoverCard.Arrow>
+        <HoverCard.Arrow />
         <Box p="4">
           <strong>Hover Card Content</strong>
           <p>This card appears on hover.</p>

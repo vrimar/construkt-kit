@@ -40,7 +40,7 @@ function ControlledActionBarStory() {
           >
             Move
           </Button>
-          <ActionBar.CloseTrigger onClick={() => setOpen(false)}>
+          <ActionBar.CloseTrigger>
             <XIcon />
           </ActionBar.CloseTrigger>
         </ActionBar.Content>

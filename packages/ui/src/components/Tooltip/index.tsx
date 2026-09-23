@@ -1,23 +1,26 @@
-import { Portal } from "@ark-ui/react/portal";
-import { Tooltip as ArkTooltip } from "@ark-ui/react/tooltip";
+import { Tooltip as ArkTooltip, TooltipContext } from "@ark-ui/react/tooltip";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { tooltip } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
+import { lazyOverlayDefaults } from "../overlayDefaults";
+import { createPortalledContent } from "../portalledContent";
 
 const { withRootProvider, withContext } = createStyleContext(tooltip);
 
 type RootProps = ComponentProps<typeof Root>;
 type ContentProps = ComponentProps<typeof Content>;
-const Root = withRootProvider(ArkTooltip.Root, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
-});
-const Arrow = withContext(ArkTooltip.Arrow, "arrow");
+const Root = withRootProvider(ArkTooltip.Root, { defaultProps: lazyOverlayDefaults });
 const ArrowTip = withContext(ArkTooltip.ArrowTip, "arrowTip");
+const Arrow = withContext(ArkTooltip.Arrow, "arrow", {
+  defaultProps: { children: <ArrowTip /> },
+});
 const Content = withContext(ArkTooltip.Content, "content");
 const Positioner = withContext(ArkTooltip.Positioner, "positioner");
 const Trigger = withContext(ArkTooltip.Trigger, "trigger");
+
+const TooltipContent = createPortalledContent(Positioner, Content);
 
 export { TooltipContext as Context } from "@ark-ui/react/tooltip";
 
@@ -26,7 +29,6 @@ export interface TooltipProps extends Omit<RootProps, "content">, PortalledProps
   children: React.ReactNode | undefined;
   content: React.ReactNode | string;
   contentProps?: ContentProps;
-  disabled?: boolean;
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
@@ -34,46 +36,31 @@ const TooltipComponent = ({
   ref,
   showArrow,
   children,
-  disabled,
-  portalled = true,
+  portalled,
   content,
   contentProps,
   portalRef,
   placement = "top",
   ...rootProps
-}: WithRef<TooltipProps>) => {
-  if (disabled) return children;
-
-  return (
-    <Root
-      openDelay={300}
-      closeDelay={0}
-      positioning={{ placement }}
-      {...rootProps}
+}: WithRef<TooltipProps>) => (
+  <Root
+    openDelay={300}
+    closeDelay={0}
+    positioning={{ placement }}
+    {...rootProps}
+  >
+    <Trigger asChild>{children}</Trigger>
+    <TooltipContent
+      ref={ref}
+      portalled={portalled}
+      portalRef={portalRef}
+      {...contentProps}
     >
-      <Trigger asChild>{children}</Trigger>
-      <Portal
-        disabled={!portalled}
-        container={portalRef}
-      >
-        <Positioner zIndex="tooltip">
-          <Content
-            ref={ref}
-            zIndex="tooltip"
-            {...contentProps}
-          >
-            {showArrow && (
-              <Arrow>
-                <ArrowTip />
-              </Arrow>
-            )}
-            {content}
-          </Content>
-        </Positioner>
-      </Portal>
-    </Root>
-  );
-};
+      {showArrow && <Arrow />}
+      {content}
+    </TooltipContent>
+  </Root>
+);
 
 export const Tooltip = Object.assign(TooltipComponent, {
   Root,
@@ -82,4 +69,5 @@ export const Tooltip = Object.assign(TooltipComponent, {
   Content,
   Positioner,
   Trigger,
+  Context: TooltipContext,
 });
