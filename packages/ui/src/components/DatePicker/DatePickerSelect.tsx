@@ -1,46 +1,64 @@
-import { useMemo } from "react";
+import { type DateValue, useDatePickerContext } from "@ark-ui/react/date-picker";
 
-import { CloseButton } from "../Buttons/CloseButton";
-import { SelectButton } from "../Buttons/SelectButton";
+import { CloseButton, SelectButton, type SelectButtonProps } from "../Buttons";
 import { DatePicker } from "./DatePicker";
-import { formatDateValue } from "./format";
-import type { DatePickerProps, DatePickerSelectProps } from "./types";
-import { fireClear } from "./types";
+import { getDisplayLabel } from "./format";
+import type { DatePickerSelectProps } from "./types";
 
-export const DatePickerSelect = (props: DatePickerSelectProps) => {
-  const rawValue = props.value;
-  const value = useMemo(
-    () => (rawValue === undefined ? [] : Array.isArray(rawValue) ? rawValue : [rawValue]),
-    [rawValue],
+interface DatePickerSelectTriggerProps extends Omit<SelectButtonProps, "hasValue" | "label"> {
+  selectionMode: "single" | "range" | "multiple";
+  placeholder: string;
+  formatValue?: (value: DateValue) => string;
+}
+
+function DatePickerSelectTrigger({
+  selectionMode,
+  placeholder,
+  formatValue,
+  ...props
+}: DatePickerSelectTriggerProps) {
+  const { value } = useDatePickerContext();
+
+  return (
+    <SelectButton
+      width="100%"
+      {...props}
+      hasValue={value.length > 0}
+      label={getDisplayLabel(value, selectionMode, placeholder, formatValue)}
+    />
   );
+}
 
-  const label = useMemo(() => {
-    const fmt = props.formatValue ?? formatDateValue;
-    return value.map(fmt).join(" – ");
-  }, [value, props.formatValue]);
+function DatePickerSelectClear({ disabled }: { disabled?: boolean }) {
+  const datePicker = useDatePickerContext();
+  if (datePicker.value.length === 0) return null;
 
-  const hasValue = value.length > 0;
+  return (
+    <CloseButton
+      aria-label="Clear date"
+      disabled={disabled}
+      onClick={() => datePicker.clearValue()}
+      size="sm"
+    />
+  );
+}
 
-  const datePickerProps = {
-    ...props,
-    trigger: (
-      <SelectButton
-        hasValue={hasValue}
-        label={label || props.placeholder || "Select date"}
-        variant="plain"
-        width="100%"
-        size="sm"
+export const DatePickerSelect = ({
+  size = "sm",
+  variant = "plain",
+  ...props
+}: DatePickerSelectProps) => (
+  <DatePicker
+    {...props}
+    trigger={
+      <DatePickerSelectTrigger
+        selectionMode={props.selectionMode ?? "single"}
+        placeholder={props.placeholder ?? "Select date"}
+        formatValue={props.formatValue}
+        size={size}
+        variant={variant}
       />
-    ),
-    triggerEndElement: hasValue ? (
-      <CloseButton
-        aria-label="Clear date"
-        disabled={props.disabled || props.readOnly}
-        onClick={() => fireClear(props)}
-        size="sm"
-      />
-    ) : undefined,
-  } as DatePickerProps;
-
-  return <DatePicker {...datePickerProps} />;
-};
+    }
+    triggerEndElement={<DatePickerSelectClear disabled={props.disabled || props.readOnly} />}
+  />
+);

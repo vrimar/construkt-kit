@@ -1,24 +1,16 @@
-import type { DateValue } from "@ark-ui/react/date-picker";
+import type {
+  DatePickerDateRangePreset,
+  DatePickerDateView,
+  DateValue,
+} from "@ark-ui/react/date-picker";
 import type { ReactNode } from "react";
 
 import type { PortalledProps } from "../../types";
+import type { ButtonProps } from "../Buttons";
 
-export type DateView = "day" | "month" | "year";
+export type DateView = DatePickerDateView;
 
-export type DateRangePreset =
-  | "thisWeek"
-  | "lastWeek"
-  | "thisMonth"
-  | "lastMonth"
-  | "thisQuarter"
-  | "lastQuarter"
-  | "thisYear"
-  | "lastYear"
-  | "last3Days"
-  | "last7Days"
-  | "last14Days"
-  | "last30Days"
-  | "last90Days";
+export type DateRangePreset = DatePickerDateRangePreset;
 
 export interface RangePreset {
   label: string;
@@ -91,10 +83,20 @@ export type DatePickerProps =
   | (RangeCalendarProps & DatePickerExtraProps)
   | (MultipleCalendarProps & DatePickerExtraProps);
 
+interface DatePickerSelectExtraProps extends Omit<
+  DatePickerExtraProps,
+  "trigger" | "triggerEndElement"
+> {
+  /** @default "sm" */
+  size?: ButtonProps["size"];
+  /** @default "plain" */
+  variant?: ButtonProps["variant"];
+}
+
 export type DatePickerSelectProps =
-  | (SingleCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">)
-  | (RangeCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">)
-  | (MultipleCalendarProps & Omit<DatePickerExtraProps, "trigger" | "triggerEndElement">);
+  | (SingleCalendarProps & DatePickerSelectExtraProps)
+  | (RangeCalendarProps & DatePickerSelectExtraProps)
+  | (MultipleCalendarProps & DatePickerSelectExtraProps);
 
 /** Convert any CalendarProps/DatePickerProps value to DateValue[] for Ark UI.
  * Returns undefined when no value is provided (uncontrolled mode). */

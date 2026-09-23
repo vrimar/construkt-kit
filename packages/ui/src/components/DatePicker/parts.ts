@@ -3,10 +3,12 @@ import { ark } from "@ark-ui/react/factory";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { datePicker } from "@construkt-kit/styled-system/recipes";
 
+import { lazyOverlayDefaults } from "../overlayDefaults";
+
 const { withRootProvider, withContext } = createStyleContext(datePicker);
 
 export const RootProvider = withRootProvider(ArkDatePicker.RootProvider, {
-  defaultProps: { unmountOnExit: true, lazyMount: true },
+  defaultProps: lazyOverlayDefaults,
 });
 export const Content = withContext(ArkDatePicker.Content, "content");
 export const Control = withContext(ArkDatePicker.Control, "control");
@@ -17,7 +19,6 @@ export const ViewControl = withContext(ark.div, "viewControl");
 export const ViewTrigger = withContext(ArkDatePicker.ViewTrigger, "viewTrigger");
 export const PrevTrigger = withContext(ArkDatePicker.PrevTrigger, "prevTrigger");
 export const NextTrigger = withContext(ArkDatePicker.NextTrigger, "nextTrigger");
-export const RangeText = withContext(ArkDatePicker.RangeText, "rangeText");
 export const Table = withContext(ArkDatePicker.Table, "table");
 export const TableHead = withContext(ArkDatePicker.TableHead, "tableHead");
 export const TableRow = withContext(ArkDatePicker.TableRow, "tableRow");
@@ -27,5 +28,3 @@ export const TableCell = withContext(ArkDatePicker.TableCell, "tableCell");
 export const TableCellTrigger = withContext(ArkDatePicker.TableCellTrigger, "tableCellTrigger");
 export const PresetTrigger = withContext(ArkDatePicker.PresetTrigger, "presetTrigger");
 export const Root = withContext(ark.div, "root");
-
-export { ArkDatePicker };

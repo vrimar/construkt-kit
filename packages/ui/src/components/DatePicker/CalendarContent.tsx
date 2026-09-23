@@ -1,14 +1,11 @@
-import { HStack, Stack } from "@construkt-kit/styled-system/jsx";
+import { Box, Divider, HStack, Stack } from "@construkt-kit/styled-system/jsx";
 
 import { useIsMobile } from "../../hooks";
 import { Button } from "../Buttons";
-import { Box, Separator } from "../Layout";
 import { DatePickerDayView } from "./DayView";
-import { DatePickerViewControl } from "./GridView";
-import { DatePickerMonthView } from "./MonthView";
+import { DatePickerGridView, DatePickerViewControl } from "./GridView";
 import * as Parts from "./parts";
 import type { RangePreset } from "./types";
-import { DatePickerYearView } from "./YearView";
 
 interface CalendarContentProps {
   numOfMonths: number;
@@ -27,6 +24,16 @@ export const CalendarContent = ({
 }: CalendarContentProps) => {
   const hasPresets = showPresets && presets && presets.length > 0;
   const isMobile = useIsMobile();
+  const clearButton = clearable && (
+    <Button
+      variant="outline"
+      onClick={onClear}
+      size="xs"
+      width={hasPresets ? undefined : "full"}
+    >
+      Clear
+    </Button>
+  );
 
   return (
     <Box
@@ -38,15 +45,7 @@ export const CalendarContent = ({
       {hasPresets && (
         <>
           <Stack gap="0.5">
-            {clearable && (
-              <Button
-                variant="outline"
-                onClick={onClear}
-                size="xs"
-              >
-                Clear
-              </Button>
-            )}
+            {clearButton}
             {presets.map((preset) => (
               <Parts.PresetTrigger
                 key={preset.value}
@@ -62,7 +61,11 @@ export const CalendarContent = ({
               </Parts.PresetTrigger>
             ))}
           </Stack>
-          <Separator orientation={isMobile ? "horizontal" : "vertical"} />
+          <Divider
+            orientation={isMobile ? "horizontal" : "vertical"}
+            alignSelf="stretch"
+            height="auto"
+          />
         </>
       )}
       <Stack
@@ -70,40 +73,25 @@ export const CalendarContent = ({
         flex="1"
       >
         <Parts.View view="day">
-          <Parts.ArkDatePicker.Context>
-            {() => (
-              <>
-                <DatePickerViewControl endLabel={numOfMonths > 1} />
+          <DatePickerViewControl endLabel={numOfMonths > 1} />
 
-                <HStack
-                  gap="5"
-                  alignItems="flex-start"
-                >
-                  {Array.from({ length: numOfMonths }, (_, i) => (
-                    <DatePickerDayView
-                      key={i}
-                      monthOffset={i}
-                    />
-                  ))}
-                </HStack>
-              </>
-            )}
-          </Parts.ArkDatePicker.Context>
+          <HStack
+            gap="5"
+            alignItems="flex-start"
+          >
+            {Array.from({ length: numOfMonths }, (_, i) => (
+              <DatePickerDayView
+                key={i}
+                monthOffset={i}
+              />
+            ))}
+          </HStack>
         </Parts.View>
 
-        <DatePickerMonthView />
-        <DatePickerYearView />
+        <DatePickerGridView view="month" />
+        <DatePickerGridView view="year" />
 
-        {!hasPresets && clearable && (
-          <Button
-            variant="outline"
-            onClick={onClear}
-            size="xs"
-            width="full"
-          >
-            Clear
-          </Button>
-        )}
+        {!hasPresets && clearButton}
       </Stack>
     </Box>
   );

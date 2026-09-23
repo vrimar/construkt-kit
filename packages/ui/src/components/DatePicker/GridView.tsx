@@ -1,15 +1,10 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { HStack } from "@construkt-kit/styled-system/jsx";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import type { ComponentProps } from "react";
 
 import { Button, IconButton } from "../Buttons";
 import { Text } from "../Text";
 import * as Parts from "./parts";
-
-type DatePickerApi = Parameters<
-  NonNullable<ComponentProps<typeof Parts.ArkDatePicker.Context>["children"]>
->[0];
 
 export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
   const datePicker = useDatePickerContext();
@@ -58,42 +53,39 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
   );
 };
 
-interface GridViewProps {
-  view: "month" | "year";
-  getGrid: (api: DatePickerApi) => { label: string; value: number }[][];
-}
+export const DatePickerGridView = ({ view }: { view: "month" | "year" }) => {
+  const datePicker = useDatePickerContext();
+  const grid =
+    view === "month"
+      ? datePicker.getMonthsGrid({ columns: 4, format: "short" })
+      : datePicker.getYearsGrid({ columns: 4 });
 
-export const DatePickerGridView = ({ view, getGrid }: GridViewProps) => (
-  <Parts.View view={view}>
-    <Parts.ArkDatePicker.Context>
-      {(api) => (
-        <>
-          <DatePickerViewControl />
-          <Parts.Table>
-            <Parts.TableBody>
-              {getGrid(api).map((row, rowIndex) => (
-                <Parts.TableRow key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <Parts.TableCell
-                      key={cellIndex}
-                      value={cell.value}
+  return (
+    <Parts.View view={view}>
+      <DatePickerViewControl />
+      <Parts.Table>
+        <Parts.TableBody>
+          {grid.map((row, rowIndex) => (
+            <Parts.TableRow key={rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <Parts.TableCell
+                  key={cellIndex}
+                  value={cell.value}
+                >
+                  <Parts.TableCellTrigger asChild>
+                    <Button
+                      size="xs"
+                      variant="plain"
                     >
-                      <Parts.TableCellTrigger asChild>
-                        <Button
-                          size="xs"
-                          variant="plain"
-                        >
-                          {cell.label}
-                        </Button>
-                      </Parts.TableCellTrigger>
-                    </Parts.TableCell>
-                  ))}
-                </Parts.TableRow>
+                      {cell.label}
+                    </Button>
+                  </Parts.TableCellTrigger>
+                </Parts.TableCell>
               ))}
-            </Parts.TableBody>
-          </Parts.Table>
-        </>
-      )}
-    </Parts.ArkDatePicker.Context>
-  </Parts.View>
-);
+            </Parts.TableRow>
+          ))}
+        </Parts.TableBody>
+      </Parts.Table>
+    </Parts.View>
+  );
+};
