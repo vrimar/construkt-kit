@@ -15,12 +15,14 @@ export const checkbox = defineSlotRecipe({
       alignItems: "center",
       verticalAlign: "top",
       position: "relative",
+      cursor: "pointer",
       _disabled: {
         layerStyle: "disabled",
       },
     },
     control: {
       ...checkboxControlBase,
+      cursor: "inherit",
       borderColor: "transparent",
       borderRadius: "sm",
       focusVisibleRing: "outside",

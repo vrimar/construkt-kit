@@ -22,6 +22,13 @@ export const ratingGroup = defineSlotRecipe({
       display: "inline-flex",
       justifyContent: "center",
       userSelect: "none",
+      cursor: "pointer",
+      _disabled: {
+        cursor: "not-allowed",
+      },
+      "&[data-readonly]": {
+        cursor: "default",
+      },
     },
     label: {
       fontWeight: "medium",

@@ -16,6 +16,10 @@ export const slider = defineSlotRecipe({
       isolation: "isolate",
       touchAction: "none",
       width: "full",
+      cursor: "pointer",
+      _disabled: {
+        cursor: "not-allowed",
+      },
     },
     label: {
       fontWeight: "medium",
@@ -43,7 +47,7 @@ export const slider = defineSlotRecipe({
       alignItems: "center",
       gap: "calc(var(--slider-thumb-size) / 2)",
       color: "fg.muted",
-      textStyle: "xs",
+      textStyle: "md",
     },
     markerIndicator: {
       width: "var(--slider-marker-size)",

@@ -18,6 +18,10 @@ export const switchRecipe = defineSlotRecipe({
         base: "var(--switch-diff)",
         _rtl: "calc(var(--switch-diff) * -1)",
       },
+      cursor: "pointer",
+      _disabled: {
+        cursor: "not-allowed",
+      },
     },
     label: {
       fontWeight: "medium",
