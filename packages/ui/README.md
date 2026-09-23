@@ -8,7 +8,7 @@
 
 ### Components
 
-**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator` (alias `Divider`), `Divider`, `Wrap`
+**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator` (alias `Divider`), `Divider`, `Wrap`, `SimpleGrid`
 
 **Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`
 
@@ -16,9 +16,9 @@
 
 **Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner`
 
-**Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Popover`, `Tooltip`, `ToggleTip`, `HoverCard`
+**Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Popover`, `Tooltip`, `ToggleTip`, `InfoTip`, `HoverCard`
 
-**Form:** `Form`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `MultiLineInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `PinInput`, `ColorPicker`
+**Form:** `Field`, `SubmitForm`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `FormFileUpload`, `PinInput`, `ColorPicker`
 
 **Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
@@ -26,18 +26,22 @@
 
 **Date Pickers:** `Calendar`, `DatePicker`, `DatePickerSelect`
 
-**Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `ContextMenu`, `Text`, `TextLabel`, `TruncatedText`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
+**Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-**Misc:** `Actionbar`, `Clipboard`, `Collapsible`, `Icon`, `Pagination`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ToggleGroup`, `Provider`
+**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`
 
 ### Hooks
 
-| Hook               | Description                                                |
-| ------------------ | ---------------------------------------------------------- |
-| `useAutoFocus`     | Auto-focus + optional select on mount                      |
-| `useDebounceQuery` | Immediate + debounced search query state                   |
-| `useFileSelect`    | Opens native file picker, returns parsed files             |
-| `useRowSelection`  | Row selection state for tables (toggle, togglePage, clear) |
+| Hook                                    | Description                                                     |
+| --------------------------------------- | --------------------------------------------------------------- |
+| `useAutoFocus`                          | Auto-focus + optional select on mount                           |
+| `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes |
+| `useDebounceQuery`                      | Immediate + debounced search query state                        |
+| `useFileSelect`                         | Opens native file picker, returns parsed files                  |
+| `useMediaQuery`                         | Subscribe to a CSS media query                                  |
+| `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
+| `useIsMobile`                           | Whether the viewport is below the `md` breakpoint               |
+| `useRowSelection`                       | Row selection state for tables (toggle, togglePage, clear)      |
 
 ### Panda CSS Utilities
 
@@ -49,7 +53,7 @@ import { token } from "@construkt-kit/ui"; // design token accessor
 
 ### Types
 
-`WithRef<T, E>` — generic ref forwarding type.
+`WithRef<T, E>` — generic ref forwarding type. `PortalledProps` — the `portalled` / `portalRef` pair on overlay content.
 
 ## Variant Vocabulary
 
@@ -68,7 +72,7 @@ Compound components (DataTable, Dialog, Menu, etc.) may have subfolders for sub-
 
 ## Implementation Patterns
 
-### 1. Simple styled component (Badge, Input, Textarea)
+### 1. Simple styled component (Badge, Input, Text)
 
 One-liner. Use when wrapping a single element with a recipe:
 
@@ -94,7 +98,7 @@ import { dialog } from "@construkt-kit/styled-system/recipes";
 
 const { withRootProvider, withContext } = createStyleContext(dialog);
 
-const Root = withRootProvider(ArkDialog.Root, { defaultProps: { unmountOnExit: true, lazyMount: true } });
+const Root = withRootProvider(ArkDialog.Root, { defaultProps: lazyOverlayDefaults });
 const Content = withContext(ArkDialog.Content, "content");  // "content" = slot name in recipe
 const Title = withContext(ArkDialog.Title, "title");
 
@@ -166,7 +170,7 @@ recipe variants, frozen at build time. A preset that adds a variant value still
 styles correctly — recipe class names are string-interpolated and the app's own
 Panda build emits the CSS — but will not typecheck. Extend the system through
 `colorPalette` and `textStyle` rather than new variant names; a new variant
-*key* is worse still, since it reaches the DOM as a stray attribute and the
+_key_ is worse still, since it reaches the DOM as a stray attribute and the
 bundled runtime ignores downstream `compoundVariants` and `defaultVariants`.
 
 ### Token Path Syntax
@@ -216,7 +220,7 @@ const { mode, resolvedMode, setMode, toggle } = useColorMode();
 <ThemeToggle />;
 ```
 
-`ColorModeProvider` toggles the `dark` class + `color-scheme` on `<html>`, resolves `"system"` via `prefers-color-scheme`, and persists the choice to `localStorage` (`construkt-color-mode`). In Storybook, use the toolbar theme switcher (`@storybook/addon-themes`) to preview any story in dark.
+`ColorModeProvider` toggles the `dark` class on `<html>` (the preset flips `color-scheme` from it), resolves `"system"` via `prefers-color-scheme`, and persists the choice to `localStorage` (`construkt-color-mode`). In Storybook, use the toolbar theme switcher (`@storybook/addon-themes`) to preview any story in dark.
 
 ### recipes vs slotRecipes
 
@@ -271,7 +275,7 @@ and also picks up `@construkt-kit/pages/panda.buildinfo.json` when that package 
 ## Testing
 
 - **Runner:** Vitest with jsdom environment
-- **Setup:** `vitest.setup.ts` polyfills `ResizeObserver` and `IntersectionObserver` (not in jsdom)
+- **Setup:** `vitest.setup.ts` polyfills `ResizeObserver`, `IntersectionObserver`, `scrollTo` and `matchMedia` (not in jsdom) and registers Testing Library's `cleanup` after each test
 - **Aliases:** `@construkt-kit/styled-system` → `../styled-system/dist` in `vitest.config.ts`
 - **Libraries:** `@testing-library/react` + `userEvent` for component interaction tests
 - **Pattern:** Tests verify non-obvious UX (e.g., interactive descendants in Select items don't trigger selection)
