@@ -53,6 +53,29 @@ export function parseNumberFilter(raw: string): NumberFilterValue | undefined {
   return { operator, value: Number(operand) };
 }
 
+/** Formats a calendar date as ISO `YYYY-MM-DD`, the date form carried by {@link DataTableFilters}. */
+export function formatIsoDate({ year, month, day }: { year: number; month: number; day: number }) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+const isIsoDate = (value: string) => {
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+/** Encodes an inclusive ISO date range into one filter string, e.g. `"2024-01-01<>2024-01-31"`. */
+export function serializeDateRangeFilter(start: string, end: string): string {
+  return `${start}${FILTER_RANGE_SEPARATOR}${end}`;
+}
+
+/** Decodes a filter string produced by {@link serializeDateRangeFilter}. Returns undefined
+ *  for anything that is not two valid ISO dates. */
+export function parseDateRangeFilter(raw: string): [start: string, end: string] | undefined {
+  const bounds = raw.split(FILTER_RANGE_SEPARATOR);
+  if (bounds.length !== 2 || !bounds.every(isIsoDate)) return undefined;
+  return [bounds[0], bounds[1]];
+}
+
 /** Evaluates a numeric filter against a cell value; `between` is inclusive on both ends. */
 export function matchesNumberFilter(cell: number, filter: NumberFilterValue): boolean {
   switch (filter.operator) {
