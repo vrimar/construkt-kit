@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import { COLOR_MODE_STORAGE_KEY } from "./colorModeScript";
+import { COLOR_MODE_STORAGE_KEY, applyColorMode } from "./colorModeScript";
 
 export type ColorMode = "light" | "dark" | "system";
 export type ResolvedColorMode = "light" | "dark";
@@ -61,18 +61,9 @@ export const ColorModeProvider = ({
     mode === "system" ? (systemPrefersDark ? "dark" : "light") : mode;
 
   useEffect(() => {
-    // Read matchMedia fresh (not the hydration snapshot) so we never strip a `dark` class the FOUC script set.
-    const dark =
-      mode === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        : resolvedMode === "dark";
-    const root = document.documentElement;
-    root.classList.toggle("dark", dark);
-    root.style.colorScheme = dark ? "dark" : "light";
-    return () => {
-      root.classList.remove("dark");
-      root.style.colorScheme = "";
-    };
+    // Reads matchMedia fresh: the hydration snapshot in resolvedMode could strip the script's class.
+    applyColorMode(mode, mode);
+    return () => document.documentElement.classList.remove("dark");
   }, [mode, resolvedMode]);
 
   const setMode = useCallback(
