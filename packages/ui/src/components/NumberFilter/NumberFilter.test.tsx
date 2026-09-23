@@ -1,8 +1,8 @@
 import type { NumberFilterValue } from "@construkt-kit/utils";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { NumberFilter, type NumberFilterProps } from ".";
 
@@ -30,8 +30,6 @@ const pickOperator = async (triggerLabel: string, itemText: string) => {
   await userEvent.click(screen.getByRole("button", { name: triggerLabel }));
   await userEvent.click(await screen.findByText(itemText, { exact: false }));
 };
-
-afterEach(cleanup);
 
 describe("NumberFilter", () => {
   it("renders the default operator on the trigger", () => {

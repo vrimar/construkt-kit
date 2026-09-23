@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ApplySelect } from ".";
 
@@ -10,8 +10,6 @@ const frameworks = [
   { id: 2, name: "Vue" },
   { id: 3, name: "Angular" },
 ];
-
-afterEach(cleanup);
 
 describe("ApplySelect", () => {
   it("stages values and emits the complete draft on Apply", async () => {

@@ -1,3 +1,6 @@
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
 class ResizeObserver {
   observe() {}
 
@@ -39,3 +42,5 @@ globalThis.matchMedia ??= (query: string): MediaQueryList => ({
   removeListener: () => {},
   dispatchEvent: () => false,
 });
+
+afterEach(cleanup);
