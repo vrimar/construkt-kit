@@ -7,8 +7,6 @@ import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { carousel } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(carousel);
 
 const Root = withProvider(ArkCarousel.Root, "root", {
@@ -25,7 +23,7 @@ const NextTrigger = withContext(ArkCarousel.NextTrigger, "nextTrigger");
 const PrevTrigger = withContext(ArkCarousel.PrevTrigger, "prevTrigger");
 
 const StyledIndicatorGroup = withContext(ArkCarousel.IndicatorGroup, "indicatorGroup");
-function IndicatorGroup({ ref, ...props }: WithRef<ComponentProps<typeof StyledIndicatorGroup>>) {
+function IndicatorGroup({ ref, ...props }: ComponentProps<typeof StyledIndicatorGroup>) {
   const carouselCtx = useCarouselContext();
 
   return (

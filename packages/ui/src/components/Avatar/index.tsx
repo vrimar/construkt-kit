@@ -4,8 +4,6 @@ import { avatar } from "@construkt-kit/styled-system/recipes";
 import { UserIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(avatar);
 
 const Root = withProvider(ArkAvatar.Root, "root");
@@ -27,7 +25,7 @@ export interface AvatarFallbackProps extends ComponentProps<typeof StyledFallbac
 
 const StyledFallback = withContext(ArkAvatar.Fallback, "fallback");
 
-function Fallback({ ref, name, children, asChild, ...rest }: WithRef<AvatarFallbackProps>) {
+function Fallback({ ref, name, children, asChild, ...rest }: AvatarFallbackProps) {
   const fallbackContent = children || asChild ? children : name ? getInitials(name) : <UserIcon />;
 
   return (

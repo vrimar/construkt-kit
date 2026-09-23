@@ -6,7 +6,7 @@ import {
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { pagination } from "@construkt-kit/styled-system/recipes";
 import { EllipsisIcon } from "lucide-react";
-import type { ComponentProps } from "react";
+import { type ComponentProps, Fragment } from "react";
 
 import { IconButton } from "../Buttons/IconButton";
 
@@ -49,7 +49,9 @@ function Items(props: PaginationItemsProps) {
       );
     }
 
-    return render({ ...page, selected: ctx.page === page.value });
+    return (
+      <Fragment key={page.value}>{render({ ...page, selected: ctx.page === page.value })}</Fragment>
+    );
   });
 }
 

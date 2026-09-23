@@ -30,7 +30,6 @@ export const Default: Story = {
       <Pagination.Items
         render={(page) => (
           <Pagination.Item
-            key={page.value}
             {...page}
             asChild
           >

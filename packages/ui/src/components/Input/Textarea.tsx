@@ -3,8 +3,6 @@ import { styled } from "@construkt-kit/styled-system/jsx";
 import { textarea } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, type KeyboardEvent } from "react";
 
-import type { WithRef } from "../../types";
-
 type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
 const BaseTextarea = styled(Field.Textarea, textarea);
 
@@ -22,7 +20,7 @@ export const Textarea = ({
   onKeyDown,
   style,
   ...props
-}: WithRef<TextareaProps, HTMLTextAreaElement>) => {
+}: TextareaProps) => {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     onKeyDown?.(e);
     if (e.defaultPrevented || e.key !== "Enter" || e.nativeEvent.isComposing) return;

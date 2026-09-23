@@ -7,7 +7,6 @@ const { withProvider, withContext } = createStyleContext(segmentGroup);
 
 const Root = withProvider(ArkSegmentGroup.Root, "root", {
   defaultProps: { orientation: "horizontal" },
-  forwardProps: ["orientation"],
 });
 const RootProvider = withProvider(ArkSegmentGroup.RootProvider, "root");
 const Indicator = withContext(ArkSegmentGroup.Indicator, "indicator");

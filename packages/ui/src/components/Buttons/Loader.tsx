@@ -1,16 +1,13 @@
-import type { HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
+import { ark } from "@ark-ui/react/factory";
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { absoluteCenter } from "@construkt-kit/styled-system/recipes";
 
-import type { WithRef } from "../../types";
-import { AbsoluteCenter } from "../Layout/AbsoluteCenter";
 import { Span } from "../Span";
 import { Spinner } from "../Spinner";
 
-export interface LoaderProps extends HTMLStyledProps<"span"> {
-  /**
-   * Whether the loader is visible
-   * @default true
-   */
-  visible?: boolean | undefined;
+const AbsoluteCenter = styled(ark.span, absoluteCenter);
+
+export interface LoaderProps {
   /**
    * The spinner to display when loading
    */
@@ -28,31 +25,21 @@ export interface LoaderProps extends HTMLStyledProps<"span"> {
   children?: React.ReactNode;
 }
 
-export const Loader = ({ ref, ...props }: WithRef<LoaderProps, HTMLSpanElement>) => {
-  const {
-    spinner = (
-      <Spinner
-        size="inherit"
-        borderWidth="0.125em"
-        color="inherit"
-      />
-    ),
-    spinnerPlacement = "start",
-    children,
-    text,
-    visible = true,
-    ...rest
-  } = props;
-
-  if (!visible) return children;
-
+export const Loader = ({
+  spinner = (
+    <Spinner
+      size="inherit"
+      borderWidth="0.125em"
+      color="inherit"
+    />
+  ),
+  spinnerPlacement = "start",
+  children,
+  text,
+}: LoaderProps) => {
   if (text) {
     return (
-      <Span
-        ref={ref}
-        display="contents"
-        {...rest}
-      >
+      <Span display="contents">
         {spinnerPlacement === "start" && spinner}
         {text}
         {spinnerPlacement === "end" && spinner}
@@ -62,11 +49,7 @@ export const Loader = ({ ref, ...props }: WithRef<LoaderProps, HTMLSpanElement>)
 
   if (spinner) {
     return (
-      <Span
-        ref={ref}
-        display="contents"
-        {...rest}
-      >
+      <Span display="contents">
         <AbsoluteCenter display="inline-flex">{spinner}</AbsoluteCenter>
         <Span
           visibility="hidden"
@@ -78,13 +61,5 @@ export const Loader = ({ ref, ...props }: WithRef<LoaderProps, HTMLSpanElement>)
     );
   }
 
-  return (
-    <Span
-      ref={ref}
-      display="contents"
-      {...rest}
-    >
-      {children}
-    </Span>
-  );
+  return <Span display="contents">{children}</Span>;
 };

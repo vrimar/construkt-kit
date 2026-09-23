@@ -3,8 +3,6 @@ import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { field } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ReactNode } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(field);
 
 const Root = withProvider(ArkField.Root, "root");
@@ -28,7 +26,7 @@ export const Field = ({
   errorText,
   optionalText,
   ...rest
-}: WithRef<FieldProps>) => {
+}: FieldProps) => {
   return (
     <Root
       ref={ref}

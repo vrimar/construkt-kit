@@ -3,8 +3,6 @@ import { Stack, type StackProps, styled } from "@construkt-kit/styled-system/jsx
 import { skeleton } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
 export const Skeleton = styled(ark.div, skeleton);
 
@@ -27,7 +25,7 @@ export const SkeletonText = ({
   noOfLines = 3,
   rootProps,
   ...skeletonProps
-}: WithRef<SkeletonTextProps>) => {
+}: SkeletonTextProps) => {
   return (
     <Stack
       ref={ref}

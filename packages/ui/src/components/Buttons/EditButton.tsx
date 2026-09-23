@@ -4,10 +4,9 @@ import type { WithRef } from "../../types";
 import type { IconButtonProps } from "./IconButton";
 import { IconButton } from "./IconButton";
 
-export const EditButton = ({
-  ref,
-  ...props
-}: WithRef<Omit<IconButtonProps, "children">, HTMLButtonElement>) => {
+export type EditButtonProps = Omit<IconButtonProps, "children">;
+
+export const EditButton = ({ ref, ...props }: WithRef<EditButtonProps, HTMLButtonElement>) => {
   return (
     <IconButton
       ref={ref}

@@ -3,9 +3,8 @@ import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { WithRef } from "../../types";
-import type { ButtonProps } from "../Buttons";
 import { Text } from "../Text";
-import { Button } from "./Button";
+import { Button, type ButtonProps } from "./Button";
 
 export interface SelectButtonProps extends ButtonProps {
   sublabel?: ReactNode;

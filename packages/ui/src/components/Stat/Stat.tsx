@@ -1,13 +1,10 @@
 import { ark } from "@ark-ui/react/factory";
 import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
 import { stat } from "@construkt-kit/styled-system/recipes";
-import { InfoIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import type { WithRef } from "../../types";
 import { Badge, type BadgeProps } from "../Badge";
-import { IconButton } from "../Buttons";
-import { ToggleTip } from "../ToggleTip";
+import { InfoTip } from "../ToggleTip";
 
 const { withProvider, withContext } = createStyleContext(stat);
 
@@ -23,24 +20,14 @@ interface StatLabelProps extends StatLabelBaseProps {
 
 const StatLabelRoot = withContext(ark.span, "label");
 
-function StatLabel({ ref, info, children, ...rest }: WithRef<StatLabelProps>) {
+function StatLabel({ ref, info, children, ...rest }: StatLabelProps) {
   return (
     <StatLabelRoot
       {...rest}
       ref={ref}
     >
       {children}
-      {info && (
-        <ToggleTip content={info}>
-          <IconButton
-            variant="plain"
-            aria-label="info"
-            size="2xs"
-          >
-            <InfoIcon />
-          </IconButton>
-        </ToggleTip>
-      )}
+      {info && <InfoTip>{info}</InfoTip>}
     </StatLabelRoot>
   );
 }
@@ -54,13 +41,7 @@ interface StatValueTextProps extends StatValueTextBaseProps {
   formatOptions?: Intl.NumberFormatOptions;
 }
 
-function StatValueText({
-  ref,
-  value,
-  formatOptions,
-  children,
-  ...rest
-}: WithRef<StatValueTextProps>) {
+function StatValueText({ ref, value, formatOptions, children, ...rest }: StatValueTextProps) {
   return (
     <StatValueTextRoot
       {...rest}
@@ -71,47 +52,36 @@ function StatValueText({
   );
 }
 
-const UpIndicator = styled(ark.span, {
+const TrendIndicator = styled(ark.span, {
   base: {
-    _before: { content: '"▲"' },
     fontSize: "xs",
+  },
+  variants: {
+    direction: {
+      up: { _before: { content: '"▲"' } },
+      down: { _before: { content: '"▼"' } },
+    },
   },
 });
 
-const DownIndicator = styled(ark.span, {
-  base: {
-    _before: { content: '"▼"' },
-    fontSize: "xs",
-  },
-});
-
-function StatUpTrend({ ref, children, ...props }: WithRef<BadgeProps>) {
-  return (
-    <Badge
-      colorPalette="green"
-      gap="0"
-      {...props}
-      ref={ref}
-    >
-      <UpIndicator />
-      {children}
-    </Badge>
-  );
+function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" | "down") {
+  return function StatTrend({ ref, children, ...props }: BadgeProps) {
+    return (
+      <Badge
+        colorPalette={colorPalette}
+        gap="0"
+        {...props}
+        ref={ref}
+      >
+        <TrendIndicator direction={direction} />
+        {children}
+      </Badge>
+    );
+  };
 }
 
-function StatDownTrend({ ref, children, ...props }: WithRef<BadgeProps>) {
-  return (
-    <Badge
-      colorPalette="red"
-      gap="0"
-      {...props}
-      ref={ref}
-    >
-      <DownIndicator />
-      {children}
-    </Badge>
-  );
-}
+const StatUpTrend = createTrend("green", "up");
+const StatDownTrend = createTrend("red", "down");
 
 export const Stat = {
   Root: StatRoot,

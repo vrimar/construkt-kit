@@ -1,22 +1,6 @@
+import { ark } from "@ark-ui/react/factory";
 import { styled } from "@construkt-kit/styled-system/jsx";
-import type { HTMLStyledProps } from "@construkt-kit/styled-system/types";
+import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
-export interface ImageProps extends HTMLStyledProps<"img"> {}
-
-const StyledImage = styled("img");
-
-export const Image = ({
-  ref,
-  objectFit = "cover",
-  ...rest
-}: WithRef<ImageProps, HTMLImageElement>) => {
-  return (
-    <StyledImage
-      ref={ref}
-      objectFit={objectFit}
-      {...rest}
-    />
-  );
-};
+export type ImageProps = ComponentProps<typeof Image>;
+export const Image = styled(ark.img, { base: { objectFit: "cover" } });

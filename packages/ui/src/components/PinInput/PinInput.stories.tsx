@@ -1,7 +1,7 @@
 import { pinInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { PinInput, type PinInputRootProps } from ".";
+import { PinInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
@@ -53,11 +53,9 @@ export const SixDigits: Story = {
 
 export const Masked: Story = {
   render: () => {
-    const maskedProps = { mask: true as never } as PinInputRootProps;
-
     return (
       <Box maxW="320px">
-        <PinInput.Root {...maskedProps}>
+        <PinInput.Root mask>
           <PinInput.Label>Secret PIN</PinInput.Label>
           <PinInput.Control>
             {[0, 1, 2, 3].map((id) => (

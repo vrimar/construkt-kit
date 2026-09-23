@@ -2,7 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import { createContext, mergeProps } from "@ark-ui/react/utils";
 import { styled } from "@construkt-kit/styled-system/jsx";
 import { type ButtonVariantProps, button } from "@construkt-kit/styled-system/recipes";
-import { type ComponentProps, useMemo } from "react";
+import type { ComponentProps } from "react";
 
 import type { WithRef } from "../../types";
 import { Group, type GroupProps } from "./Group";
@@ -27,10 +27,7 @@ export interface ButtonProps extends BaseButtonProps, ButtonLoadingProps, Button
 
 export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement>) => {
   const propsContext = useButtonPropsContext();
-  const buttonProps = useMemo(
-    () => mergeProps<ButtonProps>(propsContext, props),
-    [propsContext, props],
-  );
+  const buttonProps = mergeProps<ButtonProps>(propsContext, props);
 
   const {
     loading,
@@ -72,7 +69,7 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}
 
 export const ButtonGroup = ({ ref, ...props }: WithRef<ButtonGroupProps>) => {
-  const [variantProps, otherProps] = useMemo(() => button.splitVariantProps(props), [props]);
+  const [variantProps, otherProps] = button.splitVariantProps(props);
   return (
     <ButtonPropsProvider value={variantProps}>
       <Group

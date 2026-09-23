@@ -4,8 +4,6 @@ import { numberInput } from "@construkt-kit/styled-system/recipes";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(numberInput);
 
 type RootProps = ComponentProps<typeof Root>;
@@ -32,19 +30,8 @@ const Control = withContext(ArkNumberInput.Control, "control", {
 
 export type NumberInputProps = RootProps;
 
-function NumberInputSimple({ ref, children, ...rest }: WithRef<NumberInputProps>) {
-  return (
-    <Root
-      ref={ref}
-      {...rest}
-    >
-      {children}
-    </Root>
-  );
-}
-
-export const NumberInput = Object.assign(NumberInputSimple, {
-  Root: NumberInputSimple,
+export const NumberInput = Object.assign(Root, {
+  Root,
   Field: Input,
   Control,
   Scrubber,

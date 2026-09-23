@@ -3,8 +3,6 @@ import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-
 import { type ScrollAreaVariantProps, scrollArea } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-import type { WithRef } from "../../types";
-
 const { withProvider, withContext } = createStyleContext(scrollArea);
 
 const Root = withProvider(ArkScrollArea.Root, "root");
@@ -29,7 +27,7 @@ const ScrollAreaSimple = ({
   scrollbars = "both",
   contentProps,
   ...props
-}: WithRef<ScrollAreaProps>) => {
+}: ScrollAreaProps) => {
   const showVertical = scrollbars === "vertical" || scrollbars === "both";
   const showHorizontal = scrollbars === "horizontal" || scrollbars === "both";
 
