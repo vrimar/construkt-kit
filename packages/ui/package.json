@@ -41,17 +41,12 @@
   },
   "dependencies": {
     "@ark-ui/react": "^5.38.2",
-    "@atlaskit/pragmatic-drag-and-drop": "^3.0.0",
     "@construkt-kit/utils": "workspace:^",
-    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.1",
-    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.1.0",
     "@tanstack/react-table": "^9.1.2",
     "@tanstack/react-virtual": "^3.14.10",
-    "dayjs": "^1.11.23",
     "lucide-react": "^1.32.0",
     "react-resizable-panels": "^4.12.3",
-    "react-use": "^17.6.1",
-    "ts-pattern": "^5.9.0"
+    "react-use": "^17.6.1"
   },
   "peerDependencies": {
     "@construkt-kit/preset": ">=0.4.0",
@@ -60,6 +55,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^3.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.1.0",
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/styled-system": "workspace:*",

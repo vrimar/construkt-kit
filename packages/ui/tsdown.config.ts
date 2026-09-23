@@ -1,21 +1,27 @@
-import { defineConfig } from "tsdown";
+import { createTsdownConfig } from "@construkt-kit/config/tsdown";
 
-export default defineConfig({
+export default createTsdownConfig({
   entry: {
     index: "src/index.ts",
     preset: "src/preset.ts",
     panda: "src/panda.ts",
   },
-  format: ["esm"],
-  dts: true,
-  sourcemap: true,
-  clean: true,
   checks: {
     pluginTimings: false,
   },
+  // The node platform bundles deps' CommonJS builds, which drags a node:module import into index.
+  platform: "neutral",
+  fixedExtension: true,
+  inputOptions: { resolve: { mainFields: ["module", "main"] } },
+  // styled-system is unpublished, so it must stay bundled.
+  neverBundle: ["react", "react-dom", "@construkt-kit/preset", "@pandacss/dev"],
   deps: {
-    // @construkt-kit/styled-system is private and unpublished, so it must be bundled:
-    // consumers reach the Panda runtime through this package's re-exports.
-    neverBundle: ["react", "react-dom", "@construkt-kit/preset", "@pandacss/dev"],
+    // Atlaskit ships no exports map, so Node ESM can only load it from our bundle.
+    onlyBundle: [
+      /^@atlaskit\/pragmatic-drag-and-drop/,
+      "@babel/runtime",
+      "bind-event-listener",
+      "raf-schd",
+    ],
   },
 });

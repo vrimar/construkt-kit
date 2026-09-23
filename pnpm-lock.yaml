@@ -270,15 +270,6 @@ importers:
       '@ark-ui/react':
         specifier: ^5.38.2
         version: 5.39.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@atlaskit/pragmatic-drag-and-drop':
-        specifier: ^3.0.0
-        version: 3.1.0
-      '@atlaskit/pragmatic-drag-and-drop-auto-scroll':
-        specifier: ^3.0.1
-        version: 3.2.0
-      '@atlaskit/pragmatic-drag-and-drop-hitbox':
-        specifier: ^2.1.0
-        version: 2.2.0
       '@construkt-kit/utils':
         specifier: workspace:^
         version: link:../utils
@@ -288,9 +279,6 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.14.10
         version: 3.14.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      dayjs:
-        specifier: ^1.11.23
-        version: 1.11.23
       lucide-react:
         specifier: ^1.32.0
         version: 1.43.0(react@19.2.8)
@@ -300,10 +288,16 @@ importers:
       react-use:
         specifier: ^17.6.1
         version: 17.6.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      ts-pattern:
-        specifier: ^5.9.0
-        version: 5.9.0
     devDependencies:
+      '@atlaskit/pragmatic-drag-and-drop':
+        specifier: ^3.0.0
+        version: 3.1.0
+      '@atlaskit/pragmatic-drag-and-drop-auto-scroll':
+        specifier: ^3.0.1
+        version: 3.2.0
+      '@atlaskit/pragmatic-drag-and-drop-hitbox':
+        specifier: ^2.1.0
+        version: 2.2.0
       '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
