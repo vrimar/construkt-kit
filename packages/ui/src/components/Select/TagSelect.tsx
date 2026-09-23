@@ -1,8 +1,7 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
-import { type ReactNode, useMemo } from "react";
+import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
+import type { ReactNode } from "react";
 
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
-import { encodeSelectionValue } from "../Listbox/useSelectionController";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
 import type {
@@ -12,6 +11,7 @@ import type {
   SelectTriggerProps,
 } from "./Select";
 import { Select } from "./Select";
+import { useSelectContext } from "./Select.context";
 
 type TagSelectRootProps<T, V extends SelectionValue> = Omit<
   SelectRootProps<T, V>,
@@ -34,53 +34,45 @@ export interface TagSelectProps<
   search?: boolean | SelectionSearchOptions<T>;
 }
 
-export function TagSelect<T, V extends SelectionValue>({
-  contentProps,
-  footer,
-  getItemLabel,
-  getItemValue,
-  items,
-  listProps,
-  onValueChange,
-  renderTag,
-  search = true,
-  tagPlaceholder,
-  triggerProps,
-  value,
-  ...rootProps
-}: TagSelectProps<T, V>) {
-  const itemByValue = useMemo(
-    () => new Map(items.map((item) => [encodeSelectionValue(getItemValue(item)), item])),
-    [getItemValue, items],
-  );
+interface TagSelectTriggerProps<T> extends BoxProps {
+  renderTag?: (item: T) => ReactNode;
+  tagPlaceholder?: ReactNode;
+}
 
-  const trigger = (
-    <Box width="full">
+function TagSelectTrigger<T>({ renderTag, tagPlaceholder, ...props }: TagSelectTriggerProps<T>) {
+  const { controller } = useSelectContext();
+  const selectedItems = controller.selectedItems as T[];
+
+  return (
+    <Box
+      width="full"
+      {...props}
+    >
       <TagsInput.Root
         cursor="pointer"
-        value={value.map(encodeSelectionValue)}
+        readOnly
+        value={controller.encodedValue}
       >
         <TagsInput.Control outline="none">
-          {value.map((nativeValue, index) => {
-            const encodedValue = encodeSelectionValue(nativeValue);
-            const item = itemByValue.get(encodedValue);
-            if (item == null) return null;
+          {selectedItems.map((item) => {
+            const encodedValue = controller.collection.getItemValue(item) ?? "";
 
             return (
               <TagsInput.Item
                 key={encodedValue}
-                index={index}
+                index={controller.encodedValue.indexOf(encodedValue)}
                 value={encodedValue}
               >
                 <TagsInput.ItemPreview>
                   {renderTag?.(item)}
-                  <TagsInput.ItemText>{getItemLabel(item)}</TagsInput.ItemText>
+                  <TagsInput.ItemText>
+                    {controller.collection.stringifyItem(item)}
+                  </TagsInput.ItemText>
                 </TagsInput.ItemPreview>
-                <TagsInput.ItemInput />
               </TagsInput.Item>
             );
           })}
-          {value.length === 0 && (
+          {selectedItems.length === 0 && (
             <Text
               ml="1"
               color="fg.subtle"
@@ -92,24 +84,29 @@ export function TagSelect<T, V extends SelectionValue>({
       </TagsInput.Root>
     </Box>
   );
+}
 
+export function TagSelect<T, V extends SelectionValue>({
+  renderTag,
+  search = true,
+  tagPlaceholder,
+  triggerProps,
+  ...selectProps
+}: TagSelectProps<T, V>) {
   return (
-    <Select.Root
-      {...rootProps}
-      items={items}
-      getItemLabel={getItemLabel}
-      getItemValue={getItemValue}
-      value={value}
-      onValueChange={onValueChange}
+    <Select
+      {...selectProps}
       selectionMode="multiple"
       search={search}
-    >
-      <Select.Trigger {...triggerProps}>{trigger}</Select.Trigger>
-      <Select.Content {...contentProps}>
-        {search !== false && <Select.Search />}
-        <Select.List {...listProps} />
-        {footer}
-      </Select.Content>
-    </Select.Root>
+      triggerProps={{
+        ...triggerProps,
+        children: (
+          <TagSelectTrigger
+            renderTag={renderTag}
+            tagPlaceholder={tagPlaceholder}
+          />
+        ),
+      }}
+    />
   );
 }

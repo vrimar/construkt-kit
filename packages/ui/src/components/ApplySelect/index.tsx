@@ -3,7 +3,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 
 import { Button } from "../Buttons";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox";
-import { encodeSelectionValue } from "../Listbox/useSelectionController";
+import { encodeSelectionValue, getSelectionLabel, selectItemsByValue } from "../Listbox/managed";
 import type {
   SelectContentProps,
   SelectListProps,
@@ -12,11 +12,12 @@ import type {
   SelectTriggerProps,
 } from "../Select";
 import { Select } from "../Select";
+import { useSelectContext } from "../Select/Select.context";
+import { selectListParts } from "../Select/Select.parts";
 
 interface ApplySelectContextValue {
   allSelected: boolean;
   apply: () => void;
-  cancel: () => void;
   toggleAll: () => void;
   hasAppliedValue: boolean;
   isDirty: boolean;
@@ -39,28 +40,6 @@ function sameValueSet<V extends SelectionValue>(left: readonly V[], right: reado
   return left.every((value) => rightSet.has(encodeSelectionValue(value)));
 }
 
-function resolveSelectedItems<T, V extends SelectionValue>(
-  items: readonly T[],
-  value: readonly V[],
-  getItemValue: (item: T) => V,
-) {
-  const selected = new Set(value.map(encodeSelectionValue));
-  return items.filter((item) => selected.has(encodeSelectionValue(getItemValue(item))));
-}
-
-function getDefaultAppliedLabel<T, V extends SelectionValue>(
-  items: readonly T[],
-  value: readonly V[],
-  getItemValue: (item: T) => V,
-  getItemLabel: (item: T) => string,
-  placeholder: ReactNode,
-) {
-  if (value.length === 0) return placeholder;
-  if (value.length > 1) return `${value.length} selected`;
-  const item = resolveSelectedItems(items, value, getItemValue)[0];
-  return item == null ? "1 selected" : getItemLabel(item);
-}
-
 export interface ApplySelectActionOptions {
   applyLabel?: ReactNode;
   cancelLabel?: ReactNode;
@@ -69,27 +48,19 @@ export interface ApplySelectActionOptions {
   clearAllLabel?: ReactNode;
 }
 
-export interface ApplySelectActionsProps extends ApplySelectActionOptions {}
+export type ApplySelectActionsProps = ApplySelectActionOptions;
 
 export type ApplySelectTriggerProps = SelectTriggerProps;
 export type ApplySelectContentProps = SelectContentProps;
 export type ApplySelectSearchProps = SelectSearchProps;
 export type ApplySelectListProps = SelectListProps;
 
-type ApplyRootBaseProps<T, V extends SelectionValue> = Omit<
+export interface ApplySelectRootProps<T, V extends SelectionValue = SelectionValue> extends Omit<
   SelectRootProps<T, V>,
-  "defaultOpen" | "onOpenChange" | "onValueChange" | "open" | "selectionMode" | "value"
->;
-
-export interface ApplySelectRootProps<
-  T,
-  V extends SelectionValue = SelectionValue,
-> extends ApplyRootBaseProps<T, V> {
+  "onValueChange" | "selectionMode" | "value"
+> {
   value: readonly V[];
   onValueChange: (value: V[]) => unknown;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => unknown;
 }
 
 const APPLY_CONTENT_MIN_WIDTH = 256;
@@ -126,13 +97,8 @@ export function ApplySelectActions({
   selectAllLabel = "Select All",
   clearAllLabel = "Clear All",
 }: ApplySelectActionsProps) {
-  const {
-    allSelected,
-    apply,
-    cancel,
-    toggleAll: handleToggleAll,
-    isDirty,
-  } = useApplySelectContext();
+  const { allSelected, apply, toggleAll: handleToggleAll, isDirty } = useApplySelectContext();
+  const { close } = useSelectContext();
 
   return (
     <Select.Footer>
@@ -152,13 +118,16 @@ export function ApplySelectActions({
         >
           <Button
             variant="plain"
-            onClick={cancel}
+            onClick={close}
             size="xs"
           >
             {cancelLabel}
           </Button>
           <Button
-            onClick={apply}
+            onClick={() => {
+              apply();
+              close();
+            }}
             size="xs"
             disabled={!isDirty}
           >
@@ -172,7 +141,6 @@ export function ApplySelectActions({
 
 export function ApplySelectRoot<T, V extends SelectionValue>({
   children,
-  defaultOpen = false,
   getItemLabel,
   getItemValue,
   items,
@@ -185,34 +153,20 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   value,
   ...rootProps
 }: ApplySelectRootProps<T, V>) {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const [draft, setDraft] = useState<V[]>([...value]);
-  const resolvedOpen = open ?? internalOpen;
-  const [syncedOpen, setSyncedOpen] = useState(resolvedOpen);
-  const [syncedValue, setSyncedValue] = useState(value);
+  const [synced, setSynced] = useState({ open, value });
 
-  if (syncedOpen !== resolvedOpen || syncedValue !== value) {
-    setSyncedOpen(resolvedOpen);
-    setSyncedValue(value);
-    if (!resolvedOpen && !sameValueSet(draft, value)) setDraft([...value]);
+  if (synced.open !== open || synced.value !== value) {
+    setSynced({ open, value });
+    if (open === false || !sameValueSet(synced.value, value)) setDraft([...value]);
   }
 
-  const close = useCallback(() => {
-    if (open == null) setInternalOpen(false);
-    setDraft([...value]);
-    onOpenChange?.(false);
-  }, [onOpenChange, open, value]);
-
   const handleOpenChange = (nextOpen: boolean) => {
-    if (open == null) setInternalOpen(nextOpen);
     if (!nextOpen) setDraft([...value]);
     onOpenChange?.(nextOpen);
   };
 
-  const apply = useCallback(() => {
-    onValueChange([...draft]);
-    close();
-  }, [close, draft, onValueChange]);
+  const apply = useCallback(() => onValueChange([...draft]), [draft, onValueChange]);
 
   const itemValues = useMemo(() => items.map(getItemValue), [getItemValue, items]);
   const draftSet = useMemo(() => new Set(draft.map(encodeSelectionValue)), [draft]);
@@ -225,24 +179,23 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   );
   const isDirty = !sameValueSet(value, draft);
   const selectedItems = useMemo(
-    () => resolveSelectedItems(items, value, getItemValue),
+    () => selectItemsByValue(items, value, getItemValue),
     [getItemValue, items, value],
   );
   const triggerValue = renderValue
     ? renderValue({ value, selectedItems })
-    : getDefaultAppliedLabel(items, value, getItemValue, getItemLabel, placeholder);
+    : getSelectionLabel(value.length, selectedItems, getItemLabel, placeholder);
 
   const contextValue = useMemo<ApplySelectContextValue>(
     () => ({
       allSelected,
       apply,
-      cancel: close,
       toggleAll,
       hasAppliedValue: value.length > 0,
       isDirty,
       triggerValue,
     }),
-    [allSelected, apply, close, isDirty, toggleAll, triggerValue, value.length],
+    [allSelected, apply, isDirty, toggleAll, triggerValue, value.length],
   );
 
   return (
@@ -257,7 +210,7 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
         onValueChange={setDraft}
         selectionMode="multiple"
         search={search}
-        open={resolvedOpen}
+        open={open}
         onOpenChange={handleOpenChange}
       >
         {children}
@@ -266,7 +219,7 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   );
 }
 
-interface ApplySelectSimpleProps<T, V extends SelectionValue> extends Omit<
+export interface ApplySelectProps<T, V extends SelectionValue = SelectionValue> extends Omit<
   ApplySelectRootProps<T, V>,
   "children"
 > {
@@ -276,11 +229,6 @@ interface ApplySelectSimpleProps<T, V extends SelectionValue> extends Omit<
   actions?: ApplySelectActionOptions;
   footer?: ReactNode;
 }
-
-export type ApplySelectProps<T, V extends SelectionValue = SelectionValue> = ApplySelectSimpleProps<
-  T,
-  V
->;
 
 function ApplySelectSimple<T, V extends SelectionValue>({
   actions,
@@ -305,7 +253,7 @@ function ApplySelectSimple<T, V extends SelectionValue>({
     >
       <ApplySelectTrigger {...triggerProps} />
       <ApplySelectContent {...contentProps}>
-        {resolvedSearch !== false && <Select.Search />}
+        <Select.Search />
         <Select.List {...listProps} />
         {footer}
         <ApplySelectActions {...actions} />
@@ -318,15 +266,6 @@ export const ApplySelect = Object.assign(ApplySelectSimple, {
   Root: ApplySelectRoot,
   Trigger: ApplySelectTrigger,
   Content: ApplySelectContent,
-  Search: Select.Search,
-  List: Select.List,
-  Item: Select.Item,
-  ItemText: Select.ItemText,
-  ItemIndicator: Select.ItemIndicator,
-  ItemActions: Select.ItemActions,
-  ItemGroup: Select.ItemGroup,
-  ItemGroupLabel: Select.ItemGroupLabel,
-  EmptyState: Select.EmptyState,
-  Footer: Select.Footer,
+  ...selectListParts,
   Actions: ApplySelectActions,
 });

@@ -1,30 +1,17 @@
 import { createContext, type ReactNode, useContext } from "react";
 
-import type {
-  SelectionGroupLabelRenderer,
-  SelectionIndicatorPosition,
-  SelectionItemState,
-  SelectionValue,
-} from "../Listbox/types";
-import type { SelectionController } from "../Listbox/useSelectionController";
-import type { ManagedItemProps } from "./Select.types";
+import type { SelectionController } from "../Listbox/managed";
+import type { ManagedListOptions, SelectionValue } from "../Listbox/types";
 
 export interface SelectContextValue {
   controller: SelectionController<unknown, SelectionValue>;
+  list: ManagedListOptions<unknown, SelectionValue>;
   contentWidth?: number;
-  matchTriggerWidth: boolean;
-  indicatorPosition: SelectionIndicatorPosition;
-  placeholder: ReactNode;
+  sameWidth: boolean;
   triggerValue: ReactNode;
   hasValue: boolean;
-  loading?: boolean;
-  emptyMessage?: ReactNode;
-  virtual?: boolean;
   scrollToIndexRef: { current: ((index: number) => void) | undefined };
-  renderItem?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
-  renderItemActions?: (item: unknown, state: SelectionItemState<SelectionValue>) => ReactNode;
-  renderGroupLabel?: SelectionGroupLabelRenderer<unknown>;
-  getItemProps?: (item: unknown) => ManagedItemProps;
+  close: () => void;
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);

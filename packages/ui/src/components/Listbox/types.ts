@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import type { Listbox as ArkListbox } from "@ark-ui/react/listbox";
+import type { StyleContextConsumer } from "@construkt-kit/styled-system/jsx";
+import type { ComponentProps, ReactNode } from "react";
 
 /** Stable scalar value used to identify a selection item. */
 export type SelectionValue = string | number;
@@ -12,10 +14,7 @@ export interface SelectionItemsProps<T, V extends SelectionValue> {
   getItemValue: (item: T) => V;
   getItemLabel: (item: T) => string;
   isItemDisabled?: (item: T) => boolean;
-  /**
-   * Groups items under headings. Read when the collection is rebuilt (`items` identity or the
-   * search query changes), so pass a new `items` array to regroup at runtime. Disables `virtual`.
-   */
+  /** Groups items under headings. Disables `virtual`. */
   groupBy?: (item: T, index: number) => string;
   /** Orders the group headings. Defaults to first-seen order. */
   groupSort?: SelectionGroupSort;
@@ -62,4 +61,19 @@ export type SelectionIndicatorPosition = "start" | "end" | "none";
 export interface SelectionValueRenderContext<T, V extends SelectionValue> {
   value: V | readonly V[] | null;
   selectedItems: readonly T[];
+}
+
+export type ManagedItemProps = Partial<
+  Omit<ComponentProps<StyleContextConsumer<typeof ArkListbox.Item>>, "children" | "item">
+>;
+
+export interface ManagedListOptions<T, V extends SelectionValue> {
+  loading?: boolean;
+  emptyMessage?: ReactNode;
+  indicatorPosition?: SelectionIndicatorPosition;
+  renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  renderGroupLabel?: SelectionGroupLabelRenderer<T>;
+  getItemProps?: (item: T) => ManagedItemProps;
+  virtual?: boolean;
 }

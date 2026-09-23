@@ -1,14 +1,12 @@
-import { css as cssFn } from "@construkt-kit/styled-system/css";
-import { Box, HStack } from "@construkt-kit/styled-system/jsx";
+import { Box } from "@construkt-kit/styled-system/jsx";
 import type { ReactNode } from "react";
 
 import { SelectButton } from "../Buttons";
-import { SearchInput } from "../Input";
-import { Listbox, ManagedList } from "../Listbox/Listbox";
+import { Listbox } from "../Listbox/Listbox";
+import { ManagedList, SelectionSearchField } from "../Listbox/managed";
 import { Popover } from "../Popover";
 import { useSelectContext } from "./Select.context";
 import type {
-  PopoverRootProps,
   SelectContentProps,
   SelectFooterProps,
   SelectItemIndicatorProps,
@@ -18,57 +16,6 @@ import type {
 } from "./Select.types";
 
 export const MIN_CONTENT_WIDTH = 140;
-
-interface SelectPopoverProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  placement?: PopoverRootProps["placement"];
-  matchTriggerWidth?: boolean;
-  contentWidth?: number;
-  children: ReactNode;
-}
-
-export function SelectPopover({
-  open,
-  onOpenChange,
-  placement,
-  matchTriggerWidth = true,
-  contentWidth,
-  children,
-}: SelectPopoverProps) {
-  return (
-    <Popover.Root
-      lazyMount
-      open={open}
-      onOpenChange={({ open: nextOpen }) => onOpenChange?.(nextOpen)}
-      positioning={{ placement, sameWidth: matchTriggerWidth && contentWidth == null }}
-    >
-      {children}
-    </Popover.Root>
-  );
-}
-
-function SelectPopoverContent({
-  contentWidth,
-  matchTriggerWidth = true,
-  children,
-  ...props
-}: SelectContentProps & { contentWidth?: number; matchTriggerWidth?: boolean }) {
-  return (
-    <Popover.Content
-      minW={contentWidth == null ? MIN_CONTENT_WIDTH : undefined}
-      {...(contentWidth != null
-        ? { width: contentWidth }
-        : matchTriggerWidth
-          ? { width: "full" }
-          : {})}
-      p="0"
-      {...props}
-    >
-      {children}
-    </Popover.Content>
-  );
-}
 
 export function SelectTrigger({ children, buttonProps, ...triggerProps }: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
@@ -90,97 +37,52 @@ export function SelectTrigger({ children, buttonProps, ...triggerProps }: Select
 }
 
 export function SelectContent({ children, ...props }: SelectContentProps) {
-  const { contentWidth, matchTriggerWidth } = useSelectContext();
+  const { contentWidth, sameWidth } = useSelectContext();
+
   return (
-    <SelectPopoverContent
-      contentWidth={contentWidth}
-      matchTriggerWidth={matchTriggerWidth}
+    <Popover.Content
+      layerStyle="dropdown.surface"
+      minW={contentWidth == null ? MIN_CONTENT_WIDTH : undefined}
+      {...(contentWidth != null ? { width: contentWidth } : sameWidth ? { width: "full" } : {})}
       {...props}
     >
       {children}
-    </SelectPopoverContent>
+    </Popover.Content>
   );
 }
 
-export function SelectSearch({
-  children,
-  css,
-  onChange,
-  placeholder,
-  size = "sm",
-  variant = "plain",
-  ...props
-}: SelectSearchProps) {
+export function SelectSearch({ children, placeholder, ...props }: SelectSearchProps) {
   const { controller } = useSelectContext();
   if (!controller.search.showInput) return null;
-  const resolvedPlaceholder = placeholder ?? controller.search.placeholder;
 
   return (
-    <HStack
-      gap="0"
-      borderBottomWidth="1px"
-      borderColor="border"
-    >
-      <SearchInput
-        aria-label={resolvedPlaceholder}
-        {...props}
-        autoFocus={props.autoFocus ?? controller.search.autoFocus}
-        placeholder={resolvedPlaceholder}
-        value={controller.search.query}
-        onChange={(event) => {
-          controller.search.setQuery(event.target.value);
-          onChange?.(event);
-        }}
-        onClear={() => controller.search.setQuery("")}
-        size={size}
-        css={cssFn.raw({ flex: 1 }, css)}
-        variant={variant}
-      />
-      {children ?? controller.search.endElement}
-    </HStack>
+    <SelectionSearchField
+      {...props}
+      autoFocus={props.autoFocus ?? controller.search.autoFocus}
+      placeholder={placeholder ?? controller.search.placeholder}
+      query={controller.search.query}
+      onQueryChange={controller.search.setQuery}
+      endElement={children ?? controller.search.endElement}
+    />
   );
 }
 
 export function SelectList(props: SelectListProps) {
-  const {
-    controller,
-    emptyMessage,
-    getItemProps,
-    indicatorPosition,
-    loading,
-    renderGroupLabel,
-    renderItem,
-    renderItemActions,
-    scrollToIndexRef,
-    virtual,
-  } = useSelectContext();
+  const { controller, list, scrollToIndexRef } = useSelectContext();
 
   return (
     <ManagedList
       controller={controller}
-      loading={loading}
-      emptyMessage={emptyMessage}
-      indicatorPosition={indicatorPosition}
-      renderItem={renderItem}
-      renderItemActions={renderItemActions}
-      renderGroupLabel={renderGroupLabel}
-      getItemProps={getItemProps}
+      {...list}
       contentProps={props}
-      virtual={virtual}
       scrollToIndexRef={scrollToIndexRef}
     />
   );
 }
 
-export const SelectItem = Listbox.Item;
-export const SelectItemText = Listbox.ItemText;
-export const SelectItemActions = Listbox.ItemActions;
-export const SelectItemGroup = Listbox.ItemGroup;
-export const SelectItemGroupLabel = Listbox.ItemGroupLabel;
-
 export function SelectItemIndicator(props: SelectItemIndicatorProps) {
-  const { indicatorPosition } = useSelectContext();
-  if (indicatorPosition === "none") return null;
+  const { list } = useSelectContext();
+  if (list.indicatorPosition === "none") return null;
   return <Listbox.ItemIndicator {...props} />;
 }
 
@@ -193,3 +95,16 @@ export function SelectEmptyState({ children = "No items available" }: { children
 export function SelectFooter({ children, ...props }: SelectFooterProps) {
   return <Box {...props}>{children}</Box>;
 }
+
+export const selectListParts = {
+  Search: SelectSearch,
+  List: SelectList,
+  Item: Listbox.Item,
+  ItemText: Listbox.ItemText,
+  ItemIndicator: SelectItemIndicator,
+  ItemActions: Listbox.ItemActions,
+  ItemGroup: Listbox.ItemGroup,
+  ItemGroupLabel: Listbox.ItemGroupLabel,
+  EmptyState: SelectEmptyState,
+  Footer: SelectFooter,
+};

@@ -5,9 +5,7 @@ import type { SelectButtonProps } from "../Buttons";
 import type { SearchInput } from "../Input";
 import type { Listbox } from "../Listbox/Listbox";
 import type {
-  SelectionGroupLabelRenderer,
-  SelectionIndicatorPosition,
-  SelectionItemState,
+  ManagedListOptions,
   SelectionItemsProps,
   SelectionProps,
   SelectionSearchOptions,
@@ -20,23 +18,12 @@ export type SelectValue = SelectionValue;
 
 export type PopoverContentProps = ComponentProps<typeof Popover.Content>;
 export type PopoverRootProps = ComponentProps<typeof Popover.Root>;
-export type ManagedItemProps = Partial<
-  Omit<ComponentProps<typeof Listbox.Item>, "children" | "item">
->;
-
-export interface SelectRenderProps<T, V extends SelectionValue> {
-  renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
-  renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
-  renderGroupLabel?: SelectionGroupLabelRenderer<T>;
-  getItemProps?: (item: T) => ManagedItemProps;
-}
 
 export interface SelectRootBaseProps<T, V extends SelectionValue>
-  extends SelectionItemsProps<T, V>, SelectRenderProps<T, V> {
+  extends SelectionItemsProps<T, V>, ManagedListOptions<T, V> {
   children: ReactNode;
   placeholder?: ReactNode;
   renderValue?: (context: SelectionValueRenderContext<T, V>) => ReactNode;
-  indicatorPosition?: SelectionIndicatorPosition;
   contentWidth?: number;
   /** Match content width to the trigger. @default true */
   matchTriggerWidth?: boolean;
@@ -47,9 +34,6 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   actionsVisibility?: "hover" | "always";
   listboxProps?: Partial<ComponentProps<typeof Listbox.Root>>;
   search?: boolean | SelectionSearchOptions<T>;
-  loading?: boolean;
-  emptyMessage?: ReactNode;
-  virtual?: boolean;
 }
 
 export type SelectRootProps<T, V extends SelectionValue = SelectionValue> = SelectRootBaseProps<

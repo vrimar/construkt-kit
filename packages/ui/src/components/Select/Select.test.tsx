@@ -1,9 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Listbox } from "../Listbox";
+import { encodedValues, groupLabels, optionValues, produce } from "../Listbox/selection.fixtures";
 import { Select } from "./Select";
 
 const options = [
@@ -11,22 +12,6 @@ const options = [
   { id: 2, label: "Beta" },
   { id: 3, label: "Gamma" },
 ];
-
-const produce = [
-  { id: 1, name: "Apple", kind: "Fruit" },
-  { id: 2, name: "Carrot", kind: "Vegetable" },
-  { id: 3, name: "Banana", kind: "Fruit" },
-];
-
-const groupLabels = () =>
-  screen
-    .getAllByRole("group")
-    .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
-
-const optionValues = () =>
-  screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));
-
-afterEach(cleanup);
 
 describe("Select", () => {
   it("infers generic items and emits native numeric values", async () => {
@@ -289,7 +274,7 @@ describe("Select", () => {
     );
 
     expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
-    expect(optionValues()).toEqual(["n:1", "n:3", "n:2"]);
+    expect(optionValues()).toEqual(encodedValues(1, 3, 2));
   });
 
   it("threads renderGroupLabel through the compound context", () => {
@@ -330,7 +315,7 @@ describe("Select", () => {
 
     await userEvent.type(screen.getByPlaceholderText("Search..."), "Car");
     expect(groupLabels()).toEqual(["Vegetable"]);
-    expect(optionValues()).toEqual(["n:2"]);
+    expect(optionValues()).toEqual(encodedValues(2));
   });
 
   it("exposes the listbox group parts", () => {

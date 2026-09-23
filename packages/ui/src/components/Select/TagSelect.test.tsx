@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { TagSelect } from "./TagSelect";
 
@@ -8,8 +8,6 @@ const items = [
   { id: 1, label: "One" },
   { id: 2, label: "Two" },
 ];
-
-afterEach(cleanup);
 
 describe("TagSelect", () => {
   it("renders numeric selected IDs through the typed item map", () => {
@@ -24,6 +22,22 @@ describe("TagSelect", () => {
       />,
     );
     expect(screen.getByText("Tag One")).not.toBeNull();
+  });
+
+  it("opens the list from the tag trigger", async () => {
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[1]}
+        onValueChange={vi.fn()}
+        search={false}
+      />,
+    );
+    expect(screen.queryByRole("option")).toBeNull();
+    await userEvent.click(screen.getByText("One"));
+    expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 
   it("emits complete arrays when an item is toggled", async () => {

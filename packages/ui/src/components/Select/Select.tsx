@@ -1,30 +1,29 @@
-import { type JSX, type ReactNode, useMemo, useRef, useState } from "react";
+import { type JSX, useRef, useState } from "react";
 
 import { Listbox } from "../Listbox/Listbox";
+import {
+  type SelectionController,
+  getManagedRootProps,
+  getSelectionLabel,
+  isVirtualized,
+  splitManagedListOptions,
+  useSelectionController,
+} from "../Listbox/managed";
 import type {
+  ManagedListOptions,
   MultipleSelectionProps,
   SelectionValue,
   SingleSelectionProps,
 } from "../Listbox/types";
-import {
-  type SelectionController,
-  useSelectionController,
-} from "../Listbox/useSelectionController";
+import { Popover } from "../Popover";
 import { SelectContext, type SelectContextValue } from "./Select.context";
 import {
   SelectContent,
-  SelectEmptyState,
   SelectFooter,
-  SelectItem,
-  SelectItemActions,
-  SelectItemGroup,
-  SelectItemGroupLabel,
-  SelectItemIndicator,
-  SelectItemText,
   SelectList,
-  SelectPopover,
   SelectSearch,
   SelectTrigger,
+  selectListParts,
 } from "./Select.parts";
 import type { SelectProps, SelectRootProps, SelectSimpleProps } from "./Select.types";
 
@@ -45,54 +44,39 @@ export type {
   SelectValue,
 } from "./Select.types";
 
-function getDefaultValueLabel<T, V extends SelectionValue>(
-  selectedValues: readonly V[],
-  selectedItems: readonly T[],
-  getItemLabel: (item: T) => string,
-  placeholder: ReactNode,
-): ReactNode {
-  if (selectedValues.length === 0) return placeholder;
-  if (selectedValues.length === 1) {
-    return selectedItems[0] == null ? "1 selected" : getItemLabel(selectedItems[0]);
-  }
-  return `${selectedValues.length} selected`;
-}
-
 function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
+  const [listOptions, rootProps] = splitManagedListOptions<T, V, SelectRootProps<T, V>>(props);
   const {
     actionsVisibility,
     children,
     contentWidth,
     defaultOpen = false,
-    emptyMessage,
     getItemLabel,
-    getItemProps,
     getItemValue,
     groupBy,
     groupSort,
-    indicatorPosition = "end",
     isItemDisabled,
     items,
     listboxProps,
-    loading,
     matchTriggerWidth = true,
     onOpenChange,
     open,
     placeholder = "Select item",
     placement,
-    renderGroupLabel,
-    renderItem,
-    renderItemActions,
     renderValue,
     search,
     selectionMode = "single",
     value,
-    virtual,
     onValueChange,
-  } = props;
+  } = rootProps;
+  const list: ManagedListOptions<T, V> = {
+    ...listOptions,
+    indicatorPosition: listOptions.indicatorPosition ?? "end",
+  };
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const resolvedOpen = open ?? internalOpen;
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
+  const sameWidth = matchTriggerWidth && contentWidth == null;
 
   function handleOpenChange(nextOpen: boolean) {
     if (open == null) setInternalOpen(nextOpen);
@@ -116,77 +100,45 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     search,
   });
 
-  const triggerValue = renderValue
-    ? renderValue({ value, selectedItems: controller.selectedItems })
-    : getDefaultValueLabel(
-        controller.selectedValues,
-        controller.selectedItems,
-        getItemLabel,
-        placeholder,
-      );
-
-  const contextValue = useMemo<SelectContextValue>(
-    () => ({
-      controller: controller as SelectionController<unknown, SelectionValue>,
-      contentWidth,
-      matchTriggerWidth,
-      indicatorPosition,
-      placeholder,
-      triggerValue,
-      hasValue: controller.selectedValues.length > 0,
-      loading,
-      emptyMessage,
-      virtual,
-      scrollToIndexRef,
-      renderItem: renderItem as SelectContextValue["renderItem"],
-      renderItemActions: renderItemActions as SelectContextValue["renderItemActions"],
-      renderGroupLabel: renderGroupLabel as SelectContextValue["renderGroupLabel"],
-      getItemProps: getItemProps as SelectContextValue["getItemProps"],
-    }),
-    [
-      contentWidth,
-      controller,
-      emptyMessage,
-      getItemProps,
-      indicatorPosition,
-      loading,
-      matchTriggerWidth,
-      placeholder,
-      renderGroupLabel,
-      renderItem,
-      renderItemActions,
-      triggerValue,
-      virtual,
-    ],
-  );
+  const contextValue: SelectContextValue = {
+    controller: controller as SelectionController<unknown, SelectionValue>,
+    list: list as SelectContextValue["list"],
+    contentWidth,
+    sameWidth,
+    triggerValue: renderValue
+      ? renderValue({ value, selectedItems: controller.selectedItems })
+      : getSelectionLabel(
+          controller.selectedValues.length,
+          controller.selectedItems,
+          getItemLabel,
+          placeholder,
+        ),
+    hasValue: controller.selectedValues.length > 0,
+    scrollToIndexRef,
+    close: () => handleOpenChange(false),
+  };
 
   return (
     <SelectContext.Provider value={contextValue}>
-      <SelectPopover
+      <Popover.Root
         open={resolvedOpen}
-        onOpenChange={handleOpenChange}
-        placement={placement}
-        matchTriggerWidth={matchTriggerWidth}
-        contentWidth={contentWidth}
+        onOpenChange={({ open: nextOpen }) => handleOpenChange(nextOpen)}
+        positioning={{ placement, sameWidth }}
       >
         <Listbox.Root
           {...listboxProps}
           actionsVisibility={actionsVisibility}
-          indicatorPosition={indicatorPosition}
-          collection={controller.collection}
-          value={controller.encodedValue}
-          onValueChange={controller.handleValueChange}
-          selectionMode={selectionMode}
-          deselectable={selectionMode === "single" ? false : undefined}
+          indicatorPosition={list.indicatorPosition}
+          {...getManagedRootProps(controller, selectionMode)}
           scrollToIndexFn={
-            virtual && groupBy == null
+            isVirtualized(controller, list.virtual)
               ? (details) => scrollToIndexRef.current?.(details.index)
               : listboxProps?.scrollToIndexFn
           }
         >
           {children}
         </Listbox.Root>
-      </SelectPopover>
+      </Popover.Root>
     </SelectContext.Provider>
   );
 }
@@ -202,17 +154,13 @@ function SelectSimple<T, V extends SelectionValue>({
   contentProps,
   listProps,
   footer,
-  search,
   ...rootProps
 }: SelectProps<T, V>) {
   return (
-    <SelectRoot
-      {...rootProps}
-      search={search}
-    >
+    <SelectRoot {...rootProps}>
       <SelectTrigger {...triggerProps} />
       <SelectContent {...contentProps}>
-        {search !== false && search != null && <SelectSearch />}
+        <SelectSearch />
         <SelectList {...listProps} />
         {footer != null && <SelectFooter>{footer}</SelectFooter>}
       </SelectContent>
@@ -224,14 +172,5 @@ export const Select = Object.assign(SelectSimple, {
   Root: SelectRoot,
   Trigger: SelectTrigger,
   Content: SelectContent,
-  Search: SelectSearch,
-  List: SelectList,
-  Item: SelectItem,
-  ItemText: SelectItemText,
-  ItemIndicator: SelectItemIndicator,
-  ItemActions: SelectItemActions,
-  ItemGroup: SelectItemGroup,
-  ItemGroupLabel: SelectItemGroupLabel,
-  EmptyState: SelectEmptyState,
-  Footer: SelectFooter,
+  ...selectListParts,
 });

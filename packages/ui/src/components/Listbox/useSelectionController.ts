@@ -1,7 +1,8 @@
-import { type ListCollection, useListCollection } from "@ark-ui/react/collection";
+import { type ListCollection, createListCollection } from "@ark-ui/react/collection";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
+  ManagedListOptions,
   SelectionGroupSort,
   SelectionItemState,
   SelectionSearchOptions,
@@ -10,11 +11,66 @@ import type {
 
 export type SelectionValueChangeDetails = { value: string[] };
 
-const defaultSearchMatch = (itemText: string, query: string) =>
-  itemText.toLowerCase().includes(query.toLowerCase());
+export const normalizeQuery = (query: string) => query.trim().toLowerCase();
+
+export const matchesQuery = (text: string, query: string) =>
+  text.toLowerCase().includes(normalizeQuery(query));
 
 export const encodeSelectionValue = (value: SelectionValue): string =>
   typeof value === "number" ? `n:${value}` : `s:${value}`;
+
+export function selectItemsByValue<T, V extends SelectionValue>(
+  items: readonly T[],
+  values: readonly V[],
+  getItemValue: (item: T) => V,
+): T[] {
+  const itemByValue = new Map(
+    items.map((item) => [encodeSelectionValue(getItemValue(item)), item]),
+  );
+  return values
+    .map((value) => itemByValue.get(encodeSelectionValue(value)))
+    .filter((item): item is T => item !== undefined);
+}
+
+export function getSelectionLabel<T>(
+  selectedCount: number,
+  selectedItems: readonly T[],
+  getItemLabel: (item: T) => string,
+  placeholder: ReactNode,
+): ReactNode {
+  if (selectedCount === 0) return placeholder;
+  if (selectedCount === 1) {
+    return selectedItems[0] == null ? "1 selected" : getItemLabel(selectedItems[0]);
+  }
+  return `${selectedCount} selected`;
+}
+
+const MANAGED_LIST_OPTION_KEYS = [
+  "loading",
+  "emptyMessage",
+  "indicatorPosition",
+  "renderItem",
+  "renderItemActions",
+  "renderGroupLabel",
+  "getItemProps",
+  "virtual",
+] as const satisfies ReadonlyArray<keyof ManagedListOptions<unknown, SelectionValue>>;
+
+type ManagedListOptionKey = (typeof MANAGED_LIST_OPTION_KEYS)[number];
+
+export function splitManagedListOptions<
+  T,
+  V extends SelectionValue,
+  P extends ManagedListOptions<T, V>,
+>(props: P): [ManagedListOptions<T, V>, Omit<P, ManagedListOptionKey>] {
+  const options: Record<string, unknown> = {};
+  const rest: Partial<P> = { ...props };
+  for (const key of MANAGED_LIST_OPTION_KEYS) {
+    options[key] = props[key];
+    delete rest[key];
+  }
+  return [options, rest as Omit<P, ManagedListOptionKey>];
+}
 
 interface UseSelectionControllerParams<T, V extends SelectionValue> {
   items: readonly T[];
@@ -27,20 +83,18 @@ interface UseSelectionControllerParams<T, V extends SelectionValue> {
   value: V | readonly V[] | null;
   onValueChange: (value: V | V[] | null) => unknown;
   search?: boolean | SelectionSearchOptions<T>;
-  searchDefaultEnabled?: boolean;
-  searchDefaultAutoFocus?: boolean;
 }
 
 export interface SelectionController<T, V extends SelectionValue> {
   collection: ListCollection<T>;
+  groups: [string, T[]][];
+  grouped: boolean;
   encodedValue: string[];
   selectedValues: V[];
   selectedItems: T[];
-  selectionMode: "single" | "multiple";
   handleValueChange: (details: SelectionValueChangeDetails) => void;
   getItemState: (item: T) => SelectionItemState<V>;
   search: {
-    enabled: boolean;
     showInput: boolean;
     query: string;
     placeholder: string;
@@ -62,32 +116,14 @@ export function useSelectionController<T, V extends SelectionValue>({
   value,
   onValueChange,
   search,
-  searchDefaultEnabled = false,
-  searchDefaultAutoFocus = false,
 }: UseSelectionControllerParams<T, V>): SelectionController<T, V> {
   const searchOptions: SelectionSearchOptions<T> | undefined =
-    search === false
-      ? undefined
-      : typeof search === "object"
-        ? search
-        : search === true || searchDefaultEnabled
-          ? {}
-          : undefined;
-  // Read only from event handlers and Ark's filter callback, so syncing after commit is
-  // soon enough and keeps the callbacks below stable across renders.
+    typeof search === "object" ? search : search === true ? {} : undefined;
   const searchOptionsRef = useRef(searchOptions);
-  const filterRef = useRef(searchOptions?.filter);
 
   useEffect(() => {
     searchOptionsRef.current = searchOptions;
-    filterRef.current = searchOptions?.filter;
   });
-
-  const filterPredicate = useCallback(
-    (itemText: string, query: string, item: T) =>
-      filterRef.current ? filterRef.current(item, query) : defaultSearchMatch(itemText, query),
-    [],
-  );
 
   const encodedMaps = useMemo(() => {
     const values = new Map<string, V>();
@@ -113,19 +149,29 @@ export function useSelectionController<T, V extends SelectionValue>({
     return { values, itemByValue };
   }, [getItemValue, items, value]);
 
-  const { collection, filter, set } = useListCollection<T>({
-    initialItems: items,
-    itemToString: getItemLabel,
-    itemToValue: (item) => encodeSelectionValue(getItemValue(item)),
-    isItemDisabled,
-    groupBy,
-    groupSort,
-    filter: filterPredicate,
-  });
+  const defaultQuery = searchOptions?.defaultQuery ?? "";
+  const [internalQuery, setInternalQuery] = useState(defaultQuery);
+  const query = searchOptions?.query ?? internalQuery;
 
-  useEffect(() => {
-    set(items as T[]);
-  }, [items, set]);
+  const filter = searchOptions?.filter;
+  const collection = useMemo(() => {
+    const created = createListCollection<T>({
+      items: items as T[],
+      itemToString: getItemLabel,
+      itemToValue: (item) => encodeSelectionValue(getItemValue(item)),
+      isItemDisabled,
+      groupBy,
+      groupSort,
+    });
+    if (!query) return created;
+
+    return created.filter((itemText, _index, item) =>
+      filter ? filter(item, query) : matchesQuery(itemText, query),
+    );
+  }, [filter, getItemLabel, getItemValue, groupBy, groupSort, isItemDisabled, items, query]);
+
+  const groups = useMemo(() => collection.group(), [collection]);
+  const grouped = !(groups.length === 1 && groups[0][0] === "");
 
   const selectedValues = useMemo<V[]>(
     () => (value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V]),
@@ -165,14 +211,6 @@ export function useSelectionController<T, V extends SelectionValue>({
     [getItemValue, isItemDisabled, selectedSet],
   );
 
-  const defaultQuery = searchOptions?.defaultQuery ?? "";
-  const [internalQuery, setInternalQuery] = useState(defaultQuery);
-  const query = searchOptions?.query ?? internalQuery;
-
-  useEffect(() => {
-    filter(query);
-  }, [filter, items, query]);
-
   const setQuery = useCallback((nextQuery: string) => {
     if (searchOptionsRef.current?.query == null) setInternalQuery(nextQuery);
     searchOptionsRef.current?.onQueryChange?.(nextQuery);
@@ -186,18 +224,18 @@ export function useSelectionController<T, V extends SelectionValue>({
 
   return {
     collection,
+    groups,
+    grouped,
     encodedValue,
     selectedValues,
     selectedItems,
-    selectionMode,
     handleValueChange,
     getItemState,
     search: {
-      enabled: searchOptions != null,
       showInput: searchOptions != null && searchOptions.showInput !== false,
       query,
       placeholder: searchOptions?.placeholder ?? "Search...",
-      autoFocus: searchOptions?.autoFocus ?? searchDefaultAutoFocus,
+      autoFocus: searchOptions?.autoFocus ?? false,
       endElement: searchOptions?.endElement,
       setQuery,
       reset,

@@ -1,9 +1,11 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createListCollection, Listbox } from ".";
+import { encodedValues, groupLabels, optionValues, produce } from "./selection.fixtures";
+import { encodeSelectionValue } from "./useSelectionController";
 
 const fruits = [
   { id: 1, name: "Apple" },
@@ -11,24 +13,8 @@ const fruits = [
   { id: 3, name: "Cherry" },
 ] as const;
 
-const produce = [
-  { id: 1, name: "Apple", kind: "Fruit" },
-  { id: 2, name: "Carrot", kind: "Vegetable" },
-  { id: 3, name: "Banana", kind: "Fruit" },
-];
-
-const groupLabels = () =>
-  screen
-    .getAllByRole("group")
-    .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
-
-const optionValues = () =>
-  screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));
-
 const highlightedValue = () =>
   document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
-
-afterEach(cleanup);
 
 describe("Listbox", () => {
   it("emits the complete native numeric value in single mode", async () => {
@@ -292,7 +278,7 @@ describe("Listbox", () => {
     expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
     expect(within(groups[0]).getByText("Banana")).not.toBeNull();
     expect(within(groups[1]).queryByText("Apple")).toBeNull();
-    expect(optionValues()).toEqual(["n:1", "n:3", "n:2"]);
+    expect(optionValues()).toEqual(encodedValues(1, 3, 2));
     expect(groups[0].getAttribute("aria-labelledby")).toBe(
       groups[0].querySelector("[data-part='item-group-label']")?.id,
     );
@@ -326,7 +312,7 @@ describe("Listbox", () => {
       />,
     );
     expect(groupLabels()).toEqual(["Vegetable", "Fruit"]);
-    expect(optionValues()).toEqual(["n:2", "n:1", "n:3"]);
+    expect(optionValues()).toEqual(encodedValues(2, 1, 3));
   });
 
   it("keeps grouping while searching and drops emptied groups", async () => {
@@ -344,7 +330,7 @@ describe("Listbox", () => {
 
     await userEvent.type(screen.getByPlaceholderText("Search..."), "Ban");
     expect(groupLabels()).toEqual(["Fruit"]);
-    expect(optionValues()).toEqual(["n:3"]);
+    expect(optionValues()).toEqual(encodedValues(3));
     expect(screen.queryByText("Carrot")).toBeNull();
   });
 
@@ -363,17 +349,17 @@ describe("Listbox", () => {
 
     await userEvent.tab();
     expect(screen.getByRole("listbox")).toBe(document.activeElement);
-    expect(highlightedValue()).toBe("n:1");
+    expect(highlightedValue()).toBe(encodeSelectionValue(1));
     await userEvent.keyboard("{ArrowDown}");
-    expect(highlightedValue()).toBe("n:3");
+    expect(highlightedValue()).toBe(encodeSelectionValue(3));
     await userEvent.keyboard("{ArrowDown}");
-    expect(highlightedValue()).toBe("n:2");
+    expect(highlightedValue()).toBe(encodeSelectionValue(2));
     await userEvent.keyboard("{Home}");
-    expect(highlightedValue()).toBe("n:1");
+    expect(highlightedValue()).toBe(encodeSelectionValue(1));
     await userEvent.keyboard("{End}");
-    expect(highlightedValue()).toBe("n:2");
+    expect(highlightedValue()).toBe(encodeSelectionValue(2));
     await userEvent.keyboard("{ArrowUp}");
-    expect(highlightedValue()).toBe("n:3");
+    expect(highlightedValue()).toBe(encodeSelectionValue(3));
   });
 
   it("ignores virtualization while grouped but keeps the height capped", () => {
