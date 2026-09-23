@@ -1,12 +1,10 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import { HStack, Stack, type StackProps } from "@construkt-kit/styled-system/jsx";
+import type { ReactNode } from "react";
 
 import { ApiErrorAlert } from "../Alert";
 import { Button } from "../Buttons";
-import type { StackProps } from "../Layout";
-import { HStack, Stack } from "../Layout";
-import { isPlainEnter } from "./submitOnEnter";
 
-interface SubmitFormProps extends StackProps {
+export interface SubmitFormProps extends StackProps {
   children: ReactNode;
   onSubmit: () => unknown;
   isSubmitDisabled?: boolean;
@@ -24,17 +22,14 @@ export const SubmitForm = ({
   onCancel,
   ...props
 }: SubmitFormProps) => {
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (!onSubmit || !isPlainEnter(event)) return;
-    onSubmit();
-  };
-
   return (
     <Stack
       as="form"
       gap="6"
-      onKeyDown={handleKeyDown}
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
       {...props}
     >
       {error ? <ApiErrorAlert error={error} /> : null}
@@ -43,13 +38,13 @@ export const SubmitForm = ({
       <HStack alignSelf="flex-end">
         <Button
           variant="plain"
-          type="button"
           onClick={onCancel}
         >
           Cancel
         </Button>
         <Button
-          onClick={onSubmit}
+          type="submit"
+          formNoValidate
           disabled={isSubmitDisabled}
           loading={isSubmitLoading}
           colorPalette="brand"

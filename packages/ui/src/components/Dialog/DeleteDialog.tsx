@@ -1,7 +1,7 @@
 import { Text } from "../Text";
 import { SubmitDialog } from "./SubmitDialog";
 
-interface DeleteDialogProps {
+export interface DeleteDialogProps {
   title: string;
   name: string;
   onClose: () => unknown;
