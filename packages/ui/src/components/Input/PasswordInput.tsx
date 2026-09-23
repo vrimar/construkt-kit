@@ -4,8 +4,7 @@ import { useState } from "react";
 import { TooltipIconButton } from "../Buttons";
 import type { InputProps } from "./Input";
 import { Input } from "./Input";
-import type { InputGroupProps } from "./InputGroup";
-import { InputGroup } from "./InputGroup";
+import { InputGroup, type InputGroupProps, inputGroupButtonSizeFor } from "./InputGroup";
 
 export interface PasswordInputProps extends InputProps {
   containerProps?: InputGroupProps;
@@ -16,14 +15,13 @@ export const PasswordInput = ({ containerProps, size, ...props }: PasswordInputP
 
   return (
     <InputGroup
-      width="100%"
       size={size}
       {...containerProps}
       endElement={
         <TooltipIconButton
           label={isVisible ? "Hide password" : "Show password"}
           onClick={() => setIsVisible((prev) => !prev)}
-          size="sm"
+          size={inputGroupButtonSizeFor(size)}
           variant="plain"
         >
           {isVisible ? <EyeOffIcon /> : <EyeIcon />}

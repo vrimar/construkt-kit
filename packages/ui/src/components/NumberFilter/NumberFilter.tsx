@@ -5,7 +5,6 @@ import {
   type NumberFilterValue,
   isValidNumber,
 } from "@construkt-kit/utils";
-import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounce } from "react-use";
 
@@ -14,9 +13,9 @@ import { IconButton } from "../Buttons";
 import {
   Input,
   InputGroup,
-  type InputGroupSize,
+  InputGroupClearButton,
   type InputProps,
-  inputGroupButtonSize,
+  inputGroupButtonSizeFor,
 } from "../Input";
 import { Menu } from "../Menu";
 import { operatorLabels, operatorSymbols } from "./operators";
@@ -141,21 +140,18 @@ export const NumberFilter = ({
   const labelFor = (op: NumberFilterOperator) => labelOverrides?.[op] ?? operatorLabels[op];
 
   const clearButton = (fromText !== "" || toText !== "") && !disabled && (
-    <IconButton
-      size={inputGroupButtonSize[size as InputGroupSize]}
-      variant="plain"
+    <InputGroupClearButton
+      size={size}
       aria-label={clearLabel}
       onClick={handleClear}
-    >
-      <XIcon />
-    </IconButton>
+    />
   );
 
   const operatorTrigger = (
     <Menu.Root placement="bottom-start">
       <Menu.Trigger asChild>
         <IconButton
-          size={inputGroupButtonSize[size as InputGroupSize]}
+          size={inputGroupButtonSizeFor(size)}
           variant="plain"
           disabled={disabled}
           aria-label={labelFor(operator)}

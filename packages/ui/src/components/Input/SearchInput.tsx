@@ -1,8 +1,7 @@
-import { SearchIcon, XIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
-import { IconButton } from "../Buttons";
 import { Input, type InputProps } from "./Input";
-import { InputGroup, type InputGroupSize, inputGroupButtonSize } from "./InputGroup";
+import { InputGroup, InputGroupClearButton } from "./InputGroup";
 
 export interface SearchInputProps extends InputProps {
   onClear?: () => unknown;
@@ -15,24 +14,19 @@ export const SearchInput = ({
   size = "md",
   ...props
 }: SearchInputProps) => {
-  const iconButtonSize = inputGroupButtonSize[size as InputGroupSize];
   return (
     <InputGroup
       startElement={hasIcon && <SearchIcon />}
       endElement={
         props.value &&
         onClear && (
-          <IconButton
-            variant="plain"
-            size={iconButtonSize}
+          <InputGroupClearButton
+            size={size}
             aria-label="Clear search"
             onClick={onClear}
-          >
-            <XIcon />
-          </IconButton>
+          />
         )
       }
-      width="100%"
       size={size}
     >
       <Input

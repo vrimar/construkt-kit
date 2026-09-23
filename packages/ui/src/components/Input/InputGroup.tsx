@@ -1,14 +1,15 @@
 import { ark } from "@ark-ui/react/factory";
 import { createStyleContext } from "@construkt-kit/styled-system/jsx";
 import { inputGroup } from "@construkt-kit/styled-system/recipes";
+import { XIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode } from "react";
 
-import type { WithRef } from "../../types";
-import type { ButtonProps } from "../Buttons";
+import { type ButtonProps, IconButton, type IconButtonProps } from "../Buttons";
+import type { InputProps } from "./Input";
 
 const { withProvider, withContext } = createStyleContext(inputGroup);
 
-export type InputGroupSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+export type InputGroupSize = (typeof inputGroup.variantMap.size)[number];
 
 /** Button size that fits inside an input group's start/end element slot at each input size. */
 export const inputGroupButtonSize: Record<InputGroupSize, ButtonProps["size"]> = {
@@ -20,6 +21,23 @@ export const inputGroupButtonSize: Record<InputGroupSize, ButtonProps["size"]> =
   xl: "lg",
   "2xl": "xl",
 };
+
+export const inputGroupButtonSizeFor = (size: InputProps["size"] = "md"): ButtonProps["size"] =>
+  inputGroupButtonSize[size as InputGroupSize];
+
+export interface InputGroupClearButtonProps extends Omit<IconButtonProps, "size" | "children"> {
+  size?: InputProps["size"];
+}
+
+export const InputGroupClearButton = ({ size, ...props }: InputGroupClearButtonProps) => (
+  <IconButton
+    variant="plain"
+    size={inputGroupButtonSizeFor(size)}
+    {...props}
+  >
+    <XIcon />
+  </IconButton>
+);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ark.div, "root");
@@ -36,7 +54,7 @@ export const InputGroup = ({
   endElement,
   children,
   ...rest
-}: WithRef<InputGroupProps>) => {
+}: InputGroupProps) => {
   return (
     <Root
       ref={ref}

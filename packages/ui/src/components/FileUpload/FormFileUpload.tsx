@@ -1,9 +1,12 @@
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { input } from "@construkt-kit/styled-system/recipes";
 import { FileUpIcon } from "lucide-react";
 
 import { CloseButton } from "../Buttons";
-import { Input } from "../Input";
-import { InputGroup } from "../Input/InputGroup";
+import { InputGroup } from "../Input";
 import { FileUpload } from "./FileUpload";
+
+const TriggerInput = styled(FileUpload.Trigger, input);
 
 export interface FormFileUploadProps {
   onFileChange: (file: File | undefined) => void;
@@ -41,7 +44,6 @@ export const FormFileUpload = ({
     >
       <FileUpload.HiddenInput />
       <InputGroup
-        width="full"
         startElement={<FileUpIcon />}
         cursor={disabled ? "not-allowed" : "pointer"}
         endElement={
@@ -58,18 +60,15 @@ export const FormFileUpload = ({
           </FileUpload.ClearTrigger>
         }
       >
-        <Input
-          asChild
+        <TriggerInput
           aria-label={placeholder}
           cursor="pointer"
         >
-          <FileUpload.Trigger>
-            <FileUpload.FileText
-              lineClamp={1}
-              fallback={placeholder}
-            />
-          </FileUpload.Trigger>
-        </Input>
+          <FileUpload.FileText
+            lineClamp={1}
+            fallback={placeholder}
+          />
+        </TriggerInput>
       </InputGroup>
     </FileUpload.Root>
   );
