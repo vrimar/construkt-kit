@@ -2,7 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import { createContext, mergeProps } from "@ark-ui/react/utils";
 import { styled } from "@construkt-kit/styled-system/jsx";
 import { type ButtonVariantProps, button } from "@construkt-kit/styled-system/recipes";
-import type { ComponentProps } from "react";
+import { type ComponentProps, cloneElement, isValidElement } from "react";
 
 import type { WithRef } from "../../types";
 import { Group, type GroupProps } from "./Group";
@@ -39,15 +39,18 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
     rightIcon,
     ...rest
   } = buttonProps;
+  const isLoading = !props.asChild && loading;
   return (
     <BaseButton
-      type="button"
+      type={props.asChild ? undefined : "button"}
       ref={ref}
       {...rest}
-      data-loading={loading ? "" : undefined}
-      disabled={loading || rest.disabled}
+      data-loading={isLoading ? "" : undefined}
+      disabled={isLoading || rest.disabled}
     >
-      {!props.asChild && loading ? (
+      {props.asChild ? (
+        withIcons(children, leftIcon, rightIcon)
+      ) : isLoading ? (
         <Loader
           spinner={spinner}
           text={loadingText}
@@ -64,6 +67,17 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
       )}
     </BaseButton>
   );
+};
+
+const withIcons = (
+  child: React.ReactNode,
+  leftIcon: React.ReactNode,
+  rightIcon: React.ReactNode,
+) => {
+  if ((!leftIcon && !rightIcon) || !isValidElement<{ children?: React.ReactNode }>(child)) {
+    return child;
+  }
+  return cloneElement(child, undefined, leftIcon, child.props.children, rightIcon);
 };
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}

@@ -8,6 +8,7 @@ export interface IconButtonProps extends ButtonProps {
 export const IconButton = ({
   ref,
   icon,
+  leftIcon,
   children,
   ...props
 }: WithRef<IconButtonProps, HTMLButtonElement>) => {
@@ -17,8 +18,9 @@ export const IconButton = ({
       py="0"
       ref={ref}
       {...props}
+      leftIcon={props.asChild ? (icon ?? leftIcon) : leftIcon}
     >
-      {icon ?? children}
+      {props.asChild ? children : (icon ?? children)}
     </Button>
   );
 };
