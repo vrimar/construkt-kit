@@ -1,5 +1,4 @@
-import type { ApiErrorResponse } from "./errors";
-import { toApiError } from "./errors";
+import { toApiError, toErrorMessage } from "./errors";
 import type { ApiRequest, ApiTransport } from "./transport";
 import { fetchTransport } from "./transport";
 
@@ -58,9 +57,11 @@ export function configureApiClient<TRequest extends ApiRequest, TError extends A
   });
 
   const errorInterceptor = client.interceptors.error.use((error) => {
-    const body = error.data as ApiErrorResponse | undefined;
-
-    throw toApiError(error.status, error.statusText, body?.Message ?? FALLBACK_ERROR_MESSAGE);
+    throw toApiError(
+      error.status,
+      error.statusText,
+      toErrorMessage(error.data) ?? FALLBACK_ERROR_MESSAGE,
+    );
   });
 
   return () => {

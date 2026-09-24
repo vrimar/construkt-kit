@@ -128,6 +128,30 @@ describe("configureApiClient", () => {
     );
   });
 
+  it("reads the message from a problem document, detail before title", async () => {
+    respond(
+      JSON.stringify({
+        type: "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+        title: "Unauthorized",
+        status: 401,
+        detail: "Invalid username or password.",
+      }),
+      { status: 401, headers: { "Content-Type": "application/problem+json" } },
+    );
+    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toThrowError(
+      new UnauthorizedError("Invalid username or password."),
+    );
+
+    respond(JSON.stringify({ title: "Server exploded", status: 500, detail: "" }), {
+      status: 500,
+      statusText: "Internal Server Error",
+      headers: { "Content-Type": "application/problem+json" },
+    });
+    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toThrowError(
+      new ApiError(500, "INTERNAL_SERVER_ERROR", "Server exploded"),
+    );
+  });
+
   it("falls back to a generic message for an error page with no JSON body", async () => {
     respond("<html>Bad Gateway</html>", {
       status: 502,

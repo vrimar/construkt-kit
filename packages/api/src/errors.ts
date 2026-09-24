@@ -1,5 +1,16 @@
+/** A non-2xx body: an RFC 9457 problem document, or a legacy `{ Message }` body. */
 export interface ApiErrorResponse {
-  Message: string;
+  detail?: string;
+  title?: string;
+  Message?: string;
+}
+
+/** The first non-empty of `detail`, `title` and `Message`; undefined for any other body. */
+export function toErrorMessage(body: unknown): string | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+
+  const { detail, title, Message } = body as ApiErrorResponse;
+  return [detail, title, Message].find((message) => typeof message === "string" && message !== "");
 }
 
 export class ApiError extends Error {

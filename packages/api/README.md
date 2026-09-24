@@ -27,7 +27,8 @@ Construkt Kit frontend apps.
 | `NotFoundError`     | 404 error (extends `ApiError`)                 |
 | `UnauthorizedError` | 401 error (extends `ApiError`)                 |
 | `toApiError`        | Maps a status onto the narrowest class          |
-| `ApiErrorResponse`  | Interface — `{ Message: string }`              |
+| `toErrorMessage`    | Picks the message out of an error body          |
+| `ApiErrorResponse`  | Interface — `{ detail?, title?, Message? }`    |
 
 ### Data-Table Types
 
@@ -128,7 +129,7 @@ required for `instanceof` checks in transpiled TypeScript. Subclasses hardcode t
 Non-2xx responses are raised through an error interceptor, so `instanceof` works directly. This
 applies while `throwOnError` is on, which is the default and what the generated hooks use; a call
 that opts out with `throwOnError: false` gets the raw body on `error` and can map it with
-`toApiError`:
+`toApiError` and `toErrorMessage`:
 
 ```ts
 try {
@@ -140,7 +141,8 @@ try {
 }
 ```
 
-The message comes from a `{ Message }` body, falling back to `"An error has occurred."`. `code` is a
+The message is the body's `detail`, then `title` (an RFC 9457 problem document), then a legacy
+`Message`, falling back to `"An error has occurred."`. `code` is a
 stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_SERVER_ERROR`), derived
 from the status text when there is no dedicated subclass. Network failures reject with the underlying
 `TypeError`, not an `ApiError`.
