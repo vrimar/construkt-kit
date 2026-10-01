@@ -50,6 +50,25 @@ describe("ApplySelect", () => {
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
+  it("applies an empty selection through Reset", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <ApplySelect
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={[1, 2]}
+        onValueChange={onValueChange}
+        defaultOpen
+        search={false}
+        actions={{ reset: true }}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Reset" }));
+    expect(onValueChange).toHaveBeenCalledWith([]);
+  });
+
   it("can apply a cleared selection", async () => {
     const onValueChange = vi.fn();
     render(

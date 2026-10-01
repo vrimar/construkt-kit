@@ -18,6 +18,7 @@ import { selectListParts } from "../Select/Select.parts";
 interface ApplySelectContextValue {
   allSelected: boolean;
   apply: () => void;
+  reset: () => void;
   toggleAll: () => void;
   hasAppliedValue: boolean;
   isDirty: boolean;
@@ -43,6 +44,8 @@ function sameValueSet<V extends SelectionValue>(left: readonly V[], right: reado
 export interface ApplySelectActionOptions {
   applyLabel?: ReactNode;
   cancelLabel?: ReactNode;
+  reset?: boolean;
+  resetLabel?: ReactNode;
   toggleAll?: boolean;
   selectAllLabel?: ReactNode;
   clearAllLabel?: ReactNode;
@@ -93,11 +96,19 @@ export function ApplySelectTrigger({ buttonProps, ...props }: ApplySelectTrigger
 export function ApplySelectActions({
   applyLabel = "Apply",
   cancelLabel = "Cancel",
+  reset = false,
+  resetLabel = "Reset",
   toggleAll = false,
   selectAllLabel = "Select All",
   clearAllLabel = "Clear All",
 }: ApplySelectActionsProps) {
-  const { allSelected, apply, toggleAll: handleToggleAll, isDirty } = useApplySelectContext();
+  const {
+    allSelected,
+    apply,
+    reset: handleReset,
+    toggleAll: handleToggleAll,
+    isDirty,
+  } = useApplySelectContext();
   const { close } = useSelectContext();
 
   return (
@@ -118,10 +129,17 @@ export function ApplySelectActions({
         >
           <Button
             variant="plain"
-            onClick={close}
+            onClick={
+              reset
+                ? () => {
+                    handleReset();
+                    close();
+                  }
+                : close
+            }
             size="xs"
           >
-            {cancelLabel}
+            {reset ? resetLabel : cancelLabel}
           </Button>
           <Button
             onClick={() => {
@@ -167,6 +185,7 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   };
 
   const apply = useCallback(() => onValueChange([...draft]), [draft, onValueChange]);
+  const reset = useCallback(() => onValueChange([]), [onValueChange]);
 
   const itemValues = useMemo(() => items.map(getItemValue), [getItemValue, items]);
   const draftSet = useMemo(() => new Set(draft.map(encodeSelectionValue)), [draft]);
@@ -190,12 +209,13 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
     () => ({
       allSelected,
       apply,
+      reset,
       toggleAll,
       hasAppliedValue: value.length > 0,
       isDirty,
       triggerValue,
     }),
-    [allSelected, apply, isDirty, toggleAll, triggerValue, value.length],
+    [allSelected, apply, isDirty, reset, toggleAll, triggerValue, value.length],
   );
 
   return (
