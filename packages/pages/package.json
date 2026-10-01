@@ -84,7 +84,7 @@
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
-    "@pandacss/dev": "^2.0.1",
+    "@pandacss/dev": "^2.1.0",
     "@storybook/react-vite": "^10.5.9",
     "@types/react": "^19.2.18",
     "storybook": "^10.5.9",

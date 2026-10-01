@@ -35,8 +35,8 @@
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
-    "@pandacss/dev": "^2.0.1",
-    "@pandacss/types": "^2.0.1",
+    "@pandacss/dev": "^2.1.0",
+    "@pandacss/types": "^2.1.0",
     "tsdown": "^0.23.0"
   }
 }
