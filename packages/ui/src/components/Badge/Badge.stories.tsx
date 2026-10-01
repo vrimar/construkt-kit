@@ -1,5 +1,6 @@
-import { badge } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { badge } from "#styled-system/recipes";
 
 import { Badge } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

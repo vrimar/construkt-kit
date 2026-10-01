@@ -1,9 +1,10 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { card } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(card);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { card } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(card);
 
 const Root = withProvider(ark.div, "root");
 const Header = withContext(ark.div, "header");

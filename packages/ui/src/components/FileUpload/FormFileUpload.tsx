@@ -1,6 +1,7 @@
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { input } from "@construkt-kit/styled-system/recipes";
 import { FileUpIcon } from "lucide-react";
+
+import { styled } from "#styled-system/jsx";
+import { input } from "#styled-system/recipes";
 
 import { CloseButton } from "../Buttons";
 import { InputGroup } from "../Input";

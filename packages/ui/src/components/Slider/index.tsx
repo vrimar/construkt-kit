@@ -1,10 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
 import { Slider as ArkSlider } from "@ark-ui/react/slider";
-import { HStack, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { slider } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ReactNode } from "react";
 
-const { withProvider, withContext } = createStyleContext(slider);
+import { HStack, createSlotRecipeContext } from "#styled-system/jsx";
+import { slider } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(slider);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ArkSlider.Root, "root");

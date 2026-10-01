@@ -1,10 +1,11 @@
 import { Avatar as ArkAvatar, AvatarContext } from "@ark-ui/react/avatar";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { avatar } from "@construkt-kit/styled-system/recipes";
 import { UserIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(avatar);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { avatar } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(avatar);
 
 const Root = withProvider(ArkAvatar.Root, "root");
 const RootProvider = withProvider(ArkAvatar.RootProvider, "root");

@@ -1,5 +1,6 @@
-import { segmentGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { segmentGroup } from "#styled-system/recipes";
 
 import { SegmentGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

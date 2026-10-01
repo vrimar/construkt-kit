@@ -1,7 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
-import { Stack, type StackProps, styled } from "@construkt-kit/styled-system/jsx";
-import { skeleton } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { Stack, type StackProps, styled } from "#styled-system/jsx";
+import { skeleton } from "#styled-system/recipes";
 
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
 export const Skeleton = styled(ark.div, skeleton);

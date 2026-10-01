@@ -5,14 +5,15 @@ import {
   useRatingGroupContext,
   useRatingGroupItemContext,
 } from "@ark-ui/react/rating-group";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { ratingGroup } from "@construkt-kit/styled-system/recipes";
 import { StarIcon } from "lucide-react";
 import { type ComponentProps, type ReactElement, cloneElement, isValidElement } from "react";
 
+import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { ratingGroup } from "#styled-system/recipes";
+
 import type { WithRef } from "../../types";
 
-const { withProvider, withContext } = createStyleContext(ratingGroup);
+const { withProvider, withContext } = createSlotRecipeContext(ratingGroup);
 
 const Root = withProvider(ArkRatingGroup.Root, "root");
 const RootProvider = withProvider(ArkRatingGroup.RootProvider, "root");

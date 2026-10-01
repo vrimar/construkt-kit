@@ -1,6 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { absoluteCenter } from "@construkt-kit/styled-system/recipes";
+
+import { styled } from "#styled-system/jsx";
+import { absoluteCenter } from "#styled-system/recipes";
 
 import { Span } from "../Span";
 import { Spinner } from "../Spinner";

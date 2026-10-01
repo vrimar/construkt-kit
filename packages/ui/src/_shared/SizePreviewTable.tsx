@@ -2,13 +2,28 @@ import type { ReactNode } from "react";
 
 import { Table } from "../components/Table";
 
+const SIZE_ORDER = ["inherit", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "full", "cover"];
+
+const sizeRank = (size: string) => {
+  const rank = SIZE_ORDER.indexOf(size);
+  return rank === -1 ? SIZE_ORDER.length : rank;
+};
+
 interface Props<T extends string> {
-  sizes: T[];
+  sizes: ReadonlyArray<T | undefined>;
   renderPreview: (size: T) => ReactNode;
   pivot?: boolean;
 }
 
-export const SizePreviewTable = <T extends string>({ sizes, renderPreview, pivot }: Props<T>) => {
+export const SizePreviewTable = <T extends string>({
+  sizes: variants,
+  renderPreview,
+  pivot,
+}: Props<T>) => {
+  const sizes = variants
+    .filter((size) => size !== undefined)
+    .sort((a, b) => sizeRank(a) - sizeRank(b));
+
   if (pivot) {
     return (
       <Table.ScrollArea>

@@ -1,5 +1,6 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
+
+import { Box } from "#styled-system/jsx";
 
 import type { DataTableHeader } from "../types";
 

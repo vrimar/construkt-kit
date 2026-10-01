@@ -1,9 +1,10 @@
 import { SegmentGroup as ArkSegmentGroup, SegmentGroupContext } from "@ark-ui/react/segment-group";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { segmentGroup } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, type ReactNode } from "react";
 
-const { withProvider, withContext } = createStyleContext(segmentGroup);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { segmentGroup } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(segmentGroup);
 
 const Root = withProvider(ArkSegmentGroup.Root, "root", {
   defaultProps: { orientation: "horizontal" },

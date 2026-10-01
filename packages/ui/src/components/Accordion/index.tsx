@@ -1,11 +1,12 @@
 import { AccordionContext, Accordion as ArkAccordion } from "@ark-ui/react/accordion";
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { accordion } from "@construkt-kit/styled-system/recipes";
 import { ChevronDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(accordion);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { accordion } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(accordion);
 
 const Root = withProvider(ArkAccordion.Root, "root");
 const RootProvider = withProvider(ArkAccordion.RootProvider, "root");

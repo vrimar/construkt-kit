@@ -3,14 +3,15 @@ import {
   PaginationContext,
   usePaginationContext,
 } from "@ark-ui/react/pagination";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { pagination } from "@construkt-kit/styled-system/recipes";
 import { EllipsisIcon } from "lucide-react";
 import { type ComponentProps, Fragment } from "react";
 
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { pagination } from "#styled-system/recipes";
+
 import { IconButton } from "../Buttons/IconButton";
 
-const { withProvider, withContext } = createStyleContext(pagination);
+const { withProvider, withContext } = createSlotRecipeContext(pagination);
 
 const Root = withProvider(ArkPagination.Root, "root");
 const RootProvider = withProvider(ArkPagination.RootProvider, "root");

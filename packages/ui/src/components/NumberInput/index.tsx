@@ -1,10 +1,11 @@
 import { NumberInput as ArkNumberInput, NumberInputContext } from "@ark-ui/react/number-input";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { numberInput } from "@construkt-kit/styled-system/recipes";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(numberInput);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { numberInput } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(numberInput);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ArkNumberInput.Root, "root");

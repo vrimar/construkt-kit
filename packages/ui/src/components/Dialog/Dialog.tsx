@@ -1,5 +1,6 @@
-import { dialog } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { dialog } from "#styled-system/recipes";
 
 import { createDialogParts } from "../dialogParts";
 

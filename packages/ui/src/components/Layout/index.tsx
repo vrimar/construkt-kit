@@ -12,7 +12,7 @@ export {
   Stack,
   VStack,
   Wrap,
-} from "@construkt-kit/styled-system/jsx";
+} from "#styled-system/jsx";
 
 export type {
   BoxProps,
@@ -28,10 +28,10 @@ export type {
   StackProps,
   VstackProps as VStackProps,
   WrapProps,
-} from "@construkt-kit/styled-system/jsx";
+} from "#styled-system/jsx";
 
 /** Re-export `Divider` as `Separator` for backward compatibility. */
-export { Divider as Separator } from "@construkt-kit/styled-system/jsx";
-export type { DividerProps as SeparatorProps } from "@construkt-kit/styled-system/jsx";
+export { Divider as Separator } from "#styled-system/jsx";
+export type { DividerProps as SeparatorProps } from "#styled-system/jsx";
 
 export { SimpleGrid, type SimpleGridProps } from "./SimpleGrid";

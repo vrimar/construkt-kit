@@ -1,4 +1,4 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
+import { Box } from "#styled-system/jsx";
 
 /**
  * Default compact drag preview: a small pill (label + a `+N` badge for multi-drag) that,

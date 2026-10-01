@@ -1,15 +1,16 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { actionbar } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { actionbar } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
 import { Popover } from "../Popover";
 import { createPortalledContent } from "../portalledContent";
 
-const { withRootProvider, withContext } = createStyleContext(actionbar);
+const { withRootProvider, withContext } = createSlotRecipeContext(actionbar);
 
 const Root = withRootProvider(Popover.Root);
 const Content = withContext(ark.div, "content");

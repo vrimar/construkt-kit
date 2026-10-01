@@ -1,5 +1,6 @@
-import { checkbox } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { checkbox } from "#styled-system/recipes";
 
 import { Checkbox } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

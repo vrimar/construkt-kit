@@ -1,6 +1,7 @@
 import type { Listbox as ArkListbox } from "@ark-ui/react/listbox";
-import type { StyleContextConsumer } from "@construkt-kit/styled-system/jsx";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
+
+import type { HTMLStyledProps } from "#styled-system/jsx";
 
 /** Stable scalar value used to identify a selection item. */
 export type SelectionValue = string | number;
@@ -64,7 +65,7 @@ export interface SelectionValueRenderContext<T, V extends SelectionValue> {
 }
 
 export type ManagedItemProps = Partial<
-  Omit<ComponentProps<StyleContextConsumer<typeof ArkListbox.Item>>, "children" | "item">
+  Omit<HTMLStyledProps<typeof ArkListbox.Item>, "children" | "item">
 >;
 
 export interface ManagedListOptions<T, V extends SelectionValue> {

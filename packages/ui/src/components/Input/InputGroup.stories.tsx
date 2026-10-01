@@ -1,6 +1,7 @@
-import { input } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download } from "lucide-react";
+
+import { input } from "#styled-system/recipes";
 
 import { Input, InputGroup } from ".";
 import { HStack, IconButton } from "..";

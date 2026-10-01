@@ -1,7 +1,8 @@
 import { Portal } from "@ark-ui/react/portal";
 import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@ark-ui/react/toast";
-import { Stack, createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
-import { toast } from "@construkt-kit/styled-system/recipes";
+
+import { Stack, createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { toast } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
@@ -9,7 +10,7 @@ import { Icon, type IconProps } from "../Icon";
 import { Spinner } from "../Spinner";
 import { statusIcons } from "../statusIcons";
 
-const { withProvider, withContext } = createStyleContext(toast);
+const { withProvider, withContext } = createSlotRecipeContext(toast);
 
 const Root = withProvider(Toast.Root, "root");
 const Title = withContext(Toast.Title, "title");

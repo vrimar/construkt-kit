@@ -1,5 +1,6 @@
-import { alert } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { alert } from "#styled-system/recipes";
 
 import { Alert } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

@@ -1,7 +1,8 @@
 import { Field } from "@ark-ui/react/field";
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { textarea } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, type KeyboardEvent } from "react";
+
+import { styled } from "#styled-system/jsx";
+import { textarea } from "#styled-system/recipes";
 
 type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
 const BaseTextarea = styled(Field.Textarea, textarea);

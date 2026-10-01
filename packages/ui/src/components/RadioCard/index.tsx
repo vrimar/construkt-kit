@@ -1,9 +1,10 @@
 import { RadioGroup, RadioGroupContext } from "@ark-ui/react/radio-group";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { radioCardGroup } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(radioCardGroup);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { radioCardGroup } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(radioCardGroup);
 
 const Root = withProvider(RadioGroup.Root, "root");
 const RootProvider = withProvider(RadioGroup.RootProvider, "root");

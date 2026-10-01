@@ -1,5 +1,6 @@
-import { toggleGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { toggleGroup } from "#styled-system/recipes";
 
 import { ToggleGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

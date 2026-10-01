@@ -1,5 +1,6 @@
-import { slider } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { slider } from "#styled-system/recipes";
 
 import { Slider } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

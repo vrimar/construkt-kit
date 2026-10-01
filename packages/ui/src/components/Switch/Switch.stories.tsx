@@ -1,6 +1,7 @@
-import { switchRecipe } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoonIcon, SunIcon } from "lucide-react";
+
+import { switchRecipe } from "#styled-system/recipes";
 
 import { Switch } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

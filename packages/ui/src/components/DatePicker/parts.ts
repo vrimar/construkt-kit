@@ -1,11 +1,12 @@
 import { DatePicker as ArkDatePicker } from "@ark-ui/react/date-picker";
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { datePicker } from "@construkt-kit/styled-system/recipes";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { datePicker } from "#styled-system/recipes";
 
 import { lazyOverlayDefaults } from "../overlayDefaults";
 
-const { withRootProvider, withContext } = createStyleContext(datePicker);
+const { withRootProvider, withContext } = createSlotRecipeContext(datePicker);
 
 export const RootProvider = withRootProvider(ArkDatePicker.RootProvider, {
   defaultProps: lazyOverlayDefaults,

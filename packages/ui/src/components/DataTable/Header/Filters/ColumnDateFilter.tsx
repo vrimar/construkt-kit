@@ -1,10 +1,11 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import {
   formatIsoDate,
   parseDateRangeFilter,
   serializeDateRangeFilter,
 } from "@construkt-kit/utils";
 import { useState } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";

@@ -1,5 +1,6 @@
-import { progress } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { progress } from "#styled-system/recipes";
 
 import { Progress } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

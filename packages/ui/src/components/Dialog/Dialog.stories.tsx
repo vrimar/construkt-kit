@@ -1,5 +1,6 @@
-import { dialog } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { dialog } from "#styled-system/recipes";
 
 import { Dialog } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

@@ -61,7 +61,7 @@ function TreeSelectListDemo() {
     <Box
       maxW="400px"
       borderWidth="1px"
-      borderColor="border.default"
+      borderColor="border"
       borderRadius="lg"
     >
       <TreeSelectList
@@ -85,7 +85,7 @@ function BareTreeDemo() {
     <Box
       maxW="400px"
       borderWidth="1px"
-      borderColor="border.default"
+      borderColor="border"
       borderRadius="lg"
     >
       <TreeSelectList

@@ -1,4 +1,4 @@
-import { Box, Divider, HStack, Stack } from "@construkt-kit/styled-system/jsx";
+import { Box, Divider, HStack, Stack } from "#styled-system/jsx";
 
 import { useIsMobile } from "../../hooks";
 import { Button } from "../Buttons";

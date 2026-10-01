@@ -1,5 +1,6 @@
-import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { button } from "#styled-system/recipes";
 
 import { Button, ButtonGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

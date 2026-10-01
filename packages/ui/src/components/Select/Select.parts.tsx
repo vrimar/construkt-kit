@@ -1,5 +1,6 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import type { ReactNode } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";

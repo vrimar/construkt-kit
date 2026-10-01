@@ -1,9 +1,10 @@
 import { Collapsible as ArkCollapsible, CollapsibleContext } from "@ark-ui/react/collapsible";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { collapsible } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(collapsible);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { collapsible } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(collapsible);
 
 const Root = withProvider(ArkCollapsible.Root, "root");
 const RootProvider = withProvider(ArkCollapsible.RootProvider, "root");

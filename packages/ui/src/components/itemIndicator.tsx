@@ -1,6 +1,7 @@
-import type { HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
 import { CheckIcon } from "lucide-react";
 import type { ElementType } from "react";
+
+import type { HTMLStyledProps } from "#styled-system/jsx";
 
 import type { WithRef } from "../types";
 

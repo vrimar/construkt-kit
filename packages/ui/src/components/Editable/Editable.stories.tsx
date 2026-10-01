@@ -1,5 +1,6 @@
-import { editable } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { editable } from "#styled-system/recipes";
 
 import { Editable } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

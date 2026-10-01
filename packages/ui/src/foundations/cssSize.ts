@@ -1,4 +1,5 @@
-import { type Token, token } from "@construkt-kit/styled-system/tokens";
+import { token } from "#styled-system/tokens";
+import type { Token } from "#styled-system/types";
 
 type SizeProp = "width" | "height" | "minWidth" | "minHeight" | "maxWidth" | "maxHeight";
 

@@ -1,5 +1,6 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
+
+import { Box } from "#styled-system/jsx";
 
 import type { DataTableCell } from "../types";
 

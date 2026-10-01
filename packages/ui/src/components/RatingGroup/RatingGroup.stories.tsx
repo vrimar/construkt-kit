@@ -1,5 +1,6 @@
-import { ratingGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { ratingGroup } from "#styled-system/recipes";
 
 import { RatingGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

@@ -1,6 +1,7 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual";
 import { type Ref, useCallback, useRef } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";

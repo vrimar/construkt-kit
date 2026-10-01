@@ -1,4 +1,4 @@
-import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
+import { Box, type BoxProps } from "#styled-system/jsx";
 
 import { gridRowStyle } from "./columnTemplate";
 

@@ -1,10 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { breadcrumb } from "@construkt-kit/styled-system/recipes";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(breadcrumb);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { breadcrumb } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(breadcrumb);
 
 const Root = withProvider(ark.nav, "root", { defaultProps: { "aria-label": "breadcrumb" } });
 const List = withContext(ark.ol, "list");

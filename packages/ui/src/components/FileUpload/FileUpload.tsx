@@ -3,15 +3,16 @@ import {
   FileUploadContext,
   useFileUploadContext,
 } from "@ark-ui/react/file-upload";
-import { type HTMLStyledProps, Stack, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { fileUpload } from "@construkt-kit/styled-system/recipes";
 import { FileIcon, XIcon } from "lucide-react";
 import { type ComponentProps, useMemo } from "react";
+
+import { type HTMLStyledProps, Stack, createSlotRecipeContext } from "#styled-system/jsx";
+import { fileUpload } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { Span } from "../Span";
 
-const { withProvider, withContext } = createStyleContext(fileUpload);
+const { withProvider, withContext } = createSlotRecipeContext(fileUpload);
 
 type ItemProps = ComponentProps<typeof Item>;
 

@@ -1,6 +1,7 @@
-import { HStack } from "@construkt-kit/styled-system/jsx";
 import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
+
+import { HStack } from "#styled-system/jsx";
 
 import type { WithRef } from "../../types";
 import { Text } from "../Text";

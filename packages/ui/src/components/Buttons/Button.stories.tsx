@@ -1,6 +1,7 @@
-import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Trash2 } from "lucide-react";
+
+import { button } from "#styled-system/recipes";
 
 import { Button } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

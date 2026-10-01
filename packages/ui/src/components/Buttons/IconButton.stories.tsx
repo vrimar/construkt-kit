@@ -1,6 +1,7 @@
-import { button } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
+
+import { button } from "#styled-system/recipes";
 
 import { CloseButton, DeleteButton, EditButton, IconButton, TooltipIconButton } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

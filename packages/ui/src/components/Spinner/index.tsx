@@ -1,7 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { spinner } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { styled } from "#styled-system/jsx";
+import { spinner } from "#styled-system/recipes";
 
 export type SpinnerProps = ComponentProps<typeof Spinner>;
 export const Spinner = styled(ark.span, spinner);

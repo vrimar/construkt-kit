@@ -8,6 +8,8 @@ dist/
 build/
 out/
 apps/*/styled-system/
+packages/*/styled-system/
+packages/*/panda/
 .next/
 .nuxt/
 .svelte-kit/

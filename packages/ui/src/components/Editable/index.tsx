@@ -1,9 +1,10 @@
 import { Editable as ArkEditable, EditableContext } from "@ark-ui/react/editable";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { editable } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(editable);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { editable } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(editable);
 
 const Root = withProvider(ArkEditable.Root, "root");
 const RootProvider = withProvider(ArkEditable.RootProvider, "root");

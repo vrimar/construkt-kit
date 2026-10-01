@@ -1,5 +1,6 @@
-import type { Box, HTMLStyledProps } from "@construkt-kit/styled-system/jsx";
 import type { ChangeEvent, ComponentProps, ReactElement, ReactNode } from "react";
+
+import type { Box, HTMLStyledProps } from "#styled-system/jsx";
 
 import type { SelectButtonProps } from "../Buttons";
 import type { SearchInput } from "../Input";

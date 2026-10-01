@@ -1,27 +1,22 @@
 import { construktKitPreset } from "@construkt-kit/preset";
 import { defineConfig } from "@pandacss/dev";
 
-const useUiBuildInfo = process.env.CONSTRUKT_KIT_STORYBOOK_USE_BUILDINFO === "1";
-
-const include = useUiBuildInfo
-  ? [
-      "../../packages/ui/dist/panda.buildinfo.json",
-      "../../packages/ui/src/**/*.stories.{ts,tsx}",
-      "../../packages/ui/src/_shared/**/*.{ts,tsx}",
-      "../../packages/pages/dist/panda.buildinfo.json",
-      "../../packages/pages/src/**/*.stories.{ts,tsx}",
-    ]
-  : ["../../packages/ui/src/**/*.{ts,tsx}", "../../packages/pages/src/**/*.{ts,tsx}"];
-
-export default defineConfig({
-  preflight: true,
-  presets: ["@pandacss/preset-base", construktKitPreset],
-  include,
-  exclude: [],
-  importMap: "@construkt-kit/styled-system",
-  outdir: "styled-system",
-  staticCss: {
-    recipes: "*",
-  },
-  jsxFramework: "react",
-});
+export default process.env.CONSTRUKT_KIT_STORYBOOK_USE_DESIGN_SYSTEM === "1"
+  ? defineConfig({
+      designSystem: "@construkt-kit/pages",
+      include: [
+        "../../packages/ui/src/**/*.stories.{ts,tsx}",
+        "../../packages/ui/src/_shared/**/*.{ts,tsx}",
+        "../../packages/pages/src/**/*.stories.{ts,tsx}",
+      ],
+      outdir: "styled-system",
+    })
+  : defineConfig({
+      preflight: true,
+      presets: ["@pandacss/preset-base", construktKitPreset],
+      include: ["../../packages/ui/src/**/*.{ts,tsx}", "../../packages/pages/src/**/*.{ts,tsx}"],
+      importMap: "#styled-system",
+      outdir: "styled-system",
+      staticCss: { recipes: "*" },
+      jsxFramework: "react",
+    });

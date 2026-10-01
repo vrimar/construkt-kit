@@ -1,5 +1,6 @@
-import { pinInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { pinInput } from "#styled-system/recipes";
 
 import { PinInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

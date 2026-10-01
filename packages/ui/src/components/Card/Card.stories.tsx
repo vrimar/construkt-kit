@@ -1,5 +1,6 @@
-import { card } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { card } from "#styled-system/recipes";
 
 import { Card } from ".";
 import { Button } from "../Buttons";

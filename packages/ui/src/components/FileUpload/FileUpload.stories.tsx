@@ -1,5 +1,6 @@
-import { fileUpload } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { fileUpload } from "#styled-system/recipes";
 
 import { FileUpload } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

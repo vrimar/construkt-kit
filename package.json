@@ -6,11 +6,12 @@
     "url": "git+https://github.com/vrimar/construkt-kit.git"
   },
   "scripts": {
+    "prepare": "turbo run codegen --filter=@construkt-kit/ui",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "lint": "node scripts/lint.mjs packages apps --threads=4 --format=default",
-    "lint:fix": "node scripts/lint.mjs packages apps --threads=4 --format=default --fix",
+    "lint": "oxlint packages apps --format=default",
+    "lint:fix": "oxlint packages apps --format=default --fix",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
     "storybook": "turbo run storybook --filter @construkt-kit/storybook",

@@ -1,10 +1,11 @@
-import { HStack } from "@construkt-kit/styled-system/jsx";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
 } from "lucide-react";
+
+import { HStack } from "#styled-system/jsx";
 
 import { IconButton } from "../Buttons";
 import { Text } from "../Text";

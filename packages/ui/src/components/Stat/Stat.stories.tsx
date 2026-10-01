@@ -1,5 +1,6 @@
-import { stat } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { stat } from "#styled-system/recipes";
 
 import { Stat } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

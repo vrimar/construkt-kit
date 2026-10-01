@@ -1,9 +1,10 @@
 import { Field as ArkField } from "@ark-ui/react/field";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { field } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ReactNode } from "react";
 
-const { withProvider, withContext } = createStyleContext(field);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { field } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(field);
 
 const Root = withProvider(ArkField.Root, "root");
 const Label = withContext(ArkField.Label, "label");

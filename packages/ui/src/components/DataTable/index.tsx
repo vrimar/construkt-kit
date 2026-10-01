@@ -1,4 +1,3 @@
-import { type BoxProps, Stack } from "@construkt-kit/styled-system/jsx";
 import type {
   ColumnFiltersState,
   PaginationState,
@@ -7,6 +6,8 @@ import type {
 } from "@tanstack/react-table";
 import { functionalUpdate, useTable } from "@tanstack/react-table";
 import React, { useCallback, useMemo } from "react";
+
+import { type BoxProps, Stack } from "#styled-system/jsx";
 
 import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";

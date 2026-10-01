@@ -3,6 +3,7 @@ packages:
   - 'apps/*'
 
 allowBuilds:
+  '@parcel/watcher': false
   es5-ext: false
   esbuild: true
   # Transitive optional peer of @vitest/mocker; its postinstall only copies the browser
@@ -13,7 +14,5 @@ allowBuilds:
 minimumReleaseAge: 0
 
 overrides:
-  pkg-types: 2.3.1
-  ts-evaluator: 2.0.0
   # tsdown's dts plugin needs the classic TS compiler API, which typescript@7 dropped; pin it to the last JS-based line
   rolldown-plugin-dts>typescript: 6.0.2

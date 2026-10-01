@@ -1,20 +1,19 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const outDir = path.join(process.cwd(), "dist");
+const outDir = path.join(process.cwd(), "styled-system");
 
 // Panda emits these as file-local declarations, but they appear in the public
 // types of components built on them, so consumers cannot name them.
 const patches = [
   {
-    file: path.join("jsx", "create-style-context.d.ts"),
-    types: ["StyleContextProvider", "StyleContextRootProvider", "StyleContextConsumer"],
+    file: path.join("jsx", "create-slot-recipe-context.d.ts"),
+    types: [
+      "SlotRecipeProviderComponent",
+      "SlotRecipeRootProviderComponent",
+      "SlotRecipeConsumerComponent",
+    ],
     keyword: "type",
-  },
-  {
-    file: path.join("types", "system-types.d.ts"),
-    types: ["WithCss"],
-    keyword: "interface",
   },
 ];
 
@@ -26,18 +25,14 @@ for (const { file, types, keyword } of patches) {
 
   for (const typeName of types) {
     patchedSource = patchedSource.replace(
-      `${keyword} ${typeName}`,
+      new RegExp(`^${keyword} ${typeName}\\b`, "m"),
       `export ${keyword} ${typeName}`,
     );
-  }
 
-  if (patchedSource === source) continue;
-
-  for (const typeName of types) {
-    if (!patchedSource.includes(`export ${keyword} ${typeName}`)) {
+    if (!new RegExp(`^export ${keyword} ${typeName}\\b`, "m").test(patchedSource)) {
       throw new Error(`Could not export ${typeName} in ${targetPath}`);
     }
   }
 
-  await writeFile(targetPath, patchedSource);
+  if (patchedSource !== source) await writeFile(targetPath, patchedSource);
 }

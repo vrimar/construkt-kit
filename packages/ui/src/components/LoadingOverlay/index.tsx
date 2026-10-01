@@ -1,13 +1,13 @@
-import { css } from "@construkt-kit/styled-system/css";
-import { Flex, type FlexProps, Stack } from "@construkt-kit/styled-system/jsx";
-import type { spinner } from "@construkt-kit/styled-system/recipes";
+import { css } from "#styled-system/css";
+import { Flex, type FlexProps, Stack } from "#styled-system/jsx";
+import type { SpinnerVariant } from "#styled-system/recipes";
 
 import { Spinner } from "../Spinner";
 import { Text } from "../Text";
 
 const RELATIVE_MIN_HEIGHT = { base: "240px", md: "400px" } as const;
 
-type SpinnerSize = (typeof spinner.variantMap.size)[number];
+type SpinnerSize = NonNullable<SpinnerVariant["size"]>;
 
 const tipFontSizeClass: Record<SpinnerSize, string | undefined> = {
   inherit: undefined,

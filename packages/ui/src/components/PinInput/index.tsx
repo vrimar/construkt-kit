@@ -1,9 +1,10 @@
 import { PinInput as ArkPinInput, PinInputContext } from "@ark-ui/react/pin-input";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { pinInput } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ComponentType } from "react";
 
-const { withProvider, withContext } = createStyleContext(pinInput);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { pinInput } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(pinInput);
 
 const StyledRoot = withProvider(ArkPinInput.Root, "root", {
   forwardProps: ["mask"],

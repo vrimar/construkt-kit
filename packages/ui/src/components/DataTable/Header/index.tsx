@@ -1,4 +1,4 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
+import { Box } from "#styled-system/jsx";
 
 import { DataTableGridRow } from "../GridRow";
 import type { DataTableInstance } from "../types";

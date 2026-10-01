@@ -3,12 +3,13 @@ import {
   TagsInputContext,
   useTagsInputContext,
 } from "@ark-ui/react/tags-input";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { tagsInput } from "@construkt-kit/styled-system/recipes";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(tagsInput);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { tagsInput } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(tagsInput);
 
 type ItemProps = ComponentProps<typeof Item>;
 

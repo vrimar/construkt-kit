@@ -1,5 +1,6 @@
-import { combobox } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { combobox } from "#styled-system/recipes";
 
 import { Combobox, type ComboboxRootProps, useListCollection } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

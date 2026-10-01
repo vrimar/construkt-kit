@@ -1,4 +1,4 @@
-import type { RecipeConfig } from "@pandacss/dev";
+import type { RecipeConfig } from "@pandacss/types";
 
 import { controlH, controlPx, controlText } from "./control-size";
 

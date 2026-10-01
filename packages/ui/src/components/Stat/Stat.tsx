@@ -1,12 +1,13 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
-import { stat } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ReactNode } from "react";
+
+import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { stat } from "#styled-system/recipes";
 
 import { Badge, type BadgeProps } from "../Badge";
 import { InfoTip } from "../ToggleTip";
 
-const { withProvider, withContext } = createStyleContext(stat);
+const { withProvider, withContext } = createSlotRecipeContext(stat);
 
 const StatRoot = withProvider(ark.div, "root");
 const StatHelpText = withContext(ark.span, "helpText");

@@ -1,13 +1,14 @@
 import { Checkbox as ArkCheckbox } from "@ark-ui/react/checkbox";
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { checkboxCard } from "@construkt-kit/styled-system/recipes";
 import * as React from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { checkboxCard } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { Checkbox } from "../Checkbox";
 
-const { withProvider, withContext } = createStyleContext(checkboxCard);
+const { withProvider, withContext } = createSlotRecipeContext(checkboxCard);
 
 const CardRoot = withProvider(ArkCheckbox.Root, "root");
 const CardControl = withContext(ark.div, "control");

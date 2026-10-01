@@ -1,6 +1,7 @@
-import { icon } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { StarIcon } from "lucide-react";
+
+import { icon } from "#styled-system/recipes";
 
 import { Icon } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

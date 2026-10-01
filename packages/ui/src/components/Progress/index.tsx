@@ -1,9 +1,10 @@
 import { Progress as ArkProgress } from "@ark-ui/react/progress";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { progress } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(progress);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { progress } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(progress);
 
 const Root = withProvider(ArkProgress.Root, "root");
 const RootProvider = withProvider(ArkProgress.RootProvider, "root");

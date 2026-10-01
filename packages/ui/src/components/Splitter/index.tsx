@@ -1,11 +1,4 @@
 import { ark } from "@ark-ui/react/factory";
-import { css, cx } from "@construkt-kit/styled-system/css";
-import {
-  type HTMLStyledProps,
-  createStyleContext,
-  splitCssProps,
-} from "@construkt-kit/styled-system/jsx";
-import { splitter } from "@construkt-kit/styled-system/recipes";
 import {
   Group,
   type GroupProps,
@@ -15,11 +8,15 @@ import {
   type SeparatorProps,
 } from "react-resizable-panels";
 
+import { css, cx } from "#styled-system/css";
+import { type HTMLStyledProps, createSlotRecipeContext, splitCssProps } from "#styled-system/jsx";
+import { splitter } from "#styled-system/recipes";
+
 import { splitInlineSizes } from "../../foundations/cssSize";
 
 export type { PanelImperativeHandle as SplitterPanelHandle } from "react-resizable-panels";
 
-const { withRootProvider, withContext } = createStyleContext(splitter);
+const { withRootProvider, withContext } = createSlotRecipeContext(splitter);
 
 const RootProvider = withRootProvider(Group);
 const StyledPanel = withContext(ark.div, "panel");

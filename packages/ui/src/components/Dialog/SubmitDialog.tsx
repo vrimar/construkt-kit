@@ -1,5 +1,6 @@
-import { styled } from "@construkt-kit/styled-system/jsx";
 import type { ReactNode } from "react";
+
+import { styled } from "#styled-system/jsx";
 
 import type { ButtonProps } from "../Buttons";
 import { Button } from "../Buttons";

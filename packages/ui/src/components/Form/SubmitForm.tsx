@@ -1,5 +1,6 @@
-import { HStack, Stack, type StackProps } from "@construkt-kit/styled-system/jsx";
 import type { ReactNode } from "react";
+
+import { HStack, Stack, type StackProps } from "#styled-system/jsx";
 
 import { ApiErrorAlert } from "../Alert";
 import { Button } from "../Buttons";

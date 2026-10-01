@@ -1,21 +1,22 @@
 import { Dialog as ArkDialog, DialogContext, useDialogContext } from "@ark-ui/react/dialog";
 import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
-import {
-  type StyleContext,
-  type StyleContextConsumer,
-  createStyleContext,
-  styled,
-} from "@construkt-kit/styled-system/jsx";
-import type { dialog, drawer } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import {
+  type HTMLStyledProps,
+  type SlotRecipeContext,
+  createSlotRecipeContext,
+  styled,
+} from "#styled-system/jsx";
+import type { dialog, drawer } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../types";
 import { createCloseTrigger } from "./closeTrigger";
 import { lazyOverlayDefaults } from "./overlayDefaults";
 
 export interface DialogContentProps
-  extends ComponentProps<StyleContextConsumer<typeof ArkDialog.Content>>, PortalledProps {
+  extends HTMLStyledProps<typeof ArkDialog.Content>, PortalledProps {
   backdrop?: boolean;
 }
 
@@ -40,9 +41,9 @@ function ActionTrigger({
 }
 
 export function createDialogParts<R extends typeof dialog | typeof drawer>(recipe: R) {
-  const styleContext = createStyleContext(recipe);
+  const styleContext = createSlotRecipeContext(recipe);
   const { withRootProvider } = styleContext;
-  const withContext = styleContext.withContext as StyleContext<typeof dialog>["withContext"];
+  const withContext = styleContext.withContext as SlotRecipeContext<typeof dialog>["withContext"];
 
   const Root = withRootProvider(ArkDialog.Root, { defaultProps: lazyOverlayDefaults });
   const RootProvider = withRootProvider(ArkDialog.RootProvider, {

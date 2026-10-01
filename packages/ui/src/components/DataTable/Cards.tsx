@@ -1,5 +1,6 @@
-import { Box, Stack } from "@construkt-kit/styled-system/jsx";
 import { flexRender } from "@tanstack/react-table";
+
+import { Box, Stack } from "#styled-system/jsx";
 
 import { Text } from "../Text";
 import { useDataTableContext } from "./context";

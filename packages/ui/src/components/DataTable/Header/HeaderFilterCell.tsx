@@ -1,5 +1,6 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import type { ComponentType } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 import type { ColumnFilterProps, ColumnFilterType, DataTableHeader } from "../types";
 import { ColumnDateFilter } from "./Filters/ColumnDateFilter";

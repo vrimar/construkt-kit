@@ -1,6 +1,7 @@
-import { carousel } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
+import { carousel } from "#styled-system/recipes";
 
 import { Carousel } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

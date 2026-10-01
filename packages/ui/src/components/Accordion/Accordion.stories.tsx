@@ -1,5 +1,6 @@
-import { accordion } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { accordion } from "#styled-system/recipes";
 
 import { Accordion } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

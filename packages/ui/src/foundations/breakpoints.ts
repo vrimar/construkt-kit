@@ -1,5 +1,5 @@
-import type { BreakpointToken } from "@construkt-kit/styled-system/tokens";
-import { token } from "@construkt-kit/styled-system/tokens";
+import { token } from "#styled-system/tokens";
+import type { BreakpointToken } from "#styled-system/types";
 
 /** Responsive breakpoint keys, aligned with the Panda tokens in @construkt-kit/preset. */
 export type Breakpoint = BreakpointToken;

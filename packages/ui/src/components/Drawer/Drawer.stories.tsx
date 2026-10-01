@@ -1,5 +1,6 @@
-import { drawer } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { drawer } from "#styled-system/recipes";
 
 import { Drawer } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

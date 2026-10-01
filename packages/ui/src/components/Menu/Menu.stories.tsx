@@ -1,7 +1,8 @@
-import { menu } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CopyIcon, PencilIcon, ShareIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
+
+import { menu } from "#styled-system/recipes";
 
 import { Menu } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

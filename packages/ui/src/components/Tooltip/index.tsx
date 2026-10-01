@@ -1,13 +1,14 @@
 import { Tooltip as ArkTooltip, TooltipContext } from "@ark-ui/react/tooltip";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { tooltip } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { tooltip } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPortalledContent } from "../portalledContent";
 
-const { withRootProvider, withContext } = createStyleContext(tooltip);
+const { withRootProvider, withContext } = createSlotRecipeContext(tooltip);
 
 type RootProps = ComponentProps<typeof Root>;
 type ContentProps = ComponentProps<typeof Content>;

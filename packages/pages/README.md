@@ -49,12 +49,10 @@ import { LoginPage } from "@construkt-kit/pages";
 
 ## Panda CSS
 
-These pages use style props that exist nowhere in a consuming app's own source, so an app whose Panda
-`include` covers only `./src` emits no CSS for them. The build ships `panda.buildinfo.json` with those
-styles extracted, exported as `@construkt-kit/pages/panda.buildinfo.json`.
-
-`createConstruktPandaConfig` from `@construkt-kit/ui/panda` appends it automatically when this package
-is installed. Apps that build their Panda config by hand must add it to `include` themselves.
+pages is a Panda design system that extends `@construkt-kit/ui`. `panda lib` ships the styles these pages
+use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages"` in place of
+`"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
+design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
 ## Rules
 

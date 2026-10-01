@@ -2,7 +2,6 @@ import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
-import { VisuallyHidden } from "@construkt-kit/styled-system/jsx";
 import type { MutableRefObject, ReactNode } from "react";
 import {
   createContext,
@@ -14,6 +13,8 @@ import {
   useRef,
   useState,
 } from "react";
+
+import { VisuallyHidden } from "#styled-system/jsx";
 
 import {
   applyTreeDrop,

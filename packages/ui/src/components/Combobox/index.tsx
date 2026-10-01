@@ -4,16 +4,17 @@ import {
   useComboboxItemContext,
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { type ComboboxVariantProps, combobox } from "@construkt-kit/styled-system/recipes";
 import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
+
+import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { type ComboboxVariantProps, combobox } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { createItemIndicator } from "../itemIndicator";
 import { createPortalledContent } from "../portalledContent";
 
-const { withProvider, withContext } = createStyleContext(combobox);
+const { withProvider, withContext } = createSlotRecipeContext(combobox);
 
 type RootProps = HTMLStyledProps<"div"> & ComboboxVariantProps;
 

@@ -1,5 +1,6 @@
-import { radioCardGroup } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { radioCardGroup } from "#styled-system/recipes";
 
 import { RadioCard } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

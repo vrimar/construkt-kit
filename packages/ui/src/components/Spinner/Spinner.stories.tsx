@@ -1,5 +1,6 @@
-import { spinner } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { spinner } from "#styled-system/recipes";
 
 import { Spinner } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

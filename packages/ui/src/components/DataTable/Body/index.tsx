@@ -1,5 +1,6 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import React, { type CSSProperties, useEffect } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 import { ScrollArea } from "../../ScrollArea";
 import { columnTemplateVar, getColumnTemplate } from "../columnTemplate";

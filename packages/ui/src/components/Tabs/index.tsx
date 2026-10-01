@@ -1,9 +1,10 @@
 import { Tabs as ArkTabs, TabsContext } from "@ark-ui/react/tabs";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { tabs } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(tabs);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { tabs } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(tabs);
 
 const Root = withProvider(ArkTabs.Root, "root");
 const RootProvider = withProvider(ArkTabs.RootProvider, "root");

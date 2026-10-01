@@ -1,5 +1,6 @@
-import { kbd } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { kbd } from "#styled-system/recipes";
 
 import { Kbd } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

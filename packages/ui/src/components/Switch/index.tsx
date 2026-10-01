@@ -1,12 +1,13 @@
 import { ark } from "@ark-ui/react/factory";
 import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
-import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
-import { switchRecipe } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps, ElementType, InputHTMLAttributes, ReactNode, Ref } from "react";
+
+import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { switchRecipe } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 
-const { withProvider, withContext } = createStyleContext(switchRecipe);
+const { withProvider, withContext } = createSlotRecipeContext(switchRecipe);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ArkSwitch.Root, "root");

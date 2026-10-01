@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const pandaCwd = path.join(repoRoot, "packages/styled-system");
+const pandaCwd = path.join(repoRoot, "packages/ui");
 
 const TOKEN_CATEGORIES = [
   "aspectRatios", "animations", "assets", "blurs", "borders", "borderWidths",
@@ -27,10 +27,8 @@ import { defineConfig } from "@pandacss/dev";
 
 export default defineConfig({
   preflight: false,
-  presets: [construktKitPreset],
-  outdir: "dist",
-  importMap: "@construkt-kit/styled-system",
-  jsxFramework: "react",
+  presets: ["@pandacss/preset-base", construktKitPreset],
+  outdir: ${JSON.stringify(path.join(tmpDir, "styled-system"))},
   staticCss: { recipes: "*" },
 });
 `,
@@ -51,9 +49,9 @@ try {
 
 const failures = [];
 
-// A resolved token becomes var(--category-key); an unresolved one stays as `category.key`.
+// A resolved token becomes var(--category-key); an unresolved one stays as `category\.key`.
 const tokenPath = new RegExp(
-  `^\\s*([\\w-]+):\\s*(${TOKEN_CATEGORIES.join("|")})\\.([\\w.-]+);`,
+  `^\\s*([\\w-]+):\\s*(${TOKEN_CATEGORIES.join("|")})\\\\?\\.([\\w.\\\\-]+);`,
 );
 const TIMING_KEYWORDS = new Set([
   "linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end",

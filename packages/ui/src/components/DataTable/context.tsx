@@ -1,5 +1,6 @@
-import type { BoxProps } from "@construkt-kit/styled-system/jsx";
 import { createContext, useContext } from "react";
+
+import type { BoxProps } from "#styled-system/jsx";
 
 import type { DataTableLabels, DataTableRow, TableFilterSelections } from "./types";
 

@@ -1,14 +1,15 @@
 import { HoverCard as ArkHoverCard, HoverCardContext } from "@ark-ui/react/hover-card";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { hoverCard } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { hoverCard } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 
-const { withRootProvider, withContext } = createStyleContext(hoverCard);
+const { withRootProvider, withContext } = createSlotRecipeContext(hoverCard);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withRootProvider(ArkHoverCard.Root, { defaultProps: lazyOverlayDefaults });

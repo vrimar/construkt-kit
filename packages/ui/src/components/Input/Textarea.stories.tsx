@@ -1,5 +1,6 @@
-import { textarea } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { textarea } from "#styled-system/recipes";
 
 import { Textarea } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

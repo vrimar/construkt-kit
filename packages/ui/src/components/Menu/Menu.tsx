@@ -4,10 +4,11 @@ import {
   useMenuContext,
   useMenuItemContext,
 } from "@ark-ui/react/menu";
-import { Box, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { menu } from "@construkt-kit/styled-system/recipes";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
+
+import { Box, createSlotRecipeContext } from "#styled-system/jsx";
+import { menu } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { createItemIndicator } from "../itemIndicator";
@@ -16,7 +17,7 @@ import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
-const { withRootProvider, withContext } = createStyleContext(menu);
+const { withRootProvider, withContext } = createSlotRecipeContext(menu);
 
 export type RootProps = ComponentProps<typeof Root>;
 export const Root = withRootProvider(ArkMenu.Root, { defaultProps: lazyOverlayDefaults });

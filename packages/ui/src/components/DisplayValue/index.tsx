@@ -1,4 +1,4 @@
-import { VisuallyHidden } from "@construkt-kit/styled-system/jsx";
+import { VisuallyHidden } from "#styled-system/jsx";
 
 import { Span } from "../Span";
 

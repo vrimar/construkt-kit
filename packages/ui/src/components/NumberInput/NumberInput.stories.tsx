@@ -1,5 +1,6 @@
-import { numberInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { numberInput } from "#styled-system/recipes";
 
 import { NumberInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

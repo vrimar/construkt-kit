@@ -3,15 +3,16 @@ import {
   CheckboxContext,
   useCheckboxContext,
 } from "@ark-ui/react/checkbox";
-import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
-import { checkbox } from "@construkt-kit/styled-system/recipes";
-import type { HTMLStyledProps } from "@construkt-kit/styled-system/types";
 import { CheckIcon, MinusIcon } from "lucide-react";
 import type { ComponentProps, InputHTMLAttributes, ReactNode, Ref } from "react";
 
+import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { checkbox } from "#styled-system/recipes";
+import type { HTMLStyledProps } from "#styled-system/types";
+
 import type { WithRef } from "../../types";
 
-const { withProvider, withContext } = createStyleContext(checkbox);
+const { withProvider, withContext } = createSlotRecipeContext(checkbox);
 
 // Primitives — exported for sibling components (CheckboxCard), not re-exported from barrel
 export type RootProps = ComponentProps<typeof Root>;

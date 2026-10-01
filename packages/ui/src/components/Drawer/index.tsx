@@ -1,5 +1,6 @@
-import { drawer } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { drawer } from "#styled-system/recipes";
 
 import { type DialogContentProps, createDialogParts } from "../dialogParts";
 

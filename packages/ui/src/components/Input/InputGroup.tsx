@@ -1,15 +1,16 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { inputGroup } from "@construkt-kit/styled-system/recipes";
 import { XIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { type InputGroupVariant, inputGroup } from "#styled-system/recipes";
 
 import { type ButtonProps, IconButton, type IconButtonProps } from "../Buttons";
 import type { InputProps } from "./Input";
 
-const { withProvider, withContext } = createStyleContext(inputGroup);
+const { withProvider, withContext } = createSlotRecipeContext(inputGroup);
 
-export type InputGroupSize = (typeof inputGroup.variantMap.size)[number];
+export type InputGroupSize = NonNullable<InputGroupVariant["size"]>;
 
 /** Button size that fits inside an input group's start/end element slot at each input size. */
 export const inputGroupButtonSize: Record<InputGroupSize, ButtonProps["size"]> = {

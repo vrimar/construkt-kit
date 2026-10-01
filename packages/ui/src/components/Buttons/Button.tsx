@@ -1,8 +1,9 @@
 import { ark } from "@ark-ui/react/factory";
 import { createContext, mergeProps } from "@ark-ui/react/utils";
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { type ButtonVariantProps, button } from "@construkt-kit/styled-system/recipes";
 import { type ComponentProps, cloneElement, isValidElement } from "react";
+
+import { styled } from "#styled-system/jsx";
+import { type ButtonVariantProps, button } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { Group, type GroupProps } from "./Group";

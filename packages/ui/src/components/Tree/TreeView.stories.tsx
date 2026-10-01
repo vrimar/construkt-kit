@@ -1,7 +1,8 @@
-import { treeView } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FileIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
+
+import { treeView } from "#styled-system/recipes";
 
 import {
   DraggableTreeNode,

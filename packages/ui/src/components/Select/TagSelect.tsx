@@ -1,5 +1,6 @@
-import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
 import type { ReactNode } from "react";
+
+import { Box, type BoxProps } from "#styled-system/jsx";
 
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
 import { TagsInput } from "../TagsInput";

@@ -1,6 +1,7 @@
-import { Box } from "@construkt-kit/styled-system/jsx";
 import type { VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
+
+import { Box } from "#styled-system/jsx";
 
 interface VirtualRowsProps {
   virtualizer: Virtualizer<HTMLDivElement, Element>;

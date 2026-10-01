@@ -1,4 +1,3 @@
-import { HStack } from "@construkt-kit/styled-system/jsx";
 import {
   NUMBER_FILTER_OPERATORS,
   type NumberFilterOperator,
@@ -7,6 +6,8 @@ import {
 } from "@construkt-kit/utils";
 import { useState } from "react";
 import { useDebounce } from "react-use";
+
+import { HStack } from "#styled-system/jsx";
 
 import { useControlledMirror } from "../../hooks/useControlledMirror";
 import { IconButton } from "../Buttons";

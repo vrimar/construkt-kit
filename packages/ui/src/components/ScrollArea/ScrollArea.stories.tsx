@@ -1,6 +1,7 @@
-import { scrollArea } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useRef } from "react";
+
+import { scrollArea } from "#styled-system/recipes";
 
 import { ScrollArea } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

@@ -1,11 +1,4 @@
 import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
-import {
-  Box,
-  HStack,
-  type HTMLStyledProps,
-  createStyleContext,
-} from "@construkt-kit/styled-system/jsx";
-import { type ListboxVariantProps, listbox } from "@construkt-kit/styled-system/recipes";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "lucide-react";
 import {
@@ -17,6 +10,9 @@ import {
   useEffect,
   useRef,
 } from "react";
+
+import { Box, HStack, type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
@@ -42,7 +38,7 @@ import {
 export { createListCollection, useListCollection } from "@ark-ui/react/collection";
 export type { CollectionItem, ListCollection } from "@ark-ui/react/collection";
 
-const { withProvider, withContext } = createStyleContext(listbox);
+const { withProvider, withContext } = createSlotRecipeContext(listbox);
 
 type RootProps = HTMLStyledProps<"div"> & ListboxVariantProps;
 

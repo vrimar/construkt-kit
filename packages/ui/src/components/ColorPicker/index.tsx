@@ -1,15 +1,16 @@
 import { ColorPicker as ArkColorPicker, ColorPickerContext } from "@ark-ui/react/color-picker";
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext, styled } from "@construkt-kit/styled-system/jsx";
-import { colorPicker } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { colorPicker } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPortalledContent } from "../portalledContent";
 export { parseColor } from "@ark-ui/react/color-picker";
 
-const { withRootProvider, withContext } = createStyleContext(colorPicker);
+const { withRootProvider, withContext } = createSlotRecipeContext(colorPicker);
 
 const Root = withRootProvider(ArkColorPicker.Root, { defaultProps: lazyOverlayDefaults });
 const RootProvider = withRootProvider(ArkColorPicker.RootProvider, {

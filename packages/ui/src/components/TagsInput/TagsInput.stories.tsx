@@ -1,5 +1,6 @@
-import { tagsInput } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { tagsInput } from "#styled-system/recipes";
 
 import { TagsInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

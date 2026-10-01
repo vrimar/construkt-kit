@@ -14,35 +14,77 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
-    "./panda.buildinfo.json": "./dist/panda.buildinfo.json"
+    "./panda/*": "./panda/*",
+    "./css": {
+      "types": "./styled-system/css/index.d.ts",
+      "default": "./styled-system/css/index.js"
+    },
+    "./css/*": {
+      "types": "./styled-system/css/*.d.ts",
+      "default": "./styled-system/css/*.js"
+    },
+    "./recipes": {
+      "types": "./styled-system/recipes/index.d.ts",
+      "default": "./styled-system/recipes/index.js"
+    },
+    "./recipes/*": {
+      "types": "./styled-system/recipes/*.d.ts",
+      "default": "./styled-system/recipes/*.js"
+    },
+    "./patterns": {
+      "types": "./styled-system/patterns/index.d.ts",
+      "default": "./styled-system/patterns/index.js"
+    },
+    "./patterns/*": {
+      "types": "./styled-system/patterns/*.d.ts",
+      "default": "./styled-system/patterns/*.js"
+    },
+    "./jsx": {
+      "types": "./styled-system/jsx/index.d.ts",
+      "default": "./styled-system/jsx/index.js"
+    },
+    "./jsx/*": {
+      "types": "./styled-system/jsx/*.d.ts",
+      "default": "./styled-system/jsx/*.js"
+    },
+    "./tokens": {
+      "types": "./styled-system/tokens/index.d.ts",
+      "default": "./styled-system/tokens/index.js"
+    },
+    "./helpers": {
+      "types": "./styled-system/helpers.d.ts",
+      "default": "./styled-system/helpers.js"
+    }
   },
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "files": [
-    "dist"
+    "dist",
+    "panda",
+    "styled-system"
   ],
   "scripts": {
-    "build": "tsdown && panda ship --outfile dist/panda.buildinfo.json",
+    "codegen": "panda codegen --clean",
+    "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt src",
-    "check:exports": "publint --strict && attw --pack . --profile esm-only"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
   },
   "dependencies": {
     "@construkt-kit/utils": "workspace:^",
     "lucide-react": "^1.32.0"
   },
   "peerDependencies": {
-    "@construkt-kit/ui": ">=0.4.0",
+    "@construkt-kit/ui": ">=0.8.0",
+    "@pandacss/dev": "^2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
-    "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
-    "@pandacss/dev": "^1.12.0",
-    "@pandacss/preset-base": "^1.12.0",
+    "@pandacss/dev": "^2.0.1",
     "@storybook/react-vite": "^10.5.9",
     "@types/react": "^19.2.18",
     "storybook": "^10.5.9",

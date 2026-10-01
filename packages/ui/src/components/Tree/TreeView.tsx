@@ -4,12 +4,13 @@ import {
   TreeViewContext,
   TreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { type TreeViewVariantProps, treeView } from "@construkt-kit/styled-system/recipes";
 import { CheckIcon, ChevronRightIcon, MinusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(treeView);
+import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { type TreeViewVariantProps, treeView } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(treeView);
 
 type RootProps = HTMLStyledProps<"div"> & TreeViewVariantProps;
 

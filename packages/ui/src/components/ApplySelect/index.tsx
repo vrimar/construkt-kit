@@ -1,5 +1,6 @@
-import { HStack } from "@construkt-kit/styled-system/jsx";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+
+import { HStack } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox";

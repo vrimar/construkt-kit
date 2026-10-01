@@ -1,5 +1,6 @@
-import { avatar } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { avatar } from "#styled-system/recipes";
 
 import { Avatar } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

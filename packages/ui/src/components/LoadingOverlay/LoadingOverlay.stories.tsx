@@ -1,5 +1,6 @@
-import { spinner } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { spinner } from "#styled-system/recipes";
 
 import { LoadingOverlay } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
@@ -42,7 +43,7 @@ export const Sizes: Story = {
           h="80px"
           position="relative"
           borderWidth="1px"
-          borderColor="border.default"
+          borderColor="border"
           borderRadius="md"
           overflow="hidden"
         >

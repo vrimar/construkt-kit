@@ -1,5 +1,6 @@
-import { Box, type BoxProps } from "@construkt-kit/styled-system/jsx";
 import { useId } from "react";
+
+import { Box, type BoxProps } from "#styled-system/jsx";
 
 import { type BreakpointOrBase, responsiveVarRules } from "../../foundations/breakpoints";
 import { toCssSize } from "../../foundations/cssSize";

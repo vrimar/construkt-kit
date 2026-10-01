@@ -1,9 +1,10 @@
 import { ScrollArea as ArkScrollArea } from "@ark-ui/react/scroll-area";
-import { type HTMLStyledProps, createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { type ScrollAreaVariantProps, scrollArea } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(scrollArea);
+import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { type ScrollAreaVariantProps, scrollArea } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
 
 const Root = withProvider(ArkScrollArea.Root, "root");
 const Viewport = withContext(ArkScrollArea.Viewport, "viewport");

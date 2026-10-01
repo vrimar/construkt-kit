@@ -1,5 +1,6 @@
-import { breadcrumb } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { breadcrumb } from "#styled-system/recipes";
 
 import { Breadcrumb } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

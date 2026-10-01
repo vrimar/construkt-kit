@@ -1,8 +1,9 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover, PopoverContext, usePopoverContext } from "@ark-ui/react/popover";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { popover } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { popover } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
@@ -11,7 +12,7 @@ import { createPlacementRoot } from "../placementRoot";
 import { createPortalledContent } from "../portalledContent";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
-const { withRootProvider, withContext } = createStyleContext(popover);
+const { withRootProvider, withContext } = createSlotRecipeContext(popover);
 
 export type RootProps = ComponentProps<typeof Root>;
 export const Root = withRootProvider(ArkPopover.Root, { defaultProps: lazyOverlayDefaults });

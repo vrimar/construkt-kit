@@ -1,13 +1,14 @@
 import { ark } from "@ark-ui/react/factory";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { alert } from "@construkt-kit/styled-system/recipes";
 import { InfoIcon } from "lucide-react";
 import type { ComponentProps } from "react";
+
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { alert } from "#styled-system/recipes";
 
 import { CloseButton } from "../Buttons";
 import { statusIcons } from "../statusIcons";
 
-const { withProvider, withContext } = createStyleContext(alert);
+const { withProvider, withContext } = createSlotRecipeContext(alert);
 
 export type AlertRootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ark.div, "root");

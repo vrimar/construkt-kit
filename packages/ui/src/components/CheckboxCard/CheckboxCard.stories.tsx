@@ -1,5 +1,6 @@
-import { checkboxCard } from "@construkt-kit/styled-system/recipes";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { checkboxCard } from "#styled-system/recipes";
 
 import { CheckboxCard } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";

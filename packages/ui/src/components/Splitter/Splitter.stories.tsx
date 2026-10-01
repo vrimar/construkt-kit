@@ -29,7 +29,7 @@ export const Default: Story = {
         width="4px"
         bg="border"
         cursor="col-resize"
-        _hover={{ bg: "colorPalette.default" }}
+        _hover={{ bg: "colorPalette" }}
       />
       <Splitter.Panel
         defaultSize={50}
@@ -62,7 +62,7 @@ export const Vertical: Story = {
         height="4px"
         bg="border"
         cursor="row-resize"
-        _hover={{ bg: "colorPalette.default" }}
+        _hover={{ bg: "colorPalette" }}
       />
       <Splitter.Panel
         defaultSize={50}

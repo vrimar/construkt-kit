@@ -3,11 +3,12 @@ import {
   CarouselContext,
   useCarouselContext,
 } from "@ark-ui/react/carousel";
-import { createStyleContext } from "@construkt-kit/styled-system/jsx";
-import { carousel } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
 
-const { withProvider, withContext } = createStyleContext(carousel);
+import { createSlotRecipeContext } from "#styled-system/jsx";
+import { carousel } from "#styled-system/recipes";
+
+const { withProvider, withContext } = createSlotRecipeContext(carousel);
 
 const Root = withProvider(ArkCarousel.Root, "root", {
   forwardProps: ["page"],

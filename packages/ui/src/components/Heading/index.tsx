@@ -1,7 +1,8 @@
 import { ark } from "@ark-ui/react/factory";
-import { styled } from "@construkt-kit/styled-system/jsx";
-import { heading } from "@construkt-kit/styled-system/recipes";
 import type { ComponentProps } from "react";
+
+import { styled } from "#styled-system/jsx";
+import { heading } from "#styled-system/recipes";
 
 export type HeadingProps = ComponentProps<typeof Heading>;
 export const Heading = styled(ark.h2, heading);

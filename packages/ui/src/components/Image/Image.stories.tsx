@@ -46,7 +46,7 @@ export const WithFit: Story = {
       w="200px"
       h="200px"
       borderWidth="1px"
-      borderColor="border.default"
+      borderColor="border"
     >
       <Image
         src={fittedImageSrc}

@@ -1,0 +1,9 @@
+@layer reset, base, tokens, recipes, utilities;
+
+/* Panda's PostCSS output omits recipe sublayer order; the nested form survives minification. */
+@layer recipes {
+  @layer base, slots, variants, compound_variants;
+  @layer slots {
+    @layer base, variants, compound_variants;
+  }
+}
