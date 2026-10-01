@@ -40,6 +40,7 @@ function findItem(target: EventTarget, highlighted: boolean) {
 export type {
   SelectContentProps,
   SelectFooterProps,
+  SelectItemActionHelpers,
   SelectItemActionsProps,
   SelectItemGroupLabelProps,
   SelectItemGroupProps,
@@ -79,9 +80,13 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     value,
     onValueChange,
   } = rootProps;
+  const { renderItemActions } = props;
   const list: ManagedListOptions<T, V> = {
     ...listOptions,
     indicatorPosition: listOptions.indicatorPosition ?? "end",
+    renderItemActions:
+      renderItemActions &&
+      ((item, state) => renderItemActions(item, state, { close: () => handleOpenChange(false) })),
   };
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const resolvedOpen = open ?? internalOpen;

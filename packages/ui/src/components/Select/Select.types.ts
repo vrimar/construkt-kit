@@ -6,6 +6,7 @@ import type { SearchInput } from "../Input";
 import type { Listbox } from "../Listbox/Listbox";
 import type {
   ManagedListOptions,
+  SelectionItemState,
   SelectionItemsProps,
   SelectionProps,
   SelectionSearchOptions,
@@ -19,9 +20,19 @@ export type SelectValue = SelectionValue;
 export type PopoverContentProps = ComponentProps<typeof Popover.Content>;
 export type PopoverRootProps = ComponentProps<typeof Popover.Root>;
 
+export interface SelectItemActionHelpers {
+  /** Close the select, e.g. before an item action opens a dialog. */
+  close: () => void;
+}
+
 export interface SelectRootBaseProps<T, V extends SelectionValue>
-  extends SelectionItemsProps<T, V>, ManagedListOptions<T, V> {
+  extends SelectionItemsProps<T, V>, Omit<ManagedListOptions<T, V>, "renderItemActions"> {
   children: ReactNode;
+  renderItemActions?: (
+    item: T,
+    state: SelectionItemState<V>,
+    helpers: SelectItemActionHelpers,
+  ) => ReactNode;
   placeholder?: ReactNode;
   renderValue?: (context: SelectionValueRenderContext<T, V>) => ReactNode;
   contentWidth?: number;

@@ -262,6 +262,37 @@ describe("Select", () => {
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
+  it("stays open after an item action unless the action closes it", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        onOpenChange={onOpenChange}
+        renderItemActions={(item, _, { close }) => (
+          <>
+            <button type="button">Pin {item.label}</button>
+            <button
+              type="button"
+              onClick={close}
+            >
+              Edit {item.label}
+            </button>
+          </>
+        )}
+        open
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Pin Alpha" }));
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Edit Alpha" }));
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
   it("forwards trigger props when custom children are used", () => {
     render(
       <Select.Root

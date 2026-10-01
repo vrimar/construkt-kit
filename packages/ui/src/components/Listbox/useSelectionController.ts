@@ -61,7 +61,7 @@ type ManagedListOptionKey = (typeof MANAGED_LIST_OPTION_KEYS)[number];
 export function splitManagedListOptions<
   T,
   V extends SelectionValue,
-  P extends ManagedListOptions<T, V>,
+  P extends Partial<Record<ManagedListOptionKey, unknown>>,
 >(props: P): [ManagedListOptions<T, V>, Omit<P, ManagedListOptionKey>] {
   const options: Record<string, unknown> = {};
   const rest: Partial<P> = { ...props };
