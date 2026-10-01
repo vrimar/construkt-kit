@@ -15,6 +15,9 @@ export const input = {
     borderRadius: "md",
     height: "var(--input-height)",
     minHeight: "var(--input-height)",
+    // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
+    px: "var(--input-flushed-px, var(--input-px))",
+    "--input-flushed-px": "initial",
     minW: "var(--input-height)",
     outline: "0",
     position: "relative",
@@ -59,7 +62,7 @@ export const input = {
         borderBottomColor: "neutral.outline.border",
         borderRadius: "0",
         color: "fg",
-        px: "0",
+        "--input-flushed-px": "0",
         _invalid: {
           borderColor: "border.error",
         },
@@ -90,17 +93,17 @@ export const input = {
     size: {
       "2xs": {
         ...controlText("2xs"),
-        px: controlPx("2xs"),
+        "--input-px": controlPx("2xs"),
         "--input-height": controlH("2xs"),
       },
-      xs: { ...controlText("xs"), px: controlPx("xs"), "--input-height": controlH("xs") },
-      sm: { ...controlText("sm"), px: controlPx("sm"), "--input-height": controlH("sm") },
-      md: { ...controlText("md"), px: controlPx("md"), "--input-height": controlH("md") },
-      lg: { ...controlText("lg"), px: controlPx("lg"), "--input-height": controlH("lg") },
-      xl: { ...controlText("xl"), px: controlPx("xl"), "--input-height": controlH("xl") },
+      xs: { ...controlText("xs"), "--input-px": controlPx("xs"), "--input-height": controlH("xs") },
+      sm: { ...controlText("sm"), "--input-px": controlPx("sm"), "--input-height": controlH("sm") },
+      md: { ...controlText("md"), "--input-px": controlPx("md"), "--input-height": controlH("md") },
+      lg: { ...controlText("lg"), "--input-px": controlPx("lg"), "--input-height": controlH("lg") },
+      xl: { ...controlText("xl"), "--input-px": controlPx("xl"), "--input-height": controlH("xl") },
       "2xl": {
         ...controlText("2xl"),
-        px: controlPx("2xl"),
+        "--input-px": controlPx("2xl"),
         "--input-height": controlH("2xl"),
       },
     },

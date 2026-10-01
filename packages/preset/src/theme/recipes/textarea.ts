@@ -11,6 +11,9 @@ export const textarea = defineRecipe({
     borderRadius: "md",
     minWidth: "0",
     outline: "0",
+    // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
+    px: "var(--input-flushed-px, var(--input-px))",
+    "--input-flushed-px": "initial",
     position: "relative",
     transition: "colors",
     width: "100%",
@@ -33,31 +36,31 @@ export const textarea = defineRecipe({
     size: {
       xs: {
         ...controlText("xs"),
-        px: controlPx("xs"),
+        "--input-px": controlPx("xs"),
         py: controlPy("xs"),
         scrollPaddingBottom: controlPy("xs"),
       },
       sm: {
         ...controlText("sm"),
-        px: controlPx("sm"),
+        "--input-px": controlPx("sm"),
         py: controlPy("sm"),
         scrollPaddingBottom: controlPy("sm"),
       },
       md: {
         ...controlText("md"),
-        px: controlPx("md"),
+        "--input-px": controlPx("md"),
         py: controlPy("md"),
         scrollPaddingBottom: controlPy("md"),
       },
       lg: {
         ...controlText("lg"),
-        px: controlPx("lg"),
+        "--input-px": controlPx("lg"),
         py: controlPy("lg"),
         scrollPaddingBottom: controlPy("lg"),
       },
       xl: {
         ...controlText("xl"),
-        px: controlPx("xl"),
+        "--input-px": controlPx("xl"),
         py: controlPy("xl"),
         scrollPaddingBottom: controlPy("xl"),
       },

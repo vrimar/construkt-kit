@@ -52,6 +52,9 @@ export const tabs = defineSlotRecipe({
       },
       // Natural width so horizontal tabs scroll instead of squishing; `fitted`/`_vertical` override.
       flexShrink: 0,
+      // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
+      minW: "var(--tabs-trigger-fitted-min-w, var(--tabs-trigger-min-w))",
+      "--tabs-trigger-fitted-min-w": "initial",
       scrollSnapAlign: "start",
       _vertical: {
         width: "full",
@@ -83,7 +86,7 @@ export const tabs = defineSlotRecipe({
         list: { gap: "1" },
         trigger: {
           h: controlH("sm"),
-          minW: controlH("sm"),
+          "--tabs-trigger-min-w": controlH("sm"),
           ...controlText("xs"),
           px: controlPx("md"),
           gap: controlGap("md"),
@@ -93,7 +96,7 @@ export const tabs = defineSlotRecipe({
         list: { gap: "1" },
         trigger: {
           h: controlH("md"),
-          minW: controlH("md"),
+          "--tabs-trigger-min-w": controlH("md"),
           ...controlText("sm"),
           px: controlPx("lg"),
           gap: controlGap("md"),
@@ -103,7 +106,7 @@ export const tabs = defineSlotRecipe({
         list: { gap: "1" },
         trigger: {
           h: controlH("lg"),
-          minW: controlH("lg"),
+          "--tabs-trigger-min-w": controlH("lg"),
           ...controlText("sm"),
           px: controlPx("xl"),
           gap: controlGap("md"),
@@ -113,7 +116,7 @@ export const tabs = defineSlotRecipe({
         list: { gap: "1" },
         trigger: {
           h: controlH("xl"),
-          minW: controlH("xl"),
+          "--tabs-trigger-min-w": controlH("xl"),
           ...controlText("lg"),
           px: controlPx("2xl"),
           gap: controlGap("md"),
@@ -205,7 +208,7 @@ export const tabs = defineSlotRecipe({
         trigger: {
           flex: 1,
           flexShrink: 1,
-          minWidth: 0,
+          "--tabs-trigger-fitted-min-w": "0",
           textAlign: "center",
           justifyContent: "center",
         },

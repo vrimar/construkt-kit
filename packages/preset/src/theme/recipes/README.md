@@ -30,6 +30,14 @@ Standard variant names across all recipes, from most visual weight to least:
 | Minimal    | `xs` `sm` `md` `lg`                  | Switch                                               |
 | Per-recipe | varies                               | Textarea (xs–xl), Toggle Group (xs–xl)               |
 
+## Overlapping variants
+
+Two variant keys must never set the same property: Panda 2 emits variant rules in an order that depends on which
+variants an app uses, so the winner is unpredictable. Have each variant set its own CSS variable and resolve the
+property once in the base — `px: "var(--input-flushed-px, var(--input-px))"` — and reset override variables in the base
+(`"--input-flushed-px": "initial"`) so they don't leak into nested elements. `pnpm check:css` fails on any overlap.
+Compound variants are not a substitute: a recipe with `compoundVariants` rejects responsive variant props at runtime.
+
 ## Defaults
 
 - Default variant: `solid` for action components, `outline` for form inputs, `subtle` for display components

@@ -76,11 +76,60 @@ css.split("\n").forEach((line, i) => {
   }
 });
 
-if (failures.length) {
-  console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
-  for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
-  console.error("\nCheck the token exists in packages/preset/src/theme/tokens/.\n");
+// Panda 2 emits variant rules in usage-dependent order, so two variant keys must never set one property.
+const VARIANT_RULE =
+  /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
+const variantValues = new Map();
+const blocks = [];
+let buffer = "";
+for (const ch of css) {
+  if (ch === "{") {
+    blocks.push(buffer.trim());
+    buffer = "";
+  } else if (ch === "}") {
+    const head = blocks.pop() ?? "";
+    if (!head.startsWith("@")) {
+      const context = blocks.filter((b) => b.startsWith("@") && !b.startsWith("@layer")).join(" ");
+      for (const selector of head.split(",")) {
+        const match = selector.trim().match(VARIANT_RULE);
+        if (!match) continue;
+        const [, recipe, slot, key, suffix] = match;
+        for (const declaration of buffer.split(";")) {
+          const [property, ...rest] = declaration.split(":");
+          const value = rest.join(":").trim();
+          if (!value || value.includes("!important")) continue;
+          const id = `${recipe}${slot ? `__${slot}` : ""}${suffix.trim()} ${context}[${property.trim()}]`;
+          const byKey = variantValues.get(id) ?? new Map();
+          byKey.set(key, (byKey.get(key) ?? new Set()).add(value));
+          variantValues.set(id, byKey);
+        }
+      }
+    }
+    buffer = "";
+  } else if (ch === ";" && blocks.length === 0) {
+    buffer = "";
+  } else {
+    buffer += ch;
+  }
+}
+const overlaps = [...variantValues]
+  .filter(([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1)
+  .map(([id, byKey]) => `${id} set by variants ${[...byKey.keys()].join(", ")}`);
+
+if (failures.length || overlaps.length) {
+  if (failures.length) {
+    console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
+    for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
+    console.error("\nCheck the token exists in packages/preset/src/theme/tokens/.\n");
+  }
+  if (overlaps.length) {
+    console.error(`\n${overlaps.length} property set by more than one variant key:\n`);
+    for (const o of overlaps) console.error(`  ${o}`);
+    console.error("\nSet a CSS variable in each variant and resolve the property once in the base.\n");
+  }
   process.exit(1);
 }
 
-console.log(`preset CSS clean — ${css.split("\n").length} lines, no unresolved values.`);
+console.log(
+  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values or variant overlaps.`,
+);

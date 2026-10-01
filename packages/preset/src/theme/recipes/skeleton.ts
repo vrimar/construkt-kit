@@ -3,7 +3,18 @@ import { defineRecipe } from "@pandacss/dev";
 export const skeleton = defineRecipe({
   className: "skeleton",
   jsx: ["Skeleton", "SkeletonCircle", "SkeletonText"],
-  base: {},
+  base: {
+    // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
+    borderRadius: "var(--skeleton-circle-radius, var(--skeleton-radius))",
+    bgColor: "var(--skeleton-loaded-bg, var(--skeleton-bg))",
+    backgroundImage: "var(--skeleton-loaded-bg-image, var(--skeleton-bg-image))",
+    "--skeleton-radius": "initial",
+    "--skeleton-circle-radius": "initial",
+    "--skeleton-bg": "initial",
+    "--skeleton-bg-image": "initial",
+    "--skeleton-loaded-bg": "initial",
+    "--skeleton-loaded-bg-image": "initial",
+  },
 
   defaultVariants: {
     animation: "pulse",
@@ -13,7 +24,7 @@ export const skeleton = defineRecipe({
   variants: {
     loading: {
       true: {
-        borderRadius: "md",
+        "--skeleton-radius": "{radii.md}",
         boxShadow: "none",
         backgroundClip: "padding-box",
         cursor: "default",
@@ -26,7 +37,8 @@ export const skeleton = defineRecipe({
         },
       },
       false: {
-        background: "unset",
+        "--skeleton-loaded-bg": "transparent",
+        "--skeleton-loaded-bg-image": "none",
         animation: "fade-in var(--fade-duration, 0.1s) ease-out !important",
       },
     },
@@ -37,13 +49,13 @@ export const skeleton = defineRecipe({
         alignItems: "center",
         justifyContent: "center",
         flex: "0 0 auto",
-        borderRadius: "full",
+        "--skeleton-circle-radius": "{radii.full}",
       },
     },
 
     animation: {
       pulse: {
-        background: "neutral.subtle.bg.active",
+        "--skeleton-bg": "{colors.neutral.subtle.bg.active}",
         animation: "pulse",
         animationDuration: "var(--duration, 1.2s)",
       },
@@ -52,7 +64,7 @@ export const skeleton = defineRecipe({
         "--animate-to": "-200%",
         "--start-color": "colors.neutral.subtle.bg",
         "--end-color": "colors.neutral.subtle.bg.active",
-        backgroundImage:
+        "--skeleton-bg-image":
           "linear-gradient(270deg,var(--start-color),var(--end-color),var(--end-color),var(--start-color))",
         backgroundSize: "400% 100%",
         animation: "bg-position var(--duration, 5s) ease-in-out infinite",

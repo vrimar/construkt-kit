@@ -45,6 +45,8 @@ export const drawer = defineSlotRecipe({
       outline: 0,
       zIndex: "modal",
       maxH: "100dvh",
+      // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
+      maxW: "var(--drawer-max-w)",
       color: "inherit",
       _open: {
         animationDuration: "slowest",
@@ -102,12 +104,12 @@ export const drawer = defineSlotRecipe({
   },
   variants: {
     size: {
-      xs: { content: { maxW: "xs" } },
-      sm: { content: { maxW: "sm" } },
-      md: { content: { maxW: "md" } },
-      lg: { content: { maxW: "lg" } },
-      xl: { content: { maxW: "xl" } },
-      full: { content: { maxW: "100vw", h: "100dvh" } },
+      xs: { content: { "--drawer-size": "{sizes.xs}" } },
+      sm: { content: { "--drawer-size": "{sizes.sm}" } },
+      md: { content: { "--drawer-size": "{sizes.md}" } },
+      lg: { content: { "--drawer-size": "{sizes.lg}" } },
+      xl: { content: { "--drawer-size": "{sizes.xl}" } },
+      full: { content: { "--drawer-size": "100vw", h: "100dvh" } },
     },
     placement: {
       start: {
@@ -116,6 +118,7 @@ export const drawer = defineSlotRecipe({
           alignItems: "stretch",
         },
         content: {
+          "--drawer-max-w": "var(--drawer-size)",
           _open: {
             animationName: {
               base: "slide-from-left-full, fade-in",
@@ -136,6 +139,7 @@ export const drawer = defineSlotRecipe({
           alignItems: "stretch",
         },
         content: {
+          "--drawer-max-w": "var(--drawer-size)",
           _open: {
             animationName: {
               base: "slide-from-right-full, fade-in",
@@ -156,7 +160,7 @@ export const drawer = defineSlotRecipe({
           alignItems: "flex-start",
         },
         content: {
-          maxW: "100%",
+          "--drawer-max-w": "100%",
           _open: { animationName: "slide-from-top-full, fade-in" },
           _closed: { animationName: "slide-to-top-full, fade-out" },
         },
@@ -168,7 +172,7 @@ export const drawer = defineSlotRecipe({
           alignItems: "flex-end",
         },
         content: {
-          maxW: "100%",
+          "--drawer-max-w": "100%",
           _open: { animationName: "slide-from-bottom-full, fade-in" },
           _closed: { animationName: "slide-to-bottom-full, fade-out" },
         },
