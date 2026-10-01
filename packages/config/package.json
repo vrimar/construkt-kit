@@ -42,7 +42,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:exports": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./typescript",
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./typescript",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt --config ./dist/oxfmt/index.mjs vite playwright kubb oxlint oxfmt tsdown internal"
   },

@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "format": "oxfmt src",
-    "check:exports": "publint --strict && attw --pack . --profile esm-only"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
   },
   "dependencies": {
     "dayjs": "^1.11.23",

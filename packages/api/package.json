@@ -28,7 +28,7 @@
     "test": "vitest run",
     "format": "oxfmt src test",
     "gen:fixture": "node bin/api-gen.mjs --config test/api.config.ts --input test/fixtures/openapi.json",
-    "check:exports": "publint --strict && attw --pack . --profile esm-only"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
   },
   "bin": {
     "construkt-kit-api-gen": "./bin/api-gen.mjs"
