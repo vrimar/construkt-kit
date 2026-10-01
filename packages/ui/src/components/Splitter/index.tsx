@@ -17,6 +17,8 @@ import {
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 
+export type { PanelImperativeHandle as SplitterPanelHandle } from "react-resizable-panels";
+
 const { withRootProvider, withContext } = createStyleContext(splitter);
 
 const RootProvider = withRootProvider(Group);
