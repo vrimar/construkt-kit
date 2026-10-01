@@ -12,7 +12,7 @@
 // so `git push --follow-tags` ships them. Idempotent: re-running skips anything
 // already on npm.
 
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -43,6 +43,22 @@ function isOnRegistry(name, version) {
   }
 }
 
+const ALREADY_PUBLISHED = /cannot publish over (the )?previously (published|staged) version/i
+
+function npmPublish(args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npm', ['publish', ...args], { stdio: ['inherit', 'inherit', 'pipe'] })
+    let stderr = ''
+    child.stderr.setEncoding('utf8')
+    child.stderr.on('data', (chunk) => {
+      process.stderr.write(chunk)
+      stderr += chunk
+    })
+    child.on('error', reject)
+    child.on('close', (code) => resolve({ code, stderr }))
+  })
+}
+
 // `pnpm run release --otp=123456` reaches this script; without it npm prompts.
 // Under trusted publishing (CI) npm authenticates over OIDC and never asks.
 const otpArgs = process.argv.slice(2).filter((arg) => arg.startsWith('--otp'))
@@ -70,11 +86,19 @@ for (const dir of workspacePackageDirs()) {
 
   console.log(`publish ${pkg.name}@${pkg.version}`)
   // stdin stays attached so npm can prompt for the 2FA one-time password.
-  run('npm', ['publish', tarball, '--access', 'public', ...provenanceArgs, ...otpArgs], {
-    stdio: 'inherit',
-  })
+  const { code, stderr } = await npmPublish([tarball, '--access', 'public', ...provenanceArgs, ...otpArgs])
 
   const tag = `${pkg.name}@${pkg.version}`
+  if (code !== 0) {
+    // npm view lags a fresh publish by minutes, so a concurrent run can slip past the check above.
+    if (ALREADY_PUBLISHED.test(stderr)) {
+      console.log(`skip   ${tag} (registry rejected republish)`)
+      skipped++
+      continue
+    }
+    throw new Error(`npm publish ${tag} failed with exit code ${code}`)
+  }
+
   try {
     run('git', ['-c', 'tag.gpgsign=false', 'tag', '-a', tag, '-m', tag])
   } catch {
