@@ -201,7 +201,6 @@ The theme redefines standard pseudo-selectors:
 | ------------------- | ------------------------------------------------------------------------------------------------ |
 | `_hover`, `_active` | Exclude `:disabled` — disabled elements don't show hover/active                                  |
 | `_checked`          | Matches 4 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]` |
-| `_focusVisible`     | Uses `[data-focus-visible]` NOT `:focus-visible` — Ark UI keyboard-only detection                |
 | `_light`            | `:root &, .light &` — explicit light mode                                                        |
 
 ### Dark mode

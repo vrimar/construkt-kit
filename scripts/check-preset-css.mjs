@@ -76,6 +76,17 @@ css.split("\n").forEach((line, i) => {
   }
 });
 
+// Ark sets data-focus-visible on only some parts, so _focusVisible must also match :focus-visible.
+const NARROWED_FOCUS_VISIBLE = /(?<!:focus-visible,\s*)\[data-focus-visible\]/;
+const TABS_FOCUS_VISIBLE = /^\s*\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)\s*\{/m;
+const focusRings = css
+  .split("\n")
+  .filter((line) => NARROWED_FOCUS_VISIBLE.test(line))
+  .map((line) => line.trim());
+if (!TABS_FOCUS_VISIBLE.test(css)) {
+  focusRings.push(".tabs__trigger has no :is(:focus-visible, [data-focus-visible]) rule");
+}
+
 // Panda 2 emits variant rules in usage-dependent order, so two variant keys must never set one property.
 const VARIANT_RULE =
   /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
@@ -116,7 +127,7 @@ const overlaps = [...variantValues]
   .filter(([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1)
   .map(([id, byKey]) => `${id} set by variants ${[...byKey.keys()].join(", ")}`);
 
-if (failures.length || overlaps.length) {
+if (failures.length || overlaps.length || focusRings.length) {
   if (failures.length) {
     console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
     for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
@@ -127,9 +138,14 @@ if (failures.length || overlaps.length) {
     for (const o of overlaps) console.error(`  ${o}`);
     console.error("\nSet a CSS variable in each variant and resolve the property once in the base.\n");
   }
+  if (focusRings.length) {
+    console.error(`\n${focusRings.length} focus-visible selector(s) narrower than Panda's focusVisible:\n`);
+    for (const r of focusRings) console.error(`  ${r}`);
+    console.error("\nDon't override focusVisible; add a separately named condition instead.\n");
+  }
   process.exit(1);
 }
 
 console.log(
-  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values or variant overlaps.`,
+  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, variant overlaps or narrowed focus rings.`,
 );
