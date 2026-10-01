@@ -5,7 +5,7 @@ import { controlText, surface } from "./control-size";
 
 export const toast = defineSlotRecipe({
   className: "toast",
-  jsx: ["Toaster", /Toast\.+/],
+  jsx: ["Toaster", /Toast\..+/],
   slots: toastAnatomy.keys(),
   base: {
     root: {

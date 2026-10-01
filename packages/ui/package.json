@@ -96,6 +96,11 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
+  "peerDependenciesMeta": {
+    "@fontsource-variable/inter": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^3.0.0",
     "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.1",

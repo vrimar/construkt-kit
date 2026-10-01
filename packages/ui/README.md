@@ -173,6 +173,15 @@ Panda build emits the CSS — but will not typecheck. Extend the system through
 _key_ is worse still, since it reaches the DOM as a stray attribute and ui's
 runtime ignores downstream `compoundVariants` and `defaultVariants`.
 
+A recipe's own properties outrank the values of a `textStyle` it applies, so
+overriding a text style only changes what the recipe leaves unset. Slots that
+apply the `label` text style set no color, so an app's `label` text style can.
+
+Merging over a ckit recipe works but logs `design_system_artifact_conflict` on
+every Panda run, and only a global `logLevel` silences it. Reach for a token
+first — `fonts.heading` sets the `Heading` face, the `label` text style styles
+form labels — and keep recipe merges for real restyles, accepting the warning.
+
 ### Token Path Syntax
 
 | Context               | Syntax             | Example                       |
@@ -291,6 +300,26 @@ order, which Panda's PostCSS plugin does not emit; without it slot recipes overr
 @layer reset, base, tokens, recipes, utilities;
 @import "@construkt-kit/ui/layers.css";
 ```
+
+`@fontsource-variable/inter` is an optional peer: install it unless the app replaces the preset's `globalFontface`.
+`@pandacss/dev` 2 depends on `@parcel/watcher`, whose install script pnpm flags until `allowBuilds` lists it. Its
+prebuilt binaries ship as optional dependencies, so the script can stay off:
+
+```yaml
+# pnpm-workspace.yaml
+allowBuilds:
+  "@parcel/watcher": false
+```
+
+#### Upgrading from 0.7
+
+- Replace `createConstruktPandaConfig` with `designSystem` as above, and add the `layers.css` import
+- Drop `@construkt-kit/preset` from app dependencies and SSR `noExternal`; ui ships it as `panda/preset.mjs`
+- Set `importMap` if the app imports its `styled-system/` through an alias
+- Recipe properties now outrank the `textStyle` values they apply; see [Theme Architecture](#theme-architecture)
+- Only real style props are extracted. Panda 1 also read literals passed to components whose name contains a recipe's
+  (`columns={[{ width: "320px" }]}` on `StatsTable`), so `width={column.width}` got CSS by accident; use `style` for
+  values that only exist at runtime
 
 ## Testing
 

@@ -14,7 +14,6 @@ export const field = defineSlotRecipe({
     },
     label: {
       alignItems: "center",
-      color: "fg",
       display: "flex",
       gap: surface("0.125rem"),
       textAlign: "start",

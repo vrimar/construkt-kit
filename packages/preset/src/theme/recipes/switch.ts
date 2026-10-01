@@ -5,7 +5,7 @@ import { controlFont } from "./control-size";
 
 export const switchRecipe = defineSlotRecipe({
   className: "switch",
-  jsx: ["Switch", /Switch\.+/],
+  jsx: ["Switch", /Switch\..+/],
   slots: switchAnatomy.extendWith("indicator").keys(),
   base: {
     root: {
