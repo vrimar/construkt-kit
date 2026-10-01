@@ -27,6 +27,16 @@ import {
 } from "./Select.parts";
 import type { SelectProps, SelectRootProps, SelectSimpleProps } from "./Select.types";
 
+const ITEM_SELECTOR = '[data-scope="listbox"][data-part="item"]';
+const CONTENT_SELECTOR = '[data-scope="popover"][data-part="content"]';
+
+function findItem(target: EventTarget, highlighted: boolean) {
+  if (!(target instanceof Element)) return null;
+  return highlighted
+    ? target.closest(CONTENT_SELECTOR)?.querySelector(`${ITEM_SELECTOR}[data-highlighted]`)
+    : target.closest(ITEM_SELECTOR);
+}
+
 export type {
   SelectContentProps,
   SelectFooterProps,
@@ -84,6 +94,12 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     onOpenChange?.(nextOpen);
   }
 
+  // Re-picking the current value changes nothing, so onValueChange never fires to close.
+  function closeOnReselect(item: Element | null | undefined) {
+    if (selectionMode === "single" && item?.matches('[data-state="checked"]:not([data-disabled])'))
+      handleOpenChange(false);
+  }
+
   const controller = useSelectionController<T, V>({
     items,
     getItemValue,
@@ -135,6 +151,14 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
               ? (details) => scrollToIndexRef.current?.(details.index)
               : listboxProps?.scrollToIndexFn
           }
+          onClick={(event) => {
+            listboxProps?.onClick?.(event);
+            closeOnReselect(findItem(event.target, false));
+          }}
+          onKeyDown={(event) => {
+            listboxProps?.onKeyDown?.(event);
+            if (event.key === "Enter") closeOnReselect(findItem(event.target, true));
+          }}
         >
           {children}
         </Listbox.Root>

@@ -158,6 +158,46 @@ describe("Select", () => {
     expect(onValueChange).toHaveBeenCalledWith([1, 2]);
   });
 
+  it("closes when the selected item is picked again", async () => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={2}
+        onValueChange={onValueChange}
+        open
+        onOpenChange={onOpenChange}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("option", { name: "Beta" }));
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledOnce();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("closes once when a different item is picked", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={2}
+        onValueChange={vi.fn()}
+        open
+        onOpenChange={onOpenChange}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("option", { name: "Alpha" }));
+    expect(onOpenChange).toHaveBeenCalledOnce();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it("notifies open changes in uncontrolled mode", async () => {
     const onOpenChange = vi.fn();
     render(
