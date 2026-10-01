@@ -42,12 +42,8 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
       alignItems="center"
       style={{ marginLeft: `${iconGap}px` }}
       css={{
-        visibility: "hidden",
         color: "fg.subtle",
-        "&[data-sorted]": {
-          visibility: "visible",
-          color: "colorPalette.fg",
-        },
+        "&[data-sorted]": { color: "colorPalette.fg" },
         _hover: { color: "colorPalette.fg" },
       }}
     >

@@ -40,7 +40,6 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
-      css={{ "&:hover [data-part=column-sorter]": { visibility: "visible" } }}
     >
       <Box
         position="relative"
