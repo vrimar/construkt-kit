@@ -24,7 +24,8 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@construkt-kit/config": "workspace:*",
-    "oxfmt": "^0.67.0",
+    "known-css-properties": "^0.37.0",
+    "oxfmt": "^0.71.0",
     "oxlint": "^1.79.0",
     "oxlint-tsgolint": "^7.0.2001",
     "publint": "^0.3.23",

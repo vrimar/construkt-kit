@@ -62,11 +62,11 @@ export const numberInput = defineSlotRecipe({
     },
     incrementTrigger: {
       ...trigger,
-      borderTopEndRadius: "md",
+      borderStartEndRadius: "md",
     },
     decrementTrigger: {
       ...trigger,
-      borderBottomEndRadius: "md",
+      borderEndEndRadius: "md",
     },
   },
   defaultVariants: {

@@ -6,6 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import knownCssProperties from "known-css-properties";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pandaCwd = path.join(repoRoot, "packages/ui");
 
@@ -87,6 +89,15 @@ if (!TABS_FOCUS_VISIBLE.test(css)) {
   focusRings.push(".tabs__trigger has no :is(:focus-visible, [data-focus-visible]) rule");
 }
 
+const KNOWN_PROPERTIES = new Set(knownCssProperties.all);
+// An outline/border shorthand without a line style resets the style to none and draws nothing.
+const STROKE_SHORTHAND = /^(outline|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?)$/;
+const LINE_STYLES = new Set([
+  "none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "auto",
+]);
+const NO_STROKE = new Set(["0", "inherit", "initial", "unset", "revert", "revert-layer"]);
+const invalidDeclarations = [];
+
 // Panda 2 emits variant rules in usage-dependent order, so two variant keys must never set one property.
 const VARIANT_RULE =
   /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
@@ -100,16 +111,34 @@ for (const ch of css) {
   } else if (ch === "}") {
     const head = blocks.pop() ?? "";
     if (!head.startsWith("@")) {
+      const declarations = buffer
+        .split(";")
+        .map((declaration) => {
+          const [property, ...rest] = declaration.split(":");
+          return { property: property.trim(), value: rest.join(":").trim() };
+        })
+        .filter(({ value }) => value);
+      for (const { property, value } of declarations) {
+        const where = `${head} { ${property}: ${value} }`;
+        if (!property.startsWith("--") && !KNOWN_PROPERTIES.has(property)) {
+          invalidDeclarations.push(`unknown property\n    ${where}`);
+        } else if (
+          STROKE_SHORTHAND.test(property) &&
+          !value.includes("var(") &&
+          !NO_STROKE.has(value) &&
+          !value.split(/\s+/).some((v) => LINE_STYLES.has(v))
+        ) {
+          invalidDeclarations.push(`shorthand without a line style\n    ${where}`);
+        }
+      }
       const context = blocks.filter((b) => b.startsWith("@") && !b.startsWith("@layer")).join(" ");
       for (const selector of head.split(",")) {
         const match = selector.trim().match(VARIANT_RULE);
         if (!match) continue;
         const [, recipe, slot, key, suffix] = match;
-        for (const declaration of buffer.split(";")) {
-          const [property, ...rest] = declaration.split(":");
-          const value = rest.join(":").trim();
-          if (!value || value.includes("!important")) continue;
-          const id = `${recipe}${slot ? `__${slot}` : ""}${suffix.trim()} ${context}[${property.trim()}]`;
+        for (const { property, value } of declarations) {
+          if (value.includes("!important")) continue;
+          const id = `${recipe}${slot ? `__${slot}` : ""}${suffix.trim()} ${context}[${property}]`;
           const byKey = variantValues.get(id) ?? new Map();
           byKey.set(key, (byKey.get(key) ?? new Set()).add(value));
           variantValues.set(id, byKey);
@@ -127,11 +156,16 @@ const overlaps = [...variantValues]
   .filter(([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1)
   .map(([id, byKey]) => `${id} set by variants ${[...byKey.keys()].join(", ")}`);
 
-if (failures.length || overlaps.length || focusRings.length) {
+if (failures.length || invalidDeclarations.length || overlaps.length || focusRings.length) {
   if (failures.length) {
     console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
     for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
     console.error("\nCheck the token exists in packages/preset/src/theme/tokens/.\n");
+  }
+  if (invalidDeclarations.length) {
+    console.error(`\n${invalidDeclarations.length} declaration(s) the browser drops or draws nothing for:\n`);
+    for (const d of invalidDeclarations) console.error(`  ${d}`);
+    console.error("\nUse Panda's real utilities (e.g. focusVisibleRing, not Tailwind ring*) and give strokes a style.\n");
   }
   if (overlaps.length) {
     console.error(`\n${overlaps.length} property set by more than one variant key:\n`);
@@ -147,5 +181,5 @@ if (failures.length || overlaps.length || focusRings.length) {
 }
 
 console.log(
-  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, variant overlaps or narrowed focus rings.`,
+  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps or narrowed focus rings.`,
 );
