@@ -1,9 +1,46 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Textarea } from "../Input";
+import { Popover } from "../Popover";
 import { SubmitDialog } from "./SubmitDialog";
+
+const OpenedFromPopover = () => {
+  const [popoverOpen, setPopoverOpen] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  return (
+    <>
+      <Popover.Root
+        open={popoverOpen}
+        onOpenChange={({ open }) => setPopoverOpen(open)}
+      >
+        <Popover.Trigger>Settings</Popover.Trigger>
+        <Popover.Content>
+          <button
+            type="button"
+            onClick={() => {
+              setDialogOpen(true);
+              setPopoverOpen(false);
+            }}
+          >
+            Open dialog
+          </button>
+        </Popover.Content>
+      </Popover.Root>
+      {dialogOpen && (
+        <SubmitDialog
+          title="Opened from popover"
+          onClose={() => setDialogOpen(false)}
+        >
+          Body
+        </SubmitDialog>
+      )}
+    </>
+  );
+};
 
 describe("SubmitDialog", () => {
   it("submits on Enter in a field", async () => {
@@ -72,5 +109,13 @@ describe("SubmitDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: "Submit" }));
     expect(onSubmit).toHaveBeenCalledOnce();
     expect(onOuterSubmit).not.toHaveBeenCalled();
+  });
+
+  it("stays open when the popover that opened it closes", async () => {
+    render(<OpenedFromPopover />);
+    await userEvent.click(await screen.findByRole("button", { name: "Open dialog" }));
+    await waitFor(() => expect(screen.queryByText("Open dialog")).toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole("dialog", { name: "Opened from popover" })).not.toBeNull();
   });
 });

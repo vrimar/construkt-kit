@@ -41,6 +41,8 @@ export const SubmitDialog = ({
         if (!e.open) onClose?.();
       }}
       closeOnInteractOutside={false}
+      // Stay open when the popover or menu that opened it closes.
+      onRequestDismiss={(e) => e.preventDefault()}
     >
       <Dialog.Content style={{ maxWidth: width }}>
         <Dialog.Header>
