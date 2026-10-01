@@ -7,7 +7,7 @@ import { deepMerge } from "../internal/merge";
 
 export interface TsdownConfigOptions extends UserConfig {
   /** Packages tsdown must import rather than inline into the bundle. */
-  neverBundle?: string[];
+  neverBundle?: Array<string | RegExp>;
 }
 
 interface EmittedChunk {
