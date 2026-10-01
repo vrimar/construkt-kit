@@ -89,14 +89,14 @@ for (const dir of workspacePackageDirs()) {
   const { code, stderr } = await npmPublish([tarball, '--access', 'public', ...provenanceArgs, ...otpArgs])
 
   const tag = `${pkg.name}@${pkg.version}`
-  if (code !== 0) {
-    // npm view lags a fresh publish by minutes, so a concurrent run can slip past the check above.
-    if (ALREADY_PUBLISHED.test(stderr)) {
-      console.log(`skip   ${tag} (registry rejected republish)`)
-      skipped++
-      continue
-    }
+  // npm view lags a fresh publish by minutes, so a concurrent run can slip past the check above.
+  const rejectedRepublish = code !== 0 && ALREADY_PUBLISHED.test(stderr)
+  if (code !== 0 && !rejectedRepublish) {
     throw new Error(`npm publish ${tag} failed with exit code ${code}`)
+  }
+  if (rejectedRepublish) {
+    console.log(`skip   ${tag} (registry rejected republish)`)
+    skipped++
   }
 
   try {
@@ -104,7 +104,7 @@ for (const dir of workspacePackageDirs()) {
   } catch {
     console.log(`  (tag ${tag} already exists)`)
   }
-  published.push(tag)
+  if (!rejectedRepublish) published.push(tag)
 }
 
 console.log('')
