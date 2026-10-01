@@ -57,9 +57,7 @@ export const menu = defineSlotRecipe({
       display: "flex",
       flex: "1",
       _checked: {
-        _icon: {
-          color: "colorPalette.plain.fg",
-        },
+        color: "colorPalette.plain.fg",
       },
     },
   },
