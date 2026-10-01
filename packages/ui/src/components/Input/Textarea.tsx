@@ -9,8 +9,21 @@ const BaseTextarea = styled(Field.Textarea, textarea);
 export interface TextareaProps extends BaseTextareaProps {
   /** Fired on Enter (Shift+Enter still inserts a newline; ignored during IME composition). */
   onEnter?: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
-  /** Block Enter from inserting newlines; also defaults CSS resize to "none". */
+  /**
+   * Block Enter from inserting newlines; Enter submits the enclosing form like a single-line
+   * input (skipped while its submit button is disabled). Also defaults CSS resize to "none".
+   */
   preventNewline?: boolean;
+}
+
+function submitForm(field: HTMLTextAreaElement) {
+  const form = field.form;
+  const submitter = Array.from(form?.elements ?? []).find(
+    (element): element is HTMLButtonElement | HTMLInputElement =>
+      (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
+      element.type === "submit",
+  );
+  if (form && submitter && !submitter.disabled) form.requestSubmit(submitter);
 }
 
 export const Textarea = ({
@@ -29,6 +42,7 @@ export const Textarea = ({
       onEnter(e);
     } else if (preventNewline) {
       e.preventDefault();
+      submitForm(e.currentTarget);
     }
   };
 

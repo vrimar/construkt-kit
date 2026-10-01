@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import { Textarea } from "../Input";
 import { SubmitDialog } from "./SubmitDialog";
 
 describe("SubmitDialog", () => {
@@ -17,6 +18,42 @@ describe("SubmitDialog", () => {
     );
     await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
     expect(onSubmit).toHaveBeenCalledOnce();
+  });
+
+  it("submits on Enter in a single-line textarea", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <SubmitDialog
+        title="Edit"
+        onSubmit={onSubmit}
+      >
+        <Textarea
+          aria-label="Name"
+          preventNewline
+        />
+      </SubmitDialog>,
+    );
+    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText<HTMLTextAreaElement>("Name").value).toBe("x");
+  });
+
+  it("does not submit from a single-line textarea while submit is disabled", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <SubmitDialog
+        title="Edit"
+        onSubmit={onSubmit}
+        isSubmitDisabled
+      >
+        <Textarea
+          aria-label="Name"
+          preventNewline
+        />
+      </SubmitDialog>,
+    );
+    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("does not submit a form that renders it", async () => {
