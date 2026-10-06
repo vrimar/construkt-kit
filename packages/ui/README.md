@@ -251,21 +251,21 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 
 ## File Map
 
-| Path                                   | Purpose                                         |
-| -------------------------------------- | ----------------------------------------------- |
-| `src/index.ts`                         | Public barrel export                            |
-| `src/types.ts`                         | Shared types (`WithRef`, etc.)                  |
-| `src/components/index.tsx`             | Component barrel export                         |
-| `src/components/<Name>/`               | Individual component folders                    |
-| `src/hooks/`                           | Shared hooks                                    |
-| `../preset/src/theme/recipes/`         | All component recipes                           |
-| `../preset/src/theme/tokens/`          | Primitive design tokens                         |
-| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                    |
-| `styled-system/`                       | Generated Panda runtime (shipped, gitignored)   |
-| `panda.config.ts`                      | Panda CSS design-system config                  |
+| Path                                   | Purpose                                           |
+| -------------------------------------- | ------------------------------------------------- |
+| `src/index.ts`                         | Public barrel export                              |
+| `src/types.ts`                         | Shared types (`WithRef`, etc.)                    |
+| `src/components/index.tsx`             | Component barrel export                           |
+| `src/components/<Name>/`               | Individual component folders                      |
+| `src/hooks/`                           | Shared hooks                                      |
+| `../preset/src/theme/recipes/`         | All component recipes                             |
+| `../preset/src/theme/tokens/`          | Primitive design tokens                           |
+| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                      |
+| `styled-system/`                       | Generated Panda runtime (shipped, gitignored)     |
+| `panda.config.ts`                      | Panda CSS design-system config                    |
 | `scripts/patch-panda-jsx-types.mjs`    | Exports slot-recipe component types after codegen |
-| `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`     |
-| `layers.css`                           | Cascade layer order apps import in entry CSS    |
+| `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`       |
+| `layers.css`                           | Cascade layer order apps import in entry CSS      |
 
 ## Common Patterns
 
