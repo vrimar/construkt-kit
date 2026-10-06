@@ -25,12 +25,10 @@ export const listbox = defineSlotRecipe({
       maxH: "96",
       minH: "0",
       outline: 0,
-      overflow: "hidden",
       _horizontal: {
         flexDirection: "row",
         maxH: "none",
         maxW: "max-content",
-        overflow: "hidden",
       },
     },
     item: {

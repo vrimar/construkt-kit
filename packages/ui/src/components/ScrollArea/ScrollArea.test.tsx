@@ -33,4 +33,18 @@ describe("ScrollArea", () => {
     expect(root?.className).toContain("scroll-area__root--scrollbars_vertical");
     expect(contentOf(container)?.style.minWidth).toBe("");
   });
+
+  it("leaves viewport overflow to the recipe", () => {
+    const { container } = render(
+      <ScrollArea scrollbars="vertical">
+        <div>content</div>
+      </ScrollArea>,
+    );
+
+    const viewport = container.querySelector<HTMLElement>(
+      '[data-scope="scroll-area"][data-part="viewport"]',
+    );
+    expect(viewport?.style.overflow).toBe("");
+    expect(viewport?.className).toContain("scroll-area__viewport--scrollbars_vertical");
+  });
 });

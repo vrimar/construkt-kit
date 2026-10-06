@@ -9,11 +9,19 @@ import type { CssProp } from "../../types";
 const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
 
 const Root = withProvider(ArkScrollArea.Root, "root");
-const Viewport = withContext(ArkScrollArea.Viewport, "viewport");
+const StyledViewport = withContext(ArkScrollArea.Viewport, "viewport");
 const StyledContent = withContext(ArkScrollArea.Content, "content");
 const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar");
 const Thumb = withContext(ArkScrollArea.Thumb, "thumb");
 const Corner = withContext(ArkScrollArea.Corner, "corner");
+
+// Clears zag's inline `overflow: auto` so the recipe's per-axis overflow applies.
+const Viewport = ({ style, ...props }: ComponentProps<typeof StyledViewport>) => (
+  <StyledViewport
+    {...props}
+    style={{ overflow: undefined, ...style }}
+  />
+);
 
 // Clears zag's inline `min-width: fit-content` so the recipe's width applies and `css` can override it.
 const Content = ({ style, ...props }: ComponentProps<typeof StyledContent>) => (

@@ -349,10 +349,10 @@ allowBuilds:
   `ScrollArea` and `VirtualScrollArea`; `listCss` styles the `Select` family's list. Write them as JSX literals and
   compose with arrays (`contentCss={[base, contentCss ?? {}]}`), never spreads, which Panda cannot extract
 - `Select`, `ApplySelect` and `TagSelect` take style props for the whole control (`<Select w="200px">`)
-- A `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport width
 - Virtual lists cap at the listbox's `maxH` (24rem) like other lists, and `ApplySelect` honours a `contentWidth` below
   its 256px minimum
 - `ApplySelect.Root` autofocuses its search like `ApplySelect`
+- `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow
 
 #### Upgrading from 0.7
 
