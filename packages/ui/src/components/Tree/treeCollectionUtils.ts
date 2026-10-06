@@ -18,6 +18,37 @@ export const filterTreeCollection = <TNode extends TreeNode>(
   );
 };
 
+export const getExpandableBranchValues = <TNode extends TreeNode>(
+  collection: TreeCollection<TNode>,
+  loadedValues?: ReadonlySet<string>,
+) => {
+  const values: string[] = [];
+
+  collection.visit({
+    onEnter: (node) => {
+      const value = collection.getNodeValue(node);
+      if (collection.getNodeChildren(node).length > 0 || loadedValues?.has(value)) {
+        values.push(value);
+      }
+    },
+  });
+
+  return values;
+};
+
+export const replaceNodeChildren = <TNode extends TreeNode>(
+  collection: TreeCollection<TNode>,
+  value: string,
+  children: TNode[],
+) => {
+  const indexPath = collection.getIndexPath(value);
+  const node = indexPath ? collection.at(indexPath) : undefined;
+
+  if (!indexPath || !node || collection.getNodeChildren(node).length > 0) return null;
+
+  return collection.replace(indexPath, { ...node, children });
+};
+
 export const collectLeafValues = <TNode extends TreeNode>(
   collection: TreeCollection<TNode>,
   nodes: TNode[],

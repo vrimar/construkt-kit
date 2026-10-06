@@ -7,7 +7,13 @@ export {
   useTreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
 
-export type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
+export type {
+  TreeCollection,
+  TreeNode,
+  TreeViewLoadChildrenCompleteDetails,
+  TreeViewLoadChildrenDetails,
+  TreeViewLoadChildrenErrorDetails,
+} from "@ark-ui/react/tree-view";
 
 export {
   applyTreeDrop,
@@ -43,5 +49,9 @@ export {
 } from "./treeCollectionUtils";
 export { TreeRowIndentGuides } from "./TreeRowIndentGuides";
 export type { TreeNodeRenderDetails } from "./TreeRow";
-export { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
+export {
+  TreeSelectList,
+  type TreeSelectListProps,
+  type TreeSelectListSearchMode,
+} from "./TreeSelectList";
 export { TreeView, type TreeViewRootProps, type TreeViewVariantProps } from "./TreeView";

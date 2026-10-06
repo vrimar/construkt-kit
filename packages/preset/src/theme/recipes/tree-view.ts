@@ -58,6 +58,9 @@ export const treeView = defineSlotRecipe({
       "&[data-dragging]": {
         opacity: "0.4",
       },
+      _loading: {
+        cursor: "progress",
+      },
     },
     branchIndicator: {
       display: "inline-flex",
@@ -75,6 +78,22 @@ export const treeView = defineSlotRecipe({
       _icon: {
         width: "1em",
         height: "1em",
+      },
+      _loading: {
+        _icon: {
+          display: "none",
+        },
+        _after: {
+          content: '""',
+          boxSize: "0.75em",
+          borderWidth: "1.5px",
+          borderStyle: "solid",
+          borderColor: "currentColor",
+          borderBottomColor: "transparent",
+          borderInlineStartColor: "transparent",
+          borderRadius: "full",
+          animation: "spin",
+        },
       },
     },
     branchText: {

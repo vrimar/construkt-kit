@@ -11,11 +11,20 @@ export interface TreeNodeRenderDetails<T extends TreeNode> {
   isBranch: boolean;
 }
 
-type TreeRowPartProps = ComponentProps<typeof TreeView.Item> & { isBranch: boolean };
+type TreeRowPartProps = ComponentProps<typeof TreeView.Item> & {
+  isBranch: boolean;
+  loading?: boolean;
+};
 
-export function TreeRowPart({ isBranch, ...props }: TreeRowPartProps) {
+export function TreeRowPart({ isBranch, loading, ...props }: TreeRowPartProps) {
   const Part = isBranch ? TreeView.BranchControl : TreeView.Item;
-  return <Part {...props} />;
+  return (
+    <Part
+      data-loading={loading || undefined}
+      aria-busy={loading || undefined}
+      {...props}
+    />
+  );
 }
 
 export function TreeDndRow({ children, ...props }: TreeRowPartProps) {

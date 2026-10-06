@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { TreeSelectList, createTreeCollection } from ".";
+import { type TreeViewLoadChildrenDetails, TreeSelectList, createTreeCollection } from ".";
+import { useDebounceQuery } from "../../hooks";
 import { Box } from "../Layout";
 
 const meta: Meta = {
@@ -157,4 +158,123 @@ function LongListDemo() {
 
 export const LongList: Story = {
   render: () => <LongListDemo />,
+};
+
+interface LazyDemoNode {
+  id: string;
+  label: string;
+  childrenCount?: number;
+  children?: LazyDemoNode[];
+}
+
+const lazyCollection = createTreeCollection<LazyDemoNode>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.label,
+  rootNode: {
+    id: "ROOT",
+    label: "",
+    children: [
+      { id: "engineering", label: "Engineering", childrenCount: 3 },
+      { id: "design", label: "Design", childrenCount: 2 },
+      { id: "sales", label: "Sales", childrenCount: 4 },
+    ],
+  },
+});
+
+const delay = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(signal.reason);
+      },
+      { once: true },
+    );
+  });
+
+const loadTeam = async ({
+  node,
+  valuePath,
+  signal,
+}: TreeViewLoadChildrenDetails<LazyDemoNode>): Promise<LazyDemoNode[]> => {
+  await delay(800, signal);
+  const isTeam = valuePath.length > 1;
+
+  return Array.from({ length: node.childrenCount ?? 0 }, (_, index) => {
+    const id = `${node.id}/${index + 1}`;
+    return isTeam
+      ? { id, label: `${node.label} member ${index + 1}` }
+      : { id, label: `${node.label} team ${index + 1}`, childrenCount: 2 };
+  });
+};
+
+function LazyLoadingDemo() {
+  const [teams, setTeams] = useState(lazyCollection);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  return (
+    <Box
+      maxW="400px"
+      borderWidth="1px"
+      borderColor="border"
+      borderRadius="lg"
+    >
+      <TreeSelectList
+        collection={teams}
+        value={selected}
+        onValueChange={setSelected}
+        loadChildren={loadTeam}
+        onLoadChildrenComplete={(details) => setTeams(details.collection)}
+        listHeight="320px"
+      />
+    </Box>
+  );
+}
+
+export const LazyLoading: Story = {
+  render: () => <LazyLoadingDemo />,
+};
+
+const searchServer = async (query: string, signal: AbortSignal) => {
+  await delay(400, signal);
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return collection;
+  return collection.filter((node) => node.label.toLowerCase().includes(normalized));
+};
+
+function ExternalSearchDemo() {
+  const { query, debouncedQuery, setQuery } = useDebounceQuery("", 300);
+  const [results, setResults] = useState(collection);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    searchServer(debouncedQuery, controller.signal).then(setResults, () => {});
+    return () => controller.abort();
+  }, [debouncedQuery]);
+
+  return (
+    <Box
+      maxW="400px"
+      borderWidth="1px"
+      borderColor="border"
+      borderRadius="lg"
+    >
+      <TreeSelectList
+        collection={results}
+        value={selected}
+        onValueChange={setSelected}
+        searchMode="external"
+        query={query}
+        onQueryChange={setQuery}
+        listHeight="320px"
+      />
+    </Box>
+  );
+}
+
+export const ExternalSearch: Story = {
+  render: () => <ExternalSearchDemo />,
 };

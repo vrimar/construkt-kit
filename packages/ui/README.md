@@ -358,13 +358,20 @@ allowBuilds:
   and its item. Enter on a link item clicks it as a pointer does, so a router link's handler runs and the menu closes;
   pass `navigate` to `Menu.Root` to route by `href` instead
 - `Menu.TriggerItem` no longer takes `value`, which zag never read; drop it
-- `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow
+- `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow.
+  `TreeSelectList` scrolls that way, so long labels truncate instead of scrolling sideways
 - Single-mode `onValueChange` on `Listbox` and `Select` receives `V`, never `null`; clear by passing `value={null}`.
   Clearing through `Listbox.Context` (`clearValue()`, `setValue([])`) no longer emits
 - `Listbox` drops `defaultValue`, which it always ignored
 - The search field in `Listbox` and `Select` drives the list: arrows move the highlight, Enter picks, and typing
   highlights the first match. The list element takes the listbox content id, so set a custom one through the root's
   `ids.content`
+- `TreeSelectListProps` is a type alias; replace `interface X extends TreeSelectListProps<T>` with an intersection
+- While a query is active, `TreeSelectList` expands every branch with matches and disables drag-and-drop. Collapsing a
+  branch mid-search lasts until the query changes and skips `onExpandedChange`; pass `expandOnSearch={false}` to keep
+  the stored expansion
+- `TreeSelectList` select-all acts on the displayed leaves: during a search it adds or removes only the matches, and it
+  keeps `value` ids that aren't in the collection
 
 #### Upgrading from 0.7
 

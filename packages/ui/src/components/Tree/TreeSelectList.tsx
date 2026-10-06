@@ -1,4 +1,10 @@
-import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
+import type {
+  TreeCollection,
+  TreeNode,
+  TreeViewLoadChildrenCompleteDetails,
+  TreeViewLoadChildrenDetails,
+  TreeViewLoadChildrenErrorDetails,
+} from "@ark-ui/react/tree-view";
 import { useTreeView } from "@ark-ui/react/tree-view";
 import { SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -7,13 +13,15 @@ import { useCallback, useMemo, useState } from "react";
 import { Box, Flex } from "#styled-system/jsx";
 
 import { TooltipIconButton } from "../Buttons";
-import { SelectionSearchField } from "../Listbox/managed";
+import { SelectionSearchField, normalizeQuery } from "../Listbox/managed";
 import { VirtualScrollArea } from "../ScrollArea";
 import { TreeViewDndProvider, type TreeViewDndProviderProps } from "./dnd/TreeDndContext";
 import { collectBranchesWithLeafDescendants, filterTreeCollection } from "./treeCollectionUtils";
 import { TreeDndRow, TreeNodeLabel, type TreeNodeRenderDetails, TreeRowPart } from "./TreeRow";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
 import { TreeView } from "./TreeView";
+import { useTreeLazyLoad } from "./useTreeLazyLoad";
+import { useTreeSearchExpansion } from "./useTreeSearchExpansion";
 
 type TreeSize = "sm" | "md";
 
@@ -23,7 +31,9 @@ const TREE_ROW_HEIGHT_ESTIMATE: Record<TreeSize, number> = {
   md: 32,
 };
 
-export interface TreeSelectListProps<TNode extends TreeNode> {
+export type TreeSelectListSearchMode = "filter" | "external";
+
+interface TreeSelectListBaseProps<TNode extends TreeNode> {
   /** The tree collection. Create with `createTreeCollection()`. */
   collection: TreeCollection<TNode>;
   /** Controlled selected leaf-node IDs. */
@@ -38,10 +48,29 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   isNodeCheckable?: (details: TreeNodeRenderDetails<TNode>) => boolean;
   /** Placeholder text for the search input. @default "Search..." */
   searchPlaceholder?: string;
-  /** Custom search predicate. Receives the node and the lowercased query. */
+  /**
+   * Custom search predicate. Receives the node and the lowercased query. Unused when
+   * `searchMode` is `"external"`.
+   */
   searchPredicate?: (node: TNode, query: string) => boolean;
   /** Show the search input. @default true */
   showSearch?: boolean;
+  /** Controlled search query. */
+  query?: string;
+  /** Initial search query (uncontrolled). @default "" */
+  defaultQuery?: string;
+  /** Callback when the search query changes. */
+  onQueryChange?: (query: string) => void;
+  /**
+   * `"filter"` filters `collection` by the query. `"external"` renders `collection` as given so
+   * the consumer can filter it (e.g. server-side) from `onQueryChange`. @default "filter"
+   */
+  searchMode?: TreeSelectListSearchMode;
+  /**
+   * Expand every branch that has children while a query is active. Collapsing a branch during a
+   * search lasts until the query changes and does not call `onExpandedChange`. @default true
+   */
+  expandOnSearch?: boolean;
   /** Show the select-all toggle button. @default true */
   showSelectAll?: boolean;
   /** Label of the select-all toggle while not everything is selected. @default "Select all" */
@@ -50,7 +79,7 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   clearAllLabel?: string;
   /** Controlled expanded node IDs. */
   expandedValue?: string[];
-  /** Initial expanded node IDs (uncontrolled). Defaults to all branches. */
+  /** Initial expanded node IDs (uncontrolled). Defaults to all branches that have children. */
   defaultExpandedValue?: string[];
   /** Callback when expanded nodes change. */
   onExpandedChange?: (expandedValue: string[]) => void;
@@ -60,7 +89,7 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   size?: TreeSize;
   /**
    * Enables drag-and-drop reordering. Called with the reordered collection after a drop.
-   * DnD is automatically disabled while a search filter is active.
+   * DnD is automatically disabled while a search query is active.
    */
   onCollectionChange?: (collection: TreeCollection<TNode>) => void;
   /** Whether a node may be dragged (DnD only). @default all nodes */
@@ -92,6 +121,25 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   autoScrollSpeed?: TreeViewDndProviderProps<TNode>["autoScrollSpeed"];
 }
 
+type TreeSelectListLoadProps<TNode extends TreeNode> =
+  | { loadChildren?: never; onLoadChildrenComplete?: never; onLoadChildrenError?: never }
+  | {
+      /**
+       * Loads a branch's children when it is expanded. A node needs loading while it has
+       * `childrenCount` set, no `children` in `collection` and no finished load; a `collection` not
+       * returned by `onLoadChildrenComplete` starts afresh. The branch stays collapsed until the
+       * load finishes, then opens even if it came back empty.
+       */
+      loadChildren: (details: TreeViewLoadChildrenDetails<TNode>) => Promise<TNode[]>;
+      /** Receives `collection` with the loaded `children` merged in; pass it back as `collection`. */
+      onLoadChildrenComplete: (details: TreeViewLoadChildrenCompleteDetails<TNode>) => void;
+      /** Called when `loadChildren` rejects; the branch stays collapsed and retries on next expand. */
+      onLoadChildrenError?: (details: TreeViewLoadChildrenErrorDetails<TNode>) => void;
+    };
+
+export type TreeSelectListProps<TNode extends TreeNode> = TreeSelectListBaseProps<TNode> &
+  TreeSelectListLoadProps<TNode>;
+
 const TreeIndicatorSpacer = () => (
   <Box
     aria-hidden="true"
@@ -103,6 +151,7 @@ const TreeIndicatorSpacer = () => (
 
 interface TreeRowProps {
   isBranch: boolean;
+  loading: boolean;
   checkable: boolean;
   indexPath: number[];
   children: ReactNode;
@@ -110,10 +159,21 @@ interface TreeRowProps {
   onPointerDown: (e: React.PointerEvent) => void;
 }
 
-const renderRowInner = ({ isBranch, checkable, indexPath, children, actions }: TreeRowProps) => (
+const renderRowInner = ({
+  isBranch,
+  loading,
+  checkable,
+  indexPath,
+  children,
+  actions,
+}: TreeRowProps) => (
   <>
     <TreeRowIndentGuides indexPath={indexPath} />
-    {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
+    {isBranch ? (
+      <TreeView.BranchIndicator data-loading={loading || undefined} />
+    ) : (
+      <TreeIndicatorSpacer />
+    )}
     {checkable && <TreeView.NodeCheckbox />}
     <Box
       flex="1"
@@ -142,6 +202,7 @@ const depthStyleFor = (indexPath: number[]): React.CSSProperties & { "--depth": 
 const PlainTreeRow = (props: TreeRowProps) => (
   <TreeRowPart
     isBranch={props.isBranch}
+    loading={props.loading}
     onPointerDown={props.onPointerDown}
     style={depthStyleFor(props.indexPath)}
   >
@@ -153,6 +214,7 @@ const PlainTreeRow = (props: TreeRowProps) => (
 const DndTreeRow = (props: TreeRowProps) => (
   <TreeDndRow
     isBranch={props.isBranch}
+    loading={props.loading}
     onPointerDown={props.onPointerDown}
     style={depthStyleFor(props.indexPath)}
   >
@@ -191,90 +253,128 @@ export const TreeSelectList = <TNode extends TreeNode>({
   renderDragPreview,
   getDropAnnouncement,
   autoScrollSpeed,
+  query,
+  defaultQuery = "",
+  onQueryChange,
+  searchMode = "filter",
+  expandOnSearch = true,
+  loadChildren,
+  onLoadChildrenComplete,
+  onLoadChildrenError,
 }: TreeSelectListProps<TNode>) => {
-  const [search, setSearch] = useState("");
+  const [internalQuery, setInternalQuery] = useState(defaultQuery);
+  const resolvedQuery = query ?? internalQuery;
+  const normalizedQuery = normalizeQuery(resolvedQuery);
+  const queryActive = normalizedQuery !== "";
   const selectAllButtonSize = size === "sm" ? "xs" : "sm";
+
+  const setQuery = (nextQuery: string) => {
+    if (query === undefined) setInternalQuery(nextQuery);
+    onQueryChange?.(nextQuery);
+  };
 
   // --- Filtering ---
 
-  const filteredCollection = useMemo(
-    () => filterTreeCollection(collection, search, searchPredicate),
-    [collection, search, searchPredicate],
+  const displayedCollection = useMemo(
+    () =>
+      filterTreeCollection(
+        collection,
+        searchMode === "external" ? "" : resolvedQuery,
+        searchPredicate,
+      ),
+    [collection, resolvedQuery, searchMode, searchPredicate],
   );
 
   // --- Expansion state ---
 
-  const allExpandedValue = useMemo(() => collection.getBranchValues(), [collection]);
+  const lazyLoad = useTreeLazyLoad({
+    collection,
+    loadChildren,
+    onLoadChildrenComplete,
+    onLoadChildrenError,
+    onLoaded: (treeValue) => expansion.expand(treeValue),
+    abortKey: searchMode === "external" ? normalizedQuery : "",
+  });
 
-  const [uncontrolledExpandedValue, setUncontrolledExpandedValue] = useState<string[]>(
-    defaultExpandedValue ?? allExpandedValue,
-  );
+  const expansion = useTreeSearchExpansion({
+    collection,
+    displayedCollection,
+    expandedValue,
+    defaultExpandedValue,
+    onExpandedChange,
+    normalizedQuery,
+    expandOnSearch,
+    loadedValues: lazyLoad.loadedValues,
+  });
 
-  const resolvedExpandedValue = expandedValue ?? uncontrolledExpandedValue;
-
-  const filteredExpandableValueSet = useMemo(
-    () => new Set(filteredCollection.getBranchValues()),
-    [filteredCollection],
-  );
-
-  const visibleExpandedValue = useMemo(
-    () => resolvedExpandedValue.filter((treeValue) => filteredExpandableValueSet.has(treeValue)),
-    [filteredExpandableValueSet, resolvedExpandedValue],
-  );
-
-  const handleExpandedChange = (nextVisibleExpandedValue: string[]) => {
-    const preservedExpandedValue = resolvedExpandedValue.filter(
-      (treeValue) => !filteredExpandableValueSet.has(treeValue),
+  const handleExpandedChange = (nextExpandedValue: string[]) => {
+    const deferredValues = expansion.getOpenedValues(nextExpandedValue).filter(lazyLoad.needsLoad);
+    lazyLoad.start(deferredValues);
+    expansion.setExpandedValue(
+      nextExpandedValue.filter((treeValue) => !deferredValues.includes(treeValue)),
     );
-    const nextExpandedValue = [...preservedExpandedValue, ...nextVisibleExpandedValue];
-
-    if (expandedValue === undefined) {
-      setUncontrolledExpandedValue(nextExpandedValue);
-    }
-
-    onExpandedChange?.(nextExpandedValue);
   };
 
   // --- Select all ---
 
-  const allSelectableValues = useMemo(() => collection.getDescendantValues([]), [collection]);
+  // Filtering keeps a matching branch with no children, which then reads as a leaf.
+  const leafValueSet = useMemo(() => new Set(collection.getDescendantValues([])), [collection]);
+  const displayedLeafValues = useMemo(
+    () =>
+      displayedCollection
+        .getDescendantValues([])
+        .filter((leafValue) => leafValueSet.has(leafValue)),
+    [displayedCollection, leafValueSet],
+  );
 
   const selectedSet = useMemo(() => new Set(value), [value]);
 
   const allSelected =
-    allSelectableValues.length > 0 &&
-    allSelectableValues.every((selectionValue) => selectedSet.has(selectionValue));
+    displayedLeafValues.length > 0 &&
+    displayedLeafValues.every((selectionValue) => selectedSet.has(selectionValue));
   const someSelected =
-    !allSelected && allSelectableValues.some((selectionValue) => selectedSet.has(selectionValue));
+    !allSelected && displayedLeafValues.some((selectionValue) => selectedSet.has(selectionValue));
+
+  const toggleSelectAll = () => {
+    if (!allSelected) {
+      onValueChange([
+        ...value,
+        ...displayedLeafValues.filter((leafValue) => !selectedSet.has(leafValue)),
+      ]);
+      return;
+    }
+    const displayedLeafSet = new Set(displayedLeafValues);
+    onValueChange(value.filter((selectionValue) => !displayedLeafSet.has(selectionValue)));
+  };
 
   // --- Checkability ---
 
   const selectableSubtrees = useMemo(
     () =>
       collectBranchesWithLeafDescendants(
-        filteredCollection,
-        filteredCollection.getNodeChildren(filteredCollection.rootNode),
+        displayedCollection,
+        displayedCollection.getNodeChildren(displayedCollection.rootNode),
       ),
-    [filteredCollection],
+    [displayedCollection],
   );
 
   const resolvedIsNodeCheckable = useCallback(
     ({ node, indexPath, isBranch }: TreeNodeRenderDetails<TNode>) => {
-      if (isBranch && !selectableSubtrees.has(filteredCollection.getNodeValue(node))) {
+      if (isBranch && !selectableSubtrees.has(displayedCollection.getNodeValue(node))) {
         return false;
       }
       return isNodeCheckable?.({ node, indexPath, isBranch }) ?? true;
     },
-    [filteredCollection, isNodeCheckable, selectableSubtrees],
+    [displayedCollection, isNodeCheckable, selectableSubtrees],
   );
 
   // --- Tree view hook ---
 
   const tree = useTreeView({
-    collection: filteredCollection,
+    collection: displayedCollection,
     checkedValue: value,
     onCheckedChange: (details) => onValueChange(details.checkedValue),
-    expandedValue: visibleExpandedValue,
+    expandedValue: expansion.visibleExpandedValue,
     onExpandedChange: (details) => handleExpandedChange(details.expandedValue),
     selectedValue: [],
     onSelectionChange: () => {}, // No selection management (focus only) since it interferes with checkbox interactions
@@ -283,12 +383,18 @@ export const TreeSelectList = <TNode extends TreeNode>({
   const visibleNodes = tree.getVisibleNodes();
 
   // --- Drag and drop ---
-  // Reorder against the original (unfiltered) collection; disabled while searching so the
-  // rendered indexPaths (filteredCollection) always match the collection DnD mutates.
-  const dndActive = onCollectionChange != null && filteredCollection === collection;
+  // Disabled during a query so rendered indexPaths match the source collection DnD mutates.
+  const dndActive = onCollectionChange != null && !queryActive;
   const [scrollViewport, setScrollViewport] = useState<HTMLDivElement | null>(null);
   // Non-DnD trees (the common case) render a plain row so every virtualized row skips the DnD hook.
   const RowComponent = onCollectionChange ? DndTreeRow : PlainTreeRow;
+
+  const resolvedCanDrop: TreeViewDndProviderProps<TNode>["canDrop"] = (details) => {
+    if (details.instruction.type === "make-child" && lazyLoad.needsLoad(details.targetValue)) {
+      return false;
+    }
+    return canDrop?.(details) ?? true;
+  };
 
   // --- Render ---
 
@@ -301,7 +407,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
       color="fg.muted"
       mr="1"
       flexShrink={0}
-      onClick={() => onValueChange(allSelected ? [] : allSelectableValues)}
+      onClick={toggleSelectAll}
     >
       {allSelected ? <SquareCheckIcon /> : someSelected ? <SquareMinusIcon /> : <SquareIcon />}
     </TooltipIconButton>
@@ -316,16 +422,17 @@ export const TreeSelectList = <TNode extends TreeNode>({
         <VirtualScrollArea
           items={visibleNodes}
           itemHeight={TREE_ROW_HEIGHT_ESTIMATE[size]}
-          getItemKey={(index) => filteredCollection.getNodeValue(visibleNodes[index].node)}
+          getItemKey={(index) => displayedCollection.getNodeValue(visibleNodes[index].node)}
           height={listHeight}
           maxHeight={listHeight}
           viewportRef={setScrollViewport}
+          scrollbars="vertical"
           measure
           p="2"
         >
           {({ node, indexPath }) => {
             const nodeState = tree.getNodeState({ node, indexPath });
-            const nodeValue = filteredCollection.getNodeValue(node);
+            const nodeValue = displayedCollection.getNodeValue(node);
             const isBranch = nodeState.isBranch;
             const checkable = resolvedIsNodeCheckable({ node, indexPath, isBranch });
             const renderedNode = renderNode?.({ node, indexPath, isBranch });
@@ -339,6 +446,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
               >
                 <RowComponent
                   isBranch={isBranch}
+                  loading={lazyLoad.loadingValues.has(nodeValue)}
                   checkable={checkable}
                   indexPath={indexPath}
                   actions={renderedActions}
@@ -349,7 +457,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
                 >
                   {renderedNode ?? (
                     <TreeNodeLabel isBranch={isBranch}>
-                      {filteredCollection.stringifyNode(node)}
+                      {displayedCollection.stringifyNode(node)}
                     </TreeNodeLabel>
                   )}
                 </RowComponent>
@@ -366,8 +474,8 @@ export const TreeSelectList = <TNode extends TreeNode>({
       {showSearch ? (
         <Box mb="2">
           <SelectionSearchField
-            query={search}
-            onQueryChange={setSearch}
+            query={resolvedQuery}
+            onQueryChange={setQuery}
             placeholder={searchPlaceholder}
             endElement={selectAllButton}
           />
@@ -396,7 +504,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
           onDrop={onDrop}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
-          canDrop={canDrop}
+          canDrop={resolvedCanDrop}
           getDragValues={getDragValues}
           getExtraDragData={getExtraDragData}
           renderDragPreview={renderDragPreview}
