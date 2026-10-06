@@ -85,7 +85,7 @@ export const SubmitFormLoadingStory: Story = {
       <SubmitForm
         onSubmit={fn()}
         onCancel={fn()}
-        isSubmitLoading
+        loading
       >
         <Field label="Name">
           <Input placeholder="Enter your name" />

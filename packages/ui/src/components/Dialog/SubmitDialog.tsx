@@ -8,20 +8,30 @@ import type { ButtonProps } from "../Buttons";
 import { Button } from "../Buttons";
 import { Dialog } from "./Dialog";
 
+export interface SubmitDialogFooterParts {
+  cancelButton: ReactNode;
+  submitButton: ReactNode;
+}
+
 export interface SubmitDialogProps {
   title: ReactNode;
   onSubmit?: () => unknown;
   submitLabel?: string;
   submitButtonProps?: Unstyled<ButtonProps>;
-  isSubmitLoading?: boolean;
-  isSubmitDisabled?: boolean;
+  loading?: boolean;
+  submitDisabled?: boolean;
   onClose?: () => unknown;
   cancelLabel?: string;
   children: ReactNode;
-  isOpen?: boolean;
+  open?: boolean;
   /** Max width of the dialog: px if a number, otherwise a size token or CSS length. */
   contentWidth?: string | number;
   autoFocusButton?: boolean;
+  /**
+   * Lays out the footer from the prebuilt buttons plus any of your own. Keep a `type="submit"`
+   * button in it, or Enter in a field has nothing to submit through.
+   */
+  footer?: (parts: SubmitDialogFooterParts) => ReactNode;
 }
 
 export const SubmitDialog = ({
@@ -30,17 +40,39 @@ export const SubmitDialog = ({
   onSubmit,
   submitLabel = "Submit",
   submitButtonProps,
-  isSubmitLoading,
-  isSubmitDisabled,
+  loading,
+  submitDisabled,
   onClose,
-  isOpen = true,
+  open = true,
   cancelLabel = "Cancel",
   contentWidth,
   autoFocusButton,
+  footer,
 }: SubmitDialogProps) => {
+  const cancelButton = (
+    <Button
+      variant="plain"
+      onClick={onClose}
+    >
+      {cancelLabel}
+    </Button>
+  );
+  const submitButton = (
+    <Button
+      type="submit"
+      disabled={submitDisabled}
+      loading={loading}
+      data-autofocus={autoFocusButton || undefined}
+      colorPalette="brand"
+      {...submitButtonProps}
+    >
+      {submitLabel}
+    </Button>
+  );
+
   return (
     <Dialog.Root
-      open={isOpen}
+      open={open}
       onOpenChange={(e) => {
         if (!e.open) onClose?.();
       }}
@@ -65,24 +97,16 @@ export const SubmitDialog = ({
           }}
         >
           <Dialog.Body>{children}</Dialog.Body>
-          {onSubmit && (
+          {(onSubmit || footer) && (
             <Dialog.Footer gap="2">
-              <Button
-                variant="plain"
-                onClick={onClose}
-              >
-                {cancelLabel}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitDisabled}
-                loading={isSubmitLoading}
-                data-autofocus={autoFocusButton || undefined}
-                colorPalette="brand"
-                {...submitButtonProps}
-              >
-                {submitLabel}
-              </Button>
+              {footer ? (
+                footer({ cancelButton, submitButton })
+              ) : (
+                <>
+                  {cancelButton}
+                  {submitButton}
+                </>
+              )}
             </Dialog.Footer>
           )}
         </styled.form>

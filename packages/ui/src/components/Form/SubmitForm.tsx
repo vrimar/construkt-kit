@@ -8,8 +8,8 @@ import { Button } from "../Buttons";
 export interface SubmitFormProps extends StackProps {
   children: ReactNode;
   onSubmit: () => unknown;
-  isSubmitDisabled?: boolean;
-  isSubmitLoading?: boolean;
+  submitDisabled?: boolean;
+  loading?: boolean;
   error?: unknown;
   onCancel: () => unknown;
 }
@@ -17,8 +17,8 @@ export interface SubmitFormProps extends StackProps {
 export const SubmitForm = ({
   children,
   onSubmit,
-  isSubmitLoading,
-  isSubmitDisabled,
+  loading,
+  submitDisabled,
   error,
   onCancel,
   ...props
@@ -46,8 +46,8 @@ export const SubmitForm = ({
         <Button
           type="submit"
           formNoValidate
-          disabled={isSubmitDisabled}
-          loading={isSubmitLoading}
+          disabled={submitDisabled}
+          loading={loading}
           colorPalette="brand"
         >
           Submit

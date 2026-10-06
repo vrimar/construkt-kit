@@ -352,6 +352,8 @@ allowBuilds:
 - Virtual lists cap at the listbox's `maxH` (24rem) like other lists, and `ApplySelect` honours a `contentWidth` below
   its 256px minimum
 - `ApplySelect.Root` autofocuses its search like `ApplySelect`
+- `SubmitDialog` and `SubmitForm` take `loading` and `submitDisabled` in place of `isSubmitLoading` and
+  `isSubmitDisabled`, and `SubmitDialog` takes `open` in place of `isOpen`, matching `Button`, `DataTable` and `Select`
 - `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow
 
 #### Upgrading from 0.7

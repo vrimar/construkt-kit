@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { Button } from "../Buttons";
 import { Textarea } from "../Input";
 import { Popover } from "../Popover";
 import { SubmitDialog } from "./SubmitDialog";
@@ -81,7 +82,7 @@ describe("SubmitDialog", () => {
       <SubmitDialog
         title="Edit"
         onSubmit={onSubmit}
-        isSubmitDisabled
+        submitDisabled
       >
         <Textarea
           aria-label="Name"
@@ -121,6 +122,96 @@ describe("SubmitDialog", () => {
       </SubmitDialog>,
     );
     expect(screen.getByRole("dialog").style.maxWidth).toBe("540px");
+  });
+
+  it("lays out extra footer buttons that don't submit", async () => {
+    const onSubmit = vi.fn();
+    const onToggle = vi.fn();
+    render(
+      <SubmitDialog
+        title="Export"
+        onSubmit={onSubmit}
+        footer={({ cancelButton, submitButton }) => (
+          <>
+            <Button onClick={onToggle}>Toggle All</Button>
+            {cancelButton}
+            {submitButton}
+          </>
+        )}
+      >
+        Body
+      </SubmitDialog>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Toggle All" }));
+    expect(onToggle).toHaveBeenCalledOnce();
+    expect(onSubmit).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(onSubmit).toHaveBeenCalledOnce();
+  });
+
+  it("lets the footer replace the submit button", async () => {
+    const onSubmit = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <SubmitDialog
+        title="Settings"
+        onSubmit={onSubmit}
+        onClose={onClose}
+        footer={({ cancelButton }) => (
+          <>
+            {cancelButton}
+            <Button type="submit">Apply</Button>
+          </>
+        )}
+      >
+        <input aria-label="Name" />
+      </SubmitDialog>,
+    );
+    expect(screen.queryByRole("button", { name: "Submit" })).toBeNull();
+    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    expect(onSubmit).toHaveBeenCalledOnce();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("renders a footer without onSubmit", () => {
+    render(
+      <SubmitDialog
+        title="Info"
+        footer={({ cancelButton }) => cancelButton}
+      >
+        Body
+      </SubmitDialog>,
+    );
+    expect(screen.getByRole("button", { name: "Cancel" })).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Submit" })).toBeNull();
+  });
+
+  it("shows loading on the submit button", () => {
+    render(
+      <SubmitDialog
+        title="Edit"
+        onSubmit={vi.fn()}
+        loading
+      >
+        Body
+      </SubmitDialog>,
+    );
+    const submit = screen.getByRole<HTMLButtonElement>("button", { name: "Submit" });
+    expect(submit.hasAttribute("data-loading")).toBe(true);
+    expect(submit.disabled).toBe(true);
+  });
+
+  it("renders nothing when closed", () => {
+    render(
+      <SubmitDialog
+        title="Edit"
+        open={false}
+      >
+        Body
+      </SubmitDialog>,
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("stays open when the popover that opened it closes", async () => {

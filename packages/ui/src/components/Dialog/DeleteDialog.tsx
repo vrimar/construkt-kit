@@ -6,7 +6,7 @@ export interface DeleteDialogProps {
   name: string;
   onClose: () => unknown;
   onSubmit: () => unknown;
-  loading: boolean;
+  loading?: boolean;
   confirmMessage?: string;
 }
 
@@ -23,8 +23,8 @@ export const DeleteDialog = ({
       title={`Delete ${title}`}
       onClose={onClose}
       onSubmit={onSubmit}
-      isSubmitLoading={loading}
-      submitButtonProps={{ colorPalette: "red" }}
+      loading={loading}
+      submitButtonProps={{ colorPalette: "danger" }}
       autoFocusButton
     >
       <Text>
