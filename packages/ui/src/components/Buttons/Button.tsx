@@ -1,11 +1,12 @@
 import { ark } from "@ark-ui/react/factory";
 import { createContext, mergeProps } from "@ark-ui/react/utils";
-import { type ComponentProps, cloneElement, isValidElement } from "react";
+import type { ComponentProps } from "react";
 
 import { styled } from "#styled-system/jsx";
 import { type ButtonVariantProps, button } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
+import { wrapAsChildContent } from "../asChildContent";
 import { Group, type GroupProps } from "./Group";
 import { Loader } from "./Loader";
 
@@ -75,10 +76,14 @@ const withIcons = (
   leftIcon: React.ReactNode,
   rightIcon: React.ReactNode,
 ) => {
-  if ((!leftIcon && !rightIcon) || !isValidElement<{ children?: React.ReactNode }>(child)) {
-    return child;
-  }
-  return cloneElement(child, undefined, leftIcon, child.props.children, rightIcon);
+  if (!leftIcon && !rightIcon) return child;
+  return wrapAsChildContent(child, (content) => (
+    <>
+      {leftIcon}
+      {content}
+      {rightIcon}
+    </>
+  ));
 };
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}

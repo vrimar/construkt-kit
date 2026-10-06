@@ -11,6 +11,7 @@ import { Box, createSlotRecipeContext } from "#styled-system/jsx";
 import { menu } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../../types";
+import { wrapAsChildContent } from "../asChildContent";
 import { createItemIndicator } from "../itemIndicator";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
@@ -20,7 +21,13 @@ import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerToo
 const { withRootProvider, withContext } = createSlotRecipeContext(menu);
 
 export type RootProps = ComponentProps<typeof Root>;
-export const Root = withRootProvider(ArkMenu.Root, { defaultProps: lazyOverlayDefaults });
+export const Root = withRootProvider(ArkMenu.Root, {
+  defaultProps: {
+    ...lazyOverlayDefaults,
+    // zag's default dispatches a non-bubbling click, which React's root listener never sees.
+    navigate: ({ node }: { node: HTMLAnchorElement }) => queueMicrotask(() => node.click()),
+  },
+});
 export const ArrowTip = withContext(ArkMenu.ArrowTip, "arrowTip");
 export const Arrow = withContext(ArkMenu.Arrow, "arrow", {
   defaultProps: { children: <ArrowTip /> },
@@ -76,7 +83,7 @@ function MenuCheckboxItem({
   ref,
   children,
   ...props
-}: WithRef<ComponentProps<typeof CheckboxItem>>) {
+}: WithRef<Omit<ComponentProps<typeof CheckboxItem>, "asChild">>) {
   return (
     <CheckboxItem
       ref={ref}
@@ -88,7 +95,11 @@ function MenuCheckboxItem({
   );
 }
 
-function MenuRadioItem({ ref, children, ...rest }: WithRef<ComponentProps<typeof RadioItem>>) {
+function MenuRadioItem({
+  ref,
+  children,
+  ...rest
+}: WithRef<Omit<ComponentProps<typeof RadioItem>, "asChild">>) {
   return (
     <RadioItem
       ref={ref}
@@ -102,16 +113,25 @@ function MenuRadioItem({ ref, children, ...rest }: WithRef<ComponentProps<typeof
 
 export interface MenuItemProps extends ComponentProps<typeof Item> {
   icon?: ReactNode;
+  /** Colors the item with the danger palette, for actions that delete or can't be undone. */
+  destructive?: boolean;
 }
 
-function MenuItem({ ref, icon, children, ...rest }: WithRef<MenuItemProps>) {
+function MenuItem({ ref, icon, destructive, children, ...rest }: WithRef<MenuItemProps>) {
+  const content = (label: ReactNode) => (
+    <>
+      {icon}
+      <Box flex="1">{label}</Box>
+    </>
+  );
+
   return (
     <Item
       {...rest}
       ref={ref}
+      data-destructive={destructive ? "" : undefined}
     >
-      {icon}
-      <Box flex="1">{children}</Box>
+      {rest.asChild ? wrapAsChildContent(children, content) : content(children)}
     </Item>
   );
 }
@@ -133,7 +153,7 @@ function MenuItemGroup({
   );
 }
 
-export interface MenuTriggerItemProps extends ComponentProps<typeof Item> {
+export interface MenuTriggerItemProps extends Omit<ComponentProps<typeof TriggerItem>, "asChild"> {
   startIcon?: ReactNode;
 }
 

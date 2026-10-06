@@ -60,7 +60,7 @@ const actionsColumn = columnHelper.display({
         <Menu.Item
           value="delete"
           icon={<TrashIcon />}
-          color="fg.error"
+          destructive
         >
           Delete
         </Menu.Item>

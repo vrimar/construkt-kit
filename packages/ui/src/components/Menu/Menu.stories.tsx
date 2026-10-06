@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CopyIcon, PencilIcon, ShareIcon, TrashIcon } from "lucide-react";
+import {
+  CopyIcon,
+  ExternalLinkIcon,
+  PencilIcon,
+  SettingsIcon,
+  ShareIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { menu } from "#styled-system/recipes";
@@ -104,6 +111,64 @@ export const WithGroups: Story = {
         <Menu.ItemGroup title="Danger Zone">
           <Menu.Item value="delete">Delete</Menu.Item>
         </Menu.ItemGroup>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
+export const Destructive: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Actions</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="edit"
+          icon={<PencilIcon />}
+        >
+          Edit
+        </Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          value="delete"
+          icon={<TrashIcon />}
+          destructive
+        >
+          Delete
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
+export const Links: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Navigate</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="settings"
+          icon={<SettingsIcon />}
+          asChild
+        >
+          <a href="#settings">Settings</a>
+        </Menu.Item>
+        <Menu.Item
+          value="docs"
+          icon={<ExternalLinkIcon />}
+          asChild
+        >
+          <a
+            href="https://ark-ui.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Documentation
+          </a>
+        </Menu.Item>
       </Menu.Content>
     </Menu.Root>
   ),

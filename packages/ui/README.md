@@ -354,6 +354,10 @@ allowBuilds:
 - `ApplySelect.Root` autofocuses its search like `ApplySelect`
 - `SubmitDialog` and `SubmitForm` take `loading` and `submitDisabled` in place of `isSubmitLoading` and
   `isSubmitDisabled`, and `SubmitDialog` takes `open` in place of `isOpen`, matching `Button`, `DataTable` and `Select`
+- Put links inside `Menu.Item asChild` rather than wrapping `Menu.Item` in a link, which put the `<a>` between the menu
+  and its item. Enter on a link item clicks it as a pointer does, so a router link's handler runs and the menu closes;
+  pass `navigate` to `Menu.Root` to route by `href` instead
+- `Menu.TriggerItem` no longer takes `value`, which zag never read; drop it
 - `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow
 
 #### Upgrading from 0.7

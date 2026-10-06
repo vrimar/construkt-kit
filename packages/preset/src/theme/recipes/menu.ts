@@ -33,6 +33,12 @@ export const menu = defineSlotRecipe({
       _highlighted: {
         bg: "neutral.surface.bg.hover",
       },
+      "&[data-destructive]": {
+        color: "danger.plain.fg",
+      },
+      "&[data-destructive][data-highlighted]": {
+        bg: "danger.subtle.bg",
+      },
       _disabled: {
         layerStyle: "disabled",
       },
