@@ -14,8 +14,8 @@ Standard variant names across all recipes, from most visual weight to least:
 
 **Special cases:**
 
-- **Input / Textarea** also have `flushed` (bottom border only) and `colored` (colorPalette-aware outline).
-  Default variants use `neutral.*` tokens (swappable neutral palette, defaults to slate).
+- **Input / Textarea** also have `flushed` (bottom border only) and `colored` (colorPalette-aware outline),
+  and their `plain` drops the focus ring. Default variants use `neutral.*` tokens (swappable neutral palette, defaults to slate).
 - **Skeleton** uses `animation` (not `variant`) with values `pulse`, `shine`, `none`.
 
 ## Size Tiers

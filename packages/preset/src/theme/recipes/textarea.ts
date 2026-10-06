@@ -32,6 +32,7 @@ export const textarea = defineRecipe({
       subtle: input.variants.variant.subtle,
       flushed: input.variants.variant.flushed,
       colored: input.variants.variant.colored,
+      plain: input.variants.variant.plain,
     },
     size: {
       xs: {
