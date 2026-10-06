@@ -1,22 +1,23 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 
+import { splitCssProps } from "#styled-system/jsx";
+
 import { TooltipIconButton } from "../Buttons";
 import type { InputProps } from "./Input";
 import { Input } from "./Input";
-import { InputGroup, type InputGroupProps, inputGroupButtonSizeFor } from "./InputGroup";
+import { InputGroup, inputGroupButtonSizeFor } from "./InputGroup";
 
-export interface PasswordInputProps extends InputProps {
-  containerProps?: InputGroupProps;
-}
+export type PasswordInputProps = InputProps;
 
-export const PasswordInput = ({ containerProps, size, ...props }: PasswordInputProps) => {
+export const PasswordInput = ({ size, ...props }: PasswordInputProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [styleProps, inputProps] = splitCssProps(props);
 
   return (
     <InputGroup
       size={size}
-      {...containerProps}
+      {...styleProps}
       endElement={
         <TooltipIconButton
           label={isVisible ? "Hide password" : "Show password"}
@@ -31,7 +32,7 @@ export const PasswordInput = ({ containerProps, size, ...props }: PasswordInputP
       <Input
         size={size}
         type={isVisible ? "text" : "password"}
-        {...props}
+        {...inputProps}
       />
     </InputGroup>
   );
