@@ -77,11 +77,15 @@ export const scrollArea = defineSlotRecipe({
       _vertical: { width: "var(--thumb-size)" },
       _horizontal: { height: "var(--thumb-size)" },
     },
+    content: {
+      minW: "fit-content",
+    },
     corner: {},
   },
   defaultVariants: {
     size: "md",
     scrollbar: "auto",
+    scrollbars: "both",
     fadeEdges: false,
   },
   variants: {
@@ -161,6 +165,16 @@ export const scrollArea = defineSlotRecipe({
           "--thumb-bg": "{colors.neutral.subtle.bg.active}",
         },
       },
+    },
+    scrollbars: {
+      vertical: {
+        content: {
+          minW: "full",
+          w: "full",
+        },
+      },
+      horizontal: {},
+      both: {},
     },
     size: {
       xs: { root: { "--thumb-size": visual("0.25rem") } },
