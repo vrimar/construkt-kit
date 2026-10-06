@@ -4,7 +4,7 @@ import {
   type NumberFilterValue,
   isValidNumber,
 } from "@construkt-kit/utils";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useDebounce } from "react-use";
 
 import { HStack } from "#styled-system/jsx";
@@ -85,6 +85,7 @@ export const NumberFilter = ({
   disabled,
 }: NumberFilterProps) => {
   const offered = operators?.length ? operators : ALL_OPERATORS;
+  const toInputId = useId();
   const [operator, setOperator] = useState<NumberFilterOperator>(
     value?.operator ?? defaultOperator ?? offered[0],
   );
@@ -223,6 +224,7 @@ export const NumberFilter = ({
         <Input
           {...sharedInputProps}
           {...managedInputProps}
+          id={toInputId}
           placeholder={toPlaceholder}
           value={toText}
           onChange={(e) => handleTextChange(setToText, e.target.value)}

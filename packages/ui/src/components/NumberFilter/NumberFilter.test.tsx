@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { Field } from "../Form";
 import { NumberFilter, type NumberFilterProps } from ".";
 
 const renderFilter = (overrides: Partial<NumberFilterProps> = {}) => {
@@ -157,5 +158,19 @@ describe("NumberFilter", () => {
     await userEvent.click(screen.getByRole("button", { name: "Greater than" }));
     expect(await screen.findByText("Less than", { exact: false })).toBeTruthy();
     expect(screen.queryByText("Between", { exact: false })).toBeNull();
+  });
+
+  it("gives each between operand its own id inside a Field", () => {
+    render(
+      <Field label="Amount">
+        <NumberFilter
+          value={{ operator: "between", value: 1, to: 2 }}
+          onValueChange={vi.fn()}
+        />
+      </Field>,
+    );
+    const [from, to] = screen.getAllByRole("textbox");
+    expect(from.id).not.toBe(to.id);
+    expect(screen.getByText("Amount").closest("label")?.htmlFor).toBe(from.id);
   });
 });
