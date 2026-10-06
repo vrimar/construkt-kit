@@ -38,3 +38,13 @@ export const NoForgotPassword: Story = {
     onForgotPassword: undefined,
   },
 };
+
+export const ShortViewport: Story = {
+  decorators: [
+    (Story) => (
+      <Box height="360px">
+        <Story />
+      </Box>
+    ),
+  ],
+};

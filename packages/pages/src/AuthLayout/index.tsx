@@ -12,16 +12,11 @@ export interface AuthLayoutProps {
 export const AuthLayout = ({ children, showTitle, title, description, logo }: AuthLayoutProps) => {
   return (
     <Box
-      display="flex"
       minHeight="100%"
       height="100%"
       width="100%"
-      px={{ base: "4", md: "6" }}
-      py={{ base: "10", md: "16" }}
       bg="bg.subtle"
       position="relative"
-      justifyContent="center"
-      alignItems="center"
       overflow="hidden"
     >
       <Box
@@ -53,54 +48,63 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
         opacity="0.35"
         pointerEvents="none"
       />
-      <Stack
-        alignItems="center"
+      <Box
         position="relative"
         zIndex="1"
-        width="100%"
-        maxWidth="400px"
-        gap="6"
-        style={{
-          transform: "translateY(clamp(-32px, -3vh, 0px))",
-        }}
+        display="flex"
+        height="100%"
+        overflowY="auto"
+        px={{ base: "4", md: "6" }}
+        py={{ base: "10", md: "16" }}
       >
-        <Box>{logo}</Box>
-        <Box
-          bg="bg"
-          borderRadius="xl"
-          borderWidth="1px"
-          borderColor="border"
-          p={{ base: "6", md: "8" }}
+        <Stack
+          alignItems="center"
           width="100%"
-          boxShadow="lg"
+          maxWidth="400px"
+          gap="6"
+          m="auto"
+          style={{
+            transform: "translateY(clamp(-32px, -3vh, 0px))",
+          }}
         >
-          <Stack gap="6">
-            {showTitle && title && (
-              <Stack
-                gap="2"
-                alignItems="center"
-              >
-                <Text
-                  fontSize="2xl"
-                  fontWeight="semibold"
-                  textAlign="center"
+          <Box>{logo}</Box>
+          <Box
+            bg="bg"
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="border"
+            p={{ base: "6", md: "8" }}
+            width="100%"
+            boxShadow="lg"
+          >
+            <Stack gap="6">
+              {showTitle && title && (
+                <Stack
+                  gap="2"
+                  alignItems="center"
                 >
-                  {title}
-                </Text>
-                {description && (
                   <Text
-                    color="fg.muted"
+                    fontSize="2xl"
+                    fontWeight="semibold"
                     textAlign="center"
                   >
-                    {description}
+                    {title}
                   </Text>
-                )}
-              </Stack>
-            )}
-            {children}
-          </Stack>
-        </Box>
-      </Stack>
+                  {description && (
+                    <Text
+                      color="fg.muted"
+                      textAlign="center"
+                    >
+                      {description}
+                    </Text>
+                  )}
+                </Stack>
+              )}
+              {children}
+            </Stack>
+          </Box>
+        </Stack>
+      </Box>
     </Box>
   );
 };
