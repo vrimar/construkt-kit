@@ -6,6 +6,7 @@ import { toCssSize } from "../../foundations/cssSize";
 import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";
 import { ManagedList, SelectionSearchField } from "../Listbox/managed";
+import type { SelectionValue } from "../Listbox/types";
 import { Popover } from "../Popover";
 import { useSelectContext } from "./Select.context";
 import type {
@@ -14,10 +15,12 @@ import type {
   SelectItemIndicatorProps,
   SelectListProps,
   SelectSearchProps,
+  SelectSimpleProps,
   SelectTriggerProps,
 } from "./Select.types";
 
-export const MIN_CONTENT_WIDTH = 140;
+const MIN_CONTENT_WIDTH = 140;
+const WIDE_MIN_CONTENT_WIDTH = 256;
 
 export function SelectTrigger({ children, buttonProps, ...triggerProps }: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
@@ -39,12 +42,13 @@ export function SelectTrigger({ children, buttonProps, ...triggerProps }: Select
 }
 
 export function SelectContent({ children, style, ...props }: SelectContentProps) {
-  const { contentWidth, sameWidth } = useSelectContext();
+  const { contentWidth, sameWidth, wideContent } = useSelectContext();
+  const minContentWidth = wideContent ? WIDE_MIN_CONTENT_WIDTH : MIN_CONTENT_WIDTH;
 
   return (
     <Popover.Content
       layerStyle="dropdown.surface"
-      minW={contentWidth == null ? MIN_CONTENT_WIDTH : undefined}
+      minW={contentWidth == null ? minContentWidth : undefined}
       width={sameWidth ? "full" : undefined}
       style={contentWidth == null ? style : { width: toCssSize(contentWidth), ...style }}
       {...props}
@@ -97,6 +101,31 @@ export function SelectEmptyState({ children = "No items available" }: { children
 
 export function SelectFooter({ children, ...props }: SelectFooterProps) {
   return <Box {...props}>{children}</Box>;
+}
+
+type SelectSimpleBodyProps = Pick<
+  SelectSimpleProps<unknown, SelectionValue>,
+  "contentCss" | "footer" | "listCss" | "triggerProps"
+> & { children?: ReactNode };
+
+export function SelectSimpleBody({
+  triggerProps,
+  contentCss,
+  listCss,
+  footer,
+  children,
+}: SelectSimpleBodyProps) {
+  return (
+    <>
+      <SelectTrigger {...triggerProps} />
+      <SelectContent css={contentCss}>
+        <SelectSearch />
+        <SelectList css={listCss} />
+        {footer != null && <SelectFooter>{footer}</SelectFooter>}
+        {children}
+      </SelectContent>
+    </>
+  );
 }
 
 export const selectListParts = {

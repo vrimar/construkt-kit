@@ -3,27 +3,31 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { HStack } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
-import type { SelectionSearchOptions, SelectionValue } from "../Listbox";
 import { encodeSelectionValue, getSelectionLabel, selectItemsByValue } from "../Listbox/managed";
+import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
+import { Select } from "./Select";
+import {
+  type SelectRootOverrides,
+  SelectRootOverridesContext,
+  useSelectContext,
+} from "./Select.context";
+import { SelectSimpleBody, selectListParts } from "./Select.parts";
 import type {
   SelectContentProps,
   SelectListProps,
-  SelectRootProps,
+  SelectMultipleValueProps,
+  SelectRootBaseProps,
   SelectSearchProps,
+  SelectSimpleProps,
   SelectTriggerProps,
-} from "../Select";
-import { Select } from "../Select";
-import { useSelectContext } from "../Select/Select.context";
-import { selectListParts } from "../Select/Select.parts";
+} from "./Select.types";
 
 interface ApplySelectContextValue {
   allSelected: boolean;
   apply: () => void;
   reset: () => void;
   toggleAll: () => void;
-  hasAppliedValue: boolean;
   isDirty: boolean;
-  triggerValue: ReactNode;
 }
 
 const ApplySelectContext = createContext<ApplySelectContextValue | null>(null);
@@ -59,40 +63,8 @@ export type ApplySelectContentProps = SelectContentProps;
 export type ApplySelectSearchProps = SelectSearchProps;
 export type ApplySelectListProps = SelectListProps;
 
-export interface ApplySelectRootProps<T, V extends SelectionValue = SelectionValue> extends Omit<
-  SelectRootProps<T, V>,
-  "onValueChange" | "selectionMode" | "value"
-> {
-  value: readonly V[];
-  onValueChange: (value: V[]) => unknown;
-}
-
-const APPLY_CONTENT_MIN_WIDTH = 256;
-
-export function ApplySelectContent({ children, ...props }: ApplySelectContentProps) {
-  return (
-    <Select.Content
-      minW={APPLY_CONTENT_MIN_WIDTH}
-      {...props}
-    >
-      {children}
-    </Select.Content>
-  );
-}
-
-export function ApplySelectTrigger({ buttonProps, ...props }: ApplySelectTriggerProps) {
-  const { hasAppliedValue, triggerValue } = useApplySelectContext();
-  return (
-    <Select.Trigger
-      {...props}
-      buttonProps={{
-        ...buttonProps,
-        hasValue: buttonProps?.hasValue ?? hasAppliedValue,
-        label: buttonProps?.label ?? triggerValue,
-      }}
-    />
-  );
-}
+export interface ApplySelectRootProps<T, V extends SelectionValue = SelectionValue>
+  extends SelectRootBaseProps<T, V>, SelectMultipleValueProps<V> {}
 
 export function ApplySelectActions({
   applyLabel = "Apply",
@@ -168,7 +140,7 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   open,
   placeholder = "Select",
   renderValue,
-  search = true,
+  search,
   value,
   ...rootProps
 }: ApplySelectRootProps<T, V>) {
@@ -205,88 +177,71 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   const triggerValue = renderValue
     ? renderValue({ value, selectedItems })
     : getSelectionLabel(value.length, selectedItems, getItemLabel, placeholder);
+  const resolvedSearch: boolean | SelectionSearchOptions<T> =
+    search === false ? false : { autoFocus: true, ...(typeof search === "object" ? search : {}) };
 
   const contextValue = useMemo<ApplySelectContextValue>(
-    () => ({
-      allSelected,
-      apply,
-      reset,
-      toggleAll,
-      hasAppliedValue: value.length > 0,
-      isDirty,
-      triggerValue,
-    }),
-    [allSelected, apply, isDirty, reset, toggleAll, triggerValue, value.length],
+    () => ({ allSelected, apply, reset, toggleAll, isDirty }),
+    [allSelected, apply, isDirty, reset, toggleAll],
+  );
+  const overrides = useMemo<SelectRootOverrides>(
+    () => ({ triggerValue, hasValue: value.length > 0, wideContent: true }),
+    [triggerValue, value.length],
   );
 
   return (
     <ApplySelectContext.Provider value={contextValue}>
-      <Select.Root
-        {...rootProps}
-        items={items}
-        getItemValue={getItemValue}
-        getItemLabel={getItemLabel}
-        placeholder={placeholder}
-        value={draft}
-        onValueChange={setDraft}
-        selectionMode="multiple"
-        search={search}
-        open={open}
-        onOpenChange={handleOpenChange}
-      >
-        {children}
-      </Select.Root>
+      <SelectRootOverridesContext.Provider value={overrides}>
+        <Select.Root
+          {...rootProps}
+          items={items}
+          getItemValue={getItemValue}
+          getItemLabel={getItemLabel}
+          value={draft}
+          onValueChange={setDraft}
+          selectionMode="multiple"
+          search={resolvedSearch}
+          open={open}
+          onOpenChange={handleOpenChange}
+        >
+          {children}
+        </Select.Root>
+      </SelectRootOverridesContext.Provider>
     </ApplySelectContext.Provider>
   );
 }
 
-export interface ApplySelectProps<T, V extends SelectionValue = SelectionValue> extends Omit<
-  ApplySelectRootProps<T, V>,
-  "children"
-> {
-  triggerProps?: ApplySelectTriggerProps;
-  contentProps?: ApplySelectContentProps;
-  listProps?: ApplySelectListProps;
+export interface ApplySelectProps<T, V extends SelectionValue = SelectionValue>
+  extends SelectSimpleProps<T, V>, SelectMultipleValueProps<V> {
   actions?: ApplySelectActionOptions;
-  footer?: ReactNode;
 }
 
 function ApplySelectSimple<T, V extends SelectionValue>({
   actions,
-  contentProps,
+  contentCss,
   footer,
-  listProps,
-  search,
+  listCss,
   triggerProps,
   ...rootProps
 }: ApplySelectProps<T, V>) {
-  const resolvedSearch: boolean | SelectionSearchOptions<T> =
-    search === false
-      ? false
-      : typeof search === "object"
-        ? { autoFocus: true, ...search }
-        : { autoFocus: true };
-
   return (
-    <ApplySelectRoot
-      {...rootProps}
-      search={resolvedSearch}
-    >
-      <ApplySelectTrigger {...triggerProps} />
-      <ApplySelectContent {...contentProps}>
-        <Select.Search />
-        <Select.List {...listProps} />
-        {footer}
+    <ApplySelectRoot {...rootProps}>
+      <SelectSimpleBody
+        triggerProps={triggerProps}
+        contentCss={contentCss}
+        listCss={listCss}
+        footer={footer}
+      >
         <ApplySelectActions {...actions} />
-      </ApplySelectContent>
+      </SelectSimpleBody>
     </ApplySelectRoot>
   );
 }
 
 export const ApplySelect = Object.assign(ApplySelectSimple, {
   Root: ApplySelectRoot,
-  Trigger: ApplySelectTrigger,
-  Content: ApplySelectContent,
+  Trigger: Select.Trigger,
+  Content: Select.Content,
   ...selectListParts,
   Actions: ApplySelectActions,
 });

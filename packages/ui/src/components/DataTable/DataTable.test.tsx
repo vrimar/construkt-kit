@@ -58,6 +58,19 @@ const columnTemplate = () =>
   screen.getByRole("table").style.getPropertyValue("--data-table-columns");
 
 describe("DataTable", () => {
+  it("labels a select filter with its placeholder until a value is applied", () => {
+    renderTable({ selections: { role: ["Admin", "User"] } });
+    expect(screen.getByRole("button", { name: "Filter by Role" })).toBeTruthy();
+  });
+
+  it("labels a select filter with its applied value", () => {
+    renderTable({
+      params: { ...params, filters: { role: ["Admin"] } },
+      selections: { role: ["Admin", "User"] },
+    });
+    expect(screen.getByRole("button", { name: "Admin" })).toBeTruthy();
+  });
+
   it("renders a header and a cell per column for every row", () => {
     renderTable();
 

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { ApplySelect } from "../../../ApplySelect";
+import { ApplySelect } from "../../../Select";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 
@@ -19,12 +19,6 @@ export const ColumnSelectFilter = ({
     [selectProps?.getItemLabel],
   );
 
-  const triggerLabel = useMemo(() => {
-    if (value.length === 0) return `${labels.filterBy} ${label}`;
-    if (value.length === 1) return getLabel(value[0]);
-    return `${value.length} selected`;
-  }, [value, labels.filterBy, label, getLabel]);
-
   const {
     actions,
     getItemLabel: _getItemLabel,
@@ -35,6 +29,7 @@ export const ColumnSelectFilter = ({
   return (
     <ApplySelect
       placement="bottom-end"
+      placeholder={`${labels.filterBy} ${label}`}
       {...applySelectProps}
       items={selections?.[columnId] ?? []}
       value={value}
@@ -45,9 +40,7 @@ export const ColumnSelectFilter = ({
       triggerProps={{
         ...triggerProps,
         buttonProps: {
-          label: triggerLabel,
           size: "sm",
-          width: "100%",
           variant: "plain",
           ...triggerProps?.buttonProps,
         },

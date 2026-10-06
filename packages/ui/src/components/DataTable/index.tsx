@@ -7,7 +7,7 @@ import type {
 import { functionalUpdate, useTable } from "@tanstack/react-table";
 import React, { useCallback, useMemo } from "react";
 
-import { type BoxProps, Stack } from "#styled-system/jsx";
+import { Stack } from "#styled-system/jsx";
 
 import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";
@@ -20,6 +20,7 @@ import type {
   DataTableLabels,
   DataTableParams,
   DataTableRow,
+  DataTableRowProps,
   TableFilterSelections,
 } from "./types";
 import { dataTableFeatures } from "./types";
@@ -36,6 +37,7 @@ export type {
   DataTableLabels,
   DataTableParams,
   DataTableRow,
+  DataTableRowProps,
   DataTableSelectProps,
   DataTableSortType,
   DataTableTableMeta,
@@ -52,7 +54,7 @@ export type DataTableProps<TData extends object> = {
   onParamChange: (params: DataTableParams) => unknown;
   onRowClick?: (row: DataTableRow<TData>) => unknown;
   onReset?: () => unknown;
-  getRowProps?: (row: DataTableRow<TData>) => BoxProps;
+  getRowProps?: (row: DataTableRow<TData>) => DataTableRowProps;
   renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
   selections?: TableFilterSelections;
   showPagination?: boolean;
@@ -218,10 +220,9 @@ export const DataTable = <TData extends object>({
   });
 
   const getRowInteractionProps = useCallback(
-    (row: DataTableRow<TData>): BoxProps => ({
+    (row: DataTableRow<TData>): DataTableRowProps => ({
       ...(onRowClick && {
         tabIndex: 0,
-        cursor: "pointer",
         onClick: (e: React.MouseEvent<HTMLDivElement>) => {
           if (!isNestedControl(e)) onRowClick(row);
         },
@@ -239,12 +240,13 @@ export const DataTable = <TData extends object>({
   const contextValue = useMemo<DataTableContextValue<TData>>(
     () => ({
       loading: !!loading,
+      clickableRows: !!onRowClick,
       getRowInteractionProps,
       onReset,
       labels: resolveLabels(labels),
       selections,
     }),
-    [getRowInteractionProps, labels, loading, onReset, selections],
+    [getRowInteractionProps, labels, loading, onReset, onRowClick, selections],
   );
 
   return (

@@ -1,12 +1,16 @@
 import { createContext, useContext } from "react";
 
-import type { BoxProps } from "#styled-system/jsx";
-
-import type { DataTableLabels, DataTableRow, TableFilterSelections } from "./types";
+import type {
+  DataTableLabels,
+  DataTableRow,
+  DataTableRowProps,
+  TableFilterSelections,
+} from "./types";
 
 export interface DataTableContextValue<TData extends object = any> {
   loading: boolean;
-  getRowInteractionProps: (row: DataTableRow<TData>) => BoxProps;
+  clickableRows: boolean;
+  getRowInteractionProps: (row: DataTableRow<TData>) => DataTableRowProps;
   onReset?: () => unknown;
   labels: Required<DataTableLabels>;
   selections: TableFilterSelections | undefined;

@@ -16,7 +16,7 @@ interface DataTableCardsProps<TData extends object> {
  * instead of the horizontally-scrolling grid. Enabled via `mobileLayout="cards"`.
  */
 export const DataTableCards = <TData extends object>({ table }: DataTableCardsProps<TData>) => {
-  const { getRowInteractionProps } = useDataTableContext<TData>();
+  const { clickableRows, getRowInteractionProps } = useDataTableContext<TData>();
   const rows = table.getRowModel().rows;
 
   return (
@@ -44,6 +44,7 @@ export const DataTableCards = <TData extends object>({ table }: DataTableCardsPr
             borderRadius="md"
             bg="bg"
             _hover={{ bg: "bg.subtle" }}
+            cursor={clickableRows ? "pointer" : undefined}
             {...getRowInteractionProps(row)}
           >
             {row.getVisibleCells().map((cell) => {

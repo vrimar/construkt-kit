@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import type { HTMLStyledProps } from "#styled-system/jsx";
 
+import type { Unstyled } from "../../types";
+
 /** Stable scalar value used to identify a selection item. */
 export type SelectionValue = string | number;
 
@@ -65,7 +67,7 @@ export interface SelectionValueRenderContext<T, V extends SelectionValue> {
 }
 
 export type ManagedItemProps = Partial<
-  Omit<HTMLStyledProps<typeof ArkListbox.Item>, "children" | "item">
+  Unstyled<Omit<HTMLStyledProps<typeof ArkListbox.Item>, "children" | "item">>
 >;
 
 export interface ManagedListOptions<T, V extends SelectionValue> {
@@ -76,5 +78,7 @@ export interface ManagedListOptions<T, V extends SelectionValue> {
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderGroupLabel?: SelectionGroupLabelRenderer<T>;
   getItemProps?: (item: T) => ManagedItemProps;
+  /** Max height of the list: px if a number, otherwise a size token or CSS length. */
+  listMaxHeight?: string | number;
   virtual?: boolean;
 }

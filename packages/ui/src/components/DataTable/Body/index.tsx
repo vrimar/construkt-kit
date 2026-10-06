@@ -22,7 +22,7 @@ export const DataTableBody = <TData extends object>({
   showFiltersRow,
   renderSubRow,
 }: DataTableBodyProps<TData>) => {
-  const { getRowInteractionProps } = useDataTableContext<TData>();
+  const { clickableRows, getRowInteractionProps } = useDataTableContext<TData>();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const page = table.state.pagination.pageIndex;
@@ -37,14 +37,14 @@ export const DataTableBody = <TData extends object>({
       flex="1"
       minHeight="0"
       ref={scrollRef}
+      role="table"
+      style={{ [columnTemplateVar]: columnTemplate } as CSSProperties}
       // flexShrink 0: the sticky header's containing block must span the whole scroll extent.
-      contentProps={{
-        role: "table",
+      contentCss={{
         display: "flex",
         flexDirection: "column",
         minHeight: "100%",
         flexShrink: "0",
-        style: { [columnTemplateVar]: columnTemplate } as CSSProperties,
       }}
     >
       <DataTableHeader
@@ -74,6 +74,7 @@ export const DataTableBody = <TData extends object>({
                 _hover={{
                   bg: "bg.subtle",
                 }}
+                cursor={clickableRows ? "pointer" : undefined}
                 {...getRowInteractionProps(row)}
               >
                 {row.getVisibleCells().map((cell) => (

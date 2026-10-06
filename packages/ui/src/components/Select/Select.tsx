@@ -1,4 +1,6 @@
-import { type JSX, useRef, useState } from "react";
+import { type JSX, useContext, useRef, useState } from "react";
+
+import { splitCssProps } from "#styled-system/jsx";
 
 import { Listbox } from "../Listbox/Listbox";
 import {
@@ -16,15 +18,12 @@ import type {
   SingleSelectionProps,
 } from "../Listbox/types";
 import { Popover } from "../Popover";
-import { SelectContext, type SelectContextValue } from "./Select.context";
 import {
-  SelectContent,
-  SelectFooter,
-  SelectList,
-  SelectSearch,
-  SelectTrigger,
-  selectListParts,
-} from "./Select.parts";
+  SelectContext,
+  type SelectContextValue,
+  SelectRootOverridesContext,
+} from "./Select.context";
+import { SelectContent, SelectSimpleBody, SelectTrigger, selectListParts } from "./Select.parts";
 import type { SelectProps, SelectRootProps, SelectSimpleProps } from "./Select.types";
 
 const ITEM_SELECTOR = '[data-scope="listbox"][data-part="item"]';
@@ -56,7 +55,8 @@ export type {
 } from "./Select.types";
 
 function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
-  const [listOptions, rootProps] = splitManagedListOptions<T, V, SelectRootProps<T, V>>(props);
+  const [styleProps, selectProps] = splitCssProps(props);
+  const [listOptions, rootProps] = splitManagedListOptions<T, V, typeof selectProps>(selectProps);
   const {
     actionsVisibility,
     children,
@@ -68,7 +68,6 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     groupSort,
     isItemDisabled,
     items,
-    listboxProps,
     matchTriggerWidth = true,
     onOpenChange,
     open,
@@ -81,6 +80,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     onValueChange,
   } = rootProps;
   const { renderItemActions } = props;
+  const overrides = useContext(SelectRootOverridesContext);
   const list: ManagedListOptions<T, V> = {
     ...listOptions,
     indicatorPosition: listOptions.indicatorPosition ?? "end",
@@ -126,15 +126,18 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     list: list as SelectContextValue["list"],
     contentWidth,
     sameWidth,
-    triggerValue: renderValue
-      ? renderValue({ value, selectedItems: controller.selectedItems })
-      : getSelectionLabel(
-          controller.selectedValues.length,
-          controller.selectedItems,
-          getItemLabel,
-          placeholder,
-        ),
-    hasValue: controller.selectedValues.length > 0,
+    ...(overrides ?? {
+      wideContent: false,
+      triggerValue: renderValue
+        ? renderValue({ value, selectedItems: controller.selectedItems })
+        : getSelectionLabel(
+            controller.selectedValues.length,
+            controller.selectedItems,
+            getItemLabel,
+            placeholder,
+          ),
+      hasValue: controller.selectedValues.length > 0,
+    }),
     scrollToIndexRef,
     close: () => handleOpenChange(false),
   };
@@ -147,25 +150,23 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
         positioning={{ placement, sameWidth }}
       >
         <Listbox.Root
-          {...listboxProps}
+          {...styleProps}
           actionsVisibility={actionsVisibility}
           indicatorPosition={list.indicatorPosition}
           {...getManagedRootProps(controller, selectionMode)}
           scrollToIndexFn={
             isVirtualized(controller, list.virtual)
               ? (details) => scrollToIndexRef.current?.(details.index)
-              : listboxProps?.scrollToIndexFn
+              : undefined
           }
-          onClick={(event) => {
-            listboxProps?.onClick?.(event);
-            closeOnReselect(findItem(event.target, false));
-          }}
+          onClick={(event) => closeOnReselect(findItem(event.target, false))}
           onKeyDown={(event) => {
-            listboxProps?.onKeyDown?.(event);
             if (event.key === "Enter") closeOnReselect(findItem(event.target, true));
           }}
         >
-          {children}
+          <SelectRootOverridesContext.Provider value={null}>
+            {children}
+          </SelectRootOverridesContext.Provider>
         </Listbox.Root>
       </Popover.Root>
     </SelectContext.Provider>
@@ -180,19 +181,19 @@ function SelectSimple<T, V extends SelectionValue>(
 ): JSX.Element;
 function SelectSimple<T, V extends SelectionValue>({
   triggerProps,
-  contentProps,
-  listProps,
+  contentCss,
+  listCss,
   footer,
   ...rootProps
 }: SelectProps<T, V>) {
   return (
     <SelectRoot {...rootProps}>
-      <SelectTrigger {...triggerProps} />
-      <SelectContent {...contentProps}>
-        <SelectSearch />
-        <SelectList {...listProps} />
-        {footer != null && <SelectFooter>{footer}</SelectFooter>}
-      </SelectContent>
+      <SelectSimpleBody
+        triggerProps={triggerProps}
+        contentCss={contentCss}
+        listCss={listCss}
+        footer={footer}
+      />
     </SelectRoot>
   );
 }

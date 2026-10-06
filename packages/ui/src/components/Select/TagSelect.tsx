@@ -2,35 +2,23 @@ import type { ReactNode } from "react";
 
 import { Box, type BoxProps } from "#styled-system/jsx";
 
+import type { Unstyled } from "../../types";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
-import type {
-  SelectContentProps,
-  SelectListProps,
-  SelectRootProps,
-  SelectTriggerProps,
-} from "./Select";
 import { Select } from "./Select";
 import { useSelectContext } from "./Select.context";
+import type {
+  SelectMultipleValueProps,
+  SelectSimpleProps,
+  SelectTriggerProps,
+} from "./Select.types";
 
-type TagSelectRootProps<T, V extends SelectionValue> = Omit<
-  SelectRootProps<T, V>,
-  "children" | "onValueChange" | "selectionMode" | "value"
->;
-
-export interface TagSelectProps<
-  T,
-  V extends SelectionValue = SelectionValue,
-> extends TagSelectRootProps<T, V> {
-  value: readonly V[];
-  onValueChange: (value: V[]) => unknown;
-  contentProps?: SelectContentProps;
-  footer?: ReactNode;
-  listProps?: SelectListProps;
+export interface TagSelectProps<T, V extends SelectionValue = SelectionValue>
+  extends Omit<SelectSimpleProps<T, V>, "triggerProps">, SelectMultipleValueProps<V> {
   renderTag?: (item: T) => ReactNode;
   tagPlaceholder?: ReactNode;
-  triggerProps?: Omit<SelectTriggerProps, "children">;
+  triggerProps?: Unstyled<Omit<SelectTriggerProps, "buttonProps" | "children">>;
   /** Search defaults to enabled. */
   search?: boolean | SelectionSearchOptions<T>;
 }

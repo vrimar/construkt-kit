@@ -45,18 +45,21 @@ export function getSelectionLabel<T>(
   return `${selectedCount} selected`;
 }
 
-const MANAGED_LIST_OPTION_KEYS = [
-  "loading",
-  "emptyMessage",
-  "indicatorPosition",
-  "renderItem",
-  "renderItemActions",
-  "renderGroupLabel",
-  "getItemProps",
-  "virtual",
-] as const satisfies ReadonlyArray<keyof ManagedListOptions<unknown, SelectionValue>>;
+const MANAGED_LIST_OPTIONS = {
+  loading: true,
+  emptyMessage: true,
+  indicatorPosition: true,
+  renderItem: true,
+  renderItemActions: true,
+  renderGroupLabel: true,
+  getItemProps: true,
+  listMaxHeight: true,
+  virtual: true,
+} as const satisfies Record<keyof ManagedListOptions<unknown, SelectionValue>, true>;
 
-type ManagedListOptionKey = (typeof MANAGED_LIST_OPTION_KEYS)[number];
+type ManagedListOptionKey = keyof typeof MANAGED_LIST_OPTIONS;
+
+const MANAGED_LIST_OPTION_KEYS = Object.keys(MANAGED_LIST_OPTIONS) as ManagedListOptionKey[];
 
 export function splitManagedListOptions<
   T,

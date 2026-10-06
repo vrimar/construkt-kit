@@ -1,12 +1,15 @@
 import type { ChangeEvent, ComponentProps, ReactElement, ReactNode } from "react";
 
 import type { Box, HTMLStyledProps } from "#styled-system/jsx";
+import type { JsxStyleProps } from "#styled-system/types";
 
+import type { CssProp, Unstyled } from "../../types";
 import type { SelectButtonProps } from "../Buttons";
 import type { SearchInput } from "../Input";
 import type { Listbox } from "../Listbox/Listbox";
 import type {
   ManagedListOptions,
+  MultipleSelectionProps,
   SelectionItemState,
   SelectionItemsProps,
   SelectionProps,
@@ -14,12 +17,9 @@ import type {
   SelectionValue,
   SelectionValueRenderContext,
 } from "../Listbox/types";
-import type { Popover, PopoverTriggerProps } from "../Popover";
+import type { Popover, PopoverRootProps, PopoverTriggerProps } from "../Popover";
 
 export type SelectValue = SelectionValue;
-
-export type PopoverContentProps = ComponentProps<typeof Popover.Content>;
-export type PopoverRootProps = ComponentProps<typeof Popover.Root>;
 
 export interface SelectItemActionHelpers {
   /** Close the select, e.g. before an item action opens a dialog. */
@@ -27,7 +27,10 @@ export interface SelectItemActionHelpers {
 }
 
 export interface SelectRootBaseProps<T, V extends SelectionValue>
-  extends SelectionItemsProps<T, V>, Omit<ManagedListOptions<T, V>, "renderItemActions"> {
+  extends
+    SelectionItemsProps<T, V>,
+    Omit<ManagedListOptions<T, V>, "renderItemActions">,
+    JsxStyleProps {
   children: ReactNode;
   renderItemActions?: (
     item: T,
@@ -45,7 +48,6 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   onOpenChange?: (open: boolean) => unknown;
   placement?: PopoverRootProps["placement"];
   actionsVisibility?: "hover" | "always";
-  listboxProps?: Partial<ComponentProps<typeof Listbox.Root>>;
   search?: boolean | SelectionSearchOptions<T>;
 }
 
@@ -57,7 +59,7 @@ export type SelectRootProps<T, V extends SelectionValue = SelectionValue> = Sele
 
 export interface SelectTriggerProps extends Omit<PopoverTriggerProps, "children"> {
   children?: ReactElement;
-  buttonProps?: Partial<SelectButtonProps>;
+  buttonProps?: Partial<Unstyled<SelectButtonProps>>;
 }
 
 type SearchInputProps = ComponentProps<typeof SearchInput>;
@@ -70,7 +72,7 @@ export interface SelectSearchProps extends Omit<
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export type SelectContentProps = Partial<PopoverContentProps>;
+export type SelectContentProps = Partial<ComponentProps<typeof Popover.Content>>;
 export type SelectListProps = HTMLStyledProps<"div">;
 export type SelectItemProps<T> = Omit<ComponentProps<typeof Listbox.Item>, "item"> & { item: T };
 export type SelectItemTextProps = ComponentProps<typeof Listbox.ItemText>;
@@ -84,11 +86,18 @@ export interface SelectSimpleProps<T, V extends SelectionValue> extends Omit<
   SelectRootBaseProps<T, V>,
   "children"
 > {
-  triggerProps?: SelectTriggerProps;
-  contentProps?: SelectContentProps;
-  listProps?: SelectListProps;
+  triggerProps?: Unstyled<SelectTriggerProps>;
+  /** Styles for the dropdown content. */
+  contentCss?: CssProp;
+  /** Styles for the scrolling list inside the dropdown. */
+  listCss?: CssProp;
   footer?: ReactNode;
 }
 
 export type SelectProps<T, V extends SelectionValue = SelectionValue> = SelectSimpleProps<T, V> &
   SelectionProps<V>;
+
+export type SelectMultipleValueProps<V extends SelectionValue> = Omit<
+  MultipleSelectionProps<V>,
+  "selectionMode"
+>;

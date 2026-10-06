@@ -10,6 +10,7 @@ import { useDebounce } from "react-use";
 import { HStack } from "#styled-system/jsx";
 
 import { useControlledMirror } from "../../hooks/useControlledMirror";
+import type { Unstyled } from "../../types";
 import { IconButton } from "../Buttons";
 import {
   Input,
@@ -41,7 +42,7 @@ export interface NumberFilterProps {
   /** Accessible name for the clear button. */
   clearLabel?: string;
   /** Forwarded to the operand input(s); `id` and `name` go to the first input only. */
-  inputProps?: InputProps;
+  inputProps?: Unstyled<InputProps>;
   disabled?: boolean;
 }
 

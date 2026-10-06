@@ -74,6 +74,30 @@ describe("Select", () => {
     );
   });
 
+  it("applies root style props to the listbox root and *Css props to their parts", () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        w="200px"
+        contentCss={{ minW: "320px" }}
+        listCss={{ p: "0" }}
+        open
+      />,
+    );
+    const list = screen.getByRole("listbox");
+    const contentClasses = list.closest("[data-part='content']")?.className.split(" ") ?? [];
+    expect(list.className.split(" ")).toContain("p_0");
+    expect(contentClasses).toContain("min-w_320px");
+    expect(contentClasses).not.toContain("min-w_140px");
+    expect(
+      document.querySelector("[data-scope='listbox'][data-part='root']")?.className.split(" "),
+    ).toContain("w_200px");
+  });
+
   it("applies an explicit content width", () => {
     render(
       <Select

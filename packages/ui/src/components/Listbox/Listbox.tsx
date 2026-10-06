@@ -15,7 +15,7 @@ import { Box, HStack, type HTMLStyledProps, createSlotRecipeContext } from "#sty
 import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
-import type { WithRef } from "../../types";
+import type { CssProp, Unstyled, WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput, type SearchInputProps } from "../Input";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
@@ -75,7 +75,10 @@ function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
 }
 
 type ContentProps = ComponentProps<typeof StyledContent> & {
-  scrollAreaProps?: Omit<ScrollAreaProps, "children">;
+  scrollAreaProps?: Unstyled<
+    Omit<ScrollAreaProps, "children" | "scrollbars">,
+    "colorPalette" | "scrollbar"
+  >;
 };
 
 function Content({
@@ -85,11 +88,13 @@ function Content({
   style,
   ...props
 }: WithRef<ContentProps, HTMLDivElement>) {
-  const { contentProps, ...resolvedScrollAreaProps } = scrollAreaProps ?? {};
   const [sizeStyle, sizedProps] = splitInlineSizes(props, ["height", "maxHeight"]);
 
   return (
-    <ScrollArea.Root {...resolvedScrollAreaProps}>
+    <ScrollArea.Root
+      {...scrollAreaProps}
+      scrollbars="vertical"
+    >
       <ScrollArea.Viewport
         asChild
         role="listbox"
@@ -99,16 +104,7 @@ function Content({
           {...sizedProps}
           style={{ ...sizeStyle, ...style }}
         >
-          <ScrollArea.Content
-            {...contentProps}
-            style={{
-              minWidth: "100%",
-              width: "100%",
-              ...contentProps?.style,
-            }}
-          >
-            {children}
-          </ScrollArea.Content>
+          <ScrollArea.Content>{children}</ScrollArea.Content>
         </StyledContent>
       </ScrollArea.Viewport>
       <ScrollArea.Scrollbar orientation="vertical">
@@ -232,7 +228,6 @@ export const getManagedRootProps = <T, V extends SelectionValue>(
 // --- Simplified API ---
 
 const VIRTUAL_ITEM_HEIGHT = 36;
-const VIRTUAL_DEFAULT_MAX_HEIGHT = "20rem";
 
 export interface ListboxItemRenderProps<T, V extends SelectionValue> {
   item: T;
@@ -244,7 +239,8 @@ interface ListboxManagedProps<T, V extends SelectionValue>
   extends SelectionItemsProps<T, V>, ManagedListOptions<T, V> {
   label?: string;
   search?: boolean | SelectionSearchOptions<T>;
-  contentProps?: HTMLStyledProps<"div">;
+  /** Styles for the scrolling list content. */
+  contentCss?: CssProp;
 }
 
 type ListboxBaseProps<T, V extends SelectionValue> = Omit<
@@ -300,7 +296,6 @@ function VirtualList<T>({
     <Content
       ref={scrollRef}
       {...contentProps}
-      maxHeight={contentProps?.maxHeight ?? VIRTUAL_DEFAULT_MAX_HEIGHT}
     >
       <VirtualRows virtualizer={virtualizer}>
         {(virtualItem) => renderRow(items[virtualItem.index], virtualItem.index)}
@@ -324,6 +319,7 @@ export function ManagedList<T, V extends SelectionValue>({
   renderItemActions,
   renderGroupLabel,
   getItemProps,
+  listMaxHeight,
   contentProps,
   virtual,
   scrollToIndexRef,
@@ -347,10 +343,8 @@ export function ManagedList<T, V extends SelectionValue>({
   const isEmpty = collection.items.length === 0;
   const emptyBlock = !loading && isEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>;
   const useVirtual = isVirtualized(controller, virtual);
-  const resolvedContentProps =
-    virtual === true && grouped
-      ? { maxHeight: VIRTUAL_DEFAULT_MAX_HEIGHT, ...contentProps }
-      : contentProps;
+  const listContentProps =
+    listMaxHeight == null ? contentProps : { ...contentProps, maxHeight: listMaxHeight };
 
   if (useVirtual) {
     if (isEmpty) return emptyBlock;
@@ -358,7 +352,7 @@ export function ManagedList<T, V extends SelectionValue>({
       <VirtualList
         items={collection.items}
         renderRow={renderRow}
-        contentProps={contentProps}
+        contentProps={listContentProps}
         getItemKey={(index) => collection.getItemValue(collection.items[index]) ?? index}
         scrollToIndexRef={scrollToIndexRef}
       />
@@ -366,7 +360,7 @@ export function ManagedList<T, V extends SelectionValue>({
   }
 
   return (
-    <Content {...resolvedContentProps}>
+    <Content {...listContentProps}>
       {grouped
         ? groups.map(([group, groupItems]) => (
             <ItemGroup key={group}>
@@ -406,7 +400,7 @@ function ListboxSimple<T, V extends SelectionValue>(
     onValueChange,
     label,
     search = true,
-    contentProps,
+    contentCss,
     scrollToIndexFn,
     ...listboxProps
   } = props;
@@ -450,7 +444,7 @@ function ListboxSimple<T, V extends SelectionValue>(
       <ManagedList
         controller={controller}
         {...listOptions}
-        contentProps={contentProps}
+        contentProps={{ css: contentCss }}
         scrollToIndexRef={scrollToIndexRef}
       />
     </Root>

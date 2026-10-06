@@ -4,14 +4,24 @@ import type { ComponentProps } from "react";
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import { type ScrollAreaVariantProps, scrollArea } from "#styled-system/recipes";
 
+import type { CssProp } from "../../types";
+
 const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
 
 const Root = withProvider(ArkScrollArea.Root, "root");
 const Viewport = withContext(ArkScrollArea.Viewport, "viewport");
-const Content = withContext(ArkScrollArea.Content, "content");
+const StyledContent = withContext(ArkScrollArea.Content, "content");
 const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar");
 const Thumb = withContext(ArkScrollArea.Thumb, "thumb");
 const Corner = withContext(ArkScrollArea.Corner, "corner");
+
+// Clears zag's inline `min-width: fit-content` so the recipe's width applies and `css` can override it.
+const Content = ({ style, ...props }: ComponentProps<typeof StyledContent>) => (
+  <StyledContent
+    {...props}
+    style={{ minWidth: undefined, ...style }}
+  />
+);
 
 export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
   ScrollAreaVariantProps & {
@@ -19,23 +29,27 @@ export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
      * @default 'both'
      */
     scrollbars?: "vertical" | "horizontal" | "both";
-    contentProps?: ComponentProps<typeof Content>;
+    /** Styles for the scrolled content. */
+    contentCss?: CssProp;
   };
 
 const ScrollAreaSimple = ({
   ref,
   children,
   scrollbars = "both",
-  contentProps,
+  contentCss,
   ...props
 }: ScrollAreaProps) => {
   const showVertical = scrollbars === "vertical" || scrollbars === "both";
   const showHorizontal = scrollbars === "horizontal" || scrollbars === "both";
 
   return (
-    <Root {...props}>
+    <Root
+      {...props}
+      scrollbars={scrollbars}
+    >
       <Viewport ref={ref}>
-        <Content {...contentProps}>{children}</Content>
+        <Content css={contentCss}>{children}</Content>
       </Viewport>
       {showVertical && (
         <Scrollbar orientation="vertical">

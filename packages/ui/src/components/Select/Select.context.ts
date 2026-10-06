@@ -8,6 +8,7 @@ export interface SelectContextValue {
   list: ManagedListOptions<unknown, SelectionValue>;
   contentWidth?: string | number;
   sameWidth: boolean;
+  wideContent: boolean;
   triggerValue: ReactNode;
   hasValue: boolean;
   scrollToIndexRef: { current: ((index: number) => void) | undefined };
@@ -15,6 +16,13 @@ export interface SelectContextValue {
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);
+
+export type SelectRootOverrides = Pick<
+  SelectContextValue,
+  "triggerValue" | "hasValue" | "wideContent"
+>;
+
+export const SelectRootOverridesContext = createContext<SelectRootOverrides | null>(null);
 
 export const useSelectContext = () => {
   const context = useContext(SelectContext);

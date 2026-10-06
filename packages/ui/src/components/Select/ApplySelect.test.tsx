@@ -165,6 +165,23 @@ describe("ApplySelect", () => {
     expect(screen.getByRole("button", { name: "React" })).not.toBeNull();
   });
 
+  it("lets contentWidth narrow the content below its default minimum", () => {
+    render(
+      <ApplySelect
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={[]}
+        onValueChange={vi.fn()}
+        contentWidth={200}
+        defaultOpen
+      />,
+    );
+    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    expect(content?.style.width).toBe("200px");
+    expect(content?.className).not.toMatch(/(^|\s)min-w_/);
+  });
+
   it("filters through the shared typed search configuration", async () => {
     render(
       <ApplySelect

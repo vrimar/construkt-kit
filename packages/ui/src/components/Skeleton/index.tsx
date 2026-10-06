@@ -1,7 +1,7 @@
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
-import { Stack, type StackProps, styled } from "#styled-system/jsx";
+import { Stack, styled } from "#styled-system/jsx";
 import { skeleton } from "#styled-system/recipes";
 
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
@@ -18,20 +18,13 @@ export interface SkeletonTextProps extends SkeletonProps {
    * @default 3
    */
   noOfLines?: number | undefined;
-  rootProps?: StackProps | undefined;
 }
 
-export const SkeletonText = ({
-  ref,
-  noOfLines = 3,
-  rootProps,
-  ...skeletonProps
-}: SkeletonTextProps) => {
+export const SkeletonText = ({ ref, noOfLines = 3, ...skeletonProps }: SkeletonTextProps) => {
   return (
     <Stack
       ref={ref}
       width="full"
-      {...rootProps}
     >
       {[...Array(noOfLines).keys()].map((index) => (
         <Skeleton

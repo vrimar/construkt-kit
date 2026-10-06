@@ -59,6 +59,8 @@ import type { HTMLStyledProps, SystemStyleObject } from "@construkt-kit/styled-s
 ### Types
 
 `WithRef<T, E>` — generic ref forwarding type. `PortalledProps` — the `portalled` / `portalRef` pair on overlay content.
+`CssProp` — the value of a `*Css` prop, typed with ui's theme. `Unstyled<P>` — `P` without style props or `*Css`
+props, plus `data-*`, for objects of props an app forwards to ui.
 
 ## Variant Vocabulary
 
@@ -326,10 +328,31 @@ allowBuilds:
   the build
 - Import `css`, `cx`, `styled`, `token` and Panda's types from the app's `styled-system/` (see
   [Panda CSS Utilities](#panda-css-utilities)); Panda never extracted styles written with ui's copies
-- `Select` `contentWidth` applies as an inline width; drop `contentProps` width workarounds. It and `SubmitDialog`
-  `contentWidth` take px numbers, size tokens or CSS lengths
+- `Select` and `SubmitDialog` `contentWidth` apply inline and take px numbers, size tokens or CSS lengths
 - Renamed for the same reason as `content`: `DataTable` `columns` → `columnDefs`, `LoadingOverlay` `fill` →
   `backdrop`, `SubmitDialog` `width` → `contentWidth`, `TreeSelectList` `maxHeight` → `listHeight`
+- Removed, because Panda never extracts styles nested in an object:
+
+  | Removed                                                                                | Use                                                      |
+  | -------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+  | `contentProps`, `listProps` on `Select`, `ApplySelect`, `TagSelect`                    | `contentWidth`, `listMaxHeight`, `contentCss`, `listCss` |
+  | `contentProps` on `Listbox`, `ScrollArea`, `VirtualScrollArea`                         | `contentCss`; `listMaxHeight` on `Listbox`               |
+  | `listboxProps` on `Select`, `ApplySelect`, `TagSelect`                                 | style props on the select                                |
+  | `buttonProps` widths                                                                   | nothing: the trigger fills the select                    |
+  | `Tooltip` `contentProps`, `PasswordInput` `containerProps`, `SkeletonText` `rootProps` | `Tooltip.Content`                                        |
+  | `ApplySelectTrigger`, `ApplySelectContent`                                             | `ApplySelect.Trigger`, `ApplySelect.Content`             |
+
+- The remaining objects of props (`triggerProps`, `buttonProps`, `scrollAreaProps`, `submitButtonProps`,
+  `NumberFilter` `inputProps`, what `getRowProps`/`getItemProps` return, column `meta.selectProps`) take no style
+  props. `className`, `style`, `data-*` and `colorPalette` still work
+- `contentCss` styles the dropdown of `Select`, `ApplySelect` and `TagSelect` and the scrolled content of `Listbox`,
+  `ScrollArea` and `VirtualScrollArea`; `listCss` styles the `Select` family's list. Write them as JSX literals and
+  compose with arrays (`contentCss={[base, contentCss ?? {}]}`), never spreads, which Panda cannot extract
+- `Select`, `ApplySelect` and `TagSelect` take style props for the whole control (`<Select w="200px">`)
+- A `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport width
+- Virtual lists cap at the listbox's `maxH` (24rem) like other lists, and `ApplySelect` honours a `contentWidth` below
+  its 256px minimum
+- `ApplySelect.Root` autofocuses its search like `ApplySelect`
 
 #### Upgrading from 0.7
 

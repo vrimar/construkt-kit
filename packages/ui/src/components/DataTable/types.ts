@@ -9,7 +9,10 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 
-import type { ApplySelectProps } from "../ApplySelect";
+import type { BoxProps } from "#styled-system/jsx";
+
+import type { Unstyled } from "../../types";
+import type { ApplySelectProps } from "../Select";
 
 export type ColumnFilterType = "input" | "select" | "date" | "number";
 
@@ -18,13 +21,17 @@ export type TableFilterSelections = Record<string, string[]>;
 export type { DataTableFilters, DataTableParams, DataTableSortType } from "@construkt-kit/utils";
 
 export type DataTableSelectProps = Partial<
-  Omit<
-    ApplySelectProps<string, string>,
-    "getItemLabel" | "getItemValue" | "items" | "onValueChange" | "value"
+  Unstyled<
+    Omit<
+      ApplySelectProps<string, string>,
+      "getItemLabel" | "getItemValue" | "items" | "onValueChange" | "value"
+    >
   >
 > & {
   getItemLabel?: (item: string) => string;
 };
+
+export type DataTableRowProps = Unstyled<BoxProps>;
 
 export type DataTableColumnAlign = "start" | "center" | "end";
 

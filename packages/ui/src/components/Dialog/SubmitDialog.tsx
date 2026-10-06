@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { styled } from "#styled-system/jsx";
 
 import { toCssSize } from "../../foundations/cssSize";
+import type { Unstyled } from "../../types";
 import type { ButtonProps } from "../Buttons";
 import { Button } from "../Buttons";
 import { Dialog } from "./Dialog";
@@ -11,7 +12,7 @@ export interface SubmitDialogProps {
   title: ReactNode;
   onSubmit?: () => unknown;
   submitLabel?: string;
-  submitButtonProps?: ButtonProps;
+  submitButtonProps?: Unstyled<ButtonProps>;
   isSubmitLoading?: boolean;
   isSubmitDisabled?: boolean;
   onClose?: () => unknown;

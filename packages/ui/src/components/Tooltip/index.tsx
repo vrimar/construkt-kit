@@ -11,7 +11,6 @@ import { createPortalledContent } from "../portalledContent";
 const { withRootProvider, withContext } = createSlotRecipeContext(tooltip);
 
 type RootProps = ComponentProps<typeof Root>;
-type ContentProps = ComponentProps<typeof Content>;
 const Root = withRootProvider(ArkTooltip.Root, { defaultProps: lazyOverlayDefaults });
 const ArrowTip = withContext(ArkTooltip.ArrowTip, "arrowTip");
 const Arrow = withContext(ArkTooltip.Arrow, "arrow", {
@@ -29,7 +28,6 @@ export interface TooltipProps extends RootProps, PortalledProps {
   showArrow?: boolean;
   children: React.ReactNode | undefined;
   label: React.ReactNode;
-  contentProps?: ContentProps;
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
@@ -39,7 +37,6 @@ const TooltipComponent = ({
   children,
   portalled,
   label,
-  contentProps,
   portalRef,
   placement = "top",
   ...rootProps
@@ -55,7 +52,6 @@ const TooltipComponent = ({
       ref={ref}
       portalled={portalled}
       portalRef={portalRef}
-      {...contentProps}
     >
       {showArrow && <Arrow />}
       {label}
