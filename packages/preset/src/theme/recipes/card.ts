@@ -18,14 +18,14 @@ export const card = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       gap: surface("0.25rem"),
-      p: surface("1.5rem"),
+      pt: surface("1.5rem"),
+      px: surface("1.5rem"),
     },
     body: {
       display: "flex",
       flex: "1",
       flexDirection: "column",
-      pb: surface("1.5rem"),
-      px: surface("1.5rem"),
+      p: surface("1.5rem"),
     },
     footer: {
       display: "flex",
