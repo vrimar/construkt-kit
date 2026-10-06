@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Box } from "#styled-system/jsx";
 
+import { toCssSize } from "../../foundations/cssSize";
 import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";
 import { ManagedList, SelectionSearchField } from "../Listbox/managed";
@@ -37,14 +38,15 @@ export function SelectTrigger({ children, buttonProps, ...triggerProps }: Select
   );
 }
 
-export function SelectContent({ children, ...props }: SelectContentProps) {
+export function SelectContent({ children, style, ...props }: SelectContentProps) {
   const { contentWidth, sameWidth } = useSelectContext();
 
   return (
     <Popover.Content
       layerStyle="dropdown.surface"
       minW={contentWidth == null ? MIN_CONTENT_WIDTH : undefined}
-      {...(contentWidth != null ? { width: contentWidth } : sameWidth ? { width: "full" } : {})}
+      width={sameWidth ? "full" : undefined}
+      style={contentWidth == null ? style : { width: toCssSize(contentWidth), ...style }}
       {...props}
     >
       {children}

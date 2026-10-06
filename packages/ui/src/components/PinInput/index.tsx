@@ -11,6 +11,7 @@ const StyledRoot = withProvider(ArkPinInput.Root, "root", {
 });
 
 export type PinInputRootProps = Omit<ComponentProps<typeof StyledRoot>, "mask"> & {
+  // oxlint-disable-next-line construkt/no-style-prop-name
   mask?: boolean;
 };
 

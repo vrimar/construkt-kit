@@ -5,7 +5,7 @@ import type { ButtonProps } from "./Button";
 import { IconButton } from "./IconButton";
 
 export interface TooltipIconButtonProps extends ButtonProps {
-  tooltipProps?: Omit<TooltipProps, "children" | "content">;
+  tooltipProps?: Omit<TooltipProps, "children" | "label">;
   label: string;
 }
 
@@ -19,10 +19,15 @@ export const TooltipIconButton = ({
   return (
     <Tooltip
       ref={ref}
-      content={label}
+      label={label}
       {...tooltipProps}
     >
-      <IconButton {...props}>{children}</IconButton>
+      <IconButton
+        aria-label={label}
+        {...props}
+      >
+        {children}
+      </IconButton>
     </Tooltip>
   );
 };

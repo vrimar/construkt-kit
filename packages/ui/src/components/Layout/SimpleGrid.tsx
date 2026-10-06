@@ -10,6 +10,7 @@ type ResponsiveColumns = Partial<Record<BreakpointOrBase, number>>;
 export interface SimpleGridProps extends Omit<BoxProps, "columns"> {
   /** Number of equal-width columns. Accepts a static number, a responsive object,
    *  or a runtime number. Ignored when `minChildWidth` is set. */
+  // oxlint-disable-next-line construkt/no-style-prop-name
   columns?: number | ResponsiveColumns;
   /** Lay out as many equal columns as fit at this minimum width (px if a number). */
   minChildWidth?: string | number;

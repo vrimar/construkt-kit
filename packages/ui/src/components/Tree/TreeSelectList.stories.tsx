@@ -68,7 +68,7 @@ function TreeSelectListDemo() {
         collection={collection}
         value={selected}
         onValueChange={setSelected}
-        maxHeight="320px"
+        listHeight="320px"
       />
     </Box>
   );
@@ -94,7 +94,7 @@ function BareTreeDemo() {
         onValueChange={setSelected}
         showSearch={false}
         showSelectAll={false}
-        maxHeight="320px"
+        listHeight="320px"
       />
     </Box>
   );
@@ -149,7 +149,7 @@ function LongListDemo() {
         collection={largeCollection}
         value={selected}
         onValueChange={setSelected}
-        maxHeight="480px"
+        listHeight="480px"
       />
     </Box>
   );

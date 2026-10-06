@@ -14,8 +14,9 @@ export default createOxlintConfig({
     },
     {
       files: ["packages/ui/src/**", "packages/pages/src/**"],
-      jsPlugins: ["./packages/ui/oxlint-panda.mjs"],
+      jsPlugins: ["./packages/ui/oxlint-panda.mjs", "./packages/ui/oxlint-construkt.mjs"],
       rules: {
+        "construkt/no-style-prop-name": "error",
         "@pandacss/no-debug": "error",
         "@pandacss/no-deprecated": "error",
         "@pandacss/no-invalid-nesting": "error",
@@ -23,6 +24,10 @@ export default createOxlintConfig({
         // @pandacss/eslint-plugin 2.1.0 reports opacity-modified tokens as raw.
         "@pandacss/prefer-token": ["error", { categories: ["colors"], allow: ["bg/16", "bg/75"] }],
       },
+    },
+    {
+      files: ["**/*.stories.tsx"],
+      rules: { "construkt/no-style-prop-name": "off" },
     },
   ],
   options: {

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { styled } from "#styled-system/jsx";
 
+import { toCssSize } from "../../foundations/cssSize";
 import type { ButtonProps } from "../Buttons";
 import { Button } from "../Buttons";
 import { Dialog } from "./Dialog";
@@ -17,7 +18,8 @@ export interface SubmitDialogProps {
   cancelLabel?: string;
   children: ReactNode;
   isOpen?: boolean;
-  width?: string;
+  /** Max width of the dialog: px if a number, otherwise a size token or CSS length. */
+  contentWidth?: string | number;
   autoFocusButton?: boolean;
 }
 
@@ -32,7 +34,7 @@ export const SubmitDialog = ({
   onClose,
   isOpen = true,
   cancelLabel = "Cancel",
-  width,
+  contentWidth,
   autoFocusButton,
 }: SubmitDialogProps) => {
   return (
@@ -45,7 +47,9 @@ export const SubmitDialog = ({
       // Stay open when the popover or menu that opened it closes.
       onRequestDismiss={(e) => e.preventDefault()}
     >
-      <Dialog.Content style={{ maxWidth: width }}>
+      <Dialog.Content
+        style={contentWidth == null ? undefined : { maxWidth: toCssSize(contentWidth) }}
+      >
         <Dialog.Header>
           <Dialog.Title>{title}</Dialog.Title>
         </Dialog.Header>

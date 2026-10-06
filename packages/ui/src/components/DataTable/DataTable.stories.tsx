@@ -253,7 +253,7 @@ const defaultParams: DataTableParams = {
   filters: {},
 };
 
-function numberColumnIds(columnDefs: DataTableProps<Person>["columns"]): Set<string> {
+function numberColumnIds(columnDefs: DataTableProps<Person>["columnDefs"]): Set<string> {
   const ids = new Set<string>();
   for (const def of columnDefs) {
     const id = def.id ?? ("accessorKey" in def ? String(def.accessorKey) : undefined);
@@ -307,16 +307,16 @@ function DataTableStory(props: {
   data: Person[];
   loading?: boolean;
   variant?: "default" | "basic";
-  columns?: DataTableProps<Person>["columns"];
+  columnDefs?: DataTableProps<Person>["columnDefs"];
 }) {
   const [params, setParams] = useState<DataTableParams>(defaultParams);
-  const activeColumns = props.columns ?? columns;
+  const activeColumns = props.columnDefs ?? columns;
   const filtered = applyFiltersAndSorting(props.data, params, numberColumnIds(activeColumns));
   const paged = paginate(filtered, params);
 
   return (
     <DataTable
-      columns={activeColumns}
+      columnDefs={activeColumns}
       data={paged}
       totalItems={filtered.length}
       params={params}
@@ -378,7 +378,7 @@ export const Constrained: Story = {
     >
       <DataTableStory
         data={data}
-        columns={constrainedColumns}
+        columnDefs={constrainedColumns}
       />
     </Box>
   ),

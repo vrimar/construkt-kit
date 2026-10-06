@@ -14,7 +14,7 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <ToggleTip content="This is a toggle tip with helpful information.">
+    <ToggleTip label="This is a toggle tip with helpful information.">
       <Button variant="outline">Click for info</Button>
     </ToggleTip>
   ),
@@ -33,7 +33,7 @@ export const InfoTipStory: Story = {
 export const WithArrow: Story = {
   render: () => (
     <ToggleTip
-      content="Arrow tip"
+      label="Arrow tip"
       showArrow
     >
       <Button variant="outline">With Arrow</Button>

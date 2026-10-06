@@ -19,9 +19,9 @@ const tipFontSizeClass: Record<SpinnerSize, string | undefined> = {
   "2xl": css({ fontSize: "lg" }),
 };
 
-export interface LoadingOverlayProps extends Omit<FlexProps, "fill"> {
+export interface LoadingOverlayProps extends FlexProps {
   isActive: boolean;
-  fill?: boolean;
+  backdrop?: boolean;
   tip?: string;
   relative?: boolean;
   size?: SpinnerSize;
@@ -29,7 +29,7 @@ export interface LoadingOverlayProps extends Omit<FlexProps, "fill"> {
 
 export const LoadingOverlay = ({
   isActive,
-  fill = true,
+  backdrop = true,
   tip = "Loading...",
   relative,
   size = "xl",
@@ -47,7 +47,7 @@ export const LoadingOverlay = ({
       height="100%"
       width="100%"
       alignItems="center"
-      background={fill ? "bg/75" : undefined}
+      background={backdrop ? "bg/75" : undefined}
       justifyContent="center"
       opacity={isActive ? "1" : "0"}
       visibility={isActive ? "visible" : "hidden"}

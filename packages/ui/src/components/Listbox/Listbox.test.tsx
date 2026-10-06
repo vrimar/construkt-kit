@@ -378,7 +378,24 @@ describe("Listbox", () => {
 
     expect(screen.getAllByRole("group")).toHaveLength(2);
     expect(document.querySelector("[data-index]")).toBeNull();
-    expect(screen.getByRole("listbox").className).toContain("max-h_20rem");
+    expect(screen.getByRole("listbox").style.maxHeight).toBe("20rem");
+  });
+
+  it("applies a runtime max height from contentProps to the virtual list", () => {
+    render(
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+        virtual
+        contentProps={{ maxHeight: "240px" }}
+      />,
+    );
+
+    expect(screen.getByRole("listbox").style.maxHeight).toBe("240px");
   });
 
   it("keeps navigation order matching render order when groupBy toggles off", async () => {

@@ -111,6 +111,18 @@ describe("SubmitDialog", () => {
     expect(onOuterSubmit).not.toHaveBeenCalled();
   });
 
+  it("caps its width at contentWidth", () => {
+    render(
+      <SubmitDialog
+        title="Edit"
+        contentWidth={540}
+      >
+        Body
+      </SubmitDialog>,
+    );
+    expect(screen.getByRole("dialog").style.maxWidth).toBe("540px");
+  });
+
   it("stays open when the popover that opened it closes", async () => {
     render(<OpenedFromPopover />);
     await userEvent.click(await screen.findByRole("button", { name: "Open dialog" }));

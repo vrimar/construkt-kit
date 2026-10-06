@@ -86,9 +86,25 @@ describe("Select", () => {
         open
       />,
     );
-    expect(screen.getByRole("listbox").closest("[data-part='content']")?.className).toContain(
-      "w_320",
+    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    expect(content?.style.width).toBe("320px");
+    expect(content?.className).not.toMatch(/(^|\s)w_/);
+  });
+
+  it("resolves a size token as the content width", () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        contentWidth="sm"
+        open
+      />,
     );
+    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    expect(content?.style.width).toBe("var(--sizes-sm)");
   });
 
   it("filters through the unified search option", async () => {

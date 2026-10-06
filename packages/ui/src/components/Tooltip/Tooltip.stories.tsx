@@ -15,14 +15,14 @@ type Story = StoryObj<typeof Tooltip>;
 
 export const Default: Story = {
   args: {
-    content: "This is a tooltip",
+    label: "This is a tooltip",
     children: <Button>Hover me</Button>,
   },
 };
 
 export const WithArrow: Story = {
   args: {
-    content: "Tooltip with arrow",
+    label: "Tooltip with arrow",
     showArrow: true,
     children: <Button variant="outline">With Arrow</Button>,
   },
@@ -37,7 +37,7 @@ export const Placements: Story = {
       {(["top", "bottom", "left", "right"] as const).map((placement) => (
         <Tooltip
           key={placement}
-          content={`${placement} tooltip`}
+          label={`${placement} tooltip`}
           placement={placement}
         >
           <Button variant="outline">{placement}</Button>

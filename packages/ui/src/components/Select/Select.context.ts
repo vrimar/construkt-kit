@@ -6,7 +6,7 @@ import type { ManagedListOptions, SelectionValue } from "../Listbox/types";
 export interface SelectContextValue {
   controller: SelectionController<unknown, SelectionValue>;
   list: ManagedListOptions<unknown, SelectionValue>;
-  contentWidth?: number;
+  contentWidth?: string | number;
   sameWidth: boolean;
   triggerValue: ReactNode;
   hasValue: boolean;

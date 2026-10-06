@@ -5,14 +5,18 @@ import type { WithRef } from "../../types";
 
 export type WithTooltipProps = {
   tooltip?: ReactNode;
-  tooltipProps?: Omit<TooltipProps, "children" | "content" | "ids">;
+  tooltipProps?: Omit<TooltipProps, "children" | "label" | "ids">;
 };
+
+export type TooltipTriggerComponent<T extends ElementType> = (
+  props: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>,
+) => ReactElement;
 
 /** Wraps a floating-surface trigger so `tooltip` renders against the trigger's own Ark id. */
 export function withTriggerTooltip<T extends ElementType>(
   StyledTrigger: T,
   useTriggerId: (value: string) => string,
-) {
+): TooltipTriggerComponent<T> {
   const TriggerElement: ElementType = StyledTrigger;
 
   return function TooltipTrigger({
@@ -29,7 +33,7 @@ export function withTriggerTooltip<T extends ElementType>(
     return (
       <Tooltip
         ids={{ trigger: triggerId }}
-        content={tooltip}
+        label={tooltip}
         {...tooltipProps}
       >
         {trigger}

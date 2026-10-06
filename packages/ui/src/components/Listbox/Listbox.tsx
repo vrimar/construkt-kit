@@ -14,6 +14,7 @@ import {
 import { Box, HStack, type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
+import { splitInlineSizes } from "../../foundations/cssSize";
 import type { WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput, type SearchInputProps } from "../Input";
@@ -81,9 +82,11 @@ function Content({
   ref,
   children,
   scrollAreaProps,
+  style,
   ...props
 }: WithRef<ContentProps, HTMLDivElement>) {
   const { contentProps, ...resolvedScrollAreaProps } = scrollAreaProps ?? {};
+  const [sizeStyle, sizedProps] = splitInlineSizes(props, ["height", "maxHeight"]);
 
   return (
     <ScrollArea.Root {...resolvedScrollAreaProps}>
@@ -93,7 +96,8 @@ function Content({
       >
         <StyledContent
           ref={ref}
-          {...props}
+          {...sizedProps}
+          style={{ ...sizeStyle, ...style }}
         >
           <ScrollArea.Content
             {...contentProps}

@@ -36,7 +36,8 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   ) => ReactNode;
   placeholder?: ReactNode;
   renderValue?: (context: SelectionValueRenderContext<T, V>) => ReactNode;
-  contentWidth?: number;
+  /** Content width: px if a number, otherwise a size token or CSS length. */
+  contentWidth?: string | number;
   /** Match content width to the trigger. @default true */
   matchTriggerWidth?: boolean;
   open?: boolean;

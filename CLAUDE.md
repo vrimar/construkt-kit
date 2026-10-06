@@ -7,7 +7,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 
 ## Packages
 
-- **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import from `@construkt-kit/ui`, never `@ark-ui/*` or `styled-system/*`.
+- **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import components from `@construkt-kit/ui`, never `@ark-ui/*`.
 - **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
@@ -37,7 +37,8 @@ honours `options.typeAware` only in the config it loads as its root.
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsdown.config.ts`
 - React 19 peer dep (`^19.0.0`)
 - Never import from `@ark-ui/react` directly — use `@construkt-kit/ui`
-- Never import from `styled-system/*` in consuming apps — use `css`/`styled`/`token` from `@construkt-kit/ui`
+- Consuming apps import `css`/`cx`/`styled`/`token` and Panda's types from their own generated `styled-system/`, through the specifier their Panda `importMap` names (an alias such as `@construkt-kit/styled-system/*` is fine) — never from `@construkt-kit/ui` or `@construkt-kit/pages`, which Panda doesn't extract from and whose `token` knows only the kit's theme
+- Don't name a non-style component prop after a CSS property (`content`, `width`, `fill`, …) — Panda extracts it as a style from every PascalCase JSX element, and free text there emits invalid CSS. `construkt/no-style-prop-name` enforces this in ui and pages
 - Never use hardcoded colors — use Panda tokens
 - Never import between packages via relative paths — use `@construkt-kit/*` aliases
 - `react` / `react-dom` are peer deps — never add to `dependencies`

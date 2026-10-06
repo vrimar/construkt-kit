@@ -54,8 +54,8 @@ export interface TreeSelectListProps<TNode extends TreeNode> {
   defaultExpandedValue?: string[];
   /** Callback when expanded nodes change. */
   onExpandedChange?: (expandedValue: string[]) => void;
-  /** Max height for the scroll area. @default "320px" */
-  maxHeight?: string;
+  /** Height of the scroll area. @default "320px" */
+  listHeight?: string;
   /** Size variant. @default "md" */
   size?: TreeSize;
   /**
@@ -176,7 +176,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
   expandedValue,
   defaultExpandedValue,
   onExpandedChange,
-  maxHeight = "320px",
+  listHeight = "320px",
   size = "md",
   onCollectionChange,
   isNodeDraggable,
@@ -317,8 +317,8 @@ export const TreeSelectList = <TNode extends TreeNode>({
           items={visibleNodes}
           itemHeight={TREE_ROW_HEIGHT_ESTIMATE[size]}
           getItemKey={(index) => filteredCollection.getNodeValue(visibleNodes[index].node)}
-          height={maxHeight}
-          maxHeight={maxHeight}
+          height={listHeight}
+          maxHeight={listHeight}
           viewportRef={setScrollViewport}
           measure
           p="2"

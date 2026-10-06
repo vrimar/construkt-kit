@@ -25,10 +25,10 @@ const TooltipContent = createPortalledContent(Positioner, Content);
 
 export { TooltipContext as Context } from "@ark-ui/react/tooltip";
 
-export interface TooltipProps extends Omit<RootProps, "content">, PortalledProps {
+export interface TooltipProps extends RootProps, PortalledProps {
   showArrow?: boolean;
   children: React.ReactNode | undefined;
-  content: React.ReactNode | string;
+  label: React.ReactNode;
   contentProps?: ContentProps;
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
@@ -38,7 +38,7 @@ const TooltipComponent = ({
   showArrow,
   children,
   portalled,
-  content,
+  label,
   contentProps,
   portalRef,
   placement = "top",
@@ -58,7 +58,7 @@ const TooltipComponent = ({
       {...contentProps}
     >
       {showArrow && <Arrow />}
-      {content}
+      {label}
     </TooltipContent>
   </Root>
 );

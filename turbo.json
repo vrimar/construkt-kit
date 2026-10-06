@@ -40,7 +40,7 @@
         "!packages/*/test/gen/**",
         "packages/config/{oxlint,vite,playwright,kubb,oxfmt}/**",
         "packages/*/*.config.ts",
-        "packages/*/oxlint-panda.mjs",
+        "packages/*/oxlint-*.mjs",
         "packages/*/vitest.setup.ts",
         "apps/*/.storybook/**",
         "apps/*/*.config.ts"

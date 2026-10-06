@@ -46,7 +46,7 @@ export { dataTableFeatures } from "./types";
 export type DataTableProps<TData extends object> = {
   data: TData[];
   totalItems: number;
-  columns: DataTableColumnDef<TData, any>[];
+  columnDefs: DataTableColumnDef<TData, any>[];
   loading?: boolean;
   params: DataTableParams;
   onParamChange: (params: DataTableParams) => unknown;
@@ -97,7 +97,7 @@ export const DataTable = <TData extends object>({
   data,
   params,
   onParamChange,
-  columns,
+  columnDefs,
   loading,
   totalItems,
   onRowClick,
@@ -115,8 +115,8 @@ export const DataTable = <TData extends object>({
   const showCards = mobileLayout === "cards" && isMobile;
 
   const visibleColumns = useMemo(
-    () => columns.filter((column) => column.meta?.isVisible !== false),
-    [columns],
+    () => columnDefs.filter((column) => column.meta?.isVisible !== false),
+    [columnDefs],
   );
 
   const sortingState = useMemo(

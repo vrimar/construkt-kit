@@ -9,15 +9,17 @@ const TRIGGER_GUTTER = 4;
 
 export interface ToggleTipProps extends PopoverRootProps, PortalledProps {
   showArrow?: boolean;
-  content?: ReactNode;
+  label?: ReactNode;
 }
+
+export type InfoTipProps = Partial<Omit<ToggleTipProps, "label">>;
 
 export const ToggleTip = ({
   ref,
   showArrow,
   children,
   portalled,
-  content,
+  label,
   portalRef,
   ...rest
 }: WithRef<ToggleTipProps>) => {
@@ -38,17 +40,17 @@ export const ToggleTip = ({
         ref={ref}
       >
         {showArrow && <Popover.Arrow />}
-        {content}
+        {label}
       </Popover.Content>
     </Popover.Root>
   );
 };
 
-export const InfoTip = (props: Partial<ToggleTipProps>) => {
+export const InfoTip = (props: InfoTipProps) => {
   const { children, ...rest } = props;
   return (
     <ToggleTip
-      content={children}
+      label={children}
       {...rest}
     >
       <IconButton

@@ -2,7 +2,7 @@
 
 60+ UI components for Construkt Kit apps, built on Panda CSS and Ark UI primitives.
 
-> **Rule:** Consumers import from `@construkt-kit/ui`. UI implementation code imports Panda helpers from `#styled-system/*`.
+> **Rule:** Consumers import components from `@construkt-kit/ui` and Panda helpers from their own generated `styled-system/`. UI implementation code imports Panda helpers from `#styled-system/*`.
 
 ## Exports
 
@@ -45,10 +45,15 @@
 
 ### Panda CSS Utilities
 
+ui does not re-export Panda's runtime or types. Apps import `css`, `cx`, `styled`, `token` and Panda's types from the
+`styled-system/` their own Panda build generates, through the path their `importMap` names: Panda only extracts
+styles from imports it matches, and the app's `token` and types know the app's theme extensions:
+
 ```tsx
-import { css, cx, styled } from "@construkt-kit/ui";
-import type { HTMLStyledProps, StyledComponent } from "@construkt-kit/ui";
-import { token } from "@construkt-kit/ui"; // design token accessor
+import { css, cx } from "@construkt-kit/styled-system/css";
+import { styled } from "@construkt-kit/styled-system/jsx";
+import { token } from "@construkt-kit/styled-system/tokens";
+import type { HTMLStyledProps, SystemStyleObject } from "@construkt-kit/styled-system/types";
 ```
 
 ### Types
@@ -172,6 +177,10 @@ Panda build emits the CSS — but will not typecheck. Extend the system through
 `colorPalette` and `textStyle` rather than new variant names; a new variant
 _key_ is worse still, since it reaches the DOM as a stray attribute and ui's
 runtime ignores downstream `compoundVariants` and `defaultVariants`.
+
+Style props on ui components go through that same runtime, which knows only the preset's conditions, utilities,
+shorthands and breakpoints. An app may override token values, but a condition, utility, shorthand or breakpoint it
+adds works only through its own `css` and `styled`, never as a prop on a ui component.
 
 A recipe's own properties outrank the values of a `textStyle` it applies, so
 overriding a text style only changes what the recipe leaves unset. Slots that
@@ -309,6 +318,18 @@ prebuilt binaries ship as optional dependencies, so the script can stay off:
 allowBuilds:
   "@parcel/watcher": false
 ```
+
+#### Upgrading from 0.8
+
+- `Tooltip` and `ToggleTip` take `label` in place of `content`, and `InfoTip` takes its text as children. Panda reads
+  `content` on any component as the CSS property, so a string `content` emitted invalid CSS and a colon in it failed
+  the build
+- Import `css`, `cx`, `styled`, `token` and Panda's types from the app's `styled-system/` (see
+  [Panda CSS Utilities](#panda-css-utilities)); Panda never extracted styles written with ui's copies
+- `Select` `contentWidth` applies as an inline width; drop `contentProps` width workarounds. It and `SubmitDialog`
+  `contentWidth` take px numbers, size tokens or CSS lengths
+- Renamed for the same reason as `content`: `DataTable` `columns` → `columnDefs`, `LoadingOverlay` `fill` →
+  `backdrop`, `SubmitDialog` `width` → `contentWidth`, `TreeSelectList` `maxHeight` → `listHeight`
 
 #### Upgrading from 0.7
 

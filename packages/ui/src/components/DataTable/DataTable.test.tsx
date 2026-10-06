@@ -39,7 +39,7 @@ const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]>
     <DataTable
       data={data}
       totalItems={25}
-      columns={columns}
+      columnDefs={columns}
       params={params}
       onParamChange={onParamChange}
       {...overrides}
@@ -74,7 +74,7 @@ describe("DataTable", () => {
         <DataTable
           data={data}
           totalItems={25}
-          columns={columns}
+          columnDefs={columns}
           params={current}
           onParamChange={setCurrent}
         />
@@ -105,7 +105,7 @@ describe("DataTable", () => {
       columnHelper.accessor("name", { header: "Name" }),
       columnHelper.accessor("role", { header: "Role", enableSorting: false }),
     ];
-    renderTable({ columns: semantic });
+    renderTable({ columnDefs: semantic });
 
     expect(screen.getByRole("table")).toBeTruthy();
     expect(screen.getAllByRole("rowgroup")).toHaveLength(2);
@@ -145,7 +145,7 @@ describe("DataTable", () => {
       columnHelper.accessor("name", { header: "Name" }),
       columnHelper.accessor("role", { header: "Role", meta: { isVisible: false } }),
     ];
-    renderTable({ columns: hidden });
+    renderTable({ columnDefs: hidden });
 
     expect(screen.getByText("Alice")).toBeTruthy();
     expect(screen.queryByText("Admin")).toBeNull();
@@ -167,7 +167,7 @@ describe("DataTable", () => {
       columnHelper.accessor("name", { header: "Name" }),
       columnHelper.accessor("role", { header: "Role", meta: { minWidth: 200 } }),
     ];
-    renderTable({ columns: sized, showFiltersRow: false });
+    renderTable({ columnDefs: sized, showFiltersRow: false });
 
     expect(columnTemplate()).toBe("80px minmax(120px, 1fr) minmax(200px, 1fr)");
   });
@@ -184,7 +184,7 @@ describe("DataTable", () => {
       columnHelper.accessor("name", { header: "Name", meta: { isVisible: false } }),
       columnHelper.accessor("role", { header: "Role" }),
     ];
-    renderTable({ columns: hidden });
+    renderTable({ columnDefs: hidden });
 
     expect(columnTemplate()).toBe("minmax(120px, 1fr) minmax(120px, 1fr)");
     for (const row of rows()) expect(row.children.length).toBe(2);
@@ -201,7 +201,7 @@ describe("DataTable", () => {
       }),
       columnHelper.accessor("role", { header: "Role", meta: { align: "end" } }),
     ];
-    renderTable({ columns: aligned, showFiltersRow: false });
+    renderTable({ columnDefs: aligned, showFiltersRow: false });
 
     const alignOf = (el: Element | null) =>
       el instanceof HTMLElement ? el.style.justifyContent : "";
@@ -225,7 +225,7 @@ describe("DataTable", () => {
         meta: { align: "end" },
       }),
     ];
-    renderTable({ columns: aligned, showFiltersRow: false });
+    renderTable({ columnDefs: aligned, showFiltersRow: false });
 
     const labelBox = (text: string) => screen.getByText(text).parentElement as HTMLElement;
     const sorterOf = (text: string) =>
@@ -250,7 +250,7 @@ describe("DataTable", () => {
         <DataTable
           data={data}
           totalItems={25}
-          columns={numeric}
+          columnDefs={numeric}
           params={current}
           onParamChange={(next: DataTableParams) => {
             onParamChange(next);
@@ -319,7 +319,7 @@ describe("DataTable", () => {
         ),
       }),
     ];
-    renderTable({ columns: withAction, onRowClick, showFiltersRow: false });
+    renderTable({ columnDefs: withAction, onRowClick, showFiltersRow: false });
 
     await userEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     expect(onAction).toHaveBeenCalled();
@@ -344,7 +344,7 @@ describe("DataTable", () => {
         ),
       }),
     ];
-    renderTable({ columns: withIconAction, onRowClick, showFiltersRow: false });
+    renderTable({ columnDefs: withIconAction, onRowClick, showFiltersRow: false });
 
     await userEvent.click(screen.getAllByTestId("edit-icon")[0]);
     expect(onAction).toHaveBeenCalled();
