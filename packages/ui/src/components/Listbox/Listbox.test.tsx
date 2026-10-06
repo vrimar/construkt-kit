@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { createListCollection, Listbox } from ".";
+import { createListCollection, Listbox, type ListboxProps } from ".";
 import { encodedValues, groupLabels, optionValues, produce } from "./selection.fixtures";
 import { encodeSelectionValue } from "./useSelectionController";
 
@@ -397,6 +397,26 @@ describe("Listbox", () => {
     expect(screen.getByRole("listbox").style.maxHeight).toBe("240px");
   });
 
+  it("keeps one list element while a virtual list's items arrive", () => {
+    const view = (items: typeof produce | []) => (
+      <Listbox
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={null}
+        onValueChange={vi.fn()}
+        search={false}
+        virtual
+      />
+    );
+    const { rerender } = render(view([]));
+    const list = screen.getByRole("listbox");
+
+    rerender(view(produce));
+
+    expect(screen.getByRole("listbox")).toBe(list);
+  });
+
   it("applies contentCss to the virtual list", () => {
     render(
       <Listbox
@@ -554,6 +574,143 @@ describe("Listbox", () => {
       />,
     );
     expect(screen.getByRole("listbox").closest("[data-scope='scroll-area']")).not.toBeNull();
+  });
+
+  it("points the search input at the listbox it controls", () => {
+    render(
+      <Listbox
+        items={fruits}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={null}
+        onValueChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe(
+      screen.getByRole("listbox").id,
+    );
+  });
+
+  it("keeps a custom root content id on the composed list", () => {
+    const collection = createListCollection({ items: ["north", "south"] });
+    render(
+      <Listbox.Root
+        collection={collection}
+        ids={{ content: "custom" }}
+      >
+        <Listbox.Input />
+        <Listbox.Content>
+          {collection.items.map((item) => (
+            <Listbox.Item
+              key={item}
+              item={item}
+            >
+              <Listbox.ItemText>{item}</Listbox.ItemText>
+            </Listbox.Item>
+          ))}
+        </Listbox.Content>
+      </Listbox.Root>,
+    );
+
+    expect(screen.getByRole("listbox").id).toBe("custom");
+    expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe("custom");
+  });
+
+  describe("search input keyboard", () => {
+    const renderSearchable = (onValueChange = vi.fn()) => {
+      render(
+        <Listbox
+          items={fruits}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.name}
+          value={null}
+          onValueChange={onValueChange}
+        />,
+      );
+      return screen.getByRole("textbox");
+    };
+
+    it("moves the highlight with the arrow keys while the input keeps focus", async () => {
+      const input = renderSearchable();
+
+      await userEvent.click(input);
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(1));
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+      await userEvent.keyboard("{ArrowUp}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(1));
+
+      expect(document.activeElement).toBe(input);
+      expect(input.getAttribute("aria-activedescendant")).toBe(
+        document.querySelector("[role='option'][data-highlighted]")?.id,
+      );
+    });
+
+    it("selects the highlighted option with Enter", async () => {
+      const onValueChange = vi.fn();
+      const input = renderSearchable(onValueChange);
+
+      await userEvent.click(input);
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+      expect(onValueChange).toHaveBeenCalledExactlyOnceWith(2);
+    });
+
+    it("highlights the first match while typing", async () => {
+      const onValueChange = vi.fn();
+      const input = renderSearchable(onValueChange);
+
+      await userEvent.type(input, "an");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+      await userEvent.keyboard("{Enter}");
+      expect(onValueChange).toHaveBeenCalledExactlyOnceWith(2);
+    });
+
+    it("leaves Home to the input caret", async () => {
+      const input = renderSearchable();
+
+      await userEvent.type(input, "a");
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+      await userEvent.keyboard("{Home}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+    });
+
+    it("navigates grouped options in group order", async () => {
+      render(
+        <Listbox
+          items={produce}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.name}
+          groupBy={(item) => item.kind}
+          value={null}
+          onValueChange={vi.fn()}
+        />,
+      );
+
+      await userEvent.click(screen.getByRole("textbox"));
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(1));
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(3));
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+    });
+  });
+
+  it("rejects root props the managed selection owns", () => {
+    const props: ListboxProps<(typeof fruits)[number], number> = {
+      items: fruits,
+      getItemValue: (item) => item.id,
+      getItemLabel: (item) => item.name,
+      selectionMode: "multiple",
+      value: [],
+      onValueChange: vi.fn(),
+      // @ts-expect-error defaultValue belongs to the managed selection
+      defaultValue: [encodeSelectionValue(1)],
+    };
+    expect(props).toBeDefined();
   });
 
   it("allows controlled multiple state", async () => {

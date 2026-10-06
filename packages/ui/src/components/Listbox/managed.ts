@@ -1,4 +1,5 @@
 export {
+  ListboxSearchField,
   ManagedList,
   SelectionSearchField,
   type SelectionSearchFieldProps,

@@ -1,11 +1,20 @@
+import type { UseListboxContext } from "@ark-ui/react/listbox";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Listbox } from "../Listbox";
+import { encodeSelectionValue } from "../Listbox/managed";
 import { encodedValues, groupLabels, optionValues, produce } from "../Listbox/selection.fixtures";
 import { Select } from "./Select";
+
+type ListboxApi = UseListboxContext<unknown>;
+
+const highlightedValue = () =>
+  document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
+
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
 const options = [
   { id: 1, label: "Alpha" },
@@ -163,7 +172,7 @@ describe("Select", () => {
         open
       />,
     );
-    expect(screen.queryByRole("searchbox")).toBeNull();
+    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   it("renders the configured empty state", () => {
@@ -432,6 +441,204 @@ describe("Select", () => {
   it("exposes the listbox group parts", () => {
     expect(Select.ItemGroup).toBe(Listbox.ItemGroup);
     expect(Select.ItemGroupLabel).toBe(Listbox.ItemGroupLabel);
+  });
+
+  it("selects and closes from the search input with the keyboard", async () => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={onValueChange}
+        onOpenChange={onOpenChange}
+        search={{ autoFocus: true }}
+        defaultOpen
+      />,
+    );
+
+    expect(document.activeElement).toBe(screen.getByRole("textbox"));
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(1);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it("closes once when Enter re-picks the selected option from the search input", async () => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={2}
+        onValueChange={onValueChange}
+        onOpenChange={onOpenChange}
+        search
+        open
+      />,
+    );
+
+    await userEvent.type(screen.getByRole("textbox"), "bet");
+    await userEvent.keyboard("{Enter}");
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it("drops the highlight when reopened", async () => {
+    render(
+      <Select
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+        search={{ autoFocus: true }}
+        defaultOpen
+      />,
+    );
+
+    await nextFrame();
+    await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+    expect(highlightedValue()).toBe(encodeSelectionValue(2));
+    await userEvent.keyboard("{Escape}");
+    await nextFrame();
+    expect(screen.queryByRole("listbox")).toBeNull();
+
+    await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+    await nextFrame();
+    expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).toBeNull();
+    expect(screen.getByRole("textbox").getAttribute("aria-activedescendant")).toBeNull();
+
+    await userEvent.click(screen.getByRole("textbox"));
+    await userEvent.keyboard("{ArrowDown}");
+    expect(highlightedValue()).toBe(encodeSelectionValue(1));
+  });
+
+  it.each([
+    ["clearValue", (api: ListboxApi) => api.clearValue()],
+    ["setValue([])", (api: ListboxApi) => api.setValue([])],
+  ])("ignores an imperative %s in single mode", async (_, clear) => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Select.Root
+        items={options}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={2}
+        onValueChange={onValueChange}
+        onOpenChange={onOpenChange}
+        open
+      >
+        <Select.Trigger />
+        <Select.Content>
+          <Select.List />
+          <Listbox.Context>
+            {(api) => (
+              <button
+                type="button"
+                onClick={() => clear(api)}
+              >
+                Clear
+              </button>
+            )}
+          </Listbox.Context>
+        </Select.Content>
+      </Select.Root>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("option", { name: "Beta" }).getAttribute("aria-selected")).toBe("true");
+  });
+
+  describe("highlight scrolling", () => {
+    const scrollIntoView = vi.fn();
+
+    beforeEach(() => {
+      Element.prototype.scrollIntoView = scrollIntoView;
+      vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(400);
+      vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(100);
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+      scrollIntoView.mockReset();
+      vi.restoreAllMocks();
+    });
+
+    it("scrolls the keyboard-highlighted option into view after opening", async () => {
+      render(
+        <Select
+          items={options}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.label}
+          value={null}
+          onValueChange={vi.fn()}
+          search
+        />,
+      );
+
+      await nextFrame();
+      await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+      await nextFrame();
+      await userEvent.click(screen.getByRole("textbox"));
+      await userEvent.keyboard("{ArrowUp}");
+      expect(scrollIntoView.mock.contexts.at(-1)).toBe(
+        screen.getByRole("option", { name: "Gamma" }),
+      );
+    });
+
+    it("scrolls a virtual list to the keyboard-highlighted index", async () => {
+      const many = Array.from({ length: 100 }, (_, index) => ({
+        id: index,
+        label: `Item ${index}`,
+      }));
+      const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
+      render(
+        <Select
+          items={many}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.label}
+          value={null}
+          onValueChange={vi.fn()}
+          search
+          virtual
+        />,
+      );
+
+      await nextFrame();
+      await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+      await nextFrame();
+      await userEvent.click(screen.getByRole("textbox"));
+      scrollTo.mockClear();
+      await userEvent.keyboard("{ArrowUp}");
+      expect(scrollTo).toHaveBeenCalled();
+    });
+
+    it("does not scroll when an option is pressed", async () => {
+      render(
+        <Select
+          items={options}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.label}
+          selectionMode="multiple"
+          value={[]}
+          onValueChange={vi.fn()}
+        />,
+      );
+
+      await nextFrame();
+      await userEvent.click(screen.getByRole("button", { name: "Select item" }));
+      await nextFrame();
+      await userEvent.click(screen.getByRole("option", { name: "Beta" }));
+      expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).not.toBeNull();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    });
   });
 
   it("applies logical indicator placement", () => {

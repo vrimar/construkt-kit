@@ -77,6 +77,51 @@ describe("TagSelect", () => {
     expect(screen.queryByText("One")).toBeNull();
   });
 
+  it("toggles the highlighted match with Enter and stays open", async () => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[]}
+        onValueChange={onValueChange}
+        onOpenChange={onOpenChange}
+        open
+      />,
+    );
+
+    await userEvent.type(screen.getByRole("textbox"), "t");
+    await userEvent.keyboard("{Enter}");
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith([2]);
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps typing in the search input after an option is clicked", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <TagSelect
+        items={items}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.label}
+        value={[]}
+        onValueChange={onValueChange}
+        open
+      />,
+    );
+    const input = screen.getByRole<HTMLInputElement>("textbox");
+
+    await userEvent.click(input);
+    await userEvent.click(screen.getByRole("option", { name: "One" }));
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith([1]);
+    expect(document.activeElement).toBe(input);
+
+    await userEvent.keyboard("tw");
+    expect(input.value).toBe("tw");
+    expect(screen.queryByRole("option", { name: "One" })).toBeNull();
+  });
+
   it("forwards grouping to the managed list", () => {
     render(
       <TagSelect

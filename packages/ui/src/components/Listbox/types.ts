@@ -26,7 +26,7 @@ export interface SelectionItemsProps<T, V extends SelectionValue> {
 export interface SingleSelectionProps<V extends SelectionValue> {
   selectionMode?: "single";
   value: V | null;
-  onValueChange: (value: V | null) => unknown;
+  onValueChange: (value: V) => unknown;
 }
 
 export interface MultipleSelectionProps<V extends SelectionValue> {

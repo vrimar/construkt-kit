@@ -1,4 +1,4 @@
-import { Listbox as ArkListbox, ListboxContext } from "@ark-ui/react/listbox";
+import { Listbox as ArkListbox, ListboxContext, useListboxContext } from "@ark-ui/react/listbox";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "lucide-react";
 import {
@@ -6,9 +6,11 @@ import {
   type JSX,
   type ReactNode,
   type Ref,
+  type RefObject,
   type SyntheticEvent,
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 import { Box, HStack, type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
@@ -89,11 +91,14 @@ function Content({
   ...props
 }: WithRef<ContentProps, HTMLDivElement>) {
   const [sizeStyle, sizedProps] = splitInlineSizes(props, ["height", "maxHeight"]);
+  const contentId = useListboxContext().getContentProps().id;
 
   return (
     <ScrollArea.Root
       {...scrollAreaProps}
       scrollbars="vertical"
+      // The viewport and the listbox content are one element, which both machines look up by id.
+      ids={{ viewport: contentId }}
     >
       <ScrollArea.Viewport
         asChild
@@ -207,6 +212,22 @@ export function SelectionSearchField({
   );
 }
 
+interface ListboxSearchFieldProps extends SelectionSearchFieldProps {
+  inputRef?: Ref<HTMLInputElement>;
+}
+
+export function ListboxSearchField({ inputRef, ...props }: ListboxSearchFieldProps) {
+  return (
+    <ArkListbox.Input
+      ref={inputRef}
+      asChild
+      autoHighlight
+    >
+      <SelectionSearchField {...props} />
+    </ArkListbox.Input>
+  );
+}
+
 type ScrollToIndexRef = { current: ((index: number) => void) | undefined };
 
 export const isVirtualized = <T, V extends SelectionValue>(
@@ -243,15 +264,18 @@ interface ListboxManagedProps<T, V extends SelectionValue>
   contentCss?: CssProp;
 }
 
-type ListboxBaseProps<T, V extends SelectionValue> = Omit<
-  ArkListbox.RootComponentProps<T, RootProps>,
-  | "activeItemStyle"
+type ManagedRootKey =
   | "children"
   | "collection"
+  | "defaultValue"
   | "deselectable"
   | "onValueChange"
   | "selectionMode"
-  | "value"
+  | "value";
+
+type ListboxBaseProps<T, V extends SelectionValue> = Omit<
+  ArkListbox.RootComponentProps<T, RootProps>,
+  ManagedRootKey
 > &
   ListboxManagedProps<T, V>;
 
@@ -262,23 +286,22 @@ export type ListboxProps<T = unknown, V extends SelectionValue = SelectionValue>
   SelectionProps<V>;
 
 // Mounted only in virtual mode, so `useVirtualizer` never runs for plain lists.
-function VirtualList<T>({
+function VirtualListRows<T>({
   items,
   renderRow,
-  contentProps,
+  scrollElement,
   getItemKey,
   scrollToIndexRef,
 }: {
   items: T[];
   renderRow: (item: T, index: number) => ReactNode;
-  contentProps?: HTMLStyledProps<"div">;
+  scrollElement: HTMLDivElement | null;
   getItemKey: (index: number) => string | number;
   scrollToIndexRef: ScrollToIndexRef;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: items.length,
-    getScrollElement: () => scrollRef.current,
+    getScrollElement: () => scrollElement,
     estimateSize: () => VIRTUAL_ITEM_HEIGHT,
     overscan: 10,
     getItemKey,
@@ -293,15 +316,32 @@ function VirtualList<T>({
   }, [virtualizer, scrollToIndexRef]);
 
   return (
-    <Content
-      ref={scrollRef}
-      {...contentProps}
-    >
-      <VirtualRows virtualizer={virtualizer}>
-        {(virtualItem) => renderRow(items[virtualItem.index], virtualItem.index)}
-      </VirtualRows>
-    </Content>
+    <VirtualRows virtualizer={virtualizer}>
+      {(virtualItem) => renderRow(items[virtualItem.index], virtualItem.index)}
+    </VirtualRows>
   );
+}
+
+function useSearchFocusRetention(
+  inputRef: RefObject<HTMLInputElement | null>,
+  { onMouseDownCapture, onMouseDown, ...props }: HTMLStyledProps<"div"> = {},
+): HTMLStyledProps<"div"> {
+  const searchFocusedRef = useRef(false);
+
+  return {
+    ...props,
+    // Items move focus to the list in their own mousedown, so sample the input before they run.
+    onMouseDownCapture: (event) => {
+      onMouseDownCapture?.(event);
+      searchFocusedRef.current = inputRef.current?.matches(":focus") === true;
+    },
+    onMouseDown: (event) => {
+      onMouseDown?.(event);
+      if (!searchFocusedRef.current) return;
+      event.preventDefault();
+      inputRef.current?.focus();
+    },
+  };
 }
 
 interface ManagedListProps<T, V extends SelectionValue> extends ManagedListOptions<T, V> {
@@ -325,6 +365,8 @@ export function ManagedList<T, V extends SelectionValue>({
   scrollToIndexRef,
 }: ManagedListProps<T, V>) {
   const { collection, groups, grouped } = controller;
+  // State, not a ref: the rows' layout effects run before this ancestor's ref attaches.
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
   const renderRow = (item: T) => {
     const state = controller.getItemState(item);
     return (
@@ -343,36 +385,45 @@ export function ManagedList<T, V extends SelectionValue>({
   const isEmpty = collection.items.length === 0;
   const emptyBlock = !loading && isEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>;
   const useVirtual = isVirtualized(controller, virtual);
-  const listContentProps =
-    listMaxHeight == null ? contentProps : { ...contentProps, maxHeight: listMaxHeight };
+  const listContentProps = useSearchFocusRetention(
+    controller.search.inputRef,
+    listMaxHeight == null ? contentProps : { ...contentProps, maxHeight: listMaxHeight },
+  );
 
-  if (useVirtual) {
-    if (isEmpty) return emptyBlock;
-    return (
-      <VirtualList
-        items={collection.items}
-        renderRow={renderRow}
-        contentProps={listContentProps}
-        getItemKey={(index) => collection.getItemValue(collection.items[index]) ?? index}
-        scrollToIndexRef={scrollToIndexRef}
-      />
-    );
-  }
+  const renderRows = () => {
+    if (useVirtual) {
+      return (
+        !isEmpty && (
+          <VirtualListRows
+            items={collection.items}
+            renderRow={renderRow}
+            scrollElement={scrollElement}
+            getItemKey={(index) => collection.getItemValue(collection.items[index]) ?? index}
+            scrollToIndexRef={scrollToIndexRef}
+          />
+        )
+      );
+    }
+    if (!grouped) return collection.items.map(renderRow);
+    return groups.map(([group, groupItems]) => (
+      <ItemGroup key={group}>
+        {group !== "" && (
+          <ItemGroupLabel>
+            {renderGroupLabel ? renderGroupLabel(group, groupItems) : group}
+          </ItemGroupLabel>
+        )}
+        {groupItems.map(renderRow)}
+      </ItemGroup>
+    ));
+  };
 
+  // One element across empty, plain and virtual: zag binds its highlight scrolling to it once.
   return (
-    <Content {...listContentProps}>
-      {grouped
-        ? groups.map(([group, groupItems]) => (
-            <ItemGroup key={group}>
-              {group !== "" && (
-                <ItemGroupLabel>
-                  {renderGroupLabel ? renderGroupLabel(group, groupItems) : group}
-                </ItemGroupLabel>
-              )}
-              {groupItems.map(renderRow)}
-            </ItemGroup>
-          ))
-        : collection.items.map(renderRow)}
+    <Content
+      ref={setScrollElement}
+      {...listContentProps}
+    >
+      {renderRows()}
       {emptyBlock}
     </Content>
   );
@@ -414,7 +465,7 @@ function ListboxSimple<T, V extends SelectionValue>(
     groupSort,
     selectionMode,
     value,
-    onValueChange: onValueChange as (value: V | V[] | null) => unknown,
+    onValueChange: onValueChange as (value: V | V[]) => unknown,
     search,
   });
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
@@ -433,7 +484,8 @@ function ListboxSimple<T, V extends SelectionValue>(
     >
       {label && <Label>{label}</Label>}
       {controller.search.showInput && (
-        <SelectionSearchField
+        <ListboxSearchField
+          inputRef={controller.search.inputRef}
           autoFocus={controller.search.autoFocus}
           placeholder={controller.search.placeholder}
           query={controller.search.query}

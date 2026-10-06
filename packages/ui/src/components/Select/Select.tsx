@@ -1,4 +1,6 @@
-import { type JSX, useContext, useRef, useState } from "react";
+import { useEnvironmentContext } from "@ark-ui/react/environment";
+import { useListboxContext } from "@ark-ui/react/listbox";
+import { type JSX, type RefObject, useContext, useEffect, useRef, useState } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
@@ -34,6 +36,50 @@ function findItem(target: EventTarget, highlighted: boolean) {
   return highlighted
     ? target.closest(CONTENT_SELECTOR)?.querySelector(`${ITEM_SELECTOR}[data-highlighted]`)
     : target.closest(ITEM_SELECTOR);
+}
+
+interface SelectHighlightSyncProps {
+  open: boolean;
+  pointerRef: RefObject<boolean>;
+  scrollToIndexRef: SelectContextValue["scrollToIndexRef"];
+  virtual: boolean;
+}
+
+// The listbox machine outlives the lazily mounted content, so it never resets per open.
+function SelectHighlightSync({
+  open,
+  pointerRef,
+  scrollToIndexRef,
+  virtual,
+}: SelectHighlightSyncProps) {
+  const listbox = useListboxContext();
+  const environment = useEnvironmentContext();
+  const listboxRef = useRef(listbox);
+  const { highlightedValue } = listbox;
+
+  useEffect(() => {
+    listboxRef.current = listbox;
+  });
+
+  useEffect(() => {
+    if (open) listboxRef.current.clearHighlightedValue();
+  }, [open]);
+
+  useEffect(() => {
+    if (highlightedValue == null || pointerRef.current) return;
+    const { collection, getContentProps } = listboxRef.current;
+    if (virtual) {
+      scrollToIndexRef.current?.(collection.indexOf(highlightedValue));
+      return;
+    }
+    const root = environment.getRootNode() as Document | ShadowRoot;
+    const { id, "aria-activedescendant": itemId } = getContentProps();
+    const content = id == null ? null : root.getElementById(id);
+    if (content == null || itemId == null || content.scrollHeight <= content.clientHeight) return;
+    root.getElementById(itemId)?.scrollIntoView({ block: "nearest" });
+  }, [environment, highlightedValue, pointerRef, scrollToIndexRef, virtual]);
+
+  return null;
 }
 
 export type {
@@ -91,6 +137,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const resolvedOpen = open ?? internalOpen;
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
+  const pointerRef = useRef(false);
   const sameWidth = matchTriggerWidth && contentWidth == null;
 
   function handleOpenChange(nextOpen: boolean) {
@@ -115,7 +162,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     selectionMode,
     value,
     onValueChange: (nextValue) => {
-      (onValueChange as (value: V | V[] | null) => unknown)(nextValue);
+      (onValueChange as (value: V | V[]) => unknown)(nextValue);
       if (selectionMode === "single") handleOpenChange(false);
     },
     search,
@@ -163,7 +210,19 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
           onKeyDown={(event) => {
             if (event.key === "Enter") closeOnReselect(findItem(event.target, true));
           }}
+          onKeyDownCapture={() => {
+            pointerRef.current = false;
+          }}
+          onPointerDownCapture={() => {
+            pointerRef.current = true;
+          }}
         >
+          <SelectHighlightSync
+            open={resolvedOpen}
+            pointerRef={pointerRef}
+            scrollToIndexRef={scrollToIndexRef}
+            virtual={isVirtualized(controller, list.virtual)}
+          />
           <SelectRootOverridesContext.Provider value={null}>
             {children}
           </SelectRootOverridesContext.Provider>

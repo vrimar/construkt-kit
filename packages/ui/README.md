@@ -359,6 +359,12 @@ allowBuilds:
   pass `navigate` to `Menu.Root` to route by `href` instead
 - `Menu.TriggerItem` no longer takes `value`, which zag never read; drop it
 - `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow
+- Single-mode `onValueChange` on `Listbox` and `Select` receives `V`, never `null`; clear by passing `value={null}`.
+  Clearing through `Listbox.Context` (`clearValue()`, `setValue([])`) no longer emits
+- `Listbox` drops `defaultValue`, which it always ignored
+- The search field in `Listbox` and `Select` drives the list: arrows move the highlight, Enter picks, and typing
+  highlights the first match. The list element takes the listbox content id, so set a custom one through the root's
+  `ids.content`
 
 #### Upgrading from 0.7
 

@@ -1,5 +1,13 @@
 import { type ListCollection, createListCollection } from "@ark-ui/react/collection";
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type {
   ManagedListOptions,
@@ -84,7 +92,7 @@ interface UseSelectionControllerParams<T, V extends SelectionValue> {
   groupSort?: SelectionGroupSort;
   selectionMode: "single" | "multiple";
   value: V | readonly V[] | null;
-  onValueChange: (value: V | V[] | null) => unknown;
+  onValueChange: (value: V | V[]) => unknown;
   search?: boolean | SelectionSearchOptions<T>;
 }
 
@@ -103,6 +111,7 @@ export interface SelectionController<T, V extends SelectionValue> {
     placeholder: string;
     autoFocus: boolean;
     endElement?: ReactNode;
+    inputRef: RefObject<HTMLInputElement | null>;
     setQuery: (query: string) => void;
     reset: () => void;
   };
@@ -123,6 +132,7 @@ export function useSelectionController<T, V extends SelectionValue>({
   const searchOptions: SelectionSearchOptions<T> | undefined =
     typeof search === "object" ? search : search === true ? {} : undefined;
   const searchOptionsRef = useRef(searchOptions);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     searchOptionsRef.current = searchOptions;
@@ -197,7 +207,7 @@ export function useSelectionController<T, V extends SelectionValue>({
         .filter((entry): entry is V => entry !== undefined);
 
       if (selectionMode === "multiple") onValueChange(next);
-      else onValueChange(next[0] ?? null);
+      else if (next.length > 0) onValueChange(next[0]);
     },
     [encodedMaps.values, onValueChange, selectionMode],
   );
@@ -240,6 +250,7 @@ export function useSelectionController<T, V extends SelectionValue>({
       placeholder: searchOptions?.placeholder ?? "Search...",
       autoFocus: searchOptions?.autoFocus ?? false,
       endElement: searchOptions?.endElement,
+      inputRef,
       setQuery,
       reset,
     },

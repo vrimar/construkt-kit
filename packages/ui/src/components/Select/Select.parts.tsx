@@ -5,7 +5,7 @@ import { Box } from "#styled-system/jsx";
 import { toCssSize } from "../../foundations/cssSize";
 import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";
-import { ManagedList, SelectionSearchField } from "../Listbox/managed";
+import { ListboxSearchField, ManagedList } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
 import { Popover } from "../Popover";
 import { useSelectContext } from "./Select.context";
@@ -63,8 +63,9 @@ export function SelectSearch({ children, placeholder, ...props }: SelectSearchPr
   if (!controller.search.showInput) return null;
 
   return (
-    <SelectionSearchField
+    <ListboxSearchField
       {...props}
+      inputRef={controller.search.inputRef}
       autoFocus={props.autoFocus ?? controller.search.autoFocus}
       placeholder={placeholder ?? controller.search.placeholder}
       query={controller.search.query}
