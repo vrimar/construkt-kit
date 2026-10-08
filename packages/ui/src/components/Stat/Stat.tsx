@@ -81,8 +81,8 @@ function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" |
   };
 }
 
-const StatUpTrend = createTrend("green", "up");
-const StatDownTrend = createTrend("red", "down");
+const StatUpTrend = createTrend("success", "up");
+const StatDownTrend = createTrend("danger", "down");
 
 export const Stat = {
   Root: StatRoot,
