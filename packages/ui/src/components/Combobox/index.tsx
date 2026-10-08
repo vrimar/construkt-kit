@@ -1,3 +1,4 @@
+import type { CollectionItem } from "@ark-ui/react/collection";
 import {
   Combobox as ArkCombobox,
   ComboboxContext,
@@ -7,16 +8,16 @@ import { ark } from "@ark-ui/react/factory";
 import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type ComboboxVariantProps, combobox } from "#styled-system/recipes";
 
-import type { PortalledProps } from "../../types";
+import type { PortalledProps, StyledRootProps } from "../../types";
 import { createItemIndicator } from "../itemIndicator";
 import { createPortalledContent } from "../portalledContent";
 
 const { withProvider, withContext } = createSlotRecipeContext(combobox);
 
-type RootProps = HTMLStyledProps<"div"> & ComboboxVariantProps;
+type RootProps = StyledRootProps<ArkCombobox.RootBaseProps<CollectionItem>> & ComboboxVariantProps;
 
 const Root = withProvider(ArkCombobox.Root, "root", {
   defaultProps: { positioning: { sameWidth: false } },

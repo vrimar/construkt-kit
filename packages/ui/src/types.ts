@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, Ref, RefObject } from "react";
 
+import type { HTMLStyledProps } from "#styled-system/jsx";
 import type {
   DataAttrs,
   DistributiveOmit,
@@ -20,6 +21,13 @@ export type Unstyled<P, Keep extends PropertyKey = "colorPalette"> = Distributiv
   Exclude<keyof JsxStyleProps, Keep> | `${string}Css`
 > &
   DataAttrs;
+
+/**
+ * Styled `div` props for an Ark root whose own props are `Base`, without the keys `Base` defines.
+ * Ark's `RootComponent<P>` lets `P` win, so a DOM `onSelect` or `defaultValue` left in `P`
+ * would replace the root's own.
+ */
+export type StyledRootProps<Base> = Omit<HTMLStyledProps<"div">, keyof Base>;
 
 /** Props forwarded to a form control's hidden native `<input>`, such as `inputProps`. */
 export type HiddenInputProps = Unstyled<InputHTMLAttributes<HTMLInputElement>>;

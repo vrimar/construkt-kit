@@ -3,16 +3,19 @@ import {
   TreeView as ArkTreeView,
   TreeViewContext,
   TreeViewNodeContext,
+  type TreeNode,
 } from "@ark-ui/react/tree-view";
 import { CheckIcon, ChevronRightIcon, MinusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type TreeViewVariantProps, treeView } from "#styled-system/recipes";
+
+import type { StyledRootProps } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(treeView);
 
-type RootProps = HTMLStyledProps<"div"> & TreeViewVariantProps;
+type RootProps = StyledRootProps<ArkTreeView.RootBaseProps<TreeNode>> & TreeViewVariantProps;
 
 const Root = withProvider(ArkTreeView.Root, "root") as ArkTreeView.RootComponent<RootProps>;
 const RootProvider = withProvider(

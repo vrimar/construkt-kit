@@ -1,3 +1,4 @@
+import type { CollectionItem } from "@ark-ui/react/collection";
 import { Listbox as ArkListbox, ListboxContext, useListboxContext } from "@ark-ui/react/listbox";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "lucide-react";
@@ -24,7 +25,7 @@ import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import type { CssProp, Unstyled, WithRef } from "../../types";
+import type { CssProp, StyledRootProps, Unstyled, WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput, type SearchInputProps } from "../Input";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
@@ -46,7 +47,7 @@ export type { CollectionItem, ListCollection } from "@ark-ui/react/collection";
 
 const { withProvider, withContext } = createSlotRecipeContext(listbox);
 
-type RootProps = HTMLStyledProps<"div"> & ListboxVariantProps;
+type RootProps = StyledRootProps<ArkListbox.RootBaseProps<CollectionItem>> & ListboxVariantProps;
 
 const Root = withProvider(ArkListbox.Root, "root") as ArkListbox.RootComponent<RootProps>;
 
