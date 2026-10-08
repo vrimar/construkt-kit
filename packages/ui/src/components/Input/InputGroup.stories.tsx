@@ -4,8 +4,9 @@ import { Download } from "lucide-react";
 import { input } from "#styled-system/recipes";
 
 import { Input, InputGroup } from ".";
-import { HStack, IconButton } from "..";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { IconButton } from "../Buttons";
+import { HStack } from "../Layout";
 
 const meta: Meta<typeof InputGroup> = {
   title: "Components/Input/InputGroup",

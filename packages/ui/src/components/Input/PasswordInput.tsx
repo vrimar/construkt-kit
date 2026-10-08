@@ -8,15 +8,17 @@ import type { InputProps } from "./Input";
 import { Input } from "./Input";
 import { InputGroup, inputGroupButtonSizeFor } from "./InputGroup";
 
-export type PasswordInputProps = InputProps;
+export type PasswordInputProps = Omit<InputProps, "type">;
 
-export const PasswordInput = ({ size, ...props }: PasswordInputProps) => {
+export const PasswordInput = ({ size, className, style, ...props }: PasswordInputProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [styleProps, inputProps] = splitCssProps(props);
 
   return (
     <InputGroup
       size={size}
+      className={className}
+      style={style}
       {...styleProps}
       endElement={
         <TooltipIconButton
@@ -31,8 +33,8 @@ export const PasswordInput = ({ size, ...props }: PasswordInputProps) => {
     >
       <Input
         size={size}
-        type={isVisible ? "text" : "password"}
         {...inputProps}
+        type={isVisible ? "text" : "password"}
       />
     </InputGroup>
   );
