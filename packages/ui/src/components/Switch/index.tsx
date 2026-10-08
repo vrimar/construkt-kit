@@ -1,11 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
 import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
-import type { ComponentProps, ElementType, InputHTMLAttributes, ReactNode, Ref } from "react";
+import type { ComponentProps, ElementType, ReactNode, Ref } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { switchRecipe } from "#styled-system/recipes";
 
-import type { WithRef } from "../../types";
+import type { HiddenInputProps, WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(switchRecipe);
 
@@ -39,7 +39,7 @@ const Indicator = createCheckedSwap(withContext(ark.span, "indicator"));
 const ThumbIndicator = createCheckedSwap(styled(ark.span));
 
 export interface SwitchProps extends Omit<RootProps, "ref"> {
-  inputProps?: InputHTMLAttributes<HTMLInputElement>;
+  inputProps?: HiddenInputProps;
   rootRef?: Ref<HTMLLabelElement>;
   trackLabel?: { on: ReactNode; off: ReactNode };
   thumbLabel?: { on: ReactNode; off: ReactNode };

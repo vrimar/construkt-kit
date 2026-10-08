@@ -7,11 +7,7 @@ export * from "./Breadcrumb";
 export * from "./Buttons";
 export * from "./Card";
 export * from "./Carousel";
-export {
-  Checkbox,
-  type CheckboxProps,
-  type CheckedState as CheckboxCheckedState,
-} from "./Checkbox";
+export * from "./Checkbox";
 export * from "./CheckboxCard";
 export * from "./Clipboard";
 export * from "./Code";

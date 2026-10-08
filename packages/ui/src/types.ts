@@ -1,4 +1,4 @@
-import type { Ref, RefObject } from "react";
+import type { InputHTMLAttributes, Ref, RefObject } from "react";
 
 import type {
   DataAttrs,
@@ -20,6 +20,9 @@ export type Unstyled<P, Keep extends PropertyKey = "colorPalette"> = Distributiv
   Exclude<keyof JsxStyleProps, Keep> | `${string}Css`
 > &
   DataAttrs;
+
+/** Props forwarded to a form control's hidden native `<input>`, such as `inputProps`. */
+export type HiddenInputProps = Unstyled<InputHTMLAttributes<HTMLInputElement>>;
 
 /** Convenience type for components that accept a forwarded ref.
  *  Defaults to HTMLDivElement when no element type is specified.

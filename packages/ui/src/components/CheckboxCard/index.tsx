@@ -5,7 +5,7 @@ import * as React from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { checkboxCard } from "#styled-system/recipes";
 
-import type { WithRef } from "../../types";
+import type { HiddenInputProps, WithRef } from "../../types";
 import { Checkbox } from "../Checkbox";
 
 const { withProvider, withContext } = createSlotRecipeContext(checkboxCard);
@@ -27,7 +27,7 @@ export interface CheckboxCardProps extends Omit<CardRootProps, "ref"> {
   addon?: React.ReactNode;
   indicator?: React.ReactNode | null;
   indicatorPlacement?: "start" | "end" | "inside";
-  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  inputProps?: HiddenInputProps;
 }
 
 export const CheckboxCard = ({
@@ -67,5 +67,3 @@ export const CheckboxCard = ({
     </CardRoot>
   );
 };
-
-export const CheckboxCardIndicator = Checkbox.Indicator;
