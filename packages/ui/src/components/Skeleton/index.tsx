@@ -1,8 +1,10 @@
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
-import { Stack, styled } from "#styled-system/jsx";
-import { skeleton } from "#styled-system/recipes";
+import { Stack, type StackProps, styled } from "#styled-system/jsx";
+import { type SkeletonVariantProps, skeleton } from "#styled-system/recipes";
+
+import type { CssProp } from "../../types";
 
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
 export const Skeleton = styled(ark.div, skeleton);
@@ -12,26 +14,32 @@ export const SkeletonCircle = styled(ark.div, skeleton, { defaultProps: { circle
 
 const LAST_LINE_WIDTH = "80%";
 
-export interface SkeletonTextProps extends SkeletonProps {
+export interface SkeletonTextProps
+  extends Omit<StackProps, keyof SkeletonVariantProps>, SkeletonVariantProps {
   /**
    * Number of lines to display
    * @default 3
    */
   noOfLines?: number | undefined;
+  /** Styles for each line. */
+  lineCss?: CssProp;
 }
 
-export const SkeletonText = ({ ref, noOfLines = 3, ...skeletonProps }: SkeletonTextProps) => {
+export const SkeletonText = ({ noOfLines = 3, lineCss, ...props }: SkeletonTextProps) => {
+  const [variantProps, rootProps] = skeleton.splitVariantProps(props);
+
   return (
     <Stack
-      ref={ref}
       width="full"
+      {...rootProps}
     >
       {[...Array(noOfLines).keys()].map((index) => (
         <Skeleton
           key={index}
           height="4"
           _last={{ maxW: noOfLines === 1 ? "100%" : LAST_LINE_WIDTH }}
-          {...skeletonProps}
+          {...variantProps}
+          css={lineCss}
         />
       ))}
     </Stack>
