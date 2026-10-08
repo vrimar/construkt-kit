@@ -8,7 +8,7 @@
 
 ### Components
 
-**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator` (alias `Divider`), `Divider`, `Wrap`, `SimpleGrid`
+**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator`, `Wrap`, `SimpleGrid`
 
 **Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`
 
@@ -41,7 +41,6 @@
 | `useMediaQuery`                         | Subscribe to a CSS media query                                  |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
 | `useIsMobile`                           | Whether the viewport is below the `md` breakpoint               |
-| `useRowSelection`                       | Row selection state for tables (toggle, togglePage, clear)      |
 
 ### Panda CSS Utilities
 
@@ -333,31 +332,71 @@ allowBuilds:
   `backdrop`, `SubmitDialog` `width` → `contentWidth`, `TreeSelectList` `maxHeight` → `listHeight`
 - Removed, because Panda never extracts styles nested in an object:
 
-  | Removed                                                                                | Use                                                      |
-  | -------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-  | `contentProps`, `listProps` on `Select`, `ApplySelect`, `TagSelect`                    | `contentWidth`, `listMaxHeight`, `contentCss`, `listCss` |
-  | `contentProps` on `Listbox`, `ScrollArea`, `VirtualScrollArea`                         | `contentCss`; `listMaxHeight` on `Listbox`               |
-  | `listboxProps` on `Select`, `ApplySelect`, `TagSelect`                                 | style props on the select                                |
-  | `buttonProps` widths                                                                   | nothing: the trigger fills the select                    |
-  | `Tooltip` `contentProps`, `PasswordInput` `containerProps`, `SkeletonText` `rootProps` | `Tooltip.Content`                                        |
-  | `ApplySelectTrigger`, `ApplySelectContent`                                             | `ApplySelect.Trigger`, `ApplySelect.Content`             |
+  | Removed                                                             | Use                                                                              |
+  | ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+  | `contentProps`, `listProps` on `Select`, `ApplySelect`, `TagSelect` | `contentWidth`, `listMaxHeight`, `contentCss`, `listCss`                         |
+  | `contentProps` on `Listbox`, `ScrollArea`, `VirtualScrollArea`      | `contentCss`; `listMaxHeight` on `Listbox`                                       |
+  | `listboxProps` on `Select`, `ApplySelect`, `TagSelect`              | style props on the select                                                        |
+  | `buttonProps` widths                                                | nothing: the trigger fills the select                                            |
+  | `Tooltip` `contentProps`                                            | `Tooltip.Content`                                                                |
+  | `PasswordInput` `containerProps`                                    | style props, `className` and `style` on `PasswordInput`; they style the group    |
+  | `SkeletonText` `rootProps`                                          | style props on `SkeletonText`, which style the stack; `lineCss` styles each line |
+  | `ApplySelectTrigger`, `ApplySelectContent`                          | `ApplySelect.Trigger`, `ApplySelect.Content`                                     |
 
+- Removed from the public API:
+
+  | Removed                                                 | Use                                                                    |
+  | ------------------------------------------------------- | ---------------------------------------------------------------------- |
+  | `Divider`, `DividerProps`                               | `Separator`, `SeparatorProps`                                          |
+  | `CheckboxCardIndicator`                                 | `Checkbox.Indicator`                                                   |
+  | `Context` (Tooltip's root-level export)                 | `Tooltip.Context`                                                      |
+  | `FileUpload.List`                                       | `FileUpload.Items` inside `FileUpload.ItemGroup`                       |
+  | `Select.EmptyState`, `ApplySelect.EmptyState`           | `emptyMessage` on the select                                           |
+  | `ApplySelectRoot`, `ApplySelectActions`                 | `ApplySelect.Root`, `ApplySelect.Actions`                              |
+  | `ApplySelect{Actions,Trigger,Content,Search,List}Props` | `ApplySelectActionOptions`, `Select{Trigger,Content,Search,List}Props` |
+  | `ListboxItemRenderProps`                                | `SelectionItemState`                                                   |
+  | `inputGroupButtonSize`, `InputGroupSize`                | `inputGroupButtonSizeFor(size)`                                        |
+  | `DraggableTreeNodeRenderDetails`                        | `TreeNodeRenderDetails`                                                |
+  | `TreeSelectListSearchMode`                              | `SelectionSearchOptions["mode"]`                                       |
+  | `dataTableFeatures`                                     | `createDataTableColumnHelper`; the `DataTableFeatures` type stays      |
+
+- The tree helpers `filterTreeCollection`, `collectLeafValues`, `collectBranchValues`, `collectCheckedLeafValues`,
+  `collectBranchesWithLeafDescendants` and `mergeFilteredValue` are gone; use `TreeCollection`'s `filter`,
+  `getDescendantValues` and `visit`
+- Gone with no replacement: `useRowSelection`, and the internals `getItemMode`, `ItemMode`, `isDescendantValue`,
+  `isLastChildOfParent`, `useTreeDndContext`, `TreeRowIndentGuides`, `DataTableInstance`, `DataTableHeaderType`,
+  `DataTableCell`, `DataTableTableMeta`, and DatePicker's `toArkValue`, `toArkDefaultValue`, `fireValueChange` and
+  `fireClear`
+- New exports: `createDataTableColumnHelper`, `createListCollection` and `useListCollection` (0.8's build dropped
+  both), and the types `ManagedSelectionProps`, `TooltipContentProps`, `TreeCanDropDetails`, `ColumnFilterType` and
+  `HiddenInputProps`, which `inputProps` on `Checkbox`, `CheckboxCard`, `Radio` and `Switch` takes
 - The remaining objects of props (`triggerProps`, `buttonProps`, `scrollAreaProps`, `submitButtonProps`,
   `NumberFilter` `inputProps`, what `getRowProps`/`getItemProps` return, column `meta.selectProps`) take no style
   props. `className`, `style`, `data-*` and `colorPalette` still work
 - `contentCss` styles the dropdown of `Select`, `ApplySelect` and `TagSelect` and the scrolled content of `Listbox`,
   `ScrollArea` and `VirtualScrollArea`; `listCss` styles the `Select` family's list. Write them as JSX literals and
   compose with arrays (`contentCss={[base, contentCss ?? {}]}`), never spreads, which Panda cannot extract
-- `Select`, `ApplySelect` and `TagSelect` take style props for the whole control (`<Select w="200px">`)
+- `Select`, `ApplySelect`, `TagSelect`, `DataTable`, `DatePicker` and `DatePickerSelect` take style props for the whole
+  control (`<Select w="200px">`)
+- `SearchInput` and `PasswordInput` put style props, `className` and `style` on the group, so the icon and buttons stay
+  inside a sized field. `PasswordInput` drops `type`, which its visibility toggle owns
+- `SearchInput`, `Calendar`, `DatePicker` and `DatePickerSelect` take `clearLabel` to name their clear controls
+- `Tooltip.Content` renders its own portal and positioner like `Popover.Content`: drop a wrapping `Tooltip.Positioner`,
+  and pass `portalled={false}` to render in place
+- `placement` on `Popover`, `Menu`, `HoverCard`, `ToggleTip` and `Tooltip` survives a `positioning` prop, which used to
+  replace it
 - Virtual lists cap at the listbox's `maxH` (24rem) like other lists, and `ApplySelect` honours a `contentWidth` below
   its 256px minimum
 - `ApplySelect.Root` autofocuses its search like `ApplySelect`
 - `SubmitDialog` and `SubmitForm` take `loading` and `submitDisabled` in place of `isSubmitLoading` and
-  `isSubmitDisabled`, and `SubmitDialog` takes `open` in place of `isOpen`, matching `Button`, `DataTable` and `Select`
+  `isSubmitDisabled`, and `SubmitDialog` takes `open` in place of `isOpen`, matching `Button`, `DataTable` and `Select`.
+  `SubmitForm` takes `submitLabel` and `cancelLabel` like `SubmitDialog`
 - Put links inside `Menu.Item asChild` rather than wrapping `Menu.Item` in a link, which put the `<a>` between the menu
   and its item. Enter on a link item clicks it as a pointer does, so a router link's handler runs and the menu closes;
   pass `navigate` to `Menu.Root` to route by `href` instead
-- `Menu.TriggerItem` no longer takes `value`, which zag never read; drop it
+- `Menu.TriggerItem` no longer takes `value` or `disabled`, which zag never read; drop them. It takes `icon` in place of
+  `startIcon`, like `Menu.Item`
+- `Menu.CheckboxItem`, `Menu.RadioItem` and `Menu.TriggerItem` no longer take `asChild`
 - `ScrollArea` with `scrollbars="vertical"` sizes its content to the viewport and hides horizontal overflow.
   `TreeSelectList` scrolls that way, so long labels truncate instead of scrolling sideways
 - Single-mode `onValueChange` on `Listbox` and `Select` receives `V`, never `null`; clear by passing `value={null}`.
@@ -366,12 +405,43 @@ allowBuilds:
 - The search field in `Listbox` and `Select` drives the list: arrows move the highlight, Enter picks, and typing
   highlights the first match. The list element takes the listbox content id, so set a custom one through the root's
   `ids.content`
+- A custom search `filter` on `Listbox`, `Select` or `TreeSelectList` receives the trimmed, lowercased query and isn't
+  called while the query is blank. `search.mode: "external"` shows the items as given, so `onQueryChange` can filter
+  them server-side
+- `Select.Search` and `ApplySelect.Search` no longer take `onClear`, which the field always overrode
+- `TagSelect` takes `placeholder` in place of `tagPlaceholder`. An empty `TagSelect` or `ApplySelect` shows the
+  placeholder, "Select item" by default (`ApplySelect` showed "Select")
+- `ApplySelect`'s select-all reads "Select all"/"Deselect all" instead of "Select All"/"Clear All" and acts only on the
+  enabled items the search shows
 - `TreeSelectListProps` is a type alias; replace `interface X extends TreeSelectListProps<T>` with an intersection
+- `TreeSelectList` takes `search={{ placeholder, filter, showInput, query, defaultQuery, onQueryChange, mode }}` in
+  place of `searchPlaceholder`, `searchPredicate`, `showSearch`, `query`, `defaultQuery`, `onQueryChange` and
+  `searchMode`, like `Listbox` and `Select`. `listHeight` also takes px numbers
 - While a query is active, `TreeSelectList` expands every branch with matches and disables drag-and-drop. Collapsing a
   branch mid-search lasts until the query changes and skips `onExpandedChange`; pass `expandOnSearch={false}` to keep
   the stored expansion
-- `TreeSelectList` select-all acts on the displayed leaves: during a search it adds or removes only the matches, and it
-  keeps `value` ids that aren't in the collection
+- `TreeSelectList` select-all acts on the displayed leaves `isNodeCheckable` accepts: during a search it adds or removes
+  only the matches, and it keeps `value` ids that aren't in the collection. During a search, a matching branch with no
+  matching children can't be checked
+- `TreeViewDndProvider` reorders the collection of the `TreeView.Root` or `RootProvider` around it: move it inside, and
+  drop its `collection` and `indentPerLevel`
+- `TreeDropInstruction` is ui's own union, without `instruction-blocked` or `indentPerLevel`. `TreeDropIndicator` drops
+  `colorPalette`, and `useTreeNodeDnd` drops `dragHandleRef`
+- Keyboard reordering moves every node `getDragValues` returns, like a pointer drag, and indent inserts the node first
+  in the target branch and expands it (`moveNodeByKeyboard` inserts first too). Drags skip `getDragValues` ids missing
+  from the collection instead of cancelling
+- Build `DataTable` columns with `createDataTableColumnHelper<T>()` instead of TanStack's
+  `createColumnHelper<DataTableFeatures, T>()`. Widths come only from `meta.width` and `meta.minWidth`: column `size`,
+  `minSize`, `maxSize` and `enableHiding` went with TanStack's sizing and visibility features
+- `DataTable` sorting or filtering returns to page 1, an emptied search filter applies at once, and a malformed date
+  filter param is cleared. A click or Enter on an input, select, label or other control in a clickable row doesn't fire
+  `onRowClick`
+- `DataTable`'s sorter is a button named "Sort by" plus the column name, the date filter's placeholder reads "Filter by"
+  plus the column name like the others, and mobile cards render non-string headers. `DataTableLabels` adds `sortBy`,
+  `clearSearch`, `clearNumber` and `clearDate`
+- A `Calendar`, `DatePicker` or `DatePickerSelect` given `value={undefined}` is controlled and shows no date; omit
+  `value` to leave it uncontrolled. `maxSelectedDates` takes effect
+- `Clipboard.Indicator` and `Clipboard.CopyText` render the children you pass in place of their default icon or "Copy"
 
 #### Upgrading from 0.7
 
