@@ -1,9 +1,9 @@
 import { CalendarContent } from "./CalendarContent";
 import * as Parts from "./parts";
-import type { CalendarProps } from "./types";
+import type { CalendarMode, CalendarProps } from "./types";
 import { useCalendarMachine } from "./useCalendarMachine";
 
-export const Calendar = (props: CalendarProps) => {
+export const Calendar = (props: CalendarProps<CalendarMode>) => {
   const { api, contentProps } = useCalendarMachine(props, { inline: true });
 
   return (

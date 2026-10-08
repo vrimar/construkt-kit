@@ -368,8 +368,9 @@ allowBuilds:
   `DataTableCell`, `DataTableTableMeta`, and DatePicker's `toArkValue`, `toArkDefaultValue`, `fireValueChange` and
   `fireClear`
 - New exports: `createDataTableColumnHelper`, `createListCollection` and `useListCollection` (0.8's build dropped
-  both), and the types `ManagedSelectionProps`, `TooltipContentProps`, `TreeCanDropDetails`, `ColumnFilterType` and
-  `HiddenInputProps`, which `inputProps` on `Checkbox`, `CheckboxCard`, `Radio` and `Switch` takes
+  both), and the types `ManagedSelectionProps`, `TooltipContentProps`, `TreeCanDropDetails`, `ColumnFilterType`,
+  `SelectionMode`, `CalendarMode` and `HiddenInputProps`, which `inputProps` on `Checkbox`, `CheckboxCard`, `Radio`
+  and `Switch` takes
 - The remaining objects of props (`triggerProps`, `buttonProps`, `scrollAreaProps`, `submitButtonProps`,
   `NumberFilter` `inputProps`, what `getRowProps`/`getItemProps` return, column `meta.selectProps`) take no style
   props. `className`, `style`, `data-*` and `colorPalette` still work
@@ -401,6 +402,12 @@ allowBuilds:
   `TreeSelectList` scrolls that way, so long labels truncate instead of scrolling sideways
 - Single-mode `onValueChange` on `Listbox` and `Select` receives `V`, never `null`; clear by passing `value={null}`.
   Clearing through `Listbox.Context` (`clearValue()`, `setValue([])`) no longer emits
+- `SelectProps`, `SelectRootProps`, `ListboxProps`, `SelectionProps`, `CalendarProps`, `DatePickerProps` and
+  `DatePickerSelectProps` cover one selection mode, single unless you pass another (`SelectProps<T, V, "multiple">`,
+  `DatePickerProps<"range">`), instead of a union of every mode. With style props in the union, `Omit` and `Pick` on
+  it failed with "Expression produces a union type that is too complex to represent". For the same reason
+  `Select.Root`, `DatePicker` and `DatePickerSelect` take one call signature per mode like `Select`: `ComponentProps`
+  on them gives multiple mode, and props typed for every mode no longer spread into them
 - `Listbox` drops `defaultValue`, which it always ignored
 - The search field in `Listbox` and `Select` drives the list: arrows move the highlight, Enter picks, and typing
   highlights the first match. The list element takes the listbox content id, so set a custom one through the root's

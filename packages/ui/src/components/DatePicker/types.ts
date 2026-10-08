@@ -43,31 +43,43 @@ export interface CalendarBaseProps {
   clearLabel?: string;
 }
 
-export type SingleCalendarProps = CalendarBaseProps & {
+export type CalendarMode = "single" | "range" | "multiple";
+
+export interface SingleCalendarProps extends CalendarBaseProps {
   selectionMode?: "single";
   value?: DateValue;
   defaultValue?: DateValue;
   onValueChange?: (value: DateValue | undefined) => void;
-};
+}
 
-export type RangeCalendarProps = CalendarBaseProps & {
+export interface RangeCalendarProps extends CalendarBaseProps {
   selectionMode: "range";
   value?: DateValue[];
   defaultValue?: DateValue[];
   onValueChange?: (value: DateValue[]) => void;
   presets?: RangePreset[];
   showPresets?: boolean;
-};
+}
 
-export type MultipleCalendarProps = CalendarBaseProps & {
+export interface MultipleCalendarProps extends CalendarBaseProps {
   selectionMode: "multiple";
   value?: DateValue[];
   defaultValue?: DateValue[];
   onValueChange?: (value: DateValue[]) => void;
   maxSelectedDates?: number;
-};
+}
 
-export type CalendarProps = SingleCalendarProps | RangeCalendarProps | MultipleCalendarProps;
+interface CalendarPropsByMode {
+  single: SingleCalendarProps;
+  range: RangeCalendarProps;
+  multiple: MultipleCalendarProps;
+}
+
+/**
+ * Calendar props for one mode. Passing `CalendarMode` gives a union of modes, which `Omit` and
+ * `Pick` can't resolve once style props join it.
+ */
+export type CalendarProps<M extends CalendarMode = "single"> = CalendarPropsByMode[M];
 
 interface DatePickerExtraProps extends PortalledProps, JsxStyleProps {
   trigger?: ReactNode;
@@ -80,7 +92,8 @@ interface DatePickerExtraProps extends PortalledProps, JsxStyleProps {
   closeOnSelect?: boolean;
 }
 
-export type DatePickerProps = CalendarProps & DatePickerExtraProps;
+export type DatePickerProps<M extends CalendarMode = "single"> = CalendarProps<M> &
+  DatePickerExtraProps;
 
 interface DatePickerSelectExtraProps extends Omit<
   DatePickerExtraProps,
@@ -92,6 +105,7 @@ interface DatePickerSelectExtraProps extends Omit<
   variant?: ButtonProps["variant"];
 }
 
-export type DatePickerSelectProps = CalendarProps & DatePickerSelectExtraProps;
+export type DatePickerSelectProps<M extends CalendarMode = "single"> = CalendarProps<M> &
+  DatePickerSelectExtraProps;
 
 export type { DateValue };

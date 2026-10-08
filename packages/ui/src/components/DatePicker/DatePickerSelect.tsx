@@ -1,9 +1,10 @@
 import { type DateValue, useDatePickerContext } from "@ark-ui/react/date-picker";
+import type { JSX } from "react";
 
 import { CloseButton, SelectButton, type SelectButtonProps } from "../Buttons";
-import { DatePicker } from "./DatePicker";
+import { DatePickerBase } from "./DatePicker";
 import { getDisplayLabel } from "./format";
-import type { DatePickerSelectProps } from "./types";
+import type { CalendarMode, DatePickerSelectProps } from "./types";
 
 interface DatePickerSelectTriggerProps extends Omit<SelectButtonProps, "hasValue" | "label"> {
   placeholder?: string;
@@ -41,12 +42,12 @@ function DatePickerSelectClear({ label }: { label: string }) {
   );
 }
 
-export const DatePickerSelect = ({
+const DatePickerSelectBase = ({
   size = "sm",
   variant = "plain",
   ...props
-}: DatePickerSelectProps) => (
-  <DatePicker
+}: DatePickerSelectProps<CalendarMode>) => (
+  <DatePickerBase
     {...props}
     trigger={
       <DatePickerSelectTrigger
@@ -59,3 +60,11 @@ export const DatePickerSelect = ({
     triggerEndElement={<DatePickerSelectClear label={props.clearLabel ?? "Clear date"} />}
   />
 );
+
+interface DatePickerSelectComponent {
+  (props: DatePickerSelectProps): JSX.Element;
+  (props: DatePickerSelectProps<"range">): JSX.Element;
+  (props: DatePickerSelectProps<"multiple">): JSX.Element;
+}
+
+export const DatePickerSelect: DatePickerSelectComponent = DatePickerSelectBase;

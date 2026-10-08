@@ -31,6 +31,8 @@ export interface ManagedSelectionProps<T, V extends SelectionValue> extends Sele
   search?: boolean | SelectionSearchOptions<T>;
 }
 
+export type SelectionMode = "single" | "multiple";
+
 export interface SingleSelectionProps<V extends SelectionValue> {
   selectionMode?: "single";
   value: V | null;
@@ -43,9 +45,19 @@ export interface MultipleSelectionProps<V extends SelectionValue> {
   onValueChange: (value: V[]) => unknown;
 }
 
-export type SelectionProps<V extends SelectionValue> =
-  | SingleSelectionProps<V>
-  | MultipleSelectionProps<V>;
+interface SelectionPropsByMode<V extends SelectionValue> {
+  single: SingleSelectionProps<V>;
+  multiple: MultipleSelectionProps<V>;
+}
+
+/**
+ * Selection props for one mode. Passing `SelectionMode` gives a union of modes, which `Omit` and
+ * `Pick` can't resolve once style props join it.
+ */
+export type SelectionProps<
+  V extends SelectionValue,
+  M extends SelectionMode = "single",
+> = SelectionPropsByMode<V>[M];
 
 export interface SelectionItemState<V extends SelectionValue> {
   value: V;

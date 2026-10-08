@@ -346,7 +346,7 @@ describe("Listbox", () => {
   });
 
   it("rejects root props the managed selection owns", () => {
-    const props: ListboxProps<Produce, number> = {
+    const props: ListboxProps<Produce, number, "multiple"> = {
       items: produce,
       getItemValue: (item) => item.id,
       getItemLabel: (item) => item.name,

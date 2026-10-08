@@ -13,6 +13,7 @@ import type {
   ManagedSelectionProps,
   MultipleSelectionProps,
   SelectionItemState,
+  SelectionMode,
   SelectionProps,
   SelectionValue,
   SelectionValueRenderContext,
@@ -51,11 +52,11 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   actionsVisibility?: ListboxVariant["actionsVisibility"];
 }
 
-export type SelectRootProps<T, V extends SelectionValue = SelectionValue> = SelectRootBaseProps<
+export type SelectRootProps<
   T,
-  V
-> &
-  SelectionProps<V>;
+  V extends SelectionValue = SelectionValue,
+  M extends SelectionMode = "single",
+> = SelectRootBaseProps<T, V> & SelectionProps<V, M>;
 
 export interface SelectTriggerProps extends Omit<PopoverTriggerProps, "children"> {
   children?: ReactElement;
@@ -91,8 +92,11 @@ export interface SelectSimpleProps<T, V extends SelectionValue> extends Omit<
   footer?: ReactNode;
 }
 
-export type SelectProps<T, V extends SelectionValue = SelectionValue> = SelectSimpleProps<T, V> &
-  SelectionProps<V>;
+export type SelectProps<
+  T,
+  V extends SelectionValue = SelectionValue,
+  M extends SelectionMode = "single",
+> = SelectSimpleProps<T, V> & SelectionProps<V, M>;
 
 export type SelectMultipleValueProps<V extends SelectionValue> = Omit<
   MultipleSelectionProps<V>,

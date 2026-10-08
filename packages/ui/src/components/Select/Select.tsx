@@ -16,6 +16,7 @@ import {
 import type {
   ManagedListOptions,
   MultipleSelectionProps,
+  SelectionMode,
   SelectionValue,
   SingleSelectionProps,
 } from "../Listbox/types";
@@ -97,7 +98,7 @@ export type {
   SelectValue,
 } from "./Select.types";
 
-function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
+function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V, SelectionMode>) {
   const [styleProps, selectProps] = splitCssProps(props);
   const [listOptions, rootProps] = splitManagedListOptions<T, V, typeof selectProps>(selectProps);
   const {
@@ -230,7 +231,7 @@ function SelectSimple<T, V extends SelectionValue>({
   listCss,
   footer,
   ...rootProps
-}: SelectProps<T, V>) {
+}: SelectProps<T, V, SelectionMode>) {
   return (
     <SelectRoot {...rootProps}>
       <SelectSimpleBody
@@ -243,8 +244,15 @@ function SelectSimple<T, V extends SelectionValue>({
   );
 }
 
+interface SelectRootComponent {
+  <T, V extends SelectionValue>(props: SelectRootProps<T, V>): JSX.Element;
+  <T, V extends SelectionValue>(props: SelectRootProps<T, V, "multiple">): JSX.Element;
+}
+
+const Root: SelectRootComponent = SelectRoot;
+
 export const Select = Object.assign(SelectSimple, {
-  Root: SelectRoot,
+  Root,
   Trigger: SelectTrigger,
   Content: SelectContent,
   ...selectListParts,

@@ -1,9 +1,9 @@
 import { type DateValue, type UseDatePickerProps, useDatePicker } from "@ark-ui/react/date-picker";
 
 import { useIsMobile } from "../../hooks";
-import type { CalendarProps } from "./types";
+import type { CalendarMode, CalendarProps } from "./types";
 
-function toArkValue(props: CalendarProps): DateValue[] | undefined {
+function toArkValue(props: CalendarProps<CalendarMode>): DateValue[] | undefined {
   if (!("value" in props)) return undefined;
   if (props.selectionMode === "range" || props.selectionMode === "multiple") {
     return props.value ?? [];
@@ -11,14 +11,14 @@ function toArkValue(props: CalendarProps): DateValue[] | undefined {
   return props.value ? [props.value] : [];
 }
 
-function toArkDefaultValue(props: CalendarProps): DateValue[] | undefined {
+function toArkDefaultValue(props: CalendarProps<CalendarMode>): DateValue[] | undefined {
   if (props.selectionMode === "range" || props.selectionMode === "multiple") {
     return props.defaultValue;
   }
   return props.defaultValue ? [props.defaultValue] : undefined;
 }
 
-function fireValueChange(props: CalendarProps, arkValue: DateValue[]): void {
+function fireValueChange(props: CalendarProps<CalendarMode>, arkValue: DateValue[]): void {
   if (!props.onValueChange) return;
   if (props.selectionMode === "range" || props.selectionMode === "multiple") {
     props.onValueChange(arkValue);
@@ -27,7 +27,10 @@ function fireValueChange(props: CalendarProps, arkValue: DateValue[]): void {
   }
 }
 
-export function useCalendarMachine(props: CalendarProps, extra: Partial<UseDatePickerProps> = {}) {
+export function useCalendarMachine(
+  props: CalendarProps<CalendarMode>,
+  extra: Partial<UseDatePickerProps> = {},
+) {
   const {
     selectionMode = "single",
     numOfMonths = selectionMode === "range" ? 2 : 1,

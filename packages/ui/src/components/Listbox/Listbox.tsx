@@ -33,6 +33,7 @@ import type {
   ManagedListOptions,
   ManagedSelectionProps,
   MultipleSelectionProps,
+  SelectionMode,
   SelectionProps,
   SelectionValue,
   SingleSelectionProps,
@@ -274,11 +275,11 @@ type ListboxBaseProps<T, V extends SelectionValue> = Omit<
 > &
   ListboxManagedProps<T, V>;
 
-export type ListboxProps<T = unknown, V extends SelectionValue = SelectionValue> = ListboxBaseProps<
-  T,
-  V
-> &
-  SelectionProps<V>;
+export type ListboxProps<
+  T = unknown,
+  V extends SelectionValue = SelectionValue,
+  M extends SelectionMode = "single",
+> = ListboxBaseProps<T, V> & SelectionProps<V, M>;
 
 // Mounted only in virtual mode, so `useVirtualizer` never runs for plain lists.
 function VirtualListRows<T>({
@@ -440,7 +441,7 @@ function ListboxSimple<T, V extends SelectionValue>(
   props: ListboxBaseProps<T, V> & MultipleSelectionProps<V> & { ref?: Ref<HTMLDivElement> },
 ): JSX.Element;
 function ListboxSimple<T, V extends SelectionValue>(
-  props: ListboxProps<T, V> & { ref?: Ref<HTMLDivElement> },
+  props: ListboxProps<T, V, SelectionMode> & { ref?: Ref<HTMLDivElement> },
 ) {
   const {
     ref,

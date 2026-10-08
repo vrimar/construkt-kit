@@ -1,4 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
+import type { JSX } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
@@ -7,12 +8,12 @@ import { createPortalledContent } from "../portalledContent";
 import { CalendarContent } from "./CalendarContent";
 import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
-import type { DatePickerProps } from "./types";
+import type { CalendarMode, DatePickerProps } from "./types";
 import { useCalendarMachine } from "./useCalendarMachine";
 
 const DatePickerContent = createPortalledContent(Parts.Positioner, Parts.Content);
 
-export const DatePicker = (props: DatePickerProps) => {
+export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
   const [styleProps, pickerProps] = splitCssProps(props);
   const {
     trigger,
@@ -68,3 +69,12 @@ export const DatePicker = (props: DatePickerProps) => {
     </Parts.RootProvider>
   );
 };
+
+// One signature per mode: a union of modes with style props breaks Omit on its ComponentProps.
+interface DatePickerComponent {
+  (props: DatePickerProps): JSX.Element;
+  (props: DatePickerProps<"range">): JSX.Element;
+  (props: DatePickerProps<"multiple">): JSX.Element;
+}
+
+export const DatePicker: DatePickerComponent = DatePickerBase;

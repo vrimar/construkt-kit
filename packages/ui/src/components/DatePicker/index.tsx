@@ -1,5 +1,5 @@
 export * from "./Calendar";
-export * from "./DatePicker";
+export { DatePicker } from "./DatePicker";
 export * from "./DatePickerSelect";
 export * from "./types";
 
