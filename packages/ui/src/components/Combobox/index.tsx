@@ -80,5 +80,3 @@ export const Combobox = {
   Trigger,
   Context: ComboboxContext,
 };
-
-export { createListCollection, useListCollection } from "@ark-ui/react/collection";

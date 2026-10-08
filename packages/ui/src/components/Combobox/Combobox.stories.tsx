@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { combobox } from "#styled-system/recipes";
 
-import { Combobox, type ComboboxRootProps, useListCollection } from ".";
+import { Combobox, type ComboboxRootProps } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { useListCollection } from "../Listbox";
 
 const meta: Meta = {
   title: "Components/Combobox",
