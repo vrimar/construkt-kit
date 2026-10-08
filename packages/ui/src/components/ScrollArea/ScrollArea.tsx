@@ -2,7 +2,11 @@ import { ScrollArea as ArkScrollArea } from "@ark-ui/react/scroll-area";
 import type { ComponentProps } from "react";
 
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
-import { type ScrollAreaVariantProps, scrollArea } from "#styled-system/recipes";
+import {
+  type ScrollAreaVariant,
+  type ScrollAreaVariantProps,
+  scrollArea,
+} from "#styled-system/recipes";
 
 import type { CssProp } from "../../types";
 
@@ -32,30 +36,22 @@ const Content = ({ style, ...props }: ComponentProps<typeof StyledContent>) => (
 );
 
 export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
-  ScrollAreaVariantProps & {
+  Omit<ScrollAreaVariantProps, "scrollbars"> & {
     /**
      * @default 'both'
      */
-    scrollbars?: "vertical" | "horizontal" | "both";
+    scrollbars?: ScrollAreaVariant["scrollbars"];
     /** Styles for the scrolled content. */
     contentCss?: CssProp;
   };
 
-const ScrollAreaSimple = ({
-  ref,
-  children,
-  scrollbars = "both",
-  contentCss,
-  ...props
-}: ScrollAreaProps) => {
+const ScrollAreaSimple = ({ ref, children, contentCss, ...props }: ScrollAreaProps) => {
+  const { scrollbars } = scrollArea.getVariantProps({ scrollbars: props.scrollbars });
   const showVertical = scrollbars === "vertical" || scrollbars === "both";
   const showHorizontal = scrollbars === "horizontal" || scrollbars === "both";
 
   return (
-    <Root
-      {...props}
-      scrollbars={scrollbars}
-    >
+    <Root {...props}>
       <Viewport ref={ref}>
         <Content css={contentCss}>{children}</Content>
       </Viewport>

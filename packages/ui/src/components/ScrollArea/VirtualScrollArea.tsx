@@ -1,13 +1,14 @@
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual";
-import { type Ref, useCallback, useRef } from "react";
+import { type Ref, useRef } from "react";
 
 import { Box } from "#styled-system/jsx";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 import { VirtualRows } from "./VirtualRows";
 
-interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
+export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   /** The list of items to virtualize. */
   items: T[];
   /** Estimated height in pixels for each item, or a function returning the height for a given index. */
@@ -22,19 +23,9 @@ interface BaseProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
   header?: React.ReactNode;
   /** Ref to the scroll viewport element (e.g. for drag auto-scroll). */
   viewportRef?: Ref<HTMLDivElement>;
+  /** When true, items are measured after render to support variable heights. @default false */
+  measure?: boolean;
 }
-
-interface FixedHeightProps<T> extends BaseProps<T> {
-  /** When true, items are measured after render to support variable heights. */
-  measure?: false;
-}
-
-interface MeasuredHeightProps<T> extends BaseProps<T> {
-  /** When true, items are measured after render to support variable heights. */
-  measure: true;
-}
-
-export type VirtualScrollAreaProps<T> = FixedHeightProps<T> | MeasuredHeightProps<T>;
 
 export const VirtualScrollArea = <T,>({
   items,
@@ -55,17 +46,7 @@ export const VirtualScrollArea = <T,>({
   ]);
   const resolvedStyle = { ...style, ...sizeStyle };
 
-  // Read viewportRef through a ref so an inline-arrow prop can't churn setViewport's identity
-  // (which would detach/reattach the scroll element the virtualizer reads every commit).
-  const viewportRefProp = useRef(viewportRef);
-  viewportRefProp.current = viewportRef;
-
-  const setViewport = useCallback((element: HTMLDivElement | null) => {
-    parentRef.current = element;
-    const consumer = viewportRefProp.current;
-    if (typeof consumer === "function") consumer(element);
-    else if (consumer) consumer.current = element;
-  }, []);
+  const setViewport = useComposedRefs(parentRef, viewportRef);
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -75,20 +56,8 @@ export const VirtualScrollArea = <T,>({
     getItemKey,
   });
 
-  if (measure) {
-    return (
-      <ScrollArea
-        ref={setViewport}
-        {...resolvedScrollAreaProps}
-        style={resolvedStyle}
-      >
-        {header}
-        <VirtualRows virtualizer={virtualizer}>
-          {(virtualItem) => children(items[virtualItem.index], virtualItem.index, virtualItem)}
-        </VirtualRows>
-      </ScrollArea>
-    );
-  }
+  const renderItem = (virtualItem: VirtualItem) =>
+    children(items[virtualItem.index], virtualItem.index, virtualItem);
 
   return (
     <ScrollArea
@@ -97,27 +66,31 @@ export const VirtualScrollArea = <T,>({
       style={resolvedStyle}
     >
       {header}
-      <Box
-        width="100%"
-        style={{ height: virtualizer.getTotalSize(), position: "relative" }}
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => (
-          <Box
-            key={virtualItem.key}
-            overflow="hidden"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: `${virtualItem.size}px`,
-              transform: `translateY(${virtualItem.start}px)`,
-            }}
-          >
-            {children(items[virtualItem.index], virtualItem.index, virtualItem)}
-          </Box>
-        ))}
-      </Box>
+      {measure ? (
+        <VirtualRows virtualizer={virtualizer}>{renderItem}</VirtualRows>
+      ) : (
+        <Box
+          width="100%"
+          style={{ height: virtualizer.getTotalSize(), position: "relative" }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => (
+            <Box
+              key={virtualItem.key}
+              overflow="hidden"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: `${virtualItem.size}px`,
+                transform: `translateY(${virtualItem.start}px)`,
+              }}
+            >
+              {renderItem(virtualItem)}
+            </Box>
+          ))}
+        </Box>
+      )}
     </ScrollArea>
   );
 };
