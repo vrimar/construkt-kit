@@ -3,42 +3,28 @@ import { FileUpIcon } from "lucide-react";
 import { styled } from "#styled-system/jsx";
 import { input } from "#styled-system/recipes";
 
-import { CloseButton } from "../Buttons";
-import { InputGroup } from "../Input";
-import { FileUpload } from "./FileUpload";
+import { InputGroup, InputGroupClearButton } from "../Input";
+import { FileUpload, type FileUploadRootProps } from "./FileUpload";
 
 const TriggerInput = styled(FileUpload.Trigger, input);
 
-export interface FormFileUploadProps {
+export interface FormFileUploadProps extends Omit<
+  FileUploadRootProps,
+  "onFileChange" | "maxFiles" | "children"
+> {
   onFileChange: (file: File | undefined) => void;
-  accept?: Record<string, string[]>;
-  maxFileSize?: number;
-  disabled?: boolean;
-  invalid?: boolean;
   placeholder?: string;
-  name?: string;
-  required?: boolean;
 }
 
 export const FormFileUpload = ({
   onFileChange,
-  accept,
-  maxFileSize,
-  disabled,
-  invalid,
   placeholder = "Select file...",
-  name,
-  required,
+  ...rootProps
 }: FormFileUploadProps) => {
   return (
     <FileUpload.Root
+      {...rootProps}
       maxFiles={1}
-      accept={accept}
-      maxFileSize={maxFileSize}
-      disabled={disabled}
-      invalid={invalid}
-      name={name}
-      required={required}
       onFileChange={({ acceptedFiles }) =>
         onFileChange(acceptedFiles.length === 1 ? acceptedFiles[0] : undefined)
       }
@@ -46,25 +32,19 @@ export const FormFileUpload = ({
       <FileUpload.HiddenInput />
       <InputGroup
         startElement={<FileUpIcon />}
-        cursor={disabled ? "not-allowed" : "pointer"}
+        cursor={rootProps.disabled ? "not-allowed" : "pointer"}
         endElement={
           <FileUpload.ClearTrigger asChild>
-            <CloseButton
+            <InputGroupClearButton
               me="-1"
-              size="xs"
-              variant="plain"
+              size="sm"
               focusVisibleRing="inside"
               focusRingWidth="2px"
-              pointerEvents="auto"
-              disabled={disabled}
             />
           </FileUpload.ClearTrigger>
         }
       >
-        <TriggerInput
-          aria-label={placeholder}
-          cursor="pointer"
-        >
+        <TriggerInput _enabled={{ cursor: "pointer" }}>
           <FileUpload.FileText
             lineClamp={1}
             fallback={placeholder}
