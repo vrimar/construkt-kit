@@ -58,7 +58,7 @@ export {
 export * from "./Progress";
 export * from "./Radio";
 export * from "./RadioCard";
-export { RatingGroup, type RatingGroupRootProps } from "./RatingGroup";
+export * from "./RatingGroup";
 export * from "./ScrollArea";
 export * from "./SegmentGroup";
 export * from "./Select";

@@ -5,11 +5,11 @@ import {
   Box,
   Center,
   Container,
-  Divider,
   Flex,
   Grid,
   GridItem,
   HStack,
+  Separator,
   SimpleGrid,
   Spacer,
   Stack,
@@ -225,16 +225,16 @@ export const ContainerStory: Story = {
   ),
 };
 
-export const DividerStory: Story = {
-  name: "Divider",
+export const SeparatorStory: Story = {
+  name: "Separator",
   render: () => (
     <Stack
       gap="4"
       maxW="400px"
     >
-      <Box>Above divider</Box>
-      <Divider />
-      <Box>Below divider</Box>
+      <Box>Above separator</Box>
+      <Separator />
+      <Box>Below separator</Box>
     </Stack>
   ),
 };

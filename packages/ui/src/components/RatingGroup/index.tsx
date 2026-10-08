@@ -21,11 +21,6 @@ const Item = withContext(ArkRatingGroup.Item, "item");
 const Label = withContext(ArkRatingGroup.Label, "label");
 const HiddenInput = ArkRatingGroup.HiddenInput;
 
-export {
-  RatingGroupContext as Context,
-  RatingGroupItemContext as ItemContext,
-} from "@ark-ui/react/rating-group";
-
 interface ItemIndicatorProps extends HTMLStyledProps<"span"> {
   icon?: ReactElement | undefined;
 }

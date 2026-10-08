@@ -70,29 +70,6 @@ function Items(props: ItemsProps) {
   ));
 }
 
-interface FileUploadListProps extends ItemsBaseProps {}
-
-function List({
-  ref,
-  showSize,
-  clearable,
-  files,
-  ...rest
-}: WithRef<FileUploadListProps, HTMLUListElement>) {
-  return (
-    <ItemGroup
-      ref={ref}
-      {...rest}
-    >
-      <Items
-        showSize={showSize}
-        clearable={clearable}
-        files={files}
-      />
-    </ItemGroup>
-  );
-}
-
 export interface FileTextProps extends HTMLStyledProps<"span"> {
   fallback?: string | undefined;
 }
@@ -146,7 +123,6 @@ export const FileUpload = {
   ItemSizeText,
   Items,
   Label,
-  List,
   Trigger,
   FileText,
   Context: FileUploadContext,

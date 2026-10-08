@@ -2,7 +2,7 @@ export {
   Box,
   Center,
   Container,
-  Divider,
+  Divider as Separator,
   Flex,
   Float,
   Grid,
@@ -18,7 +18,7 @@ export type {
   BoxProps,
   CenterProps,
   ContainerProps,
-  DividerProps,
+  DividerProps as SeparatorProps,
   FlexProps,
   FloatProps,
   GridItemProps,
@@ -29,9 +29,5 @@ export type {
   VstackProps as VStackProps,
   WrapProps,
 } from "#styled-system/jsx";
-
-/** Re-export `Divider` as `Separator` for backward compatibility. */
-export { Divider as Separator } from "#styled-system/jsx";
-export type { DividerProps as SeparatorProps } from "#styled-system/jsx";
 
 export { SimpleGrid, type SimpleGridProps } from "./SimpleGrid";
