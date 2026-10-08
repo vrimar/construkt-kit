@@ -54,6 +54,14 @@ use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages
 `"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
 design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
+## Upgrading from 0.4
+
+- `AuthForm` takes `loading` and `submitDisabled` in place of `isLoading` and `isSubmitDisabled`, matching ui's
+  `SubmitForm` and `SubmitDialog`
+- `PasswordRulesPopover` takes `open` in place of `isOpen`
+- `PasswordRulesPopover` anchors to its child instead of wrapping it in a trigger button, which put the field inside a
+  `<button>`; `ResetPasswordPage`'s confirm field does the same
+
 ## Rules
 
 - Accept navigation callbacks as props — never import a specific router

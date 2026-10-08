@@ -4,8 +4,8 @@ import type { FormEvent, ReactNode } from "react";
 export interface AuthFormProps {
   onSubmit: () => void;
   submitLabel: string;
-  isLoading?: boolean;
-  isSubmitDisabled?: boolean;
+  loading?: boolean;
+  submitDisabled?: boolean;
   children: ReactNode;
   /** Rendered below the submit button. */
   footer?: ReactNode;
@@ -14,8 +14,8 @@ export interface AuthFormProps {
 export function AuthForm({
   onSubmit,
   submitLabel,
-  isLoading,
-  isSubmitDisabled,
+  loading,
+  submitDisabled,
   children,
   footer,
 }: AuthFormProps) {
@@ -32,8 +32,8 @@ export function AuthForm({
         <Button
           w="100%"
           type="submit"
-          loading={isLoading}
-          disabled={isLoading || isSubmitDisabled}
+          loading={loading}
+          disabled={loading || submitDisabled}
           colorPalette="brand"
         >
           {submitLabel}

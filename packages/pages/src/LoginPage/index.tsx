@@ -32,8 +32,8 @@ export function LoginPage({
       <AuthForm
         onSubmit={() => onSubmit(email, password)}
         submitLabel="Login"
-        isLoading={isLoading}
-        isSubmitDisabled={!email || !password}
+        loading={isLoading}
+        submitDisabled={!email || !password}
         footer={
           onForgotPassword && (
             <AuthLinkButton onClick={onForgotPassword}>Forgot your password?</AuthLinkButton>

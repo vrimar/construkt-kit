@@ -50,12 +50,12 @@ export function ResetPasswordPage({
         <AuthForm
           onSubmit={() => onSubmit(email, token, password, confirmPassword)}
           submitLabel="Reset password"
-          isLoading={isLoading}
-          isSubmitDisabled={!password || !passwordValid || !confirmPassword || !confirmValid}
+          loading={isLoading}
+          submitDisabled={!password || !passwordValid || !confirmPassword || !confirmValid}
         >
           <Field label="New password">
             <PasswordRulesPopover
-              isOpen={isRulesOpen && password.length > 0}
+              open={isRulesOpen && password.length > 0}
               password={password}
             >
               <PasswordInput
@@ -77,14 +77,14 @@ export function ResetPasswordPage({
               open={isConfirmFocused && !confirmValid}
               placement="right"
             >
-              <Popover.Trigger>
+              <Popover.Anchor>
                 <PasswordInput
                   value={confirmPassword}
                   onFocus={() => setIsConfirmFocused(true)}
                   onBlur={() => setIsConfirmFocused(false)}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-              </Popover.Trigger>
+              </Popover.Anchor>
               <Popover.Content p="4">
                 <Text color="fg.error">Passwords do not match.</Text>
               </Popover.Content>

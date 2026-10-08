@@ -39,8 +39,8 @@ export function ForgotPasswordPage({
         <AuthForm
           onSubmit={() => onSubmit(email)}
           submitLabel="Send reset link"
-          isLoading={isLoading}
-          isSubmitDisabled={!email}
+          loading={isLoading}
+          submitDisabled={!email}
           footer={onBack && <AuthLinkButton onClick={onBack}>Back to login</AuthLinkButton>}
         >
           <Field label="Email">

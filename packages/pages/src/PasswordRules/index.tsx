@@ -6,12 +6,12 @@ import { type ReactElement, useMemo } from "react";
 export const isPasswordValid = (password: string) => passwordSchema.safeParse(password).success;
 
 export interface PasswordRulesPopoverProps {
-  isOpen: boolean;
+  open: boolean;
   password: string;
   children: ReactElement;
 }
 
-export const PasswordRulesPopover = ({ isOpen, password, children }: PasswordRulesPopoverProps) => {
+export const PasswordRulesPopover = ({ open, password, children }: PasswordRulesPopoverProps) => {
   const failedRules = useMemo(
     () => new Set(passwordRules.filter((rule) => !rule.test(password)).map((rule) => rule.id)),
     [password],
@@ -23,10 +23,10 @@ export const PasswordRulesPopover = ({ isOpen, password, children }: PasswordRul
       lazyMount
       unmountOnExit
       modal={false}
-      open={isOpen}
+      open={open}
       placement="right"
     >
-      <Popover.Trigger>{children}</Popover.Trigger>
+      <Popover.Anchor>{children}</Popover.Anchor>
       <Popover.Content p="4">
         <Stack gap="4">
           <Text>Password Rules</Text>
