@@ -1,6 +1,8 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
+import { createMatchMedia } from "./src/_shared/matchMedia";
+
 class ResizeObserver {
   observe() {}
 
@@ -32,15 +34,6 @@ if (!("scrollTo" in Element.prototype)) {
   Element.prototype.scrollTo = () => {};
 }
 
-globalThis.matchMedia ??= (query: string): MediaQueryList => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  addListener: () => {},
-  removeListener: () => {},
-  dispatchEvent: () => false,
-});
+globalThis.matchMedia ??= createMatchMedia(false);
 
 afterEach(cleanup);
