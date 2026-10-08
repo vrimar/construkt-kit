@@ -5,13 +5,10 @@ import { styled } from "#styled-system/jsx";
 import { toCssSize } from "../../foundations/cssSize";
 import type { Unstyled } from "../../types";
 import type { ButtonProps } from "../Buttons";
-import { Button } from "../Buttons";
+import { type FormActions, renderFormActions } from "../Form/FormActions";
 import { Dialog } from "./Dialog";
 
-export interface SubmitDialogFooterParts {
-  cancelButton: ReactNode;
-  submitButton: ReactNode;
-}
+export type SubmitDialogFooterParts = FormActions;
 
 export interface SubmitDialogProps {
   title: ReactNode;
@@ -38,37 +35,25 @@ export const SubmitDialog = ({
   title,
   children,
   onSubmit,
-  submitLabel = "Submit",
+  submitLabel,
   submitButtonProps,
   loading,
   submitDisabled,
   onClose,
   open = true,
-  cancelLabel = "Cancel",
+  cancelLabel,
   contentWidth,
   autoFocusButton,
   footer,
 }: SubmitDialogProps) => {
-  const cancelButton = (
-    <Button
-      variant="plain"
-      onClick={onClose}
-    >
-      {cancelLabel}
-    </Button>
-  );
-  const submitButton = (
-    <Button
-      type="submit"
-      disabled={submitDisabled}
-      loading={loading}
-      data-autofocus={autoFocusButton || undefined}
-      colorPalette="brand"
-      {...submitButtonProps}
-    >
-      {submitLabel}
-    </Button>
-  );
+  const { cancelButton, submitButton } = renderFormActions({
+    onCancel: onClose,
+    cancelLabel,
+    submitLabel,
+    loading,
+    submitDisabled,
+    submitButtonProps: { "data-autofocus": autoFocusButton || undefined, ...submitButtonProps },
+  });
 
   return (
     <Dialog.Root
