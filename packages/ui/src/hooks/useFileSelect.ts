@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { useLatestRef } from "./useLatestRef";
+
 export interface ParsedFile {
   source: string;
   name: string;
@@ -30,12 +32,8 @@ function createInput({
 export const useFileSelect = <TMultiple extends boolean = false>(
   options: UseFileUploadOptions<TMultiple> = {},
 ) => {
-  const optionsRef = useRef(options);
+  const optionsRef = useLatestRef(options);
   const urlsRef = useRef<string[]>([]);
-
-  useEffect(() => {
-    optionsRef.current = options;
-  });
 
   useEffect(() => {
     return () => {
@@ -77,5 +75,5 @@ export const useFileSelect = <TMultiple extends boolean = false>(
     };
 
     input.click();
-  }, []);
+  }, [optionsRef]);
 };
