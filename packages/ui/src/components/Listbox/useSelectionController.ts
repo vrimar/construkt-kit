@@ -1,17 +1,10 @@
 import { type ListCollection, createListCollection } from "@ark-ui/react/collection";
-import {
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
 import type {
   ManagedListOptions,
-  SelectionGroupSort,
+  ManagedSelectionProps,
   SelectionItemState,
   SelectionSearchOptions,
   SelectionValue,
@@ -21,24 +14,11 @@ export type SelectionValueChangeDetails = { value: string[] };
 
 export const normalizeQuery = (query: string) => query.trim().toLowerCase();
 
-export const matchesQuery = (text: string, query: string) =>
-  text.toLowerCase().includes(normalizeQuery(query));
+export const matchesQuery = (text: string, normalizedQuery: string) =>
+  text.toLowerCase().includes(normalizedQuery);
 
 export const encodeSelectionValue = (value: SelectionValue): string =>
   typeof value === "number" ? `n:${value}` : `s:${value}`;
-
-export function selectItemsByValue<T, V extends SelectionValue>(
-  items: readonly T[],
-  values: readonly V[],
-  getItemValue: (item: T) => V,
-): T[] {
-  const itemByValue = new Map(
-    items.map((item) => [encodeSelectionValue(getItemValue(item)), item]),
-  );
-  return values
-    .map((value) => itemByValue.get(encodeSelectionValue(value)))
-    .filter((item): item is T => item !== undefined);
-}
 
 export function getSelectionLabel<T>(
   selectedCount: number,
@@ -51,6 +31,34 @@ export function getSelectionLabel<T>(
     return selectedItems[0] == null ? "1 selected" : getItemLabel(selectedItems[0]);
   }
   return `${selectedCount} selected`;
+}
+
+export interface SelectAllState {
+  allSelected: boolean;
+  someSelected: boolean;
+  toggle: () => string[];
+}
+
+export function getSelectAllState(
+  value: readonly string[],
+  selectableValues: readonly string[],
+): SelectAllState {
+  const selectedSet = new Set(value);
+  const allSelected =
+    selectableValues.length > 0 && selectableValues.every((entry) => selectedSet.has(entry));
+  const someSelected = !allSelected && selectableValues.some((entry) => selectedSet.has(entry));
+
+  return {
+    allSelected,
+    someSelected,
+    toggle: () => {
+      if (!allSelected) {
+        return [...value, ...selectableValues.filter((entry) => !selectedSet.has(entry))];
+      }
+      const selectableSet = new Set(selectableValues);
+      return value.filter((entry) => !selectableSet.has(entry));
+    },
+  };
 }
 
 const MANAGED_LIST_OPTIONS = {
@@ -83,17 +91,23 @@ export function splitManagedListOptions<
   return [options, rest as Omit<P, ManagedListOptionKey>];
 }
 
-interface UseSelectionControllerParams<T, V extends SelectionValue> {
-  items: readonly T[];
-  getItemValue: (item: T) => V;
-  getItemLabel: (item: T) => string;
-  isItemDisabled?: (item: T) => boolean;
-  groupBy?: (item: T, index: number) => string;
-  groupSort?: SelectionGroupSort;
+export interface SelectionControllerOptions<
+  T,
+  V extends SelectionValue,
+> extends ManagedSelectionProps<T, V> {
   selectionMode: "single" | "multiple";
   value: V | readonly V[] | null;
   onValueChange: (value: V | V[]) => unknown;
-  search?: boolean | SelectionSearchOptions<T>;
+}
+
+export interface SelectionSearchState {
+  showInput: boolean;
+  query: string;
+  placeholder: string;
+  autoFocus: boolean;
+  endElement?: ReactNode;
+  setQuery: (query: string) => void;
+  reset: () => void;
 }
 
 export interface SelectionController<T, V extends SelectionValue> {
@@ -103,18 +117,10 @@ export interface SelectionController<T, V extends SelectionValue> {
   encodedValue: string[];
   selectedValues: V[];
   selectedItems: T[];
+  getItemsByValue: (values: readonly SelectionValue[]) => T[];
   handleValueChange: (details: SelectionValueChangeDetails) => void;
   getItemState: (item: T) => SelectionItemState<V>;
-  search: {
-    showInput: boolean;
-    query: string;
-    placeholder: string;
-    autoFocus: boolean;
-    endElement?: ReactNode;
-    inputRef: RefObject<HTMLInputElement | null>;
-    setQuery: (query: string) => void;
-    reset: () => void;
-  };
+  search: SelectionSearchState;
 }
 
 export function useSelectionController<T, V extends SelectionValue>({
@@ -128,15 +134,15 @@ export function useSelectionController<T, V extends SelectionValue>({
   value,
   onValueChange,
   search,
-}: UseSelectionControllerParams<T, V>): SelectionController<T, V> {
+}: SelectionControllerOptions<T, V>): SelectionController<T, V> {
   const searchOptions: SelectionSearchOptions<T> | undefined =
     typeof search === "object" ? search : search === true ? {} : undefined;
-  const searchOptionsRef = useRef(searchOptions);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const searchOptionsRef = useLatestRef(searchOptions);
 
-  useEffect(() => {
-    searchOptionsRef.current = searchOptions;
-  });
+  const selectedValues = useMemo<V[]>(
+    () => (value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V]),
+    [value],
+  );
 
   const encodedMaps = useMemo(() => {
     const values = new Map<string, V>();
@@ -154,19 +160,20 @@ export function useSelectionController<T, V extends SelectionValue>({
       itemByValue.set(encoded, item);
     }
 
-    const selected = value == null ? [] : Array.isArray(value) ? value : [value];
-    for (const nativeValue of selected as readonly V[]) {
+    for (const nativeValue of selectedValues) {
       values.set(encodeSelectionValue(nativeValue), nativeValue);
     }
 
     return { values, itemByValue };
-  }, [getItemValue, items, value]);
+  }, [getItemValue, items, selectedValues]);
 
   const defaultQuery = searchOptions?.defaultQuery ?? "";
   const [internalQuery, setInternalQuery] = useState(defaultQuery);
   const query = searchOptions?.query ?? internalQuery;
+  const normalizedQuery = normalizeQuery(query);
 
   const filter = searchOptions?.filter;
+  const filterQuery = searchOptions?.mode === "external" ? "" : normalizedQuery;
   const collection = useMemo(() => {
     const created = createListCollection<T>({
       items: items as T[],
@@ -176,27 +183,27 @@ export function useSelectionController<T, V extends SelectionValue>({
       groupBy,
       groupSort,
     });
-    if (!query) return created;
+    if (!filterQuery) return created;
 
     return created.filter((itemText, _index, item) =>
-      filter ? filter(item, query) : matchesQuery(itemText, query),
+      filter ? filter(item, filterQuery) : matchesQuery(itemText, filterQuery),
     );
-  }, [filter, getItemLabel, getItemValue, groupBy, groupSort, isItemDisabled, items, query]);
+  }, [filter, filterQuery, getItemLabel, getItemValue, groupBy, groupSort, isItemDisabled, items]);
 
   const groups = useMemo(() => collection.group(), [collection]);
   const grouped = !(groups.length === 1 && groups[0][0] === "");
 
-  const selectedValues = useMemo<V[]>(
-    () => (value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V]),
-    [value],
-  );
   const encodedValue = useMemo(() => selectedValues.map(encodeSelectionValue), [selectedValues]);
-  const selectedItems = useMemo(
-    () =>
-      encodedValue
-        .map((encoded) => encodedMaps.itemByValue.get(encoded))
+  const getItemsByValue = useCallback(
+    (values: readonly SelectionValue[]) =>
+      values
+        .map((nativeValue) => encodedMaps.itemByValue.get(encodeSelectionValue(nativeValue)))
         .filter((item): item is T => item !== undefined),
-    [encodedMaps.itemByValue, encodedValue],
+    [encodedMaps.itemByValue],
+  );
+  const selectedItems = useMemo(
+    () => getItemsByValue(selectedValues),
+    [getItemsByValue, selectedValues],
   );
   const selectedSet = useMemo(() => new Set(encodedValue), [encodedValue]);
 
@@ -224,16 +231,19 @@ export function useSelectionController<T, V extends SelectionValue>({
     [getItemValue, isItemDisabled, selectedSet],
   );
 
-  const setQuery = useCallback((nextQuery: string) => {
-    if (searchOptionsRef.current?.query == null) setInternalQuery(nextQuery);
-    searchOptionsRef.current?.onQueryChange?.(nextQuery);
-  }, []);
+  const setQuery = useCallback(
+    (nextQuery: string) => {
+      if (searchOptionsRef.current?.query == null) setInternalQuery(nextQuery);
+      searchOptionsRef.current?.onQueryChange?.(nextQuery);
+    },
+    [searchOptionsRef],
+  );
 
   const reset = useCallback(() => {
     if (searchOptionsRef.current?.query != null) return;
     setInternalQuery(defaultQuery);
     searchOptionsRef.current?.onQueryChange?.(defaultQuery);
-  }, [defaultQuery]);
+  }, [defaultQuery, searchOptionsRef]);
 
   return {
     collection,
@@ -242,6 +252,7 @@ export function useSelectionController<T, V extends SelectionValue>({
     encodedValue,
     selectedValues,
     selectedItems,
+    getItemsByValue,
     handleValueChange,
     getItemState,
     search: {
@@ -250,7 +261,6 @@ export function useSelectionController<T, V extends SelectionValue>({
       placeholder: searchOptions?.placeholder ?? "Search...",
       autoFocus: searchOptions?.autoFocus ?? false,
       endElement: searchOptions?.endElement,
-      inputRef,
       setQuery,
       reset,
     },

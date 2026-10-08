@@ -2,6 +2,7 @@ import type { Listbox as ArkListbox } from "@ark-ui/react/listbox";
 import type { ReactNode } from "react";
 
 import type { HTMLStyledProps } from "#styled-system/jsx";
+import type { ListboxVariant } from "#styled-system/recipes";
 
 import type { Unstyled } from "../../types";
 
@@ -21,6 +22,13 @@ export interface SelectionItemsProps<T, V extends SelectionValue> {
   groupBy?: (item: T, index: number) => string;
   /** Orders the group headings. Defaults to first-seen order. */
   groupSort?: SelectionGroupSort;
+}
+
+export interface ManagedSelectionProps<T, V extends SelectionValue> extends SelectionItemsProps<
+  T,
+  V
+> {
+  search?: boolean | SelectionSearchOptions<T>;
 }
 
 export interface SingleSelectionProps<V extends SelectionValue> {
@@ -51,6 +59,15 @@ export interface SelectionSearchOptions<T> {
   /** Initial/reset query for uncontrolled search. @default "" */
   defaultQuery?: string;
   onQueryChange?: (query: string) => unknown;
+  /**
+   * `"filter"` filters the items by the query. `"external"` shows the items as given, so the
+   * consumer filters them (e.g. server-side) from `onQueryChange`. @default "filter"
+   */
+  mode?: "filter" | "external";
+  /**
+   * Receives the trimmed, lowercased query. Not called while the query is blank or in
+   * `"external"` mode.
+   */
   filter?: (item: T, query: string) => boolean;
   /** Render the built-in search input. */
   showInput?: boolean;
@@ -59,7 +76,7 @@ export interface SelectionSearchOptions<T> {
   endElement?: ReactNode;
 }
 
-export type SelectionIndicatorPosition = "start" | "end" | "none";
+export type SelectionIndicatorPosition = NonNullable<ListboxVariant["indicatorPosition"]>;
 
 export interface SelectionValueRenderContext<T, V extends SelectionValue> {
   value: V | readonly V[] | null;

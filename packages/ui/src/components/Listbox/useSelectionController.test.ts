@@ -40,6 +40,27 @@ describe("useSelectionController", () => {
     expect(onValueChange).toHaveBeenCalledExactlyOnceWith([]);
   });
 
+  it("passes a custom filter the normalized query and skips a blank one", () => {
+    const filter = vi.fn(() => true);
+    const { rerender } = renderHook(
+      ({ query }: { query: string }) =>
+        useSelectionController({
+          items,
+          getItemValue: (item) => item.id,
+          getItemLabel: (item) => String(item.id),
+          selectionMode: "single",
+          value: null,
+          onValueChange: vi.fn(),
+          search: { query, filter },
+        }),
+      { initialProps: { query: "   " } },
+    );
+    expect(filter).not.toHaveBeenCalled();
+
+    rerender({ query: " AbC " });
+    expect(filter).toHaveBeenCalledWith(items[0], "abc");
+  });
+
   it("types the change handlers without a null single value", () => {
     expectTypeOf<SingleSelectionProps<number>["onValueChange"]>()
       .parameter(0)

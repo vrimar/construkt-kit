@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Box, type BoxProps } from "#styled-system/jsx";
 
 import type { Unstyled } from "../../types";
-import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
+import type { SelectionValue } from "../Listbox/types";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
 import { Select } from "./Select";
@@ -17,19 +17,16 @@ import type {
 export interface TagSelectProps<T, V extends SelectionValue = SelectionValue>
   extends Omit<SelectSimpleProps<T, V>, "triggerProps">, SelectMultipleValueProps<V> {
   renderTag?: (item: T) => ReactNode;
-  tagPlaceholder?: ReactNode;
   triggerProps?: Unstyled<Omit<SelectTriggerProps, "buttonProps" | "children">>;
-  /** Search defaults to enabled. */
-  search?: boolean | SelectionSearchOptions<T>;
 }
 
 interface TagSelectTriggerProps<T> extends BoxProps {
   renderTag?: (item: T) => ReactNode;
-  tagPlaceholder?: ReactNode;
 }
 
-function TagSelectTrigger<T>({ renderTag, tagPlaceholder, ...props }: TagSelectTriggerProps<T>) {
-  const { controller } = useSelectContext();
+function TagSelectTrigger<T>({ renderTag, ...props }: TagSelectTriggerProps<T>) {
+  const { managed, hasValue, triggerValue } = useSelectContext();
+  const { controller } = managed;
   const selectedItems = controller.selectedItems as T[];
 
   return (
@@ -64,9 +61,9 @@ function TagSelectTrigger<T>({ renderTag, tagPlaceholder, ...props }: TagSelectT
           {selectedItems.length === 0 && (
             <Text
               ml="1"
-              color="fg.subtle"
+              color={hasValue ? undefined : "fg.subtle"}
             >
-              {tagPlaceholder}
+              {triggerValue}
             </Text>
           )}
         </TagsInput.Control>
@@ -78,7 +75,6 @@ function TagSelectTrigger<T>({ renderTag, tagPlaceholder, ...props }: TagSelectT
 export function TagSelect<T, V extends SelectionValue>({
   renderTag,
   search = true,
-  tagPlaceholder,
   triggerProps,
   ...selectProps
 }: TagSelectProps<T, V>) {
@@ -89,12 +85,7 @@ export function TagSelect<T, V extends SelectionValue>({
       search={search}
       triggerProps={{
         ...triggerProps,
-        children: (
-          <TagSelectTrigger
-            renderTag={renderTag}
-            tagPlaceholder={tagPlaceholder}
-          />
-        ),
+        children: <TagSelectTrigger renderTag={renderTag} />,
       }}
     />
   );

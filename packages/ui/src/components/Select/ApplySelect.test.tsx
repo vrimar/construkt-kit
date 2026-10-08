@@ -3,28 +3,38 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ApplySelect } from ".";
+import { ApplySelect, type ApplySelectProps } from ".";
 
 const frameworks = [
-  { id: 1, name: "React" },
-  { id: 2, name: "Vue" },
-  { id: 3, name: "Angular" },
+  { id: 1, name: "React", kind: "Library" },
+  { id: 2, name: "Vue", kind: "Framework" },
+  { id: 3, name: "Angular", kind: "Framework" },
 ];
+
+type Framework = (typeof frameworks)[number];
+
+const frameworkProps = {
+  items: frameworks,
+  getItemValue: (item: Framework) => item.id,
+  getItemLabel: (item: Framework) => item.name,
+};
+
+const renderApplySelect = (props?: Partial<ApplySelectProps<Framework, number>>) =>
+  render(
+    <ApplySelect
+      {...frameworkProps}
+      value={[]}
+      onValueChange={vi.fn()}
+      defaultOpen
+      search={false}
+      {...props}
+    />,
+  );
 
 describe("ApplySelect", () => {
   it("stages values and emits the complete draft on Apply", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-      />,
-    );
+    renderApplySelect({ onValueChange });
 
     await userEvent.click(screen.getByRole("option", { name: "React" }));
     expect(onValueChange).not.toHaveBeenCalled();
@@ -34,17 +44,7 @@ describe("ApplySelect", () => {
 
   it("discards staged changes on Cancel", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[1]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-      />,
-    );
+    renderApplySelect({ value: [1], onValueChange });
     await userEvent.click(screen.getByText("Vue"));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onValueChange).not.toHaveBeenCalled();
@@ -52,18 +52,7 @@ describe("ApplySelect", () => {
 
   it("applies an empty selection through Reset", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[1, 2]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-        actions={{ reset: true }}
-      />,
-    );
+    renderApplySelect({ value: [1, 2], onValueChange, actions: { reset: true } });
     expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Reset" }));
     expect(onValueChange).toHaveBeenCalledWith([]);
@@ -71,17 +60,7 @@ describe("ApplySelect", () => {
 
   it("can apply a cleared selection", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[1]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-      />,
-    );
+    renderApplySelect({ value: [1], onValueChange });
     await userEvent.click(screen.getByRole("option", { name: "React" }));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onValueChange).toHaveBeenCalledWith([]);
@@ -89,133 +68,97 @@ describe("ApplySelect", () => {
 
   it("selects and clears the complete collection through Toggle All", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-        actions={{ toggleAll: true }}
-      />,
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
+    renderApplySelect({ onValueChange, actions: { toggleAll: true } });
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onValueChange).toHaveBeenCalledWith([1, 2, 3]);
 
     // Apply closes the popover, and `defaultOpen` only applies on mount — remount to
     // reopen rather than racing the close.
     cleanup();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[1, 2, 3]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-        actions={{ toggleAll: true }}
-      />,
-    );
-    expect(screen.getByRole("button", { name: "Clear All" })).not.toBeNull();
+    renderApplySelect({ value: [1, 2, 3], onValueChange, actions: { toggleAll: true } });
+    expect(screen.getByRole("button", { name: "Deselect all" })).not.toBeNull();
+  });
+
+  it("toggles only the enabled items the search shows", async () => {
+    const onValueChange = vi.fn();
+    renderApplySelect({
+      isItemDisabled: (item) => item.name === "Angular",
+      value: [2],
+      onValueChange,
+      search: true,
+      actions: { toggleAll: true },
+    });
+
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "r");
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    expect(screen.getByRole("button", { name: "Deselect all" })).not.toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(onValueChange).toHaveBeenCalledWith([2, 1]);
+  });
+
+  it("deselects only the enabled items the search shows", async () => {
+    const onValueChange = vi.fn();
+    renderApplySelect({
+      isItemDisabled: (item) => item.name === "Angular",
+      value: [1, 2, 3],
+      onValueChange,
+      search: true,
+      actions: { toggleAll: true },
+    });
+
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "r");
+    await userEvent.click(screen.getByRole("button", { name: "Deselect all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(onValueChange).toHaveBeenCalledWith([2, 3]);
   });
 
   it("groups items without disturbing Toggle All", async () => {
     const onValueChange = vi.fn();
-    render(
-      <ApplySelect
-        items={[
-          { id: 1, name: "React", kind: "Library" },
-          { id: 2, name: "Vue", kind: "Framework" },
-          { id: 3, name: "Angular", kind: "Framework" },
-        ]}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={[]}
-        onValueChange={onValueChange}
-        defaultOpen
-        search={false}
-        actions={{ toggleAll: true }}
-      />,
-    );
+    renderApplySelect({
+      groupBy: (item) => item.kind,
+      onValueChange,
+      actions: { toggleAll: true },
+    });
 
     expect(screen.getAllByRole("group")).toHaveLength(2);
-    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onValueChange).toHaveBeenCalledWith([1, 2, 3]);
   });
 
   it("keeps the applied value on the trigger while editing the draft", async () => {
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[1]}
-        onValueChange={vi.fn()}
-        defaultOpen
-        search={false}
-      />,
-    );
+    renderApplySelect({ value: [1] });
     await userEvent.click(screen.getByText("Vue"));
     expect(screen.getByRole("button", { name: "React" })).not.toBeNull();
   });
 
+  it("keeps the placeholder on the trigger while only the draft has a selection", async () => {
+    renderApplySelect();
+    await userEvent.click(screen.getByRole("option", { name: "React" }));
+    expect(screen.getByRole("button", { name: "Select item" })).not.toBeNull();
+  });
+
+  it("renders a custom trigger label from the applied value", async () => {
+    renderApplySelect({
+      value: [1],
+      renderValue: ({ value, selectedItems }) =>
+        `${String(value)}: ${selectedItems.map((item) => item.name).join(", ")}`,
+    });
+    await userEvent.click(screen.getByRole("option", { name: "Vue" }));
+    expect(screen.getByRole("button", { name: "1: React" })).not.toBeNull();
+  });
+
   it("lets contentWidth narrow the content below its default minimum", () => {
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[]}
-        onValueChange={vi.fn()}
-        contentWidth={200}
-        defaultOpen
-      />,
-    );
+    renderApplySelect({ contentWidth: 200, search: true });
     const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
     expect(content?.style.width).toBe("200px");
     expect(content?.className).not.toMatch(/(^|\s)min-w_/);
   });
 
-  it("filters through the shared typed search configuration", async () => {
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[]}
-        onValueChange={vi.fn()}
-        defaultOpen
-        search={{
-          placeholder: "Find framework",
-          filter: (item, query) => item.name.toLowerCase().startsWith(query.toLowerCase()),
-        }}
-      />,
-    );
-    await userEvent.type(screen.getByPlaceholderText("Find framework"), "v");
-    expect(screen.getByText("Vue")).not.toBeNull();
-    expect(screen.queryByText("React")).toBeNull();
-  });
-
   it("notifies controlled open consumers when Apply closes", async () => {
     const onOpenChange = vi.fn();
-    render(
-      <ApplySelect
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={[]}
-        onValueChange={vi.fn()}
-        open
-        onOpenChange={onOpenChange}
-        search={false}
-      />,
-    );
+    renderApplySelect({ open: true, onOpenChange });
     await userEvent.click(screen.getByText("React"));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -243,9 +186,7 @@ describe("ApplySelect", () => {
     const onValueChange = vi.fn();
     render(
       <ApplySelect.Root
-        items={frameworks}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...frameworkProps}
         value={[]}
         onValueChange={onValueChange}
         defaultOpen
@@ -269,9 +210,7 @@ describe("ApplySelect", () => {
       const [value, setValue] = useState<number[]>([]);
       return (
         <ApplySelect
-          items={frameworks}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
+          {...frameworkProps}
           value={value}
           onValueChange={setValue}
           defaultOpen

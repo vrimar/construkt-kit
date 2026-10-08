@@ -1,18 +1,10 @@
+export { ListboxSearchField, ManagedList, SelectionSearchField } from "./Listbox";
+export { type ManagedListbox, type ScrollToIndexRef, useManagedListbox } from "./useManagedListbox";
 export {
-  ListboxSearchField,
-  ManagedList,
-  SelectionSearchField,
-  type SelectionSearchFieldProps,
-  getManagedRootProps,
-  isVirtualized,
-} from "./Listbox";
-export {
-  type SelectionController,
   encodeSelectionValue,
+  getSelectAllState,
   getSelectionLabel,
   matchesQuery,
   normalizeQuery,
-  selectItemsByValue,
   splitManagedListOptions,
-  useSelectionController,
 } from "./useSelectionController";

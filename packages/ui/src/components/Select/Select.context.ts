@@ -1,26 +1,25 @@
 import { createContext, type ReactNode, useContext } from "react";
 
-import type { SelectionController } from "../Listbox/managed";
+import type { ManagedListbox } from "../Listbox/managed";
 import type { ManagedListOptions, SelectionValue } from "../Listbox/types";
 
 export interface SelectContextValue {
-  controller: SelectionController<unknown, SelectionValue>;
+  managed: ManagedListbox<unknown, SelectionValue>;
   list: ManagedListOptions<unknown, SelectionValue>;
   contentWidth?: string | number;
   sameWidth: boolean;
   wideContent: boolean;
   triggerValue: ReactNode;
   hasValue: boolean;
-  scrollToIndexRef: { current: ((index: number) => void) | undefined };
   close: () => void;
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);
 
-export type SelectRootOverrides = Pick<
-  SelectContextValue,
-  "triggerValue" | "hasValue" | "wideContent"
->;
+export interface SelectRootOverrides<V extends SelectionValue = SelectionValue> {
+  appliedValue: readonly V[];
+  wideContent: boolean;
+}
 
 export const SelectRootOverridesContext = createContext<SelectRootOverrides | null>(null);
 

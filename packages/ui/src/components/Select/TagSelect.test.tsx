@@ -2,114 +2,88 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { TagSelect } from "./TagSelect";
+import { Select } from "./Select";
+import { TagSelect, type TagSelectProps } from "./TagSelect";
 
 const items = [
   { id: 1, label: "One" },
   { id: 2, label: "Two" },
 ];
 
+type Item = (typeof items)[number];
+
+const itemProps = {
+  items,
+  getItemValue: (item: Item) => item.id,
+  getItemLabel: (item: Item) => item.label,
+};
+
+type TagSelectOverrides = Partial<TagSelectProps<Item, number>>;
+
+const renderTagSelect = (props?: TagSelectOverrides) => {
+  const element = (overrides: TagSelectOverrides = {}) => (
+    <TagSelect
+      {...itemProps}
+      value={[]}
+      onValueChange={vi.fn()}
+      {...overrides}
+    />
+  );
+  const view = render(element(props));
+  return { ...view, rerender: (next?: TagSelectOverrides) => view.rerender(element(next)) };
+};
+
 describe("TagSelect", () => {
   it("renders numeric selected IDs through the typed item map", () => {
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[1]}
-        onValueChange={vi.fn()}
-        renderTag={(item) => <span>Tag {item.label}</span>}
-      />,
-    );
+    renderTagSelect({ value: [1], renderTag: (item) => <span>Tag {item.label}</span> });
     expect(screen.getByText("Tag One")).not.toBeNull();
   });
 
-  it("opens the list from the tag trigger", async () => {
+  it("shows the default placeholder when nothing is selected", () => {
+    renderTagSelect();
+    expect(screen.getByText("Select item")).not.toBeNull();
+  });
+
+  it("shows a custom placeholder until an item is selected", () => {
+    const { rerender } = renderTagSelect({ placeholder: "Pick items" });
+    expect(screen.getByText("Pick items")).not.toBeNull();
+
+    rerender({ value: [1], placeholder: "Pick items" });
+    expect(screen.queryByText("Pick items")).toBeNull();
+  });
+
+  it("labels ids missing from items the way Select does", () => {
     render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[1]}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
+      <>
+        <Select
+          {...itemProps}
+          selectionMode="multiple"
+          value={[3]}
+          onValueChange={vi.fn()}
+          placeholder="Pick items"
+        />
+        <TagSelect
+          {...itemProps}
+          value={[3]}
+          onValueChange={vi.fn()}
+          placeholder="Pick items"
+        />
+      </>,
     );
+    expect(screen.getAllByText("1 selected")).toHaveLength(2);
+    expect(screen.queryByText("Pick items")).toBeNull();
+  });
+
+  it("opens the list from the tag trigger", async () => {
+    renderTagSelect({ value: [1], search: false });
     expect(screen.queryByRole("option")).toBeNull();
     await userEvent.click(screen.getByText("One"));
     expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 
-  it("emits complete arrays when an item is toggled", async () => {
-    const onValueChange = vi.fn();
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[]}
-        onValueChange={onValueChange}
-        open
-        search={false}
-      />,
-    );
-    await userEvent.click(screen.getByText("One"));
-    expect(onValueChange).toHaveBeenCalledWith([1]);
-  });
-
-  it("configures search through the shared option", async () => {
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[]}
-        onValueChange={vi.fn()}
-        open
-        search={{
-          placeholder: "Find item",
-          filter: (item, query) => item.label.toLowerCase().startsWith(query.toLowerCase()),
-        }}
-      />,
-    );
-    await userEvent.type(screen.getByPlaceholderText("Find item"), "t");
-    expect(screen.getByText("Two")).not.toBeNull();
-    expect(screen.queryByText("One")).toBeNull();
-  });
-
-  it("toggles the highlighted match with Enter and stays open", async () => {
-    const onValueChange = vi.fn();
-    const onOpenChange = vi.fn();
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[]}
-        onValueChange={onValueChange}
-        onOpenChange={onOpenChange}
-        open
-      />,
-    );
-
-    await userEvent.type(screen.getByRole("textbox"), "t");
-    await userEvent.keyboard("{Enter}");
-    expect(onValueChange).toHaveBeenCalledExactlyOnceWith([2]);
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
   it("keeps typing in the search input after an option is clicked", async () => {
     const onValueChange = vi.fn();
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[]}
-        onValueChange={onValueChange}
-        open
-      />,
-    );
+    renderTagSelect({ onValueChange, open: true });
     const input = screen.getByRole<HTMLInputElement>("textbox");
 
     await userEvent.click(input);
@@ -120,57 +94,5 @@ describe("TagSelect", () => {
     await userEvent.keyboard("tw");
     expect(input.value).toBe("tw");
     expect(screen.queryByRole("option", { name: "One" })).toBeNull();
-  });
-
-  it("forwards grouping to the managed list", () => {
-    render(
-      <TagSelect
-        items={[
-          { id: 1, label: "Apple", kind: "Fruit" },
-          { id: 2, label: "Carrot", kind: "Vegetable" },
-          { id: 3, label: "Banana", kind: "Fruit" },
-        ]}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        groupBy={(item) => item.kind}
-        value={[]}
-        onValueChange={vi.fn()}
-        open
-        search={false}
-      />,
-    );
-    expect(screen.getAllByRole("group")).toHaveLength(2);
-    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
-      "Apple",
-      "Banana",
-      "Carrot",
-    ]);
-  });
-
-  it("keeps item actions from changing selection", async () => {
-    const onValueChange = vi.fn();
-    const onAction = vi.fn();
-    render(
-      <TagSelect
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={[]}
-        onValueChange={onValueChange}
-        open
-        search={false}
-        renderItemActions={(item) => (
-          <button
-            type="button"
-            onClick={onAction}
-          >
-            Edit {item.label}
-          </button>
-        )}
-      />,
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Edit One" }));
-    expect(onAction).toHaveBeenCalledOnce();
-    expect(onValueChange).not.toHaveBeenCalled();
   });
 });

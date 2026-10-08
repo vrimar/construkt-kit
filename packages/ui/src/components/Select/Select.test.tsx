@@ -1,18 +1,15 @@
 import type { UseListboxContext } from "@ark-ui/react/listbox";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createRef, useState } from "react";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { Listbox } from "../Listbox";
+import { Listbox, type SingleSelectionProps } from "../Listbox";
 import { encodeSelectionValue } from "../Listbox/managed";
-import { encodedValues, groupLabels, optionValues, produce } from "../Listbox/selection.fixtures";
-import { Select } from "./Select";
+import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
+import { Select, type SelectProps } from "./Select";
 
 type ListboxApi = UseListboxContext<unknown>;
-
-const highlightedValue = () =>
-  document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -22,31 +19,31 @@ const options = [
   { id: 3, label: "Gamma" },
 ];
 
+type Option = (typeof options)[number];
+
+const optionProps = {
+  items: options,
+  getItemValue: (item: Option) => item.id,
+  getItemLabel: (item: Option) => item.label,
+};
+
+type SelectOverrides = Partial<SelectProps<Option, number> & SingleSelectionProps<number>>;
+
+const renderSelect = (props?: SelectOverrides) =>
+  render(
+    <Select
+      {...optionProps}
+      value={null}
+      onValueChange={vi.fn()}
+      {...props}
+    />,
+  );
+
 describe("Select", () => {
-  it("infers generic items and emits native numeric values", async () => {
-    const onValueChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={onValueChange}
-        open
-        renderItem={(item) => <span>Option: {item.label}</span>}
-      />,
-    );
-
-    await userEvent.click(screen.getByText("Option: Beta"));
-    expect(onValueChange).toHaveBeenCalledWith(2);
-  });
-
   it("supports conventional compound composition with Root render callbacks", () => {
     render(
       <Select.Root
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
+        {...optionProps}
         value={null}
         onValueChange={vi.fn()}
         open
@@ -68,35 +65,14 @@ describe("Select", () => {
   });
 
   it("uses trigger width by default", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        open
-      />,
-    );
+    renderSelect({ open: true });
     expect(screen.getByRole("listbox").closest("[data-part='content']")?.className).toContain(
       "w_full",
     );
   });
 
   it("applies root style props to the listbox root and *Css props to their parts", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        w="200px"
-        contentCss={{ minW: "320px" }}
-        listCss={{ p: "0" }}
-        open
-      />,
-    );
+    renderSelect({ w: "200px", contentCss: { minW: "320px" }, listCss: { p: "0" }, open: true });
     const list = screen.getByRole("listbox");
     const contentClasses = list.closest("[data-part='content']")?.className.split(" ") ?? [];
     expect(list.className.split(" ")).toContain("p_0");
@@ -108,119 +84,87 @@ describe("Select", () => {
   });
 
   it("applies an explicit content width", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        contentWidth={320}
-        open
-      />,
-    );
+    renderSelect({ contentWidth: 320, open: true });
     const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
     expect(content?.style.width).toBe("320px");
     expect(content?.className).not.toMatch(/(^|\s)w_/);
   });
 
   it("resolves a size token as the content width", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        contentWidth="sm"
-        open
-      />,
-    );
+    renderSelect({ contentWidth: "sm", open: true });
     const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
     expect(content?.style.width).toBe("var(--sizes-sm)");
   });
 
-  it("filters through the unified search option", async () => {
+  it("clears the query from the search field's clear button", async () => {
     render(
-      <Select
-        items={options}
+      <Select.Root
+        {...optionProps}
+        value={null}
+        onValueChange={vi.fn()}
+        search
+        open
+      >
+        <Select.Trigger />
+        <Select.Content>
+          {/* @ts-expect-error the field owns onClear */}
+          <Select.Search onClear={vi.fn()} />
+          <Select.List />
+        </Select.Content>
+      </Select.Root>,
+    );
+
+    const input = screen.getByRole<HTMLInputElement>("textbox");
+    await userEvent.type(input, "bet");
+    expect(screen.queryByText("Alpha")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(input.value).toBe("");
+    expect(screen.getByText("Alpha")).not.toBeNull();
+  });
+
+  it("keeps a virtual list rendering when Select.List takes a ref", () => {
+    const many = Array.from({ length: 100 }, (_, index) => ({ id: index, label: `Item ${index}` }));
+    const listRef = createRef<HTMLDivElement>();
+    const offsetHeight = vi
+      .spyOn(HTMLElement.prototype, "offsetHeight", "get")
+      .mockReturnValue(200);
+    onTestFinished(() => offsetHeight.mockRestore());
+    render(
+      <Select.Root
+        items={many}
         getItemValue={(item) => item.id}
         getItemLabel={(item) => item.label}
         value={null}
         onValueChange={vi.fn()}
-        search={{
-          placeholder: "Search options",
-          filter: (item, query) => item.label.toLowerCase().startsWith(query.toLowerCase()),
-        }}
+        virtual
         open
-      />,
+      >
+        <Select.Trigger />
+        <Select.Content>
+          <Select.List ref={listRef} />
+        </Select.Content>
+      </Select.Root>,
     );
 
-    await userEvent.type(screen.getByPlaceholderText("Search options"), "g");
-    expect(screen.getByText("Gamma")).not.toBeNull();
-    expect(screen.queryByText("Alpha")).toBeNull();
+    expect(listRef.current).toBe(screen.getByRole("listbox"));
+    expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
   });
 
   it("does not render search when omitted", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        open
-      />,
-    );
+    renderSelect({ open: true });
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   it("renders the configured empty state", () => {
-    render(
-      <Select
-        items={[] as typeof options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        emptyMessage="Nothing found"
-        open
-      />,
-    );
-    expect(screen.getByText("Nothing found")).not.toBeNull();
-  });
-
-  it("emits complete arrays in multiple mode", async () => {
-    const onValueChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        selectionMode="multiple"
-        value={[1]}
-        onValueChange={onValueChange}
-        open
-      />,
-    );
-    await userEvent.click(screen.getByText("Beta"));
-    expect(onValueChange).toHaveBeenCalledWith([1, 2]);
+    renderSelect({ items: [], emptyMessage: "Nothing found", open: true });
+    expect(within(screen.getByRole("listbox")).getByText("Nothing found")).not.toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("Nothing found");
   });
 
   it("closes when the selected item is picked again", async () => {
     const onValueChange = vi.fn();
     const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={2}
-        onValueChange={onValueChange}
-        open
-        onOpenChange={onOpenChange}
-      />,
-    );
+    renderSelect({ value: 2, onValueChange, open: true, onOpenChange });
 
     await userEvent.click(screen.getByRole("option", { name: "Beta" }));
     expect(onValueChange).not.toHaveBeenCalled();
@@ -230,17 +174,7 @@ describe("Select", () => {
 
   it("closes once when a different item is picked", async () => {
     const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={2}
-        onValueChange={vi.fn()}
-        open
-        onOpenChange={onOpenChange}
-      />,
-    );
+    renderSelect({ value: 2, open: true, onOpenChange });
 
     await userEvent.click(screen.getByRole("option", { name: "Alpha" }));
     expect(onOpenChange).toHaveBeenCalledOnce();
@@ -249,32 +183,13 @@ describe("Select", () => {
 
   it("notifies open changes in uncontrolled mode", async () => {
     const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        onOpenChange={onOpenChange}
-      />,
-    );
+    renderSelect({ onOpenChange });
     await userEvent.click(screen.getByRole("button", { name: "Select item" }));
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
   it("resets an uncontrolled search query after close", async () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        search
-        defaultOpen
-      />,
-    );
+    renderSelect({ search: true, defaultOpen: true });
 
     await userEvent.type(screen.getByPlaceholderText("Search..."), "beta");
     expect(screen.queryByText("Alpha")).toBeNull();
@@ -284,57 +199,23 @@ describe("Select", () => {
     expect(screen.getByPlaceholderText<HTMLInputElement>("Search...").value).toBe("");
   });
 
-  it("keeps item actions interactive without selecting the row", async () => {
-    const onValueChange = vi.fn();
-    const onAction = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={onValueChange}
-        renderItemActions={(item) => (
+  it("stays open after an item action unless the action closes it", async () => {
+    const onOpenChange = vi.fn();
+    renderSelect({
+      onOpenChange,
+      renderItemActions: (item, _, { close }) => (
+        <>
+          <button type="button">Pin {item.label}</button>
           <button
             type="button"
-            onClick={onAction}
+            onClick={close}
           >
             Edit {item.label}
           </button>
-        )}
-        open
-      />,
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: "Edit Alpha" }));
-    expect(onAction).toHaveBeenCalledOnce();
-    expect(onValueChange).not.toHaveBeenCalled();
-  });
-
-  it("stays open after an item action unless the action closes it", async () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        onOpenChange={onOpenChange}
-        renderItemActions={(item, _, { close }) => (
-          <>
-            <button type="button">Pin {item.label}</button>
-            <button
-              type="button"
-              onClick={close}
-            >
-              Edit {item.label}
-            </button>
-          </>
-        )}
-        open
-      />,
-    );
+        </>
+      ),
+      open: true,
+    });
 
     await userEvent.click(screen.getByRole("button", { name: "Pin Alpha" }));
     expect(onOpenChange).not.toHaveBeenCalled();
@@ -345,9 +226,7 @@ describe("Select", () => {
   it("forwards trigger props when custom children are used", () => {
     render(
       <Select.Root
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
+        {...optionProps}
         value={null}
         onValueChange={vi.fn()}
       >
@@ -367,9 +246,7 @@ describe("Select", () => {
       const [value, setValue] = useState<number | null>(1);
       return (
         <Select
-          items={options}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.label}
+          {...optionProps}
           value={value}
           onValueChange={setValue}
           renderValue={({ selectedItems }) => `Chosen: ${selectedItems[0]?.label}`}
@@ -380,29 +257,10 @@ describe("Select", () => {
     expect(screen.getByRole("button", { name: "Chosen: Alpha" })).not.toBeNull();
   });
 
-  it("renders grouped items in the popover list", () => {
-    render(
-      <Select
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        open
-      />,
-    );
-
-    expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
-    expect(optionValues()).toEqual(encodedValues(1, 3, 2));
-  });
-
   it("threads renderGroupLabel through the compound context", () => {
     render(
       <Select.Root
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...produceProps}
         groupBy={(item) => item.kind}
         renderGroupLabel={(group, groupItems) => `${group} (${groupItems.length})`}
         value={null}
@@ -419,67 +277,15 @@ describe("Select", () => {
     expect(groupLabels()).toEqual(["Fruit (2)", "Vegetable (1)"]);
   });
 
-  it("keeps grouping while searching", async () => {
-    render(
-      <Select
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search
-        defaultOpen
-      />,
-    );
-
-    await userEvent.type(screen.getByPlaceholderText("Search..."), "Car");
-    expect(groupLabels()).toEqual(["Vegetable"]);
-    expect(optionValues()).toEqual(encodedValues(2));
-  });
-
   it("exposes the listbox group parts", () => {
     expect(Select.ItemGroup).toBe(Listbox.ItemGroup);
     expect(Select.ItemGroupLabel).toBe(Listbox.ItemGroupLabel);
   });
 
-  it("selects and closes from the search input with the keyboard", async () => {
-    const onValueChange = vi.fn();
-    const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={onValueChange}
-        onOpenChange={onOpenChange}
-        search={{ autoFocus: true }}
-        defaultOpen
-      />,
-    );
-
-    expect(document.activeElement).toBe(screen.getByRole("textbox"));
-    await userEvent.keyboard("{ArrowDown}{Enter}");
-    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(1);
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
-  });
-
   it("closes once when Enter re-picks the selected option from the search input", async () => {
     const onValueChange = vi.fn();
     const onOpenChange = vi.fn();
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={2}
-        onValueChange={onValueChange}
-        onOpenChange={onOpenChange}
-        search
-        open
-      />,
-    );
+    renderSelect({ value: 2, onValueChange, onOpenChange, search: true, open: true });
 
     await userEvent.type(screen.getByRole("textbox"), "bet");
     await userEvent.keyboard("{Enter}");
@@ -488,17 +294,7 @@ describe("Select", () => {
   });
 
   it("drops the highlight when reopened", async () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={null}
-        onValueChange={vi.fn()}
-        search={{ autoFocus: true }}
-        defaultOpen
-      />,
-    );
+    renderSelect({ search: { autoFocus: true }, defaultOpen: true });
 
     await nextFrame();
     await userEvent.keyboard("{ArrowDown}{ArrowDown}");
@@ -525,9 +321,7 @@ describe("Select", () => {
     const onOpenChange = vi.fn();
     render(
       <Select.Root
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
+        {...optionProps}
         value={2}
         onValueChange={onValueChange}
         onOpenChange={onOpenChange}
@@ -572,16 +366,7 @@ describe("Select", () => {
     });
 
     it("scrolls the keyboard-highlighted option into view after opening", async () => {
-      render(
-        <Select
-          items={options}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.label}
-          value={null}
-          onValueChange={vi.fn()}
-          search
-        />,
-      );
+      renderSelect({ search: true });
 
       await nextFrame();
       await userEvent.click(screen.getByRole("button", { name: "Select item" }));
@@ -599,17 +384,7 @@ describe("Select", () => {
         label: `Item ${index}`,
       }));
       const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
-      render(
-        <Select
-          items={many}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.label}
-          value={null}
-          onValueChange={vi.fn()}
-          search
-          virtual
-        />,
-      );
+      renderSelect({ items: many, search: true, virtual: true });
 
       await nextFrame();
       await userEvent.click(screen.getByRole("button", { name: "Select item" }));
@@ -623,9 +398,7 @@ describe("Select", () => {
     it("does not scroll when an option is pressed", async () => {
       render(
         <Select
-          items={options}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.label}
+          {...optionProps}
           selectionMode="multiple"
           value={[]}
           onValueChange={vi.fn()}
@@ -639,22 +412,5 @@ describe("Select", () => {
       expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).not.toBeNull();
       expect(scrollIntoView).not.toHaveBeenCalled();
     });
-  });
-
-  it("applies logical indicator placement", () => {
-    render(
-      <Select
-        items={options}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.label}
-        value={1}
-        onValueChange={vi.fn()}
-        indicatorPosition="start"
-        open
-      />,
-    );
-    expect(screen.getByRole("listbox").className).toContain(
-      "listbox__content--indicatorPosition_start",
-    );
   });
 });

@@ -11,8 +11,6 @@ import { Popover } from "../Popover";
 import { useSelectContext } from "./Select.context";
 import type {
   SelectContentProps,
-  SelectFooterProps,
-  SelectItemIndicatorProps,
   SelectListProps,
   SelectSearchProps,
   SelectSimpleProps,
@@ -58,50 +56,29 @@ export function SelectContent({ children, style, ...props }: SelectContentProps)
   );
 }
 
-export function SelectSearch({ children, placeholder, ...props }: SelectSearchProps) {
-  const { controller } = useSelectContext();
-  if (!controller.search.showInput) return null;
+export function SelectSearch({ children, ...props }: SelectSearchProps) {
+  const { managed } = useSelectContext();
 
   return (
     <ListboxSearchField
       {...props}
-      inputRef={controller.search.inputRef}
-      autoFocus={props.autoFocus ?? controller.search.autoFocus}
-      placeholder={placeholder ?? controller.search.placeholder}
-      query={controller.search.query}
-      onQueryChange={controller.search.setQuery}
-      endElement={children ?? controller.search.endElement}
+      search={managed.controller.search}
+      inputRef={managed.inputRef}
+      endElement={children}
     />
   );
 }
 
 export function SelectList(props: SelectListProps) {
-  const { controller, list, scrollToIndexRef } = useSelectContext();
+  const { managed, list } = useSelectContext();
 
   return (
     <ManagedList
-      controller={controller}
+      managed={managed}
       {...list}
       contentProps={props}
-      scrollToIndexRef={scrollToIndexRef}
     />
   );
-}
-
-export function SelectItemIndicator(props: SelectItemIndicatorProps) {
-  const { list } = useSelectContext();
-  if (list.indicatorPosition === "none") return null;
-  return <Listbox.ItemIndicator {...props} />;
-}
-
-export function SelectEmptyState({ children = "No items available" }: { children?: ReactNode }) {
-  const { controller } = useSelectContext();
-  if (controller.collection.items.length > 0) return null;
-  return <Listbox.EmptyState>{children}</Listbox.EmptyState>;
-}
-
-export function SelectFooter({ children, ...props }: SelectFooterProps) {
-  return <Box {...props}>{children}</Box>;
 }
 
 type SelectSimpleBodyProps = Pick<
@@ -122,7 +99,7 @@ export function SelectSimpleBody({
       <SelectContent css={contentCss}>
         <SelectSearch />
         <SelectList css={listCss} />
-        {footer != null && <SelectFooter>{footer}</SelectFooter>}
+        {footer != null && <Box>{footer}</Box>}
         {children}
       </SelectContent>
     </>
@@ -134,10 +111,9 @@ export const selectListParts = {
   List: SelectList,
   Item: Listbox.Item,
   ItemText: Listbox.ItemText,
-  ItemIndicator: SelectItemIndicator,
+  ItemIndicator: Listbox.ItemIndicator,
   ItemActions: Listbox.ItemActions,
   ItemGroup: Listbox.ItemGroup,
   ItemGroupLabel: Listbox.ItemGroupLabel,
-  EmptyState: SelectEmptyState,
-  Footer: SelectFooter,
+  Footer: Box,
 };

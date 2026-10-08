@@ -1,19 +1,19 @@
-import type { ChangeEvent, ComponentProps, ReactElement, ReactNode } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import type { Box, HTMLStyledProps } from "#styled-system/jsx";
+import type { ListboxVariant } from "#styled-system/recipes";
 import type { JsxStyleProps } from "#styled-system/types";
 
 import type { CssProp, Unstyled } from "../../types";
 import type { SelectButtonProps } from "../Buttons";
-import type { SearchInput } from "../Input";
+import type { SearchInputProps } from "../Input";
 import type { Listbox } from "../Listbox/Listbox";
 import type {
   ManagedListOptions,
+  ManagedSelectionProps,
   MultipleSelectionProps,
   SelectionItemState,
-  SelectionItemsProps,
   SelectionProps,
-  SelectionSearchOptions,
   SelectionValue,
   SelectionValueRenderContext,
 } from "../Listbox/types";
@@ -28,7 +28,7 @@ export interface SelectItemActionHelpers {
 
 export interface SelectRootBaseProps<T, V extends SelectionValue>
   extends
-    SelectionItemsProps<T, V>,
+    ManagedSelectionProps<T, V>,
     Omit<ManagedListOptions<T, V>, "renderItemActions">,
     JsxStyleProps {
   children: ReactNode;
@@ -37,6 +37,7 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
     state: SelectionItemState<V>,
     helpers: SelectItemActionHelpers,
   ) => ReactNode;
+  /** @default "Select item" */
   placeholder?: ReactNode;
   renderValue?: (context: SelectionValueRenderContext<T, V>) => ReactNode;
   /** Content width: px if a number, otherwise a size token or CSS length. */
@@ -47,8 +48,7 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => unknown;
   placement?: PopoverRootProps["placement"];
-  actionsVisibility?: "hover" | "always";
-  search?: boolean | SelectionSearchOptions<T>;
+  actionsVisibility?: ListboxVariant["actionsVisibility"];
 }
 
 export type SelectRootProps<T, V extends SelectionValue = SelectionValue> = SelectRootBaseProps<
@@ -62,14 +62,11 @@ export interface SelectTriggerProps extends Omit<PopoverTriggerProps, "children"
   buttonProps?: Partial<Unstyled<SelectButtonProps>>;
 }
 
-type SearchInputProps = ComponentProps<typeof SearchInput>;
-
 export interface SelectSearchProps extends Omit<
   SearchInputProps,
-  "defaultValue" | "onChange" | "value"
+  "defaultValue" | "onClear" | "value"
 > {
   children?: ReactNode;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export type SelectContentProps = Partial<ComponentProps<typeof Popover.Content>>;

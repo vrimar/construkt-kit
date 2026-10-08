@@ -3,7 +3,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { HStack } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
-import { encodeSelectionValue, getSelectionLabel, selectItemsByValue } from "../Listbox/managed";
+import { encodeSelectionValue, getSelectAllState } from "../Listbox/managed";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
 import { Select } from "./Select";
 import {
@@ -13,20 +13,14 @@ import {
 } from "./Select.context";
 import { SelectSimpleBody, selectListParts } from "./Select.parts";
 import type {
-  SelectContentProps,
-  SelectListProps,
   SelectMultipleValueProps,
   SelectRootBaseProps,
-  SelectSearchProps,
   SelectSimpleProps,
-  SelectTriggerProps,
 } from "./Select.types";
 
 interface ApplySelectContextValue {
-  allSelected: boolean;
   apply: () => void;
   reset: () => void;
-  toggleAll: () => void;
   isDirty: boolean;
 }
 
@@ -56,33 +50,29 @@ export interface ApplySelectActionOptions {
   clearAllLabel?: ReactNode;
 }
 
-export type ApplySelectActionsProps = ApplySelectActionOptions;
-
-export type ApplySelectTriggerProps = SelectTriggerProps;
-export type ApplySelectContentProps = SelectContentProps;
-export type ApplySelectSearchProps = SelectSearchProps;
-export type ApplySelectListProps = SelectListProps;
-
 export interface ApplySelectRootProps<T, V extends SelectionValue = SelectionValue>
   extends SelectRootBaseProps<T, V>, SelectMultipleValueProps<V> {}
 
-export function ApplySelectActions({
+function ApplySelectActions({
   applyLabel = "Apply",
   cancelLabel = "Cancel",
   reset = false,
   resetLabel = "Reset",
   toggleAll = false,
-  selectAllLabel = "Select All",
-  clearAllLabel = "Clear All",
-}: ApplySelectActionsProps) {
-  const {
-    allSelected,
-    apply,
-    reset: handleReset,
-    toggleAll: handleToggleAll,
-    isDirty,
-  } = useApplySelectContext();
-  const { close } = useSelectContext();
+  selectAllLabel = "Select all",
+  clearAllLabel = "Deselect all",
+}: ApplySelectActionOptions) {
+  const { apply, reset: handleReset, isDirty } = useApplySelectContext();
+  const { close, managed } = useSelectContext();
+  const { collection, encodedValue, handleValueChange } = managed.controller;
+  const selectAll = useMemo(
+    () =>
+      getSelectAllState(
+        encodedValue,
+        collection.getValues(collection.items.filter((item) => !collection.getItemDisabled(item))),
+      ),
+    [collection, encodedValue],
+  );
 
   return (
     <Select.Footer>
@@ -91,9 +81,9 @@ export function ApplySelectActions({
           <Button
             size="xs"
             variant="outline"
-            onClick={handleToggleAll}
+            onClick={() => handleValueChange({ value: selectAll.toggle() })}
           >
-            {allSelected ? clearAllLabel : selectAllLabel}
+            {selectAll.allSelected ? clearAllLabel : selectAllLabel}
           </Button>
         )}
         <HStack
@@ -130,16 +120,11 @@ export function ApplySelectActions({
   );
 }
 
-export function ApplySelectRoot<T, V extends SelectionValue>({
+function ApplySelectRoot<T, V extends SelectionValue>({
   children,
-  getItemLabel,
-  getItemValue,
-  items,
   onOpenChange,
   onValueChange,
   open,
-  placeholder = "Select",
-  renderValue,
   search,
   value,
   ...rootProps
@@ -160,33 +145,17 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
   const apply = useCallback(() => onValueChange([...draft]), [draft, onValueChange]);
   const reset = useCallback(() => onValueChange([]), [onValueChange]);
 
-  const itemValues = useMemo(() => items.map(getItemValue), [getItemValue, items]);
-  const draftSet = useMemo(() => new Set(draft.map(encodeSelectionValue)), [draft]);
-  const allSelected =
-    itemValues.length > 0 &&
-    itemValues.every((itemValue) => draftSet.has(encodeSelectionValue(itemValue)));
-  const toggleAll = useCallback(
-    () => setDraft(allSelected ? [] : [...itemValues]),
-    [allSelected, itemValues],
-  );
   const isDirty = !sameValueSet(value, draft);
-  const selectedItems = useMemo(
-    () => selectItemsByValue(items, value, getItemValue),
-    [getItemValue, items, value],
-  );
-  const triggerValue = renderValue
-    ? renderValue({ value, selectedItems })
-    : getSelectionLabel(value.length, selectedItems, getItemLabel, placeholder);
   const resolvedSearch: boolean | SelectionSearchOptions<T> =
     search === false ? false : { autoFocus: true, ...(typeof search === "object" ? search : {}) };
 
   const contextValue = useMemo<ApplySelectContextValue>(
-    () => ({ allSelected, apply, reset, toggleAll, isDirty }),
-    [allSelected, apply, isDirty, reset, toggleAll],
+    () => ({ apply, reset, isDirty }),
+    [apply, isDirty, reset],
   );
-  const overrides = useMemo<SelectRootOverrides>(
-    () => ({ triggerValue, hasValue: value.length > 0, wideContent: true }),
-    [triggerValue, value.length],
+  const overrides = useMemo<SelectRootOverrides<V>>(
+    () => ({ appliedValue: value, wideContent: true }),
+    [value],
   );
 
   return (
@@ -194,9 +163,6 @@ export function ApplySelectRoot<T, V extends SelectionValue>({
       <SelectRootOverridesContext.Provider value={overrides}>
         <Select.Root
           {...rootProps}
-          items={items}
-          getItemValue={getItemValue}
-          getItemLabel={getItemLabel}
           value={draft}
           onValueChange={setDraft}
           selectionMode="multiple"

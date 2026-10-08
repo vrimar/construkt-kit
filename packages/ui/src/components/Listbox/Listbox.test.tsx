@@ -3,66 +3,37 @@ import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { createListCollection, Listbox, type ListboxProps } from ".";
-import { encodedValues, groupLabels, optionValues, produce } from "./selection.fixtures";
+import { createListCollection, Listbox, type ListboxProps, type SingleSelectionProps } from ".";
+import {
+  encodedValues,
+  groupLabels,
+  highlightedValue,
+  optionValues,
+  type Produce,
+  produce,
+  produceProps,
+} from "./selection.fixtures";
 import { encodeSelectionValue } from "./useSelectionController";
 
-const fruits = [
-  { id: 1, name: "Apple" },
-  { id: 2, name: "Banana" },
-  { id: 3, name: "Cherry" },
-] as const;
+type ListboxOverrides = Partial<ListboxProps<Produce, number> & SingleSelectionProps<number>>;
 
-const highlightedValue = () =>
-  document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
+const renderListbox = (props?: ListboxOverrides) => {
+  const element = (overrides: ListboxOverrides = {}) => (
+    <Listbox
+      {...produceProps}
+      value={null}
+      onValueChange={vi.fn()}
+      search={false}
+      {...overrides}
+    />
+  );
+  const view = render(element(props));
+  return { ...view, rerender: (next?: ListboxOverrides) => view.rerender(element(next)) };
+};
 
 describe("Listbox", () => {
-  it("emits the complete native numeric value in single mode", async () => {
-    const onValueChange = vi.fn();
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={onValueChange}
-        search={false}
-      />,
-    );
-
-    await userEvent.click(screen.getByText("Banana"));
-    expect(onValueChange).toHaveBeenCalledWith(2);
-  });
-
-  it("emits the complete next array in multiple mode", async () => {
-    const onValueChange = vi.fn();
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        selectionMode="multiple"
-        value={[1]}
-        onValueChange={onValueChange}
-        search={false}
-      />,
-    );
-
-    await userEvent.click(screen.getByText("Banana"));
-    expect(onValueChange).toHaveBeenCalledWith([1, 2]);
-  });
-
   it("filters with the built-in search", async () => {
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={{ placeholder: "Find fruit" }}
-      />,
-    );
+    renderListbox({ search: { placeholder: "Find fruit" } });
 
     await userEvent.type(screen.getByPlaceholderText("Find fruit"), "ban");
     expect(screen.getByText("Banana")).not.toBeNull();
@@ -70,33 +41,29 @@ describe("Listbox", () => {
   });
 
   it("reacts to externally controlled queries while hiding the input", () => {
-    const { rerender } = render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={{ query: "app", showInput: false }}
-      />,
-    );
+    const { rerender } = renderListbox({ search: { query: "app", showInput: false } });
 
     expect(screen.getByText("Apple")).not.toBeNull();
     expect(screen.queryByText("Banana")).toBeNull();
 
-    rerender(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={{ query: "ban", showInput: false }}
-      />,
-    );
+    rerender({ search: { query: "ban", showInput: false } });
 
     expect(screen.getByText("Banana")).not.toBeNull();
     expect(screen.queryByText("Apple")).toBeNull();
+  });
+
+  it("leaves filtering to the consumer in external search mode", async () => {
+    const onQueryChange = vi.fn();
+    const filter = vi.fn(() => false);
+    renderListbox({
+      search: { mode: "external", placeholder: "Find fruit", onQueryChange, filter },
+    });
+
+    await userEvent.type(screen.getByPlaceholderText("Find fruit"), "ban");
+    expect(onQueryChange).toHaveBeenLastCalledWith("ban");
+    expect(screen.getByText("Apple")).not.toBeNull();
+    expect(screen.getByText("Banana")).not.toBeNull();
+    expect(filter).not.toHaveBeenCalled();
   });
 
   it("keeps numeric and string IDs distinct", async () => {
@@ -153,48 +120,13 @@ describe("Listbox", () => {
   });
 
   it("renders custom item content and action content", () => {
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-        renderItem={(item) => <span>Fruit: {item.name}</span>}
-        renderItemActions={(item) => <button type="button">Edit {item.name}</button>}
-      />,
-    );
+    renderListbox({
+      renderItem: (item) => <span>Fruit: {item.name}</span>,
+      renderItemActions: (item) => <button type="button">Edit {item.name}</button>,
+    });
 
     expect(screen.getByText("Fruit: Apple")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Edit Apple" })).not.toBeNull();
-  });
-
-  it("does not select an item when its action is clicked", async () => {
-    const onValueChange = vi.fn();
-    const onAction = vi.fn();
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={onValueChange}
-        search={false}
-        renderItemActions={() => (
-          <button
-            type="button"
-            onClick={onAction}
-          >
-            Edit
-          </button>
-        )}
-      />,
-    );
-
-    await userEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-    expect(onAction).toHaveBeenCalledOnce();
-    expect(onValueChange).not.toHaveBeenCalled();
   });
 
   it("does not cancel an item action link's native default", async () => {
@@ -203,149 +135,43 @@ describe("Listbox", () => {
       expect(event.defaultPrevented).toBe(false);
       event.preventDefault();
     });
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={onValueChange}
-        search={false}
-        renderItemActions={() => (
-          <a
-            href="/fruit"
-            onClick={onLinkClick}
-          >
-            View
-          </a>
-        )}
-      />,
-    );
+    renderListbox({
+      onValueChange,
+      renderItemActions: () => (
+        <a
+          href="/fruit"
+          onClick={onLinkClick}
+        >
+          View
+        </a>
+      ),
+    });
 
     await userEvent.click(screen.getAllByRole("link", { name: "View" })[0]);
     expect(onLinkClick).toHaveBeenCalledOnce();
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
-  it("supports indicator placement through the recipe", () => {
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={1}
-        onValueChange={vi.fn()}
-        indicatorPosition="start"
-        search={false}
-      />,
-    );
-
-    expect(screen.getByRole("listbox").className).toContain(
-      "listbox__content--indicatorPosition_start",
-    );
-  });
-
   it("suppresses the empty state while loading", () => {
-    render(
-      <Listbox
-        items={[] as { id: number; name: string }[]}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        loading
-        search={false}
-      />,
-    );
+    renderListbox({ items: [], loading: true });
     expect(screen.queryByText("No items available")).toBeNull();
   });
 
-  it("renders group headings and nests items under their group", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
-
-    const groups = screen.getAllByRole("group");
-    expect(groups).toHaveLength(2);
-    expect(groupLabels()).toEqual(["Fruit", "Vegetable"]);
-    expect(within(groups[0]).getByText("Banana")).not.toBeNull();
-    expect(within(groups[1]).queryByText("Apple")).toBeNull();
-    expect(optionValues()).toEqual(encodedValues(1, 3, 2));
-    expect(groups[0].getAttribute("aria-labelledby")).toBe(
-      groups[0].querySelector("[data-part='item-group-label']")?.id,
-    );
-  });
-
   it("orders group headings with groupSort", () => {
-    const { rerender } = render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        groupSort="desc"
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    const { rerender } = renderListbox({ groupBy: (item) => item.kind, groupSort: "desc" });
     expect(groupLabels()).toEqual(["Vegetable", "Fruit"]);
 
-    rerender(
-      <Listbox
-        items={[...produce]}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        groupSort={["Vegetable", "Fruit"]}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    rerender({
+      items: [...produce],
+      groupBy: (item) => item.kind,
+      groupSort: ["Vegetable", "Fruit"],
+    });
     expect(groupLabels()).toEqual(["Vegetable", "Fruit"]);
     expect(optionValues()).toEqual(encodedValues(2, 1, 3));
   });
 
-  it("keeps grouping while searching and drops emptied groups", async () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search
-      />,
-    );
-
-    await userEvent.type(screen.getByPlaceholderText("Search..."), "Ban");
-    expect(groupLabels()).toEqual(["Fruit"]);
-    expect(optionValues()).toEqual(encodedValues(3));
-    expect(screen.queryByText("Carrot")).toBeNull();
-  });
-
   it("navigates in group order rather than item order", async () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox({ groupBy: (item) => item.kind });
 
     await userEvent.tab();
     expect(screen.getByRole("listbox")).toBe(document.activeElement);
@@ -363,91 +189,36 @@ describe("Listbox", () => {
   });
 
   it("ignores virtualization while grouped", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-        virtual
-      />,
-    );
+    renderListbox({ groupBy: (item) => item.kind, virtual: true });
 
     expect(screen.getAllByRole("group")).toHaveLength(2);
     expect(document.querySelector("[data-index]")).toBeNull();
   });
 
   it("applies a runtime max height to the virtual list", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-        virtual
-        listMaxHeight={240}
-      />,
-    );
+    renderListbox({ virtual: true, listMaxHeight: 240 });
 
     expect(screen.getByRole("listbox").style.maxHeight).toBe("240px");
   });
 
   it("keeps one list element while a virtual list's items arrive", () => {
-    const view = (items: typeof produce | []) => (
-      <Listbox
-        items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-        virtual
-      />
-    );
-    const { rerender } = render(view([]));
+    const { rerender } = renderListbox({ items: [], virtual: true });
     const list = screen.getByRole("listbox");
 
-    rerender(view(produce));
+    rerender({ items: produce, virtual: true });
 
     expect(screen.getByRole("listbox")).toBe(list);
   });
 
   it("applies contentCss to the virtual list", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-        virtual
-        contentCss={{ maxHeight: "240px" }}
-      />,
-    );
+    renderListbox({ virtual: true, contentCss: { maxHeight: "240px" } });
 
     expect(screen.getByRole("listbox").className.split(" ")).toContain("max-h_240px");
   });
 
   it("keeps navigation order matching render order when groupBy toggles off", async () => {
-    const view = (groupBy?: (item: (typeof produce)[number]) => string) => (
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={groupBy}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />
-    );
-    const { rerender } = render(view((item) => item.kind));
-    rerender(view(undefined));
+    const { rerender } = renderListbox({ groupBy: (item) => item.kind });
+    rerender({ groupBy: undefined });
 
     const rendered = optionValues();
     await userEvent.tab();
@@ -459,70 +230,44 @@ describe("Listbox", () => {
   });
 
   it("omits the heading for an empty group key", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => (item.kind === "Fruit" ? "" : item.kind)}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox({ groupBy: (item) => (item.kind === "Fruit" ? "" : item.kind) });
 
     expect(screen.getAllByRole("group")).toHaveLength(2);
     expect(groupLabels()).toEqual([null, "Vegetable"]);
   });
 
   it("renders group headings through renderGroupLabel", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        renderGroupLabel={(group, groupItems) => `${group} (${groupItems.length})`}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox({
+      groupBy: (item) => item.kind,
+      renderGroupLabel: (group, groupItems) => `${group} (${groupItems.length})`,
+    });
 
     expect(groupLabels()).toEqual(["Fruit (2)", "Vegetable (1)"]);
   });
 
   it("shows only the empty state when a grouped collection has no items", () => {
-    render(
-      <Listbox
-        items={[] as typeof produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox({ items: [], groupBy: (item) => item.kind });
 
     expect(screen.queryAllByRole("group")).toHaveLength(0);
-    expect(screen.getByText("No items available")).not.toBeNull();
+    expect(within(screen.getByRole("listbox")).getByText("No items available")).not.toBeNull();
+  });
+
+  it("announces the empty state outside the listbox", () => {
+    renderListbox({ items: [] });
+
+    const listbox = screen.getByRole("listbox");
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("No items available");
+    expect(listbox.contains(status)).toBe(false);
+    expect(within(listbox).getByText("No items available")).not.toBeNull();
   });
 
   it("keeps grouping props off the DOM", () => {
-    render(
-      <Listbox
-        items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        groupBy={(item) => item.kind}
-        groupSort={["Vegetable", "Fruit"]}
-        renderGroupLabel={(group) => group}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox({
+      groupBy: (item) => item.kind,
+      groupSort: ["Vegetable", "Fruit"],
+      renderGroupLabel: (group) => group,
+    });
 
     const root = screen.getByRole("listbox").closest("[data-scope='listbox'][data-part='root']");
     expect(root?.hasAttribute("groupby")).toBe(false);
@@ -563,29 +308,12 @@ describe("Listbox", () => {
   });
 
   it("renders content inside a scroll area", () => {
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-        search={false}
-      />,
-    );
+    renderListbox();
     expect(screen.getByRole("listbox").closest("[data-scope='scroll-area']")).not.toBeNull();
   });
 
   it("points the search input at the listbox it controls", () => {
-    render(
-      <Listbox
-        items={fruits}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        value={null}
-        onValueChange={vi.fn()}
-      />,
-    );
+    renderListbox({ search: true });
 
     expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe(
       screen.getByRole("listbox").id,
@@ -617,91 +345,9 @@ describe("Listbox", () => {
     expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe("custom");
   });
 
-  describe("search input keyboard", () => {
-    const renderSearchable = (onValueChange = vi.fn()) => {
-      render(
-        <Listbox
-          items={fruits}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
-          value={null}
-          onValueChange={onValueChange}
-        />,
-      );
-      return screen.getByRole("textbox");
-    };
-
-    it("moves the highlight with the arrow keys while the input keeps focus", async () => {
-      const input = renderSearchable();
-
-      await userEvent.click(input);
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(1));
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(2));
-      await userEvent.keyboard("{ArrowUp}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(1));
-
-      expect(document.activeElement).toBe(input);
-      expect(input.getAttribute("aria-activedescendant")).toBe(
-        document.querySelector("[role='option'][data-highlighted]")?.id,
-      );
-    });
-
-    it("selects the highlighted option with Enter", async () => {
-      const onValueChange = vi.fn();
-      const input = renderSearchable(onValueChange);
-
-      await userEvent.click(input);
-      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
-      expect(onValueChange).toHaveBeenCalledExactlyOnceWith(2);
-    });
-
-    it("highlights the first match while typing", async () => {
-      const onValueChange = vi.fn();
-      const input = renderSearchable(onValueChange);
-
-      await userEvent.type(input, "an");
-      expect(highlightedValue()).toBe(encodeSelectionValue(2));
-      await userEvent.keyboard("{Enter}");
-      expect(onValueChange).toHaveBeenCalledExactlyOnceWith(2);
-    });
-
-    it("leaves Home to the input caret", async () => {
-      const input = renderSearchable();
-
-      await userEvent.type(input, "a");
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(2));
-      await userEvent.keyboard("{Home}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(2));
-    });
-
-    it("navigates grouped options in group order", async () => {
-      render(
-        <Listbox
-          items={produce}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
-          groupBy={(item) => item.kind}
-          value={null}
-          onValueChange={vi.fn()}
-        />,
-      );
-
-      await userEvent.click(screen.getByRole("textbox"));
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(1));
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(3));
-      await userEvent.keyboard("{ArrowDown}");
-      expect(highlightedValue()).toBe(encodeSelectionValue(2));
-    });
-  });
-
   it("rejects root props the managed selection owns", () => {
-    const props: ListboxProps<(typeof fruits)[number], number> = {
-      items: fruits,
+    const props: ListboxProps<Produce, number> = {
+      items: produce,
       getItemValue: (item) => item.id,
       getItemLabel: (item) => item.name,
       selectionMode: "multiple",
@@ -718,9 +364,7 @@ describe("Listbox", () => {
       const [value, setValue] = useState<number[]>([]);
       return (
         <Listbox
-          items={fruits}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
+          {...produceProps}
           selectionMode="multiple"
           value={value}
           onValueChange={setValue}

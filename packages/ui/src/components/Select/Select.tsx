@@ -4,14 +4,14 @@ import { type JSX, type RefObject, useContext, useEffect, useRef, useState } fro
 
 import { splitCssProps } from "#styled-system/jsx";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
 import { Listbox } from "../Listbox/Listbox";
 import {
-  type SelectionController,
-  getManagedRootProps,
+  type ManagedListbox,
+  type ScrollToIndexRef,
   getSelectionLabel,
-  isVirtualized,
   splitManagedListOptions,
-  useSelectionController,
+  useManagedListbox,
 } from "../Listbox/managed";
 import type {
   ManagedListOptions,
@@ -23,6 +23,7 @@ import { Popover } from "../Popover";
 import {
   SelectContext,
   type SelectContextValue,
+  type SelectRootOverrides,
   SelectRootOverridesContext,
 } from "./Select.context";
 import { SelectContent, SelectSimpleBody, SelectTrigger, selectListParts } from "./Select.parts";
@@ -41,7 +42,7 @@ function findItem(target: EventTarget, highlighted: boolean) {
 interface SelectHighlightSyncProps {
   open: boolean;
   pointerRef: RefObject<boolean>;
-  scrollToIndexRef: SelectContextValue["scrollToIndexRef"];
+  scrollToIndexRef: ScrollToIndexRef;
   virtual: boolean;
 }
 
@@ -54,16 +55,12 @@ function SelectHighlightSync({
 }: SelectHighlightSyncProps) {
   const listbox = useListboxContext();
   const environment = useEnvironmentContext();
-  const listboxRef = useRef(listbox);
+  const listboxRef = useLatestRef(listbox);
   const { highlightedValue } = listbox;
 
   useEffect(() => {
-    listboxRef.current = listbox;
-  });
-
-  useEffect(() => {
     if (open) listboxRef.current.clearHighlightedValue();
-  }, [open]);
+  }, [listboxRef, open]);
 
   useEffect(() => {
     if (highlightedValue == null || pointerRef.current) return;
@@ -77,7 +74,7 @@ function SelectHighlightSync({
     const content = id == null ? null : root.getElementById(id);
     if (content == null || itemId == null || content.scrollHeight <= content.clientHeight) return;
     root.getElementById(itemId)?.scrollIntoView({ block: "nearest" });
-  }, [environment, highlightedValue, pointerRef, scrollToIndexRef, virtual]);
+  }, [environment, highlightedValue, listboxRef, pointerRef, scrollToIndexRef, virtual]);
 
   return null;
 }
@@ -126,23 +123,21 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
     onValueChange,
   } = rootProps;
   const { renderItemActions } = props;
-  const overrides = useContext(SelectRootOverridesContext);
+  const overrides = useContext(SelectRootOverridesContext) as SelectRootOverrides<V> | null;
   const list: ManagedListOptions<T, V> = {
     ...listOptions,
-    indicatorPosition: listOptions.indicatorPosition ?? "end",
     renderItemActions:
       renderItemActions &&
       ((item, state) => renderItemActions(item, state, { close: () => handleOpenChange(false) })),
   };
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const resolvedOpen = open ?? internalOpen;
-  const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
   const pointerRef = useRef(false);
   const sameWidth = matchTriggerWidth && contentWidth == null;
 
   function handleOpenChange(nextOpen: boolean) {
     if (open == null) setInternalOpen(nextOpen);
-    if (!nextOpen) controller.search.reset();
+    if (!nextOpen) managed.controller.search.reset();
     onOpenChange?.(nextOpen);
   }
 
@@ -152,7 +147,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
       handleOpenChange(false);
   }
 
-  const controller = useSelectionController<T, V>({
+  const { managed, rootProps: listboxRootProps } = useManagedListbox<T, V>({
     items,
     getItemValue,
     getItemLabel,
@@ -166,26 +161,22 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
       if (selectionMode === "single") handleOpenChange(false);
     },
     search,
+    virtual: list.virtual,
   });
+  const { controller } = managed;
+  const appliedValues = overrides?.appliedValue ?? controller.selectedValues;
+  const appliedItems = controller.getItemsByValue(appliedValues);
 
   const contextValue: SelectContextValue = {
-    controller: controller as SelectionController<unknown, SelectionValue>,
+    managed: managed as ManagedListbox<unknown, SelectionValue>,
     list: list as SelectContextValue["list"],
     contentWidth,
     sameWidth,
-    ...(overrides ?? {
-      wideContent: false,
-      triggerValue: renderValue
-        ? renderValue({ value, selectedItems: controller.selectedItems })
-        : getSelectionLabel(
-            controller.selectedValues.length,
-            controller.selectedItems,
-            getItemLabel,
-            placeholder,
-          ),
-      hasValue: controller.selectedValues.length > 0,
-    }),
-    scrollToIndexRef,
+    wideContent: overrides?.wideContent ?? false,
+    triggerValue: renderValue
+      ? renderValue({ value: overrides?.appliedValue ?? value, selectedItems: appliedItems })
+      : getSelectionLabel(appliedValues.length, appliedItems, getItemLabel, placeholder),
+    hasValue: appliedValues.length > 0,
     close: () => handleOpenChange(false),
   };
 
@@ -200,12 +191,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
           {...styleProps}
           actionsVisibility={actionsVisibility}
           indicatorPosition={list.indicatorPosition}
-          {...getManagedRootProps(controller, selectionMode)}
-          scrollToIndexFn={
-            isVirtualized(controller, list.virtual)
-              ? (details) => scrollToIndexRef.current?.(details.index)
-              : undefined
-          }
+          {...listboxRootProps}
           onClick={(event) => closeOnReselect(findItem(event.target, false))}
           onKeyDown={(event) => {
             if (event.key === "Enter") closeOnReselect(findItem(event.target, true));
@@ -220,8 +206,8 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V>) {
           <SelectHighlightSync
             open={resolvedOpen}
             pointerRef={pointerRef}
-            scrollToIndexRef={scrollToIndexRef}
-            virtual={isVirtualized(controller, list.virtual)}
+            scrollToIndexRef={managed.scrollToIndexRef}
+            virtual={managed.virtual}
           />
           <SelectRootOverridesContext.Provider value={null}>
             {children}
