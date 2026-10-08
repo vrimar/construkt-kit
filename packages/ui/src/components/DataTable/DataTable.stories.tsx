@@ -1,15 +1,14 @@
 import { matchesNumberFilter, parseNumberFilter } from "@construkt-kit/utils";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createColumnHelper } from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { DataTable, type DataTableProps } from ".";
+import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
 import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
 import { Menu } from "../Menu";
-import type { DataTableParams, dataTableFeatures } from "./types";
+import type { DataTableParams } from "./types";
 
 const meta: Meta = {
   title: "Components/DataTable",
@@ -27,7 +26,7 @@ interface Person {
   createdAt: string;
 }
 
-const columnHelper = createColumnHelper<typeof dataTableFeatures, Person>();
+const columnHelper = createDataTableColumnHelper<Person>();
 
 const onRowClick = fn().mockName("onRowClick");
 const onAction = fn().mockName("onAction");

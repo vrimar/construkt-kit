@@ -2,7 +2,9 @@ import type { ComponentType } from "react";
 
 import { Box } from "#styled-system/jsx";
 
+import { useDataTableContext } from "../context";
 import type { ColumnFilterProps, ColumnFilterType, DataTableHeader } from "../types";
+import { getColumnLabel } from "./columnLabel";
 import { ColumnDateFilter } from "./Filters/ColumnDateFilter";
 import { ColumnNumberFilter } from "./Filters/ColumnNumberFilter";
 import { ColumnSearchInput } from "./Filters/ColumnSearchInput";
@@ -22,6 +24,7 @@ interface HeaderFilterCellProps<TData extends object> {
 export const DataTableHeaderFilterCell = <TData extends object>({
   header,
 }: HeaderFilterCellProps<TData>) => {
+  const { labels } = useDataTableContext();
   const column = header.column;
   const { meta } = column.columnDef;
   const ColumnFilter = columnFilters[meta?.type ?? "input"];
@@ -38,7 +41,7 @@ export const DataTableHeaderFilterCell = <TData extends object>({
       {column.getCanFilter() && (
         <ColumnFilter
           columnId={column.id}
-          label={typeof column.columnDef.header === "string" ? column.columnDef.header : column.id}
+          placeholder={`${labels.filterBy} ${getColumnLabel(header)}`}
           meta={meta}
           value={Array.isArray(filterValue) ? (filterValue as string[]) : []}
           onChange={(value) => column.setFilterValue(value)}

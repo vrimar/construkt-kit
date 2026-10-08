@@ -10,7 +10,7 @@ import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 import { FILTER_DEBOUNCE_MS } from "./constants";
 
-export const ColumnNumberFilter = ({ label, value, onChange }: ColumnFilterProps) => {
+export const ColumnNumberFilter = ({ placeholder, value, onChange }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
   const parsed = useMemo(() => parseNumberFilter(current), [current]);
@@ -27,7 +27,8 @@ export const ColumnNumberFilter = ({ label, value, onChange }: ColumnFilterProps
       size="sm"
       variant="plain"
       debounceMs={FILTER_DEBOUNCE_MS}
-      placeholder={`${labels.filterBy} ${label}`}
+      placeholder={placeholder}
+      clearLabel={labels.clearNumber}
       value={parsed}
       onValueChange={handleValueChange}
     />

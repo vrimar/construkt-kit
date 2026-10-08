@@ -1,44 +1,38 @@
-import { useState } from "react";
-import { useDebounce } from "react-use";
+import { useEffect } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
+import { useDebounceQuery } from "../../../../hooks/useDebounceQuery";
+import { useLatestRef } from "../../../../hooks/useLatestRef";
 import { SearchInput } from "../../../Input";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 import { FILTER_DEBOUNCE_MS } from "./constants";
 
-export const ColumnSearchInput = ({ label, value, onChange }: ColumnFilterProps) => {
+export const ColumnSearchInput = ({ placeholder, value, onChange }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
-  const [tempValue, setTempValue] = useState(current);
+  const { query, debouncedQuery, setQuery } = useDebounceQuery(current, FILTER_DEBOUNCE_MS);
   const emit = useControlledMirror({
     value: current,
     onValueChange: (next: string) => onChange(next ? [next] : undefined),
-    onExternalChange: setTempValue,
+    onExternalChange: setQuery,
   });
+  const emitRef = useLatestRef(emit);
 
-  useDebounce(
-    () => {
-      if (tempValue !== current) emit(tempValue);
-    },
-    FILTER_DEBOUNCE_MS,
-    [tempValue],
-  );
-
-  const handleClear = () => {
-    setTempValue("");
-    emit("");
-  };
+  useEffect(() => {
+    if (debouncedQuery === query && query !== current) emitRef.current(query);
+  }, [current, debouncedQuery, emitRef, query]);
 
   return (
     <SearchInput
       size="sm"
       autoComplete="off"
-      onClear={handleClear}
-      onChange={(e) => setTempValue(e.target.value)}
-      placeholder={`${labels.filterBy} ${label}`}
+      onClear={() => setQuery("")}
+      onChange={(e) => setQuery(e.target.value)}
+      placeholder={placeholder}
+      clearLabel={labels.clearSearch}
       hasIcon={false}
-      value={tempValue}
+      value={query}
       variant="plain"
     />
   );

@@ -22,11 +22,11 @@ export const DataTableBody = <TData extends object>({
   showFiltersRow,
   renderSubRow,
 }: DataTableBodyProps<TData>) => {
-  const { clickableRows, getRowInteractionProps } = useDataTableContext<TData>();
+  const { getRowInteractionProps } = useDataTableContext<TData>();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const page = table.state.pagination.pageIndex;
-  const columnTemplate = getColumnTemplate(table.getVisibleLeafColumns());
+  const columnTemplate = getColumnTemplate(table.getAllLeafColumns());
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
@@ -74,10 +74,10 @@ export const DataTableBody = <TData extends object>({
                 _hover={{
                   bg: "bg.subtle",
                 }}
-                cursor={clickableRows ? "pointer" : undefined}
+                css={{ "&[data-clickable]": { cursor: "pointer" } }}
                 {...getRowInteractionProps(row)}
               >
-                {row.getVisibleCells().map((cell) => (
+                {row.getAllCells().map((cell) => (
                   <BodyCell
                     key={cell.id}
                     cell={cell}

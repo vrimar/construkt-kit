@@ -6,12 +6,12 @@ import type { ColumnFilterProps } from "../../types";
 
 export const ColumnSelectFilter = ({
   columnId,
-  label,
+  placeholder,
   meta,
   value,
   onChange,
 }: ColumnFilterProps) => {
-  const { labels, selections } = useDataTableContext();
+  const { selections } = useDataTableContext();
   const selectProps = meta?.selectProps;
 
   const getLabel = useMemo(
@@ -29,7 +29,7 @@ export const ColumnSelectFilter = ({
   return (
     <ApplySelect
       placement="bottom-end"
-      placeholder={`${labels.filterBy} ${label}`}
+      placeholder={placeholder}
       {...applySelectProps}
       items={selections?.[columnId] ?? []}
       value={value}

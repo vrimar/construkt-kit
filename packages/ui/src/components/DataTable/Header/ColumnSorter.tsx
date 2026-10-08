@@ -1,8 +1,10 @@
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 
-import { Box } from "#styled-system/jsx";
+import { styled } from "#styled-system/jsx";
 
+import { useDataTableContext } from "../context";
 import type { DataTableHeader } from "../types";
+import { getColumnLabel } from "./columnLabel";
 
 const iconSize = 18;
 const iconGap = 4;
@@ -16,6 +18,7 @@ interface ColumnSorterProps<TData extends object> {
 }
 
 export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps<TData>) => {
+  const { labels } = useDataTableContext();
   const column = header.column;
   const sort = column.getIsSorted();
 
@@ -30,9 +33,11 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
   };
 
   return (
-    <Box
+    <styled.button
+      type="button"
       data-part="column-sorter"
       data-sorted={sort || undefined}
+      aria-label={`${labels.sortBy} ${getColumnLabel(header)}`}
       onClick={handleSort}
       cursor="pointer"
       position="absolute"
@@ -44,11 +49,12 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
       style={{ marginLeft: `${iconGap}px` }}
       css={{
         color: "fg.subtle",
+        focusVisibleRing: "outside",
         "&[data-sorted]": { color: "colorPalette.fg" },
         _hover: { color: "colorPalette.fg" },
       }}
     >
       <SortIcon size={iconSize} />
-    </Box>
+    </styled.button>
   );
 };

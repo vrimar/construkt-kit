@@ -3,12 +3,11 @@ import {
   parseDateRangeFilter,
   serializeDateRangeFilter,
 } from "@construkt-kit/utils";
-import { useState } from "react";
-
-import { Box } from "#styled-system/jsx";
+import { useEffect, useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
+import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 
 function parseDateValue(dateValue: string | undefined): DateValue[] {
@@ -16,14 +15,20 @@ function parseDateValue(dateValue: string | undefined): DateValue[] {
   return range ? range.map((bound) => parseDate(bound)) : [];
 }
 
-export const ColumnDateFilter = ({ value, onChange }: ColumnFilterProps) => {
+export const ColumnDateFilter = ({ placeholder, value, onChange }: ColumnFilterProps) => {
+  const { labels } = useDataTableContext();
   const current = value[0];
+  const malformed = !!current && !parseDateRangeFilter(current);
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(current));
   const emit = useControlledMirror<string | undefined>({
     value: current || undefined,
     onValueChange: (next) => onChange(next ? [next] : undefined),
     onExternalChange: (next) => setInternalValue(parseDateValue(next)),
   });
+
+  useEffect(() => {
+    if (malformed) onChange(undefined);
+  }, [malformed, onChange]);
 
   const handleValueChange = (next: DateValue[]) => {
     setInternalValue(next);
@@ -40,13 +45,14 @@ export const ColumnDateFilter = ({ value, onChange }: ColumnFilterProps) => {
   };
 
   return (
-    <Box width="100%">
-      <DatePickerSelect
-        selectionMode="range"
-        onValueChange={handleValueChange}
-        onOpenChange={handleOpenChange}
-        value={internalValue}
-      />
-    </Box>
+    <DatePickerSelect
+      width="100%"
+      selectionMode="range"
+      placeholder={placeholder}
+      clearLabel={labels.clearDate}
+      onValueChange={handleValueChange}
+      onOpenChange={handleOpenChange}
+      value={internalValue}
+    />
   );
 };

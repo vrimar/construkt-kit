@@ -8,11 +8,11 @@ import { functionalUpdate, useTable } from "@tanstack/react-table";
 import React, { useCallback, useMemo } from "react";
 
 import { Stack } from "#styled-system/jsx";
+import type { JsxStyleProps } from "#styled-system/types";
 
 import { useIsMobile } from "../../hooks";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
-import { DEFAULT_MIN_COLUMN_WIDTH } from "./columnTemplate";
 import { DataTableProvider, type DataTableContextValue } from "./context";
 import { DataTablePagination } from "./Pagination";
 import type {
@@ -26,26 +26,23 @@ import type {
 import { dataTableFeatures } from "./types";
 
 export type {
-  DataTableCell,
+  ColumnFilterType,
   DataTableColumnAlign,
   DataTableColumnDef,
   DataTableColumnMeta,
   DataTableFeatures,
   DataTableFilters,
-  DataTableHeader as DataTableHeaderType,
-  DataTableInstance,
   DataTableLabels,
   DataTableParams,
   DataTableRow,
   DataTableRowProps,
   DataTableSelectProps,
   DataTableSortType,
-  DataTableTableMeta,
   TableFilterSelections,
 } from "./types";
-export { dataTableFeatures } from "./types";
+export { createDataTableColumnHelper } from "./types";
 
-export type DataTableProps<TData extends object> = {
+export type DataTableProps<TData extends object> = JsxStyleProps & {
   data: TData[];
   totalItems: number;
   columnDefs: DataTableColumnDef<TData, any>[];
@@ -76,6 +73,10 @@ const defaultLabels: Required<DataTableLabels> = {
   page: "Page",
   outOf: "out of",
   filterBy: "Filter by",
+  sortBy: "Sort by",
+  clearSearch: "Clear search",
+  clearNumber: "Clear filter",
+  clearDate: "Clear date",
   firstPage: "First page",
   previousPage: "Previous page",
   nextPage: "Next page",
@@ -90,10 +91,33 @@ const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableL
   return resolved;
 };
 
+const INTERACTIVE_SELECTOR = [
+  "a",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "summary",
+  "[contenteditable]:not([contenteditable='false'])",
+  "[role=button]",
+  "[role=checkbox]",
+  "[role=combobox]",
+  "[role=link]",
+  "[role=radio]",
+  "[role=slider]",
+  "[role=spinbutton]",
+  "[role=switch]",
+  "[role=tab]",
+  "[role=textbox]",
+].join(", ");
+
 // Portalled overlays re-dispatch React events through the row without being inside it.
-const isNestedControl = (event: React.SyntheticEvent<HTMLDivElement>) =>
-  !(event.target instanceof Element && event.currentTarget.contains(event.target)) ||
-  !!event.target.closest("button, a");
+const isNestedControl = ({ currentTarget, target }: React.SyntheticEvent<HTMLDivElement>) => {
+  if (!(target instanceof Element && currentTarget.contains(target))) return true;
+  const control = target.closest(INTERACTIVE_SELECTOR);
+  return !!control && control !== currentTarget && currentTarget.contains(control);
+};
 
 export const DataTable = <TData extends object>({
   data,
@@ -112,6 +136,7 @@ export const DataTable = <TData extends object>({
   variant,
   labels,
   mobileLayout = "scroll",
+  ...styleProps
 }: DataTableProps<TData>) => {
   const isMobile = useIsMobile();
   const showCards = mobileLayout === "cards" && isMobile;
@@ -175,6 +200,7 @@ export const DataTable = <TData extends object>({
 
       onParamChange({
         ...params,
+        page: 1,
         orderBy,
         orderType,
       });
@@ -188,6 +214,7 @@ export const DataTable = <TData extends object>({
 
       onParamChange({
         ...params,
+        page: 1,
         filters: Object.fromEntries(
           filters.map((filter) => [filter.id, filter.value as string[] | undefined]),
         ),
@@ -212,16 +239,12 @@ export const DataTable = <TData extends object>({
     onColumnFiltersChange: handleFilterChange,
     onSortingChange: handleSort,
     onPaginationChange: handlePagination,
-    defaultColumn: {
-      size: 0,
-      minSize: DEFAULT_MIN_COLUMN_WIDTH,
-      maxSize: 1000,
-    },
   });
 
   const getRowInteractionProps = useCallback(
     (row: DataTableRow<TData>): DataTableRowProps => ({
       ...(onRowClick && {
+        "data-clickable": true,
         tabIndex: 0,
         onClick: (e: React.MouseEvent<HTMLDivElement>) => {
           if (!isNestedControl(e)) onRowClick(row);
@@ -240,13 +263,12 @@ export const DataTable = <TData extends object>({
   const contextValue = useMemo<DataTableContextValue<TData>>(
     () => ({
       loading: !!loading,
-      clickableRows: !!onRowClick,
       getRowInteractionProps,
       onReset,
       labels: resolveLabels(labels),
       selections,
     }),
-    [getRowInteractionProps, labels, loading, onReset, onRowClick, selections],
+    [getRowInteractionProps, labels, loading, onReset, selections],
   );
 
   return (
@@ -260,6 +282,7 @@ export const DataTable = <TData extends object>({
         borderRadius="sm"
         boxShadow={variant === "basic" ? undefined : "xl"}
         minHeight="0"
+        {...styleProps}
       >
         {showCards ? (
           <DataTableCards table={table} />

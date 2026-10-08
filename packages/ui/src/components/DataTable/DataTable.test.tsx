@@ -1,11 +1,11 @@
-import { createColumnHelper } from "@tanstack/react-table";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DataTable } from ".";
-import type { DataTableParams, dataTableFeatures } from "./types";
+import { createDataTableColumnHelper, DataTable } from ".";
+import { createMatchMedia } from "../../_shared/matchMedia";
+import type { DataTableParams } from "./types";
 
 interface Person {
   id: number;
@@ -13,7 +13,7 @@ interface Person {
   role: string;
 }
 
-const columnHelper = createColumnHelper<typeof dataTableFeatures, Person>();
+const columnHelper = createDataTableColumnHelper<Person>();
 
 const columns = [
   columnHelper.accessor("name", { header: "Name", enableSorting: true }),
@@ -35,7 +35,7 @@ const params: DataTableParams = {
 
 const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]> = {}) => {
   const onParamChange = vi.fn();
-  render(
+  const { container } = render(
     <DataTable
       data={data}
       totalItems={25}
@@ -45,7 +45,7 @@ const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]>
       {...overrides}
     />,
   );
-  return { onParamChange };
+  return { onParamChange, container };
 };
 
 // The ScrollArea viewport is itself focusable, so a row tab stop is the nearer one.
@@ -58,6 +58,10 @@ const columnTemplate = () =>
   screen.getByRole("table").style.getPropertyValue("--data-table-columns");
 
 describe("DataTable", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("labels a select filter with its placeholder until a value is applied", () => {
     renderTable({ selections: { role: ["Admin", "User"] } });
     expect(screen.getByRole("button", { name: "Filter by Role" })).toBeTruthy();
@@ -78,6 +82,23 @@ describe("DataTable", () => {
     expect(screen.getByText("Alice")).toBeTruthy();
     expect(screen.getByText("Bob")).toBeTruthy();
     expect(screen.getByText("Admin")).toBeTruthy();
+  });
+
+  it("applies style props to the table root over its defaults", () => {
+    const { container } = renderTable({ w: "640px", h: "480px" });
+
+    const rootClasses = container.firstElementChild?.className.split(" ") ?? [];
+    expect(rootClasses).toEqual(expect.arrayContaining(["w_640px", "h_480px", "flex_1"]));
+    expect(rootClasses).not.toContain("w_100%");
+  });
+
+  it("sizes a date filter to its cell without a wrapper", () => {
+    const dated = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
+    renderTable({ columnDefs: dated });
+
+    const root = document.querySelector('[data-scope="date-picker"][data-part="root"]');
+    expect(root?.parentElement?.getAttribute("role")).toBe("cell");
+    expect(root?.className.split(" ")).toContain("w_100%");
   });
 
   it("cycles a sortable column through asc, desc and cleared", async () => {
@@ -113,6 +134,28 @@ describe("DataTable", () => {
     expect(nameHeader().getAttribute("aria-sort")).toBe("none");
   });
 
+  it("sorts from the keyboard through the sorter button", async () => {
+    const { onParamChange } = renderTable();
+
+    screen.getByRole("button", { name: "Sort by Name" }).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onParamChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ orderBy: "name", orderType: "asc" }),
+    );
+
+    await userEvent.keyboard(" ");
+    expect(onParamChange).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns to the first page when the sort changes", async () => {
+    const { onParamChange } = renderTable({ params: { ...params, page: 3 } });
+
+    await userEvent.click(screen.getByRole("button", { name: "Sort by Name" }));
+    expect(onParamChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, orderBy: "name" }),
+    );
+  });
+
   it("exposes table semantics", () => {
     const semantic = [
       columnHelper.accessor("name", { header: "Name" }),
@@ -135,14 +178,10 @@ describe("DataTable", () => {
   it("reports page changes through onParamChange", async () => {
     const { onParamChange } = renderTable({ showFiltersRow: false });
 
-    // Pagination renders first/prev/next/last in that order; with no filter row
-    // these are the only buttons on screen.
-    const [, , next, last] = screen.getAllByRole("button");
-
-    await userEvent.click(next);
+    await userEvent.click(screen.getByRole("button", { name: "Next page" }));
     expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
 
-    await userEvent.click(last);
+    await userEvent.click(screen.getByRole("button", { name: "Last page" }));
     expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 }));
   });
 
@@ -292,6 +331,82 @@ describe("DataTable", () => {
     );
   });
 
+  it("applies typed search text once, after the debounce", async () => {
+    const { onParamChange } = renderTable();
+
+    await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Bo");
+    expect(onParamChange).not.toHaveBeenCalled();
+
+    await waitFor(
+      () =>
+        expect(onParamChange).toHaveBeenCalledWith(
+          expect.objectContaining({ filters: { name: ["Bo"] } }),
+        ),
+      { timeout: 1500 },
+    );
+    expect(onParamChange).toHaveBeenCalledOnce();
+  });
+
+  it("applies an emptied search filter without waiting for the debounce", async () => {
+    const { onParamChange } = renderTable({ params: { ...params, filters: { name: ["Ali"] } } });
+
+    await userEvent.clear(screen.getByPlaceholderText("Filter by Name"));
+    expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} }));
+  });
+
+  it("returns to the first page when a filter changes", async () => {
+    const { onParamChange } = renderTable({
+      params: { ...params, page: 3, filters: { name: ["Ali"] } },
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(onParamChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, filters: {} }),
+    );
+  });
+
+  it("clears a malformed date filter param", () => {
+    const dated = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
+    const { onParamChange } = renderTable({
+      columnDefs: dated,
+      params: { ...params, filters: { name: ["2024-01-01<>soon"] } },
+    });
+
+    expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} }));
+  });
+
+  it("labels every filter kind with the column placeholder", () => {
+    const kinds = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.accessor("id", { header: "ID", meta: { type: "number" } }),
+      columnHelper.accessor("role", { header: "Role", meta: { type: "date" } }),
+    ];
+    renderTable({ columnDefs: kinds });
+
+    expect(screen.getByPlaceholderText("Filter by Name")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Filter by ID")).toBeTruthy();
+    expect(screen.getByText("Filter by Role")).toBeTruthy();
+  });
+
+  it("names the filter clear buttons from labels", () => {
+    const filtered = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.accessor("id", { header: "ID", meta: { type: "number" } }),
+      columnHelper.accessor("role", { header: "Role", meta: { type: "date" } }),
+    ];
+    renderTable({
+      columnDefs: filtered,
+      params: {
+        ...params,
+        filters: { name: ["Ali"], id: ["5"], role: ["2024-01-01<>2024-01-31"] },
+      },
+      labels: { clearSearch: "Reset name", clearNumber: "Reset id", clearDate: "Reset dates" },
+    });
+
+    for (const name of ["Reset name", "Reset id", "Reset dates"])
+      expect(screen.getByRole("button", { name })).toBeTruthy();
+  });
+
   it("renders the empty message when there are no rows", () => {
     renderTable({ data: [], totalItems: 0 });
 
@@ -364,6 +479,38 @@ describe("DataTable", () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 
+  it("ignores clicks and Enter on form controls inside the row", async () => {
+    const onRowClick = vi.fn();
+    const withControls = [
+      columnHelper.accessor("name", { header: "Name" }),
+      columnHelper.display({
+        id: "controls",
+        cell: () => (
+          <>
+            <input aria-label="Note" />
+            <select aria-label="Level">
+              <option>Low</option>
+            </select>
+            <label>
+              Pinned
+              <input type="checkbox" />
+            </label>
+          </>
+        ),
+      }),
+    ];
+    renderTable({ columnDefs: withControls, onRowClick, showFiltersRow: false });
+
+    const [note] = screen.getAllByRole("textbox", { name: "Note" });
+    await userEvent.click(note);
+    await userEvent.keyboard("{Enter} x");
+    expect((note as HTMLInputElement).value).toBe(" x");
+
+    await userEvent.click(screen.getAllByRole("combobox", { name: "Level" })[0]);
+    await userEvent.click(screen.getAllByText("Pinned")[0]);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
   it("activates a row from the keyboard", async () => {
     const onRowClick = vi.fn();
     renderTable({ onRowClick });
@@ -381,5 +528,25 @@ describe("DataTable", () => {
     renderTable();
 
     expect(focusableRow("Alice")).toBeNull();
+  });
+
+  it("marks rows clickable only when onRowClick is set", () => {
+    const clickable = (overrides: Parameters<typeof renderTable>[0]) =>
+      renderTable(overrides).container.querySelectorAll("[data-clickable]");
+
+    expect(clickable({})).toHaveLength(0);
+    expect(clickable({ onRowClick: vi.fn() })).toHaveLength(data.length);
+  });
+
+  it("labels mobile cards with a rendered header", () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    const rendered = [
+      columnHelper.accessor("name", { header: () => <em>Full name</em> }),
+      columnHelper.accessor("role", { header: "Role" }),
+    ];
+    renderTable({ columnDefs: rendered, mobileLayout: "cards" });
+
+    expect(screen.getAllByText("Full name")).toHaveLength(data.length);
+    expect(screen.getAllByText("Role")).toHaveLength(data.length);
   });
 });

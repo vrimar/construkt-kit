@@ -7,7 +7,7 @@ import {
 
 import { HStack } from "#styled-system/jsx";
 
-import { IconButton } from "../Buttons";
+import { IconButton, type IconButtonProps } from "../Buttons";
 import { Text } from "../Text";
 import { useDataTableContext } from "./context";
 import type { DataTableInstance } from "./types";
@@ -15,7 +15,7 @@ import type { DataTableInstance } from "./types";
 interface PaginationProps<TData extends object> {
   table: DataTableInstance<TData>;
   totalItems: number;
-  size: "xs" | "sm" | "md" | "lg";
+  size: NonNullable<IconButtonProps["size"]>;
 }
 
 export const DataTablePagination = <TData extends object>({

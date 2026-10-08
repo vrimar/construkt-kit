@@ -9,7 +9,6 @@ import type {
 
 export interface DataTableContextValue<TData extends object = any> {
   loading: boolean;
-  clickableRows: boolean;
   getRowInteractionProps: (row: DataTableRow<TData>) => DataTableRowProps;
   onReset?: () => unknown;
   labels: Required<DataTableLabels>;

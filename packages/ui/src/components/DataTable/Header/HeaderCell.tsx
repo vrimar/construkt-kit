@@ -1,4 +1,5 @@
 import { flexRender } from "@tanstack/react-table";
+import { useId } from "react";
 
 import { Box } from "#styled-system/jsx";
 
@@ -11,6 +12,7 @@ interface HeaderCellProps<TData extends object> {
 }
 
 export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
+  const labelId = useId();
   const column = header.column;
   const sortable = column.getCanSort();
   const sort = column.getIsSorted();
@@ -30,9 +32,9 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
     <Box
       role="columnheader"
       aria-sort={ariaSort}
+      aria-labelledby={labelId}
       display="flex"
       alignItems="center"
-      key={header.id}
       px="2"
       py="1"
       fontWeight="medium"
@@ -50,6 +52,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
         style={{ maxWidth: labelMaxWidth }}
       >
         <Text
+          id={labelId}
           truncate
           title={typeof label === "string" ? label : undefined}
         >

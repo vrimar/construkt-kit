@@ -1,8 +1,7 @@
-import type { Cell, ColumnDef, Header, ReactTable, Row } from "@tanstack/react-table";
+import type { Cell, ColumnDef, ColumnHelper, Header, ReactTable, Row } from "@tanstack/react-table";
 import {
   columnFilteringFeature,
-  columnSizingFeature,
-  columnVisibilityFeature,
+  createColumnHelper,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
@@ -46,10 +45,6 @@ export type DataTableColumnMeta = {
   align?: DataTableColumnAlign;
 };
 
-export type DataTableTableMeta = {
-  selections: TableFilterSelections | undefined;
-};
-
 export type DataTableLabels = {
   noResults?: string;
   resetFilters?: string;
@@ -58,6 +53,11 @@ export type DataTableLabels = {
   outOf?: string;
   /** Prefix of every column filter placeholder, followed by the column name. */
   filterBy?: string;
+  /** Prefix of every sort button's accessible name, followed by the column name. */
+  sortBy?: string;
+  clearSearch?: string;
+  clearNumber?: string;
+  clearDate?: string;
   firstPage?: string;
   previousPage?: string;
   nextPage?: string;
@@ -66,7 +66,7 @@ export type DataTableLabels = {
 
 export interface ColumnFilterProps {
   columnId: string;
-  label: string;
+  placeholder: string;
   meta: DataTableColumnMeta | undefined;
   value: string[];
   onChange: (value: string[] | undefined) => void;
@@ -77,23 +77,26 @@ export interface ColumnFilterProps {
  * registered for their APIs only — the table drives all three from `params`, so
  * no row models are registered and the data prop is rendered as given.
  *
- * The meta slots scope `columnDef.meta`/`options.meta` to this table instead of
- * declaration-merging them into every `@tanstack/react-table` consumer.
+ * The meta slot scopes `columnDef.meta` to this table instead of declaration-merging
+ * it into every `@tanstack/react-table` consumer.
  */
 export const dataTableFeatures = tableFeatures({
   columnFilteringFeature,
-  columnSizingFeature,
-  columnVisibilityFeature,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
-  // The slots are typed `object`; dropping these casts silently untypes columnDef.meta.
+  // The slot is typed `object`; dropping this cast silently untypes columnDef.meta.
   // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
   columnMeta: {} as DataTableColumnMeta,
-  tableMeta: {} as DataTableTableMeta,
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;
+
+/** TanStack's column helper bound to {@link DataTableFeatures}, so `meta` is typed as {@link DataTableColumnMeta}. */
+export const createDataTableColumnHelper = <TData extends object>(): ColumnHelper<
+  DataTableFeatures,
+  TData
+> => createColumnHelper<DataTableFeatures, TData>();
 
 export type DataTableColumnDef<TData extends object, TValue = unknown> = ColumnDef<
   DataTableFeatures,
