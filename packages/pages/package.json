@@ -69,7 +69,7 @@
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt src",
-    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs"
   },
   "dependencies": {
     "@construkt-kit/utils": "workspace:^",
