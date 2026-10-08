@@ -73,6 +73,26 @@ describe("Menu", () => {
     expect(item.firstElementChild).toBe(screen.getByTestId("icon"));
   });
 
+  it("renders a trigger item's icon before its label", async () => {
+    render(
+      <Menu.Root>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Root>
+            <Menu.TriggerItem icon={<span data-testid="icon" />}>More</Menu.TriggerItem>
+            <Menu.Content>
+              <Menu.Item value="child">Child</Menu.Item>
+            </Menu.Content>
+          </Menu.Root>
+        </Menu.Content>
+      </Menu.Root>,
+    );
+
+    await openMenu();
+    const item = screen.getByRole("menuitem", { name: "More" });
+    expect(item.firstElementChild).toBe(screen.getByTestId("icon"));
+  });
+
   it("clicks a link item on Enter so its handler runs and the menu closes", async () => {
     const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault());
     const onSelect = vi.fn();

@@ -4,7 +4,7 @@ import {
   useMenuContext,
   useMenuItemContext,
 } from "@ark-ui/react/menu";
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { Box, createSlotRecipeContext } from "#styled-system/jsx";
@@ -20,43 +20,37 @@ import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerToo
 
 const { withRootProvider, withContext } = createSlotRecipeContext(menu);
 
-export type RootProps = ComponentProps<typeof Root>;
-export const Root = withRootProvider(ArkMenu.Root, {
+type RootProps = ComponentProps<typeof Root>;
+const Root = withRootProvider(ArkMenu.Root, {
   defaultProps: {
     ...lazyOverlayDefaults,
     // zag's default dispatches a non-bubbling click, which React's root listener never sees.
     navigate: ({ node }: { node: HTMLAnchorElement }) => queueMicrotask(() => node.click()),
   },
 });
-export const ArrowTip = withContext(ArkMenu.ArrowTip, "arrowTip");
-export const Arrow = withContext(ArkMenu.Arrow, "arrow", {
+const ArrowTip = withContext(ArkMenu.ArrowTip, "arrowTip");
+const Arrow = withContext(ArkMenu.Arrow, "arrow", {
   defaultProps: { children: <ArrowTip /> },
 });
-export const CheckboxItem = withContext(ArkMenu.CheckboxItem, "item");
-export const Content = withContext(ArkMenu.Content, "content");
-export const ContextTrigger = withContext(ArkMenu.ContextTrigger, "contextTrigger");
-export const Indicator = withContext(ArkMenu.Indicator, "indicator", {
-  defaultProps: { children: <ChevronDownIcon /> },
-});
-export const Item = withContext(ArkMenu.Item, "item");
-export const ItemGroup = withContext(ArkMenu.ItemGroup, "itemGroup");
-export const ItemGroupLabel = withContext(ArkMenu.ItemGroupLabel, "itemGroupLabel");
-export const ItemText = withContext(ArkMenu.ItemText, "itemText");
-export const Positioner = withContext(ArkMenu.Positioner, "positioner");
-export const RadioItem = withContext(ArkMenu.RadioItem, "item");
-export const RadioItemGroup = withContext(ArkMenu.RadioItemGroup, "itemGroup");
-export const Separator = withContext(ArkMenu.Separator, "separator");
+const CheckboxItem = withContext(ArkMenu.CheckboxItem, "item");
+const Content = withContext(ArkMenu.Content, "content");
+const ContextTrigger = withContext(ArkMenu.ContextTrigger, "contextTrigger");
+const Item = withContext(ArkMenu.Item, "item");
+const ItemGroup = withContext(ArkMenu.ItemGroup, "itemGroup");
+const ItemGroupLabel = withContext(ArkMenu.ItemGroupLabel, "itemGroupLabel");
+const ItemText = withContext(ArkMenu.ItemText, "itemText");
+const Positioner = withContext(ArkMenu.Positioner, "positioner");
+const RadioItem = withContext(ArkMenu.RadioItem, "item");
+const RadioItemGroup = withContext(ArkMenu.RadioItemGroup, "itemGroup");
+const Separator = withContext(ArkMenu.Separator, "separator");
 const StyledTrigger = withContext(ArkMenu.Trigger, "trigger");
-export const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
+const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
 
-export {
-  MenuContext as Context,
-  type MenuSelectionDetails as SelectionDetails,
-} from "@ark-ui/react/menu";
+export type { MenuSelectionDetails } from "@ark-ui/react/menu";
 
 const StyledItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator");
 
-export const ItemIndicator = createItemIndicator(
+const ItemIndicator = createItemIndicator(
   StyledItemIndicator,
   () => useMenuItemContext().checked === true,
 );
@@ -72,8 +66,6 @@ export interface MenuTriggerProps extends ComponentProps<typeof StyledTrigger>, 
 const useMenuTriggerId = (value: string) => useMenuContext().getTriggerProps({ value }).id ?? "";
 
 const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerId);
-
-export const Trigger = MenuTrigger;
 
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
@@ -111,6 +103,15 @@ function MenuRadioItem({
   );
 }
 
+function ItemLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <>
+      {icon}
+      <Box flex="1">{children}</Box>
+    </>
+  );
+}
+
 export interface MenuItemProps extends ComponentProps<typeof Item> {
   icon?: ReactNode;
   /** Colors the item with the danger palette, for actions that delete or can't be undone. */
@@ -118,12 +119,7 @@ export interface MenuItemProps extends ComponentProps<typeof Item> {
 }
 
 function MenuItem({ ref, icon, destructive, children, ...rest }: WithRef<MenuItemProps>) {
-  const content = (label: ReactNode) => (
-    <>
-      {icon}
-      <Box flex="1">{label}</Box>
-    </>
-  );
+  const content = (label: ReactNode) => <ItemLabel icon={icon}>{label}</ItemLabel>;
 
   return (
     <Item
@@ -154,17 +150,16 @@ function MenuItemGroup({
 }
 
 export interface MenuTriggerItemProps extends Omit<ComponentProps<typeof TriggerItem>, "asChild"> {
-  startIcon?: ReactNode;
+  icon?: ReactNode;
 }
 
-function MenuTriggerItem({ ref, startIcon, children, ...rest }: WithRef<MenuTriggerItemProps>) {
+function MenuTriggerItem({ ref, icon, children, ...rest }: WithRef<MenuTriggerItemProps>) {
   return (
     <TriggerItem
       ref={ref}
       {...rest}
     >
-      {startIcon}
-      <Box flex="1">{children}</Box>
+      <ItemLabel icon={icon}>{children}</ItemLabel>
       <ChevronRightIcon />
     </TriggerItem>
   );
@@ -183,6 +178,6 @@ export const Menu = {
   ContextTrigger,
   Separator,
   ItemText,
-  Trigger,
+  Trigger: MenuTrigger,
   Context: MenuContext,
 };

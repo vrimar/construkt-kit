@@ -36,15 +36,7 @@ export * from "./Link";
 export * from "./List";
 export * from "./Listbox";
 export * from "./LoadingOverlay";
-export {
-  Menu,
-  type MenuContentProps,
-  type MenuItemProps,
-  type MenuRootProps,
-  type MenuTriggerProps,
-  type MenuTriggerItemProps,
-  type SelectionDetails as MenuSelectionDetails,
-} from "./Menu";
+export * from "./Menu";
 export * from "./NumberFilter";
 export * from "./NumberInput";
 export * from "./Pagination";
