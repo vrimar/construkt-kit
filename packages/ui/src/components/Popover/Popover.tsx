@@ -14,26 +14,24 @@ import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerToo
 
 const { withRootProvider, withContext } = createSlotRecipeContext(popover);
 
-export type RootProps = ComponentProps<typeof Root>;
-export const Root = withRootProvider(ArkPopover.Root, { defaultProps: lazyOverlayDefaults });
-export const Anchor = withContext(ArkPopover.Anchor, "anchor");
-export const ArrowTip = withContext(ArkPopover.ArrowTip, "arrowTip");
-export const Arrow = withContext(ArkPopover.Arrow, "arrow", {
+type RootProps = ComponentProps<typeof Root>;
+const Root = withRootProvider(ArkPopover.Root, { defaultProps: lazyOverlayDefaults });
+const Anchor = withContext(ArkPopover.Anchor, "anchor");
+const ArrowTip = withContext(ArkPopover.ArrowTip, "arrowTip");
+const Arrow = withContext(ArkPopover.Arrow, "arrow", {
   defaultProps: { children: <ArrowTip /> },
 });
-export const CloseTrigger = withContext(ArkPopover.CloseTrigger, "closeTrigger");
-export const Content = withContext(ArkPopover.Content, "content");
-export const Description = withContext(ArkPopover.Description, "description");
-export const Indicator = withContext(ArkPopover.Indicator, "indicator");
-export const Positioner = withContext(ArkPopover.Positioner, "positioner");
-export const Title = withContext(ArkPopover.Title, "title");
+const CloseTrigger = withContext(ArkPopover.CloseTrigger, "closeTrigger");
+const Content = withContext(ArkPopover.Content, "content");
+const Description = withContext(ArkPopover.Description, "description");
+const Indicator = withContext(ArkPopover.Indicator, "indicator");
+const Positioner = withContext(ArkPopover.Positioner, "positioner");
+const Title = withContext(ArkPopover.Title, "title");
 const StyledTrigger = withContext(ArkPopover.Trigger, "trigger");
 
-export const Body = withContext(ark.div, "body");
-export const Header = withContext(ark.div, "header");
-export const Footer = withContext(ark.div, "footer");
-
-export { PopoverContext as Context } from "@ark-ui/react/popover";
+const Body = withContext(ark.div, "body");
+const Header = withContext(ark.div, "header");
+const Footer = withContext(ark.div, "footer");
 
 export interface PopoverRootProps extends RootProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
@@ -53,8 +51,6 @@ const usePopoverTriggerId = (value: string) =>
 
 const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerId);
 
-export const Trigger = PopoverTrigger;
-
 export const Popover = {
   Root: PopoverRoot,
   Content: PopoverContent,
@@ -68,6 +64,6 @@ export const Popover = {
   Footer,
   Header,
   Body,
-  Trigger,
+  Trigger: PopoverTrigger,
   Context: PopoverContext,
 };

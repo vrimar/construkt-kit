@@ -20,9 +20,9 @@ const Content = withContext(ArkTooltip.Content, "content");
 const Positioner = withContext(ArkTooltip.Positioner, "positioner");
 const Trigger = withContext(ArkTooltip.Trigger, "trigger");
 
-const TooltipContent = createPortalledContent(Positioner, Content);
+export interface TooltipContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-export { TooltipContext as Context } from "@ark-ui/react/tooltip";
+const TooltipContent = createPortalledContent(Positioner, Content);
 
 export interface TooltipProps extends RootProps, PortalledProps {
   showArrow?: boolean;
@@ -38,13 +38,14 @@ const TooltipComponent = ({
   portalled,
   label,
   portalRef,
-  placement = "top",
+  placement,
+  positioning,
   ...rootProps
 }: WithRef<TooltipProps>) => (
   <Root
     openDelay={300}
     closeDelay={0}
-    positioning={{ placement }}
+    positioning={{ ...positioning, placement: placement ?? positioning?.placement ?? "top" }}
     {...rootProps}
   >
     <Trigger asChild>{children}</Trigger>
@@ -63,7 +64,7 @@ export const Tooltip = Object.assign(TooltipComponent, {
   Root,
   Arrow,
   ArrowTip,
-  Content,
+  Content: TooltipContent,
   Positioner,
   Trigger,
   Context: TooltipContext,

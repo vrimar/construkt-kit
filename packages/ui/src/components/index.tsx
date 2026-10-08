@@ -49,12 +49,7 @@ export * from "./NumberFilter";
 export * from "./NumberInput";
 export * from "./Pagination";
 export * from "./PinInput";
-export {
-  Popover,
-  type PopoverContentProps,
-  type PopoverRootProps,
-  type PopoverTriggerProps,
-} from "./Popover";
+export * from "./Popover";
 export * from "./Progress";
 export * from "./Radio";
 export * from "./RadioCard";
