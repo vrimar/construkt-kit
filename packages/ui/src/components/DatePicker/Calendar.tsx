@@ -11,11 +11,9 @@ export const Calendar = (props: CalendarProps) => {
       value={api}
       variant="inline"
     >
-      <Parts.Root>
-        <Parts.Content>
-          <CalendarContent {...contentProps} />
-        </Parts.Content>
-      </Parts.Root>
+      <Parts.Content>
+        <CalendarContent {...contentProps} />
+      </Parts.Content>
     </Parts.RootProvider>
   );
 };

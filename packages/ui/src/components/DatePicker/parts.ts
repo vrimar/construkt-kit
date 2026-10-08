@@ -6,9 +6,9 @@ import { datePicker } from "#styled-system/recipes";
 
 import { lazyOverlayDefaults } from "../overlayDefaults";
 
-const { withRootProvider, withContext } = createSlotRecipeContext(datePicker);
+const { withProvider, withContext } = createSlotRecipeContext(datePicker);
 
-export const RootProvider = withRootProvider(ArkDatePicker.RootProvider, {
+export const RootProvider = withProvider(ArkDatePicker.RootProvider, "root", {
   defaultProps: lazyOverlayDefaults,
 });
 export const Content = withContext(ArkDatePicker.Content, "content");
@@ -28,4 +28,3 @@ export const TableBody = withContext(ArkDatePicker.TableBody, "tableBody");
 export const TableCell = withContext(ArkDatePicker.TableCell, "tableCell");
 export const TableCellTrigger = withContext(ArkDatePicker.TableCellTrigger, "tableCellTrigger");
 export const PresetTrigger = withContext(ArkDatePicker.PresetTrigger, "presetTrigger");
-export const Root = withContext(ark.div, "root");

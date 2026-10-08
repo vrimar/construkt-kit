@@ -1,5 +1,7 @@
 import { ChevronDownIcon } from "lucide-react";
 
+import { splitCssProps } from "#styled-system/jsx";
+
 import { Button } from "../Buttons";
 import { createPortalledContent } from "../portalledContent";
 import { CalendarContent } from "./CalendarContent";
@@ -11,12 +13,11 @@ import { useCalendarMachine } from "./useCalendarMachine";
 const DatePickerContent = createPortalledContent(Parts.Positioner, Parts.Content);
 
 export const DatePicker = (props: DatePickerProps) => {
+  const [styleProps, pickerProps] = splitCssProps(props);
   const {
-    selectionMode = "single",
-    disabled,
     trigger,
     triggerEndElement,
-    placeholder = "Select date",
+    placeholder,
     formatValue,
     portalled = true,
     portalRef,
@@ -24,9 +25,9 @@ export const DatePicker = (props: DatePickerProps) => {
     defaultOpen,
     onOpenChange,
     closeOnSelect = true,
-  } = props;
+  } = pickerProps;
 
-  const { api, contentProps } = useCalendarMachine(props, {
+  const { api, contentProps } = useCalendarMachine(pickerProps, {
     open,
     defaultOpen,
     closeOnSelect,
@@ -35,14 +36,13 @@ export const DatePicker = (props: DatePickerProps) => {
     },
   });
 
-  const displayLabel = getDisplayLabel(api.value, selectionMode, placeholder, formatValue);
+  const displayLabel = getDisplayLabel(api.value, api.selectionMode, placeholder, formatValue);
 
   const defaultTrigger = (
     <Button
       variant="outline"
       width="full"
       justifyContent="space-between"
-      disabled={disabled}
     >
       {displayLabel}
       <ChevronDownIcon />
@@ -50,20 +50,21 @@ export const DatePicker = (props: DatePickerProps) => {
   );
 
   return (
-    <Parts.RootProvider value={api}>
-      <Parts.Root width="100%">
-        <Parts.Control>
-          <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
-          {triggerEndElement}
-        </Parts.Control>
+    <Parts.RootProvider
+      value={api}
+      {...styleProps}
+    >
+      <Parts.Control>
+        <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
+        {triggerEndElement}
+      </Parts.Control>
 
-        <DatePickerContent
-          portalled={portalled}
-          portalRef={portalRef}
-        >
-          <CalendarContent {...contentProps} />
-        </DatePickerContent>
-      </Parts.Root>
+      <DatePickerContent
+        portalled={portalled}
+        portalRef={portalRef}
+      >
+        <CalendarContent {...contentProps} />
+      </DatePickerContent>
     </Parts.RootProvider>
   );
 };

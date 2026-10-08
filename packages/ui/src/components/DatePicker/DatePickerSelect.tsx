@@ -6,18 +6,16 @@ import { getDisplayLabel } from "./format";
 import type { DatePickerSelectProps } from "./types";
 
 interface DatePickerSelectTriggerProps extends Omit<SelectButtonProps, "hasValue" | "label"> {
-  selectionMode: "single" | "range" | "multiple";
-  placeholder: string;
+  placeholder?: string;
   formatValue?: (value: DateValue) => string;
 }
 
 function DatePickerSelectTrigger({
-  selectionMode,
   placeholder,
   formatValue,
   ...props
 }: DatePickerSelectTriggerProps) {
-  const { value } = useDatePickerContext();
+  const { value, selectionMode } = useDatePickerContext();
 
   return (
     <SelectButton
@@ -29,14 +27,14 @@ function DatePickerSelectTrigger({
   );
 }
 
-function DatePickerSelectClear({ disabled }: { disabled?: boolean }) {
+function DatePickerSelectClear({ label }: { label: string }) {
   const datePicker = useDatePickerContext();
   if (datePicker.value.length === 0) return null;
 
   return (
     <CloseButton
-      aria-label="Clear date"
-      disabled={disabled}
+      aria-label={label}
+      disabled={datePicker.disabled || datePicker.readOnly}
       onClick={() => datePicker.clearValue()}
       size="sm"
     />
@@ -52,13 +50,12 @@ export const DatePickerSelect = ({
     {...props}
     trigger={
       <DatePickerSelectTrigger
-        selectionMode={props.selectionMode ?? "single"}
-        placeholder={props.placeholder ?? "Select date"}
+        placeholder={props.placeholder}
         formatValue={props.formatValue}
         size={size}
         variant={variant}
       />
     }
-    triggerEndElement={<DatePickerSelectClear disabled={props.disabled || props.readOnly} />}
+    triggerEndElement={<DatePickerSelectClear label={props.clearLabel ?? "Clear date"} />}
   />
 );

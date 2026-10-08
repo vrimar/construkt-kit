@@ -5,6 +5,8 @@ import type {
 } from "@ark-ui/react/date-picker";
 import type { ReactNode } from "react";
 
+import type { JsxStyleProps } from "#styled-system/types";
+
 import type { PortalledProps } from "../../types";
 import type { ButtonProps } from "../Buttons";
 
@@ -36,6 +38,9 @@ export interface CalendarBaseProps {
   disabled?: boolean;
   readOnly?: boolean;
   defaultView?: DateView;
+  clearable?: boolean;
+  /** Label of the clear controls. */
+  clearLabel?: string;
 }
 
 export type SingleCalendarProps = CalendarBaseProps & {
@@ -43,7 +48,6 @@ export type SingleCalendarProps = CalendarBaseProps & {
   value?: DateValue;
   defaultValue?: DateValue;
   onValueChange?: (value: DateValue | undefined) => void;
-  clearable?: boolean;
 };
 
 export type RangeCalendarProps = CalendarBaseProps & {
@@ -53,7 +57,6 @@ export type RangeCalendarProps = CalendarBaseProps & {
   onValueChange?: (value: DateValue[]) => void;
   presets?: RangePreset[];
   showPresets?: boolean;
-  clearable?: boolean;
 };
 
 export type MultipleCalendarProps = CalendarBaseProps & {
@@ -62,12 +65,11 @@ export type MultipleCalendarProps = CalendarBaseProps & {
   defaultValue?: DateValue[];
   onValueChange?: (value: DateValue[]) => void;
   maxSelectedDates?: number;
-  clearable?: boolean;
 };
 
 export type CalendarProps = SingleCalendarProps | RangeCalendarProps | MultipleCalendarProps;
 
-interface DatePickerExtraProps extends PortalledProps {
+interface DatePickerExtraProps extends PortalledProps, JsxStyleProps {
   trigger?: ReactNode;
   triggerEndElement?: ReactNode;
   placeholder?: string;
@@ -78,10 +80,7 @@ interface DatePickerExtraProps extends PortalledProps {
   closeOnSelect?: boolean;
 }
 
-export type DatePickerProps =
-  | (SingleCalendarProps & DatePickerExtraProps)
-  | (RangeCalendarProps & DatePickerExtraProps)
-  | (MultipleCalendarProps & DatePickerExtraProps);
+export type DatePickerProps = CalendarProps & DatePickerExtraProps;
 
 interface DatePickerSelectExtraProps extends Omit<
   DatePickerExtraProps,
@@ -93,50 +92,6 @@ interface DatePickerSelectExtraProps extends Omit<
   variant?: ButtonProps["variant"];
 }
 
-export type DatePickerSelectProps =
-  | (SingleCalendarProps & DatePickerSelectExtraProps)
-  | (RangeCalendarProps & DatePickerSelectExtraProps)
-  | (MultipleCalendarProps & DatePickerSelectExtraProps);
-
-/** Convert any CalendarProps/DatePickerProps value to DateValue[] for Ark UI.
- * Returns undefined when no value is provided (uncontrolled mode). */
-export function toArkValue(props: CalendarProps | DatePickerProps): DateValue[] | undefined {
-  if (props.value === undefined) return undefined;
-  if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    return props.value;
-  }
-  return [props.value];
-}
-
-/** Convert any CalendarProps/DatePickerProps defaultValue to DateValue[] for Ark UI */
-export function toArkDefaultValue(props: CalendarProps | DatePickerProps): DateValue[] | undefined {
-  if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    return props.defaultValue;
-  }
-  return props.defaultValue ? [props.defaultValue] : undefined;
-}
-
-/** Fire the typed onValueChange callback */
-export function fireValueChange(
-  props: CalendarProps | DatePickerProps,
-  arkValue: DateValue[],
-): void {
-  if (!props.onValueChange) return;
-  if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    props.onValueChange(arkValue);
-  } else {
-    props.onValueChange(arkValue[0] ?? undefined);
-  }
-}
-
-/** Fire onValueChange with cleared value */
-export function fireClear(props: CalendarProps | DatePickerProps): void {
-  if (!props.onValueChange) return;
-  if (props.selectionMode === "range" || props.selectionMode === "multiple") {
-    props.onValueChange([]);
-  } else {
-    props.onValueChange(undefined);
-  }
-}
+export type DatePickerSelectProps = CalendarProps & DatePickerSelectExtraProps;
 
 export type { DateValue };

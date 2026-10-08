@@ -4,7 +4,7 @@ import { formatIsoDate } from "@construkt-kit/utils";
 export const getDisplayLabel = (
   value: DateValue[],
   selectionMode: "single" | "range" | "multiple",
-  placeholder: string,
+  placeholder = "Select date",
   formatValue: (value: DateValue) => string = formatIsoDate,
 ): string => {
   if (value.length === 0) return placeholder;

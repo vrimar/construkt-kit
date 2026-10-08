@@ -1,6 +1,7 @@
+import { useDatePickerContext } from "@ark-ui/react/date-picker";
+
 import { Box, Divider, HStack, Stack } from "#styled-system/jsx";
 
-import { useIsMobile } from "../../hooks";
 import { Button } from "../Buttons";
 import { DatePickerDayView } from "./DayView";
 import { DatePickerGridView, DatePickerViewControl } from "./GridView";
@@ -8,30 +9,30 @@ import * as Parts from "./parts";
 import type { RangePreset } from "./types";
 
 interface CalendarContentProps {
-  numOfMonths: number;
+  isMobile: boolean;
   presets?: RangePreset[];
   showPresets?: boolean;
   clearable?: boolean;
-  onClear?: () => void;
+  clearLabel?: string;
 }
 
 export const CalendarContent = ({
-  numOfMonths,
+  isMobile,
   presets,
   showPresets = true,
   clearable,
-  onClear,
+  clearLabel = "Clear",
 }: CalendarContentProps) => {
+  const { numOfMonths, clearValue } = useDatePickerContext();
   const hasPresets = showPresets && presets && presets.length > 0;
-  const isMobile = useIsMobile();
   const clearButton = clearable && (
     <Button
       variant="outline"
-      onClick={onClear}
+      onClick={() => clearValue()}
       size="xs"
       width={hasPresets ? undefined : "full"}
     >
-      Clear
+      {clearLabel}
     </Button>
   );
 
