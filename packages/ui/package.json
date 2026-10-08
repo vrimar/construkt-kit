@@ -79,7 +79,7 @@
     "typecheck": "tsc --noEmit",
     "format": "oxfmt src",
     "test": "vitest run",
-    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./layers.css && node ../../scripts/check-dist-exports.mjs"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./layers.css && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
     "@ark-ui/react": "^5.38.2",

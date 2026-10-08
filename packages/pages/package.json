@@ -70,7 +70,7 @@
     "typecheck": "tsc --noEmit",
     "format": "oxfmt src",
     "test": "vitest run",
-    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
     "@construkt-kit/utils": "workspace:^",
