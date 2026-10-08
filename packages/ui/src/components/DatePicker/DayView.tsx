@@ -38,6 +38,7 @@ export const DatePickerDayView = (props: DayViewProps) => {
                   <Button
                     size="xs"
                     variant="plain"
+                    colorPalette="neutral"
                     css={{
                       '[aria-selected="true"] &': {
                         bg: "colorPalette.subtle.bg",

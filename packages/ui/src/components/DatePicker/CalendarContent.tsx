@@ -28,6 +28,7 @@ export const CalendarContent = ({
   const clearButton = clearable && (
     <Button
       variant="outline"
+      colorPalette="neutral"
       onClick={() => clearValue()}
       size="xs"
       width={hasPresets ? undefined : "full"}
@@ -56,6 +57,7 @@ export const CalendarContent = ({
                 <Button
                   size="xs"
                   variant="plain"
+                  colorPalette="neutral"
                 >
                   {preset.label}
                 </Button>

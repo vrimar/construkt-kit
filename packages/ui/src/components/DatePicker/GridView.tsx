@@ -17,6 +17,7 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
           <IconButton
             size="xs"
             variant="plain"
+            colorPalette="neutral"
           >
             <ChevronLeftIcon />
           </IconButton>
@@ -25,6 +26,7 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
           <Button
             size="xs"
             variant="plain"
+            colorPalette="neutral"
           >
             <Text fontWeight="bold">{datePicker.visibleRangeText.start}</Text>
           </Button>
@@ -36,6 +38,7 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
           <Button
             size="xs"
             variant="plain"
+            colorPalette="neutral"
           >
             <Text fontWeight="bold">{datePicker.visibleRangeText.end}</Text>
           </Button>
@@ -46,6 +49,7 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
         <IconButton
           size="xs"
           variant="plain"
+          colorPalette="neutral"
         >
           <ChevronRightIcon />
         </IconButton>
@@ -77,6 +81,7 @@ export const DatePickerGridView = ({ view }: { view: "month" | "year" }) => {
                     <Button
                       size="xs"
                       variant="plain"
+                      colorPalette="neutral"
                     >
                       {cell.label}
                     </Button>
