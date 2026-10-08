@@ -37,21 +37,8 @@ export type SplitterGroupProps = Pick<
 > &
   BoxProps;
 
-function SplitterGroup({
-  children,
-  defaultLayout,
-  disableCursor,
-  disabled,
-  elementRef,
-  groupRef,
-  onLayoutChange,
-  onLayoutChanged,
-  orientation,
-  resizeTargetMinimumSize,
-  style,
-  ...boxProps
-}: SplitterGroupProps) {
-  const [sizeStyle, sizedBoxProps] = splitInlineSizes(boxProps, [
+function SplitterGroup({ style, ...props }: SplitterGroupProps) {
+  const [sizeStyle, sizedProps] = splitInlineSizes(props, [
     "height",
     "maxHeight",
     "maxWidth",
@@ -61,26 +48,15 @@ function SplitterGroup({
   ]);
   const groupStyle = { ...sizeStyle, ...style };
 
-  const [cssProps, localProps] = splitCssProps(sizedBoxProps);
+  const [cssProps, localProps] = splitCssProps(sizedProps);
   const { className, ...groupProps } = localProps;
 
   return (
     <RootProvider
       className={cx(splitter().root, css(cssProps), className)}
-      defaultLayout={defaultLayout}
-      disableCursor={disableCursor}
-      disabled={disabled}
-      elementRef={elementRef}
-      groupRef={groupRef}
-      onLayoutChange={onLayoutChange}
-      onLayoutChanged={onLayoutChanged}
-      orientation={orientation}
-      resizeTargetMinimumSize={resizeTargetMinimumSize}
       style={groupStyle}
       {...groupProps}
-    >
-      {children}
-    </RootProvider>
+    />
   );
 }
 
