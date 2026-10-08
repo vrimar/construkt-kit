@@ -1,9 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import { COLOR_MODE_STORAGE_KEY, applyColorMode } from "./colorModeScript";
+import {
+  COLOR_MODE_STORAGE_KEY,
+  type ColorMode,
+  type ColorModeScriptOptions,
+  DEFAULT_COLOR_MODE,
+  applyColorMode,
+} from "./colorModeScript";
 
-export type ColorMode = "light" | "dark" | "system";
 export type ResolvedColorMode = "light" | "dark";
 
 export interface ColorModeContextValue {
@@ -18,10 +23,8 @@ export interface ColorModeContextValue {
 
 const ColorModeContext = createContext<ColorModeContextValue | null>(null);
 
-export interface ColorModeProviderProps {
+export interface ColorModeProviderProps extends ColorModeScriptOptions {
   children: React.ReactNode;
-  defaultMode?: ColorMode;
-  storageKey?: string;
 }
 
 const isColorMode = (value: string | null): value is ColorMode =>
@@ -51,7 +54,7 @@ function readStoredMode(storageKey: string, fallback: ColorMode): ColorMode {
 
 export const ColorModeProvider = ({
   children,
-  defaultMode = "system",
+  defaultMode = DEFAULT_COLOR_MODE,
   storageKey = COLOR_MODE_STORAGE_KEY,
 }: ColorModeProviderProps) => {
   const [mode, setModeState] = useState<ColorMode>(() => readStoredMode(storageKey, defaultMode));
@@ -63,7 +66,7 @@ export const ColorModeProvider = ({
   useEffect(() => {
     // Reads matchMedia fresh: the hydration snapshot in resolvedMode could strip the script's class.
     applyColorMode(mode, mode);
-    return () => document.documentElement.classList.remove("dark");
+    return () => applyColorMode("light", "light");
   }, [mode, resolvedMode]);
 
   const setMode = useCallback(

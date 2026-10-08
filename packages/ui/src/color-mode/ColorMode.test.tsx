@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { COLOR_MODE_STORAGE_KEY, ColorModeProvider, useColorMode } from ".";
+import { createMatchMedia } from "../_shared/matchMedia";
 
 function installLocalStorageMock() {
   let store: Record<string, string> = {};
@@ -32,19 +33,6 @@ function installLocalStorageMock() {
   });
 }
 
-function mockMatchMedia(matches: boolean) {
-  window.matchMedia = (query: string): MediaQueryList => ({
-    matches,
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  });
-}
-
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <ColorModeProvider>{children}</ColorModeProvider>
 );
@@ -58,7 +46,7 @@ beforeEach(() => {
 
 describe("useColorMode", () => {
   it("defaults to system and resolves to light when the OS prefers light", () => {
-    mockMatchMedia(false);
+    window.matchMedia = createMatchMedia(false);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     expect(result.current.mode).toBe("system");
@@ -67,7 +55,7 @@ describe("useColorMode", () => {
   });
 
   it("resolves system to dark and applies the dark class", () => {
-    mockMatchMedia(true);
+    window.matchMedia = createMatchMedia(true);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     expect(result.current.resolvedMode).toBe("dark");
@@ -75,7 +63,7 @@ describe("useColorMode", () => {
   });
 
   it("toggles between light and dark and persists the choice", () => {
-    mockMatchMedia(false);
+    window.matchMedia = createMatchMedia(false);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     act(() => result.current.toggle());
@@ -87,12 +75,22 @@ describe("useColorMode", () => {
   });
 
   it("reads the persisted mode on mount", () => {
-    mockMatchMedia(false);
+    window.matchMedia = createMatchMedia(false);
     window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     expect(result.current.mode).toBe("dark");
     expect(result.current.resolvedMode).toBe("dark");
     expect(root.classList.contains("dark")).toBe(true);
+  });
+
+  it("removes the dark class on unmount", () => {
+    window.matchMedia = createMatchMedia(false);
+    window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
+    const { unmount } = renderHook(() => useColorMode(), { wrapper });
+
+    unmount();
+
+    expect(root.classList.contains("dark")).toBe(false);
   });
 });
