@@ -31,7 +31,7 @@ export function TreeDragPreview({ label, count = 1 }: { label: string; count?: n
       </Box>
       {count > 1 && (
         <Box
-          colorPalette="blue"
+          colorPalette="brand"
           flexShrink={0}
           rounded="full"
           px="1.5"

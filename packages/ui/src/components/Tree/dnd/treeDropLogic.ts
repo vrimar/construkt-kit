@@ -1,18 +1,25 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
-import type { Instruction, ItemMode } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
+import type { ItemMode } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 
-export type { Instruction as TreeDropInstruction, ItemMode };
+/**
+ * Where a drop lands relative to its target row. `currentLevel` is the target row's depth;
+ * `reparent` moves the node out to `desiredLevel`, after the target's ancestor at that depth.
+ */
+export type TreeDropInstruction =
+  | { type: "reorder-above" | "reorder-below" | "make-child"; currentLevel: number }
+  | { type: "reparent"; desiredLevel: number };
 
 export interface TreeDropArgs {
   /** One or more dragged nodes (multi-drag moves them together). */
   sourceValues: string[];
   targetValue: string;
-  instruction: Instruction;
+  instruction: TreeDropInstruction;
 }
 
 /**
- * Apply a hitbox instruction to the collection, returning a NEW collection with the
- * dragged node(s) moved, or `null` when the drop is invalid or a no-op.
+ * Apply a drop instruction to the collection, returning a NEW collection with the
+ * dragged node(s) moved, or `null` when the drop is invalid or a no-op. Values missing from
+ * the collection are skipped, and a node moves along with a dragged ancestor.
  *
  * `TreeCollection.move` keys its remove/insert operations to the original index paths,
  * so it handles sibling index-shift internally — we only compute the destination path.
@@ -21,8 +28,6 @@ export function applyTreeDrop<T extends TreeNode>(
   collection: TreeCollection<T>,
   { sourceValues, targetValue, instruction }: TreeDropArgs,
 ): TreeCollection<T> | null {
-  if (instruction.type === "instruction-blocked") return null;
-
   const targetPath = collection.getIndexPath(targetValue);
   if (!targetPath?.length) return null;
 
@@ -30,13 +35,16 @@ export function applyTreeDrop<T extends TreeNode>(
   for (const sourceValue of sourceValues) {
     if (sourceValue === targetValue) return null; // can't drop onto a dragged node
     const sourcePath = collection.getIndexPath(sourceValue);
-    if (!sourcePath?.length) return null;
+    if (!sourcePath?.length) continue;
     // Never drop a node into its own subtree. `contains` only checks a prefix match, so
     // guard the length too — otherwise an ancestor target (shorter path) is wrongly blocked.
     if (isWithinSubtree(sourcePath, targetPath)) return null;
     sourcePaths.push(sourcePath);
   }
-  if (!sourcePaths.length) return null;
+  const movedPaths = sourcePaths.filter(
+    (path) => !sourcePaths.some((other) => isWithinSubtree(other, path)),
+  );
+  if (!movedPaths.length) return null;
 
   // make-child only nests into an actual branch; never turn a leaf into a parent.
   if (instruction.type === "make-child") {
@@ -47,7 +55,7 @@ export function applyTreeDrop<T extends TreeNode>(
   const to = getDestinationIndexPath(targetPath, instruction);
   if (!to?.length) return null;
 
-  const next = collection.move(sourcePaths, to);
+  const next = collection.move(movedPaths, to);
   return next.isEqual(collection) ? null : next;
 }
 
@@ -73,7 +81,10 @@ export function isDescendantValue<T extends TreeNode>(
 }
 
 /** Destination index path (splice position under a parent) for a given instruction. */
-function getDestinationIndexPath(targetPath: number[], instruction: Instruction): number[] | null {
+function getDestinationIndexPath(
+  targetPath: number[],
+  instruction: TreeDropInstruction,
+): number[] | null {
   const parent = targetPath.slice(0, -1);
   const index = targetPath[targetPath.length - 1];
 
@@ -91,15 +102,11 @@ function getDestinationIndexPath(targetPath: number[], instruction: Instruction)
       if (!ancestorPath.length) return null;
       return [...ancestorPath.slice(0, -1), ancestorPath[ancestorPath.length - 1] + 1];
     }
-    default:
-      return null;
   }
 }
 
-export function instructionLevel(instruction: Instruction): number | undefined {
-  if (instruction.type === "reparent") return instruction.desiredLevel;
-  if (instruction.type === "instruction-blocked") return undefined;
-  return instruction.currentLevel;
+export function instructionLevel(instruction: TreeDropInstruction): number {
+  return instruction.type === "reparent" ? instruction.desiredLevel : instruction.currentLevel;
 }
 
 /**
@@ -131,75 +138,60 @@ export function isLastChildOfParent<T extends TreeNode>(
 
 export type TreeKeyboardMove = "up" | "down" | "indent" | "outdent";
 
-export interface KeyboardMoveResult<T extends TreeNode> {
-  next: TreeCollection<T>;
+export interface KeyboardDropTarget {
   /** The relative node the move is expressed against (for canDrop / announcements). */
   targetValue: string;
   /** The equivalent drag instruction, so keyboard moves reuse the same validation. */
-  instruction: Instruction;
+  instruction: TreeDropInstruction;
+}
+
+export interface KeyboardMoveResult<T extends TreeNode> extends KeyboardDropTarget {
+  next: TreeCollection<T>;
+}
+
+export function getKeyboardDropTarget<T extends TreeNode>(
+  collection: TreeCollection<T>,
+  value: string,
+  move: TreeKeyboardMove,
+): KeyboardDropTarget | null {
+  const path = collection.getIndexPath(value);
+  if (!path?.length) return null;
+  const index = path[path.length - 1];
+  const currentLevel = path.length - 1;
+  const siblings = collection.getSiblingNodes(path);
+
+  const against = (target: T | undefined, instruction: TreeDropInstruction) =>
+    target === undefined ? null : { targetValue: collection.getNodeValue(target), instruction };
+
+  switch (move) {
+    case "up":
+      return against(siblings[index - 1], { type: "reorder-above", currentLevel });
+    case "down":
+      return against(siblings[index + 1], { type: "reorder-below", currentLevel });
+    case "indent":
+      return against(siblings[index - 1], { type: "make-child", currentLevel });
+    case "outdent":
+      if (currentLevel === 0) return null;
+      return against(collection.at(path.slice(0, -1)), {
+        type: "reparent",
+        desiredLevel: currentLevel - 1,
+      });
+  }
 }
 
 /**
- * Keyboard-driven reorder of `value`: `up`/`down` among siblings, `indent` into the previous
- * sibling (must be a branch), `outdent` to become the parent's next sibling. Returns the new
- * collection plus the equivalent drop target/instruction, or `null` when the move isn't possible.
+ * Keyboard-driven reorder of `value`: `up`/`down` among siblings, `indent` to the first child
+ * of the previous sibling (must be a branch), `outdent` to become the parent's next sibling.
+ * Returns the new collection plus the equivalent drop target/instruction, or `null` when the
+ * move isn't possible.
  */
 export function moveNodeByKeyboard<T extends TreeNode>(
   collection: TreeCollection<T>,
   value: string,
   move: TreeKeyboardMove,
 ): KeyboardMoveResult<T> | null {
-  const path = collection.getIndexPath(value);
-  if (!path?.length) return null;
-  const parentPath = path.slice(0, -1);
-  const index = path[path.length - 1];
-  const currentLevel = path.length - 1;
-  const siblings = collection.getSiblingNodes(path);
-
-  if (move === "indent") {
-    if (index === 0) return null;
-    const prev = siblings[index - 1];
-    if (!collection.isBranchNode(prev)) return null; // don't turn a leaf into a branch
-    const next = collection.move(
-      [path],
-      [...parentPath, index - 1, collection.getNodeChildren(prev).length],
-    );
-    if (next.isEqual(collection)) return null;
-    return {
-      next,
-      targetValue: collection.getNodeValue(prev),
-      instruction: { type: "make-child", currentLevel, indentPerLevel: 0 },
-    };
-  }
-
-  let target: T | undefined;
-  let instruction: Instruction | undefined;
-
-  switch (move) {
-    case "up":
-      if (index === 0) return null;
-      target = siblings[index - 1];
-      instruction = { type: "reorder-above", currentLevel, indentPerLevel: 0 };
-      break;
-    case "down":
-      if (index >= siblings.length - 1) return null;
-      target = siblings[index + 1];
-      instruction = { type: "reorder-below", currentLevel, indentPerLevel: 0 };
-      break;
-    case "outdent":
-      if (path.length < 2) return null; // already at root
-      target = collection.at(parentPath);
-      instruction = {
-        type: "reparent",
-        currentLevel,
-        desiredLevel: currentLevel - 1,
-        indentPerLevel: 0,
-      };
-      break;
-  }
-  if (!target || !instruction) return null;
-
-  const targetValue = collection.getNodeValue(target);
-  const next = applyTreeDrop(collection, { sourceValues: [value], targetValue, instruction });
-  return next ? { next, targetValue, instruction } : null;
+  const target = getKeyboardDropTarget(collection, value, move);
+  if (!target) return null;
+  const next = applyTreeDrop(collection, { sourceValues: [value], ...target });
+  return next ? { next, ...target } : null;
 }

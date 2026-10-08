@@ -93,7 +93,7 @@ function BareTreeDemo() {
         collection={collection}
         value={selected}
         onValueChange={setSelected}
-        showSearch={false}
+        search={{ showInput: false }}
         showSelectAll={false}
         listHeight="320px"
       />
@@ -266,9 +266,7 @@ function ExternalSearchDemo() {
         collection={results}
         value={selected}
         onValueChange={setSelected}
-        searchMode="external"
-        query={query}
-        onQueryChange={setQuery}
+        search={{ mode: "external", query, onQueryChange: setQuery }}
         listHeight="320px"
       />
     </Box>

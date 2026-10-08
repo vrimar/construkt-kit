@@ -197,10 +197,7 @@ function DragAndDropExample() {
         collection={treeCollection}
         defaultExpandedValue={["src", "components"]}
       >
-        <TreeViewDndProvider
-          collection={treeCollection}
-          onCollectionChange={setTreeCollection}
-        >
+        <TreeViewDndProvider onCollectionChange={setTreeCollection}>
           <TreeView.Tree>
             {treeCollection.rootNode.children?.map((node, index) => (
               <DraggableTreeNode

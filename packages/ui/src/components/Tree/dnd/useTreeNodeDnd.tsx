@@ -1,7 +1,6 @@
 import { useTreeViewContext, useTreeViewNodeContext } from "@ark-ui/react/tree-view";
 import {
   attachInstruction,
-  extractInstruction,
   type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import {
@@ -15,25 +14,30 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 
-import { TREE_DND_INSTANCE_KEY, useTreeDndContext } from "./TreeDndContext";
+import { useLatestRef } from "../../../hooks/useLatestRef";
+import {
+  readTreeDragSource,
+  readTreeDropInstruction,
+  TREE_DND_INSTANCE_KEY,
+  useTreeDndContext,
+} from "./TreeDndContext";
 import { TreeDragPreview } from "./TreeDragPreview";
 import {
   getItemMode,
   instructionLevel,
   isDescendantValue,
   isLastChildOfParent,
+  type TreeDropInstruction,
   type TreeKeyboardMove,
 } from "./treeDropLogic";
 
 export interface UseTreeNodeDndReturn {
-  /** Callback ref for the row element (drop target, and drag source unless a handle is set). */
+  /** Callback ref for the row element: the drag source and drop target. */
   ref: (element: HTMLElement | null) => void;
-  /** Optional callback ref for a dedicated drag handle within the row. */
-  dragHandleRef: (element: HTMLElement | null) => void;
   /** Whether this row is the current drag source. */
   isDragging: boolean;
   /** The active drop instruction while a drag hovers this row, else `null`. */
-  instruction: Instruction | null;
+  instruction: TreeDropInstruction | null;
   /** Portaled custom drag preview (render inside the row); `null` when unused. */
   dragPreview: ReactNode;
 }
@@ -48,7 +52,7 @@ const NOOP_REF = () => {};
  * object every `onDrag` (≈ every pointer frame), so without this the row re-renders each frame
  * even when nothing changed — the stutter seen while hovering steadily above/below a row.
  */
-function isSameInstruction(a: Instruction | null, b: Instruction | null): boolean {
+function isSameInstruction(a: TreeDropInstruction | null, b: TreeDropInstruction | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   return a.type === b.type && instructionLevel(a) === instructionLevel(b);
@@ -105,21 +109,14 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   const dnd = useTreeDndContext();
 
   const [element, setElement] = useState<HTMLElement | null>(null);
-  const [handle, setHandle] = useState<HTMLElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [instruction, setInstruction] = useState<Instruction | null>(null);
+  const [instruction, setInstruction] = useState<TreeDropInstruction | null>(null);
   const [previewContainer, setPreviewContainer] = useState<HTMLElement | null>(null);
 
   const value = nodeState.value;
 
-  // Latest node geometry / api, read inside handlers (drag time) so registration is stable.
-  const snapshotRef = useRef(nodeState);
-  const apiRef = useRef(api);
-
-  useEffect(() => {
-    snapshotRef.current = nodeState;
-    apiRef.current = api;
-  });
+  const snapshotRef = useLatestRef(nodeState);
+  const apiRef = useLatestRef(api);
   const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -127,7 +124,6 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
     const {
       instanceId,
       collectionRef,
-      indentPerLevel,
       blockReparent,
       autoExpandDelay,
       canDrag,
@@ -149,18 +145,18 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       if (!(event.ctrlKey || event.metaKey)) return;
       const move = keyboardMoveForKey(event.key, element);
       if (!move) return;
-      if (dnd.moveByKeyboard(value, move)) {
-        event.preventDefault();
-        event.stopPropagation();
-        requestAnimationFrame(() => apiRef.current.focus(value));
-      }
+      const drop = dnd.moveByKeyboard(value, move);
+      if (!drop) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (drop.instruction.type === "make-child") apiRef.current.expand([drop.targetValue]);
+      requestAnimationFrame(() => apiRef.current.focus(value));
     };
     element.addEventListener("keydown", handleKeyDown);
 
     const cleanup = combine(
       draggable({
         element,
-        dragHandle: handle ?? undefined,
         canDrag: () => canDrag(value),
         // Reserved keys last so consumer extra data can't clobber the instance id / value.
         getInitialData: () => ({
@@ -186,9 +182,8 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       dropTargetForElements({
         element,
         canDrop: ({ source }) => {
-          if (source.data[TREE_DND_INSTANCE_KEY] !== instanceId) return false;
-          const sourceValue = source.data.value;
-          if (typeof sourceValue !== "string") return false;
+          const sourceValue = readTreeDragSource(source.data, instanceId);
+          if (sourceValue === null) return false;
           const dragValues = getDragValues(sourceValue);
           if (dragValues.includes(value)) return false; // can't drop onto a dragged node
           // No affordance for drops applyTreeDrop would reject (target inside a dragged subtree).
@@ -204,11 +199,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           const block: Instruction["type"][] = [];
           if (blockReparent) block.push("reparent");
           if (!isBranch) block.push("make-child"); // never nest into a leaf
-          const indent = readCssLengthPx(
-            el,
-            "--tree-indent",
-            indentPerLevel ?? FALLBACK_INDENT_PER_LEVEL,
-          );
+          const indent = readCssLengthPx(el, "--tree-indent", FALLBACK_INDENT_PER_LEVEL);
           const baseInset = readCssLengthPx(el, "--tree-padding-inline", 0);
           return attachInstruction(
             { [TREE_DND_INSTANCE_KEY]: instanceId, value },
@@ -234,19 +225,14 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           }
         },
         onDrag: ({ self, source }) => {
-          const next = extractInstruction(self.data);
-          // Suppress the indicator for drops a consumer canDrop would veto.
-          if (next && next.type !== "instruction-blocked") {
-            const sourceValue = source.data.value;
-            if (
-              typeof sourceValue === "string" &&
-              canDrop({ sourceValue, targetValue: value, instruction: next }) === false
-            ) {
-              setInstruction(null);
-              return;
-            }
-          }
-          // Only update when the rendered indicator actually changes, to avoid per-frame churn.
+          const sourceValue = readTreeDragSource(source.data, instanceId);
+          const hovered = readTreeDropInstruction(self.data);
+          const next =
+            hovered &&
+            sourceValue !== null &&
+            canDrop({ sourceValue, targetValue: value, instruction: hovered })
+              ? hovered
+              : null;
           setInstruction((current) => (isSameInstruction(current, next) ? current : next));
         },
         onDragLeave: () => {
@@ -257,7 +243,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           clearExpandTimer();
           setInstruction(null);
           // Reveal the moved node if it was nested into a collapsed branch.
-          const dropped = extractInstruction(self.data);
+          const dropped = readTreeDropInstruction(self.data);
           if (
             autoExpandDelay !== false &&
             dropped?.type === "make-child" &&
@@ -274,7 +260,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       element.removeEventListener("keydown", handleKeyDown);
       cleanup();
     };
-  }, [element, handle, dnd, value]);
+  }, [element, dnd, value, apiRef, snapshotRef]);
 
   const dragPreview =
     previewContainer && dnd
@@ -291,7 +277,6 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
 
   return {
     ref: dnd?.enabled ? setElement : NOOP_REF,
-    dragHandleRef: dnd?.enabled ? setHandle : NOOP_REF,
     isDragging,
     instruction,
     dragPreview,

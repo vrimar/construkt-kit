@@ -1,24 +1,12 @@
-import { createTreeCollection } from "@ark-ui/react/tree-view";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { createTestTree } from "./tree.fixtures";
 import { TreeView } from "./TreeView";
 
-interface Node {
-  id: string;
-  name: string;
-  children?: Node[];
-}
-
-const collection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "ROOT",
-    name: "",
-    children: [{ id: "src", name: "src", children: [{ id: "src/index.ts", name: "index.ts" }] }],
-  },
-});
+const collection = createTestTree([
+  { id: "src", label: "src", children: [{ id: "src/index.ts", label: "index.ts" }] },
+]);
 
 function renderTree() {
   return render(
@@ -38,7 +26,7 @@ function renderTree() {
             <TreeView.Branch>
               <TreeView.BranchControl data-testid="branch-control">
                 <TreeView.BranchIndicator data-testid="chevron" />
-                <TreeView.BranchText>{node.name}</TreeView.BranchText>
+                <TreeView.BranchText>{node.label}</TreeView.BranchText>
               </TreeView.BranchControl>
               <TreeView.BranchContent>
                 {node.children?.map((child, childIndex) => (
@@ -48,7 +36,7 @@ function renderTree() {
                     indexPath={[index, childIndex]}
                   >
                     <TreeView.Item data-testid="item">
-                      <TreeView.ItemText>{child.name}</TreeView.ItemText>
+                      <TreeView.ItemText>{child.label}</TreeView.ItemText>
                     </TreeView.Item>
                   </TreeView.NodeProvider>
                 ))}

@@ -79,7 +79,7 @@ export const treeView = defineSlotRecipe({
         width: "1em",
         height: "1em",
       },
-      _loading: {
+      "[data-loading] > &": {
         _icon: {
           display: "none",
         },

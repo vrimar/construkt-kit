@@ -7,7 +7,8 @@ import type {
 } from "@ark-ui/react/tree-view";
 import { useEffect, useRef, useState } from "react";
 
-import { replaceNodeChildren } from "./treeCollectionUtils";
+import { useLatestRef } from "../../hooks/useLatestRef";
+import { locateNode, replaceNodeChildren } from "./treeCollectionUtils";
 
 interface UseTreeLazyLoadOptions<TNode extends TreeNode> {
   collection: TreeCollection<TNode>;
@@ -16,7 +17,6 @@ interface UseTreeLazyLoadOptions<TNode extends TreeNode> {
     | ((details: TreeViewLoadChildrenCompleteDetails<TNode>) => void)
     | undefined;
   onLoadChildrenError: ((details: TreeViewLoadChildrenErrorDetails<TNode>) => void) | undefined;
-  onLoaded: (value: string) => void;
   abortKey: string;
 }
 
@@ -34,25 +34,20 @@ const getLoaded = <TNode extends TreeNode>(
   prop: TreeCollection<TNode>,
 ) => (lineage.base === prop || lineage.merged === prop ? lineage.loaded : NO_VALUES);
 
-const locateNode = <TNode extends TreeNode>(collection: TreeCollection<TNode>, value: string) => {
-  const indexPath = collection.getIndexPath(value);
-  const node = indexPath ? collection.at(indexPath) : undefined;
-  if (!indexPath || node === undefined) return null;
-  return { node, indexPath, valuePath: collection.getValuePath(indexPath) };
-};
-
 export function useTreeLazyLoad<TNode extends TreeNode>({
   collection,
   loadChildren,
   onLoadChildrenComplete,
   onLoadChildrenError,
-  onLoaded,
   abortKey,
 }: UseTreeLazyLoadOptions<TNode>) {
   const [loadingValues, setLoadingValues] = useState(NO_VALUES);
 
-  const latest = { collection, onLoadChildrenComplete, onLoadChildrenError, onLoaded };
-  const latestRef = useRef(latest);
+  const latestRef = useLatestRef({
+    collection,
+    onLoadChildrenComplete,
+    onLoadChildrenError,
+  });
   const [lineage, setLineage] = useState<LoadLineage<TNode>>(() => ({
     base: collection,
     merged: collection,
@@ -60,10 +55,6 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
   }));
   const sourceRef = useRef(lineage);
   const controllersRef = useRef(new Map<string, AbortController>());
-
-  useEffect(() => {
-    latestRef.current = latest;
-  });
 
   useEffect(() => {
     const controllers = controllersRef.current;
@@ -102,12 +93,8 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     return true;
   };
 
-  const handleLoaded = (value: string, children: TNode[]) => {
-    const {
-      collection: prop,
-      onLoadChildrenComplete: onComplete,
-      onLoaded: expand,
-    } = latestRef.current;
+  const handleLoaded = (value: string, children: TNode[], onLoaded: (value: string) => void) => {
+    const { collection: prop, onLoadChildrenComplete: onComplete } = latestRef.current;
     const source = getSource(prop);
     if (source.findNode(value) === undefined) return;
 
@@ -119,7 +106,7 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     };
     setLineage(sourceRef.current);
     if (next) onComplete?.({ collection: next });
-    expand(value);
+    onLoaded(value);
   };
 
   const handleFailed = (value: string, error: unknown) => {
@@ -129,7 +116,7 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     onError?.({ nodes: [{ ...located, error: error as Error }] });
   };
 
-  const start = (values: string[]) => {
+  const start = (values: string[], onLoaded: (value: string) => void) => {
     if (!loadChildren) return;
 
     for (const value of values) {
@@ -145,7 +132,7 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
         resolve(loadChildren({ ...located, signal: controller.signal }));
       }).then(
         (children) => {
-          if (settle(value, controller)) handleLoaded(value, children);
+          if (settle(value, controller)) handleLoaded(value, children, onLoaded);
         },
         (error: unknown) => {
           if (settle(value, controller)) handleFailed(value, error);

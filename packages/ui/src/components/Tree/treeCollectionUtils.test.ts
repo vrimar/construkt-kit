@@ -1,36 +1,21 @@
-import { createTreeCollection } from "@ark-ui/react/tree-view";
 import { describe, expect, it } from "vitest";
 
+import { createTestTree, type TestNode } from "./tree.fixtures";
 import { getExpandableBranchValues, replaceNodeChildren } from "./treeCollectionUtils";
 
-interface LazyNode {
-  id: string;
-  label: string;
-  childrenCount?: number;
-  children?: LazyNode[];
-}
-
 const createCollection = () =>
-  createTreeCollection<LazyNode>({
-    nodeToValue: (node) => node.id,
-    nodeToString: (node) => node.label,
-    rootNode: {
-      id: "ROOT",
-      label: "",
+  createTestTree([
+    {
+      id: "fruits",
+      label: "Fruits",
       children: [
-        {
-          id: "fruits",
-          label: "Fruits",
-          children: [
-            { id: "apple", label: "Apple" },
-            { id: "berries", label: "Berries", childrenCount: 2 },
-          ],
-        },
-        { id: "remote", label: "Remote", childrenCount: 1 },
-        { id: "carrot", label: "Carrot" },
+        { id: "apple", label: "Apple" },
+        { id: "berries", label: "Berries", childrenCount: 2 },
       ],
     },
-  });
+    { id: "remote", label: "Remote", childrenCount: 1 },
+    { id: "carrot", label: "Carrot" },
+  ]);
 
 describe("getExpandableBranchValues", () => {
   it("returns branches that have children and excludes childrenCount-only nodes", () => {
@@ -52,11 +37,11 @@ describe("replaceNodeChildren", () => {
     const next = replaceNodeChildren(collection, "remote", [{ id: "remote/a", label: "A" }]);
 
     expect(next).not.toBeNull();
-    expect(next?.getNodeChildren(next.findNode("remote") as LazyNode).map((n) => n.id)).toEqual([
+    expect(next?.getNodeChildren(next.findNode("remote") as TestNode).map((n) => n.id)).toEqual([
       "remote/a",
     ]);
     expect(next?.findNode("remote")?.childrenCount).toBe(1);
-    expect(collection.getNodeChildren(collection.findNode("remote") as LazyNode)).toEqual([]);
+    expect(collection.getNodeChildren(collection.findNode("remote") as TestNode)).toEqual([]);
     expect(next?.findNode("carrot")).toBeDefined();
   });
 

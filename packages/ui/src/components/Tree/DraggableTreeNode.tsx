@@ -4,8 +4,6 @@ import type { ReactNode } from "react";
 import { TreeDndRow, TreeNodeLabel, type TreeNodeRenderDetails } from "./TreeRow";
 import { TreeView } from "./TreeView";
 
-export type DraggableTreeNodeRenderDetails<T extends TreeNode> = TreeNodeRenderDetails<T>;
-
 export interface DraggableTreeNodeProps<T extends TreeNode> {
   node: T;
   indexPath: number[];

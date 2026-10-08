@@ -1,6 +1,7 @@
 import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
 import { getExpandableBranchValues } from "./treeCollectionUtils";
 
 interface UseTreeSearchExpansionOptions<TNode extends TreeNode> {
@@ -62,23 +63,24 @@ export function useTreeSearchExpansion<TNode extends TreeNode>({
     return storedExpandedValue.filter((treeValue) => expandableValueSet.has(treeValue));
   }, [collapsedValues, expandableValueSet, expandableValues, searchExpanding, storedExpandedValue]);
 
-  const latest = { expandedValue, onExpandedChange };
-  const latestRef = useRef(latest);
+  const latestRef = useLatestRef({ expandedValue, onExpandedChange });
   // Written through on commit so updates landing in the same tick build on each other.
   const storedRef = useRef(storedExpandedValue);
 
   useEffect(() => {
-    latestRef.current = latest;
     storedRef.current = storedExpandedValue;
   });
 
-  const commitStored = useCallback((nextExpandedValue: string[]) => {
-    storedRef.current = nextExpandedValue;
-    if (latestRef.current.expandedValue === undefined) {
-      setUncontrolledExpandedValue(nextExpandedValue);
-    }
-    latestRef.current.onExpandedChange?.(nextExpandedValue);
-  }, []);
+  const commitStored = useCallback(
+    (nextExpandedValue: string[]) => {
+      storedRef.current = nextExpandedValue;
+      if (latestRef.current.expandedValue === undefined) {
+        setUncontrolledExpandedValue(nextExpandedValue);
+      }
+      latestRef.current.onExpandedChange?.(nextExpandedValue);
+    },
+    [latestRef],
+  );
 
   const getOpenedValues = (nextVisibleExpandedValue: string[]) => {
     const visibleSet = new Set(visibleExpandedValue);

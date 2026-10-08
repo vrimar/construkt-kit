@@ -1,6 +1,7 @@
 import type { TreeNode } from "@ark-ui/react/tree-view";
 import type { ComponentProps, ReactNode } from "react";
 
+import { useTreeDndContext } from "./dnd/TreeDndContext";
 import { TreeDropIndicator } from "./dnd/TreeDropIndicator";
 import { useTreeNodeDnd } from "./dnd/useTreeNodeDnd";
 import { TreeView } from "./TreeView";
@@ -27,7 +28,11 @@ export function TreeRowPart({ isBranch, loading, ...props }: TreeRowPartProps) {
   );
 }
 
-export function TreeDndRow({ children, ...props }: TreeRowPartProps) {
+export function TreeDndRow(props: TreeRowPartProps) {
+  return useTreeDndContext() ? <DraggableTreeRow {...props} /> : <TreeRowPart {...props} />;
+}
+
+function DraggableTreeRow({ children, ...props }: TreeRowPartProps) {
   const { ref, isDragging, instruction, dragPreview } = useTreeNodeDnd();
 
   return (
