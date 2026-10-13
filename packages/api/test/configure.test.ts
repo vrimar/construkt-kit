@@ -57,6 +57,19 @@ describe("configureApiClient", () => {
     expect(lastRequest().url).toBe("https://api.test/api/projects?page=2&orderBy=name");
   });
 
+  it("drops trailing slashes from the base URL", async () => {
+    const scoped = client.createClient();
+    const disposeScoped = configureApiClient(scoped, {
+      baseURL: "https://api.test/v1//",
+      getToken: () => token,
+    });
+
+    await getApiProjects({ client: scoped });
+    disposeScoped();
+
+    expect(lastRequest().url).toBe("https://api.test/v1/api/projects");
+  });
+
   it("sends the token as a Bearer header, replacing a configured one of any casing", async () => {
     const scoped = client.createClient({ headers: { authorization: "Bearer stale" } });
     const disposeScoped = configureApiClient(scoped, {
@@ -162,6 +175,46 @@ describe("configureApiClient", () => {
     await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toThrowError(
       new ApiError(502, "BAD_GATEWAY", "An error has occurred."),
     );
+  });
+
+  it("derives the error code from the status alone, as over HTTP/2", async () => {
+    respond(JSON.stringify({ detail: "Name taken" }), {
+      status: 409,
+      statusText: "",
+      headers: { "Content-Type": "application/problem+json" },
+    });
+    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toMatchObject({
+      status: 409,
+      code: "CONFLICT",
+      message: "Name taken",
+    });
+
+    respond(null, { status: 409, statusText: "Duplicate Name" });
+    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+
+    respond(null, { status: 499, statusText: "Client Closed Request" });
+    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).rejects.toMatchObject({
+      status: 499,
+      code: "HTTP_499",
+    });
+  });
+
+  it("reads an error body by its content type when the call expects a blob", async () => {
+    respond(JSON.stringify({ title: "Bad Request", detail: "No rows to export." }), {
+      status: 400,
+      headers: { "Content-Type": "application/problem+json" },
+    });
+
+    await expect(
+      postApiExportsExcel({ body: { projectId: 1 }, responseType: "blob" }).unwrap(),
+    ).rejects.toThrowError(new ApiError(400, "BAD_REQUEST", "No rows to export."));
+
+    respond(JSON.stringify({ id: 1 }), { headers: { "Content-Type": "application/json" } });
+    const result = await postApiExportsExcel({ body: { projectId: 1 }, responseType: "blob" });
+
+    expect(result.data).toBeInstanceOf(Blob);
   });
 
   it("reads binary responses as a blob and keeps the response headers", async () => {

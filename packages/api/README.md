@@ -105,6 +105,7 @@ re-configuring the same client, so a hot reload does not stack interceptors.
 - every other media type becomes a `Blob` — the Kubb runtime would decode it as text
 - `204`/`205` and empty bodies resolve to `undefined`
 - an explicit per-operation `responseType` (`blob`, `arraybuffer`, `stream`, `text`, `json`) wins
+  for a 2xx response; an error body is always read by its content type, so its message survives
 
 Only 2xx counts as success, so a `304` raises an `ApiError` rather than resolving empty. Send
 conditional requests (`If-None-Match`, `If-Modified-Since`) only where the caller handles that.
@@ -143,9 +144,10 @@ try {
 
 The message is the body's `detail`, then `title` (an RFC 9457 problem document), then a legacy
 `Message`, falling back to `"An error has occurred."`. `code` is a
-stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_SERVER_ERROR`), derived
-from the status text when there is no dedicated subclass. Network failures reject with the underlying
-`TypeError`, not an `ApiError`.
+stable screaming-snake identifier (`NOT_FOUND`, `VALIDATION_ERROR`, `CONFLICT`), derived from the
+status alone — the status text is empty over HTTP/2 — as its registered reason phrase, or
+`HTTP_<status>` for an unregistered one. Network failures reject with the underlying `TypeError`, not
+an `ApiError`.
 
 ### Custom transport
 
@@ -226,3 +228,18 @@ export default createKubbConfig();
 
 The spec is fetched from `{baseUrl}/openapi/v1.json`, saved to the config's `input` path, passed to
 Kubb, then deleted. Generation problems are printed and exit the process with code 1.
+
+`http` and `https` base URLs both work, and redirects are followed. HTTPS certificates are verified:
+for a dev certificate the OS trusts (`dotnet dev-certs https --trust`), run with
+`NODE_OPTIONS=--use-system-ca`; otherwise use the API's `http` URL or set `NODE_EXTRA_CA_CERTS`.
+
+## Upgrading from 0.3
+
+- `toApiError(status, message)` drops `statusText`. `code` comes from the status alone, so a status the server
+  answered with a custom reason phrase gets its registered one
+- `configureApiClient` strips trailing slashes from `baseURL`
+- An explicit `responseType` applies to successful responses only; error bodies are parsed by content type so their
+  `detail` reaches the message
+- `construkt-kit-api-gen` verifies HTTPS certificates and keeps the base URL's path
+- `construkt-kit-api-gen` reads `api.config.ts` in projects without `"type": "module"`, where it used to fall back to
+  the defaults, and deletes a partly downloaded spec

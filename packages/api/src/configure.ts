@@ -44,7 +44,7 @@ export function configureApiClient<TRequest extends ApiRequest, TError extends A
   client: ApiClient<TRequest, TError>,
   { baseURL, getToken, transport = fetchTransport }: ConfigureApiClientOptions,
 ): () => void {
-  client.setConfig({ baseURL, transport });
+  client.setConfig({ baseURL: baseURL.replace(/\/+$/, ""), transport });
 
   const requestInterceptor = client.interceptors.request.use((request) => {
     const token = getToken();
@@ -57,11 +57,7 @@ export function configureApiClient<TRequest extends ApiRequest, TError extends A
   });
 
   const errorInterceptor = client.interceptors.error.use((error) => {
-    throw toApiError(
-      error.status,
-      error.statusText,
-      toErrorMessage(error.data) ?? FALLBACK_ERROR_MESSAGE,
-    );
+    throw toApiError(error.status, toErrorMessage(error.data) ?? FALLBACK_ERROR_MESSAGE);
   });
 
   return () => {

@@ -46,18 +46,51 @@ export class UnauthorizedError extends ApiError {
   }
 }
 
-/** `"Internal Server Error"` → `"INTERNAL_SERVER_ERROR"`; falls back to the status. */
-function toErrorCode(status: number, statusText: string): string {
-  return (
-    statusText
-      .trim()
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, "_") || `HTTP_${status}`
-  );
-}
+const ERROR_CODES = new Map([
+  [300, "MULTIPLE_CHOICES"],
+  [301, "MOVED_PERMANENTLY"],
+  [302, "FOUND"],
+  [303, "SEE_OTHER"],
+  [304, "NOT_MODIFIED"],
+  [305, "USE_PROXY"],
+  [307, "TEMPORARY_REDIRECT"],
+  [308, "PERMANENT_REDIRECT"],
+  [400, "BAD_REQUEST"],
+  [402, "PAYMENT_REQUIRED"],
+  [403, "FORBIDDEN"],
+  [405, "METHOD_NOT_ALLOWED"],
+  [406, "NOT_ACCEPTABLE"],
+  [407, "PROXY_AUTHENTICATION_REQUIRED"],
+  [408, "REQUEST_TIMEOUT"],
+  [409, "CONFLICT"],
+  [410, "GONE"],
+  [411, "LENGTH_REQUIRED"],
+  [412, "PRECONDITION_FAILED"],
+  [413, "CONTENT_TOO_LARGE"],
+  [414, "URI_TOO_LONG"],
+  [415, "UNSUPPORTED_MEDIA_TYPE"],
+  [416, "RANGE_NOT_SATISFIABLE"],
+  [417, "EXPECTATION_FAILED"],
+  [421, "MISDIRECTED_REQUEST"],
+  [426, "UPGRADE_REQUIRED"],
+  [428, "PRECONDITION_REQUIRED"],
+  [429, "TOO_MANY_REQUESTS"],
+  [431, "REQUEST_HEADER_FIELDS_TOO_LARGE"],
+  [451, "UNAVAILABLE_FOR_LEGAL_REASONS"],
+  [500, "INTERNAL_SERVER_ERROR"],
+  [501, "NOT_IMPLEMENTED"],
+  [502, "BAD_GATEWAY"],
+  [503, "SERVICE_UNAVAILABLE"],
+  [504, "GATEWAY_TIMEOUT"],
+  [505, "HTTP_VERSION_NOT_SUPPORTED"],
+  [511, "NETWORK_AUTHENTICATION_REQUIRED"],
+]);
 
-/** Maps a non-2xx response onto the narrowest error class available. */
-export function toApiError(status: number, statusText: string, message: string): ApiError {
+/**
+ * Maps a non-2xx status onto the narrowest error class available. Its `code` is the status's
+ * registered reason phrase in screaming snake case (`409` → `CONFLICT`), or `HTTP_<status>`.
+ */
+export function toApiError(status: number, message: string): ApiError {
   switch (status) {
     case 401:
       return new UnauthorizedError(message);
@@ -66,6 +99,6 @@ export function toApiError(status: number, statusText: string, message: string):
     case 422:
       return new ValidationError("VALIDATION_ERROR", message);
     default:
-      return new ApiError(status, toErrorCode(status, statusText), message);
+      return new ApiError(status, ERROR_CODES.get(status) ?? `HTTP_${status}`, message);
   }
 }

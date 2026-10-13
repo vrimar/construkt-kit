@@ -44,18 +44,20 @@ async function readBody(
 ): Promise<unknown> {
   if (EMPTY_STATUSES.has(response.status) || !response.body) return undefined;
 
-  switch (responseType) {
-    case "blob":
-      return response.blob();
-    case "arraybuffer":
-      return response.arrayBuffer();
-    case "stream":
-      return response.body;
-    case "text":
-    case "document":
-      return response.text();
-    case "json":
-      return parseJson(await response.text());
+  if (response.ok) {
+    switch (responseType) {
+      case "blob":
+        return response.blob();
+      case "arraybuffer":
+        return response.arrayBuffer();
+      case "stream":
+        return response.body;
+      case "text":
+      case "document":
+        return response.text();
+      case "json":
+        return parseJson(await response.text());
+    }
   }
 
   if (mediaType.includes("json")) return parseJson(await response.text());

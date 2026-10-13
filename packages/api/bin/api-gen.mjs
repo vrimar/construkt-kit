@@ -2,8 +2,9 @@
 // @construkt-kit/api api-gen bin — fetches OpenAPI spec, runs kubb codegen, cleans up
 
 import fs from "node:fs";
-import https from "node:https";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { pathToFileURL } from "node:url";
 
 import { register } from "tsx/esm/api";
@@ -33,10 +34,13 @@ const inputArg = getArg("--input");
 
 const configPath = path.resolve(process.cwd(), configFile);
 const unregister = register();
-const { default: kubbConfig, specUrl: configSpecUrl } = await import(
-  pathToFileURL(configPath).href
-);
+const configModule = await import(pathToFileURL(configPath).href);
 await unregister();
+
+// Without "type": "module", tsx compiles the config to CJS and its exports arrive as `default`.
+const { default: kubbConfig, specUrl: configSpecUrl } = configModule.default?.__esModule
+  ? configModule.default
+  : configModule;
 
 const resolvedConfig = typeof kubbConfig === "function" ? await kubbConfig() : kubbConfig;
 
@@ -44,6 +48,7 @@ const configInput =
   typeof resolvedConfig.input === "string" ? resolvedConfig.input : resolvedConfig.input?.path;
 const inputPath = path.resolve(process.cwd(), inputArg ?? configInput ?? "./src/api/openapi.json");
 
+let specUrl;
 if (!inputArg) {
   const specBaseUrl = urlArg ?? process.env.API_URL ?? configSpecUrl;
   if (!specBaseUrl) {
@@ -55,9 +60,9 @@ if (!inputArg) {
     process.exit(1);
   }
 
-  const specUrl = new URL("openapi/v1.json", specBaseUrl).toString();
-  console.log(`Fetching OpenAPI spec from ${specUrl}`);
-  await fetchSpec(specUrl, inputPath);
+  const specBase = new URL(specBaseUrl);
+  if (!specBase.pathname.endsWith("/")) specBase.pathname += "/";
+  specUrl = new URL("openapi/v1.json", specBase).toString();
 }
 
 // --- Run kubb code generation -----------------------------------------------
@@ -66,6 +71,11 @@ const { createKubb, defineConfig } = await import("kubb");
 
 let result;
 try {
+  if (specUrl) {
+    console.log(`Fetching OpenAPI spec from ${specUrl}`);
+    await fetchSpec(specUrl, inputPath);
+  }
+
   const kubb = createKubb(defineConfig({ ...resolvedConfig, input: inputPath }));
   try {
     result = await kubb.generate();
@@ -88,26 +98,13 @@ console.log("API generation complete.");
 
 // ---------------------------------------------------------------------------
 
-function fetchSpec(url, outputPath) {
-  return new Promise((resolve, reject) => {
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+async function fetchSpec(url, outputPath) {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
-    const agent = new https.Agent({ rejectUnauthorized: false });
-    https
-      .get(url, { agent }, (res) => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`Failed to fetch OpenAPI spec: HTTP ${res.statusCode}`));
-          return;
-        }
-        const file = fs.createWriteStream(outputPath);
-        res.pipe(file);
-        file.on("finish", () => {
-          file.close();
-          resolve();
-        });
-        file.on("error", reject);
-      })
-      .on("error", reject);
-  });
+  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  if (res.status !== 200) {
+    throw new Error(`Failed to fetch OpenAPI spec: HTTP ${res.status}`);
+  }
+
+  await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(outputPath));
 }
