@@ -9,17 +9,21 @@ export function buildQueryString(object: unknown) {
 
   function destructure(key: string, value: any) {
     if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-        destructure(key + "[" + i + "]", value[i]);
+      let index = 0;
+      for (const item of value) {
+        const count = args.length;
+        destructure(key + "[" + index + "]", item);
+        // ASP.NET binds indexes only up to the first gap.
+        if (args.length > count) index++;
       }
     } else if (isPlainObject(value)) {
       for (const i in value) {
         destructure(key + "[" + i + "]", value[i]);
       }
-    } else {
-      if (value != null && value !== "") {
-        args.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
-      }
+    } else if (value instanceof Date) {
+      if (!Number.isNaN(value.getTime())) destructure(key, value.toISOString());
+    } else if (value != null && value !== "") {
+      args.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
     }
   }
 
@@ -34,7 +38,8 @@ export const saveBlob = (
 ) => {
   const url = window.URL.createObjectURL(blob);
   downloadFile(url, fileNameFromContentDisposition(contentDisposition) || fallbackName);
-  window.URL.revokeObjectURL(url);
+  // WebKit can cancel a download whose blob URL is revoked right after the click.
+  setTimeout(() => window.URL.revokeObjectURL(url), 40_000);
 };
 
 /**
@@ -63,15 +68,16 @@ export function downloadFile(url: string, filename: string) {
 
 // Credits to https://stackoverflow.com/a/67994693
 function getFileName(disposition: string): string {
-  const utf8FilenameRegex = /filename\*=UTF-8''([\w%\-\\.]+)(?:; ?|$)/i;
+  const utf8FilenameRegex = /filename\*=UTF-8''([\w%!#$&+.^`|~\\-]+)(?:; ?|$)/i;
   const asciiFilenameRegex = /^filename=(["']?)(.*?[^\\])\1(?:; ?|$)/i;
 
   let fileName = "";
 
   const utf8Match = utf8FilenameRegex.exec(disposition);
+  const utf8FileName = utf8Match ? safeDecodeURIComponent(utf8Match[1]) : null;
 
-  if (utf8Match) {
-    fileName = decodeURIComponent(utf8Match[1]);
+  if (utf8FileName) {
+    fileName = utf8FileName;
   } else {
     // prevent ReDos attacks by anchoring the ascii regex to string start and
     //  slicing off everything before 'filename='
@@ -86,6 +92,14 @@ function getFileName(disposition: string): string {
   }
 
   return fileName;
+}
+
+function safeDecodeURIComponent(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
 }
 
 /** Strip path traversal and other unsafe characters from a filename. */

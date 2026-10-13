@@ -1,7 +1,10 @@
 export function toCamelCase(str: string) {
   return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
-      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    .split(/[\s_-]+|(?<=[a-z\d])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/)
+    .filter(Boolean)
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      return index === 0 ? lower : lower.charAt(0).toUpperCase() + lower.slice(1);
     })
-    .replace(/\s+/g, "");
+    .join("");
 }

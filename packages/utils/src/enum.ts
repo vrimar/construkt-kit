@@ -1,5 +1,5 @@
 export function isEnumKey<T extends object>(enumSrc: T, key: unknown): key is keyof T {
-  return Number.isInteger(enumSrc[key as keyof T]);
+  return enumToKeys(enumSrc).includes(key as keyof T);
 }
 
 export function enumToKeys<T extends object>(enumSrc: T): (keyof T)[] {
@@ -32,10 +32,7 @@ export function enumValueToKey<T extends object>(
 }
 
 export function enumToEntries<T extends object>(enumSrc: T): [keyof T, T[keyof T]][] {
-  return enumToValues(enumSrc).map((value: T[keyof T]) => [
-    enumValueToKey(enumSrc, value) as keyof T,
-    value,
-  ]);
+  return enumToKeys(enumSrc).map((key) => [key, enumSrc[key]]);
 }
 
 export function fromEnum<T extends object, C>(
@@ -57,12 +54,23 @@ export function enumToOptions<T extends object>(enumSrc: T) {
   }));
 }
 
-export function toListItems<T extends string | number>(
+/** Turns a string-keyed label map into `{ label, value }` items; see {@link toNumericListItems}. */
+export function toListItems<T extends string>(
   record: Record<T, string>,
 ): { label: string; value: T }[] {
-  return Object.entries(record).map(([key, label]) => ({
-    label: label as string,
+  return Object.entries<string>(record).map(([key, label]) => ({
+    label,
     value: key as T,
+  }));
+}
+
+/** Turns a label map keyed by a numeric enum into `{ label, value }` items with numeric values. */
+export function toNumericListItems<T extends number>(
+  record: Record<T, string>,
+): { label: string; value: T }[] {
+  return Object.entries<string>(record).map(([key, label]) => ({
+    label,
+    value: Number(key) as T,
   }));
 }
 

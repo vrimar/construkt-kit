@@ -4,11 +4,14 @@ import calendar from "dayjs/plugin/calendar.js";
 
 dayjs.extend(calendar);
 
-/** Treat an offset-less timestamp string as UTC rather than local time. */
-const asUtc = (date: string | Date) =>
-  typeof date === "string" && !date.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(date)
-    ? date + "Z"
-    : date;
+/** Treat an offset-less timestamp string as UTC; a date-only string stays a local calendar date. */
+const asUtc = (date: string | Date) => {
+  if (typeof date !== "string" || !/\d[T ]\d/.test(date) || /z$/i.test(date)) return date;
+  if (/[+-]\d{2}:?\d{2}$/.test(date)) return date;
+  if (/[+-]\d{2}$/.test(date)) return date + ":00";
+
+  return date + "Z";
+};
 
 export const formatDateDefault = (date: string | Date) =>
   dayjs(asUtc(date)).format("MMM D, YYYY h:mm A");
