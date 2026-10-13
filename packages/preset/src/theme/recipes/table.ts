@@ -24,7 +24,7 @@ export const table = defineSlotRecipe({
       boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
       shadowColor: "border",
       _pinned: {
-        bg: "inherit",
+        bg: "var(--table-row-bg, {colors.bg})",
         boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
         overflow: "unset",
         position: "sticky",
@@ -33,6 +33,7 @@ export const table = defineSlotRecipe({
       },
     },
     row: {
+      bg: "var(--table-row-bg)",
       _last: { "& td": { boxShadow: "none" } },
     },
     header: {
@@ -42,7 +43,7 @@ export const table = defineSlotRecipe({
       shadowColor: "border",
       _pinned: {
         position: "sticky",
-        bg: "inherit",
+        bg: "var(--table-row-bg, {colors.bg})",
         zIndex: "2",
       },
     },
@@ -69,8 +70,8 @@ export const table = defineSlotRecipe({
   variants: {
     variant: {
       surface: {
+        root: { "--table-row-bg": "colors.neutral.surface.bg" },
         header: { bg: "neutral.surface.bg.hover" },
-        row: { bg: "neutral.surface.bg" },
       },
       outline: {
         root: { borderWidth: "1px", borderColor: "border", borderRadius: "md", overflow: "hidden" },
@@ -85,7 +86,7 @@ export const table = defineSlotRecipe({
     },
     interactive: {
       true: {
-        body: { "& tr": { _hover: { bg: "neutral.surface.bg.hover" } } },
+        body: { "& tr": { _hover: { "--table-row-bg": "colors.neutral.surface.bg.hover" } } },
       },
     },
     columnBorder: {
@@ -101,6 +102,7 @@ export const table = defineSlotRecipe({
             top: "var(--table-sticky-offset, 0)",
             position: "sticky",
             zIndex: "2",
+            bg: "var(--table-row-bg, {colors.bg})",
           },
         },
       },

@@ -41,9 +41,25 @@ export const radioCardGroup = defineSlotRecipe({
       _focusVisible: {
         focusVisibleRing: "outside",
       },
+      _invalid: {
+        outline: "2px solid",
+        outlineColor: "border.error",
+        outlineOffset: "2px",
+      },
     },
     itemText: {
       textStyle: "label",
+    },
+    indicator: {
+      borderWidth: "1px",
+      borderColor: "colorPalette.solid.bg",
+      borderRadius: "md",
+      boxShadow: "0 0 0 1px var(--shadow-color)",
+      boxShadowColor: "colorPalette.solid.bg",
+      height: "var(--height)",
+      pointerEvents: "none",
+      pos: "absolute",
+      width: "var(--width)",
     },
   },
   defaultVariants: {

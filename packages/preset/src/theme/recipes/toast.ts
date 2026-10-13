@@ -33,17 +33,17 @@ export const toast = defineSlotRecipe({
       _icon: {
         flexShrink: "0",
       },
-      "&[data-type=info]": {
-        _icon: { color: "info" },
+      "& > svg[data-type=info]": {
+        color: "info",
       },
-      "&[data-type=success]": {
-        _icon: { color: "success" },
+      "& > svg[data-type=success]": {
+        color: "success",
       },
-      "&[data-type=warning]": {
-        _icon: { color: "warning" },
+      "& > svg[data-type=warning]": {
+        color: "warning",
       },
-      "&[data-type=error]": {
-        _icon: { color: "error" },
+      "& > svg[data-type=error]": {
+        color: "error",
       },
     },
     title: {

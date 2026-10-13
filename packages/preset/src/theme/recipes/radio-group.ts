@@ -34,6 +34,11 @@ export const radioGroup = defineSlotRecipe({
       _focusVisible: {
         focusVisibleRing: "outside",
       },
+      _invalid: {
+        outline: "2px solid",
+        outlineColor: "border.error",
+        outlineOffset: "2px",
+      },
     },
     item: {
       alignItems: "center",

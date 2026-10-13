@@ -106,6 +106,9 @@ export const button = defineRecipe({
         },
         _on: {
           bg: "colorPalette.subtle.bg.active",
+          _hover: {
+            bg: "colorPalette.subtle.bg.active",
+          },
         },
       },
       outline: {
@@ -123,6 +126,9 @@ export const button = defineRecipe({
         },
         _on: {
           bg: "colorPalette.outline.bg.active",
+          _hover: {
+            bg: "colorPalette.outline.bg.active",
+          },
         },
       },
       plain: {
@@ -138,6 +144,9 @@ export const button = defineRecipe({
         },
         _on: {
           bg: "colorPalette.plain.bg.active",
+          _hover: {
+            bg: "colorPalette.plain.bg.active",
+          },
         },
       },
     },

@@ -26,6 +26,11 @@ export const checkbox = defineSlotRecipe({
       borderColor: "transparent",
       borderRadius: "sm",
       focusVisibleRing: "outside",
+      _invalid: {
+        outline: "2px solid",
+        outlineColor: "border.error",
+        outlineOffset: "2px",
+      },
 
       _icon: {
         boxSize: "full",
@@ -67,9 +72,6 @@ export const checkbox = defineSlotRecipe({
           borderColor: "border",
           _checked: checkboxControlCheckedState,
           _indeterminate: checkboxControlCheckedState,
-          _invalid: {
-            background: "fg.error",
-          },
         },
       },
       surface: { control: paletteVariant.surface },
@@ -82,7 +84,7 @@ export const checkbox = defineSlotRecipe({
           },
         },
       },
-      plain: { control: paletteVariant.plain },
+      plain: { control: { ...paletteVariant.plain, borderColor: "border" } },
     },
   },
 });

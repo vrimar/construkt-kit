@@ -11,7 +11,7 @@ export const tooltip = defineSlotRecipe({
       zIndex: "tooltip",
       "--tooltip-bg": "colors.neutral.solid.bg",
       bg: "var(--tooltip-bg)",
-      color: "colorPalette.solid.fg",
+      color: "neutral.solid.fg",
       borderRadius: "md",
       boxShadow: "sm",
       fontWeight: "semibold",

@@ -3,6 +3,16 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 import { controlBox, controlGap, controlPx, controlText } from "./control-size";
 
+const rootCheckedColors = {
+  borderColor: "colorPalette.solid.bg",
+  bg: "colorPalette.subtle.bg",
+};
+
+const rootChecked = {
+  ...rootCheckedColors,
+  _hover: rootCheckedColors,
+};
+
 export const checkboxCard = defineSlotRecipe({
   className: "checkbox-card",
   slots: ["root", "control", "checkbox", "content", "label", "description", "addon"],
@@ -17,9 +27,9 @@ export const checkboxCard = defineSlotRecipe({
       cursor: "pointer",
       userSelect: "none",
       _hover: { bg: "bg.subtle" },
-      _checked: {
-        borderColor: "colorPalette.solid.bg",
-        bg: "colorPalette.subtle.bg",
+      _checked: rootChecked,
+      _disabled: {
+        layerStyle: "disabled",
       },
     },
     control: {
@@ -30,13 +40,16 @@ export const checkboxCard = defineSlotRecipe({
     },
     checkbox: {
       ...checkboxControlBase,
+      cursor: "inherit",
       borderColor: "border",
       borderRadius: "sm",
       focusVisibleRing: "outside",
       _checked: checkboxControlCheckedState,
       _indeterminate: checkboxControlCheckedState,
       _invalid: {
-        background: "fg.error",
+        outline: "2px solid",
+        outlineColor: "border.error",
+        outlineOffset: "2px",
       },
       _icon: {
         boxSize: "full",
@@ -73,6 +86,7 @@ export const checkboxCard = defineSlotRecipe({
           _hover: { bg: "colorPalette.subtle.bg.hover" },
           _checked: {
             bg: "colorPalette.subtle.bg.active",
+            _hover: { bg: "colorPalette.subtle.bg.active" },
           },
         },
       },
@@ -83,6 +97,7 @@ export const checkboxCard = defineSlotRecipe({
           _hover: {
             borderColor: "colorPalette.surface.border.hover",
           },
+          _checked: rootChecked,
         },
       },
     },

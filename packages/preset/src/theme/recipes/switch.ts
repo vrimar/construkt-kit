@@ -39,7 +39,7 @@ export const switchRecipe = defineSlotRecipe({
       display: "grid",
       placeContent: "center",
       transition: "inset-inline-start 0.12s ease",
-      insetInlineStart: "calc(var(--switch-x) - 2px)",
+      insetInlineStart: "calc(var(--switch-diff) - 2px)",
       _checked: {
         insetInlineStart: "2px",
       },

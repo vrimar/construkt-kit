@@ -42,7 +42,7 @@ export const combobox = defineSlotRecipe({
       minWidth: "max(var(--reference-width), {sizes.40})",
       outline: "0",
       overflowY: "auto",
-      zIndex: "dropdown",
+      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
       "&[data-empty]:not(:has([data-scope=combobox][data-part=empty]))": {
         opacity: 0,
       },

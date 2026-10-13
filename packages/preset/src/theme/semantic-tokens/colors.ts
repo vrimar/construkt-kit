@@ -88,6 +88,9 @@ const RADIX_DARK: DarkSteps = {
   fg: 11,
 };
 
+// White text on these ramps' 600 falls below WCAG AA, so their solid role takes dark text and hovers lighter.
+const DARK_TEXT_RAMPS = new Set(["green", "orange", "yellow", "teal", "cyan"]);
+
 /**
  * Compound semantic tokens for a color palette. Light and dark are sourced
  * independently: light always uses the Tailwind ramp; dark uses `darkSteps`
@@ -96,16 +99,20 @@ const RADIX_DARK: DarkSteps = {
 function colorPalette(light: string, dark: string = light, darkSteps: DarkSteps = TAILWIND_DARK) {
   const p = (role: Role) =>
     tv(`{colors.${light}.${LIGHT[role]}}`, `{colors.${dark}.${darkSteps[role]}}`);
+  const darkText = DARK_TEXT_RAMPS.has(light);
+  const solidFg = tv(darkText ? "{colors.slate.950}" : "white", "{colors.slate.950}");
 
   return {
     solid: {
       bg: {
         DEFAULT: p("solidBg"),
-        hover: p("solidBgHover"),
+        hover: darkText
+          ? tv(`{colors.${light}.500}`, `{colors.${dark}.${darkSteps.solidBgHover}}`)
+          : p("solidBgHover"),
       },
-      fg: tv("white", "{colors.slate.950}"),
+      fg: solidFg,
     },
-    contrast: tv("white", "{colors.slate.950}"),
+    contrast: solidFg,
     surface: {
       bg: {
         DEFAULT: p("surfaceBg"),
@@ -224,4 +231,11 @@ export const colors = defineSemanticTokens.colors({
   green: colorPalette("green"),
   orange: colorPalette("orange"),
   blue: colorPalette("blue"),
+  gray: colorPalette("gray"),
+  slate: colorPalette("slate"),
+  yellow: colorPalette("yellow"),
+  purple: colorPalette("purple"),
+  teal: colorPalette("teal"),
+  cyan: colorPalette("cyan"),
+  pink: colorPalette("pink"),
 });

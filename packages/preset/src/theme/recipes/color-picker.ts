@@ -108,8 +108,7 @@ export const colorPicker = defineSlotRecipe({
       height: "6",
       width: "6",
       borderRadius: "md",
-      boxShadow:
-        "0 0 0 1px var(--colors-border-emphasized), 0 0 0 2px var(--colors-bg-default) inset",
+      boxShadow: "0 0 0 1px var(--colors-border-emphasized), 0 0 0 2px var(--colors-bg) inset",
     },
     channelSliderThumb: {
       borderRadius: "full",

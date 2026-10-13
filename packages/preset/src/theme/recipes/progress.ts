@@ -37,6 +37,7 @@ export const progress = defineSlotRecipe({
       transitionProperty: "width, height",
       transitionDuration: "slow",
       height: "100%",
+      "--track-color": "colors.colorPalette.solid.bg",
       bgColor: "var(--track-color)",
       _indeterminate: {
         "--animate-from-x": "-40%",
@@ -45,6 +46,7 @@ export const progress = defineSlotRecipe({
         willChange: "left",
         minWidth: "50%",
         animation: "position 1s ease infinite normal none running",
+        bgColor: "transparent",
         backgroundImage: `linear-gradient(to right, transparent 0%, var(--track-color) 50%, transparent 100%)`,
       },
     },
@@ -77,7 +79,6 @@ export const progress = defineSlotRecipe({
           stroke: "neutral.subtle.bg",
         },
         range: {
-          bgColor: "colorPalette.solid.bg",
           color: "colorPalette.solid.fg",
         },
       },
@@ -89,7 +90,6 @@ export const progress = defineSlotRecipe({
           stroke: "colorPalette.subtle.bg.active",
         },
         range: {
-          bgColor: "colorPalette.solid.bg",
           color: "colorPalette.solid.fg",
         },
       },
@@ -102,7 +102,6 @@ export const progress = defineSlotRecipe({
           stroke: "colorPalette.outline.border",
         },
         range: {
-          bgColor: "colorPalette.solid.bg",
           color: "colorPalette.solid.fg",
         },
       },

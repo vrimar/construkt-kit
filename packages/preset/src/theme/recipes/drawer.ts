@@ -14,7 +14,7 @@ export const drawer = defineSlotRecipe({
       top: "0",
       width: "100vw",
       height: "100dvh",
-      zIndex: "overlay",
+      zIndex: "var(--z-index, {zIndex.modal})",
       _open: {
         animationName: "fade-in",
         animationTimingFunction: "emphasized-in",
@@ -27,13 +27,14 @@ export const drawer = defineSlotRecipe({
       },
     },
     positioner: {
+      "--drawer-z-index": "zIndex.modal",
       display: "flex",
       width: "100vw",
       height: "100dvh",
       position: "fixed",
       insetInlineStart: "0",
       top: "0",
-      zIndex: "modal",
+      zIndex: "calc(var(--drawer-z-index) + var(--layer-index, 0))",
       overscrollBehaviorY: "none",
     },
     content: {
@@ -43,7 +44,7 @@ export const drawer = defineSlotRecipe({
       position: "relative",
       width: "100%",
       outline: 0,
-      zIndex: "modal",
+      zIndex: "calc(var(--drawer-z-index) + var(--layer-index, 0))",
       maxH: "100dvh",
       // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
       maxW: "var(--drawer-max-w)",

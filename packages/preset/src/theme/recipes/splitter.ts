@@ -17,10 +17,11 @@ export const splitter = defineSlotRecipe({
       transition: "common",
       outline: "0",
       background: "neutral.subtle.bg",
-      _horizontal: {
+      // aria-orientation is the bar's own: a horizontal group has vertical separators.
+      "&[aria-orientation=vertical]": {
         minWidth: "1.5",
       },
-      _vertical: {
+      "&[aria-orientation=horizontal]": {
         minHeight: "1.5",
       },
     },

@@ -4,8 +4,17 @@ import { controlGap, controlPx, controlText } from "./control-size";
 
 export const actionbar = defineSlotRecipe({
   className: "actionbar",
-  slots: ["content", "separator", "selectionTrigger", "closeTrigger"],
+  slots: ["positioner", "content", "separator", "selectionTrigger", "closeTrigger"],
   base: {
+    positioner: {
+      position: "fixed",
+      insetInline: "0",
+      bottom: "calc(env(safe-area-inset-bottom, 0px) + {spacing.6})",
+      display: "flex",
+      justifyContent: "center",
+      pointerEvents: "none",
+      zIndex: "banner",
+    },
     content: {
       display: "flex",
       alignItems: "center",
@@ -15,6 +24,7 @@ export const actionbar = defineSlotRecipe({
       boxShadow: "lg",
       px: controlPx("md"),
       py: controlGap("xl"),
+      pointerEvents: "auto",
     },
     separator: {
       width: "1px",

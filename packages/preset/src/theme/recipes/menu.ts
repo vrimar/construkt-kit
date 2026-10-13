@@ -2,6 +2,7 @@ import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
+import { floatingArrow } from "./floating-arrow";
 
 export const menu = defineSlotRecipe({
   className: "menu",
@@ -66,6 +67,8 @@ export const menu = defineSlotRecipe({
         color: "colorPalette.plain.fg",
       },
     },
+    arrow: floatingArrow.arrow,
+    arrowTip: floatingArrow.arrowTip,
   },
   defaultVariants: {
     size: "md",

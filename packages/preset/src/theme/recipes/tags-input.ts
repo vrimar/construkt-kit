@@ -116,7 +116,7 @@ export const tagsInput = defineSlotRecipe({
       outline: {
         control: {
           borderWidth: "1px",
-          _focusVisible: controlFocusRing,
+          _focusWithin: controlFocusRing,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",
@@ -132,7 +132,7 @@ export const tagsInput = defineSlotRecipe({
           color: "neutral.subtle.fg",
           borderWidth: "1px",
           borderColor: "transparent",
-          _focusVisible: controlFocusRing,
+          _focusWithin: controlFocusRing,
         },
         itemPreview: {
           bg: "neutral.surface.bg",
@@ -148,7 +148,7 @@ export const tagsInput = defineSlotRecipe({
           bg: "neutral.surface.bg",
           borderWidth: "1px",
           borderColor: "neutral.surface.border",
-          _focusVisible: controlFocusRing,
+          _focusWithin: controlFocusRing,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",

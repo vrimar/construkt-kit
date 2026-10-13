@@ -130,7 +130,8 @@ export const tabs = defineSlotRecipe({
         },
         list: {
           _horizontal: {
-            borderBottomWidth: "1px",
+            boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
+            boxShadowColor: "border",
           },
           _vertical: {
             borderStartWidth: "1px",
@@ -141,12 +142,10 @@ export const tabs = defineSlotRecipe({
           _horizontal: {
             bottom: "0",
             height: "0.5",
-            transform: "translateY(1px)",
           },
           _vertical: {
-            left: "0",
+            insetInlineStart: "-1px",
             width: "0.5",
-            transform: "translateX(-1px)",
           },
         },
         trigger: {
@@ -188,6 +187,9 @@ export const tabs = defineSlotRecipe({
             bg: "bg",
             borderColor: "border",
             borderRadius: "md",
+            _hover: {
+              color: "colorPalette.surface.fg",
+            },
           },
         },
         indicator: {

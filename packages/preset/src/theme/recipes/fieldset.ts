@@ -3,16 +3,17 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
 
+const sectionGap = { base: surface("1.25rem"), md: surface("2rem") };
+
 export const fieldset = defineSlotRecipe({
   className: "fieldset",
   slots: fieldsetAnatomy.extendWith("content", "control").keys(),
   base: {
     root: {
       display: "flex",
-      justifyContent: "space-between",
       width: "full",
-      flexDirection: { base: "column", md: "row" },
-      gap: { base: surface("1.25rem"), md: surface("2rem") },
+      flexDirection: "column",
+      gap: sectionGap,
     },
     control: {
       maxW: "xs",
@@ -31,6 +32,7 @@ export const fieldset = defineSlotRecipe({
     legend: {
       color: "fg",
       fontWeight: "semibold",
+      mb: sectionGap,
     },
     helperText: {
       color: "fg.muted",

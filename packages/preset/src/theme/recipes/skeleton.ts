@@ -70,6 +70,7 @@ export const skeleton = defineRecipe({
         animation: "bg-position var(--duration, 5s) ease-in-out infinite",
       },
       none: {
+        "--skeleton-bg": "{colors.neutral.subtle.bg.active}",
         animation: "none",
       },
     },

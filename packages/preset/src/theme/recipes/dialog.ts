@@ -14,7 +14,7 @@ export const dialog = defineSlotRecipe({
       position: "fixed",
       top: "0",
       width: "100dvw",
-      zIndex: "var(--z-index)",
+      zIndex: "var(--z-index, {zIndex.modal})",
       _open: {
         animationName: "fade-in",
         animationTimingFunction: "emphasized-in",

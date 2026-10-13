@@ -18,7 +18,7 @@ export const datePicker = defineSlotRecipe({
       flexDirection: "column",
       gap: "3",
       p: "4",
-      zIndex: "dropdown",
+      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
       _hidden: {
         display: "none",
       },
@@ -58,7 +58,7 @@ export const datePicker = defineSlotRecipe({
       _today: {
         _before: {
           content: "'−'",
-          color: "colorPalette.solid.fg",
+          color: "colorPalette.solid.bg",
           position: "absolute",
           marginTop: "6",
         },
@@ -68,7 +68,7 @@ export const datePicker = defineSlotRecipe({
       },
       _selected: {
         _before: {
-          color: "colorPalette.solid.fg",
+          color: "colorPalette.subtle.fg",
         },
       },
     },
