@@ -9,23 +9,8 @@ if (!out) {
 }
 
 const { construktKitPreset: preset } = await import("../packages/preset/dist/index.mjs");
-const theme = preset.theme;
 
-fs.writeFileSync(
-  out,
-  `${JSON.stringify(
-    {
-      recipes: theme.recipes,
-      slotRecipes: theme.slotRecipes,
-      tokens: theme.tokens,
-      semanticTokens: theme.extend?.semanticTokens ?? theme.semanticTokens,
-      textStyles: theme.textStyles,
-      layerStyles: theme.layerStyles,
-      keyframes: theme.keyframes,
-      animationStyles: theme.animationStyles,
-      breakpoints: theme.breakpoints,
-    },
-    null,
-    2,
-  )}\n`,
-);
+const serializable = (_key, value) =>
+  value instanceof RegExp || typeof value === "function" ? String(value) : value;
+
+fs.writeFileSync(out, `${JSON.stringify(preset, serializable, 2)}\n`);

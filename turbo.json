@@ -7,7 +7,8 @@
       "outputs": ["dist/**", "panda/**", "storybook-static/**"]
     },
     "check:exports": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/**"]
     },
     "dev": {
       "dependsOn": ["^build", "codegen"],
@@ -36,14 +37,18 @@
         "oxlint.config.ts",
         "packages/*/src/**",
         "packages/*/bin/**",
+        "packages/*/scripts/**",
         "packages/*/test/**",
         "!packages/*/test/gen/**",
-        "packages/config/{oxlint,vite,playwright,kubb,oxfmt}/**",
+        "packages/config/{oxlint,vite,playwright,kubb,oxfmt,tsdown,internal,typescript}/**",
         "packages/*/*.config.ts",
         "packages/*/oxlint-*.mjs",
         "packages/*/vitest.setup.ts",
+        "packages/*/tsconfig.json",
         "apps/*/.storybook/**",
-        "apps/*/*.config.ts"
+        "apps/*/scripts/**",
+        "apps/*/*.config.{ts,mjs,cjs}",
+        "apps/*/tsconfig.json"
       ]
     },
     "format": {},

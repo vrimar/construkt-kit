@@ -11,13 +11,6 @@ import knownCssProperties from "known-css-properties";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pandaCwd = path.join(repoRoot, "packages/ui");
 
-const TOKEN_CATEGORIES = [
-  "aspectRatios", "animations", "assets", "blurs", "borders", "borderWidths",
-  "breakpoints", "colors", "durations", "easings", "fonts", "fontSizes",
-  "fontWeights", "gradients", "letterSpacings", "lineHeights", "opacity",
-  "radii", "shadows", "sizes", "spacing", "zIndex",
-];
-
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "preset-css-"));
 const configPath = path.join(pandaCwd, "panda.check.ts");
 const cssPath = path.join(tmpDir, "out.css");
@@ -51,10 +44,10 @@ try {
 
 const failures = [];
 
-// A resolved token becomes var(--category-key); an unresolved one stays as `category\.key`.
-const tokenPath = new RegExp(
-  `^\\s*([\\w-]+):\\s*(${TOKEN_CATEGORIES.join("|")})\\\\?\\.([\\w.\\\\-]+);`,
-);
+// Unresolved tokens emit verbatim with escaped dots; resolved ones keep them only in var(--sizes-4\.5).
+const declarationValue = /^\s*[^\s:{}]+:\s*(.+);/;
+const customProperty = /--[\w\\.-]+/g;
+const escapedDot = /[\w-]\\\./;
 const TIMING_KEYWORDS = new Set([
   "linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end",
   "inherit", "initial", "unset", "revert",
@@ -62,9 +55,9 @@ const TIMING_KEYWORDS = new Set([
 const timingFn = /^\s*(animation|transition)-timing-function:\s*(.+);/;
 
 css.split("\n").forEach((line, i) => {
-  const token = line.match(tokenPath);
-  if (token) {
-    failures.push({ line: i + 1, text: line.trim(), why: `unresolved ${token[2]} token` });
+  const declared = line.match(declarationValue)?.[1].replace(customProperty, "");
+  if (declared && escapedDot.test(declared)) {
+    failures.push({ line: i + 1, text: line.trim(), why: "unresolved token" });
     return;
   }
   const timing = line.match(timingFn);

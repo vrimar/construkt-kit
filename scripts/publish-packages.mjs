@@ -8,9 +8,9 @@
 // tarball with npm.
 //
 // Publishes every non-private workspace package whose current version isn't yet on
-// the registry, then creates an (unsigned, annotated) git tag per published package
-// so `git push --follow-tags` ships them. Idempotent: re-running skips anything
-// already on npm.
+// the registry, dependencies first, and creates an (unsigned, annotated) git tag for
+// every package version that lacks one so `git push --follow-tags` ships them.
+// Idempotent: re-running skips anything already on npm and only adds missing tags.
 
 import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs'
@@ -21,16 +21,49 @@ const ROOT = process.cwd()
 const run = (cmd, args, opts = {}) =>
   execFileSync(cmd, args, { encoding: 'utf8', ...opts })
 
-function workspacePackageDirs() {
-  const dirs = []
+const DEPENDENCY_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies']
+
+function publishablePackages() {
+  const packages = []
   for (const group of ['packages', 'apps']) {
     const base = join(ROOT, group)
     if (!existsSync(base)) continue
     for (const name of readdirSync(base)) {
-      if (existsSync(join(base, name, 'package.json'))) dirs.push(join(base, name))
+      const manifest = join(base, name, 'package.json')
+      if (!existsSync(manifest)) continue
+      const pkg = JSON.parse(readFileSync(manifest, 'utf8'))
+      if (pkg.name && !pkg.private) packages.push({ dir: join(base, name), pkg })
     }
   }
-  return dirs
+  return packages
+}
+
+function inDependencyOrder(packages) {
+  const byName = new Map(packages.map((entry) => [entry.pkg.name, entry]))
+  const pending = new Map(
+    packages.map(({ pkg }) => [
+      pkg.name,
+      new Set(
+        DEPENDENCY_FIELDS.flatMap((field) => Object.keys(pkg[field] ?? {})).filter(
+          (dep) => dep !== pkg.name && byName.has(dep),
+        ),
+      ),
+    ]),
+  )
+  const ordered = []
+  while (pending.size > 0) {
+    const [next] = [...pending]
+      .filter(([, deps]) => deps.size === 0)
+      .map(([name]) => name)
+      .sort()
+    if (!next) {
+      throw new Error(`Workspace dependency cycle among ${[...pending.keys()].sort().join(', ')}`)
+    }
+    pending.delete(next)
+    for (const deps of pending.values()) deps.delete(next)
+    ordered.push(byName.get(next))
+  }
+  return ordered
 }
 
 function isOnRegistry(name, version) {
@@ -68,15 +101,45 @@ const provenanceArgs = process.env.GITHUB_ACTIONS ? ['--provenance'] : []
 
 const tmp = mkdtempSync(join(tmpdir(), 'ck-publish-'))
 const published = []
+const tagged = []
+const untagged = []
 let skipped = 0
 
-for (const dir of workspacePackageDirs()) {
-  const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
-  if (!pkg.name || pkg.private) continue
+function tagExists(tag) {
+  try {
+    run('git', ['rev-parse', '--quiet', '--verify', `refs/tags/${tag}`], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Tags the version-bump commit, since HEAD may have moved on since that version was published.
+function releaseCommit(dir, version) {
+  const manifest = join(dir, 'package.json')
+  return run('git', ['log', '-1', '--format=%H', '-S', `"version": "${version}"`, '--', manifest]).trim() || 'HEAD'
+}
+
+function tagRelease(tag, commit) {
+  if (tagExists(tag)) return
+  try {
+    run('git', ['-c', 'tag.gpgsign=false', 'tag', '-a', tag, '-m', tag, commit], { stdio: ['ignore', 'pipe', 'pipe'] })
+    console.log(`tag    ${tag}`)
+    tagged.push(tag)
+  } catch (error) {
+    console.error(`tag    ${tag} failed: ${error.stderr?.trim() || error.message}`)
+    untagged.push(tag)
+  }
+}
+
+for (const { dir, pkg } of inDependencyOrder(publishablePackages())) {
+  const tag = `${pkg.name}@${pkg.version}`
+  const commit = releaseCommit(dir, pkg.version)
 
   if (isOnRegistry(pkg.name, pkg.version)) {
-    console.log(`skip   ${pkg.name}@${pkg.version} (already on npm)`)
+    console.log(`skip   ${tag} (already on npm)`)
     skipped++
+    tagRelease(tag, commit)
     continue
   }
 
@@ -88,7 +151,6 @@ for (const dir of workspacePackageDirs()) {
   // stdin stays attached so npm can prompt for the 2FA one-time password.
   const { code, stderr } = await npmPublish([tarball, '--access', 'public', ...provenanceArgs, ...otpArgs])
 
-  const tag = `${pkg.name}@${pkg.version}`
   // npm view lags a fresh publish by minutes, so a concurrent run can slip past the check above.
   const rejectedRepublish = code !== 0 && ALREADY_PUBLISHED.test(stderr)
   if (code !== 0 && !rejectedRepublish) {
@@ -99,11 +161,7 @@ for (const dir of workspacePackageDirs()) {
     skipped++
   }
 
-  try {
-    run('git', ['-c', 'tag.gpgsign=false', 'tag', '-a', tag, '-m', tag])
-  } catch {
-    console.log(`  (tag ${tag} already exists)`)
-  }
+  tagRelease(tag, commit)
   if (!rejectedRepublish) published.push(tag)
 }
 
@@ -113,5 +171,9 @@ if (published.length === 0) {
 } else {
   console.log(`Published ${published.length} package(s):`)
   for (const t of published) console.log(`  ${t}`)
-  console.log('\nNext: git push --follow-tags')
+}
+if (tagged.length > 0) console.log('\nNext: git push --follow-tags')
+if (untagged.length > 0) {
+  console.error(`\nCould not tag ${untagged.join(', ')}; re-run to retry.`)
+  process.exitCode = 1
 }

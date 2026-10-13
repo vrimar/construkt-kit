@@ -107,17 +107,27 @@ writeFileSync(
 );
 
 let output = "";
+let tscError;
 try {
   execFileSync("tsc", ["-p", path.join(probeDir, "tsconfig.json"), "--pretty", "false"], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
 } catch (error) {
+  tscError = error;
   output = `${error.stdout ?? ""}${error.stderr ?? ""}`;
 }
 
+const diagnostics = [...output.matchAll(/probe\.ts\((\d+),\d+\): error (TS\d+): ([^\n]*)/g)];
+if (tscError && diagnostics.length === 0) {
+  console.error(
+    `dist-types: tsc failed without a probe diagnostic:\n${output.trim() || tscError.message}`,
+  );
+  process.exit(1);
+}
+
 const failures = new Map();
-for (const match of output.matchAll(/probe\.ts\((\d+),\d+\): error (TS\d+): ([^\n]*)/g)) {
+for (const match of diagnostics) {
   const owner = lineOwners.get(Number(match[1]));
   if (!owner) {
     console.error(`dist-types: probe error outside a subject: ${match[0]}`);
