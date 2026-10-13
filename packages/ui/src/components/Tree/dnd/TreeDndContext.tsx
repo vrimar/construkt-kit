@@ -167,7 +167,9 @@ export function TreeViewDndProvider<T extends TreeNode>({
   const [announcement, setAnnouncement] = useState("");
   const announceToggle = useRef(false);
 
-  const collectionRef = useLatestRef<TreeCollection<T>>(useTreeViewContext().collection);
+  const tree = useTreeViewContext();
+  const treeRef = useLatestRef(tree);
+  const collectionRef = useLatestRef<TreeCollection<T>>(tree.collection);
   const handlers = useLatestRef({
     onCollectionChange,
     onDrop,
@@ -198,7 +200,8 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
     const allowsDrop = (details: TreeCanDropDetails) => handlers.current.canDrop?.(details) ?? true;
 
-    const dragValuesOf = (value: string) => handlers.current.getDragValues?.(value) ?? [value];
+    const dragValuesOf = (value: string) =>
+      (handlers.current.getDragValues?.(value) ?? [value]).filter(canDrag);
 
     const commit = (details: TreeCanDropDetails): TreeDropDetails<T> | null => {
       if (!allowsDrop(details)) return null;
@@ -209,6 +212,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
         sourceValues,
         targetValue,
         instruction,
+        isBranchLoaded: (value) => treeRef.current.expandedValue.includes(value),
       });
       if (!nextCollection) return null;
 
@@ -247,7 +251,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
     };
 
     return [context, commit] as const;
-  }, [instanceId, enabled, collectionRef, blockReparent, autoExpandDelay, handlers]);
+  }, [instanceId, enabled, collectionRef, treeRef, blockReparent, autoExpandDelay, handlers]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -268,10 +272,17 @@ export function TreeViewDndProvider<T extends TreeNode>({
         const sourceValue = readTreeDragSource(source.data, instanceId);
         const instruction = readTreeDropInstruction(target.data);
         if (sourceValue === null || !instruction) return;
-        commitDrop({ sourceValue, targetValue: String(target.data.value), instruction });
+        const drop = commitDrop({
+          sourceValue,
+          targetValue: String(target.data.value),
+          instruction,
+        });
+        if (drop?.instruction.type === "make-child" && contextValue.autoExpandDelay !== false) {
+          treeRef.current.expand([drop.targetValue]);
+        }
       },
     });
-  }, [instanceId, enabled, contextValue, commitDrop, handlers]);
+  }, [instanceId, enabled, contextValue, commitDrop, handlers, treeRef]);
 
   // Edge auto-scroll; re-binds when the scroll element mounts/changes, constrained to vertical.
   useEffect(() => {

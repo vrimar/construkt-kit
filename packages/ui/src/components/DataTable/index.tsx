@@ -5,18 +5,20 @@ import type {
   Updater,
 } from "@tanstack/react-table";
 import { functionalUpdate, useTable } from "@tanstack/react-table";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 import { Stack } from "#styled-system/jsx";
 import type { JsxStyleProps } from "#styled-system/types";
 
 import { useIsMobile } from "../../hooks";
+import { useLatestRef } from "../../hooks/useLatestRef";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
 import { DataTableProvider, type DataTableContextValue } from "./context";
 import { DataTablePagination } from "./Pagination";
 import type {
   DataTableColumnDef,
+  DataTableFilters,
   DataTableLabels,
   DataTableParams,
   DataTableRow,
@@ -112,6 +114,12 @@ const INTERACTIVE_SELECTOR = [
   "[role=textbox]",
 ].join(", ");
 
+const isSameFilterValue = (a: string[] = [], b: string[] = []) =>
+  a.length === b.length && a.every((item, index) => item === b[index]);
+
+const isSameFilters = (a: DataTableFilters, b: DataTableFilters) =>
+  [...Object.keys(a), ...Object.keys(b)].every((key) => isSameFilterValue(a[key], b[key]));
+
 // Portalled overlays re-dispatch React events through the row without being inside it.
 const isNestedControl = ({ currentTarget, target }: React.SyntheticEvent<HTMLDivElement>) => {
   if (!(target instanceof Element && currentTarget.contains(target))) return true;
@@ -178,6 +186,17 @@ export const DataTable = <TData extends object>({
 
   const pageCount = Math.ceil(totalItems / paginationState.pageSize);
 
+  const latestRef = useLatestRef({ params, onParamChange });
+
+  useEffect(() => {
+    let page = params.page;
+    if (!(page >= 1)) page = 1;
+    else if (!loading && pageCount > 0 && page > pageCount) page = pageCount;
+    if (page !== params.page) {
+      latestRef.current.onParamChange({ ...latestRef.current.params, page });
+    }
+  }, [latestRef, loading, pageCount, params.page]);
+
   const handlePagination = useCallback(
     (updateFn: Updater<PaginationState>) => {
       const state = functionalUpdate(updateFn, paginationState);
@@ -210,14 +229,18 @@ export const DataTable = <TData extends object>({
 
   const handleFilterChange = useCallback(
     (updateFn: Updater<ColumnFiltersState>) => {
-      const filters = functionalUpdate(updateFn, filtersState);
+      const filters: DataTableFilters = Object.fromEntries(
+        functionalUpdate(updateFn, filtersState).map((filter) => [
+          filter.id,
+          filter.value as string[] | undefined,
+        ]),
+      );
+      if (isSameFilters(filters, params.filters)) return;
 
       onParamChange({
         ...params,
         page: 1,
-        filters: Object.fromEntries(
-          filters.map((filter) => [filter.id, filter.value as string[] | undefined]),
-        ),
+        filters,
       });
     },
     [filtersState, onParamChange, params],
@@ -227,6 +250,7 @@ export const DataTable = <TData extends object>({
     features: dataTableFeatures,
     columns: visibleColumns,
     data,
+    getRowCanExpand: renderSubRow ? () => true : undefined,
     pageCount,
     state: {
       sorting: sortingState,
@@ -285,7 +309,10 @@ export const DataTable = <TData extends object>({
         {...styleProps}
       >
         {showCards ? (
-          <DataTableCards table={table} />
+          <DataTableCards
+            table={table}
+            renderSubRow={renderSubRow}
+          />
         ) : (
           <DataTableBody
             table={table}

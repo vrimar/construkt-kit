@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 import { useLatestRef } from "./useLatestRef";
 
 export interface ParsedFile {
+  /** Object URL for `file`; the consumer owns it and must call `URL.revokeObjectURL` when done. */
   source: string;
   name: string;
   size: number;
@@ -26,6 +27,7 @@ function createInput({
   input.type = "file";
   input.accept = accept;
   input.multiple = multiple;
+  input.hidden = true;
   return input;
 }
 
@@ -33,15 +35,6 @@ export const useFileSelect = <TMultiple extends boolean = false>(
   options: UseFileUploadOptions<TMultiple> = {},
 ) => {
   const optionsRef = useLatestRef(options);
-  const urlsRef = useRef<string[]>([]);
-
-  useEffect(() => {
-    return () => {
-      for (const url of urlsRef.current) {
-        URL.revokeObjectURL(url);
-      }
-    };
-  }, []);
 
   return useCallback(() => {
     const { accept = "", multiple = false, onSelect } = optionsRef.current;
@@ -49,11 +42,8 @@ export const useFileSelect = <TMultiple extends boolean = false>(
     const input = createInput({ accept, multiple });
 
     input.onchange = () => {
+      input.remove();
       if (!input.files) return;
-
-      for (const url of urlsRef.current) {
-        URL.revokeObjectURL(url);
-      }
 
       const parsed: ParsedFile[] = Array.from(input.files).map((file) => ({
         source: URL.createObjectURL(file),
@@ -62,18 +52,15 @@ export const useFileSelect = <TMultiple extends boolean = false>(
         file,
       }));
 
-      urlsRef.current = parsed.map((p) => p.source);
-
       if (multiple) {
         (onSelect as (files: ParsedFile[]) => void)?.(parsed);
       } else {
         (onSelect as (file: ParsedFile | null) => void)?.(parsed[0] ?? null);
       }
-
-      input.value = "";
-      input.remove();
     };
+    input.oncancel = () => input.remove();
 
+    document.body.append(input);
     input.click();
   }, [optionsRef]);
 };

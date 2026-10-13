@@ -27,7 +27,8 @@ export interface AvatarFallbackProps extends ComponentProps<typeof StyledFallbac
 const StyledFallback = withContext(ArkAvatar.Fallback, "fallback");
 
 function Fallback({ ref, name, children, asChild, ...rest }: AvatarFallbackProps) {
-  const fallbackContent = children || asChild ? children : name ? getInitials(name) : <UserIcon />;
+  const fallbackContent =
+    children || asChild ? children : (name && getInitials(name)) || <UserIcon />;
 
   return (
     <StyledFallback
@@ -40,11 +41,12 @@ function Fallback({ ref, name, children, asChild, ...rest }: AvatarFallbackProps
   );
 }
 
+const firstChar = (word = "") => Array.from(word)[0] ?? "";
+
 const getInitials = (name: string) => {
-  const names = name.trim().split(" ");
-  const firstName = names[0] || "";
+  const names = name.trim().split(/\s+/);
   const lastName = names.length > 1 ? names[names.length - 1] : "";
-  return firstName && lastName ? `${firstName[0]}${lastName[0]}` : firstName[0];
+  return `${firstChar(names[0])}${firstChar(lastName)}`;
 };
 
 export type AvatarRootProps = ComponentProps<typeof Root>;

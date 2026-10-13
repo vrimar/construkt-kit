@@ -20,15 +20,24 @@ export const ColumnDateFilter = ({ placeholder, value, onChange }: ColumnFilterP
   const current = value[0];
   const malformed = !!current && !parseDateRangeFilter(current);
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(current));
-  const emit = useControlledMirror<string | undefined>({
+  const [appliedValue, setAppliedValue] = useState(current || undefined);
+  const emitToParent = useControlledMirror<string | undefined>({
     value: current || undefined,
     onValueChange: (next) => onChange(next ? [next] : undefined),
-    onExternalChange: (next) => setInternalValue(parseDateValue(next)),
+    onExternalChange: (next) => {
+      setAppliedValue(next);
+      setInternalValue(parseDateValue(next));
+    },
   });
 
   useEffect(() => {
     if (malformed) onChange(undefined);
   }, [malformed, onChange]);
+
+  const emit = (next: string | undefined) => {
+    setAppliedValue(next);
+    emitToParent(next);
+  };
 
   const handleValueChange = (next: DateValue[]) => {
     setInternalValue(next);
@@ -38,10 +47,8 @@ export const ColumnDateFilter = ({ placeholder, value, onChange }: ColumnFilterP
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (!open && internalValue.length === 1) {
-      setInternalValue([]);
-      emit(undefined);
-    }
+    if (!open)
+      setInternalValue((picked) => (picked.length === 1 ? parseDateValue(appliedValue) : picked));
   };
 
   return (

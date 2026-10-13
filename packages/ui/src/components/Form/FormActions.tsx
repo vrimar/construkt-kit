@@ -29,6 +29,7 @@ export const renderFormActions = ({
   cancelButton: (
     <Button
       variant="plain"
+      disabled={loading}
       onClick={onCancel}
     >
       {cancelLabel}

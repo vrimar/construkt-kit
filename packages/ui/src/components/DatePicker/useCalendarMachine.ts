@@ -36,7 +36,7 @@ export function useCalendarMachine(
     numOfMonths = selectionMode === "range" ? 2 : 1,
     startOfWeek = 1,
     locale,
-    timeZone,
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
     fixedWeeks,
     min,
     max,

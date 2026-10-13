@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { usePopoverContext } from "@ark-ui/react/popover";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import { Box, type BoxProps } from "#styled-system/jsx";
 
@@ -24,22 +25,43 @@ interface TagSelectTriggerProps<T> extends BoxProps {
   renderTag?: (item: T) => ReactNode;
 }
 
-function TagSelectTrigger<T>({ renderTag, ...props }: TagSelectTriggerProps<T>) {
+function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTriggerProps<T>) {
   const { managed, hasValue, triggerValue } = useSelectContext();
+  const popover = usePopoverContext();
   const { controller } = managed;
   const selectedItems = controller.selectedItems as T[];
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || event.target !== event.currentTarget) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      event.currentTarget.click();
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      popover.setOpen(true);
+    }
+  };
 
   return (
     <Box
       width="full"
+      role="button"
+      tabIndex={0}
+      borderRadius="md"
+      focusVisibleRing="outside"
       {...props}
+      onKeyDown={handleKeyDown}
     >
       <TagsInput.Root
         cursor="pointer"
         readOnly
         value={controller.encodedValue}
       >
-        <TagsInput.Control outline="none">
+        <TagsInput.Control
+          outline="none"
+          tabIndex={-1}
+        >
           {selectedItems.map((item) => {
             const encodedValue = controller.collection.getItemValue(item) ?? "";
 

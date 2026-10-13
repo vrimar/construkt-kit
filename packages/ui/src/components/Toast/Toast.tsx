@@ -47,8 +47,9 @@ export const toaster: ReturnType<typeof createToaster> = createToaster({
   offsets: {
     top: APP_HEADER_HEIGHT,
     bottom: "0px",
-    left: "0px",
-    right: VIEWPORT_INSET,
+    // zag applies offsets as inline styles, so a responsive class cannot override them
+    left: `var(--toaster-inset-x, ${VIEWPORT_INSET})`,
+    right: `var(--toaster-inset-x, ${VIEWPORT_INSET})`,
   },
 });
 
@@ -58,6 +59,7 @@ export const Toaster = () => {
       <StyledToaster
         toaster={toaster}
         insetInline={{ mdDown: "4" }}
+        css={{ "--toaster-inset-x": { mdDown: "{spacing.4}" } }}
       >
         {(options) => (
           <Root>

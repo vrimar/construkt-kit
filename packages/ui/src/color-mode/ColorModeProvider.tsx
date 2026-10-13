@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
@@ -52,26 +60,36 @@ function readStoredMode(storageKey: string, fallback: ColorMode): ColorMode {
   return isColorMode(stored) ? stored : fallback;
 }
 
+const subscribeToNothing = () => () => {};
+
 export const ColorModeProvider = ({
   children,
   defaultMode = DEFAULT_COLOR_MODE,
   storageKey = COLOR_MODE_STORAGE_KEY,
 }: ColorModeProviderProps) => {
-  const [mode, setModeState] = useState<ColorMode>(() => readStoredMode(storageKey, defaultMode));
+  const storedMode = useSyncExternalStore<ColorMode | null>(
+    subscribeToNothing,
+    () => readStoredMode(storageKey, defaultMode),
+    () => null,
+  );
+  const [chosenMode, setChosenMode] = useState<ColorMode | null>(null);
+  const mode = chosenMode ?? storedMode ?? defaultMode;
   const systemPrefersDark = useMediaQuery("(prefers-color-scheme: dark)");
 
   const resolvedMode: ResolvedColorMode =
     mode === "system" ? (systemPrefersDark ? "dark" : "light") : mode;
 
   useEffect(() => {
+    // Hydrating: keep the pre-paint script's class until storage has been read.
+    if (storedMode === null) return;
     // Reads matchMedia fresh: the hydration snapshot in resolvedMode could strip the script's class.
     applyColorMode(mode, mode);
     return () => applyColorMode("light", "light");
-  }, [mode, resolvedMode]);
+  }, [mode, resolvedMode, storedMode]);
 
   const setMode = useCallback(
     (next: ColorMode) => {
-      setModeState(next);
+      setChosenMode(next);
       safeSetItem(storageKey, next);
     },
     [storageKey],

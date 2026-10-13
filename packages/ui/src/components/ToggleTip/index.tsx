@@ -1,5 +1,5 @@
 import { InfoIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, isValidElement } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { IconButton } from "../Buttons";
@@ -28,7 +28,7 @@ export const ToggleTip = ({
       {...rest}
       positioning={{ gutter: TRIGGER_GUTTER, ...rest.positioning }}
     >
-      <Popover.Trigger asChild>{children}</Popover.Trigger>
+      <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>
       <Popover.Content
         portalled={portalled}
         portalRef={portalRef}

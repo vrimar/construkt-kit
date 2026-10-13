@@ -88,19 +88,22 @@ const withIcons = (
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}
 
-export const ButtonGroup = ({ ref, ...props }: WithRef<ButtonGroupProps>) => {
+export const ButtonGroup = ({ ref, colorPalette, ...props }: WithRef<ButtonGroupProps>) => {
   const [variantProps, otherProps] = button.splitVariantProps(props);
   return (
-    <ButtonPropsProvider value={variantProps}>
+    <ButtonPropsProvider value={{ ...variantProps, colorPalette }}>
       <Group
         ref={ref}
+        colorPalette={colorPalette}
         {...otherProps}
       />
     </ButtonPropsProvider>
   );
 };
 
-const [ButtonPropsProvider, useButtonPropsContext] = createContext<ButtonVariantProps>({
+type ButtonGroupContextProps = ButtonVariantProps & Pick<ButtonProps, "colorPalette">;
+
+const [ButtonPropsProvider, useButtonPropsContext] = createContext<ButtonGroupContextProps>({
   name: "ButtonPropsContext",
   hookName: "useButtonPropsContext",
   providerName: "<PropsProvider />",

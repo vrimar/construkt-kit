@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { Button } from "./Button";
+import { Button, ButtonGroup } from "./Button";
 
 describe("Button", () => {
   it("styles its child when rendered asChild", () => {
@@ -77,5 +77,21 @@ describe("Button", () => {
     const button = screen.getByRole("button", { name: "Save" });
     expect(button.firstElementChild).toBe(screen.getByTestId("left"));
     expect(button.lastElementChild).toBe(screen.getByTestId("right"));
+  });
+
+  it("takes its group's colorPalette unless it sets its own", () => {
+    render(
+      <ButtonGroup colorPalette="danger">
+        <Button>Delete</Button>
+        <Button colorPalette="brand">Keep</Button>
+      </ButtonGroup>,
+    );
+
+    expect(screen.getByRole("button", { name: "Delete" }).className).toMatch(
+      /\bcolor-palette_danger\b/,
+    );
+    const keep = screen.getByRole("button", { name: "Keep" });
+    expect(keep.className).toMatch(/\bcolor-palette_brand\b/);
+    expect(keep.className).not.toMatch(/\bcolor-palette_danger\b/);
   });
 });

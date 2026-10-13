@@ -2,6 +2,9 @@ import type { CollectionItem } from "@ark-ui/react/collection";
 import {
   Combobox as ArkCombobox,
   ComboboxContext,
+  type UseComboboxProps,
+  type UseComboboxReturn,
+  useCombobox as useArkCombobox,
   useComboboxItemContext,
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
@@ -19,9 +22,29 @@ const { withProvider, withContext } = createSlotRecipeContext(combobox);
 
 type RootProps = StyledRootProps<ArkCombobox.RootBaseProps<CollectionItem>> & ComboboxVariantProps;
 
-const Root = withProvider(ArkCombobox.Root, "root", {
-  defaultProps: { positioning: { sameWidth: false } },
-}) as ArkCombobox.RootComponent<RootProps>;
+const StyledRoot = withProvider(ArkCombobox.Root, "root") as ArkCombobox.RootComponent<RootProps>;
+
+function Root<T extends CollectionItem>({
+  positioning,
+  ...props
+}: ArkCombobox.RootComponentProps<T, RootProps>) {
+  return (
+    <StyledRoot
+      positioning={{ sameWidth: false, ...positioning }}
+      {...props}
+    />
+  );
+}
+
+/** `useCombobox` for `Combobox.RootProvider`, sizing the content to its items like `Combobox.Root`. */
+export function useCombobox<T extends CollectionItem>({
+  positioning,
+  ...props
+}: UseComboboxProps<T>): UseComboboxReturn<T> {
+  return useArkCombobox({ ...props, positioning: { sameWidth: false, ...positioning } });
+}
+
+export type { UseComboboxProps, UseComboboxReturn };
 
 const RootProvider = withProvider(
   ArkCombobox.RootProvider,

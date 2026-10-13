@@ -37,7 +37,7 @@ function Items(props: TagsInputItemsProps) {
 
   return context.value.map((item, index) => (
     <Item
-      key={item}
+      key={`${index}:${item}`}
       index={index}
       value={item}
       {...props}

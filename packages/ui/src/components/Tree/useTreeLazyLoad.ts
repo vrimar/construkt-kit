@@ -116,6 +116,11 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     onError?.({ nodes: [{ ...located, error: error as Error }] });
   };
 
+  const carry = (prev: TreeCollection<TNode>, next: TreeCollection<TNode>) => {
+    sourceRef.current = { base: prev, merged: next, loaded: getLoaded(sourceRef.current, prev) };
+    setLineage(sourceRef.current);
+  };
+
   const start = (values: string[], onLoaded: (value: string) => void) => {
     if (!loadChildren) return;
 
@@ -141,5 +146,5 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     }
   };
 
-  return { loadingValues, loadedValues: getLoaded(lineage, collection), needsLoad, start };
+  return { loadingValues, loadedValues: getLoaded(lineage, collection), needsLoad, start, carry };
 }

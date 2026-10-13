@@ -4,6 +4,8 @@ import { type ComponentProps, type KeyboardEvent } from "react";
 import { styled } from "#styled-system/jsx";
 import { textarea } from "#styled-system/recipes";
 
+import { isComposingEvent } from "../imeComposition";
+
 type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
 const BaseTextarea = styled(Field.Textarea, textarea);
 
@@ -37,7 +39,7 @@ export const Textarea = ({
 }: TextareaProps) => {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     onKeyDown?.(e);
-    if (e.defaultPrevented || e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    if (e.defaultPrevented || e.key !== "Enter" || isComposingEvent(e)) return;
     if (onEnter && !e.shiftKey) {
       e.preventDefault();
       onEnter(e);

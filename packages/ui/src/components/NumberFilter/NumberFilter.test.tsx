@@ -1,8 +1,8 @@
 import type { NumberFilterValue } from "@construkt-kit/utils";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Field } from "../Form";
 import { NumberFilter, type NumberFilterProps } from ".";
@@ -33,6 +33,10 @@ const pickOperator = async (triggerLabel: string, itemText: string) => {
 };
 
 describe("NumberFilter", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders the default operator on the trigger", () => {
     renderFilter();
 
@@ -90,6 +94,82 @@ describe("NumberFilter", () => {
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(undefined));
   });
 
+  it.each([
+    ["2,5", 2.5],
+    ["1,0000", 1],
+    ["1.5", 1.5],
+  ])("reads %s as %d", async (text, expected) => {
+    const { onValueChange } = renderFilter();
+
+    await userEvent.type(screen.getByPlaceholderText("Amount"), text);
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({ operator: "eq", value: expected }),
+    );
+  });
+
+  it("replaces an active filter with a leading-comma fraction", async () => {
+    const { onValueChange } = renderFilter({ value: { operator: "eq", value: 100 } });
+
+    await userEvent.tripleClick(screen.getByPlaceholderText("Amount"));
+    await userEvent.paste(",5");
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({ operator: "eq", value: 0.5 }),
+    );
+    expect(onValueChange).not.toHaveBeenCalledWith(undefined);
+  });
+
+  it("treats a comma before three digits as grouping, not a decimal", async () => {
+    const { onValueChange } = renderFilter({ value: { operator: "eq", value: 100 } });
+
+    await userEvent.tripleClick(screen.getByPlaceholderText("Amount"));
+    await userEvent.paste("1,000");
+
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(undefined));
+    expect(onValueChange).not.toHaveBeenCalledWith({ operator: "eq", value: 1 });
+  });
+
+  it("emits a between filter from comma-decimal bounds", async () => {
+    const { onValueChange } = renderFilter({ defaultOperator: "between" });
+
+    await userEvent.type(screen.getByPlaceholderText("From"), "1,5");
+    await userEvent.type(screen.getByPlaceholderText("To"), "2,5");
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({ operator: "between", value: 1.5, to: 2.5 }),
+    );
+  });
+
+  it("keeps comma-decimal text when the parent supplies the same operand", async () => {
+    const Harness = () => {
+      const [value, setValue] = useState<NumberFilterValue | undefined>(undefined);
+      return (
+        <>
+          <NumberFilter
+            placeholder="Amount"
+            value={value}
+            onValueChange={setValue}
+          />
+          <button
+            type="button"
+            onClick={() => setValue({ operator: "gt", value: 2.5 })}
+          >
+            Apply preset
+          </button>
+          <output>{value?.value}</output>
+        </>
+      );
+    };
+    render(<Harness />);
+    const input = screen.getByPlaceholderText("Amount");
+
+    await userEvent.type(input, "2,5");
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("2.5"));
+    await userEvent.click(screen.getByRole("button", { name: "Apply preset" }));
+
+    expect(screen.getByRole("button", { name: "Greater than" })).toBeTruthy();
+    expect(input).toHaveProperty("value", "2,5");
+  });
+
   it("keeps the active filter while a newly picked between is incomplete", async () => {
     const { onValueChange } = renderFilter({ value: { operator: "gte", value: 100 } });
 
@@ -134,6 +214,38 @@ describe("NumberFilter", () => {
 
     rerender(<Harness forced={{ operator: "eq", value: 7 }} />);
     expect(screen.getByPlaceholderText("Amount")).toHaveProperty("value", "7");
+  });
+
+  it("emits a correction typed before an async parent applies the previous value", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const AsyncHarness = () => {
+      const [value, setValue] = useState<NumberFilterValue | undefined>(undefined);
+      return (
+        <>
+          <NumberFilter
+            placeholder="Amount"
+            value={value}
+            onValueChange={(next) => {
+              setTimeout(() => setValue(next), 300);
+            }}
+          />
+          <output>{value?.value}</output>
+        </>
+      );
+    };
+    render(<AsyncHarness />);
+    const input = screen.getByPlaceholderText("Amount");
+
+    await user.type(input, "5");
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    await user.type(input, "6");
+    await act(() => vi.advanceTimersByTimeAsync(0));
+    await user.type(input, "{Backspace}");
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+
+    expect(input).toHaveProperty("value", "5");
+    expect(screen.getByRole("status").textContent).toBe("5");
   });
 
   it("clears both operands and the filter from the clear button", async () => {

@@ -41,4 +41,34 @@ describe("Tooltip", () => {
 
     expect(placement).toBe("right");
   });
+
+  it("wraps text children in a trigger element", () => {
+    render(
+      <Tooltip
+        open
+        label="Jane Doe"
+      >
+        Jane D.
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByText("Jane D.");
+    expect(trigger.tagName).toBe("SPAN");
+    expect(trigger.getAttribute("data-part")).toBe("trigger");
+    expect(screen.getByText("Jane Doe")).not.toBeNull();
+  });
+
+  it.each([null, undefined, false, ""])("renders bare children for label %o", (label) => {
+    render(
+      <Tooltip
+        open
+        label={label}
+      >
+        <button type="button">Trigger</button>
+      </Tooltip>,
+    );
+
+    expect(screen.getByRole("button", { name: "Trigger" }).hasAttribute("data-scope")).toBe(false);
+    expect(document.querySelector("[data-scope='tooltip']")).toBeNull();
+  });
 });

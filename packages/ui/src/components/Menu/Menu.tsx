@@ -4,8 +4,9 @@ import {
   useMenuContext,
   useMenuItemContext,
 } from "@ark-ui/react/menu";
+import { Portal } from "@ark-ui/react/portal";
 import { ChevronRightIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import { Children, type ComponentProps, isValidElement, type ReactNode } from "react";
 
 import { Box, createSlotRecipeContext } from "#styled-system/jsx";
 import { menu } from "#styled-system/recipes";
@@ -15,7 +16,6 @@ import { wrapAsChildContent } from "../asChildContent";
 import { createItemIndicator } from "../itemIndicator";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPlacementRoot } from "../placementRoot";
-import { createPortalledContent } from "../portalledContent";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(menu);
@@ -69,7 +69,35 @@ const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerId);
 
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-const MenuContent = createPortalledContent(Positioner, Content);
+const isArrow = (child: ReactNode) => isValidElement(child) && child.type === Arrow;
+
+function MenuContent({
+  ref,
+  portalled = true,
+  portalRef,
+  children,
+  ...rest
+}: WithRef<MenuContentProps>) {
+  const nodes = Children.toArray(children);
+
+  return (
+    <Portal
+      disabled={!portalled}
+      container={portalRef}
+    >
+      <Positioner>
+        {nodes.filter(isArrow)}
+        <Content
+          animation="none"
+          ref={ref}
+          {...rest}
+        >
+          {nodes.filter((node) => !isArrow(node))}
+        </Content>
+      </Positioner>
+    </Portal>
+  );
+}
 
 function MenuCheckboxItem({
   ref,

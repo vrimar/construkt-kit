@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createDataTableColumnHelper, DataTable } from ".";
 import { createMatchMedia } from "../../_shared/matchMedia";
-import type { DataTableParams } from "./types";
+import type { DataTableParams, DataTableRow } from "./types";
 
 interface Person {
   id: number;
@@ -56,6 +56,41 @@ const rows = () => screen.getAllByRole("row");
 
 const columnTemplate = () =>
   screen.getByRole("table").style.getPropertyValue("--data-table-columns");
+
+const expandableColumns = [
+  columnHelper.accessor("name", { header: "Name" }),
+  columnHelper.display({
+    id: "expand",
+    cell: ({ row }) => (
+      <button
+        type="button"
+        onClick={() => row.toggleExpanded()}
+      >
+        Details
+      </button>
+    ),
+  }),
+];
+
+const renderSubRow = (row: DataTableRow<Person>) => <div>{`Sub-row of ${row.original.name}`}</div>;
+
+const datedColumns = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
+
+const dateTrigger = (container: HTMLElement) => {
+  const trigger = container.querySelector<HTMLElement>(
+    '[data-scope="date-picker"][data-part="trigger"]',
+  );
+  if (!trigger) throw new Error("No date picker trigger");
+  return trigger;
+};
+
+const dayCell = (iso: string) => {
+  const day = document.querySelector<HTMLElement>(
+    `[data-part="table-cell-trigger"][data-view="day"][data-value="${iso}"]`,
+  );
+  if (!day) throw new Error(`No day cell for ${iso}`);
+  return day;
+};
 
 describe("DataTable", () => {
   afterEach(() => {
@@ -190,6 +225,67 @@ describe("DataTable", () => {
 
     expect(screen.getByText("25")).toBeTruthy();
     expect(screen.getByText("3")).toBeTruthy();
+  });
+
+  it("moves a page past the end back to the last page", () => {
+    const { onParamChange } = renderTable({ params: { ...params, page: 3 }, totalItems: 20 });
+
+    expect(onParamChange).toHaveBeenCalledTimes(1);
+    expect(onParamChange).toHaveBeenCalledWith({ ...params, page: 2 });
+  });
+
+  it("waits for loading to finish before moving a page past the end", () => {
+    const onParamChange = vi.fn();
+    const table = (loading: boolean) => (
+      <DataTable
+        data={data}
+        totalItems={20}
+        columnDefs={columns}
+        params={{ ...params, page: 3 }}
+        onParamChange={onParamChange}
+        loading={loading}
+      />
+    );
+    const { rerender } = render(table(true));
+    expect(onParamChange).not.toHaveBeenCalled();
+
+    rerender(table(false));
+    expect(onParamChange).toHaveBeenCalledTimes(1);
+    expect(onParamChange).toHaveBeenCalledWith({ ...params, page: 2 });
+  });
+
+  it("moves a page past the end once while the parent re-renders without applying it", () => {
+    const onParamChange = vi.fn();
+    const table = () => (
+      <DataTable
+        data={data}
+        totalItems={20}
+        columnDefs={columns}
+        params={{ ...params, page: 3 }}
+        onParamChange={(next) => onParamChange(next)}
+      />
+    );
+    const { rerender } = render(table());
+    rerender(table());
+    rerender(table());
+
+    expect(onParamChange).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([0, -1, Number.NaN])("moves page %s to the first page", (page) => {
+    const { onParamChange } = renderTable({ params: { ...params, page } });
+
+    expect(onParamChange).toHaveBeenCalledTimes(1);
+    expect(onParamChange).toHaveBeenCalledWith({ ...params, page: 1 });
+  });
+
+  it.each([
+    ["the page is in range", { params: { ...params, page: 2 }, totalItems: 20 }],
+    ["there are no items", { params: { ...params, page: 3 }, data: [], totalItems: 0 }],
+  ])("keeps the page when %s", (_, overrides) => {
+    const { onParamChange } = renderTable(overrides);
+
+    expect(onParamChange).not.toHaveBeenCalled();
   });
 
   it("hides a column whose meta marks it invisible", () => {
@@ -536,6 +632,127 @@ describe("DataTable", () => {
 
     expect(clickable({})).toHaveLength(0);
     expect(clickable({ onRowClick: vi.fn() })).toHaveLength(data.length);
+  });
+
+  it("expands a row's sub-row from a cell control", async () => {
+    renderTable({
+      columnDefs: expandableColumns,
+      showFiltersRow: false,
+      renderSubRow,
+    });
+
+    expect(screen.queryByText("Sub-row of Alice")).toBeNull();
+    await userEvent.click(screen.getAllByRole("button", { name: "Details" })[0]);
+    expect(screen.getByText("Sub-row of Alice")).toBeTruthy();
+    expect(screen.queryByText("Sub-row of Bob")).toBeNull();
+  });
+
+  it("expands a sub-row in the mobile card layout", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    renderTable({ columnDefs: expandableColumns, mobileLayout: "cards", renderSubRow });
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Details" })[1]);
+    expect(screen.getByText("Sub-row of Bob")).toBeTruthy();
+  });
+
+  it("scrolls the mobile cards back to the top on a page change", () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
+    const cardsTable = (page: number) => (
+      <DataTable
+        data={data}
+        totalItems={25}
+        columnDefs={columns}
+        params={{ ...params, page }}
+        onParamChange={vi.fn()}
+        mobileLayout="cards"
+      />
+    );
+    const { rerender } = render(cardsTable(1));
+    scrollTo.mockClear();
+
+    rerender(cardsTable(2));
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("keeps the column template when getRowProps returns a style", () => {
+    renderTable({ getRowProps: () => ({ style: { opacity: 0.5 } }) });
+
+    const bodyRow = screen.getByText("Alice").closest<HTMLElement>('[role="row"]');
+    expect(bodyRow?.style.opacity).toBe("0.5");
+    expect(bodyRow?.style.gridTemplateColumns).toBe("var(--data-table-columns)");
+    expect(bodyRow?.style.minWidth).toBe("min-content");
+  });
+
+  it("renders a select filter whose selections repeat a value", async () => {
+    renderTable({ selections: { role: ["Admin", "Admin", "User"] } });
+
+    await userEvent.click(screen.getByRole("button", { name: "Filter by Role" }));
+    expect(await screen.findAllByRole("option", { name: "Admin" })).toHaveLength(1);
+  });
+
+  it("spans group headers over their columns with a single filter row", () => {
+    const grouped = [
+      columnHelper.accessor("id", { header: "ID", enableSorting: true }),
+      columnHelper.group({
+        id: "person",
+        header: "Person",
+        columns: columnHelper.columns([
+          columnHelper.accessor("name", { header: "Name" }),
+          columnHelper.accessor("role", { header: "Role" }),
+        ]),
+      }),
+    ];
+    renderTable({ columnDefs: grouped });
+
+    const person = screen.getByRole("columnheader", { name: "Person" });
+    expect(person.style.gridColumn).toBe("span 2");
+    expect(person.getAttribute("aria-colspan")).toBe("2");
+    expect(screen.getAllByRole("button", { name: "Sort by ID" })).toHaveLength(1);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+    for (const placeholder of ["Filter by ID", "Filter by Name", "Filter by Role"])
+      expect(screen.getAllByPlaceholderText(placeholder)).toHaveLength(1);
+    expect(rows()).toHaveLength(2 + 1 + data.length);
+  });
+
+  it("keeps the page when a filter reset changes nothing", async () => {
+    const { onParamChange } = renderTable({
+      params: { ...params, page: 3 },
+      selections: { role: ["Admin", "User"] },
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Filter by Role" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Reset" }));
+    expect(onParamChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps the applied date range when the picker closes mid-selection", async () => {
+    const { onParamChange, container } = renderTable({
+      columnDefs: datedColumns,
+      params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
+    });
+
+    await userEvent.click(dateTrigger(container));
+    await userEvent.click(dayCell("2024-01-10"));
+    await userEvent.keyboard("{Escape}");
+
+    expect(onParamChange).not.toHaveBeenCalled();
+    expect(dateTrigger(container).textContent).toBe("2024-01-01 – 2024-01-31");
+  });
+
+  it("applies a date range picked in the filter", async () => {
+    const { onParamChange, container } = renderTable({
+      columnDefs: datedColumns,
+      params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
+    });
+
+    await userEvent.click(dateTrigger(container));
+    await userEvent.click(dayCell("2024-01-10"));
+    await userEvent.click(dayCell("2024-01-12"));
+
+    expect(onParamChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filters: { name: ["2024-01-10<>2024-01-12"] } }),
+    );
   });
 
   it("labels mobile cards with a rendered header", () => {

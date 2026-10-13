@@ -15,6 +15,7 @@ export interface SubmitDialogProps {
   onSubmit?: () => unknown;
   submitLabel?: string;
   submitButtonProps?: Unstyled<ButtonProps>;
+  /** Spins the submit button and keeps the dialog open: Cancel, the close button and Esc do nothing. */
   loading?: boolean;
   submitDisabled?: boolean;
   onClose?: () => unknown;
@@ -59,7 +60,7 @@ export const SubmitDialog = ({
     <Dialog.Root
       open={open}
       onOpenChange={(e) => {
-        if (!e.open) onClose?.();
+        if (!e.open && !loading) onClose?.();
       }}
       closeOnInteractOutside={false}
       // Stay open when the popover or menu that opened it closes.
@@ -95,7 +96,7 @@ export const SubmitDialog = ({
             </Dialog.Footer>
           )}
         </styled.form>
-        <Dialog.CloseTrigger />
+        <Dialog.CloseTrigger disabled={loading} />
       </Dialog.Content>
     </Dialog.Root>
   );

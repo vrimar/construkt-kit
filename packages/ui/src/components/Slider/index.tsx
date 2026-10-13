@@ -1,5 +1,5 @@
 import { ark } from "@ark-ui/react/factory";
-import { Slider as ArkSlider } from "@ark-ui/react/slider";
+import { Slider as ArkSlider, useSliderContext } from "@ark-ui/react/slider";
 import type { ComponentProps, ReactNode } from "react";
 
 import { HStack, createSlotRecipeContext } from "#styled-system/jsx";
@@ -8,7 +8,7 @@ import { slider } from "#styled-system/recipes";
 const { withProvider, withContext } = createSlotRecipeContext(slider);
 
 type RootProps = ComponentProps<typeof Root>;
-const Root = withProvider(ArkSlider.Root, "root");
+const Root = withProvider(ArkSlider.Root, "root", { forwardProps: ["orientation"] });
 const Control = withContext(ArkSlider.Control, "control");
 const Label = withContext(ArkSlider.Label, "label");
 const Marker = withContext(ArkSlider.Marker, "marker");
@@ -26,9 +26,20 @@ export interface SliderProps extends RootProps {
   showValue?: boolean;
 }
 
-export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: SliderProps) => {
-  const value = rest.defaultValue ?? rest.value;
+function Thumbs() {
+  const { value } = useSliderContext();
 
+  return value.map((_, index) => (
+    <Thumb
+      key={index}
+      index={index}
+    >
+      <HiddenInput />
+    </Thumb>
+  ));
+}
+
+export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: SliderProps) => {
   const marks = marksProp?.map((mark) =>
     typeof mark === "number" ? { value: mark, label: undefined } : mark,
   );
@@ -41,9 +52,9 @@ export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: Sli
       thumbAlignment="center"
       {...rest}
     >
-      {label && (
-        <HStack justify="space-between">
-          <Label>{label}</Label>
+      {(label || showValue) && (
+        <HStack justify={label ? "space-between" : "flex-end"}>
+          {label && <Label>{label}</Label>}
           {showValue && <ValueText />}
         </HStack>
       )}
@@ -51,16 +62,9 @@ export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: Sli
         <Track>
           <Range />
         </Track>
-        {value?.map((_, index) => (
-          <Thumb
-            key={index}
-            index={index}
-          >
-            <HiddenInput />
-          </Thumb>
-        ))}
+        <Thumbs />
       </Control>
-      {marks?.length && (
+      {marks && marks.length > 0 && (
         <MarkerGroup>
           {marks.map((mark, index) => (
             <Marker

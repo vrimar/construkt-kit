@@ -17,7 +17,7 @@ import { encodeSelectionValue } from "./useSelectionController";
 
 interface ContractProps
   extends
-    Pick<ManagedSelectionProps<Produce, number>, "search" | "groupBy">,
+    Pick<ManagedSelectionProps<Produce, number>, "search" | "groupBy" | "isItemDisabled">,
     Pick<ManagedListOptions<Produce, number>, "indicatorPosition" | "renderItemActions"> {
   value?: number[];
 }
@@ -165,6 +165,51 @@ describe.each(wrappers)("$name selection contract", (wrapper) => {
     expect(onAction).toHaveBeenCalledOnce();
     expect(onValueChange).not.toHaveBeenCalled();
   });
+
+  it.each(["{Enter}", " "])(
+    "keeps %o on an item action from picking the highlighted option",
+    async (key) => {
+      const onAction = vi.fn();
+      const { onValueChange } = renderWrapper({
+        search: false,
+        renderItemActions: (item) => (
+          <button
+            type="button"
+            onClick={onAction}
+          >
+            Edit {item.name}
+          </button>
+        ),
+      });
+
+      screen.getByRole("listbox").focus();
+      await userEvent.keyboard("{ArrowDown}");
+      expect(highlightedValue()).toBe(encodeSelectionValue(2));
+      screen.getByRole("button", { name: "Edit Banana" }).focus();
+      await userEvent.keyboard(key);
+      await wrapper.commit?.();
+      expect(onAction).toHaveBeenCalledOnce();
+      expect(onValueChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it.runIf(wrapper.mode === "multiple")(
+    "selects with Ctrl+A only the enabled options the search shows",
+    async () => {
+      const { onValueChange } = renderWrapper({
+        value: [2],
+        isItemDisabled: (item) => item.id === 3,
+        search: { filter: (item) => item.id !== 2 },
+      });
+
+      await userEvent.type(screen.getByRole("textbox"), "x");
+      expect(optionValues()).toEqual(encodedValues(1, 3));
+      screen.getByRole("listbox").focus();
+      await userEvent.keyboard("{Control>}a{/Control}");
+      await wrapper.commit?.();
+      expect(onValueChange).toHaveBeenCalledExactlyOnceWith([2, 1]);
+    },
+  );
 
   it("filters through the search option's placeholder and filter", async () => {
     renderWrapper({

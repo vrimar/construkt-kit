@@ -3,9 +3,49 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { SubmitDialog } from "../Dialog";
+import { Drawer } from "../Drawer";
 import { SubmitForm } from "./SubmitForm";
 
 describe("SubmitForm", () => {
+  it("does not submit a form that renders it through a portal", async () => {
+    const onOuterSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+    const onSubmit = vi.fn();
+    render(
+      <form onSubmit={onOuterSubmit}>
+        <Drawer.Root open>
+          <Drawer.Content>
+            <SubmitForm
+              onSubmit={onSubmit}
+              onCancel={vi.fn()}
+            >
+              Body
+            </SubmitForm>
+          </Drawer.Content>
+        </Drawer.Root>
+      </form>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(onOuterSubmit).not.toHaveBeenCalled();
+  });
+
+  it("locks Cancel while loading", async () => {
+    const onCancel = vi.fn();
+    render(
+      <SubmitForm
+        onSubmit={vi.fn()}
+        onCancel={onCancel}
+        loading
+      >
+        Body
+      </SubmitForm>,
+    );
+    const cancel = screen.getByRole<HTMLButtonElement>("button", { name: "Cancel" });
+    expect(cancel.disabled).toBe(true);
+    await userEvent.click(cancel);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
   it("labels its buttons with submitLabel and cancelLabel", async () => {
     const onSubmit = vi.fn();
     const onCancel = vi.fn();

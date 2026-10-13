@@ -53,7 +53,7 @@ function Items(props: ItemsProps) {
   return acceptedFiles.map((file) => (
     <Item
       file={file}
-      key={file.name}
+      key={`${file.name}|${file.size}|${file.type}|${file.lastModified}`}
       {...rest}
     >
       <ItemPreview />

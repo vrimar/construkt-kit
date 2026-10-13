@@ -59,13 +59,14 @@ export const replaceNodeChildren = <TNode extends TreeNode>(
 export const collectCheckableBranches = <TNode extends TreeNode>(
   collection: TreeCollection<TNode>,
   leafValues: ReadonlySet<string>,
+  selectableLeafValues: ReadonlySet<string>,
 ) => {
   const values = new Set<string>();
 
   const visit = (node: TNode): { hasLeaf: boolean; hasEmptiedBranch: boolean } => {
     if (!collection.isBranchNode(node)) {
-      const isLeaf = leafValues.has(collection.getNodeValue(node));
-      return { hasLeaf: isLeaf, hasEmptiedBranch: !isLeaf };
+      const value = collection.getNodeValue(node);
+      return { hasLeaf: selectableLeafValues.has(value), hasEmptiedBranch: !leafValues.has(value) };
     }
 
     let hasLeaf = false;

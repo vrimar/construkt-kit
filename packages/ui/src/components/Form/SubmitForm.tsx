@@ -42,6 +42,8 @@ export const SubmitForm = ({
       {...{ noValidate: true }}
       onSubmit={(e) => {
         e.preventDefault();
+        // Inside a portal (a Drawer, say), React still bubbles submit to an outer form.
+        e.stopPropagation();
         onSubmit();
       }}
       {...props}

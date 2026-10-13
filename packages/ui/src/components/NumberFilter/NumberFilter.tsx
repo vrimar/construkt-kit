@@ -48,25 +48,36 @@ export interface NumberFilterProps {
 
 const ALL_OPERATORS: NumberFilterOperator[] = [...NUMBER_FILTER_OPERATORS];
 
+// A comma before exactly three digits is en grouping ("1,000"), never a decimal.
+const DECIMAL_COMMA = /^([^.,]*),(?!\d{3}$)([^.,]*)$/;
+
+function parseOperand(text: string): number | undefined {
+  const normalized = text.trim().replace(DECIMAL_COMMA, "$1.$2");
+  return isValidNumber(normalized) ? Number(normalized) : undefined;
+}
+
 function deriveValue(
   operator: NumberFilterOperator,
   fromText: string,
   toText: string,
 ): NumberFilterValue | undefined {
-  if (!isValidNumber(fromText)) return undefined;
-  const from = Number(fromText);
+  const from = parseOperand(fromText);
+  if (from === undefined) return undefined;
   if (operator !== "between") return { operator, value: from };
-  if (!isValidNumber(toText)) return undefined;
-  return { operator, value: from, to: Number(toText) };
+  const to = parseOperand(toText);
+  if (to === undefined) return undefined;
+  return { operator, value: from, to };
 }
 
 const isSameValue = (a: NumberFilterValue | undefined, b: NumberFilterValue | undefined) =>
   a?.operator === b?.operator && Object.is(a?.value, b?.value) && Object.is(a?.to, b?.to);
 
-const textMatches = (text: string, operand: number | undefined) =>
-  isValidNumber(text) && Object.is(Number(text), operand);
+const textMatches = (text: string, operand: number | undefined) => {
+  const parsed = parseOperand(text);
+  return parsed !== undefined && Object.is(parsed, operand);
+};
 
-const isInvalidText = (text: string) => text.trim() !== "" && !isValidNumber(text);
+const isInvalidText = (text: string) => text.trim() !== "" && parseOperand(text) === undefined;
 
 export const NumberFilter = ({
   value,
@@ -91,12 +102,14 @@ export const NumberFilter = ({
   );
   const [fromText, setFromText] = useState(value ? String(value.value) : "");
   const [toText, setToText] = useState(value?.operator === "between" ? String(value.to) : "");
+  const [appliedValue, setAppliedValue] = useState(value);
 
-  const emit = useControlledMirror({
+  const emitToParent = useControlledMirror({
     value,
     onValueChange,
     isSame: isSameValue,
     onExternalChange: (next) => {
+      setAppliedValue(next);
       if (!next) {
         setFromText("");
         setToText("");
@@ -110,12 +123,17 @@ export const NumberFilter = ({
     },
   });
 
+  const emit = (next: NumberFilterValue | undefined) => {
+    setAppliedValue(next);
+    emitToParent(next);
+  };
+
   useDebounce(
     () => {
       const candidate = deriveValue(operator, fromText, toText);
       if (candidate) {
-        if (!isSameValue(candidate, value)) emit(candidate);
-      } else if (value && (isInvalidText(fromText) || isInvalidText(toText))) {
+        if (!isSameValue(candidate, appliedValue)) emit(candidate);
+      } else if (appliedValue && (isInvalidText(fromText) || isInvalidText(toText))) {
         emit(undefined);
       }
     },
@@ -125,19 +143,19 @@ export const NumberFilter = ({
 
   const handleTextChange = (setText: (text: string) => void, text: string) => {
     setText(text);
-    if (text.trim() === "" && value) emit(undefined);
+    if (text.trim() === "" && appliedValue) emit(undefined);
   };
 
   const handleClear = () => {
     setFromText("");
     setToText("");
-    if (value) emit(undefined);
+    if (appliedValue) emit(undefined);
   };
 
   const handleOperatorChange = (next: NumberFilterOperator) => {
     setOperator(next);
     const candidate = deriveValue(next, fromText, toText);
-    if (candidate && !isSameValue(candidate, value)) emit(candidate);
+    if (candidate && !isSameValue(candidate, appliedValue)) emit(candidate);
   };
 
   const labelFor = (op: NumberFilterOperator) => labelOverrides?.[op] ?? operatorLabels[op];

@@ -23,6 +23,7 @@ import {
 } from "./TreeDndContext";
 import { TreeDragPreview } from "./TreeDragPreview";
 import {
+  canNestInto,
   getItemMode,
   instructionLevel,
   isDescendantValue,
@@ -86,13 +87,20 @@ function contentAlignedTarget(element: Element, baseInset: number): Element {
   return { getBoundingClientRect: () => rect } as unknown as Element;
 }
 
+const isRtl = (element: Element) => getComputedStyle(element).direction === "rtl";
+
+function mirrorForRtl<I extends { clientX: number }>(input: I, element: Element): I {
+  if (!isRtl(element)) return input;
+  const { left, right } = element.getBoundingClientRect();
+  return { ...input, clientX: left + right - input.clientX };
+}
+
 /** Logical keyboard reorder for an arrow key, honoring the element's writing direction. */
 function keyboardMoveForKey(key: string, element: HTMLElement): TreeKeyboardMove | undefined {
   if (key === "ArrowUp") return "up";
   if (key === "ArrowDown") return "down";
   if (key === "ArrowRight" || key === "ArrowLeft") {
-    const rtl = getComputedStyle(element).direction === "rtl";
-    const towardStart = rtl ? "ArrowRight" : "ArrowLeft";
+    const towardStart = isRtl(element) ? "ArrowRight" : "ArrowLeft";
     return key === towardStart ? "outdent" : "indent";
   }
   return undefined;
@@ -142,7 +150,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
     // Keyboard reorder (Ctrl/Cmd + arrows) attached natively so it composes with Ark's own
     // arrow-key navigation. Routes through moveByKeyboard so it obeys the same guards as drops.
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (!(event.ctrlKey || event.metaKey)) return;
+      if (event.target !== element || !(event.ctrlKey || event.metaKey)) return;
       const move = keyboardMoveForKey(event.key, element);
       if (!move) return;
       const drop = dnd.moveByKeyboard(value, move);
@@ -198,13 +206,16 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           });
           const block: Instruction["type"][] = [];
           if (blockReparent) block.push("reparent");
-          if (!isBranch) block.push("make-child"); // never nest into a leaf
+          const collection = collectionRef.current;
+          if (!canNestInto(collection, collection.at(indexPath), expanded)) {
+            block.push("make-child");
+          }
           const indent = readCssLengthPx(el, "--tree-indent", FALLBACK_INDENT_PER_LEVEL);
           const baseInset = readCssLengthPx(el, "--tree-padding-inline", 0);
           return attachInstruction(
             { [TREE_DND_INSTANCE_KEY]: instanceId, value },
             {
-              input,
+              input: mirrorForRtl(input, el),
               element: contentAlignedTarget(el, baseInset),
               currentLevel: indexPath.length - 1,
               indentPerLevel: indent,
@@ -239,18 +250,9 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           clearExpandTimer();
           setInstruction(null);
         },
-        onDrop: ({ self }) => {
+        onDrop: () => {
           clearExpandTimer();
           setInstruction(null);
-          // Reveal the moved node if it was nested into a collapsed branch.
-          const dropped = readTreeDropInstruction(self.data);
-          if (
-            autoExpandDelay !== false &&
-            dropped?.type === "make-child" &&
-            !snapshotRef.current.expanded
-          ) {
-            apiRef.current.expand([value]);
-          }
         },
       }),
     );

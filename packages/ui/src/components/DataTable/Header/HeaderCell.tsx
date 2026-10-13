@@ -13,7 +13,7 @@ interface HeaderCellProps<TData extends object> {
 
 export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
   const labelId = useId();
-  const column = header.column;
+  const { column, colSpan, isPlaceholder } = header;
   const sortable = column.getCanSort();
   const sort = column.getIsSorted();
   const label = column.columnDef.header;
@@ -31,8 +31,9 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   return (
     <Box
       role="columnheader"
-      aria-sort={ariaSort}
-      aria-labelledby={labelId}
+      aria-sort={isPlaceholder ? undefined : ariaSort}
+      aria-labelledby={isPlaceholder ? undefined : labelId}
+      aria-colspan={colSpan > 1 ? colSpan : undefined}
       display="flex"
       alignItems="center"
       px="2"
@@ -43,23 +44,26 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
+      style={{ gridColumn: `span ${colSpan}` }}
     >
-      <Box
-        position="relative"
-        display="flex"
-        alignItems="center"
-        minWidth="0"
-        style={{ maxWidth: labelMaxWidth }}
-      >
-        <Text
-          id={labelId}
-          truncate
-          title={typeof label === "string" ? label : undefined}
+      {!isPlaceholder && (
+        <Box
+          position="relative"
+          display="flex"
+          alignItems="center"
+          minWidth="0"
+          style={{ maxWidth: labelMaxWidth }}
         >
-          {flexRender(label, header.getContext())}
-        </Text>
-        <ColumnSorter header={header} />
-      </Box>
+          <Text
+            id={labelId}
+            truncate
+            title={typeof label === "string" ? label : undefined}
+          >
+            {flexRender(label, header.getContext())}
+          </Text>
+          <ColumnSorter header={header} />
+        </Box>
+      )}
     </Box>
   );
 };

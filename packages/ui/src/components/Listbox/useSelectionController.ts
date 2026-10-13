@@ -120,6 +120,7 @@ export interface SelectionController<T, V extends SelectionValue> {
   getItemsByValue: (values: readonly SelectionValue[]) => T[];
   handleValueChange: (details: SelectionValueChangeDetails) => void;
   getItemState: (item: T) => SelectionItemState<V>;
+  getSelectAllState: () => SelectAllState;
   search: SelectionSearchState;
 }
 
@@ -231,6 +232,15 @@ export function useSelectionController<T, V extends SelectionValue>({
     [getItemValue, isItemDisabled, selectedSet],
   );
 
+  const getShownSelectAllState = useCallback(
+    () =>
+      getSelectAllState(
+        encodedValue,
+        collection.getValues(collection.items.filter((item) => !collection.getItemDisabled(item))),
+      ),
+    [collection, encodedValue],
+  );
+
   const setQuery = useCallback(
     (nextQuery: string) => {
       if (searchOptionsRef.current?.query == null) setInternalQuery(nextQuery);
@@ -255,6 +265,7 @@ export function useSelectionController<T, V extends SelectionValue>({
     getItemsByValue,
     handleValueChange,
     getItemState,
+    getSelectAllState: getShownSelectAllState,
     search: {
       showInput: searchOptions != null && searchOptions.showInput !== false,
       query,

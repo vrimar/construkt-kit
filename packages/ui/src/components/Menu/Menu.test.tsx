@@ -11,6 +11,25 @@ const openMenu = async () => {
 };
 
 describe("Menu", () => {
+  it("renders an arrow outside the scrolling content so it is not clipped", async () => {
+    render(
+      <Menu.Root>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Arrow />
+          <Menu.Item value="settings">Settings</Menu.Item>
+        </Menu.Content>
+      </Menu.Root>,
+    );
+
+    const menu = await openMenu();
+    const arrow = document.querySelector('[data-scope="menu"][data-part="arrow"]');
+    expect(arrow).not.toBeNull();
+    expect(menu.contains(arrow)).toBe(false);
+    expect(arrow?.parentElement).toBe(menu.parentElement);
+    expect(screen.getByRole("menuitem", { name: "Settings" }).parentElement).toBe(menu);
+  });
+
   it("renders an asChild link as the menu item itself", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     render(

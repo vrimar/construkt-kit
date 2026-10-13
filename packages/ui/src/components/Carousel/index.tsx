@@ -3,17 +3,25 @@ import {
   CarouselContext,
   useCarouselContext,
 } from "@ark-ui/react/carousel";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ComponentType } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { carousel } from "#styled-system/recipes";
+import { token } from "#styled-system/tokens";
 
 const { withProvider, withContext } = createSlotRecipeContext(carousel);
 
-const Root = withProvider(ArkCarousel.Root, "root", {
-  forwardProps: ["page"],
-  defaultProps: { spacing: "4" },
+const StyledRoot = withProvider(ArkCarousel.Root, "root", {
+  forwardProps: ["page", "padding"],
+  defaultProps: { spacing: token.var("spacing.4") },
 });
+
+export type CarouselRootProps = Omit<ComponentProps<typeof StyledRoot>, "padding"> & {
+  // oxlint-disable-next-line construkt/no-style-prop-name
+  padding?: string;
+};
+
+const Root = StyledRoot as ComponentType<CarouselRootProps>;
 const RootProvider = withProvider(ArkCarousel.RootProvider, "root");
 const AutoplayTrigger = withContext(ArkCarousel.AutoplayTrigger, "autoplayTrigger");
 const Control = withContext(ArkCarousel.Control, "control");
@@ -41,8 +49,6 @@ function IndicatorGroup({ ref, ...props }: ComponentProps<typeof StyledIndicator
     </StyledIndicatorGroup>
   );
 }
-
-export type CarouselRootProps = ComponentProps<typeof Root>;
 
 export const Carousel = {
   Root,

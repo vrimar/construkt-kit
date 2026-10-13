@@ -12,6 +12,7 @@ export type ScrollToIndexRef = { current: ((index: number) => void) | undefined 
 
 export interface ManagedListbox<T, V extends SelectionValue> {
   controller: SelectionController<T, V>;
+  selectionMode: "single" | "multiple";
   virtual: boolean;
   scrollToIndexRef: ScrollToIndexRef;
   inputRef: RefObject<HTMLInputElement | null>;
@@ -37,6 +38,7 @@ export function useManagedListbox<T, V extends SelectionValue>({
   const { selectionMode } = options;
   const managed: ManagedListbox<T, V> = {
     controller,
+    selectionMode,
     virtual: virtualized,
     scrollToIndexRef,
     inputRef,
@@ -50,6 +52,7 @@ export function useManagedListbox<T, V extends SelectionValue>({
       onValueChange: controller.handleValueChange,
       selectionMode,
       deselectable: selectionMode === "single" ? false : undefined,
+      disallowSelectAll: true,
       scrollToIndexFn: virtualized
         ? (details: ListboxScrollToIndexDetails) => scrollToIndexRef.current?.(details.index)
         : scrollToIndexFn,

@@ -8,6 +8,8 @@ export type WithTooltipProps = {
   tooltipProps?: Omit<TooltipProps, "children" | "label" | "ids">;
 };
 
+const TOOLTIP_STATE_ATTRIBUTES = ["data-state", "data-expanded", "data-scope", "data-part"];
+
 export type TooltipTriggerComponent<T extends ElementType> = (
   props: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>,
 ) => ReactElement;
@@ -19,6 +21,12 @@ export function withTriggerTooltip<T extends ElementType>(
 ): TooltipTriggerComponent<T> {
   const TriggerElement: ElementType = StyledTrigger;
 
+  function TooltipTarget(props: Record<string, unknown>) {
+    const triggerProps = { ...props };
+    for (const key of TOOLTIP_STATE_ATTRIBUTES) delete triggerProps[key];
+    return <TriggerElement {...triggerProps} />;
+  }
+
   return function TooltipTrigger({
     tooltip,
     tooltipProps,
@@ -26,9 +34,10 @@ export function withTriggerTooltip<T extends ElementType>(
     ...rest
   }: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>): ReactElement {
     const triggerId = useTriggerId((rest as { value?: string }).value ?? "");
-    const trigger = <TriggerElement {...rest}>{children}</TriggerElement>;
 
-    if (tooltip == null || tooltip === false) return trigger;
+    if (tooltip == null || tooltip === false) {
+      return <TriggerElement {...rest}>{children}</TriggerElement>;
+    }
 
     return (
       <Tooltip
@@ -36,7 +45,7 @@ export function withTriggerTooltip<T extends ElementType>(
         label={tooltip}
         {...tooltipProps}
       >
-        {trigger}
+        <TooltipTarget {...rest}>{children}</TooltipTarget>
       </Tooltip>
     );
   };

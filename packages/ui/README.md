@@ -37,7 +37,7 @@
 | `useAutoFocus`                          | Auto-focus + optional select on mount                           |
 | `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes |
 | `useDebounceQuery`                      | Immediate + debounced search query state                        |
-| `useFileSelect`                         | Opens native file picker, returns parsed files                  |
+| `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files  |
 | `useMediaQuery`                         | Subscribe to a CSS media query                                  |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
 | `useIsMobile`                           | Whether the viewport is below the `md` breakpoint               |
@@ -84,6 +84,7 @@ One-liner. Use when wrapping a single element with a recipe:
 
 ```tsx
 import { ark } from "@ark-ui/react/factory";
+
 import { styled } from "#styled-system/jsx";
 import { badge } from "#styled-system/recipes";
 
@@ -207,11 +208,11 @@ Semantic token layers: `bg.*`, `fg.*`, `border.*`, `neutral.*`, `colorPalette.*`
 
 The theme redefines standard pseudo-selectors:
 
-| Condition           | Behavior                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------ |
-| `_hover`, `_active` | Exclude `:disabled` — disabled elements don't show hover/active                                  |
-| `_checked`          | Matches 4 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]` |
-| `_light`            | `:root &, .light &` — explicit light mode                                                        |
+| Condition           | Behavior                                                                                                                                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_hover`, `_active` | Also match `[data-hover]`/`[data-active]`, and skip `:disabled` and `[data-disabled]`. Panda emits them last, so nest `_hover` in `_checked`, `_selected` or `_on` to keep that state's look on hover |
+| `_checked`          | Matches 5 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]`, `[data-state=indeterminate]`                                                                        |
+| `_light`            | `:where(:root, .light) &` — explicit light mode, which `_dark` overrides                                                                                                                              |
 
 ### Dark mode
 
@@ -319,6 +320,49 @@ prebuilt binaries ship as optional dependencies, so the script can stay off:
 allowBuilds:
   "@parcel/watcher": false
 ```
+
+#### Upgrading from 0.9
+
+- `_dark` overrides `_light` in dark mode, and `_hover`/`_active` also match `[data-hover]`/`[data-active]` and never
+  `[data-disabled]`; see [Condition Overrides](#condition-overrides)
+- `Carousel.Root` `padding` is the carousel's own, a CSS length that insets the slides, not a style prop; pad the root
+  with `p`
+- `ActionBar.Content` floats in a fixed bar at the bottom centre of the viewport instead of a popover positioner, so
+  `ActionBar.Root` drops `placement` and `positioning`. The bar is a region labelled "Selection actions" (pass
+  `aria-label` to rename it) rather than a dialog, and no longer closes on an outside click or takes focus when it opens
+- Solid `green`, `orange`, `yellow`, `teal` and `cyan`, and so `success` and `warning`, take dark text and hover
+  lighter in light mode: white text on them fell below WCAG AA
+- While `loading`, `SubmitDialog`, `DeleteDialog` and `SubmitForm` disable Cancel and the close button, and the dialog
+  ignores Escape and outside clicks
+- `Calendar`, `DatePicker` and `DatePickerSelect` default `timeZone` to the user's zone instead of UTC, which moves
+  "today" and the range presets for users away from UTC
+- Under SSR, `ColorModeProvider` renders `defaultMode` and switches to the stored mode once hydrated
+- Ctrl/Cmd+A in a multiple `Listbox` or `Select` selects the enabled items the search shows and keeps hidden
+  selections, like the select-all button
+- `TreeSelectList`: Space checks a row and Enter a leaf. A branch checkbox toggles only the checkable, enabled leaves
+  under it, a branch with none has no checkbox, and select-all skips disabled leaves
+- Drags leave out nodes `isNodeDraggable` rejects, and nesting into a lazy branch that hasn't loaded its children is
+  refused; `applyTreeDrop` takes `isBranchLoaded` for branches you know have loaded
+- `Tooltip` with an empty `label` renders only its children, and text children get a `<span>` trigger. `ToggleTip`
+  puts text children in a button
+- `DataTable` keeps the page when a filter reset changes nothing, and a `style` from `getRowProps` no longer replaces
+  the row's grid columns
+- `DataTable` moves to the last page through `onParamChange` when `params.page` is past it once loading ends
+- `Pagination.Root` takes `page`, which used to go to CSS
+- `useFileSelect` leaves each `ParsedFile.source` to you: revoke it with `URL.revokeObjectURL` once you are done
+- `DisplayValue` shows the dash when `formatValue` returns `null` or `undefined`. `formatValue` is required unless the
+  value is a string, number, bigint, boolean or an array of those, so `Date` and object values need one, and
+  `DisplayValueProps` is a type alias
+- `NumberFilter` reads a single comma as the decimal separator (`2,5`) unless exactly three digits follow it (`1,000`
+  stays invalid)
+- `VirtualScrollArea` counts the content above the list, such as `header`, in each `virtualItem`'s `start` and `end`
+- Invalid `Checkbox`, `CheckboxCard`, `RadioGroup` and `RadioCardGroup` controls show a red ring in every variant
+  instead of a red fill on solid only
+- `Fieldset.Root` stacks its children at every width, with the root's gap below the legend
+- Pinned and sticky `Table` cells take their background from `--table-row-bg`: set it instead of `bg` on a row so its
+  pinned cells match
+- New: `useCombobox` for `Combobox.RootProvider`, `VirtualScrollArea` `scrollToIndexRef` and `keepMountedIndex`, and
+  color roles for `purple`, `teal`, `cyan`, `pink`, `yellow`, `gray` and `slate`, which fell back to `brand`
 
 #### Upgrading from 0.8
 

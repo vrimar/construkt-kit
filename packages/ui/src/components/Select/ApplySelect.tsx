@@ -3,7 +3,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { HStack } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
-import { encodeSelectionValue, getSelectAllState } from "../Listbox/managed";
+import { encodeSelectionValue } from "../Listbox/managed";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
 import { Select } from "./Select";
 import {
@@ -64,15 +64,8 @@ function ApplySelectActions({
 }: ApplySelectActionOptions) {
   const { apply, reset: handleReset, isDirty } = useApplySelectContext();
   const { close, managed } = useSelectContext();
-  const { collection, encodedValue, handleValueChange } = managed.controller;
-  const selectAll = useMemo(
-    () =>
-      getSelectAllState(
-        encodedValue,
-        collection.getValues(collection.items.filter((item) => !collection.getItemDisabled(item))),
-      ),
-    [collection, encodedValue],
-  );
+  const { getSelectAllState, handleValueChange } = managed.controller;
+  const selectAll = useMemo(() => getSelectAllState(), [getSelectAllState]);
 
   return (
     <Select.Footer>

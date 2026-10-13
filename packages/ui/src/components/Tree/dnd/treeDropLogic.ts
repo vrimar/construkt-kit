@@ -14,25 +14,29 @@ export interface TreeDropArgs {
   sourceValues: string[];
   targetValue: string;
   instruction: TreeDropInstruction;
+  /**
+   * Whether a branch with a non-zero `childrenCount` but no `children` has already loaded them, so
+   * `make-child` may nest into it. Nesting into an unloaded branch would stop its real children
+   * from ever loading. Defaults to `false`.
+   */
+  isBranchLoaded?: (value: string) => boolean;
 }
 
 /**
  * Apply a drop instruction to the collection, returning a NEW collection with the
  * dragged node(s) moved, or `null` when the drop is invalid or a no-op. Values missing from
- * the collection are skipped, and a node moves along with a dragged ancestor.
- *
- * `TreeCollection.move` keys its remove/insert operations to the original index paths,
- * so it handles sibling index-shift internally — we only compute the destination path.
+ * the collection are skipped, a node moves along with a dragged ancestor, and moved nodes keep
+ * their document order.
  */
 export function applyTreeDrop<T extends TreeNode>(
   collection: TreeCollection<T>,
-  { sourceValues, targetValue, instruction }: TreeDropArgs,
+  { sourceValues, targetValue, instruction, isBranchLoaded }: TreeDropArgs,
 ): TreeCollection<T> | null {
   const targetPath = collection.getIndexPath(targetValue);
   if (!targetPath?.length) return null;
 
   const sourcePaths: number[][] = [];
-  for (const sourceValue of sourceValues) {
+  for (const sourceValue of new Set(sourceValues)) {
     if (sourceValue === targetValue) return null; // can't drop onto a dragged node
     const sourcePath = collection.getIndexPath(sourceValue);
     if (!sourcePath?.length) continue;
@@ -41,27 +45,57 @@ export function applyTreeDrop<T extends TreeNode>(
     if (isWithinSubtree(sourcePath, targetPath)) return null;
     sourcePaths.push(sourcePath);
   }
-  const movedPaths = sourcePaths.filter(
-    (path) => !sourcePaths.some((other) => isWithinSubtree(other, path)),
-  );
+  const movedPaths = sourcePaths
+    .filter((path) => !sourcePaths.some((other) => isWithinSubtree(other, path)))
+    .sort(compareIndexPaths);
   if (!movedPaths.length) return null;
 
-  // make-child only nests into an actual branch; never turn a leaf into a parent.
-  if (instruction.type === "make-child") {
-    const targetNode = collection.at(targetPath);
-    if (!targetNode || !collection.isBranchNode(targetNode)) return null;
+  if (
+    instruction.type === "make-child" &&
+    !canNestInto(collection, collection.at(targetPath), isBranchLoaded?.(targetValue) ?? false)
+  ) {
+    return null;
   }
 
-  const to = getDestinationIndexPath(targetPath, instruction);
-  if (!to?.length) return null;
+  const anchor = getDropAnchor(collection, targetPath, targetValue, instruction);
+  if (!anchor) return null;
 
-  const next = collection.move(movedPaths, to);
-  return next.isEqual(collection) ? null : next;
+  const movedNodes = movedPaths.flatMap((path) => collection.at(path) ?? []);
+  const remaining = collection.remove(movedPaths);
+  const anchorPath = remaining.getIndexPath(anchor.value);
+  if (!anchorPath?.length) return null;
+
+  const next =
+    anchor.position === "after"
+      ? remaining.insertAfter(anchorPath, movedNodes)
+      : remaining.insertBefore(
+          anchor.position === "inside" ? [...anchorPath, 0] : anchorPath,
+          movedNodes,
+        );
+  return next && !next.isEqual(collection) ? next : null;
+}
+
+export function canNestInto<T extends TreeNode>(
+  collection: TreeCollection<T>,
+  node: T | undefined,
+  loaded: boolean,
+): boolean {
+  if (node === undefined || !collection.isBranchNode(node)) return false;
+  return (
+    loaded || collection.getNodeChildren(node).length > 0 || !collection.getNodeChildrenCount(node)
+  );
 }
 
 /** Whether `targetPath` lies strictly inside `sourcePath`'s subtree (a descendant). */
 function isWithinSubtree(sourcePath: number[], targetPath: number[]): boolean {
   return targetPath.length > sourcePath.length && sourcePath.every((v, i) => targetPath[i] === v);
+}
+
+function compareIndexPaths(a: number[], b: number[]): number {
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    if (a[i] !== b[i]) return a[i] - b[i];
+  }
+  return a.length - b.length;
 }
 
 /**
@@ -80,27 +114,30 @@ export function isDescendantValue<T extends TreeNode>(
   return isWithinSubtree(ancestorPath, nodePath);
 }
 
-/** Destination index path (splice position under a parent) for a given instruction. */
-function getDestinationIndexPath(
-  targetPath: number[],
-  instruction: TreeDropInstruction,
-): number[] | null {
-  const parent = targetPath.slice(0, -1);
-  const index = targetPath[targetPath.length - 1];
+interface DropAnchor {
+  value: string;
+  position: "before" | "after" | "inside";
+}
 
+function getDropAnchor<T extends TreeNode>(
+  collection: TreeCollection<T>,
+  targetPath: number[],
+  targetValue: string,
+  instruction: TreeDropInstruction,
+): DropAnchor | null {
   switch (instruction.type) {
     case "reorder-above":
-      return targetPath;
+      return { value: targetValue, position: "before" };
     case "reorder-below":
-      return [...parent, index + 1];
+      return { value: targetValue, position: "after" };
     case "make-child":
-      // insert as the first child of the target branch
-      return [...targetPath, 0];
+      return { value: targetValue, position: "inside" };
     case "reparent": {
       // desiredLevel is 0-based; drop as the next sibling after the target's ancestor at that level
-      const ancestorPath = targetPath.slice(0, instruction.desiredLevel + 1);
-      if (!ancestorPath.length) return null;
-      return [...ancestorPath.slice(0, -1), ancestorPath[ancestorPath.length - 1] + 1];
+      const ancestor = collection.at(targetPath.slice(0, instruction.desiredLevel + 1));
+      return ancestor === undefined
+        ? null
+        : { value: collection.getNodeValue(ancestor), position: "after" };
     }
   }
 }

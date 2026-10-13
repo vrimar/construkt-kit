@@ -8,7 +8,10 @@ export interface SearchHighlightProps {
 }
 
 export const SearchHighlight = ({ text, query }: SearchHighlightProps) => {
-  const words = query.split(/\s+/).filter(Boolean);
+  const words = query
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
 
   if (words.length === 0) {
     return text;

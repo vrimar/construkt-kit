@@ -26,7 +26,6 @@ export const Default: Story = {
         Left Panel
       </Splitter.Panel>
       <Splitter.Separator
-        width="4px"
         bg="border"
         cursor="col-resize"
         _hover={{ bg: "colorPalette" }}
@@ -59,7 +58,6 @@ export const Vertical: Story = {
         Top Panel
       </Splitter.Panel>
       <Splitter.Separator
-        height="4px"
         bg="border"
         cursor="row-resize"
         _hover={{ bg: "colorPalette" }}

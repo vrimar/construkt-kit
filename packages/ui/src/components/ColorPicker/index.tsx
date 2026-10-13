@@ -10,10 +10,10 @@ import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPortalledContent } from "../portalledContent";
 export { parseColor } from "@ark-ui/react/color-picker";
 
-const { withRootProvider, withContext } = createSlotRecipeContext(colorPicker);
+const { withProvider, withContext } = createSlotRecipeContext(colorPicker);
 
-const Root = withRootProvider(ArkColorPicker.Root, { defaultProps: lazyOverlayDefaults });
-const RootProvider = withRootProvider(ArkColorPicker.RootProvider, {
+const Root = withProvider(ArkColorPicker.Root, "root", { defaultProps: lazyOverlayDefaults });
+const RootProvider = withProvider(ArkColorPicker.RootProvider, "root", {
   defaultProps: lazyOverlayDefaults,
 });
 const Area = withContext(ArkColorPicker.Area, "area");

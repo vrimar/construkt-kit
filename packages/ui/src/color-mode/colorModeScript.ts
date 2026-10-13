@@ -24,7 +24,7 @@ export function createColorModeScript({
   storageKey = COLOR_MODE_STORAGE_KEY,
   defaultMode = DEFAULT_COLOR_MODE,
 }: ColorModeScriptOptions = {}): string {
-  return `(function(){try{(${applyColorMode.toString()})(localStorage.getItem(${JSON.stringify(storageKey)}),${JSON.stringify(defaultMode)});}catch(e){}})();`;
+  return `(function(){var s=null;try{s=localStorage.getItem(${JSON.stringify(storageKey)});}catch(e){}try{(${applyColorMode.toString()})(s,${JSON.stringify(defaultMode)});}catch(e){}})();`;
 }
 
 export const colorModeScript = createColorModeScript();

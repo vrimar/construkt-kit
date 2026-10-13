@@ -185,6 +185,98 @@ describe("applyTreeDrop", () => {
     });
     expect(next).toBeNull();
   });
+
+  const makeFlatCollection = () =>
+    createTestTree(["A", "B", "C", "D", "E"].map((id) => ({ id, label: id })));
+
+  it("multi-drags non-adjacent siblings above a later sibling", () => {
+    const next = applyTreeDrop(makeFlatCollection(), {
+      sourceValues: ["A", "C"],
+      targetValue: "D",
+      instruction: instruction({ type: "reorder-above", currentLevel: 0 }),
+    });
+    expect(childIds(next, "root")).toEqual(["B", "A", "C", "D", "E"]);
+  });
+
+  it("multi-drags non-adjacent siblings below a later sibling", () => {
+    const next = applyTreeDrop(makeFlatCollection(), {
+      sourceValues: ["A", "C"],
+      targetValue: "D",
+      instruction: instruction({ type: "reorder-below", currentLevel: 0 }),
+    });
+    expect(childIds(next, "root")).toEqual(["B", "D", "A", "C", "E"]);
+  });
+
+  it("returns null for a multi-drag that leaves the order unchanged", () => {
+    const next = applyTreeDrop(makeFlatCollection(), {
+      sourceValues: ["B", "C"],
+      targetValue: "D",
+      instruction: instruction({ type: "reorder-above", currentLevel: 0 }),
+    });
+    expect(next).toBeNull();
+  });
+
+  it("moves nodes in document order, whatever order they were dragged in", () => {
+    const next = applyTreeDrop(makeFlatCollection(), {
+      sourceValues: ["E", "B", "B"],
+      targetValue: "A",
+      instruction: instruction({ type: "reorder-above", currentLevel: 0 }),
+    });
+    expect(childIds(next, "root")).toEqual(["B", "E", "A", "C", "D"]);
+  });
+
+  it("multi-drags across parents into a sibling list that holds one of them", () => {
+    const next = applyTreeDrop(makeCollection(), {
+      sourceValues: ["b2", "a1", "a3"],
+      targetValue: "b1",
+      instruction: instruction({ type: "reorder-below" }),
+    });
+    expect(childIds(next, "a")).toEqual(["a2"]);
+    expect(childIds(next, "b")).toEqual(["b1", "a1", "a3", "b2"]);
+  });
+
+  it("reparents a multi-drag after an ancestor whose earlier siblings move too", () => {
+    const next = applyTreeDrop(makeCollection(), {
+      sourceValues: ["a", "b1"],
+      targetValue: "b2",
+      instruction: instruction({ type: "reparent", desiredLevel: 0 }),
+    });
+    expect(childIds(next, "root")).toEqual(["b", "a", "b1", "c"]);
+    expect(childIds(next, "b")).toEqual(["b2"]);
+  });
+
+  describe("make-child into a lazy branch", () => {
+    const makeLazyCollection = () =>
+      createTestTree([
+        { id: "unloaded", label: "unloaded", childrenCount: 2 },
+        { id: "empty", label: "empty", childrenCount: 0 },
+        { id: "c", label: "c" },
+      ]);
+    const nest = (targetValue: string, isBranchLoaded?: (value: string) => boolean) =>
+      applyTreeDrop(makeLazyCollection(), {
+        sourceValues: ["c"],
+        targetValue,
+        instruction: instruction({ type: "make-child", currentLevel: 0 }),
+        isBranchLoaded,
+      });
+
+    it("rejects a branch whose children are not loaded", () => {
+      expect(nest("unloaded")).toBeNull();
+    });
+
+    it("accepts it once the branch is known to be loaded", () => {
+      expect(
+        childIds(
+          nest("unloaded", (value) => value === "unloaded"),
+          "unloaded",
+        ),
+      ).toEqual(["c"]);
+    });
+
+    it("accepts a branch whose childrenCount says it is empty", () => {
+      expect(childIds(nest("empty"), "empty")).toEqual(["c"]);
+    });
+  });
 });
 
 describe("getItemMode", () => {

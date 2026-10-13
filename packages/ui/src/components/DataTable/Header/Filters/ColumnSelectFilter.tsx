@@ -14,6 +14,8 @@ export const ColumnSelectFilter = ({
   const { selections } = useDataTableContext();
   const selectProps = meta?.selectProps;
 
+  const items = useMemo(() => [...new Set(selections?.[columnId])], [selections, columnId]);
+
   const getLabel = useMemo(
     () => selectProps?.getItemLabel ?? ((item: string) => item),
     [selectProps?.getItemLabel],
@@ -31,7 +33,7 @@ export const ColumnSelectFilter = ({
       placement="bottom-end"
       placeholder={placeholder}
       {...applySelectProps}
-      items={selections?.[columnId] ?? []}
+      items={items}
       value={value}
       getItemLabel={getLabel}
       getItemValue={(item) => item}

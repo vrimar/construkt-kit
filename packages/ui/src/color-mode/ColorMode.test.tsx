@@ -1,7 +1,11 @@
-import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { runInThisContext } from "node:vm";
 
-import { COLOR_MODE_STORAGE_KEY, ColorModeProvider, useColorMode } from ".";
+import { act, renderHook } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { COLOR_MODE_STORAGE_KEY, ColorModeProvider, createColorModeScript, useColorMode } from ".";
 import { createMatchMedia } from "../_shared/matchMedia";
 
 function installLocalStorageMock() {
@@ -92,5 +96,57 @@ describe("useColorMode", () => {
     unmount();
 
     expect(root.classList.contains("dark")).toBe(false);
+  });
+
+  it("hydrates server markup when a mode is stored", async () => {
+    window.matchMedia = createMatchMedia(false);
+    const ThemeToggle = () => {
+      const { resolvedMode } = useColorMode();
+      return <button type="button">{`Switch from ${resolvedMode}`}</button>;
+    };
+    const app = (
+      <ColorModeProvider defaultMode="light">
+        <ThemeToggle />
+      </ColorModeProvider>
+    );
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(app);
+    document.body.append(container);
+    window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
+    root.classList.add("dark");
+    const onRecoverableError = vi.fn();
+
+    const hydrated = await act(async () => hydrateRoot(container, app, { onRecoverableError }));
+
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    expect(container.textContent).toBe("Switch from dark");
+    expect(root.classList.contains("dark")).toBe(true);
+    act(() => hydrated.unmount());
+    container.remove();
+  });
+});
+
+describe("createColorModeScript", () => {
+  it("applies the default mode when storage throws", () => {
+    window.matchMedia = createMatchMedia(false);
+    Object.defineProperty(window, "localStorage", {
+      get() {
+        throw new DOMException("Storage disabled", "SecurityError");
+      },
+      configurable: true,
+    });
+
+    runInThisContext(createColorModeScript({ defaultMode: "dark" }));
+
+    expect(root.classList.contains("dark")).toBe(true);
+  });
+
+  it("applies the stored mode over the default", () => {
+    window.matchMedia = createMatchMedia(false);
+    window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
+
+    runInThisContext(createColorModeScript({ defaultMode: "light" }));
+
+    expect(root.classList.contains("dark")).toBe(true);
   });
 });

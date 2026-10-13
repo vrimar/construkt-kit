@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { usePopoverContext } from "@ark-ui/react/popover";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import { Box } from "#styled-system/jsx";
 
@@ -20,12 +21,26 @@ import type {
 const MIN_CONTENT_WIDTH = 140;
 const WIDE_MIN_CONTENT_WIDTH = 256;
 
-export function SelectTrigger({ children, buttonProps, ...triggerProps }: SelectTriggerProps) {
+export function SelectTrigger({
+  children,
+  buttonProps,
+  onKeyDown,
+  ...triggerProps
+}: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
+  const popover = usePopoverContext();
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || event.key !== "ArrowDown") return;
+    event.preventDefault();
+    popover.setOpen(true);
+  };
 
   return (
     <Popover.Trigger
       {...triggerProps}
+      onKeyDown={handleKeyDown}
       asChild
     >
       {children ?? (

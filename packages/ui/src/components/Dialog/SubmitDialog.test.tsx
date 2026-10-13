@@ -202,6 +202,51 @@ describe("SubmitDialog", () => {
     expect(submit.disabled).toBe(true);
   });
 
+  it("stays open while loading", async () => {
+    const onClose = vi.fn();
+    render(
+      <SubmitDialog
+        title="Delete"
+        onSubmit={vi.fn()}
+        onClose={onClose}
+        loading
+      >
+        Body
+      </SubmitDialog>,
+    );
+    const cancel = screen.getByRole<HTMLButtonElement>("button", { name: "Cancel" });
+    const closeButton = screen.getByRole<HTMLButtonElement>("button", { name: "Close" });
+    expect(cancel.disabled).toBe(true);
+    expect(closeButton.disabled).toBe(true);
+
+    await userEvent.click(cancel);
+    await userEvent.click(closeButton);
+    await userEvent.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeNull();
+  });
+
+  it("closes on Escape once loading ends", async () => {
+    const onClose = vi.fn();
+    const dialog = (loading: boolean) => (
+      <SubmitDialog
+        title="Delete"
+        onSubmit={vi.fn()}
+        onClose={onClose}
+        loading={loading}
+      >
+        Body
+      </SubmitDialog>
+    );
+    const { rerender } = render(dialog(true));
+    rerender(dialog(false));
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it("renders nothing when closed", () => {
     render(
       <SubmitDialog

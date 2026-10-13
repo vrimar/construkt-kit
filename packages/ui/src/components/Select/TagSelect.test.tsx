@@ -81,6 +81,39 @@ describe("TagSelect", () => {
     expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 
+  it.each(["{Enter}", " ", "{ArrowDown}"])(
+    "opens the list from the keyboard with %s",
+    async (key) => {
+      renderTagSelect({ value: [1], search: false });
+
+      await userEvent.tab();
+      const trigger = screen.getByRole("button", { name: "One" });
+      expect(document.activeElement).toBe(trigger);
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+      await userEvent.keyboard(key);
+      expect(screen.getAllByRole("option")).toHaveLength(2);
+      expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    },
+  );
+
+  it("takes a single tab stop", async () => {
+    render(
+      <>
+        <TagSelect
+          {...itemProps}
+          value={[1]}
+          onValueChange={vi.fn()}
+        />
+        <button type="button">After</button>
+      </>,
+    );
+
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
+  });
+
   it("keeps typing in the search input after an option is clicked", async () => {
     const onValueChange = vi.fn();
     renderTagSelect({ onValueChange, open: true });

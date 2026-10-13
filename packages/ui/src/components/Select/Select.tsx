@@ -5,6 +5,7 @@ import { type JSX, type RefObject, useContext, useEffect, useRef, useState } fro
 import { splitCssProps } from "#styled-system/jsx";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { isComposingEvent } from "../imeComposition";
 import { Listbox } from "../Listbox/Listbox";
 import {
   type ManagedListbox,
@@ -195,7 +196,8 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V, Se
           {...listboxRootProps}
           onClick={(event) => closeOnReselect(findItem(event.target, false))}
           onKeyDown={(event) => {
-            if (event.key === "Enter") closeOnReselect(findItem(event.target, true));
+            if (event.key === "Enter" && !isComposingEvent(event))
+              closeOnReselect(findItem(event.target, true));
           }}
           onKeyDownCapture={() => {
             pointerRef.current = false;

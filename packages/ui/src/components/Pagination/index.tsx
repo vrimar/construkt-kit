@@ -13,7 +13,7 @@ import { IconButton } from "../Buttons/IconButton";
 
 const { withProvider, withContext } = createSlotRecipeContext(pagination);
 
-const Root = withProvider(ArkPagination.Root, "root");
+const Root = withProvider(ArkPagination.Root, "root", { forwardProps: ["page"] });
 const RootProvider = withProvider(ArkPagination.RootProvider, "root");
 const Item = withContext(ArkPagination.Item, "item");
 const Ellipsis = withContext(ArkPagination.Ellipsis, "ellipsis");
@@ -34,7 +34,7 @@ function Items(props: PaginationItemsProps) {
       return (
         <Ellipsis
           asChild
-          key={index}
+          key={`ellipsis-${index}`}
           index={index}
           {...rest}
         >
@@ -51,7 +51,9 @@ function Items(props: PaginationItemsProps) {
     }
 
     return (
-      <Fragment key={page.value}>{render({ ...page, selected: ctx.page === page.value })}</Fragment>
+      <Fragment key={`page-${page.value}`}>
+        {render({ ...page, selected: ctx.page === page.value })}
+      </Fragment>
     );
   });
 }

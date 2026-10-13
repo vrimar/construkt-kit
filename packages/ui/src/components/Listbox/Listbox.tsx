@@ -5,6 +5,7 @@ import { CheckIcon } from "lucide-react";
 import {
   type ComponentProps,
   type JSX,
+  type KeyboardEvent,
   type ReactNode,
   type Ref,
   type RefObject,
@@ -126,6 +127,7 @@ function Content({
 function ItemActions({
   children,
   onClick,
+  onKeyDown,
   onMouseDown,
   onPointerDown,
   ...props
@@ -154,6 +156,10 @@ function ItemActions({
       onClick={(event) => {
         stopPropagation(event);
         onClick?.(event);
+      }}
+      onKeyDown={(event) => {
+        stopPropagation(event);
+        onKeyDown?.(event);
       }}
     >
       {children}
@@ -360,7 +366,7 @@ export function ManagedList<T, V extends SelectionValue>({
   listMaxHeight,
   contentProps,
 }: ManagedListProps<T, V>) {
-  const { controller, virtual, scrollToIndexRef, inputRef } = managed;
+  const { controller, selectionMode, virtual, scrollToIndexRef, inputRef } = managed;
   const { collection, groups, grouped } = controller;
   // State, not a ref: the rows' layout effects run before this ancestor's ref attaches.
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
@@ -381,11 +387,25 @@ export function ManagedList<T, V extends SelectionValue>({
 
   const isEmpty = collection.items.length === 0;
   const showEmpty = !loading && isEmpty;
-  const { ref: contentRef, ...listContentProps } = useSearchFocusRetention(
+  const {
+    ref: contentRef,
+    onKeyDown,
+    ...listContentProps
+  } = useSearchFocusRetention(
     inputRef,
     listMaxHeight == null ? contentProps : { ...contentProps, maxHeight: listMaxHeight },
   );
   const listRef = useComposedRefs(setScrollElement, contentRef);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || selectionMode !== "multiple") return;
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "a") return;
+    event.preventDefault();
+    const selectAll = controller.getSelectAllState();
+    const next = selectAll.allSelected ? [] : selectAll.toggle();
+    if (next.length > controller.encodedValue.length) controller.handleValueChange({ value: next });
+  };
 
   const renderRows = () => {
     if (virtual) {
@@ -420,6 +440,7 @@ export function ManagedList<T, V extends SelectionValue>({
       <Content
         {...listContentProps}
         ref={listRef}
+        onKeyDown={handleKeyDown}
       >
         {renderRows()}
         {showEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>}

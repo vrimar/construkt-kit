@@ -1,5 +1,5 @@
 import type { UseListboxContext } from "@ark-ui/react/listbox";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
@@ -62,6 +62,18 @@ describe("Select", () => {
 
     expect(screen.getByText("Alpha:false")).not.toBeNull();
     expect(screen.getByTestId("content")).not.toBeNull();
+  });
+
+  it("opens the list from the trigger with ArrowDown", async () => {
+    renderSelect();
+
+    await userEvent.tab();
+    const trigger = document.activeElement as HTMLElement;
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+    await userEvent.keyboard("{ArrowDown}");
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getAllByRole("option")).toHaveLength(3);
   });
 
   it("uses trigger width by default", () => {
@@ -290,6 +302,21 @@ describe("Select", () => {
     await userEvent.type(screen.getByRole("textbox"), "bet");
     await userEvent.keyboard("{Enter}");
     expect(onValueChange).not.toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it("stays open when an IME-confirming Enter lands on the selected option", async () => {
+    const onValueChange = vi.fn();
+    const onOpenChange = vi.fn();
+    renderSelect({ value: 2, onValueChange, onOpenChange, search: true, open: true });
+
+    const search = screen.getByRole("textbox");
+    await userEvent.type(search, "bet");
+    fireEvent.keyDown(search, { key: "Enter", keyCode: 229 });
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(search, { key: "Enter" });
     expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
   });
 

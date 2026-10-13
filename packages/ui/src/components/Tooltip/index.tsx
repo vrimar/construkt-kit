@@ -1,5 +1,5 @@
 import { Tooltip as ArkTooltip, TooltipContext } from "@ark-ui/react/tooltip";
-import type { ComponentProps } from "react";
+import { type ComponentProps, isValidElement } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tooltip } from "#styled-system/recipes";
@@ -41,24 +41,28 @@ const TooltipComponent = ({
   placement,
   positioning,
   ...rootProps
-}: WithRef<TooltipProps>) => (
-  <Root
-    openDelay={300}
-    closeDelay={0}
-    positioning={{ ...positioning, placement: placement ?? positioning?.placement ?? "top" }}
-    {...rootProps}
-  >
-    <Trigger asChild>{children}</Trigger>
-    <TooltipContent
-      ref={ref}
-      portalled={portalled}
-      portalRef={portalRef}
+}: WithRef<TooltipProps>) => {
+  if (label == null || label === false || label === "") return children;
+
+  return (
+    <Root
+      openDelay={300}
+      closeDelay={0}
+      positioning={{ ...positioning, placement: placement ?? positioning?.placement ?? "top" }}
+      {...rootProps}
     >
-      {showArrow && <Arrow />}
-      {label}
-    </TooltipContent>
-  </Root>
-);
+      <Trigger asChild>{isValidElement(children) ? children : <span>{children}</span>}</Trigger>
+      <TooltipContent
+        ref={ref}
+        portalled={portalled}
+        portalRef={portalRef}
+      >
+        {showArrow && <Arrow />}
+        {label}
+      </TooltipContent>
+    </Root>
+  );
+};
 
 export const Tooltip = Object.assign(TooltipComponent, {
   Root,

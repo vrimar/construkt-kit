@@ -1,9 +1,7 @@
-import type { ComponentType } from "react";
-
 import { Box } from "#styled-system/jsx";
 
 import { DataTableGridRow } from "../GridRow";
-import type { DataTableInstance, DataTableHeader as HeaderModel } from "../types";
+import type { DataTableInstance } from "../types";
 import { DataTableHeaderCell } from "./HeaderCell";
 import { DataTableHeaderFilterCell } from "./HeaderFilterCell";
 
@@ -17,18 +15,8 @@ export const DataTableHeader = <TData extends object>({
   showFiltersRow,
 }: DataTableHeaderProps<TData>) => {
   const groups = table.getHeaderGroups();
-
-  const renderRows = (Cell: ComponentType<{ header: HeaderModel<TData> }>) =>
-    groups.map((headerGroup) => (
-      <DataTableGridRow key={headerGroup.id}>
-        {headerGroup.headers.map((header) => (
-          <Cell
-            key={header.id}
-            header={header}
-          />
-        ))}
-      </DataTableGridRow>
-    ));
+  // `table.getLeafHeaders()` also returns the placeholder and group headers above each leaf.
+  const leafHeaders = groups.at(-1)?.headers ?? [];
 
   return (
     <Box
@@ -41,8 +29,26 @@ export const DataTableHeader = <TData extends object>({
       zIndex="sticky"
       bg="bg"
     >
-      {renderRows(DataTableHeaderCell)}
-      {showFiltersRow && renderRows(DataTableHeaderFilterCell)}
+      {groups.map((headerGroup) => (
+        <DataTableGridRow key={headerGroup.id}>
+          {headerGroup.headers.map((header) => (
+            <DataTableHeaderCell
+              key={header.id}
+              header={header}
+            />
+          ))}
+        </DataTableGridRow>
+      ))}
+      {showFiltersRow && (
+        <DataTableGridRow>
+          {leafHeaders.map((header) => (
+            <DataTableHeaderFilterCell
+              key={header.id}
+              header={header}
+            />
+          ))}
+        </DataTableGridRow>
+      )}
     </Box>
   );
 };

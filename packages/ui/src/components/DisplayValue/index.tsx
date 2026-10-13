@@ -2,17 +2,30 @@ import { VisuallyHidden } from "#styled-system/jsx";
 
 import { Span } from "../Span";
 
-export interface DisplayValueProps<T> {
+type DisplayPrimitive = string | number | bigint | boolean;
+
+interface DisplayValueBaseProps<T> {
   /** The value to display */
   value?: T | null | undefined;
-  /** Optional function to format the value before displaying */
-  formatValue?: (value: NonNullable<T>) => string | null | undefined;
 }
 
-export const DisplayValue = <T,>(props: DisplayValueProps<T>) => {
+interface DisplayValueFormatProps<T> {
+  /**
+   * Formats the non-empty value for display; returning `null`, `undefined` or `""` shows the
+   * empty placeholder. Required unless the value is a primitive or an array of primitives.
+   */
+  formatValue: (value: NonNullable<T>) => string | null | undefined;
+}
+
+export type DisplayValueProps<T> = DisplayValueBaseProps<T> &
+  ([NonNullable<T>] extends [DisplayPrimitive | readonly DisplayPrimitive[]]
+    ? Partial<DisplayValueFormatProps<T>>
+    : DisplayValueFormatProps<T>);
+
+export const DisplayValue = <T = never,>(props: DisplayValueProps<T>) => {
   const { value, formatValue } = props;
 
-  const formattedValue = isNotEmpty(value) ? (formatValue?.(value) ?? String(value)) : null;
+  const formattedValue = isNotEmpty(value) ? (formatValue ?? String)(value) : null;
 
   if (formattedValue) {
     return formattedValue;
