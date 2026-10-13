@@ -1,9 +1,13 @@
 import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
-
 export function createPlaywrightConfig(overrides: Partial<PlaywrightTestConfig> = {}) {
   const { use, webServer, ...rest } = overrides;
+  const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
+  const resolvedUse = {
+    baseURL: externalBaseUrl ?? "http://localhost:5173",
+    trace: "on-first-retry" as const,
+    ...use,
+  };
 
   return defineConfig({
     testDir: "./e2e",
@@ -13,18 +17,15 @@ export function createPlaywrightConfig(overrides: Partial<PlaywrightTestConfig> 
     reporter: process.env.CI ? "github" : "list",
     projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
     ...rest,
-    use: {
-      baseURL: baseUrl,
-      trace: "on-first-retry",
-      ...use,
-    },
-    webServer: Array.isArray(webServer)
-      ? webServer
-      : {
-          command: "pnpm dev",
-          url: baseUrl,
-          reuseExistingServer: !process.env.CI,
-          ...webServer,
-        },
+    use: resolvedUse,
+    webServer:
+      Array.isArray(webServer) || externalBaseUrl
+        ? webServer
+        : {
+            command: "pnpm dev",
+            url: resolvedUse.baseURL,
+            reuseExistingServer: !process.env.CI,
+            ...webServer,
+          },
   });
 }

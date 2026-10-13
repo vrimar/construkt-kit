@@ -51,19 +51,27 @@ function writeThirdPartyLicenses(chunks: readonly EmittedChunk[]) {
   );
 }
 
+function withLicenseHook(hooks: UserConfig["hooks"]): UserConfig["hooks"] {
+  return async (registry) => {
+    registry.hook("build:done", ({ chunks }) => writeThirdPartyLicenses(chunks));
+    if (typeof hooks === "function") await hooks(registry);
+    else if (hooks) registry.addHooks(hooks);
+  };
+}
+
 export function createTsdownConfig({
   neverBundle,
+  entry = { index: "src/index.ts" },
+  hooks,
   ...overrides
 }: TsdownConfigOptions = {}): UserConfig {
   const base: UserConfig = {
-    entry: { index: "src/index.ts" },
+    entry,
     format: ["esm"],
     dts: true,
     sourcemap: true,
     clean: true,
-    hooks: {
-      "build:done": ({ chunks }) => writeThirdPartyLicenses(chunks),
-    },
+    hooks: withLicenseHook(hooks),
     ...(neverBundle ? { deps: { neverBundle } } : {}),
   };
 

@@ -12,6 +12,7 @@ Shared tool configuration for Construkt Kit frontend projects.
 | `@construkt-kit/config/vite`       | `createViteConfig(overrides?)` factory                                        |
 | `@construkt-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                                  |
 | `@construkt-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen                       |
+| `@construkt-kit/config/tsdown`     | `createTsdownConfig(options?)` factory; a given `entry` replaces the default  |
 
 ## Oxlint Config
 
@@ -28,6 +29,11 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 ## Vite Config
 
 `createViteConfig(overrides?)` returns a merged Vite config using Vite's `mergeConfig()` (properly merges plugin arrays, not shallow).
+
+## Playwright Config
+
+`createPlaywrightConfig(overrides?)` starts `pnpm dev` as its web server and tests `http://localhost:5173`. With
+`PLAYWRIGHT_BASE_URL` set it tests that URL instead and starts no server, unless `overrides.webServer` names one.
 
 ## Kubb Config (OpenAPI Codegen)
 
