@@ -1,7 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const outDir = path.join(process.cwd(), "styled-system");
+const outDir = path.resolve(process.argv[2] ?? "styled-system");
+
+const isReexportStub = (source) => /^(\s*export \* from (['"])[^'"]+\2;?)+\s*$/.test(source);
 
 // Panda emits these as file-local declarations, but they appear in the public
 // types of components built on them, so consumers cannot name them.
@@ -20,6 +22,7 @@ const patches = [
 for (const { file, types, keyword } of patches) {
   const targetPath = path.join(outDir, file);
   const source = await readFile(targetPath, "utf8");
+  if (isReexportStub(source)) continue;
 
   let patchedSource = source;
 

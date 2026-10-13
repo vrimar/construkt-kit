@@ -64,7 +64,7 @@
     "styled-system"
   ],
   "scripts": {
-    "codegen": "panda codegen --clean",
+    "codegen": "panda codegen --clean && node ../ui/scripts/patch-panda-jsx-types.mjs styled-system",
     "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
