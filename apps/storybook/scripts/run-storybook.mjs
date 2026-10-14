@@ -60,14 +60,14 @@ if (mode === "build") {
 }
 
 function runPnpm(args) {
-  return spawn(process.execPath, [pnpmExecPath, ...args], {
+  return spawn(pnpmExecPath, args, {
     stdio: "inherit",
     env: process.env,
   });
 }
 
 function runPnpmSync(args) {
-  const result = spawnSync(process.execPath, [pnpmExecPath, ...args], {
+  const result = spawnSync(pnpmExecPath, args, {
     stdio: "inherit",
     env: process.env,
   });

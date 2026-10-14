@@ -28,10 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          # Trusted publishing needs npm >= 11.5.1. Node 24 bundles 11.17; the 22.x
-          # the other workflows pin bundles npm 10, and upgrading npm in place
-          # corrupts its own dependency tree mid-run.
-          node-version: 24
+          node-version: 26
           cache: pnpm
 
       - name: Install dependencies
