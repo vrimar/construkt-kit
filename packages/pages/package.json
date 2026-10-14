@@ -54,6 +54,9 @@
     "./helpers": {
       "types": "./styled-system/helpers.d.ts",
       "default": "./styled-system/helpers.js"
+    },
+    "./types": {
+      "types": "./styled-system/types/index.d.ts"
     }
   },
   "main": "./dist/index.mjs",
