@@ -39,3 +39,24 @@ for (const { file, types, keyword } of patches) {
 
   if (patchedSource !== source) await writeFile(targetPath, patchedSource);
 }
+
+const rewrites = [
+  {
+    file: path.join("types", "jsx.d.ts"),
+    // The nested conditional intersects every style-prop key with every component prop key (TS2590).
+    pattern:
+      /^type ForwardedStyleKeys<T extends ElementType, F extends string> = F extends keyof JsxStyleProps\s+\? F extends keyof ComponentProps<T> \? F : never\s+: never$/m,
+    replacement:
+      "type ForwardedStyleKeys<T extends ElementType, F extends string> = Extract<Extract<F, keyof JsxStyleProps>, keyof ComponentProps<T>>",
+  },
+];
+
+for (const { file, pattern, replacement } of rewrites) {
+  const targetPath = path.join(outDir, file);
+  const source = await readFile(targetPath, "utf8");
+
+  if (!pattern.test(source)) {
+    throw new Error(`Could not find ${pattern} in ${targetPath}`);
+  }
+  await writeFile(targetPath, source.replace(pattern, replacement));
+}

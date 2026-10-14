@@ -18,14 +18,13 @@ type TreeRowPartProps = ComponentProps<typeof TreeView.Item> & {
 };
 
 export function TreeRowPart({ isBranch, loading, ...props }: TreeRowPartProps) {
-  const Part = isBranch ? TreeView.BranchControl : TreeView.Item;
-  return (
-    <Part
-      data-loading={loading || undefined}
-      aria-busy={loading || undefined}
-      {...props}
-    />
-  );
+  const partProps = {
+    "data-loading": loading || undefined,
+    "aria-busy": loading || undefined,
+    ...props,
+  };
+  // A union of the two styled parts is too complex for TS (TS2590); keep the elements separate.
+  return isBranch ? <TreeView.BranchControl {...partProps} /> : <TreeView.Item {...partProps} />;
 }
 
 export function TreeDndRow(props: TreeRowPartProps) {
