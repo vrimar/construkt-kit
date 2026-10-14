@@ -14,5 +14,7 @@ allowBuilds:
 minimumReleaseAge: 0
 
 overrides:
-  # tsdown's dts plugin needs the classic TS compiler API, which typescript@7 dropped; pin it to the last JS-based line
-  rolldown-plugin-dts>typescript: 6.0.2
+  # @kubb/plugin-* import PluginFactoryOptions from kubb/kit, which exports it only up to 5.9.0
+  kubb: 5.9.0
+  '@kubb/adapter-oas': 5.9.0
+  '@kubb/parser-ts': 5.9.0

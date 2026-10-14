@@ -85,12 +85,12 @@
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./layers.css && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
-    "@ark-ui/react": "^5.38.2",
+    "@ark-ui/react": "^5.39.3",
     "@construkt-kit/utils": "workspace:^",
-    "@tanstack/react-table": "^9.1.2",
-    "@tanstack/react-virtual": "^3.14.10",
-    "lucide-react": "^1.32.0",
-    "react-resizable-panels": "^4.12.3",
+    "@tanstack/react-table": "^9.3.1",
+    "@tanstack/react-virtual": "^3.14.19",
+    "lucide-react": "^1.56.0",
+    "react-resizable-panels": "^4.14.5",
     "react-use": "^17.6.1"
   },
   "peerDependencies": {
@@ -105,24 +105,25 @@
     }
   },
   "devDependencies": {
-    "@atlaskit/pragmatic-drag-and-drop": "^3.0.0",
-    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.1",
-    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.1.0",
+    "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.2.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^3.0.0",
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
-    "@pandacss/dev": "^2.1.0",
-    "@pandacss/eslint-plugin": "^2.1.0",
-    "@pandacss/preset-base": "^2.1.0",
-    "@storybook/react-vite": "^10.5.9",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.5",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "jsdom": "^30.0.1",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "storybook": "^10.5.9",
-    "tsdown": "^0.23.0",
-    "vitest": "^5.0.0"
+    "@pandacss/dev": "^2.2.0",
+    "@pandacss/eslint-plugin": "^2.2.0",
+    "@pandacss/preset-base": "^2.2.0",
+    "@storybook/react-vite": "^10.6.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^30.1.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "storybook": "^10.6.2",
+    "tsdown": "^0.23.1",
+    "vitest": "^5.0.4"
   }
 }

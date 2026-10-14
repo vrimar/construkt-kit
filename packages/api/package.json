@@ -34,18 +34,18 @@
     "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
-    "kubb": "^5.2.6",
-    "tsx": "^4.23.12"
+    "kubb": "^5.9.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/utils": "workspace:*",
-    "@kubb/adapter-oas": "^5.2.6",
-    "@kubb/plugin-fetch": "^5.4.1",
-    "@kubb/plugin-react-query": "^5.1.2",
-    "@kubb/plugin-ts": "^5.0.2",
-    "@tanstack/react-query": "^5.90.2",
-    "tsdown": "^0.23.0",
-    "vitest": "^5.0.0"
+    "@kubb/adapter-oas": "^5.9.0",
+    "@kubb/plugin-fetch": "^5.5.11",
+    "@kubb/plugin-react-query": "^5.3.3",
+    "@kubb/plugin-ts": "^5.0.10",
+    "@tanstack/react-query": "^5.104.2",
+    "tsdown": "^0.23.1",
+    "vitest": "^5.0.4"
   }
 }

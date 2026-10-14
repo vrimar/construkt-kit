@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Field } from "../Form";
 import { NumberFilter, type NumberFilterProps } from ".";
+import { Field } from "../Form";
 
 const renderFilter = (overrides: Partial<NumberFilterProps> = {}) => {
   const onValueChange = vi.fn();

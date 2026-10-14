@@ -21,8 +21,7 @@ export default createOxlintConfig({
         "@pandacss/no-deprecated": "error",
         "@pandacss/no-invalid-nesting": "error",
         "@pandacss/no-invalid-token-paths": "error",
-        // @pandacss/eslint-plugin 2.1.0 reports opacity-modified tokens as raw.
-        "@pandacss/prefer-token": ["error", { categories: ["colors"], allow: ["bg/16", "bg/75"] }],
+        "@pandacss/prefer-token": ["error", { categories: ["colors"] }],
       },
     },
     {
