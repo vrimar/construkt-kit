@@ -49,12 +49,23 @@ export const drawer = defineSlotRecipe({
       maxH: "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))",
       borderTopRadius: "var(--drawer-full-radius, var(--drawer-placement-radius, 0))",
       pt: "var(--drawer-full-pt, var(--drawer-placement-pt, 0px))",
+      pb: "var(--drawer-full-pb, var(--drawer-placement-pb, 0px))",
+      ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
+      pe: "var(--drawer-full-pe, var(--drawer-placement-pe, 0px))",
+      "--drawer-safe-start": { base: "env(safe-area-inset-left)", _rtl: "env(safe-area-inset-right)" },
+      "--drawer-safe-end": { base: "env(safe-area-inset-right)", _rtl: "env(safe-area-inset-left)" },
       "--drawer-full-max-h": "initial",
       "--drawer-full-radius": "initial",
       "--drawer-full-pt": "initial",
+      "--drawer-full-pb": "initial",
+      "--drawer-full-ps": "initial",
+      "--drawer-full-pe": "initial",
       "--drawer-placement-max-h": "initial",
       "--drawer-placement-radius": "initial",
       "--drawer-placement-pt": "initial",
+      "--drawer-placement-pb": "initial",
+      "--drawer-placement-ps": "initial",
+      "--drawer-placement-pe": "initial",
       // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
       maxW: "var(--drawer-max-w)",
       color: "inherit",
@@ -131,7 +142,7 @@ export const drawer = defineSlotRecipe({
     closeTrigger: {
       pos: "absolute",
       top: "calc({spacing.3} + var(--drawer-full-pt, var(--drawer-placement-pt, 0px)))",
-      insetEnd: "3",
+      insetEnd: "calc({spacing.3} + var(--drawer-full-pe, var(--drawer-placement-pe, 0px)))",
     },
     grabber: {
       display: "flex",
@@ -171,6 +182,9 @@ export const drawer = defineSlotRecipe({
           "--drawer-full-max-h": "100dvh",
           "--drawer-full-radius": "0",
           "--drawer-full-pt": "env(safe-area-inset-top)",
+          "--drawer-full-pb": "env(safe-area-inset-bottom)",
+          "--drawer-full-ps": "var(--drawer-safe-start)",
+          "--drawer-full-pe": "var(--drawer-safe-end)",
         },
       },
     },
@@ -184,6 +198,8 @@ export const drawer = defineSlotRecipe({
         content: {
           "--drawer-max-w": "var(--drawer-size)",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
+          "--drawer-placement-pb": "env(safe-area-inset-bottom)",
+          "--drawer-placement-ps": "var(--drawer-safe-start)",
           _open: {
             animationName: {
               base: "slide-from-left-full, fade-in",
@@ -207,6 +223,8 @@ export const drawer = defineSlotRecipe({
         content: {
           "--drawer-max-w": "var(--drawer-size)",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
+          "--drawer-placement-pb": "env(safe-area-inset-bottom)",
+          "--drawer-placement-pe": "var(--drawer-safe-end)",
           _open: {
             animationName: {
               base: "slide-from-right-full, fade-in",
@@ -230,6 +248,8 @@ export const drawer = defineSlotRecipe({
         content: {
           "--drawer-max-w": "100%",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
+          "--drawer-placement-ps": "var(--drawer-safe-start)",
+          "--drawer-placement-pe": "var(--drawer-safe-end)",
           _open: { animationName: "slide-from-top-full, fade-in" },
           _closed: { animationName: "slide-to-top-full, fade-out" },
         },
@@ -245,7 +265,9 @@ export const drawer = defineSlotRecipe({
           "--drawer-max-w": "100%",
           "--drawer-placement-max-h": "90dvh",
           "--drawer-placement-radius": "radii.2xl",
-          pb: "env(safe-area-inset-bottom)",
+          "--drawer-placement-pb": "env(safe-area-inset-bottom)",
+          "--drawer-placement-ps": "var(--drawer-safe-start)",
+          "--drawer-placement-pe": "var(--drawer-safe-end)",
           "&[data-nested-drawer-open]": {
             scale: "calc(1 - var(--nested-drawers) * 0.04)",
             transformOrigin: "top",
