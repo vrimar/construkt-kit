@@ -16,16 +16,93 @@ interface PaginationProps<TData extends object> {
   table: DataTableInstance<TData>;
   totalItems: number;
   size: NonNullable<IconButtonProps["size"]>;
+  compact?: boolean;
+}
+
+function ItemCount({ totalItems, compact }: { totalItems: number; compact: boolean }) {
+  const { labels } = useDataTableContext();
+
+  return (
+    <Text textStyle={compact ? "sm" : "md"}>
+      <Text
+        as="span"
+        fontWeight="bold"
+      >
+        {totalItems}{" "}
+      </Text>
+      {labels.items}
+    </Text>
+  );
+}
+
+interface StepButtonProps<TData extends object> {
+  table: DataTableInstance<TData>;
+  size: NonNullable<IconButtonProps["size"]>;
+  step: "previous" | "next";
+}
+
+function StepButton<TData extends object>({ table, size, step }: StepButtonProps<TData>) {
+  const { labels } = useDataTableContext();
+  const previous = step === "previous";
+
+  return (
+    <IconButton
+      variant="outline"
+      aria-label={previous ? labels.previousPage : labels.nextPage}
+      onClick={previous ? table.previousPage : table.nextPage}
+      disabled={previous ? !table.getCanPreviousPage() : !table.getCanNextPage()}
+      size={size}
+    >
+      {previous ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+    </IconButton>
+  );
 }
 
 export const DataTablePagination = <TData extends object>({
   table,
   totalItems,
   size,
+  compact,
 }: PaginationProps<TData>) => {
   const { labels } = useDataTableContext();
   const pageCount = table.getPageCount();
   const page = table.state.pagination.pageIndex;
+
+  if (compact)
+    return (
+      <HStack
+        borderTopWidth="1px"
+        justifyContent="space-between"
+        pl="4"
+        pr="2"
+        py="1.5"
+      >
+        <ItemCount
+          totalItems={totalItems}
+          compact
+        />
+        <HStack gap="1">
+          <StepButton
+            table={table}
+            size={size}
+            step="previous"
+          />
+          <Text
+            textStyle="sm"
+            minWidth="14"
+            textAlign="center"
+            fontVariantNumeric="tabular-nums"
+          >
+            {totalItems > 0 ? `${page + 1} / ${pageCount}` : "-"}
+          </Text>
+          <StepButton
+            table={table}
+            size={size}
+            step="next"
+          />
+        </HStack>
+      </HStack>
+    );
 
   return (
     <HStack
@@ -39,15 +116,10 @@ export const DataTablePagination = <TData extends object>({
         gap="4"
         height="100%"
       >
-        <Text textStyle="md">
-          <Text
-            as="span"
-            fontWeight="bold"
-          >
-            {totalItems}{" "}
-          </Text>
-          {labels.items}
-        </Text>
+        <ItemCount
+          totalItems={totalItems}
+          compact={false}
+        />
       </HStack>
 
       <HStack gap="8">
@@ -81,25 +153,16 @@ export const DataTablePagination = <TData extends object>({
           >
             <ChevronsLeftIcon />
           </IconButton>
-          <IconButton
-            variant="outline"
-            aria-label={labels.previousPage}
-            onClick={table.previousPage}
-            disabled={!table.getCanPreviousPage()}
+          <StepButton
+            table={table}
             size={size}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-
-          <IconButton
-            variant="outline"
-            aria-label={labels.nextPage}
-            onClick={table.nextPage}
-            disabled={!table.getCanNextPage()}
+            step="previous"
+          />
+          <StepButton
+            table={table}
             size={size}
-          >
-            <ChevronRightIcon />
-          </IconButton>
+            step="next"
+          />
           <IconButton
             variant="outline"
             aria-label={labels.lastPage}

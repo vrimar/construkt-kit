@@ -10,6 +10,7 @@ export const ColumnSelectFilter = ({
   meta,
   value,
   onChange,
+  layout,
 }: ColumnFilterProps) => {
   const { selections } = useDataTableContext();
   const selectProps = meta?.selectProps;
@@ -30,7 +31,7 @@ export const ColumnSelectFilter = ({
 
   return (
     <ApplySelect
-      placement="bottom-end"
+      placement={layout === "field" ? "bottom-start" : "bottom-end"}
       placeholder={placeholder}
       {...applySelectProps}
       items={items}
@@ -42,8 +43,8 @@ export const ColumnSelectFilter = ({
       triggerProps={{
         ...triggerProps,
         buttonProps: {
-          size: "sm",
-          variant: "plain",
+          size: layout === "field" ? "md" : "sm",
+          variant: layout === "field" ? "surface" : "plain",
           ...triggerProps?.buttonProps,
         },
       }}

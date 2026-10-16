@@ -766,4 +766,105 @@ describe("DataTable", () => {
     expect(screen.getAllByText("Full name")).toHaveLength(data.length);
     expect(screen.getAllByText("Role")).toHaveLength(data.length);
   });
+
+  describe("mobile cards", () => {
+    const cardColumns = [
+      columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
+      columnHelper.accessor("name", { header: "Name", meta: { card: "title" } }),
+      columnHelper.accessor("id", { header: "Id", meta: { card: "hidden" } }),
+      columnHelper.display({
+        id: "actions",
+        header: () => <button type="button">Reset table</button>,
+        cell: () => <button type="button">Row menu</button>,
+        meta: { card: "actions" },
+      }),
+    ];
+
+    const renderCards = (overrides: Parameters<typeof renderTable>[0] = {}) => {
+      vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+      return renderTable({
+        columnDefs: cardColumns,
+        mobileLayout: "cards",
+        selections: { role: ["Admin", "User"] },
+        ...overrides,
+      });
+    };
+
+    it("lays cards out by column role", () => {
+      renderCards();
+
+      expect(screen.getAllByRole("button", { name: "Row menu" })).toHaveLength(data.length);
+      expect(screen.queryByRole("button", { name: "Reset table" })).toBeNull();
+      expect(screen.queryByText("Id")).toBeNull();
+    });
+
+    it("searches the title column", async () => {
+      const { onParamChange } = renderCards();
+
+      await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Al");
+      await waitFor(() =>
+        expect(onParamChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ filters: { name: ["Al"] } }),
+        ),
+      );
+    });
+
+    it("flips the sort direction from the sort drawer", async () => {
+      const { onParamChange } = renderCards({
+        params: { ...params, orderBy: "name", orderType: "asc" },
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "Sort by Name" }));
+      await userEvent.click(await screen.findByText("Descending"));
+      expect(onParamChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ orderBy: "name", orderType: "desc" }),
+      );
+    });
+
+    it("applies a filter typed just before the filters drawer closes", async () => {
+      const { onParamChange } = renderCards();
+
+      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
+      await userEvent.type(await screen.findByPlaceholderText("Filter by Id"), "7");
+      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() =>
+        expect(onParamChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ filters: { id: ["7"] } }),
+        ),
+      );
+    });
+
+    it("keeps header templates out of the sort drawer's buttons", async () => {
+      renderCards({
+        columnDefs: [
+          columnHelper.accessor("role", {
+            header: () => (
+              <span>
+                Role <button type="button">About roles</button>
+              </span>
+            ),
+          }),
+          ...cardColumns.slice(1),
+        ],
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "Sort" }));
+      await screen.findByRole("radiogroup", { name: "Sort by" });
+
+      expect(document.querySelector("button button")).toBeNull();
+    });
+
+    it("keeps the search and filters it doesn't show when the filters drawer resets", async () => {
+      const { onParamChange } = renderCards({
+        params: { ...params, filters: { name: ["Al"], role: ["Admin"], team: ["Core"] } },
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
+      await userEvent.click(await screen.findByRole("button", { name: "Reset filters" }));
+      expect(onParamChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ filters: { name: ["Al"], team: ["Core"] } }),
+      );
+    });
+  });
 });

@@ -106,6 +106,15 @@ const constrainedColumns = [
   actionsColumn,
 ];
 
+const cardColumns = [
+  columnHelper.accessor("id", { header: "ID", meta: { type: "number", card: "hidden" } }),
+  columnHelper.accessor("name", { header: "Name", meta: { type: "input", card: "title" } }),
+  columnHelper.accessor("email", { header: "Email", meta: { type: "input", card: "subtitle" } }),
+  columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
+  columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
+  { ...actionsColumn, meta: { ...actionsColumn.meta, card: "actions" as const } },
+];
+
 const roleSelections = ["Admin", "User", "Editor"];
 
 const data: Person[] = [
@@ -307,6 +316,7 @@ function DataTableStory(props: {
   loading?: boolean;
   variant?: "default" | "basic";
   columnDefs?: DataTableProps<Person>["columnDefs"];
+  mobileLayout?: DataTableProps<Person>["mobileLayout"];
 }) {
   const [params, setParams] = useState<DataTableParams>(defaultParams);
   const activeColumns = props.columnDefs ?? columns;
@@ -324,6 +334,7 @@ function DataTableStory(props: {
       variant={props.variant}
       selections={{ role: roleSelections }}
       onRowClick={onRowClick}
+      mobileLayout={props.mobileLayout}
     />
   );
 }
@@ -378,6 +389,23 @@ export const Constrained: Story = {
       <DataTableStory
         data={data}
         columnDefs={constrainedColumns}
+      />
+    </Box>
+  ),
+};
+
+export const MobileCards: Story = {
+  parameters: { layout: "fullscreen" },
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  render: () => (
+    <Box
+      display="flex"
+      height="100dvh"
+    >
+      <DataTableStory
+        data={data}
+        columnDefs={cardColumns}
+        mobileLayout="cards"
       />
     </Box>
   ),

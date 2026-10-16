@@ -34,6 +34,16 @@ export type DataTableRowProps = Unstyled<BoxProps>;
 
 export type DataTableColumnAlign = "start" | "center" | "end";
 
+/**
+ * Where a column's cell goes in the `mobileLayout="cards"` layout.
+ * - `title`: the card's heading. A filterable `input` title column also drives the search box.
+ * - `subtitle`: a muted line under the title; several subtitle columns join with " · ".
+ * - `detail`: a labelled value in the wrapping grid below the heading.
+ * - `actions`: the card's top-right corner, without a label.
+ * - `hidden`: left out of the card, still sortable and filterable.
+ */
+export type DataTableCardRole = "title" | "subtitle" | "detail" | "actions" | "hidden";
+
 export type DataTableColumnMeta = {
   type?: ColumnFilterType;
   selectProps?: DataTableSelectProps;
@@ -43,6 +53,8 @@ export type DataTableColumnMeta = {
   isVisible?: boolean;
   /** Aligns body cell content. Header labels stay at the start regardless. */
   align?: DataTableColumnAlign;
+  /** The column's place in the mobile card layout. Defaults to `"detail"`. */
+  card?: DataTableCardRole;
 };
 
 export type DataTableLabels = {
@@ -62,7 +74,21 @@ export type DataTableLabels = {
   previousPage?: string;
   nextPage?: string;
   lastPage?: string;
+  /** Mobile cards: the sort button while nothing is sorted. */
+  sort?: string;
+  /** Mobile cards: the filters button and drawer title. */
+  filters?: string;
+  ascending?: string;
+  descending?: string;
+  /** Mobile cards: clears the sort from the sort drawer. */
+  clearSort?: string;
+  /** Mobile cards: closes the sort and filters drawers. */
+  done?: string;
+  /** Prefix of an active filter chip's accessible name, followed by the column name. */
+  removeFilter?: string;
 };
+
+export type ColumnFilterLayout = "cell" | "field";
 
 export interface ColumnFilterProps {
   columnId: string;
@@ -70,6 +96,7 @@ export interface ColumnFilterProps {
   meta: DataTableColumnMeta | undefined;
   value: string[];
   onChange: (value: string[] | undefined) => void;
+  layout: ColumnFilterLayout;
 }
 
 /**

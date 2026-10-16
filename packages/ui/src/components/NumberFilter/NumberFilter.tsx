@@ -128,18 +128,16 @@ export const NumberFilter = ({
     emitToParent(next);
   };
 
-  useDebounce(
-    () => {
-      const candidate = deriveValue(operator, fromText, toText);
-      if (candidate) {
-        if (!isSameValue(candidate, appliedValue)) emit(candidate);
-      } else if (appliedValue && (isInvalidText(fromText) || isInvalidText(toText))) {
-        emit(undefined);
-      }
-    },
-    debounceMs,
-    [fromText, toText],
-  );
+  const applyText = () => {
+    const candidate = deriveValue(operator, fromText, toText);
+    if (candidate) {
+      if (!isSameValue(candidate, appliedValue)) emit(candidate);
+    } else if (appliedValue && (isInvalidText(fromText) || isInvalidText(toText))) {
+      emit(undefined);
+    }
+  };
+
+  useDebounce(applyText, debounceMs, [fromText, toText]);
 
   const handleTextChange = (setText: (text: string) => void, text: string) => {
     setText(text);
@@ -205,6 +203,10 @@ export const NumberFilter = ({
     inputMode: "decimal",
     autoComplete: "off",
     disabled,
+    onBlur: (event) => {
+      sharedInputProps.onBlur?.(event);
+      applyText();
+    },
   };
 
   const isBetween = operator === "between";

@@ -52,6 +52,23 @@ describe("NumberFilter", () => {
     );
   });
 
+  it("applies a pending edit when the field loses focus mid-debounce", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberFilter
+        placeholder="Amount"
+        debounceMs={500}
+        value={undefined}
+        onValueChange={onValueChange}
+      />,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText("Amount"), "100");
+    await userEvent.click(document.body);
+
+    expect(onValueChange).toHaveBeenLastCalledWith({ operator: "eq", value: 100 });
+  });
+
   it("re-emits immediately when the operator changes", async () => {
     const { onValueChange } = renderFilter({ value: { operator: "eq", value: 100 } });
 

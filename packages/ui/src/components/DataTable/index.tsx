@@ -29,6 +29,7 @@ import { dataTableFeatures } from "./types";
 
 export type {
   ColumnFilterType,
+  DataTableCardRole,
   DataTableColumnAlign,
   DataTableColumnDef,
   DataTableColumnMeta,
@@ -63,7 +64,8 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
   /**
    * How the table adapts below the `md` breakpoint.
    * - `"scroll"` (default): keep the grid layout.
-   * - `"cards"`: render each row as a stacked label/value card.
+   * - `"cards"`: render each row as a card laid out by the columns' `meta.card` roles, with a
+   *   search box, sort chip and filters drawer in place of the header rows.
    */
   mobileLayout?: "scroll" | "cards";
 };
@@ -83,6 +85,13 @@ const defaultLabels: Required<DataTableLabels> = {
   previousPage: "Previous page",
   nextPage: "Next page",
   lastPage: "Last page",
+  sort: "Sort",
+  filters: "Filters",
+  ascending: "Ascending",
+  descending: "Descending",
+  clearSort: "Clear",
+  done: "Done",
+  removeFilter: "Remove filter",
 };
 
 const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableLabels> => {
@@ -302,15 +311,16 @@ export const DataTable = <TData extends object>({
         bg="bg"
         width="100%"
         flex="1"
-        borderWidth={variant === "basic" ? undefined : "1px"}
+        borderWidth={variant === "basic" || showCards ? undefined : "1px"}
         borderRadius="sm"
-        boxShadow={variant === "basic" ? undefined : "xl"}
+        boxShadow={variant === "basic" || showCards ? undefined : "xl"}
         minHeight="0"
         {...styleProps}
       >
         {showCards ? (
           <DataTableCards
             table={table}
+            showFilters={showFiltersRow}
             renderSubRow={renderSubRow}
           />
         ) : (
@@ -326,6 +336,7 @@ export const DataTable = <TData extends object>({
             table={table}
             totalItems={totalItems}
             size={variant === "basic" ? "xs" : "md"}
+            compact={showCards}
           />
         )}
       </Stack>
