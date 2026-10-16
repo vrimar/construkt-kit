@@ -2,7 +2,7 @@ import { checkboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
-import { controlGap, controlBox, controlText } from "./control-size";
+import { controlGap, controlBox, controlText, touchRow } from "./control-size";
 import { paletteVariant } from "./palette";
 
 export const checkbox = defineSlotRecipe({
@@ -19,6 +19,7 @@ export const checkbox = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
       },
+      ...touchRow(),
     },
     control: {
       ...checkboxControlBase,

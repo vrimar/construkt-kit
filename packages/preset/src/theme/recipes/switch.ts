@@ -1,7 +1,7 @@
 import { switchAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlFont } from "./control-size";
+import { controlFont, touchRow } from "./control-size";
 
 export const switchRecipe = defineSlotRecipe({
   className: "switch",
@@ -22,6 +22,7 @@ export const switchRecipe = defineSlotRecipe({
       _disabled: {
         cursor: "not-allowed",
       },
+      ...touchRow(),
     },
     label: {
       fontWeight: "medium",

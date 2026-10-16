@@ -1,7 +1,7 @@
 import { colorPickerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlH, controlPx } from "./control-size";
+import { controlH, controlInputFont, controlPx } from "./control-size";
 
 export const colorPicker = defineSlotRecipe({
   className: "color-picker",
@@ -63,8 +63,8 @@ export const colorPicker = defineSlotRecipe({
     },
     areaThumb: {
       borderRadius: "full",
-      height: "2.5",
-      width: "2.5",
+      height: { base: "2.5", _pointerCoarse: "5" },
+      width: { base: "2.5", _pointerCoarse: "5" },
       boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
       outline: "none",
     },
@@ -77,6 +77,7 @@ export const colorPicker = defineSlotRecipe({
       minWidth: "0",
       height: controlH("md"),
       px: controlPx("md"),
+      fontSize: controlInputFont("md"),
       borderWidth: "1px",
       borderColor: "neutral.outline.border",
       borderRadius: "md",
@@ -112,8 +113,8 @@ export const colorPicker = defineSlotRecipe({
     },
     channelSliderThumb: {
       borderRadius: "full",
-      height: "2.5",
-      width: "2.5",
+      height: { base: "2.5", _pointerCoarse: "5" },
+      width: { base: "2.5", _pointerCoarse: "5" },
       boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
       transform: "translate(-50%, -50%)",
       outline: "none",

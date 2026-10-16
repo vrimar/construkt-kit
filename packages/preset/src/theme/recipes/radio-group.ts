@@ -1,7 +1,7 @@
 import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { type ControlSize, controlGap, controlBox, controlText } from "./control-size";
+import { type ControlSize, controlGap, controlBox, controlText, touchRow } from "./control-size";
 
 const tier = (size: ControlSize) => ({
   item: { gap: controlGap(size) },
@@ -47,6 +47,7 @@ export const radioGroup = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
       },
+      ...touchRow(),
     },
     itemText: {
       fontWeight: "medium",

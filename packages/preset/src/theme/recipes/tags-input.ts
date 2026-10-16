@@ -1,7 +1,7 @@
 import { tagsInputAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlH, controlText } from "./control-size";
+import { controlH, controlInputFont, controlText } from "./control-size";
 
 const controlFocusRing = {
   outlineWidth: "1px",
@@ -169,6 +169,8 @@ export const tagsInput = defineSlotRecipe({
           _icon: { boxSize: "3" },
           ...controlText("xs"),
         },
+        input: { fontSize: controlInputFont("xs") },
+        itemInput: { fontSize: controlInputFont("xs") },
         control: { gap: "1" },
         itemPreview: { gap: "1" },
         itemDeleteTrigger: { boxSize: "3.5", me: "-1px" },
@@ -182,6 +184,8 @@ export const tagsInput = defineSlotRecipe({
           _icon: { boxSize: "3.5" },
           ...controlText("sm"),
         },
+        input: { fontSize: controlInputFont("sm") },
+        itemInput: { fontSize: controlInputFont("sm") },
         control: { gap: "1" },
         itemPreview: { gap: "1" },
         itemDeleteTrigger: { boxSize: "4", me: "-0.5" },
@@ -195,6 +199,8 @@ export const tagsInput = defineSlotRecipe({
           _icon: { boxSize: "3.5" },
           ...controlText("md"),
         },
+        input: { fontSize: controlInputFont("md") },
+        itemInput: { fontSize: controlInputFont("md") },
         control: { gap: "1.5" },
         itemPreview: { gap: "1" },
         itemDeleteTrigger: { boxSize: "4.5", me: "-1" },
@@ -208,6 +214,8 @@ export const tagsInput = defineSlotRecipe({
           _icon: { boxSize: "4" },
           ...controlText("lg"),
         },
+        input: { fontSize: controlInputFont("lg") },
+        itemInput: { fontSize: controlInputFont("lg") },
         control: { gap: "1.5" },
         itemPreview: { gap: "1" },
         itemDeleteTrigger: { boxSize: "5", me: "-1.5" },

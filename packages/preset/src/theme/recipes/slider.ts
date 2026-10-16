@@ -77,6 +77,7 @@ export const slider = defineSlotRecipe({
       sm: {
         root: {
           "--slider-thumb-size": visual("1.125rem"),
+          _pointerCoarse: { "--slider-thumb-size": visual("1.375rem") },
           "--slider-track-size": visual("0.375rem"),
           "--slider-marker-center": "7px",
           "--slider-marker-size": "sizes.1",
@@ -86,6 +87,7 @@ export const slider = defineSlotRecipe({
       md: {
         root: {
           "--slider-thumb-size": visual("1.25rem"),
+          _pointerCoarse: { "--slider-thumb-size": visual("1.5rem") },
           "--slider-track-size": visual("0.5rem"),
           "--slider-marker-center": "8px",
           "--slider-marker-size": "sizes.1",
@@ -95,6 +97,7 @@ export const slider = defineSlotRecipe({
       lg: {
         root: {
           "--slider-thumb-size": visual("1.375rem"),
+          _pointerCoarse: { "--slider-thumb-size": visual("1.75rem") },
           "--slider-track-size": visual("0.625rem"),
           "--slider-marker-center": "9px",
           "--slider-marker-size": "sizes.1",

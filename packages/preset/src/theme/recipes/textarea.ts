@@ -1,6 +1,6 @@
 import { defineRecipe } from "@pandacss/dev";
 
-import { controlPx, controlPy, controlText } from "./control-size";
+import { controlInputText, controlPx, controlPy } from "./control-size";
 import { input } from "./input";
 
 export const textarea = defineRecipe({
@@ -36,31 +36,31 @@ export const textarea = defineRecipe({
     },
     size: {
       xs: {
-        ...controlText("xs"),
+        ...controlInputText("xs"),
         "--input-px": controlPx("xs"),
         py: controlPy("xs"),
         scrollPaddingBottom: controlPy("xs"),
       },
       sm: {
-        ...controlText("sm"),
+        ...controlInputText("sm"),
         "--input-px": controlPx("sm"),
         py: controlPy("sm"),
         scrollPaddingBottom: controlPy("sm"),
       },
       md: {
-        ...controlText("md"),
+        ...controlInputText("md"),
         "--input-px": controlPx("md"),
         py: controlPy("md"),
         scrollPaddingBottom: controlPy("md"),
       },
       lg: {
-        ...controlText("lg"),
+        ...controlInputText("lg"),
         "--input-px": controlPx("lg"),
         py: controlPy("lg"),
         scrollPaddingBottom: controlPy("lg"),
       },
       xl: {
-        ...controlText("xl"),
+        ...controlInputText("xl"),
         "--input-px": controlPx("xl"),
         py: controlPy("xl"),
         scrollPaddingBottom: controlPy("xl"),

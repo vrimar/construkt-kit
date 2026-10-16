@@ -15,9 +15,20 @@ export const globalCss = {
     "--control-base-icon": "sizes.4",
     "--control-base-box": "sizes.4.5",
     "--control-base-font": "fontSizes.sm",
+    "--control-input-font-min": "0px",
     // Proportional density knobs for container/overlay padding and graphical element sizes.
     "--surface-scale": "1",
     "--visual-scale": "1",
+    "@media (pointer: coarse)": {
+      "--control-base-h": "sizes.11",
+      "--control-base-row-h": "sizes.11",
+      // iOS zooms into any focused input whose text is under 16px.
+      "--control-input-font-min": "1rem",
+    },
+  },
+  "a, button, input, label, select, summary, textarea, [role=button]": {
+    WebkitTapHighlightColor: "transparent",
+    touchAction: "manipulation",
   },
   body: {
     height: "100%",

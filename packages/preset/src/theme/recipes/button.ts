@@ -7,6 +7,7 @@ import {
   controlGap,
   controlIcon,
   controlText,
+  touchHitArea,
 } from "./control-size";
 
 const tier = (size: ControlSize) => ({
@@ -57,6 +58,7 @@ export const button = defineRecipe({
     },
     focusVisibleRing: "outside",
     colorPalette: "neutral",
+    ...touchHitArea(),
   },
   defaultVariants: {
     variant: "solid",

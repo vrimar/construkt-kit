@@ -55,6 +55,8 @@ export const datePicker = defineSlotRecipe({
     },
     tableCellTrigger: {
       width: "100%",
+      // Cells touch, so a hit area wider than the cell would take taps meant for its neighbour.
+      _pointerCoarse: { _after: { display: "none" } },
       _today: {
         _before: {
           content: "'−'",

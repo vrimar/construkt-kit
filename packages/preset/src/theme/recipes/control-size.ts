@@ -26,6 +26,7 @@ const BASE_PY = "var(--control-base-py, 0.4375rem)";
 const BASE_ICON = "var(--control-base-icon, 1rem)";
 const BASE_BOX = "var(--control-base-box, 1.125rem)";
 const BASE_FONT = "var(--control-base-font, 0.875rem)";
+const INPUT_FONT_MIN = "var(--control-input-font-min, 0px)";
 
 /** Add a per-size rem offset to a knob var; `0` returns the bare var (no redundant calc). */
 const off = (v: string, rem: number): string =>
@@ -146,6 +147,37 @@ export const controlFont = (size: ControlSize): string => off(BASE_FONT, FONT[si
 export const controlText = (size: ControlSize) => ({
   fontSize: controlFont(size),
   lineHeight: off(BASE_FONT, LH[size]),
+});
+
+export const controlInputFont = (size: ControlSize): string =>
+  `max(${INPUT_FONT_MIN}, ${controlFont(size)})`;
+
+export const controlInputText = (size: ControlSize) => ({
+  ...controlText(size),
+  fontSize: controlInputFont(size),
+});
+
+// Claims the host's `::after`; spread it on a slot that doesn't already use `::after`.
+export const touchHitArea = () => ({
+  _pointerCoarse: {
+    position: "relative",
+    _after: {
+      content: '""',
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      width: "max(100%, 2.75rem)",
+      height: "max(100%, 2.75rem)",
+      translate: "-50% -50%",
+    },
+    // Side by side, a wider hit area would take taps meant for the neighbouring target.
+    "&:has(+ &), & + &": { _after: { width: "100%" } },
+  },
+});
+
+// A real 44px row instead of an invisible one, so rows stacked in a list never share taps.
+export const touchRow = () => ({
+  _pointerCoarse: { ...touchHitArea()._pointerCoarse, minH: "2.75rem" },
 });
 
 /** Dense row shared by the dropdown family (menu / listbox / combobox items). */

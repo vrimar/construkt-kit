@@ -1,6 +1,6 @@
 import type { RecipeConfig } from "@pandacss/types";
 
-import { controlH, controlPx, controlText } from "./control-size";
+import { controlH, controlInputText, controlPx } from "./control-size";
 
 const invalidRing = {
   focusRingColor: "border.error",
@@ -92,17 +92,37 @@ export const input = {
     },
     size: {
       "2xs": {
-        ...controlText("2xs"),
+        ...controlInputText("2xs"),
         "--input-px": controlPx("2xs"),
         "--input-height": controlH("2xs"),
       },
-      xs: { ...controlText("xs"), "--input-px": controlPx("xs"), "--input-height": controlH("xs") },
-      sm: { ...controlText("sm"), "--input-px": controlPx("sm"), "--input-height": controlH("sm") },
-      md: { ...controlText("md"), "--input-px": controlPx("md"), "--input-height": controlH("md") },
-      lg: { ...controlText("lg"), "--input-px": controlPx("lg"), "--input-height": controlH("lg") },
-      xl: { ...controlText("xl"), "--input-px": controlPx("xl"), "--input-height": controlH("xl") },
+      xs: {
+        ...controlInputText("xs"),
+        "--input-px": controlPx("xs"),
+        "--input-height": controlH("xs"),
+      },
+      sm: {
+        ...controlInputText("sm"),
+        "--input-px": controlPx("sm"),
+        "--input-height": controlH("sm"),
+      },
+      md: {
+        ...controlInputText("md"),
+        "--input-px": controlPx("md"),
+        "--input-height": controlH("md"),
+      },
+      lg: {
+        ...controlInputText("lg"),
+        "--input-px": controlPx("lg"),
+        "--input-height": controlH("lg"),
+      },
+      xl: {
+        ...controlInputText("xl"),
+        "--input-px": controlPx("xl"),
+        "--input-height": controlH("xl"),
+      },
       "2xl": {
-        ...controlText("2xl"),
+        ...controlInputText("2xl"),
         "--input-px": controlPx("2xl"),
         "--input-height": controlH("2xl"),
       },

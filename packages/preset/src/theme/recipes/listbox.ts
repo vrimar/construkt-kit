@@ -124,14 +124,16 @@ export const listbox = defineSlotRecipe({
       always: {},
       hover: {
         item: {
-          "& [data-listbox-item-action]": {
-            opacity: "0",
-            transition: "opacity 0.12s ease-out",
-          },
-          "&:hover [data-listbox-item-action], &[data-highlighted] [data-listbox-item-action], &:focus-within [data-listbox-item-action]":
-            {
-              opacity: "1",
+          "@media (hover: hover)": {
+            "& [data-listbox-item-action]": {
+              opacity: "0",
+              transition: "opacity 0.12s ease-out",
             },
+            "&:hover [data-listbox-item-action], &[data-highlighted] [data-listbox-item-action], &:focus-within [data-listbox-item-action]":
+              {
+                opacity: "1",
+              },
+          },
         },
       },
     },

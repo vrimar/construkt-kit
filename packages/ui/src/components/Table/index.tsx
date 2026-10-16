@@ -26,6 +26,7 @@ const ScrollArea = (props: BoxProps) => (
     width="100%"
     maxWidth="100%"
     overflowX="auto"
+    overscrollBehaviorX="contain"
     {...props}
   />
 );
