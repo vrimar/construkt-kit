@@ -31,6 +31,14 @@ export const breakpointMinWidth = (bp: Breakpoint): string => token(`breakpoints
 /** Min-width (px, numeric) of a breakpoint, from the generated tokens. */
 export const breakpointPx = (bp: Breakpoint): number => Number.parseFloat(breakpointMinWidth(bp));
 
+const breakpointRem = (bp: Breakpoint) => `${breakpointPx(bp) / 16}rem`;
+
+/** Media condition at or above `bp`, the same one Panda emits for the `bp` condition. */
+export const breakpointUpQuery = (bp: Breakpoint): string => `(width >= ${breakpointRem(bp)})`;
+
+/** Media condition below `bp`, the same one Panda emits for the `<bp>Down` condition. */
+export const breakpointDownQuery = (bp: Breakpoint): string => `(width < ${breakpointRem(bp)})`;
+
 /** CSS rules setting a custom property per breakpoint for `selector` (base rule, then
  *  ascending `@media`). Emit base here, not inline — inline would beat the media rules. */
 export const responsiveVarRules = (
@@ -42,9 +50,7 @@ export const responsiveVarRules = (
   if (values.base != null) rules.push(`${selector} { ${property}: ${values.base} }`);
   for (const bp of breakpoints) {
     if (values[bp] != null) {
-      rules.push(
-        `@media (min-width: ${breakpointMinWidth(bp)}) { ${selector} { ${property}: ${values[bp]} } }`,
-      );
+      rules.push(`@media ${breakpointUpQuery(bp)} { ${selector} { ${property}: ${values[bp]} } }`);
     }
   }
   return rules.join("");
