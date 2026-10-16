@@ -193,7 +193,9 @@ Options (via `createKubbConfig()`):
 
 ## CLI: `construkt-kit-api-gen`
 
-Fetches an OpenAPI spec from a running API, runs Kubb codegen, and deletes the downloaded spec.
+Fetches an OpenAPI spec from a running API, runs Kubb codegen, and deletes the downloaded spec. It runs the
+app's own `kubb`, so install `kubb` next to the Kubb plugins `createKubbConfig()` uses; both must come from
+the same Kubb release.
 
 ### Usage
 

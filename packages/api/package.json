@@ -34,7 +34,6 @@
     "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
-    "kubb": "^5.9.0",
     "tsx": "^4.23.15"
   },
   "devDependencies": {
@@ -45,7 +44,16 @@
     "@kubb/plugin-react-query": "^5.3.3",
     "@kubb/plugin-ts": "^5.0.10",
     "@tanstack/react-query": "^5.104.2",
+    "kubb": "^5.9.0",
     "tsdown": "^0.23.1",
     "vitest": "^5.0.4"
+  },
+  "peerDependencies": {
+    "kubb": "^5.2.6"
+  },
+  "peerDependenciesMeta": {
+    "kubb": {
+      "optional": true
+    }
   }
 }
