@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { useDebounceQuery } from "../../../../hooks/useDebounceQuery";
@@ -12,16 +12,26 @@ export const ColumnSearchInput = ({ placeholder, value, onChange, layout }: Colu
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
   const { query, debouncedQuery, setQuery } = useDebounceQuery(current, FILTER_DEBOUNCE_MS);
+  const [applied, setApplied] = useState(current);
   const emit = useControlledMirror({
     value: current,
     onValueChange: (next: string) => onChange(next ? [next] : undefined),
-    onExternalChange: setQuery,
+    onExternalChange: (next: string) => {
+      setApplied(next);
+      setQuery(next);
+    },
   });
-  const emitRef = useLatestRef(emit);
+
+  const apply = () => {
+    if (query === applied) return;
+    setApplied(query);
+    emit(query);
+  };
+  const applyRef = useLatestRef(apply);
 
   useEffect(() => {
-    if (debouncedQuery === query && query !== current) emitRef.current(query);
-  }, [current, debouncedQuery, emitRef, query]);
+    if (debouncedQuery === query) applyRef.current();
+  }, [applyRef, debouncedQuery, query]);
 
   return (
     <SearchInput
@@ -29,9 +39,7 @@ export const ColumnSearchInput = ({ placeholder, value, onChange, layout }: Colu
       autoComplete="off"
       onClear={() => setQuery("")}
       onChange={(e) => setQuery(e.target.value)}
-      onBlur={() => {
-        if (query !== current) emit(query);
-      }}
+      onBlur={apply}
       placeholder={placeholder}
       clearLabel={labels.clearSearch}
       hasIcon={layout === "field"}

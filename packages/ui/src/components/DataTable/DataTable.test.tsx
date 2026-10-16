@@ -809,6 +809,16 @@ describe("DataTable", () => {
       );
     });
 
+    it("sends a search once when the field loses focus before the debounce", async () => {
+      const { onParamChange } = renderCards();
+
+      await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Al");
+      await userEvent.click(document.body);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      expect(onParamChange).toHaveBeenCalledOnce();
+    });
+
     it("flips the sort direction from the sort drawer", async () => {
       const { onParamChange } = renderCards({
         params: { ...params, orderBy: "name", orderType: "asc" },
