@@ -7,7 +7,7 @@ import { Popover, type PopoverRootProps } from "../Popover";
 
 const TRIGGER_GUTTER = 4;
 
-export interface ToggleTipProps extends PopoverRootProps, PortalledProps {
+export interface ToggleTipProps extends Omit<PopoverRootProps, "mobileLayout">, PortalledProps {
   showArrow?: boolean;
   label?: ReactNode;
 }
@@ -26,6 +26,7 @@ export const ToggleTip = ({
   return (
     <Popover.Root
       {...rest}
+      mobileLayout="popover"
       positioning={{ gutter: TRIGGER_GUTTER, ...rest.positioning }}
     >
       <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>

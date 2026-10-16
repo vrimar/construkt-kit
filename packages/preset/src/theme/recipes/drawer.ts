@@ -61,6 +61,29 @@ export const drawer = defineSlotRecipe({
       transitionProperty: "transform, scale",
       transitionDuration: "normal",
       transitionTimingFunction: "emphasized-out",
+      "&[data-overlay-sheet]": {
+        "--available-height": "calc(90dvh - {sizes.4} - env(safe-area-inset-bottom))",
+        "--reference-width": "100%",
+        "& [data-part=arrow]": { display: "none" },
+        "& > [data-overlay-sheet-content]": {
+          flex: "1 1 auto",
+          minHeight: "0",
+          maxHeight: "none",
+          overflowY: "auto",
+          borderWidth: "0",
+          borderRadius: "0",
+          boxShadow: "none",
+          // Consumers size anchored content with style props; a sheet is always full width.
+          width: "100% !important",
+          minWidth: "0 !important",
+          maxWidth: "none !important",
+          // The frame's modal layer sits above the overlay's, which zag sets inline to none.
+          pointerEvents: "auto !important",
+        },
+        "& > [data-overlay-sheet-content]:has(~ [data-overlay-sheet-content][data-state=open])": {
+          display: "none",
+        },
+      },
       _open: {
         animationDuration: "slowest",
         animationTimingFunction: "emphasized-in",

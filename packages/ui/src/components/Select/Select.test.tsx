@@ -1,9 +1,10 @@
 import type { UseListboxContext } from "@ark-ui/react/listbox";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
 import { encodeSelectionValue } from "../Listbox/managed";
 import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
@@ -438,6 +439,51 @@ describe("Select", () => {
       await userEvent.click(screen.getByRole("option", { name: "Beta" }));
       expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).not.toBeNull();
       expect(scrollIntoView).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("on phones", () => {
+    const sheetOf = (element: Element) => element.closest("[data-overlay-sheet]");
+
+    const renderOnPhone = (props?: SelectOverrides) => {
+      const media = createMatchMediaController(isBelowBreakpointQuery);
+      vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
+      onTestFinished(() => {
+        vi.restoreAllMocks();
+      });
+      renderSelect(props);
+      return { media, trigger: screen.getByRole("button") };
+    };
+
+    it("opens in a bottom sheet below md and anchored at md and up", async () => {
+      const { media, trigger } = renderOnPhone();
+
+      await userEvent.click(trigger);
+      expect(sheetOf(screen.getByRole("listbox"))).not.toBeNull();
+
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      act(() => media.setMatches(() => false));
+
+      await userEvent.click(trigger);
+      expect(sheetOf(screen.getByRole("listbox"))).toBeNull();
+    });
+
+    it("stays anchored on a phone when asked to", async () => {
+      const { trigger } = renderOnPhone({ mobileLayout: "popover" });
+
+      await userEvent.click(trigger);
+
+      expect(sheetOf(screen.getByRole("listbox"))).toBeNull();
+    });
+
+    it("stays a sheet when the viewport crosses md while open", async () => {
+      const { media, trigger } = renderOnPhone();
+
+      await userEvent.click(trigger);
+      act(() => media.setMatches(() => false));
+
+      expect(sheetOf(screen.getByRole("listbox"))).not.toBeNull();
     });
   });
 });

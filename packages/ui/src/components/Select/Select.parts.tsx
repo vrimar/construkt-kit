@@ -8,6 +8,7 @@ import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";
 import { ListboxSearchField, ManagedList } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
+import { useOverlayMode } from "../overlayPresentation";
 import { Popover } from "../Popover";
 import { useSelectContext } from "./Select.context";
 import type {
@@ -56,14 +57,17 @@ export function SelectTrigger({
 
 export function SelectContent({ children, style, ...props }: SelectContentProps) {
   const { contentWidth, sameWidth, wideContent } = useSelectContext();
+  const anchored = useOverlayMode() !== "sheet";
   const minContentWidth = wideContent ? WIDE_MIN_CONTENT_WIDTH : MIN_CONTENT_WIDTH;
 
   return (
     <Popover.Content
-      layerStyle="dropdown.surface"
-      minW={contentWidth == null ? minContentWidth : undefined}
-      width={sameWidth ? "full" : undefined}
-      style={contentWidth == null ? style : { width: toCssSize(contentWidth), ...style }}
+      layerStyle={anchored ? "dropdown.surface" : undefined}
+      minW={anchored && contentWidth == null ? minContentWidth : undefined}
+      width={anchored && sameWidth ? "full" : undefined}
+      style={
+        anchored && contentWidth != null ? { width: toCssSize(contentWidth), ...style } : style
+      }
       {...props}
     >
       {children}
@@ -73,10 +77,14 @@ export function SelectContent({ children, style, ...props }: SelectContentProps)
 
 export function SelectSearch({ children, ...props }: SelectSearchProps) {
   const { managed } = useSelectContext();
+  // On a phone, focusing the search raises the keyboard over half the sheet.
+  const sheet = useOverlayMode() === "sheet";
 
   return (
     <ListboxSearchField
       {...props}
+      autoFocus={sheet ? false : props.autoFocus}
+      data-no-autofocus={sheet ? "" : undefined}
       search={managed.controller.search}
       inputRef={managed.inputRef}
       endElement={children}

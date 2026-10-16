@@ -129,3 +129,8 @@ export const Compound: Story = {
     );
   },
 };
+
+export const Phone: Story = {
+  ...Searchable,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

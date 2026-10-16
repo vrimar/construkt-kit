@@ -81,3 +81,8 @@ export const NoBackdrop: Story = {
     </Dialog.Root>
   ),
 };
+
+export const Phone: Story = {
+  ...Default,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

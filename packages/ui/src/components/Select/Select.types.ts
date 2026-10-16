@@ -18,6 +18,7 @@ import type {
   SelectionValue,
   SelectionValueRenderContext,
 } from "../Listbox/types";
+import type { MobileLayoutProps } from "../overlayPresentation";
 import type { Popover, PopoverRootProps, PopoverTriggerProps } from "../Popover";
 
 export type SelectValue = SelectionValue;
@@ -31,7 +32,8 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   extends
     ManagedSelectionProps<T, V>,
     Omit<ManagedListOptions<T, V>, "renderItemActions">,
-    JsxStyleProps {
+    JsxStyleProps,
+    MobileLayoutProps {
   children: ReactNode;
   renderItemActions?: (
     item: T,

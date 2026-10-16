@@ -72,3 +72,9 @@ export const Select: Story = {
     </Box>
   ),
 };
+
+export const SelectPhone: Story = {
+  ...Select,
+  name: "DatePickerSelect / Phone",
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

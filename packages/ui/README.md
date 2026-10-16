@@ -321,8 +321,47 @@ allowBuilds:
   "@parcel/watcher": false
 ```
 
+### Phones and touch
+
+Two things adapt, each on its own signal:
+
+- **Touch density** follows the primary pointer, `(pointer: coarse)`, at any width, so a tablet in landscape gets it
+  too. Controls, menu rows and checkbox, radio and switch rows grow to 44px, text inputs to 16px text (iOS zooms into
+  anything smaller), and small buttons get a 44px hit area without changing their layout, narrowed beside a neighbouring
+  button. `_hover` styles apply only where the device can hover. It is all CSS on the `--control-*` knobs, so the first server render is already right.
+- **Presentation** follows the viewport. Below `md`, `Select`, `ApplySelect`, `TagSelect`, `Menu`, `Popover`,
+  `DatePicker`, `DatePickerSelect`, `ColorPicker` and `Combobox` open as a bottom sheet that swipes away; from `md` up
+  they stay anchored. Pass `mobileLayout="popover"` to keep one anchored; an overlay with `autoFocus={false}` (a hint
+  beside a focused field) and an `inline` picker always stay anchored. A sheet applies the overlay's `closeOnEscape`,
+  `closeOnInteractOutside` and outside/Escape handlers. A submenu opens inside its parent's sheet
+  behind a back row (`Menu.Content`'s `backLabel`). A phone `Combobox` field is a button that opens a full-height sheet
+  with the search input on top. `Dialog` sizes `md`, `lg`, `xl` and `cover` fill the screen below `md`; `xs` and `sm`
+  stay centred.
+
+`Sheet` is the bottom `Drawer` with a grabber, `snapPoints`, safe-area padding and a `Header` that takes
+`startElement`/`endElement`. Every `Drawer` placement swipes to dismiss on touch, and a mouse drags it by the grabber
+(`draggable` on `Drawer.Content` lets the mouse drag the content too); for `Drawer.RootProvider`, pass the placement
+to `useDrawer`, which sets the swipe direction and the provider's styling, and give `Sheet.RootProvider` `useSheet()`.
+
+Tooltips and hover cards never open from touch. Keep tooltip text a label for something already labelled (an icon
+button's `aria-label`), put anything a phone user needs in `ToggleTip` or `InfoTip`, and make `HoverCard` content
+reachable another way.
+
+Give the app `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`.
+`viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
+`user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
+
 #### Upgrading from 0.9
 
+- On phones and touch screens, see [Phones and touch](#phones-and-touch): `_hover` styles apply only where the device
+  can hover, coarse-pointer controls and rows are 44px with 16px input text (drop app-level `--control-base-h`
+  overrides), and below `md` the pickers open as bottom sheets — pass `mobileLayout="popover"` to keep one anchored —
+  while `Dialog` sizes `md` and up fill the screen
+- `Drawer` is built on Ark's drawer: every placement swipes to dismiss on touch, `Drawer.Root` takes `snapPoints`, and
+  a bottom drawer stops at 90dvh with a rounded top and safe-area padding. `Drawer.RootProvider` takes its placement
+  from `useDrawer({ placement })` instead of a `placement` prop
+- On phones `Combobox.Input` renders a button that opens the sheet, so a `ref` passed to it attaches to the sheet's
+  input only while the sheet is open
 - `_dark` overrides `_light` in dark mode, and `_hover`/`_active` also match `[data-hover]`/`[data-active]` and never
   `[data-disabled]`; see [Condition Overrides](#condition-overrides)
 - `Carousel.Root` `padding` is the carousel's own, a CSS length that insets the slides, not a style prop; pad the root

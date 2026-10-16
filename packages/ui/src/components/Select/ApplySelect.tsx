@@ -5,6 +5,7 @@ import { HStack } from "#styled-system/jsx";
 import { Button } from "../Buttons";
 import { encodeSelectionValue } from "../Listbox/managed";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
+import { useOverlayMode } from "../overlayPresentation";
 import { Select } from "./Select";
 import {
   type SelectRootOverrides,
@@ -66,9 +67,15 @@ function ApplySelectActions({
   const { close, managed } = useSelectContext();
   const { getSelectAllState, handleValueChange } = managed.controller;
   const selectAll = useMemo(() => getSelectAllState(), [getSelectAllState]);
+  const sheet = useOverlayMode() === "sheet";
 
   return (
-    <Select.Footer>
+    <Select.Footer
+      position={sheet ? "sticky" : undefined}
+      bottom={sheet ? "0" : undefined}
+      bg={sheet ? "neutral.surface.bg" : undefined}
+      borderTopWidth={sheet ? "1px" : undefined}
+    >
       <HStack p="4">
         {toggleAll && (
           <Button

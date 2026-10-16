@@ -65,3 +65,8 @@ export const WithArrow: Story = {
     </Popover.Root>
   ),
 };
+
+export const Phone: Story = {
+  ...Default,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

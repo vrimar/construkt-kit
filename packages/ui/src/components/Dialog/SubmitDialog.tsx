@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { styled } from "#styled-system/jsx";
 
@@ -6,7 +6,7 @@ import { toCssSize } from "../../foundations/cssSize";
 import type { Unstyled } from "../../types";
 import type { ButtonProps } from "../Buttons";
 import { type FormActions, renderFormActions } from "../Form/FormActions";
-import { Dialog } from "./Dialog";
+import { Dialog, type DialogRootProps } from "./Dialog";
 
 export type SubmitDialogFooterParts = FormActions;
 
@@ -22,8 +22,10 @@ export interface SubmitDialogProps {
   cancelLabel?: string;
   children: ReactNode;
   open?: boolean;
-  /** Max width of the dialog: px if a number, otherwise a size token or CSS length. */
+  /** Max width of the dialog from `md` up: px if a number, otherwise a size token or CSS length. */
   contentWidth?: string | number;
+  /** `xs` and `sm` stay centred on phones; larger sizes fill the screen below `md`. @default "md" */
+  size?: DialogRootProps["size"];
   autoFocusButton?: boolean;
   /**
    * Lays out the footer from the prebuilt buttons plus any of your own. Keep a `type="submit"`
@@ -31,6 +33,12 @@ export interface SubmitDialogProps {
    */
   footer?: (parts: SubmitDialogFooterParts) => ReactNode;
 }
+
+const contentWidthStyle = (
+  contentWidth: string | number,
+): CSSProperties & { "--submit-dialog-max-w": string } => ({
+  "--submit-dialog-max-w": toCssSize(contentWidth),
+});
 
 export const SubmitDialog = ({
   title,
@@ -44,6 +52,7 @@ export const SubmitDialog = ({
   open = true,
   cancelLabel,
   contentWidth,
+  size,
   autoFocusButton,
   footer,
 }: SubmitDialogProps) => {
@@ -59,6 +68,7 @@ export const SubmitDialog = ({
   return (
     <Dialog.Root
       open={open}
+      size={size}
       onOpenChange={(e) => {
         if (!e.open && !loading) onClose?.();
       }}
@@ -67,7 +77,8 @@ export const SubmitDialog = ({
       onRequestDismiss={(e) => e.preventDefault()}
     >
       <Dialog.Content
-        style={contentWidth == null ? undefined : { maxWidth: toCssSize(contentWidth) }}
+        maxW={contentWidth == null ? undefined : { md: "var(--submit-dialog-max-w)" }}
+        style={contentWidth == null ? undefined : contentWidthStyle(contentWidth)}
       >
         <Dialog.Header>
           <Dialog.Title>{title}</Dialog.Title>

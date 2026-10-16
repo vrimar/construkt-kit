@@ -114,6 +114,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V, Se
     isItemDisabled,
     items,
     matchTriggerWidth = true,
+    mobileLayout,
     onOpenChange,
     open,
     placeholder = "Select item",
@@ -185,6 +186,7 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V, Se
   return (
     <SelectContext.Provider value={contextValue}>
       <Popover.Root
+        mobileLayout={mobileLayout}
         open={resolvedOpen}
         onOpenChange={({ open: nextOpen }) => handleOpenChange(nextOpen)}
         positioning={{ placement, sameWidth }}

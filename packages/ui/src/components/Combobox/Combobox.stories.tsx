@@ -89,3 +89,8 @@ export const Sizes: Story = {
     />
   ),
 };
+
+export const Phone: Story = {
+  ...Default,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

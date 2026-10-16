@@ -36,3 +36,8 @@ export const WithAlpha: Story = {
     </Box>
   ),
 };
+
+export const Phone: Story = {
+  ...WithSwatches,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};

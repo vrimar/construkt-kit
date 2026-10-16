@@ -298,3 +298,37 @@ export const ContextMenu: Story = {
     </Menu.Root>
   ),
 };
+
+export const Phone: Story = {
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Actions</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="edit"
+          icon={<PencilIcon />}
+        >
+          Edit
+        </Menu.Item>
+        <Menu.Root>
+          <Menu.TriggerItem>Export</Menu.TriggerItem>
+          <Menu.Content backLabel="Actions">
+            <Menu.Item value="csv">CSV</Menu.Item>
+            <Menu.Item value="pdf">PDF</Menu.Item>
+          </Menu.Content>
+        </Menu.Root>
+        <Menu.Separator />
+        <Menu.Item
+          value="delete"
+          icon={<TrashIcon />}
+          destructive
+        >
+          Delete
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};

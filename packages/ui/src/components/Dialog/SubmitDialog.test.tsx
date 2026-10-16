@@ -121,7 +121,9 @@ describe("SubmitDialog", () => {
         Body
       </SubmitDialog>,
     );
-    expect(screen.getByRole("dialog").style.maxWidth).toBe("540px");
+    expect(screen.getByRole("dialog").style.getPropertyValue("--submit-dialog-max-w")).toBe(
+      "540px",
+    );
   });
 
   it("lays out extra footer buttons that don't submit", async () => {

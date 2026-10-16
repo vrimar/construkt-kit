@@ -8,8 +8,9 @@ import { popover } from "#styled-system/recipes";
 import type { PortalledProps } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
 import { lazyOverlayDefaults } from "../overlayDefaults";
+import { type MobileLayoutProps, withMobileLayout } from "../overlayPresentation";
 import { createPlacementRoot } from "../placementRoot";
-import { createPortalledContent } from "../portalledContent";
+import { createSheetCapableContent } from "../sheetFrame";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(popover);
@@ -33,15 +34,17 @@ const Body = withContext(ark.div, "body");
 const Header = withContext(ark.div, "header");
 const Footer = withContext(ark.div, "footer");
 
-export interface PopoverRootProps extends RootProps {
+export interface PopoverRootProps extends RootProps, MobileLayoutProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-const PopoverRoot = createPlacementRoot<PopoverRootProps>(Root);
+const PopoverRoot = createPlacementRoot<PopoverRootProps>(
+  withMobileLayout<PopoverRootProps>(Root, { portalled: false }),
+);
 
 export interface PopoverContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-const PopoverContent = createPortalledContent(Positioner, Content);
+const PopoverContent = createSheetCapableContent(Positioner, Content, usePopoverContext);
 
 export interface PopoverTriggerProps
   extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}

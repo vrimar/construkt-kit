@@ -1,17 +1,23 @@
+import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { ChevronDownIcon } from "lucide-react";
 import type { JSX } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
-import { createPortalledContent } from "../portalledContent";
+import { OverlayPresentationProvider, useOverlayPresentation } from "../overlayPresentation";
+import { createSheetCapableContent } from "../sheetFrame";
 import { CalendarContent } from "./CalendarContent";
 import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
 import type { CalendarMode, DatePickerProps } from "./types";
 import { useCalendarMachine } from "./useCalendarMachine";
 
-const DatePickerContent = createPortalledContent(Parts.Positioner, Parts.Content);
+const DatePickerContent = createSheetCapableContent(
+  Parts.Positioner,
+  Parts.Content,
+  useDatePickerContext,
+);
 
 export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
   const [styleProps, pickerProps] = splitCssProps(props);
@@ -26,6 +32,7 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
     defaultOpen,
     onOpenChange,
     closeOnSelect = true,
+    mobileLayout,
   } = pickerProps;
 
   const { api, contentProps } = useCalendarMachine(pickerProps, {
@@ -37,6 +44,7 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
     },
   });
 
+  const presentation = useOverlayPresentation(mobileLayout, api.open);
   const displayLabel = getDisplayLabel(api.value, api.selectionMode, placeholder, formatValue);
 
   const defaultTrigger = (
@@ -51,22 +59,24 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
   );
 
   return (
-    <Parts.RootProvider
-      value={api}
-      {...styleProps}
-    >
-      <Parts.Control>
-        <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
-        {triggerEndElement}
-      </Parts.Control>
-
-      <DatePickerContent
-        portalled={portalled}
-        portalRef={portalRef}
+    <OverlayPresentationProvider value={presentation}>
+      <Parts.RootProvider
+        value={api}
+        {...styleProps}
       >
-        <CalendarContent {...contentProps} />
-      </DatePickerContent>
-    </Parts.RootProvider>
+        <Parts.Control>
+          <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
+          {triggerEndElement}
+        </Parts.Control>
+
+        <DatePickerContent
+          portalled={portalled}
+          portalRef={portalRef}
+        >
+          <CalendarContent {...contentProps} />
+        </DatePickerContent>
+      </Parts.RootProvider>
+    </OverlayPresentationProvider>
   );
 };
 

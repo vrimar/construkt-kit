@@ -3,6 +3,30 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
 
+const phoneFullScreen = {
+  positioner: { mdDown: { px: "0", padding: "0" } },
+  content: {
+    mdDown: {
+      maxW: "100dvw",
+      height: "100dvh",
+      "--dialog-full-max-h": "100dvh",
+      borderRadius: "0",
+      "--dialog-margin": "0",
+      pt: `calc(${surface("1rem")} + env(safe-area-inset-top))`,
+      pb: `calc(${surface("1rem")} + env(safe-area-inset-bottom))`,
+      pl: "env(safe-area-inset-left)",
+      pr: "env(safe-area-inset-right)",
+    },
+  },
+  body: { mdDown: { overflowY: "auto", minH: "0" } },
+  closeTrigger: {
+    mdDown: {
+      top: "calc({spacing.3} + env(safe-area-inset-top))",
+      insetEnd: "calc({spacing.3} + max(env(safe-area-inset-left), env(safe-area-inset-right)))",
+    },
+  },
+};
+
 export const dialog = defineSlotRecipe({
   className: "dialog",
   slots: dialogAnatomy.extendWith("header", "body", "footer").keys(),
@@ -64,6 +88,9 @@ export const dialog = defineSlotRecipe({
       textStyle: "sm",
       width: "100%",
       zIndex: "calc(var(--dialog-z-index) + var(--layer-index, 0))",
+      maxH: "var(--dialog-full-max-h, var(--dialog-scroll-max-h, none))",
+      "--dialog-full-max-h": "initial",
+      "--dialog-scroll-max-h": "initial",
       py: { base: surface("1rem"), md: surface("1.5rem") },
       gap: { base: surface("1rem"), md: surface("1.5rem") },
       _open: {
@@ -139,15 +166,17 @@ export const dialog = defineSlotRecipe({
     size: {
       xs: { content: { maxW: "xs" } },
       sm: { content: { maxW: "sm" } },
-      md: { content: { maxW: "md" } },
-      lg: { content: { maxW: "lg" } },
-      xl: { content: { maxW: "xl" } },
+      md: { ...phoneFullScreen, content: { maxW: "md", ...phoneFullScreen.content } },
+      lg: { ...phoneFullScreen, content: { maxW: "lg", ...phoneFullScreen.content } },
+      xl: { ...phoneFullScreen, content: { maxW: "xl", ...phoneFullScreen.content } },
       cover: {
-        positioner: { padding: surface("2rem") },
+        ...phoneFullScreen,
+        positioner: { padding: surface("2rem"), ...phoneFullScreen.positioner },
         content: {
           width: "100%",
           height: "100%",
           "--dialog-margin": "0",
+          ...phoneFullScreen.content,
         },
       },
       full: {
@@ -197,7 +226,7 @@ export const dialog = defineSlotRecipe({
           overflow: "hidden",
         },
         content: {
-          maxH: "calc(100% - 7.5rem)",
+          "--dialog-scroll-max-h": "calc(100% - 7.5rem)",
         },
         body: {
           overflow: "auto",

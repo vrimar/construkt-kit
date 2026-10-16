@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
 import { Menu } from "./Menu";
 
 const openMenu = async () => {
@@ -166,5 +167,72 @@ describe("Menu", () => {
     expect(screen.getByRole("menuitem", { name: "Edit" }).hasAttribute("data-destructive")).toBe(
       false,
     );
+  });
+
+  describe("on phones", () => {
+    // jsdom loads no stylesheet, so the sheet's pointer-events override on its content is absent.
+    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+    const renderOnPhone = (ui: ReactNode) => {
+      const media = createMatchMediaController(isBelowBreakpointQuery);
+      vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
+      onTestFinished(() => {
+        vi.restoreAllMocks();
+      });
+      render(ui);
+    };
+
+    it("drills into a submenu inside the same sheet and back out", async () => {
+      const onSubmenuSelect = vi.fn();
+      renderOnPhone(
+        <Menu.Root>
+          <Menu.Trigger>Open</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Item value="rename">Rename</Menu.Item>
+            <Menu.Root onSelect={onSubmenuSelect}>
+              <Menu.TriggerItem>Export</Menu.TriggerItem>
+              <Menu.Content backLabel="Actions">
+                <Menu.Item value="csv">CSV</Menu.Item>
+              </Menu.Content>
+            </Menu.Root>
+          </Menu.Content>
+        </Menu.Root>,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Open" }));
+      const menu = await screen.findByRole("menu");
+      const sheet = menu.closest("[data-overlay-sheet]");
+      await user.click(screen.getByRole("menuitem", { name: "Export" }));
+
+      const csv = await screen.findByRole("menuitem", { name: "CSV" });
+      expect(csv.closest("[data-overlay-sheet]")).toBe(sheet);
+
+      await user.click(screen.getByRole("menuitem", { name: "Actions" }));
+      await waitFor(() => expect(screen.queryByRole("menuitem", { name: "CSV" })).toBeNull());
+      expect(screen.getByRole("menuitem", { name: "Rename" })).not.toBeNull();
+      expect(onSubmenuSelect).not.toHaveBeenCalled();
+    });
+
+    it("keeps a submenu anchored when its parent is", async () => {
+      renderOnPhone(
+        <Menu.Root mobileLayout="popover">
+          <Menu.Trigger>Open</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Root>
+              <Menu.TriggerItem>Export</Menu.TriggerItem>
+              <Menu.Content>
+                <Menu.Item value="csv">CSV</Menu.Item>
+              </Menu.Content>
+            </Menu.Root>
+          </Menu.Content>
+        </Menu.Root>,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Open" }));
+      await user.click(await screen.findByRole("menuitem", { name: "Export" }));
+
+      const csv = await screen.findByRole("menuitem", { name: "CSV" });
+      expect(csv.closest("[data-overlay-sheet]")).toBeNull();
+    });
   });
 });

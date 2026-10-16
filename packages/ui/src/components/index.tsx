@@ -67,4 +67,5 @@ export * from "./ToggleGroup";
 export * from "./ToggleTip";
 export * from "./Tooltip";
 export * from "./Tree";
+export type { MobileLayout, MobileLayoutProps } from "./overlayPresentation";
 export { Portal } from "@ark-ui/react/portal";

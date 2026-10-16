@@ -1,4 +1,8 @@
-import { ColorPicker as ArkColorPicker, ColorPickerContext } from "@ark-ui/react/color-picker";
+import {
+  ColorPicker as ArkColorPicker,
+  ColorPickerContext,
+  useColorPickerContext,
+} from "@ark-ui/react/color-picker";
 import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
@@ -7,20 +11,30 @@ import { colorPicker } from "#styled-system/recipes";
 
 import type { PortalledProps } from "../../types";
 import { lazyOverlayDefaults } from "../overlayDefaults";
-import { createPortalledContent } from "../portalledContent";
+import {
+  type MobileLayoutProps,
+  withMobileLayout,
+  withMobileLayoutProvider,
+} from "../overlayPresentation";
+import { createSheetCapableContent } from "../sheetFrame";
 export { parseColor } from "@ark-ui/react/color-picker";
 
 const { withProvider, withContext } = createSlotRecipeContext(colorPicker);
 
-const Root = withProvider(ArkColorPicker.Root, "root", { defaultProps: lazyOverlayDefaults });
-const RootProvider = withProvider(ArkColorPicker.RootProvider, "root", {
+const StyledRoot = withProvider(ArkColorPicker.Root, "root", {
   defaultProps: lazyOverlayDefaults,
 });
-const Area = withContext(ArkColorPicker.Area, "area");
+const StyledRootProvider = withProvider(ArkColorPicker.RootProvider, "root", {
+  defaultProps: lazyOverlayDefaults,
+});
+// Dragging these picks a colour; it must not swipe the phone sheet they sit in.
+const Area = withContext(ArkColorPicker.Area, "area", { defaultProps: { "data-no-drag": "" } });
 const AreaBackground = withContext(ArkColorPicker.AreaBackground, "areaBackground");
 const AreaThumb = withContext(ArkColorPicker.AreaThumb, "areaThumb");
 const ChannelInput = withContext(ArkColorPicker.ChannelInput, "channelInput");
-const ChannelSlider = withContext(ArkColorPicker.ChannelSlider, "channelSlider");
+const ChannelSlider = withContext(ArkColorPicker.ChannelSlider, "channelSlider", {
+  defaultProps: { "data-no-drag": "" },
+});
 const ChannelSliderLabel = withContext(ArkColorPicker.ChannelSliderLabel, "channelSliderLabel");
 const ChannelSliderThumb = withContext(ArkColorPicker.ChannelSliderThumb, "channelSliderThumb");
 const ChannelSliderTrack = withContext(ArkColorPicker.ChannelSliderTrack, "channelSliderTrack");
@@ -55,11 +69,17 @@ const TriggerSwatch = styled(ark.div, {
   },
 });
 
-export type ColorPickerRootProps = ComponentProps<typeof Root>;
+export type ColorPickerRootProps = ComponentProps<typeof StyledRoot> & MobileLayoutProps;
+
+export type ColorPickerRootProviderProps = ComponentProps<typeof StyledRootProvider> &
+  MobileLayoutProps;
+
+const Root = withMobileLayout<ColorPickerRootProps>(StyledRoot);
+const RootProvider = withMobileLayoutProvider<ColorPickerRootProviderProps>(StyledRootProvider);
 
 export interface ColorPickerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
-const ColorPickerContent = createPortalledContent(Positioner, Content);
+const ColorPickerContent = createSheetCapableContent(Positioner, Content, useColorPickerContext);
 
 export interface ColorPickerProps extends Omit<ColorPickerRootProps, "children">, PortalledProps {
   withAlpha?: boolean;

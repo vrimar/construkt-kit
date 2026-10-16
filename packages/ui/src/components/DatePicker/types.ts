@@ -9,6 +9,7 @@ import type { JsxStyleProps } from "#styled-system/types";
 
 import type { PortalledProps } from "../../types";
 import type { ButtonProps } from "../Buttons";
+import type { MobileLayoutProps } from "../overlayPresentation";
 
 export type DateView = DatePickerDateView;
 
@@ -81,7 +82,7 @@ interface CalendarPropsByMode {
  */
 export type CalendarProps<M extends CalendarMode = "single"> = CalendarPropsByMode[M];
 
-interface DatePickerExtraProps extends PortalledProps, JsxStyleProps {
+interface DatePickerExtraProps extends PortalledProps, JsxStyleProps, MobileLayoutProps {
   trigger?: ReactNode;
   triggerEndElement?: ReactNode;
   placeholder?: string;
