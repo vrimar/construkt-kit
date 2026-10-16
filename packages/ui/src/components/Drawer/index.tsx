@@ -6,11 +6,12 @@ import {
   useDrawer as useArkDrawer,
   useDrawerContext,
 } from "@ark-ui/react/drawer";
-import type { ComponentProps, PointerEvent } from "react";
+import { type ComponentProps, type PointerEvent, useId } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type DrawerVariantProps, drawer } from "#styled-system/recipes";
 
+import { getMediaQueryList } from "../../hooks/mediaQueryList";
 import { useResponsiveValue } from "../../hooks/useResponsiveValue";
 import { type DialogContentProps, createDialogParts } from "../dialogParts";
 import { lazyOverlayDefaults } from "../overlayDefaults";
@@ -57,13 +58,36 @@ const useSwipeDirection = (placement: DrawerVariantProps["placement"]) => {
   return isPlacement(currentPlacement) ? SWIPE_DIRECTION[currentPlacement] : undefined;
 };
 
+type FocusProps = Pick<ArkUseDrawerProps, "ids" | "initialFocusEl">;
+
+// A field focused on open raises the on-screen keyboard over the drawer.
+function useTouchInitialFocus({ ids, initialFocusEl }: FocusProps): FocusProps {
+  const generatedId = useId();
+  const contentId = ids?.content ?? `drawer:${generatedId}:content`;
+
+  const focusContentOnTouch = () => {
+    if (!getMediaQueryList("(pointer: coarse)")?.matches) return null;
+    const content = document.getElementById(contentId);
+    return content?.querySelector<HTMLElement>("[data-autofocus],[autofocus]") ?? content;
+  };
+
+  return {
+    ids: { ...ids, content: contentId },
+    initialFocusEl: initialFocusEl ?? focusContentOnTouch,
+  };
+}
+
 export type DrawerRootProps = ComponentProps<typeof StyledRoot>;
 
-function DrawerRoot({ placement = "end", ...props }: DrawerRootProps) {
+function DrawerRoot({ placement = "end", ids, initialFocusEl, ...props }: DrawerRootProps) {
+  const swipeDirection = useSwipeDirection(placement);
+  const focusProps = useTouchInitialFocus({ ids, initialFocusEl });
+
   return (
     <StyledRoot
       placement={placement}
-      swipeDirection={useSwipeDirection(placement)}
+      swipeDirection={swipeDirection}
+      {...focusProps}
       {...props}
     />
   );
@@ -78,7 +102,9 @@ export type { UseDrawerReturn };
 
 /** `useDrawer` for `Drawer.RootProvider`, which takes its placement from the returned value. */
 export function useDrawer({ placement = "end", ...props }: UseDrawerProps = {}): UseDrawerReturn {
-  return useArkDrawer({ ...props, swipeDirection: useSwipeDirection(placement) });
+  const swipeDirection = useSwipeDirection(placement);
+  const focusProps = useTouchInitialFocus(props);
+  return useArkDrawer({ ...props, ...focusProps, swipeDirection });
 }
 
 export type DrawerRootProviderProps = Omit<ComponentProps<typeof StyledRootProvider>, "placement">;
