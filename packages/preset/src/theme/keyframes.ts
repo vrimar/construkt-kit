@@ -39,6 +39,10 @@ export const keyframes = defineKeyframes({
     from: { opacity: "1" },
     to: { opacity: "0" },
   },
+  "swipe-fade-out": {
+    from: { opacity: "calc(1 - var(--drawer-swipe-progress, 0))" },
+    to: { opacity: "0" },
+  },
   // slide from (full)
   "slide-from-left-full": {
     from: { translate: "-100% 0" },

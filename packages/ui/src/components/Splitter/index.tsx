@@ -122,6 +122,7 @@ function SplitterSeparator({ disabled, elementRef, id, ...boxProps }: SplitterSe
   return (
     <StyledResizeTrigger
       asChild
+      data-no-drag=""
       {...boxProps}
     >
       <Separator

@@ -15,7 +15,9 @@ const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
 const Root = withProvider(ArkScrollArea.Root, "root");
 const StyledViewport = withContext(ArkScrollArea.Viewport, "viewport");
 const StyledContent = withContext(ArkScrollArea.Content, "content");
-const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar");
+const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar", {
+  defaultProps: { "data-no-drag": "" },
+});
 const Thumb = withContext(ArkScrollArea.Thumb, "thumb");
 const Corner = withContext(ArkScrollArea.Corner, "corner");
 

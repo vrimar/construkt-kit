@@ -27,7 +27,9 @@ const AutoplayTrigger = withContext(ArkCarousel.AutoplayTrigger, "autoplayTrigge
 const Control = withContext(ArkCarousel.Control, "control");
 const Indicator = withContext(ArkCarousel.Indicator, "indicator");
 const Item = withContext(ArkCarousel.Item, "item");
-const ItemGroup = withContext(ArkCarousel.ItemGroup, "itemGroup");
+const ItemGroup = withContext(ArkCarousel.ItemGroup, "itemGroup", {
+  defaultProps: { "data-no-drag": "" },
+});
 const NextTrigger = withContext(ArkCarousel.NextTrigger, "nextTrigger");
 const PrevTrigger = withContext(ArkCarousel.PrevTrigger, "prevTrigger");
 

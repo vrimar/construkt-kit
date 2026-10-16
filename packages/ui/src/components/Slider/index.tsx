@@ -9,7 +9,7 @@ const { withProvider, withContext } = createSlotRecipeContext(slider);
 
 type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ArkSlider.Root, "root", { forwardProps: ["orientation"] });
-const Control = withContext(ArkSlider.Control, "control");
+const Control = withContext(ArkSlider.Control, "control", { defaultProps: { "data-no-drag": "" } });
 const Label = withContext(ArkSlider.Label, "label");
 const Marker = withContext(ArkSlider.Marker, "marker");
 const MarkerIndicator = withContext(ark.div, "markerIndicator");

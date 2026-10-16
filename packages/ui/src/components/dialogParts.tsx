@@ -1,57 +1,49 @@
-import { Dialog as ArkDialog, DialogContext, useDialogContext } from "@ark-ui/react/dialog";
+import type { Dialog as ArkDialog } from "@ark-ui/react/dialog";
+import type { Drawer as ArkDrawer } from "@ark-ui/react/drawer";
 import { ark } from "@ark-ui/react/factory";
 import { Portal } from "@ark-ui/react/portal";
 import type { ComponentProps } from "react";
 
-import {
-  type HTMLStyledProps,
-  type SlotRecipeContext,
-  createSlotRecipeContext,
-  styled,
-} from "#styled-system/jsx";
-import type { dialog, drawer } from "#styled-system/recipes";
+import { type HTMLStyledProps, type SlotRecipeContext, styled } from "#styled-system/jsx";
+import type { dialog } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../types";
 import { createCloseTrigger } from "./closeTrigger";
-import { lazyOverlayDefaults } from "./overlayDefaults";
 
 export interface DialogContentProps
   extends HTMLStyledProps<typeof ArkDialog.Content>, PortalledProps {
   backdrop?: boolean;
 }
 
-const StyledButton = styled(ark.button);
+type ArkPart<K extends keyof typeof ArkDialog & keyof typeof ArkDrawer> =
+  | (typeof ArkDialog)[K]
+  | (typeof ArkDrawer)[K];
 
-function ActionTrigger({
-  ref,
-  ...props
-}: WithRef<ComponentProps<typeof StyledButton>, HTMLButtonElement>) {
-  const dialogCtx = useDialogContext();
-
-  return (
-    <StyledButton
-      ref={ref}
-      {...props}
-      onClick={(e) => {
-        props.onClick?.(e);
-        if (!e.defaultPrevented) dialogCtx.setOpen(false);
-      }}
-    />
-  );
+interface ArkDialogParts {
+  Backdrop: ArkPart<"Backdrop">;
+  Content: ArkPart<"Content">;
+  Positioner: ArkPart<"Positioner">;
+  Title: ArkPart<"Title">;
+  Description: ArkPart<"Description">;
+  Trigger: ArkPart<"Trigger">;
+  CloseTrigger: ArkPart<"CloseTrigger">;
 }
 
-export function createDialogParts<R extends typeof dialog | typeof drawer>(recipe: R) {
-  const styleContext = createSlotRecipeContext(recipe);
-  const { withRootProvider } = styleContext;
-  const withContext = styleContext.withContext as SlotRecipeContext<typeof dialog>["withContext"];
+interface DialogPartsOptions {
+  useApi: () => { setOpen: (open: boolean) => void };
+  useContentProps?: (props: DialogContentProps) => Partial<DialogContentProps>;
+}
 
-  const Root = withRootProvider(ArkDialog.Root, { defaultProps: lazyOverlayDefaults });
-  const RootProvider = withRootProvider(ArkDialog.RootProvider, {
-    defaultProps: lazyOverlayDefaults,
-  });
-  const Backdrop = withContext(ArkDialog.Backdrop, "backdrop");
-  const Content = withContext(ArkDialog.Content, "content");
-  const Positioner = withContext(ArkDialog.Positioner, "positioner");
+const StyledButton = styled(ark.button);
+
+export function createDialogParts(
+  withContext: SlotRecipeContext<typeof dialog>["withContext"],
+  Ark: ArkDialogParts,
+  { useApi, useContentProps }: DialogPartsOptions,
+) {
+  const Backdrop = withContext(Ark.Backdrop, "backdrop");
+  const Content = withContext(Ark.Content, "content");
+  const Positioner = withContext(Ark.Positioner, "positioner");
 
   function DialogContent({
     ref,
@@ -60,6 +52,8 @@ export function createDialogParts<R extends typeof dialog | typeof drawer>(recip
     backdrop = true,
     ...rest
   }: WithRef<DialogContentProps>) {
+    const contentProps = useContentProps?.(rest);
+
     return (
       <Portal
         disabled={!portalled}
@@ -70,26 +64,42 @@ export function createDialogParts<R extends typeof dialog | typeof drawer>(recip
           <Content
             ref={ref}
             {...rest}
+            {...contentProps}
           />
         </Positioner>
       </Portal>
     );
   }
 
+  function ActionTrigger({
+    ref,
+    ...props
+  }: WithRef<ComponentProps<typeof StyledButton>, HTMLButtonElement>) {
+    const api = useApi();
+
+    return (
+      <StyledButton
+        ref={ref}
+        {...props}
+        onClick={(e) => {
+          props.onClick?.(e);
+          if (!e.defaultPrevented) api.setOpen(false);
+        }}
+      />
+    );
+  }
+
   return {
-    Root,
-    RootProvider,
     Backdrop,
-    CloseTrigger: createCloseTrigger(withContext(ArkDialog.CloseTrigger, "closeTrigger")),
+    CloseTrigger: createCloseTrigger(withContext(Ark.CloseTrigger, "closeTrigger")),
     Content: DialogContent,
-    Description: withContext(ArkDialog.Description, "description"),
+    Description: withContext(Ark.Description, "description"),
     Positioner,
-    Title: withContext(ArkDialog.Title, "title"),
-    Trigger: withContext(ArkDialog.Trigger, "trigger"),
+    Title: withContext(Ark.Title, "title"),
+    Trigger: withContext(Ark.Trigger, "trigger"),
     Body: withContext(ark.div, "body"),
     Header: withContext(ark.div, "header"),
     Footer: withContext(ark.div, "footer"),
     ActionTrigger,
-    Context: DialogContext,
   };
 }
