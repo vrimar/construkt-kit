@@ -101,6 +101,13 @@ interface DataTableCardsToolbarProps<TData extends object> {
   showFilters: boolean;
 }
 
+type FilterDraft = Record<string, string[] | undefined>;
+
+interface SortDraft {
+  id: string;
+  desc: boolean;
+}
+
 export const DataTableCardsToolbar = <TData extends object>({
   table,
   headers,
@@ -108,6 +115,8 @@ export const DataTableCardsToolbar = <TData extends object>({
 }: DataTableCardsToolbarProps<TData>) => {
   const { labels } = useDataTableContext();
   const [sheet, setSheet] = useState<"sort" | "filters" | null>(null);
+  const [sortDraft, setSortDraft] = useState<SortDraft | null>(null);
+  const [filterDraft, setFilterDraft] = useState<FilterDraft>({});
   const closeSheet = () => setSheet(null);
 
   const filterable = showFilters ? headers.filter((header) => header.column.getCanFilter()) : [];
@@ -133,17 +142,46 @@ export const DataTableCardsToolbar = <TData extends object>({
         ? ArrowDownIcon
         : ArrowUpDownIcon;
 
-  const resetDrawerFilters = () => {
-    const drawerIds = new Set(drawerHeaders.map((header) => header.column.id));
-    table.setColumnFilters((filters) => filters.filter((filter) => !drawerIds.has(filter.id)));
+  const openSort = () => {
+    setSortDraft(
+      sortedHeader ? { id: sortedHeader.column.id, desc: sortDirection === "desc" } : null,
+    );
+    setSheet("sort");
   };
 
-  const doneButton = (
+  const applySort = () => {
+    table.setSorting(sortDraft ? [sortDraft] : []);
+    closeSheet();
+  };
+
+  const openFilters = () => {
+    setFilterDraft(
+      Object.fromEntries(
+        drawerHeaders.map((header) => [header.column.id, getActiveValues(header)]),
+      ),
+    );
+    setSheet("filters");
+  };
+
+  const applyFilters = () => {
+    const drawerIds = new Set(drawerHeaders.map((header) => header.column.id));
+    table.setColumnFilters((filters) => [
+      ...filters.filter((filter) => !drawerIds.has(filter.id)),
+      ...Object.entries(filterDraft).flatMap(([id, value]) =>
+        value && value.length > 0 ? [{ id, value }] : [],
+      ),
+    ]);
+    closeSheet();
+  };
+
+  const hasFilterDraft = Object.values(filterDraft).some((value) => value && value.length > 0);
+
+  const doneButton = (onClick: () => void) => (
     <Button
       width="full"
       size="lg"
       colorPalette="brand"
-      onClick={closeSheet}
+      onClick={onClick}
     >
       {labels.done}
     </Button>
@@ -177,7 +215,7 @@ export const DataTableCardsToolbar = <TData extends object>({
             aria-label={
               sortedHeader ? `${labels.sortBy} ${getColumnLabel(sortedHeader)}` : labels.sort
             }
-            onClick={() => setSheet("sort")}
+            onClick={openSort}
           >
             <SortIcon />
           </IconButton>
@@ -194,7 +232,7 @@ export const DataTableCardsToolbar = <TData extends object>({
                 ? `${labels.filters} (${activeFilters.length})`
                 : labels.filters
             }
-            onClick={() => setSheet("filters")}
+            onClick={openFilters}
           >
             <SlidersHorizontalIcon />
             {activeFilters.length > 0 && (
@@ -250,10 +288,10 @@ export const DataTableCardsToolbar = <TData extends object>({
           <Sheet.Content>
             <Sheet.Header
               endElement={
-                sortedHeader && (
+                sortDraft && (
                   <Button
                     variant="plain"
-                    onClick={() => table.setSorting([])}
+                    onClick={() => setSortDraft(null)}
                   >
                     {labels.clearSort}
                   </Button>
@@ -274,8 +312,10 @@ export const DataTableCardsToolbar = <TData extends object>({
                 {sortHeaders.map((header) => (
                   <SheetOption
                     key={header.id}
-                    active={!!header.column.getIsSorted()}
-                    onSelect={() => header.column.toggleSorting(sortDirection === "desc")}
+                    active={sortDraft?.id === header.column.id}
+                    onSelect={() =>
+                      setSortDraft((draft) => ({ id: header.column.id, desc: draft?.desc ?? false }))
+                    }
                   >
                     {getColumnLabel(header)}
                   </SheetOption>
@@ -287,10 +327,10 @@ export const DataTableCardsToolbar = <TData extends object>({
               >
                 <SegmentGroup.Root
                   width="full"
-                  value={sortDirection}
-                  disabled={!sortedHeader}
+                  value={sortDraft ? (sortDraft.desc ? "desc" : "asc") : null}
+                  disabled={!sortDraft}
                   onValueChange={(details) =>
-                    sortedHeader?.column.toggleSorting(details.value === "desc")
+                    setSortDraft((draft) => draft && { ...draft, desc: details.value === "desc" })
                   }
                 >
                   <SegmentGroup.Indicator />
@@ -325,7 +365,7 @@ export const DataTableCardsToolbar = <TData extends object>({
               borderTopWidth="1px"
               borderTopColor="border"
             >
-              {doneButton}
+              {doneButton(applySort)}
             </Sheet.Footer>
           </Sheet.Content>
         </Sheet.Root>
@@ -341,10 +381,10 @@ export const DataTableCardsToolbar = <TData extends object>({
           <Sheet.Content>
             <Sheet.Header
               endElement={
-                activeFilters.length > 0 && (
+                hasFilterDraft && (
                   <Button
                     variant="plain"
-                    onClick={resetDrawerFilters}
+                    onClick={() => setFilterDraft({})}
                   >
                     {labels.resetFilters}
                   </Button>
@@ -377,6 +417,11 @@ export const DataTableCardsToolbar = <TData extends object>({
                     <ColumnFilter
                       header={header}
                       layout="field"
+                      draft={{
+                        value: filterDraft[header.column.id],
+                        onChange: (value) =>
+                          setFilterDraft((draft) => ({ ...draft, [header.column.id]: value })),
+                      }}
                     />
                   </Stack>
                 ))}
@@ -386,7 +431,7 @@ export const DataTableCardsToolbar = <TData extends object>({
               borderTopWidth="1px"
               borderTopColor="border"
             >
-              {doneButton}
+              {doneButton(applyFilters)}
             </Sheet.Footer>
           </Sheet.Content>
         </Sheet.Root>

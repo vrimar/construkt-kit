@@ -6,12 +6,17 @@ import { useLatestRef } from "../../../../hooks/useLatestRef";
 import { SearchInput } from "../../../Input";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
-import { FILTER_DEBOUNCE_MS } from "./constants";
 
-export const ColumnSearchInput = ({ placeholder, value, onChange, layout }: ColumnFilterProps) => {
+export const ColumnSearchInput = ({
+  placeholder,
+  value,
+  onChange,
+  layout,
+  debounceMs,
+}: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
-  const { query, debouncedQuery, setQuery } = useDebounceQuery(current, FILTER_DEBOUNCE_MS);
+  const { query, debouncedQuery, setQuery } = useDebounceQuery(current, debounceMs);
   const [applied, setApplied] = useState(current);
   const emit = useControlledMirror({
     value: current,

@@ -342,6 +342,9 @@ Two things adapt, each on its own signal:
 `startElement`/`endElement`. Every `Drawer` placement swipes to dismiss on touch, and a mouse drags it by the grabber
 (`draggable` on `Drawer.Content` lets the mouse drag the content too); for `Drawer.RootProvider`, pass the placement
 to `useDrawer`, which sets the swipe direction and the provider's styling, and give `Sheet.RootProvider` `useSheet()`.
+On a coarse pointer a `Drawer` or `Sheet` opens with focus on itself rather than its first field, so the on-screen
+keyboard stays down; mark a field `data-autofocus` or pass `initialFocusEl` to focus it. A `DataTable` in
+`mobileLayout="cards"` applies its Sort and Filters sheets on Done; dismissing a sheet discards its edits.
 
 Tooltips and hover cards never open from touch. Keep tooltip text a label for something already labelled (an icon
 button's `aria-label`), put anything a phone user needs in `ToggleTip` or `InfoTip`, and make `HoverCard` content

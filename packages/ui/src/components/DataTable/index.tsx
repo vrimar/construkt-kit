@@ -225,6 +225,7 @@ export const DataTable = <TData extends object>({
 
       const orderBy = hasSort ? columnSorts[0].id : "";
       const orderType = hasSort ? (columnSorts[0].desc ? "desc" : "asc") : "";
+      if (orderBy === params.orderBy && orderType === params.orderType) return;
 
       onParamChange({
         ...params,

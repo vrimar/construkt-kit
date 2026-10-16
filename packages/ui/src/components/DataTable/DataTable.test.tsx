@@ -819,32 +819,45 @@ describe("DataTable", () => {
       expect(onParamChange).toHaveBeenCalledOnce();
     });
 
-    it("flips the sort direction from the sort drawer", async () => {
+    it("flips the sort direction from the sort drawer once it is done", async () => {
       const { onParamChange } = renderCards({
         params: { ...params, orderBy: "name", orderType: "asc" },
       });
 
       await userEvent.click(screen.getByRole("button", { name: "Sort by Name" }));
       await userEvent.click(await screen.findByText("Descending"));
+      expect(onParamChange).not.toHaveBeenCalled();
+
+      await userEvent.click(screen.getByRole("button", { name: "Done" }));
       expect(onParamChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ orderBy: "name", orderType: "desc" }),
       );
     });
 
-    it("applies a filter typed just before the filters drawer closes", async () => {
+    it("applies a filter typed in the filters drawer only once it is done", async () => {
       const { onParamChange } = renderCards();
 
       await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
       await userEvent.type(await screen.findByPlaceholderText("Filter by Id"), "7");
-      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(onParamChange).not.toHaveBeenCalled();
 
-      await waitFor(() =>
-        expect(onParamChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ filters: { id: ["7"] } }),
-        ),
+      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+      expect(onParamChange).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ filters: { id: ["7"] } }),
       );
     });
 
+    it("drops filter edits when the filters drawer is dismissed", async () => {
+      const { onParamChange } = renderCards();
+
+      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
+      await userEvent.type(await screen.findByPlaceholderText("Filter by Id"), "7");
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByPlaceholderText("Filter by Id")).toBeNull());
+
+      expect(onParamChange).not.toHaveBeenCalled();
+    });
     it("keeps header templates out of the sort drawer's buttons", async () => {
       renderCards({
         columnDefs: [
@@ -872,6 +885,7 @@ describe("DataTable", () => {
 
       await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
       await userEvent.click(await screen.findByRole("button", { name: "Reset filters" }));
+      await userEvent.click(screen.getByRole("button", { name: "Done" }));
       expect(onParamChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ filters: { name: ["Al"], team: ["Core"] } }),
       );

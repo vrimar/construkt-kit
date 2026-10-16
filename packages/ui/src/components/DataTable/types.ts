@@ -97,6 +97,7 @@ export interface ColumnFilterProps {
   value: string[];
   onChange: (value: string[] | undefined) => void;
   layout: ColumnFilterLayout;
+  debounceMs: number;
 }
 
 /**

@@ -8,9 +8,14 @@ import { useEffect, useMemo } from "react";
 import { NumberFilter } from "../../../NumberFilter";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
-import { FILTER_DEBOUNCE_MS } from "./constants";
 
-export const ColumnNumberFilter = ({ placeholder, value, onChange, layout }: ColumnFilterProps) => {
+export const ColumnNumberFilter = ({
+  placeholder,
+  value,
+  onChange,
+  layout,
+  debounceMs,
+}: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
   const parsed = useMemo(() => parseNumberFilter(current), [current]);
@@ -26,7 +31,7 @@ export const ColumnNumberFilter = ({ placeholder, value, onChange, layout }: Col
     <NumberFilter
       size={layout === "field" ? "md" : "sm"}
       variant={layout === "field" ? "outline" : "plain"}
-      debounceMs={FILTER_DEBOUNCE_MS}
+      debounceMs={debounceMs}
       placeholder={placeholder}
       clearLabel={labels.clearNumber}
       value={parsed}
