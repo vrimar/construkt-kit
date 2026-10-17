@@ -363,6 +363,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   `filterFn` can name `input`, `select`, `number` or `date`, and its `sortFn` `alphanumeric`, `text`, `datetime` or
   `basic`. A select column sorts by its `selectProps.getItemLabel` labels. Only `undefined` cells sort last; `null`
   sorts as a value. `parseNumberFilter` and `matchesNumberFilter` are exported for a custom number `filterFn`
+- New: `labels.item` names the count when one row matches; without it a custom `labels.items` is used for both
 
 #### Upgrading from 0.9
 

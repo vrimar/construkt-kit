@@ -71,6 +71,8 @@ export type DataTableLabels = {
   noResults?: string;
   resetFilters?: string;
   items?: string;
+  /** The count's noun when exactly one row matches. Falls back to `items` when only that is set. */
+  item?: string;
   page?: string;
   outOf?: string;
   /** Prefix of every column filter placeholder, followed by the column name. */

@@ -85,6 +85,7 @@ const defaultLabels: Required<DataTableLabels> = {
   noResults: "No results available.",
   resetFilters: "Reset filters",
   items: "Items",
+  item: "Item",
   page: "Page",
   outOf: "out of",
   filterBy: "Filter by",
@@ -110,6 +111,7 @@ const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableL
   for (const key of Object.keys(defaultLabels) as (keyof DataTableLabels)[]) {
     resolved[key] = labels?.[key] ?? defaultLabels[key];
   }
+  if (labels?.items !== undefined && labels.item === undefined) resolved.item = labels.items;
   return resolved;
 };
 

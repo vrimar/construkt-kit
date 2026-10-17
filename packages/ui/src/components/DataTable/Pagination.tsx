@@ -29,7 +29,7 @@ function ItemCount({ totalItems, compact }: { totalItems: number; compact: boole
       >
         {totalItems}{" "}
       </Text>
-      {labels.items}
+      {totalItems === 1 ? labels.item : labels.items}
     </Text>
   );
 }
