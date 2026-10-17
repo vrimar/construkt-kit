@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createDataTableColumnHelper, DataTable } from ".";
+import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
 import { createMatchMedia } from "../../_shared/matchMedia";
 import type { DataTableParams, DataTableRow } from "./types";
 
@@ -33,7 +33,9 @@ const params: DataTableParams = {
   filters: {},
 };
 
-const renderTable = (overrides: Partial<Parameters<typeof DataTable<Person>>[0]> = {}) => {
+const renderTable = (
+  overrides: Partial<Extract<DataTableProps<Person>, { totalItems: number }>> = {},
+) => {
   const onParamChange = vi.fn();
   const { container } = render(
     <DataTable
@@ -91,6 +93,75 @@ const dayCell = (iso: string) => {
   if (!day) throw new Error(`No day cell for ${iso}`);
   return day;
 };
+
+const shownNames = () =>
+  within(screen.getAllByRole("rowgroup")[1])
+    .queryAllByRole("row")
+    .map((row) => row.querySelector('[role="cell"]')?.textContent);
+
+interface Spell {
+  id: number;
+  name: string;
+  level: number | null;
+  elements: string[];
+  learned: string;
+  school?: string;
+}
+
+const spellHelper = createDataTableColumnHelper<Spell>();
+
+const spells: Spell[] = [
+  { id: 1, name: "ember", level: 3, elements: ["Fire"], learned: "2024-01-10", school: "fire" },
+  {
+    id: 2,
+    name: "Blizzard",
+    level: 4,
+    elements: ["Ice", "Wind"],
+    learned: "2024-01-31",
+    school: "Frost",
+  },
+  { id: 3, name: "Wildfire", level: null, elements: ["Wildfire"], learned: "2024-01-15" },
+  {
+    id: 4,
+    name: "Aurora",
+    level: 5,
+    elements: ["Fire", "Ice"],
+    learned: "2024-01-01",
+    school: "arcane",
+  },
+  { id: 5, name: "Gale", level: 2, elements: ["Wind"], learned: "2024-01-20", school: "Air" },
+];
+
+const spellColumns = [
+  spellHelper.accessor("name", { header: "Name", meta: { card: "title" } }),
+  spellHelper.accessor("elements", { header: "Elements", meta: { type: "select" } }),
+];
+
+type ClientOverrides = Partial<
+  Omit<Extract<DataTableProps<Spell>, { clientSide: true }>, "params">
+> & { params?: Partial<DataTableParams> };
+
+const renderClientTable = (initial: ClientOverrides = {}) => {
+  const onParamChange = vi.fn();
+  const table = ({ params: paramOverrides, ...overrides }: ClientOverrides) => (
+    <DataTable
+      clientSide
+      data={spells}
+      columnDefs={spellColumns}
+      params={{ ...params, ...paramOverrides }}
+      onParamChange={onParamChange}
+      {...overrides}
+    />
+  );
+  const { rerender } = render(table(initial));
+  return { onParamChange, rerender: (next: ClientOverrides) => rerender(table(next)) };
+};
+
+const roster: Person[] = Array.from({ length: 25 }, (_, index) => ({
+  id: index + 1,
+  name: `Person ${index + 1}`,
+  role: index < 12 ? "Admin" : "User",
+}));
 
 describe("DataTable", () => {
   afterEach(() => {
@@ -889,6 +960,186 @@ describe("DataTable", () => {
       expect(onParamChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ filters: { name: ["Al"], team: ["Core"] } }),
       );
+    });
+  });
+
+  describe("client-side mode", () => {
+    it("filters each column by its meta type, inside a group column too", () => {
+      const typed = [
+        spellHelper.accessor("name", { header: "Name" }),
+        spellHelper.group({
+          id: "stats",
+          header: "Stats",
+          columns: spellHelper.columns([
+            spellHelper.accessor("level", { header: "Level", meta: { type: "number" } }),
+            spellHelper.accessor("learned", { header: "Learned", meta: { type: "date" } }),
+          ]),
+        }),
+      ];
+      renderClientTable({
+        columnDefs: typed,
+        params: {
+          filters: { name: ["R"], level: ["lte:5"], learned: ["2024-01-01<>2024-01-31"] },
+        },
+      });
+
+      expect(shownNames()).toEqual(["ember", "Blizzard", "Aurora"]);
+    });
+
+    it("matches a select filter against each element of an array cell", () => {
+      renderClientTable({ params: { filters: { elements: ["Fire"] } } });
+
+      expect(shownNames()).toEqual(["ember", "Aurora"]);
+    });
+
+    it("keeps a column's own filterFn", () => {
+      const prefixed = [
+        spellHelper.accessor("name", {
+          header: "Name",
+          filterFn: (row, columnId, value: string[]) =>
+            row.getValue<string>(columnId).startsWith(value[0]),
+        }),
+      ];
+      renderClientTable({ columnDefs: prefixed, params: { filters: { name: ["A"] } } });
+
+      expect(shownNames()).toEqual(["Aurora"]);
+    });
+
+    it("sorts text without regard to case and keeps missing values last", () => {
+      const schools = [
+        spellHelper.accessor("name", { header: "Name" }),
+        spellHelper.accessor("school", { header: "School" }),
+      ];
+      const { rerender } = renderClientTable({
+        columnDefs: schools,
+        params: { orderBy: "school", orderType: "asc" },
+      });
+      expect(shownNames()).toEqual(["Gale", "Aurora", "ember", "Blizzard", "Wildfire"]);
+
+      rerender({ columnDefs: schools, params: { orderBy: "school", orderType: "desc" } });
+      expect(shownNames()).toEqual(["Blizzard", "ember", "Aurora", "Gale", "Wildfire"]);
+    });
+
+    it("sorts a select column by its labels", () => {
+      const labelled = [
+        spellHelper.accessor("name", { header: "Name" }),
+        spellHelper.accessor("id", {
+          header: "Rune",
+          meta: { type: "select", selectProps: { getItemLabel: (id) => "edcba"[Number(id) - 1] } },
+        }),
+      ];
+      renderClientTable({ columnDefs: labelled, params: { orderBy: "id", orderType: "asc" } });
+
+      expect(shownNames()).toEqual(["Gale", "Aurora", "Wildfire", "Blizzard", "ember"]);
+    });
+
+    it("filters a timestamp by the day it falls on locally", () => {
+      const dated = [
+        spellHelper.accessor("name", { header: "Name" }),
+        spellHelper.accessor("learned", { header: "Learned", meta: { type: "date" } }),
+      ];
+      renderClientTable({
+        data: [{ ...spells[0], learned: "2024-01-31T23:30:00-12:00" }],
+        columnDefs: dated,
+        params: { filters: { learned: ["2024-02-01<>2024-02-02"] } },
+      });
+
+      expect(shownNames()).toEqual(["ember"]);
+    });
+
+    it("pages and counts the filtered rows", () => {
+      render(
+        <DataTable
+          clientSide
+          data={roster}
+          columnDefs={columns}
+          params={{ ...params, page: 2, filters: { role: ["Admin"] } }}
+          onParamChange={vi.fn()}
+        />,
+      );
+
+      expect(shownNames()).toEqual(["Person 11", "Person 12"]);
+      expect(screen.getByText("12")).toBeTruthy();
+    });
+
+    it("keeps the page when the data is replaced", async () => {
+      const onParamChange = vi.fn();
+      const table = (people: Person[]) => (
+        <DataTable
+          clientSide
+          data={people}
+          columnDefs={columns}
+          params={{ ...params, page: 2 }}
+          onParamChange={onParamChange}
+        />
+      );
+      const { rerender } = render(table(roster));
+      rerender(table([...roster]));
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(onParamChange).not.toHaveBeenCalled();
+    });
+
+    it("lists every value of a select column, unless selections name them", async () => {
+      const { rerender } = renderClientTable({
+        params: { filters: { name: ["ember"], elements: ["Ice"] } },
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "Ice" }));
+      const options = async () =>
+        (await screen.findAllByRole("option")).map((option) => option.textContent);
+      expect(await options()).toEqual(["Fire", "Ice", "Wildfire", "Wind"]);
+
+      await userEvent.keyboard("{Escape}");
+      rerender({
+        params: { filters: { name: ["ember"], elements: ["Ice"] } },
+        selections: { elements: ["Ice", "Fire"] },
+      });
+      await userEvent.click(screen.getByRole("button", { name: "Ice" }));
+      expect(await options()).toEqual(["Ice", "Fire"]);
+    });
+
+    it("leaves server-mode data as given", () => {
+      renderTable({
+        params: {
+          ...params,
+          page: 2,
+          orderBy: "name",
+          orderType: "desc",
+          filters: { role: ["Admin"] },
+        },
+      });
+
+      expect(shownNames()).toEqual(["Alice", "Bob"]);
+    });
+
+    it("filters mobile cards from the drawer's listed values", async () => {
+      vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+      const StatefulTable = () => {
+        const [current, setCurrent] = useState(params);
+        return (
+          <DataTable
+            clientSide
+            data={spells}
+            columnDefs={spellColumns}
+            params={current}
+            onParamChange={setCurrent}
+            mobileLayout="cards"
+          />
+        );
+      };
+      render(<StatefulTable />);
+      const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+      await user.click(screen.getByRole("button", { name: "Filters" }));
+      await user.click(await screen.findByRole("button", { name: "Filter by Elements" }));
+      await user.click(await screen.findByRole("option", { name: "Wind" }));
+      await user.click(screen.getByRole("button", { name: "Apply" }));
+      await user.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => expect(screen.queryByText("ember")).toBeNull());
+      for (const name of ["Blizzard", "Gale"]) expect(screen.getByText(name)).toBeTruthy();
+      for (const name of ["Wildfire", "Aurora"]) expect(screen.queryByText(name)).toBeNull();
     });
   });
 });

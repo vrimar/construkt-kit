@@ -13,6 +13,7 @@ export interface DataTableContextValue<TData extends object = any> {
   onReset?: () => unknown;
   labels: Required<DataTableLabels>;
   selections: TableFilterSelections | undefined;
+  clientSide: boolean;
 }
 
 const DataTableContext = createContext<DataTableContextValue | null>(null);

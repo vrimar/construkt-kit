@@ -14,7 +14,6 @@ import type { DataTableInstance } from "./types";
 
 interface PaginationProps<TData extends object> {
   table: DataTableInstance<TData>;
-  totalItems: number;
   size: NonNullable<IconButtonProps["size"]>;
   compact?: boolean;
 }
@@ -60,11 +59,11 @@ function StepButton<TData extends object>({ table, size, step }: StepButtonProps
 
 export const DataTablePagination = <TData extends object>({
   table,
-  totalItems,
   size,
   compact,
 }: PaginationProps<TData>) => {
   const { labels } = useDataTableContext();
+  const totalItems = table.getRowCount();
   const pageCount = table.getPageCount();
   const page = table.state.pagination.pageIndex;
 

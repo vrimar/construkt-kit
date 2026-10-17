@@ -1,4 +1,3 @@
-import { matchesNumberFilter, parseNumberFilter } from "@construkt-kit/utils";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
@@ -114,8 +113,6 @@ const cardColumns = [
   columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
   { ...actionsColumn, meta: { ...actionsColumn.meta, card: "actions" as const } },
 ];
-
-const roleSelections = ["Admin", "User", "Editor"];
 
 const data: Person[] = [
   {
@@ -261,56 +258,6 @@ const defaultParams: DataTableParams = {
   filters: {},
 };
 
-function numberColumnIds(columnDefs: DataTableProps<Person>["columnDefs"]): Set<string> {
-  const ids = new Set<string>();
-  for (const def of columnDefs) {
-    const id = def.id ?? ("accessorKey" in def ? String(def.accessorKey) : undefined);
-    if (id && def.meta?.type === "number") ids.add(id);
-  }
-  return ids;
-}
-
-function applyFiltersAndSorting(
-  items: Person[],
-  params: DataTableParams,
-  numberColumns: Set<string>,
-): Person[] {
-  let result = [...items];
-
-  // Apply filters
-  for (const [key, values] of Object.entries(params.filters)) {
-    if (!values || values.length === 0) continue;
-    const numberFilters = numberColumns.has(key) ? values.map(parseNumberFilter) : [];
-    result = result.filter((row) => {
-      const cell = row[key as keyof Person] ?? "";
-      if (numberColumns.has(key))
-        return numberFilters.some((f) => f && matchesNumberFilter(Number(cell), f));
-      // For input/date filters, values is a single-element array with a search string
-      // For select filters, values is an array of selected options
-      const text = String(cell);
-      return values.some((v) => text === v || text.toLowerCase().includes(v.toLowerCase()));
-    });
-  }
-
-  // Apply sorting
-  if (params.orderBy) {
-    const key = params.orderBy as keyof Person;
-    const dir = params.orderType === "desc" ? -1 : 1;
-    result.sort((a, b) => {
-      const aVal = String(a[key] ?? "");
-      const bVal = String(b[key] ?? "");
-      return aVal.localeCompare(bVal) * dir;
-    });
-  }
-
-  return result;
-}
-
-function paginate(items: Person[], params: DataTableParams): Person[] {
-  const start = (params.page - 1) * params.pageSize;
-  return items.slice(start, start + params.pageSize);
-}
-
 function DataTableStory(props: {
   data: Person[];
   loading?: boolean;
@@ -319,20 +266,16 @@ function DataTableStory(props: {
   mobileLayout?: DataTableProps<Person>["mobileLayout"];
 }) {
   const [params, setParams] = useState<DataTableParams>(defaultParams);
-  const activeColumns = props.columnDefs ?? columns;
-  const filtered = applyFiltersAndSorting(props.data, params, numberColumnIds(activeColumns));
-  const paged = paginate(filtered, params);
 
   return (
     <DataTable
-      columnDefs={activeColumns}
-      data={paged}
-      totalItems={filtered.length}
+      clientSide
+      columnDefs={props.columnDefs ?? columns}
+      data={props.data}
       params={params}
       onParamChange={setParams}
       loading={props.loading}
       variant={props.variant}
-      selections={{ role: roleSelections }}
       onRowClick={onRowClick}
       mobileLayout={props.mobileLayout}
     />

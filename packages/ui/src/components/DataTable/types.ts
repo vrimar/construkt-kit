@@ -1,10 +1,19 @@
 import type { Cell, ColumnDef, ColumnHelper, Header, ReactTable, Row } from "@tanstack/react-table";
 import {
+  columnFacetingFeature,
   columnFilteringFeature,
   createColumnHelper,
+  createFacetedUniqueValues,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from "@tanstack/react-table";
 
@@ -12,6 +21,7 @@ import type { BoxProps } from "#styled-system/jsx";
 
 import type { Unstyled } from "../../types";
 import type { ApplySelectProps } from "../Select";
+import { dataTableFilterFns } from "./rowModelFns";
 
 export type ColumnFilterType = "input" | "select" | "date" | "number";
 
@@ -98,21 +108,38 @@ export interface ColumnFilterProps {
   onChange: (value: string[] | undefined) => void;
   layout: ColumnFilterLayout;
   debounceMs: number;
+  facetedValues?: Map<unknown, number>;
 }
 
 /**
- * Feature set backing {@link DataTable}. Sorting, filtering and pagination are
- * registered for their APIs only — the table drives all three from `params`, so
- * no row models are registered and the data prop is rendered as given.
+ * Feature set backing {@link DataTable}. The filtered, sorted and paginated row
+ * models only run in `clientSide` mode; otherwise the `manual*` options skip them
+ * and the data prop is rendered as given. A column's `filterFn` and `sortFn` can
+ * name any key of `filterFns` and `sortFns`.
+ *
+ * Faceting reads every row, not the rows the other filters leave, so a select
+ * filter lists all of its options.
  *
  * The meta slot scopes `columnDef.meta` to this table instead of declaration-merging
  * it into every `@tanstack/react-table` consumer.
  */
 export const dataTableFeatures = tableFeatures({
+  columnFacetingFeature,
   columnFilteringFeature,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
+  filterFns: dataTableFilterFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+    datetime: sortFn_datetime,
+    basic: sortFn_basic,
+  },
   // The slot is typed `object`; dropping this cast silently untypes columnDef.meta.
   // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
   columnMeta: {} as DataTableColumnMeta,

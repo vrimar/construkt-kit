@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { ApplySelect } from "../../../Select";
 import { useDataTableContext } from "../../context";
+import { facetOptions } from "../../rowModelFns";
 import type { ColumnFilterProps } from "../../types";
 
 export const ColumnSelectFilter = ({
@@ -11,11 +12,15 @@ export const ColumnSelectFilter = ({
   value,
   onChange,
   layout,
+  facetedValues,
 }: ColumnFilterProps) => {
   const { selections } = useDataTableContext();
   const selectProps = meta?.selectProps;
 
-  const items = useMemo(() => [...new Set(selections?.[columnId])], [selections, columnId]);
+  const items = useMemo(
+    () => (facetedValues ? facetOptions(facetedValues) : [...new Set(selections?.[columnId])]),
+    [selections, columnId, facetedValues],
+  );
 
   const getLabel = useMemo(
     () => selectProps?.getItemLabel ?? ((item: string) => item),

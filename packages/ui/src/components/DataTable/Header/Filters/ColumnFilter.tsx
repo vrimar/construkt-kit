@@ -37,11 +37,13 @@ export const ColumnFilter = <TData extends object>({
   layout,
   draft,
 }: ColumnFilterControlProps<TData>) => {
-  const { labels } = useDataTableContext();
+  const { labels, clientSide, selections } = useDataTableContext();
   const column = header.column;
   const { meta } = column.columnDef;
-  const Filter = columnFilters[meta?.type ?? "input"];
+  const type = meta?.type ?? "input";
+  const Filter = columnFilters[type];
   const filterValue = draft ? draft.value : column.getFilterValue();
+  const faceted = clientSide && type === "select" && !selections?.[column.id];
 
   return (
     <Filter
@@ -52,6 +54,7 @@ export const ColumnFilter = <TData extends object>({
       onChange={draft?.onChange ?? ((value) => column.setFilterValue(value))}
       layout={layout}
       debounceMs={draft ? 0 : FILTER_DEBOUNCE_MS}
+      facetedValues={faceted ? column.getFacetedUniqueValues() : undefined}
     />
   );
 };

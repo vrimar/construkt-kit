@@ -354,6 +354,16 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
 
+#### Upgrading from 0.10
+
+- `DataTableProps` is a union on `clientSide`: a server table still passes `totalItems`. Code that reads the server
+  props picks that branch with `Extract<DataTableProps<T>, { totalItems: number }>`
+- New: `DataTable` `clientSide` filters, sorts and pages `data` itself by `params`, from each column's `meta.type`, and
+  takes no `totalItems`. A select filter without `selections` lists the column's values across every row. A column's
+  `filterFn` can name `input`, `select`, `number` or `date`, and its `sortFn` `alphanumeric`, `text`, `datetime` or
+  `basic`. A select column sorts by its `selectProps.getItemLabel` labels. Only `undefined` cells sort last; `null`
+  sorts as a value. `parseNumberFilter` and `matchesNumberFilter` are exported for a custom number `filterFn`
+
 #### Upgrading from 0.9
 
 - On phones and touch screens, see [Phones and touch](#phones-and-touch): `_hover` styles apply only where the device

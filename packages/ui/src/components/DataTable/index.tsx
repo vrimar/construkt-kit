@@ -16,6 +16,7 @@ import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
 import { DataTableProvider, type DataTableContextValue } from "./context";
 import { DataTablePagination } from "./Pagination";
+import { withColumnDefaults } from "./rowModelFns";
 import type {
   DataTableColumnDef,
   DataTableFilters,
@@ -47,7 +48,6 @@ export { createDataTableColumnHelper } from "./types";
 
 export type DataTableProps<TData extends object> = JsxStyleProps & {
   data: TData[];
-  totalItems: number;
   columnDefs: DataTableColumnDef<TData, any>[];
   loading?: boolean;
   params: DataTableParams;
@@ -68,7 +68,18 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
    *   search box, sort chip and filters drawer in place of the header rows.
    */
   mobileLayout?: "scroll" | "cards";
-};
+} & (
+    | { totalItems: number; clientSide?: false }
+    | {
+        /**
+         * Filter, sort and page `data` in the table by `params`, from each column's
+         * `meta.type`, instead of rendering it as given. A select filter without
+         * `selections` lists the column's values across every row.
+         */
+        clientSide: true;
+        totalItems?: never;
+      }
+  );
 
 const defaultLabels: Required<DataTableLabels> = {
   noResults: "No results available.",
@@ -143,6 +154,7 @@ export const DataTable = <TData extends object>({
   columnDefs,
   loading,
   totalItems,
+  clientSide = false,
   onRowClick,
   onReset,
   renderSubRow,
@@ -159,7 +171,7 @@ export const DataTable = <TData extends object>({
   const showCards = mobileLayout === "cards" && isMobile;
 
   const visibleColumns = useMemo(
-    () => columnDefs.filter((column) => column.meta?.isVisible !== false),
+    () => withColumnDefaults(columnDefs.filter((column) => column.meta?.isVisible !== false)),
     [columnDefs],
   );
 
@@ -193,18 +205,7 @@ export const DataTable = <TData extends object>({
     [params.filters],
   );
 
-  const pageCount = Math.ceil(totalItems / paginationState.pageSize);
-
   const latestRef = useLatestRef({ params, onParamChange });
-
-  useEffect(() => {
-    let page = params.page;
-    if (!(page >= 1)) page = 1;
-    else if (!loading && pageCount > 0 && page > pageCount) page = pageCount;
-    if (page !== params.page) {
-      latestRef.current.onParamChange({ ...latestRef.current.params, page });
-    }
-  }, [latestRef, loading, pageCount, params.page]);
 
   const handlePagination = useCallback(
     (updateFn: Updater<PaginationState>) => {
@@ -261,19 +262,31 @@ export const DataTable = <TData extends object>({
     columns: visibleColumns,
     data,
     getRowCanExpand: renderSubRow ? () => true : undefined,
-    pageCount,
+    rowCount: clientSide ? undefined : totalItems,
     state: {
       sorting: sortingState,
       pagination: paginationState,
       columnFilters: filtersState,
     },
-    manualSorting: true,
-    manualPagination: true,
-    manualFiltering: true,
+    manualSorting: !clientSide,
+    manualPagination: !clientSide,
+    manualFiltering: !clientSide,
+    autoResetPageIndex: false,
     onColumnFiltersChange: handleFilterChange,
     onSortingChange: handleSort,
     onPaginationChange: handlePagination,
   });
+
+  const pageCount = table.getPageCount();
+
+  useEffect(() => {
+    let page = params.page;
+    if (!(page >= 1)) page = 1;
+    else if (!loading && pageCount > 0 && page > pageCount) page = pageCount;
+    if (page !== params.page) {
+      latestRef.current.onParamChange({ ...latestRef.current.params, page });
+    }
+  }, [latestRef, loading, pageCount, params.page]);
 
   const getRowInteractionProps = useCallback(
     (row: DataTableRow<TData>): DataTableRowProps => ({
@@ -301,8 +314,9 @@ export const DataTable = <TData extends object>({
       onReset,
       labels: resolveLabels(labels),
       selections,
+      clientSide,
     }),
-    [getRowInteractionProps, labels, loading, onReset, selections],
+    [clientSide, getRowInteractionProps, labels, loading, onReset, selections],
   );
 
   return (
@@ -335,7 +349,6 @@ export const DataTable = <TData extends object>({
         {showPagination && (
           <DataTablePagination
             table={table}
-            totalItems={totalItems}
             size={variant === "basic" ? "xs" : "md"}
             compact={showCards}
           />
