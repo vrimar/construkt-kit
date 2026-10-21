@@ -86,10 +86,6 @@ export const toggleGroup = defineSlotRecipe({
           _on: {
             bg: "colorPalette.outline.bg.active",
             borderColor: "colorPalette.outline.border",
-            // Panda emits a plain _hover after _on, so the on bg is restated for hover.
-            _hover: {
-              bg: "colorPalette.outline.bg.active",
-            },
           },
         },
       },
@@ -134,9 +130,6 @@ export const toggleGroup = defineSlotRecipe({
           _on: {
             bg: "colorPalette.subtle.bg.active",
             color: "colorPalette.subtle.fg",
-            _hover: {
-              bg: "colorPalette.subtle.bg.active",
-            },
           },
         },
       },

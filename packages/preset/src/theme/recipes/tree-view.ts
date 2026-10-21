@@ -49,10 +49,6 @@ export const treeView = defineSlotRecipe({
       },
       _selected: {
         bg: "bg.emphasized",
-        // Panda emits a plain _hover after _selected, so the selected bg is restated for hover.
-        _hover: {
-          bg: "bg.emphasized",
-        },
       },
       focusVisibleRing: "inside",
       focusRingColor: "border.emphasized",
@@ -138,9 +134,6 @@ export const treeView = defineSlotRecipe({
       },
       _selected: {
         bg: "bg.emphasized",
-        _hover: {
-          bg: "bg.emphasized",
-        },
       },
       focusVisibleRing: "inside",
       focusRingColor: "border.emphasized",
