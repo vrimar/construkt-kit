@@ -263,7 +263,6 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 | `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                      |
 | `styled-system/`                       | Generated Panda runtime (shipped, gitignored)     |
 | `panda.config.ts`                      | Panda CSS design-system config                    |
-| `scripts/patch-panda-jsx-types.mjs`    | Exports slot-recipe component types after codegen |
 | `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`       |
 | `layers.css`                           | Cascade layer order apps import in entry CSS      |
 

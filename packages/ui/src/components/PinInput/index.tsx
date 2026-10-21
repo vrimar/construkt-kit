@@ -1,21 +1,17 @@
 import { PinInput as ArkPinInput, PinInputContext } from "@ark-ui/react/pin-input";
-import type { ComponentProps, ComponentType } from "react";
+import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { pinInput } from "#styled-system/recipes";
 
 const { withProvider, withContext } = createSlotRecipeContext(pinInput);
 
-const StyledRoot = withProvider(ArkPinInput.Root, "root", {
+const Root = withProvider(ArkPinInput.Root, "root", {
   forwardProps: ["mask"],
 });
 
-export type PinInputRootProps = Omit<ComponentProps<typeof StyledRoot>, "mask"> & {
-  // oxlint-disable-next-line construkt/no-style-prop-name
-  mask?: boolean;
-};
+export type PinInputRootProps = ComponentProps<typeof Root>;
 
-const Root = StyledRoot as ComponentType<PinInputRootProps>;
 const RootProvider = withProvider(ArkPinInput.RootProvider, "root");
 const Control = withContext(ArkPinInput.Control, "control");
 const HiddenInput = ArkPinInput.HiddenInput;

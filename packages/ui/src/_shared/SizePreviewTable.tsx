@@ -10,7 +10,7 @@ const sizeRank = (size: string) => {
 };
 
 interface Props<T extends string> {
-  sizes: ReadonlyArray<T | undefined>;
+  sizes: ReadonlyArray<T>;
   renderPreview: (size: T) => ReactNode;
   pivot?: boolean;
 }
@@ -20,9 +20,7 @@ export const SizePreviewTable = <T extends string>({
   renderPreview,
   pivot,
 }: Props<T>) => {
-  const sizes = variants
-    .filter((size) => size !== undefined)
-    .sort((a, b) => sizeRank(a) - sizeRank(b));
+  const sizes = [...variants].sort((a, b) => sizeRank(a) - sizeRank(b));
 
   if (pivot) {
     return (

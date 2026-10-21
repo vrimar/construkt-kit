@@ -4,7 +4,6 @@ export const skeleton = defineRecipe({
   className: "skeleton",
   jsx: ["Skeleton", "SkeletonCircle", "SkeletonText"],
   base: {
-    // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
     borderRadius: "var(--skeleton-circle-radius, var(--skeleton-radius))",
     bgColor: "var(--skeleton-loaded-bg, var(--skeleton-bg))",
     backgroundImage: "var(--skeleton-loaded-bg-image, var(--skeleton-bg-image))",

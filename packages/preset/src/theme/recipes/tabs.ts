@@ -52,7 +52,6 @@ export const tabs = defineSlotRecipe({
       },
       // Natural width so horizontal tabs scroll instead of squishing; `fitted`/`_vertical` override.
       flexShrink: 0,
-      // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
       minW: "var(--tabs-trigger-fitted-min-w, var(--tabs-trigger-min-w))",
       "--tabs-trigger-fitted-min-w": "initial",
       scrollSnapAlign: "start",

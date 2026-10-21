@@ -15,7 +15,6 @@ export const input = {
     borderRadius: "md",
     height: "var(--input-height)",
     minHeight: "var(--input-height)",
-    // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
     px: "var(--input-flushed-px, var(--input-px))",
     "--input-flushed-px": "initial",
     minW: "var(--input-height)",

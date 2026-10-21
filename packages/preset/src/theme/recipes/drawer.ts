@@ -66,7 +66,6 @@ export const drawer = defineSlotRecipe({
       "--drawer-placement-pb": "initial",
       "--drawer-placement-ps": "initial",
       "--drawer-placement-pe": "initial",
-      // Overlapping variants resolve here: Panda 2 emits variant rules in usage-dependent order.
       maxW: "var(--drawer-max-w)",
       color: "inherit",
       transitionProperty: "transform, scale",

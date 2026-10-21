@@ -91,7 +91,7 @@ const LINE_STYLES = new Set([
 const NO_STROKE = new Set(["0", "inherit", "initial", "unset", "revert", "revert-layer"]);
 const invalidDeclarations = [];
 
-// Panda 2 emits variant rules in usage-dependent order, so two variant keys must never set one property.
+// A responsive variant's media rule beats any plain variant rule, so two variant keys must never set one property.
 const VARIANT_RULE =
   /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
 const variantValues = new Map();

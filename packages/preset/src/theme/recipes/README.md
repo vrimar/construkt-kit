@@ -32,8 +32,9 @@ Standard variant names across all recipes, from most visual weight to least:
 
 ## Overlapping variants
 
-Two variant keys must never set the same property: Panda 2 emits variant rules in an order that depends on which
-variants an app uses, so the winner is unpredictable. Have each variant set its own CSS variable and resolve the
+Two variant keys must never set the same property. Panda emits variant rules in config order, but a responsive value
+(`size={{ base: "sm", md: "lg" }}`) emits its breakpoint rule in a media block after every plain variant rule, so it
+beats a later key's override there. Have each variant set its own CSS variable and resolve the
 property once in the base — `px: "var(--input-flushed-px, var(--input-px))"` — and reset override variables in the base
 (`"--input-flushed-px": "initial"`) so they don't leak into nested elements. `pnpm check:css` fails on any overlap.
 Compound variants are not a substitute: a recipe with `compoundVariants` rejects responsive variant props at runtime.

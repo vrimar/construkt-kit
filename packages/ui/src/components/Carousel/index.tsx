@@ -3,7 +3,7 @@ import {
   CarouselContext,
   useCarouselContext,
 } from "@ark-ui/react/carousel";
-import type { ComponentProps, ComponentType } from "react";
+import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { carousel } from "#styled-system/recipes";
@@ -11,17 +11,13 @@ import { token } from "#styled-system/tokens";
 
 const { withProvider, withContext } = createSlotRecipeContext(carousel);
 
-const StyledRoot = withProvider(ArkCarousel.Root, "root", {
+const Root = withProvider(ArkCarousel.Root, "root", {
   forwardProps: ["page", "padding"],
   defaultProps: { spacing: token.var("spacing.4") },
 });
 
-export type CarouselRootProps = Omit<ComponentProps<typeof StyledRoot>, "padding"> & {
-  // oxlint-disable-next-line construkt/no-style-prop-name
-  padding?: string;
-};
+export type CarouselRootProps = ComponentProps<typeof Root>;
 
-const Root = StyledRoot as ComponentType<CarouselRootProps>;
 const RootProvider = withProvider(ArkCarousel.RootProvider, "root");
 const AutoplayTrigger = withContext(ArkCarousel.AutoplayTrigger, "autoplayTrigger");
 const Control = withContext(ArkCarousel.Control, "control");

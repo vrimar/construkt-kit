@@ -67,7 +67,7 @@
     "styled-system"
   ],
   "scripts": {
-    "codegen": "panda codegen --clean && node ../ui/scripts/patch-panda-jsx-types.mjs styled-system",
+    "codegen": "panda codegen --clean",
     "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
@@ -88,7 +88,7 @@
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
-    "@pandacss/dev": "^2.2.0",
+    "@pandacss/dev": "^2.3.0",
     "@storybook/react-vite": "^10.6.2",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
