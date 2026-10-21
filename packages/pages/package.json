@@ -81,7 +81,7 @@
   },
   "peerDependencies": {
     "@construkt-kit/ui": ">=0.8.0",
-    "@pandacss/dev": "^2.0.0",
+    "@pandacss/dev": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -264,7 +264,6 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 | `styled-system/`                       | Generated Panda runtime (shipped, gitignored)     |
 | `panda.config.ts`                      | Panda CSS design-system config                    |
 | `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`       |
-| `layers.css`                           | Cascade layer order apps import in entry CSS      |
 
 ## Common Patterns
 
@@ -285,7 +284,7 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 
 ### Consuming @construkt-kit/ui in apps
 
-ui is a Panda design system. Apps run `@pandacss/dev` 2.x and point `designSystem` at it; the manifest
+ui is a Panda design system. Apps run `@pandacss/dev` 2.3 or later and point `designSystem` at it; the manifest
 supplies the preset, preflight, JSX framework, every recipe variant and ui's extracted styles:
 
 ```ts
@@ -302,12 +301,10 @@ export default defineConfig({
 Do not list either package in `include` or add the preset by hand. Apps that import their generated `styled-system/`
 through an alias (e.g. `@construkt-kit/styled-system`) set `importMap` to that alias.
 
-The entry CSS keeps the usual layer line and imports ui's layer order after it. The import pins the recipe sublayer
-order, which Panda's PostCSS plugin does not emit; without it slot recipes override plain recipes:
+The entry CSS keeps the usual layer line:
 
 ```css
 @layer reset, base, tokens, recipes, utilities;
-@import "@construkt-kit/ui/layers.css";
 ```
 
 `@fontsource-variable/inter` is an optional peer: install it unless the app replaces the preset's `globalFontface`.
@@ -352,6 +349,11 @@ reachable another way.
 Give the app `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`.
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
+
+#### Upgrading from 0.11
+
+- Apps need `@pandacss/dev` 2.3 or later. Remove the `@construkt-kit/ui/layers.css` import from the entry CSS: Panda
+  emits the recipe sublayer order itself
 
 #### Upgrading from 0.10
 
@@ -548,7 +550,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 #### Upgrading from 0.7
 
-- Replace `createConstruktPandaConfig` with `designSystem` as above, and add the `layers.css` import
+- Replace `createConstruktPandaConfig` with `designSystem` as above
 - Drop `@construkt-kit/preset` from app dependencies and SSR `noExternal`; ui ships it as `panda/preset.mjs`
 - Set `importMap` if the app imports its `styled-system/` through an alias
 - Recipe properties now outrank the `textStyle` values they apply; see [Theme Architecture](#theme-architecture)

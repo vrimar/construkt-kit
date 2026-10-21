@@ -15,7 +15,6 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
-    "./layers.css": "./layers.css",
     "./panda/*": "./panda/*",
     "./css": {
       "types": "./styled-system/css/index.d.ts",
@@ -71,7 +70,6 @@
   "types": "./dist/index.d.mts",
   "files": [
     "dist",
-    "layers.css",
     "panda",
     "styled-system"
   ],
@@ -82,7 +80,7 @@
     "typecheck": "tsc --noEmit",
     "format": "oxfmt src",
     "test": "vitest run",
-    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./layers.css && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
     "@ark-ui/react": "^5.39.3",
@@ -95,7 +93,7 @@
   },
   "peerDependencies": {
     "@fontsource-variable/inter": "^5.3.0",
-    "@pandacss/dev": "^2.0.0",
+    "@pandacss/dev": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
