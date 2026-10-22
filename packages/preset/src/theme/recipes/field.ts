@@ -5,12 +5,21 @@ import { surface } from "./control-size";
 
 export const field = defineSlotRecipe({
   className: "field",
-  slots: fieldAnatomy.keys(),
+  slots: [...fieldAnatomy.keys(), "labelAction"],
   base: {
     root: {
       display: "flex",
       flexDirection: "column",
       gap: surface("0.375rem"),
+      "&:has(> [data-part=label-action])": {
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        columnGap: "3",
+        alignItems: "baseline",
+        "& > *": { gridColumn: "1 / -1" },
+        "& > [data-part=label]": { gridColumn: "1", gridRow: "1" },
+        "& > [data-part=label-action]": { gridColumn: "2", gridRow: "1" },
+      },
     },
     label: {
       alignItems: "center",
@@ -25,6 +34,10 @@ export const field = defineSlotRecipe({
     },
     requiredIndicator: {
       color: "fg.error",
+    },
+    labelAction: {
+      display: "flex",
+      textStyle: "sm",
     },
     helperText: {
       color: "fg.muted",
