@@ -54,6 +54,14 @@ use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages
 `"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
 design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
+## Upgrading from 0.6
+
+- Apps need `@construkt-kit/ui` 0.12 or later and `@pandacss/dev` 2.3 or later; follow ui's "Upgrading from 0.11"
+- `LoginPage` keeps Login enabled and, on submit, shows "Email is required." or "Password is required." under an
+  empty field instead of disabling Login until both are filled, so autofilled credentials submit on the first click
+- `LoginPage`'s forgot-password link reads "Forgot password?" and sits at the end of the Password label row instead
+  of under Login; tests that find it by "Forgot your password?" need the new text
+
 ## Upgrading from 0.4
 
 - `AuthForm` takes `loading` and `submitDisabled` in place of `isLoading` and `isSubmitDisabled`, matching ui's
