@@ -20,7 +20,6 @@ export const globalCss = {
     "--surface-scale": "1",
     "--visual-scale": "1",
     "@media (pointer: coarse)": {
-      "--control-base-h": "sizes.11",
       "--control-base-row-h": "sizes.11",
       // iOS zooms into any focused input whose text is under 16px.
       "--control-input-font-min": "1rem",

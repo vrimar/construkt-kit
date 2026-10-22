@@ -322,9 +322,10 @@ allowBuilds:
 Two things adapt, each on its own signal:
 
 - **Touch density** follows the primary pointer, `(pointer: coarse)`, at any width, so a tablet in landscape gets it
-  too. Controls, menu rows and checkbox, radio and switch rows grow to 44px, text inputs to 16px text (iOS zooms into
-  anything smaller), and small buttons get a 44px hit area without changing their layout, narrowed beside a neighbouring
-  button. `_hover` styles apply only where the device can hover. It is all CSS on the `--control-*` knobs, so the first server render is already right.
+  too. Controls keep their desktop height; menu rows and checkbox, radio and switch rows grow to 44px, text inputs to
+  16px text (iOS zooms into anything smaller), and buttons get a 44px hit area without changing their layout, narrowed
+  beside a neighbouring button. `_hover` styles apply only where the device can hover. It is all CSS on the
+  `--control-*` knobs, so the first server render is already right.
 - **Presentation** follows the viewport. Below `md`, `Select`, `ApplySelect`, `TagSelect`, `Menu`, `Popover`,
   `DatePicker`, `DatePickerSelect`, `ColorPicker` and `Combobox` open as a bottom sheet that swipes away; from `md` up
   they stay anchored. Pass `mobileLayout="popover"` to keep one anchored; an overlay with `autoFocus={false}` (a hint
@@ -352,6 +353,9 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 #### Upgrading from 0.11
 
+- On a coarse pointer, controls keep their desktop height instead of growing to 44px; buttons keep their 44px hit
+  area and menu, checkbox, radio and switch rows stay 44px. An app that sized controls up for touch (`md` on touch,
+  `sm` on desktop) can drop that and pass one size
 - Apps need `@pandacss/dev` 2.3 or later. Remove the `@construkt-kit/ui/layers.css` import from the entry CSS: Panda
   emits the recipe sublayer order itself
 
