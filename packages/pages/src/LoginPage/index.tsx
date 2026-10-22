@@ -1,7 +1,7 @@
-import { Field, Input, useAutoFocus } from "@construkt-kit/ui";
+import { Field, Input, Link, useAutoFocus } from "@construkt-kit/ui";
 import { useState } from "react";
 
-import { AuthForm, AuthLinkButton } from "../AuthForm";
+import { AuthForm } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import type { AuthPageProps } from "../types";
 
@@ -34,11 +34,6 @@ export function LoginPage({
         submitLabel="Login"
         loading={isLoading}
         submitDisabled={!email || !password}
-        footer={
-          onForgotPassword && (
-            <AuthLinkButton onClick={onForgotPassword}>Forgot your password?</AuthLinkButton>
-          )
-        }
       >
         <Field label="Email">
           <Input
@@ -48,7 +43,26 @@ export function LoginPage({
           />
         </Field>
 
-        <Field label="Password">
+        <Field
+          label="Password"
+          labelAction={
+            onForgotPassword && (
+              <Link
+                asChild
+                variant="plain"
+                colorPalette="brand"
+                color="colorPalette.plain.fg"
+              >
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                >
+                  Forgot password?
+                </button>
+              </Link>
+            )
+          }
+        >
           <Input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
