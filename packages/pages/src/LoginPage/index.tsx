@@ -52,6 +52,8 @@ export function LoginPage({
             ref={emailInput}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            autoComplete="username"
           />
         </Field>
 
@@ -82,6 +84,7 @@ export function LoginPage({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
+            autoComplete="current-password"
           />
         </Field>
       </AuthForm>

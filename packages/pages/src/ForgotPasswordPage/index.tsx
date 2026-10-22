@@ -49,6 +49,7 @@ export function ForgotPasswordPage({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
+              autoComplete="email"
             />
           </Field>
         </AuthForm>
