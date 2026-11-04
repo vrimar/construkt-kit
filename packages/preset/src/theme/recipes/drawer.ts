@@ -52,8 +52,14 @@ export const drawer = defineSlotRecipe({
       pb: "var(--drawer-full-pb, var(--drawer-placement-pb, 0px))",
       ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
       pe: "var(--drawer-full-pe, var(--drawer-placement-pe, 0px))",
-      "--drawer-safe-start": { base: "env(safe-area-inset-left)", _rtl: "env(safe-area-inset-right)" },
-      "--drawer-safe-end": { base: "env(safe-area-inset-right)", _rtl: "env(safe-area-inset-left)" },
+      "--drawer-safe-start": {
+        base: "env(safe-area-inset-left)",
+        _rtl: "env(safe-area-inset-right)",
+      },
+      "--drawer-safe-end": {
+        base: "env(safe-area-inset-right)",
+        _rtl: "env(safe-area-inset-left)",
+      },
       "--drawer-full-max-h": "initial",
       "--drawer-full-radius": "initial",
       "--drawer-full-pt": "initial",

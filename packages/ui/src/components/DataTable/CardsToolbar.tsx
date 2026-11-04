@@ -314,7 +314,10 @@ export const DataTableCardsToolbar = <TData extends object>({
                     key={header.id}
                     active={sortDraft?.id === header.column.id}
                     onSelect={() =>
-                      setSortDraft((draft) => ({ id: header.column.id, desc: draft?.desc ?? false }))
+                      setSortDraft((draft) => ({
+                        id: header.column.id,
+                        desc: draft?.desc ?? false,
+                      }))
                     }
                   >
                     {getColumnLabel(header)}
