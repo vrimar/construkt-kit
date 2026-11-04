@@ -116,9 +116,12 @@ const MenuRoot = createPlacementRoot<MenuRootProps>(MenuRootBase);
 
 export interface MenuTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-const useMenuTriggerId = (value: string) => useMenuContext().getTriggerProps({ value }).id ?? "";
+const useMenuTriggerState = (value: string | undefined) => {
+  const props = useMenuContext().getTriggerProps({ value });
+  return { id: props.id ?? "", open: props["aria-expanded"] === true };
+};
 
-const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerId);
+const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerState);
 
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {
   /** Label of the row that leads back out of a submenu shown inside a phone sheet. */

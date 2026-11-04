@@ -17,7 +17,7 @@ export type TooltipTriggerComponent<T extends ElementType> = (
 /** Wraps a floating-surface trigger so `tooltip` renders against the trigger's own Ark id. */
 export function withTriggerTooltip<T extends ElementType>(
   StyledTrigger: T,
-  useTriggerId: (value: string) => string,
+  useTriggerState: (value: string | undefined) => { id: string; open: boolean },
 ): TooltipTriggerComponent<T> {
   const TriggerElement: ElementType = StyledTrigger;
 
@@ -33,7 +33,7 @@ export function withTriggerTooltip<T extends ElementType>(
     children,
     ...rest
   }: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>): ReactElement {
-    const triggerId = useTriggerId((rest as { value?: string }).value ?? "");
+    const { id: triggerId, open } = useTriggerState((rest as { value?: string }).value);
 
     if (tooltip == null || tooltip === false) {
       return <TriggerElement {...rest}>{children}</TriggerElement>;
@@ -44,6 +44,7 @@ export function withTriggerTooltip<T extends ElementType>(
         ids={{ trigger: triggerId }}
         label={tooltip}
         {...tooltipProps}
+        disabled={open || tooltipProps?.disabled}
       >
         <TooltipTarget {...rest}>{children}</TooltipTarget>
       </Tooltip>

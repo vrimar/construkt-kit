@@ -49,10 +49,12 @@ const PopoverContent = createSheetCapableContent(Positioner, Content, usePopover
 export interface PopoverTriggerProps
   extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-const usePopoverTriggerId = (value: string) =>
-  usePopoverContext().getTriggerProps({ value }).id ?? "";
+const usePopoverTriggerState = (value: string | undefined) => {
+  const props = usePopoverContext().getTriggerProps({ value });
+  return { id: props.id ?? "", open: props["aria-expanded"] === true };
+};
 
-const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerId);
+const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerState);
 
 export const Popover = {
   Root: PopoverRoot,
