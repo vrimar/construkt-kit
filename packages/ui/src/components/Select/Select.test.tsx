@@ -141,7 +141,11 @@ describe("Select", () => {
     const offsetHeight = vi
       .spyOn(HTMLElement.prototype, "offsetHeight", "get")
       .mockReturnValue(200);
-    onTestFinished(() => offsetHeight.mockRestore());
+    const clientHeight = vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(200);
+    onTestFinished(() => {
+      offsetHeight.mockRestore();
+      clientHeight.mockRestore();
+    });
     render(
       <Select.Root
         items={many}

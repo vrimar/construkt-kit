@@ -56,7 +56,6 @@ export const switchRecipe = defineSlotRecipe({
       width: "var(--switch-width)",
       height: "var(--switch-height)",
       transition: "colors",
-      focusVisibleRing: "outside",
       _disabled: {
         layerStyle: "disabled",
       },
@@ -65,6 +64,7 @@ export const switchRecipe = defineSlotRecipe({
         outlineColor: "border.error",
         outlineOffset: "2px",
       },
+      focusVisibleRing: "outside",
     },
     thumb: {
       display: "flex",

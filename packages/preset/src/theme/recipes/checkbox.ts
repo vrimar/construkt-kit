@@ -26,12 +26,12 @@ export const checkbox = defineSlotRecipe({
       cursor: "inherit",
       borderColor: "transparent",
       borderRadius: "sm",
-      focusVisibleRing: "outside",
       _invalid: {
         outline: "2px solid",
         outlineColor: "border.error",
         outlineOffset: "2px",
       },
+      focusVisibleRing: "outside",
 
       _icon: {
         boxSize: "full",

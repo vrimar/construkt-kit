@@ -12,7 +12,15 @@ const mockLayout = () => {
     .mockImplementation(function (this: HTMLElement) {
       return this.hasAttribute("data-index") ? 20 : 200;
     });
-  onTestFinished(() => offsetHeight.mockRestore());
+  const clientHeight = vi
+    .spyOn(Element.prototype, "clientHeight", "get")
+    .mockImplementation(function (this: Element) {
+      return this.hasAttribute("data-index") ? 20 : 200;
+    });
+  onTestFinished(() => {
+    offsetHeight.mockRestore();
+    clientHeight.mockRestore();
+  });
 };
 
 const renderRows = (props: Partial<VirtualScrollAreaProps<string>> = {}) => {

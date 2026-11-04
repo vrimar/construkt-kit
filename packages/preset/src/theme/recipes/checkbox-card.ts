@@ -43,7 +43,6 @@ export const checkboxCard = defineSlotRecipe({
       cursor: "inherit",
       borderColor: "border",
       borderRadius: "sm",
-      focusVisibleRing: "outside",
       _checked: checkboxControlCheckedState,
       _indeterminate: checkboxControlCheckedState,
       _invalid: {
@@ -51,6 +50,7 @@ export const checkboxCard = defineSlotRecipe({
         outlineColor: "border.error",
         outlineOffset: "2px",
       },
+      focusVisibleRing: "outside",
       _icon: {
         boxSize: "full",
       },

@@ -12,9 +12,3 @@ allowBuilds:
 
 # pnpm 11 enables a supply-chain delay by default; disabled to allow latest releases
 minimumReleaseAge: 0
-
-overrides:
-  # @kubb/plugin-* import PluginFactoryOptions from kubb/kit, which exports it only up to 5.9.0
-  kubb: 5.9.0
-  '@kubb/adapter-oas': 5.9.0
-  '@kubb/parser-ts': 5.9.0
