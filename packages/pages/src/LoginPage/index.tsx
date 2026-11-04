@@ -1,7 +1,7 @@
 import { Field, Input, Link, useAutoFocus } from "@construkt-kit/ui";
 import { useRef, useState } from "react";
 
-import { AuthForm } from "../AuthForm";
+import { AuthForm, getEmailError } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import type { AuthPageProps } from "../types";
 
@@ -23,10 +23,11 @@ export function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const emailError = getEmailError(email);
 
   const handleSubmit = () => {
     setSubmitAttempted(true);
-    if (!email) emailInput.current?.focus();
+    if (emailError) emailInput.current?.focus();
     else if (!password) passwordInput.current?.focus();
     else onSubmit(email, password);
   };
@@ -45,8 +46,8 @@ export function LoginPage({
       >
         <Field
           label="Email"
-          invalid={submitAttempted && !email}
-          errorText="Email is required."
+          invalid={submitAttempted && emailError !== undefined}
+          errorText={emailError}
         >
           <Input
             ref={emailInput}

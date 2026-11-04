@@ -1,5 +1,12 @@
 import { Alert, Button, Stack } from "@construkt-kit/ui";
+import { emailSchema } from "@construkt-kit/utils";
 import type { FormEvent, ReactNode } from "react";
+
+export function getEmailError(email: string): string | undefined {
+  if (!email) return "Email is required.";
+  if (!emailSchema.safeParse(email).success) return "Enter a valid email address.";
+  return undefined;
+}
 
 export interface AuthFormProps {
   onSubmit: () => void;
@@ -25,7 +32,10 @@ export function AuthForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      noValidate
+      onSubmit={handleSubmit}
+    >
       <Stack gap="4">
         {children}
 

@@ -15,4 +15,17 @@ describe("LoginPage", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.getByLabelText("Email").getAttribute("aria-invalid")).toBe("true");
   });
+
+  it("flags a malformed email instead of submitting it", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<LoginPage onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("Email"), "jane");
+    await user.type(screen.getByLabelText("Password"), "secret");
+    await user.click(screen.getByRole("button", { name: "Login" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Email").getAttribute("aria-invalid")).toBe("true");
+  });
 });

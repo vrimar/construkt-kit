@@ -1,7 +1,7 @@
 import { Field, Input, useAutoFocus } from "@construkt-kit/ui";
 import { useState } from "react";
 
-import { AuthForm, AuthLinkButton, AuthSuccess } from "../AuthForm";
+import { AuthForm, AuthLinkButton, AuthSuccess, getEmailError } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import type { AuthPageProps } from "../types";
 
@@ -22,6 +22,14 @@ export function ForgotPasswordPage({
 }: ForgotPasswordPageProps) {
   const emailInput = useAutoFocus();
   const [email, setEmail] = useState("");
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const emailError = getEmailError(email);
+
+  const handleSubmit = () => {
+    setSubmitAttempted(true);
+    if (emailError) emailInput.current?.focus();
+    else onSubmit(email);
+  };
 
   return (
     <AuthLayout
@@ -37,13 +45,17 @@ export function ForgotPasswordPage({
         />
       ) : (
         <AuthForm
-          onSubmit={() => onSubmit(email)}
+          onSubmit={handleSubmit}
           submitLabel="Send reset link"
           loading={isLoading}
           submitDisabled={!email}
           footer={onBack && <AuthLinkButton onClick={onBack}>Back to login</AuthLinkButton>}
         >
-          <Field label="Email">
+          <Field
+            label="Email"
+            invalid={submitAttempted && emailError !== undefined}
+            errorText={emailError}
+          >
             <Input
               ref={emailInput}
               value={email}
