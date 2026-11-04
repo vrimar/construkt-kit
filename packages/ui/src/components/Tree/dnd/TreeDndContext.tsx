@@ -122,7 +122,10 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
    * hover auto-expand. @default 500
    */
   autoExpandDelay?: number | false;
-  /** Whether a node may be dragged (pointer) or keyboard-moved. @default all nodes */
+  /**
+   * Whether a node may be dragged (pointer) or keyboard-moved. Disabled nodes never are.
+   * @default all enabled nodes
+   */
   isNodeDraggable?: (node: T) => boolean;
   /** Scroll container to auto-scroll (vertically) near its edges during a drag. */
   scrollElement?: Element | null;
@@ -192,10 +195,11 @@ export function TreeViewDndProvider<T extends TreeNode>({
     };
 
     const canDrag = (value: string) => {
-      const fn = handlers.current.isNodeDraggable;
-      if (!fn) return true;
-      const node = collectionRef.current.findNode(value);
-      return node ? fn(node) : true;
+      const collection = collectionRef.current;
+      const node = collection.findNode(value);
+      if (!node) return true;
+      if (collection.getNodeDisabled(node)) return false;
+      return handlers.current.isNodeDraggable?.(node) ?? true;
     };
 
     const allowsDrop = (details: TreeCanDropDetails) => handlers.current.canDrop?.(details) ?? true;

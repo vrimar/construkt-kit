@@ -237,6 +237,23 @@ describe("TreeSelectList", () => {
     ["canDrop", { canDrop: () => false }, "Apple", "ArrowDown"],
     ["blockReparent", { blockReparent: true }, "Carrot", "ArrowLeft"],
     ["isNodeDraggable", { isNodeDraggable: () => false }, "Apple", "ArrowDown"],
+    [
+      "disabled node",
+      {
+        collection: createTestTree([
+          {
+            id: "fruits",
+            label: "Fruits",
+            children: [
+              { id: "apple", label: "Apple", disabled: true },
+              { id: "banana", label: "Banana" },
+            ],
+          },
+        ]),
+      },
+      "Apple",
+      "ArrowDown",
+    ],
   ] satisfies [string, ListProps, string, string][])(
     "keyboard moves respect the %s veto",
     (_, veto, label, key) => {

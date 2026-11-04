@@ -399,7 +399,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   selections, like the select-all button
 - `TreeSelectList`: Space checks a row and Enter a leaf. A branch checkbox toggles only the checkable, enabled leaves
   under it, a branch with none has no checkbox, and select-all skips disabled leaves
-- Drags leave out nodes `isNodeDraggable` rejects, and nesting into a lazy branch that hasn't loaded its children is
+- Drags leave out disabled nodes and nodes `isNodeDraggable` rejects, and nesting into a lazy branch that hasn't loaded its children is
   refused; `applyTreeDrop` takes `isBranchLoaded` for branches you know have loaded
 - `Tooltip` with an empty `label` renders only its children, and text children get a `<span>` trigger. `ToggleTip`
   puts text children in a button
