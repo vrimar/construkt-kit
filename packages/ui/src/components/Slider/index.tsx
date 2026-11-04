@@ -63,20 +63,20 @@ export const Slider = ({ ref, marks: marksProp, label, showValue, ...rest }: Sli
           <Range />
         </Track>
         <Thumbs />
+        {marks && marks.length > 0 && (
+          <MarkerGroup>
+            {marks.map((mark, index) => (
+              <Marker
+                key={index}
+                value={mark.value}
+              >
+                <MarkerIndicator />
+                {mark.label}
+              </Marker>
+            ))}
+          </MarkerGroup>
+        )}
       </Control>
-      {marks && marks.length > 0 && (
-        <MarkerGroup>
-          {marks.map((mark, index) => (
-            <Marker
-              key={index}
-              value={mark.value}
-            >
-              <MarkerIndicator />
-              {mark.label}
-            </Marker>
-          ))}
-        </MarkerGroup>
-      )}
     </Root>
   );
 };

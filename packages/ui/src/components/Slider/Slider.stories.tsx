@@ -32,6 +32,22 @@ export const Range: Story = {
   },
 };
 
+export const LabelledMarks: Story = {
+  args: {
+    label: "Decimals",
+    defaultValue: [1],
+    min: 0,
+    max: 2,
+    step: 1,
+    marks: [
+      { value: 0, label: "0" },
+      { value: 1, label: "1" },
+      { value: 2, label: "2" },
+    ],
+    width: "300px",
+  },
+};
+
 export const Sizes: Story = {
   render: () => (
     <SizePreviewTable

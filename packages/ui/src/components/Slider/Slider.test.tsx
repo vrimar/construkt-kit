@@ -54,6 +54,20 @@ describe("Slider", () => {
     expect(container.querySelector("[data-part='marker-group']")).toBeNull();
   });
 
+  it("places marks inside the control so a label above doesn't offset them", () => {
+    const { container } = render(
+      <Slider
+        label="Decimals"
+        marks={[0, 1, 2]}
+        defaultValue={[1]}
+        max={2}
+      />,
+    );
+
+    const control = container.querySelector("[data-part='control']");
+    expect(control?.querySelector("[data-part='marker-group']")).not.toBeNull();
+  });
+
   it("shows the value without a label", () => {
     const { container } = render(
       <Slider
