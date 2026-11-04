@@ -95,6 +95,54 @@ const invalidDeclarations = [];
 const VARIANT_RULE =
   /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
 const variantValues = new Map();
+
+// Panda 2.3 and 2.4+ order equal-specificity state rules differently, so states held at once need a compound rule.
+const ENABLED = ":where(:not(:disabled, [data-disabled]))";
+const STATES = {
+  open: ':is([open], [data-open], [data-state="open"], :popover-open)',
+  on: ":is([data-state=on])",
+  active: `${ENABLED}:is(:active, [data-active])`,
+  hover: `${ENABLED}:where(:hover, [data-hover])`,
+  disabled: ":is(:disabled, [disabled], [data-disabled], [aria-disabled=true])",
+  loading: ":is([data-loading], [aria-busy=true])",
+  readonly: "[data-readonly]",
+};
+const CO_OCCURRING = [
+  ["open", "active"],
+  ["on", "active"],
+  ["disabled", "loading"],
+  ["disabled", "readonly"],
+];
+const stateValues = new Map();
+const splitSelectors = (head) => {
+  const out = [];
+  let depth = 0;
+  let current = "";
+  for (const ch of head) {
+    if (ch === "(" || ch === "[") depth++;
+    if (ch === ")" || ch === "]") depth--;
+    if (ch === "," && depth === 0) {
+      out.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  return [...out, current.trim()];
+};
+const parseStates = (selector) => {
+  const base = selector.match(/^\.[\w-]+/)?.[0];
+  if (!base) return null;
+  const states = [];
+  for (let rest = selector.slice(base.length); rest; ) {
+    const name = Object.keys(STATES).find((key) => rest.startsWith(STATES[key]));
+    if (!name) return null;
+    states.push(name);
+    rest = rest.slice(STATES[name].length);
+  }
+  return states.length ? { base, combo: states.sort().join("+") } : null;
+};
+
 const blocks = [];
 let buffer = "";
 for (const ch of css) {
@@ -137,6 +185,17 @@ for (const ch of css) {
           variantValues.set(id, byKey);
         }
       }
+      const layers = blocks.filter((b) => b.startsWith("@")).join(" ");
+      for (const selector of splitSelectors(head)) {
+        const parsed = parseStates(selector);
+        if (!parsed) continue;
+        for (const { property, value } of declarations) {
+          const id = `${parsed.base} ${layers}[${property}]`;
+          const byCombo = stateValues.get(id) ?? new Map();
+          byCombo.set(parsed.combo, (byCombo.get(parsed.combo) ?? new Set()).add(value));
+          stateValues.set(id, byCombo);
+        }
+      }
     }
     buffer = "";
   } else if (ch === ";" && blocks.length === 0) {
@@ -149,7 +208,15 @@ const overlaps = [...variantValues]
   .filter(([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1)
   .map(([id, byKey]) => `${id} set by variants ${[...byKey.keys()].join(", ")}`);
 
-if (failures.length || invalidDeclarations.length || overlaps.length || focusRings.length) {
+const stateConflicts = [...stateValues].flatMap(([id, byCombo]) =>
+  CO_OCCURRING.filter(([a, b]) => {
+    const one = byCombo.get(a);
+    const other = byCombo.get(b);
+    return one && other && [...one].join() !== [...other].join() && !byCombo.has([a, b].sort().join("+"));
+  }).map(([a, b]) => `${id} differs for ${a} and ${b}`),
+);
+
+if (failures.length || invalidDeclarations.length || overlaps.length || focusRings.length || stateConflicts.length) {
   if (failures.length) {
     console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
     for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
@@ -170,9 +237,14 @@ if (failures.length || invalidDeclarations.length || overlaps.length || focusRin
     for (const r of focusRings) console.error(`  ${r}`);
     console.error("\nDon't override focusVisible; add a separately named condition instead.\n");
   }
+  if (stateConflicts.length) {
+    console.error(`\n${stateConflicts.length} state pair(s) whose winner depends on Panda's rule order:\n`);
+    for (const c of stateConflicts) console.error(`  ${c}`);
+    console.error("\nNest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.\n");
+  }
   process.exit(1);
 }
 
 console.log(
-  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps or narrowed focus rings.`,
+  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps, narrowed focus rings or order-dependent state pairs.`,
 );

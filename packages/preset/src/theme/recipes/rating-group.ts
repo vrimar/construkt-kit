@@ -28,6 +28,9 @@ export const ratingGroup = defineSlotRecipe({
       },
       "&[data-readonly]": {
         cursor: "default",
+        _disabled: {
+          cursor: "not-allowed",
+        },
       },
     },
     label: {

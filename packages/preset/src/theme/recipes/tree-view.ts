@@ -60,6 +60,9 @@ export const treeView = defineSlotRecipe({
       },
       _loading: {
         cursor: "progress",
+        _disabled: {
+          cursor: "not-allowed",
+        },
       },
     },
     branchIndicator: {

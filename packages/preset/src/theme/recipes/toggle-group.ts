@@ -110,6 +110,9 @@ export const toggleGroup = defineSlotRecipe({
             _hover: {
               bg: "colorPalette.solid.bg.hover",
             },
+            _active: {
+              bg: "colorPalette.solid.bg.hover",
+            },
           },
         },
       },
@@ -130,6 +133,9 @@ export const toggleGroup = defineSlotRecipe({
           _on: {
             bg: "colorPalette.subtle.bg.active",
             color: "colorPalette.subtle.fg",
+            _active: {
+              bg: "colorPalette.plain.bg.active",
+            },
           },
         },
       },
