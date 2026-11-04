@@ -1,10 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
+import { fn } from "storybook/test";
 
 import { dialog } from "#styled-system/recipes";
 
 import { Dialog } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
+import { DatePicker } from "../DatePicker";
+import { Field } from "../Form";
+import { Stack } from "../Layout";
+import { Select } from "../Select";
 
 const meta: Meta = {
   title: "Components/Dialog",
@@ -80,6 +86,54 @@ export const NoBackdrop: Story = {
       </Dialog.Content>
     </Dialog.Root>
   ),
+};
+
+const fruits = [
+  { id: 1, name: "Apple" },
+  { id: 2, name: "Banana" },
+  { id: 3, name: "Cherry" },
+];
+
+export const WithPickers: Story = {
+  render: function WithPickersStory() {
+    const [fruit, setFruit] = useState<number | null>(null);
+    return (
+      <Dialog.Root>
+        <Dialog.Trigger asChild>
+          <Button variant="outline">Schedule delivery</Button>
+        </Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Schedule delivery</Dialog.Title>
+          </Dialog.Header>
+          <Dialog.Body>
+            <Stack gap="4">
+              <Field label="Fruit">
+                <Select
+                  items={fruits}
+                  getItemValue={(item) => item.id}
+                  getItemLabel={(item) => item.name}
+                  value={fruit}
+                  onValueChange={setFruit}
+                  placeholder="Select fruit"
+                />
+              </Field>
+              <Field label="Delivery date">
+                <DatePicker onValueChange={fn()} />
+              </Field>
+            </Stack>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Dialog.ActionTrigger asChild>
+              <Button variant="outline">Cancel</Button>
+            </Dialog.ActionTrigger>
+            <Button>Schedule</Button>
+          </Dialog.Footer>
+          <Dialog.CloseTrigger />
+        </Dialog.Content>
+      </Dialog.Root>
+    );
+  },
 };
 
 export const Phone: Story = {
