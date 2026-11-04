@@ -54,6 +54,14 @@ use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages
 `"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
 design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
+## Upgrading from 0.7
+
+- Apps need `@construkt-kit/preset` 0.10 or later: the auth card uses its `raised` shadow token
+- `LoginPage` and `ForgotPasswordPage` turn off the browser's email validation and, on submit, show "Enter a valid
+  email address." under a malformed email; tests that expected the browser's popup need the inline text
+- The auth card sits on `neutral.surface` with the `raised` shadow, and the page background is `bg` in dark mode, so
+  screenshot tests of the auth pages change
+
 ## Upgrading from 0.6
 
 - Apps need `@construkt-kit/ui` 0.12 or later and `@pandacss/dev` 2.3 or later; follow ui's "Upgrading from 0.11"
