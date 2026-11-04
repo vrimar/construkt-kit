@@ -194,8 +194,8 @@ Options (via `createKubbConfig()`):
 ## CLI: `construkt-kit-api-gen`
 
 Fetches an OpenAPI spec from a running API, runs Kubb codegen, and deletes the downloaded spec. It runs the
-app's own `kubb`, so install `kubb` next to the Kubb plugins `createKubbConfig()` uses; both must come from
-the same Kubb release.
+app's own `kubb`, so install `kubb` next to the Kubb plugins `createKubbConfig()` uses, at the versions
+`@construkt-kit/config` declares as peers.
 
 ### Usage
 
@@ -234,6 +234,11 @@ Kubb, then deleted. Generation problems are printed and exit the process with co
 `http` and `https` base URLs both work, and redirects are followed. HTTPS certificates are verified:
 for a dev certificate the OS trusts (`dotnet dev-certs https --trust`), run with
 `NODE_OPTIONS=--use-system-ca`; otherwise use the API's `http` URL or set `NODE_EXTRA_CA_CERTS`.
+
+## Upgrading from 0.4
+
+- `construkt-kit-api-gen` needs `kubb` 5.15.3 or later; follow `@construkt-kit/config`'s "Upgrading from 0.5" for
+  the plugin versions and what changes in regenerated clients
 
 ## Upgrading from 0.3
 

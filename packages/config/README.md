@@ -65,3 +65,20 @@ Key behaviors:
 
 The peer Kubb packages (`kubb`, `@kubb/adapter-oas`, `@kubb/plugin-ts`, `@kubb/plugin-fetch`,
 `@kubb/plugin-react-query`) are optional — install them in apps that run codegen.
+
+## Upgrading from 0.5
+
+- Apps that run codegen need `kubb` and `@kubb/adapter-oas` 5.15.3 or later, `@kubb/plugin-fetch` 5.11,
+  `@kubb/plugin-react-query` 5.9 and `@kubb/plugin-ts` 5.4. The plugins no longer declare a peer on `kubb`, so these
+  ranges are what keeps the two in step
+- `inputPath` and `outputPath` resolve against the config file's folder, not the working directory; keep the config
+  at the project root or pass absolute paths
+- `defineConfig` rejects unknown keys, so a misspelled key in `overrides` now fails codegen
+- Regenerating rewrites every generated file, and the generated client changes what it sends:
+  - Parameters described with `content: application/json` go out as one JSON-encoded value instead of `deepObject`
+  - JSON bodies send the operation's declared media type, and string bodies are JSON-encoded
+  - URL-encoded bodies omit `null` and `undefined` properties
+  - Client and call `headers` merge case-insensitively, with the call winning
+  - Operations named after a reserved word get a `_` prefix
+- `text/event-stream` operations get no React Query hooks; use the generated streaming client
+- A JSON spec with a duplicate key fails with `KUBB_INVALID_DOCUMENT`, and a malformed `servers[].url` is rejected
