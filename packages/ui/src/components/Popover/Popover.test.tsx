@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
 import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
 import { Popover, type PopoverRootProps } from "./Popover";
 
@@ -22,6 +23,11 @@ const renderOpen = async (props: Omit<PopoverRootProps, "children">) => {
 };
 
 describe("Popover", () => {
+  useFakeTime();
+  let user: UserEvent;
+  beforeEach(() => {
+    user = setupUser();
+  });
   it("keeps placement when positioning is passed", async () => {
     const { placement, positioner } = await renderOpen({
       placement: "left",
@@ -67,25 +73,25 @@ describe("Popover", () => {
     it("keeps an overlay that won't take focus anchored", async () => {
       renderOnPhone({ autoFocus: false });
 
-      await userEvent.click(screen.getByRole("button", { name: "Open" }));
+      await user.click(screen.getByRole("button", { name: "Open" }));
 
       expect(sheetOf(await screen.findByText("Body"))).toBeNull();
     });
 
     it("keeps a sheet open on an outside tap when the overlay asks to", async () => {
       // jsdom loads no stylesheet, so the sheet's pointer-events override on its content is absent.
-      const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      user = setupUser({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       renderOnPhone({ closeOnInteractOutside: false });
 
       await user.click(screen.getByRole("button", { name: "Open" }));
       const body = await screen.findByText("Body");
       expect(sheetOf(body)).not.toBeNull();
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await settle();
       await user.click(
         document.querySelector('[data-scope="drawer"][data-part="backdrop"]') as Element,
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await settle();
       expect(screen.queryByText("Body")).not.toBeNull();
     });
   });

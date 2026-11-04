@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import type { UserEvent } from "@testing-library/user-event";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { advance, setupUser, useFakeTime } from "../../_shared/fakeTime";
 import { Menu } from "../Menu";
 import { Popover } from "../Popover";
 
@@ -29,6 +30,12 @@ const surfaces = [
 ];
 
 describe("withTriggerTooltip", () => {
+  useFakeTime();
+  let user: UserEvent;
+  beforeEach(() => {
+    user = setupUser();
+  });
+
   it.each(surfaces)(
     "keeps the $scope trigger's own state attributes",
     async ({ scope, element }) => {
@@ -38,7 +45,7 @@ describe("withTriggerTooltip", () => {
       expect(trigger.getAttribute("data-scope")).toBe(scope);
       expect(trigger.getAttribute("data-state")).toBe("closed");
 
-      await userEvent.click(trigger);
+      await user.click(trigger);
       expect(trigger.getAttribute("data-state")).toBe("open");
       expect(trigger.getAttribute("aria-expanded")).toBe("true");
     },
@@ -48,10 +55,10 @@ describe("withTriggerTooltip", () => {
     render(element);
     const trigger = screen.getByRole("button", { name: "Open" });
 
-    await userEvent.click(trigger);
-    await userEvent.unhover(trigger);
-    await userEvent.hover(trigger);
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await user.click(trigger);
+    await user.unhover(trigger);
+    await user.hover(trigger);
+    await advance(1000);
 
     expect(screen.queryByRole("tooltip")).toBeNull();
   });

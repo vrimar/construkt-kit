@@ -1,10 +1,12 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
+import { advance, setupUser, useFakeTime } from "../../_shared/fakeTime";
 import { createMatchMedia } from "../../_shared/matchMedia";
+import { FILTER_DEBOUNCE_MS } from "./Header/Filters/constants";
 import type { DataTableParams, DataTableRow } from "./types";
 
 interface Person {
@@ -164,6 +166,11 @@ const roster: Person[] = Array.from({ length: 25 }, (_, index) => ({
 }));
 
 describe("DataTable", () => {
+  useFakeTime();
+  let user: UserEvent;
+  beforeEach(() => {
+    user = setupUser();
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -227,15 +234,15 @@ describe("DataTable", () => {
 
     expect(nameHeader().getAttribute("aria-sort")).toBe("none");
 
-    await userEvent.click(sorter());
+    await user.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBe("asc");
     expect(nameHeader().getAttribute("aria-sort")).toBe("ascending");
 
-    await userEvent.click(sorter());
+    await user.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBe("desc");
     expect(nameHeader().getAttribute("aria-sort")).toBe("descending");
 
-    await userEvent.click(sorter());
+    await user.click(sorter());
     expect(sorter().getAttribute("data-sorted")).toBeNull();
     expect(nameHeader().getAttribute("aria-sort")).toBe("none");
   });
@@ -244,19 +251,19 @@ describe("DataTable", () => {
     const { onParamChange } = renderTable();
 
     screen.getByRole("button", { name: "Sort by Name" }).focus();
-    await userEvent.keyboard("{Enter}");
+    await user.keyboard("{Enter}");
     expect(onParamChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ orderBy: "name", orderType: "asc" }),
     );
 
-    await userEvent.keyboard(" ");
+    await user.keyboard(" ");
     expect(onParamChange).toHaveBeenCalledTimes(2);
   });
 
   it("returns to the first page when the sort changes", async () => {
     const { onParamChange } = renderTable({ params: { ...params, page: 3 } });
 
-    await userEvent.click(screen.getByRole("button", { name: "Sort by Name" }));
+    await user.click(screen.getByRole("button", { name: "Sort by Name" }));
     expect(onParamChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 1, orderBy: "name" }),
     );
@@ -284,10 +291,10 @@ describe("DataTable", () => {
   it("reports page changes through onParamChange", async () => {
     const { onParamChange } = renderTable({ showFiltersRow: false });
 
-    await userEvent.click(screen.getByRole("button", { name: "Next page" }));
+    await user.click(screen.getByRole("button", { name: "Next page" }));
     expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
 
-    await userEvent.click(screen.getByRole("button", { name: "Last page" }));
+    await user.click(screen.getByRole("button", { name: "Last page" }));
     expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 }));
   });
 
@@ -480,19 +487,15 @@ describe("DataTable", () => {
     };
     render(<StatefulTable />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Equals" }));
-    await userEvent.click(await screen.findByText("Greater or equal", { exact: false }));
-    await userEvent.type(screen.getByPlaceholderText("Filter by ID"), "100");
-
-    await waitFor(
-      () =>
-        expect(onParamChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ filters: { id: ["gte:100"] } }),
-        ),
-      { timeout: 1500 },
+    await user.click(screen.getByRole("button", { name: "Equals" }));
+    await user.click(await screen.findByText("Greater or equal", { exact: false }));
+    await user.type(screen.getByPlaceholderText("Filter by ID"), "100");
+    await advance(FILTER_DEBOUNCE_MS);
+    expect(onParamChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filters: { id: ["gte:100"] } }),
     );
 
-    await userEvent.clear(screen.getByPlaceholderText("Filter by ID"));
+    await user.clear(screen.getByPlaceholderText("Filter by ID"));
     await waitFor(() =>
       expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} })),
     );
@@ -501,23 +504,19 @@ describe("DataTable", () => {
   it("applies typed search text once, after the debounce", async () => {
     const { onParamChange } = renderTable();
 
-    await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Bo");
+    await user.type(screen.getByPlaceholderText("Filter by Name"), "Bo");
     expect(onParamChange).not.toHaveBeenCalled();
 
-    await waitFor(
-      () =>
-        expect(onParamChange).toHaveBeenCalledWith(
-          expect.objectContaining({ filters: { name: ["Bo"] } }),
-        ),
-      { timeout: 1500 },
+    await advance(FILTER_DEBOUNCE_MS);
+    expect(onParamChange).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ filters: { name: ["Bo"] } }),
     );
-    expect(onParamChange).toHaveBeenCalledOnce();
   });
 
   it("applies an emptied search filter without waiting for the debounce", async () => {
     const { onParamChange } = renderTable({ params: { ...params, filters: { name: ["Ali"] } } });
 
-    await userEvent.clear(screen.getByPlaceholderText("Filter by Name"));
+    await user.clear(screen.getByPlaceholderText("Filter by Name"));
     expect(onParamChange).toHaveBeenLastCalledWith(expect.objectContaining({ filters: {} }));
   });
 
@@ -526,7 +525,7 @@ describe("DataTable", () => {
       params: { ...params, page: 3, filters: { name: ["Ali"] } },
     });
 
-    await userEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
     expect(onParamChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 1, filters: {} }),
     );
@@ -584,7 +583,7 @@ describe("DataTable", () => {
     const onReset = vi.fn();
     renderTable({ data: [], totalItems: 0, onReset });
 
-    await userEvent.click(screen.getByRole("button", { name: "Reset filters" }));
+    await user.click(screen.getByRole("button", { name: "Reset filters" }));
     expect(onReset).toHaveBeenCalledOnce();
   });
 
@@ -592,7 +591,7 @@ describe("DataTable", () => {
     const onRowClick = vi.fn();
     renderTable({ onRowClick });
 
-    await userEvent.click(screen.getByText("Alice"));
+    await user.click(screen.getByText("Alice"));
     expect(onRowClick).toHaveBeenCalledOnce();
     expect(onRowClick.mock.calls[0][0].original).toEqual(data[0]);
   });
@@ -616,7 +615,7 @@ describe("DataTable", () => {
     ];
     renderTable({ columnDefs: withAction, onRowClick, showFiltersRow: false });
 
-    await userEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     expect(onAction).toHaveBeenCalled();
     expect(onRowClick).not.toHaveBeenCalled();
   });
@@ -641,7 +640,7 @@ describe("DataTable", () => {
     ];
     renderTable({ columnDefs: withIconAction, onRowClick, showFiltersRow: false });
 
-    await userEvent.click(screen.getAllByTestId("edit-icon")[0]);
+    await user.click(screen.getAllByTestId("edit-icon")[0]);
     expect(onAction).toHaveBeenCalled();
     expect(onRowClick).not.toHaveBeenCalled();
   });
@@ -669,12 +668,12 @@ describe("DataTable", () => {
     renderTable({ columnDefs: withControls, onRowClick, showFiltersRow: false });
 
     const [note] = screen.getAllByRole("textbox", { name: "Note" });
-    await userEvent.click(note);
-    await userEvent.keyboard("{Enter} x");
+    await user.click(note);
+    await user.keyboard("{Enter} x");
     expect((note as HTMLInputElement).value).toBe(" x");
 
-    await userEvent.click(screen.getAllByRole("combobox", { name: "Level" })[0]);
-    await userEvent.click(screen.getAllByText("Pinned")[0]);
+    await user.click(screen.getAllByRole("combobox", { name: "Level" })[0]);
+    await user.click(screen.getAllByText("Pinned")[0]);
     expect(onRowClick).not.toHaveBeenCalled();
   });
 
@@ -684,10 +683,10 @@ describe("DataTable", () => {
 
     const row = focusableRow("Alice");
     row?.focus();
-    await userEvent.keyboard("{Enter}");
+    await user.keyboard("{Enter}");
     expect(onRowClick).toHaveBeenCalledOnce();
 
-    await userEvent.keyboard(" ");
+    await user.keyboard(" ");
     expect(onRowClick).toHaveBeenCalledTimes(2);
   });
 
@@ -713,7 +712,7 @@ describe("DataTable", () => {
     });
 
     expect(screen.queryByText("Sub-row of Alice")).toBeNull();
-    await userEvent.click(screen.getAllByRole("button", { name: "Details" })[0]);
+    await user.click(screen.getAllByRole("button", { name: "Details" })[0]);
     expect(screen.getByText("Sub-row of Alice")).toBeTruthy();
     expect(screen.queryByText("Sub-row of Bob")).toBeNull();
   });
@@ -722,7 +721,7 @@ describe("DataTable", () => {
     vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
     renderTable({ columnDefs: expandableColumns, mobileLayout: "cards", renderSubRow });
 
-    await userEvent.click(screen.getAllByRole("button", { name: "Details" })[1]);
+    await user.click(screen.getAllByRole("button", { name: "Details" })[1]);
     expect(screen.getByText("Sub-row of Bob")).toBeTruthy();
   });
 
@@ -758,7 +757,7 @@ describe("DataTable", () => {
   it("renders a select filter whose selections repeat a value", async () => {
     renderTable({ selections: { role: ["Admin", "Admin", "User"] } });
 
-    await userEvent.click(screen.getByRole("button", { name: "Filter by Role" }));
+    await user.click(screen.getByRole("button", { name: "Filter by Role" }));
     expect(await screen.findAllByRole("option", { name: "Admin" })).toHaveLength(1);
   });
 
@@ -792,8 +791,8 @@ describe("DataTable", () => {
       selections: { role: ["Admin", "User"] },
     });
 
-    await userEvent.click(screen.getByRole("button", { name: "Filter by Role" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Reset" }));
+    await user.click(screen.getByRole("button", { name: "Filter by Role" }));
+    await user.click(await screen.findByRole("button", { name: "Reset" }));
     expect(onParamChange).not.toHaveBeenCalled();
   });
 
@@ -803,9 +802,9 @@ describe("DataTable", () => {
       params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
     });
 
-    await userEvent.click(dateTrigger(container));
-    await userEvent.click(dayCell("2024-01-10"));
-    await userEvent.keyboard("{Escape}");
+    await user.click(dateTrigger(container));
+    await user.click(dayCell("2024-01-10"));
+    await user.keyboard("{Escape}");
 
     expect(onParamChange).not.toHaveBeenCalled();
     expect(dateTrigger(container).textContent).toBe("2024-01-01 – 2024-01-31");
@@ -817,9 +816,9 @@ describe("DataTable", () => {
       params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
     });
 
-    await userEvent.click(dateTrigger(container));
-    await userEvent.click(dayCell("2024-01-10"));
-    await userEvent.click(dayCell("2024-01-12"));
+    await user.click(dateTrigger(container));
+    await user.click(dayCell("2024-01-10"));
+    await user.click(dayCell("2024-01-12"));
 
     expect(onParamChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ filters: { name: ["2024-01-10<>2024-01-12"] } }),
@@ -872,20 +871,19 @@ describe("DataTable", () => {
     it("searches the title column", async () => {
       const { onParamChange } = renderCards();
 
-      await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Al");
-      await waitFor(() =>
-        expect(onParamChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ filters: { name: ["Al"] } }),
-        ),
+      await user.type(screen.getByPlaceholderText("Filter by Name"), "Al");
+      await advance(FILTER_DEBOUNCE_MS);
+      expect(onParamChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ filters: { name: ["Al"] } }),
       );
     });
 
     it("sends a search once when the field loses focus before the debounce", async () => {
       const { onParamChange } = renderCards();
 
-      await userEvent.type(screen.getByPlaceholderText("Filter by Name"), "Al");
-      await userEvent.click(document.body);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await user.type(screen.getByPlaceholderText("Filter by Name"), "Al");
+      await user.click(document.body);
+      await advance(FILTER_DEBOUNCE_MS);
 
       expect(onParamChange).toHaveBeenCalledOnce();
     });
@@ -895,11 +893,11 @@ describe("DataTable", () => {
         params: { ...params, orderBy: "name", orderType: "asc" },
       });
 
-      await userEvent.click(screen.getByRole("button", { name: "Sort by Name" }));
-      await userEvent.click(await screen.findByText("Descending"));
+      await user.click(screen.getByRole("button", { name: "Sort by Name" }));
+      await user.click(await screen.findByText("Descending"));
       expect(onParamChange).not.toHaveBeenCalled();
 
-      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+      await user.click(screen.getByRole("button", { name: "Done" }));
       expect(onParamChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ orderBy: "name", orderType: "desc" }),
       );
@@ -908,12 +906,12 @@ describe("DataTable", () => {
     it("applies a filter typed in the filters drawer only once it is done", async () => {
       const { onParamChange } = renderCards();
 
-      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
-      await userEvent.type(await screen.findByPlaceholderText("Filter by Id"), "7");
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await user.click(screen.getByRole("button", { name: /Filters/ }));
+      await user.type(await screen.findByPlaceholderText("Filter by Id"), "7");
+      await advance(FILTER_DEBOUNCE_MS);
       expect(onParamChange).not.toHaveBeenCalled();
 
-      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+      await user.click(screen.getByRole("button", { name: "Done" }));
       expect(onParamChange).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ filters: { id: ["7"] } }),
       );
@@ -922,9 +920,9 @@ describe("DataTable", () => {
     it("drops filter edits when the filters drawer is dismissed", async () => {
       const { onParamChange } = renderCards();
 
-      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
-      await userEvent.type(await screen.findByPlaceholderText("Filter by Id"), "7");
-      await userEvent.keyboard("{Escape}");
+      await user.click(screen.getByRole("button", { name: /Filters/ }));
+      await user.type(await screen.findByPlaceholderText("Filter by Id"), "7");
+      await user.keyboard("{Escape}");
       await waitFor(() => expect(screen.queryByPlaceholderText("Filter by Id")).toBeNull());
 
       expect(onParamChange).not.toHaveBeenCalled();
@@ -943,7 +941,7 @@ describe("DataTable", () => {
         ],
       });
 
-      await userEvent.click(screen.getByRole("button", { name: "Sort" }));
+      await user.click(screen.getByRole("button", { name: "Sort" }));
       await screen.findByRole("radiogroup", { name: "Sort by" });
 
       expect(document.querySelector("button button")).toBeNull();
@@ -954,9 +952,9 @@ describe("DataTable", () => {
         params: { ...params, filters: { name: ["Al"], role: ["Admin"], team: ["Core"] } },
       });
 
-      await userEvent.click(screen.getByRole("button", { name: /Filters/ }));
-      await userEvent.click(await screen.findByRole("button", { name: "Reset filters" }));
-      await userEvent.click(screen.getByRole("button", { name: "Done" }));
+      await user.click(screen.getByRole("button", { name: /Filters/ }));
+      await user.click(await screen.findByRole("button", { name: "Reset filters" }));
+      await user.click(screen.getByRole("button", { name: "Done" }));
       expect(onParamChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ filters: { name: ["Al"], team: ["Core"] } }),
       );
@@ -1075,7 +1073,7 @@ describe("DataTable", () => {
       );
       const { rerender } = render(table(roster));
       rerender(table([...roster]));
-      await new Promise((resolve) => setTimeout(resolve));
+      await advance(0);
 
       expect(onParamChange).not.toHaveBeenCalled();
     });
@@ -1085,17 +1083,17 @@ describe("DataTable", () => {
         params: { filters: { name: ["ember"], elements: ["Ice"] } },
       });
 
-      await userEvent.click(screen.getByRole("button", { name: "Ice" }));
+      await user.click(screen.getByRole("button", { name: "Ice" }));
       const options = async () =>
         (await screen.findAllByRole("option")).map((option) => option.textContent);
       expect(await options()).toEqual(["Fire", "Ice", "Wildfire", "Wind"]);
 
-      await userEvent.keyboard("{Escape}");
+      await user.keyboard("{Escape}");
       rerender({
         params: { filters: { name: ["ember"], elements: ["Ice"] } },
         selections: { elements: ["Ice", "Fire"] },
       });
-      await userEvent.click(screen.getByRole("button", { name: "Ice" }));
+      await user.click(screen.getByRole("button", { name: "Ice" }));
       expect(await options()).toEqual(["Ice", "Fire"]);
     });
 
@@ -1129,7 +1127,7 @@ describe("DataTable", () => {
         );
       };
       render(<StatefulTable />);
-      const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      user = setupUser({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
       await user.click(screen.getByRole("button", { name: "Filters" }));
       await user.click(await screen.findByRole("button", { name: "Filter by Elements" }));

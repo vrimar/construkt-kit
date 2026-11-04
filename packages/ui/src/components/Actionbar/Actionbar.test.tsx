@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import type { UserEvent } from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ActionBar } from ".";
+import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
 
 const SelectableActionBar = ({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) => {
   const [open, setOpen] = useState(false);
@@ -34,13 +35,17 @@ const SelectableActionBar = ({ onOpenChange }: { onOpenChange?: (open: boolean) 
   );
 };
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+let user: UserEvent;
 
 describe("ActionBar", () => {
+  useFakeTime();
+  beforeEach(() => {
+    user = setupUser();
+  });
   it("exposes the bar as a labelled region rather than a dialog", async () => {
     render(<SelectableActionBar />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Toggle selection" }));
+    await user.click(screen.getByRole("button", { name: "Toggle selection" }));
 
     expect(await screen.findByRole("region", { name: "Selection actions" })).toBeTruthy();
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -53,7 +58,7 @@ describe("ActionBar", () => {
 
   it("is not placed by an anchorless popover positioner", async () => {
     render(<SelectableActionBar />);
-    await userEvent.click(screen.getByRole("button", { name: "Toggle selection" }));
+    await user.click(screen.getByRole("button", { name: "Toggle selection" }));
 
     const content = screen.getByText("2 selected").parentElement;
     const positioner = content?.parentElement;
@@ -65,10 +70,10 @@ describe("ActionBar", () => {
   it("stays open when the page behind it is clicked", async () => {
     const onOpenChange = vi.fn();
     render(<SelectableActionBar onOpenChange={onOpenChange} />);
-    await userEvent.click(screen.getByRole("button", { name: "Toggle selection" }));
+    await user.click(screen.getByRole("button", { name: "Toggle selection" }));
     await settle();
 
-    await userEvent.click(screen.getByRole("button", { name: "Row" }));
+    await user.click(screen.getByRole("button", { name: "Row" }));
     await settle();
 
     expect(onOpenChange).not.toHaveBeenCalled();
@@ -78,10 +83,10 @@ describe("ActionBar", () => {
   it("closes from an outside toggle in one click", async () => {
     render(<SelectableActionBar />);
     const toggle = screen.getByRole("button", { name: "Toggle selection" });
-    await userEvent.click(toggle);
+    await user.click(toggle);
     await settle();
 
-    await userEvent.click(toggle);
+    await user.click(toggle);
 
     await waitFor(() => expect(screen.queryByText("2 selected")).toBeNull());
   });
@@ -89,7 +94,7 @@ describe("ActionBar", () => {
   it("leaves focus where it was when it opens", async () => {
     render(<SelectableActionBar />);
     const toggle = screen.getByRole("button", { name: "Toggle selection" });
-    await userEvent.click(toggle);
+    await user.click(toggle);
     await settle();
 
     expect(document.activeElement).toBe(toggle);
@@ -100,13 +105,13 @@ describe("ActionBar", () => {
     render(<SelectableActionBar onOpenChange={onOpenChange} />);
     const toggle = screen.getByRole("button", { name: "Toggle selection" });
 
-    await userEvent.click(toggle);
+    await user.click(toggle);
     await settle();
-    await userEvent.keyboard("{Escape}");
+    await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByText("2 selected")).toBeNull());
 
-    await userEvent.click(toggle);
-    await userEvent.click(await screen.findByRole("button", { name: "close" }));
+    await user.click(toggle);
+    await user.click(await screen.findByRole("button", { name: "close" }));
     await waitFor(() => expect(screen.queryByText("2 selected")).toBeNull());
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
   });

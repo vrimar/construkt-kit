@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import type { UserEvent } from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
 import { Button } from "../Buttons";
 import { Textarea } from "../Input";
 import { Popover } from "../Popover";
@@ -43,7 +44,13 @@ const OpenedFromPopover = () => {
   );
 };
 
+let user: UserEvent;
+
 describe("SubmitDialog", () => {
+  useFakeTime();
+  beforeEach(() => {
+    user = setupUser();
+  });
   it("submits on Enter in a field", async () => {
     const onSubmit = vi.fn();
     render(
@@ -54,7 +61,7 @@ describe("SubmitDialog", () => {
         <input aria-label="Name" />
       </SubmitDialog>,
     );
-    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    await user.type(screen.getByLabelText("Name"), "x{Enter}");
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
@@ -71,7 +78,7 @@ describe("SubmitDialog", () => {
         />
       </SubmitDialog>,
     );
-    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    await user.type(screen.getByLabelText("Name"), "x{Enter}");
     expect(onSubmit).toHaveBeenCalledOnce();
     expect(screen.getByLabelText<HTMLTextAreaElement>("Name").value).toBe("x");
   });
@@ -90,7 +97,7 @@ describe("SubmitDialog", () => {
         />
       </SubmitDialog>,
     );
-    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    await user.type(screen.getByLabelText("Name"), "x{Enter}");
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -107,7 +114,7 @@ describe("SubmitDialog", () => {
         </SubmitDialog>
       </form>,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await user.click(screen.getByRole("button", { name: "Submit" }));
     expect(onSubmit).toHaveBeenCalledOnce();
     expect(onOuterSubmit).not.toHaveBeenCalled();
   });
@@ -144,10 +151,10 @@ describe("SubmitDialog", () => {
         Body
       </SubmitDialog>,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Toggle All" }));
+    await user.click(screen.getByRole("button", { name: "Toggle All" }));
     expect(onToggle).toHaveBeenCalledOnce();
     expect(onSubmit).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await user.click(screen.getByRole("button", { name: "Submit" }));
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
@@ -170,9 +177,9 @@ describe("SubmitDialog", () => {
       </SubmitDialog>,
     );
     expect(screen.queryByRole("button", { name: "Submit" })).toBeNull();
-    await userEvent.type(screen.getByLabelText("Name"), "x{Enter}");
+    await user.type(screen.getByLabelText("Name"), "x{Enter}");
     expect(onSubmit).toHaveBeenCalledOnce();
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -221,9 +228,9 @@ describe("SubmitDialog", () => {
     expect(cancel.disabled).toBe(true);
     expect(closeButton.disabled).toBe(true);
 
-    await userEvent.click(cancel);
-    await userEvent.click(closeButton);
-    await userEvent.keyboard("{Escape}");
+    await user.click(cancel);
+    await user.click(closeButton);
+    await user.keyboard("{Escape}");
 
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeNull();
@@ -244,7 +251,7 @@ describe("SubmitDialog", () => {
     const { rerender } = render(dialog(true));
     rerender(dialog(false));
 
-    await userEvent.keyboard("{Escape}");
+    await user.keyboard("{Escape}");
 
     expect(onClose).toHaveBeenCalledOnce();
   });
@@ -263,9 +270,9 @@ describe("SubmitDialog", () => {
 
   it("stays open when the popover that opened it closes", async () => {
     render(<OpenedFromPopover />);
-    await userEvent.click(await screen.findByRole("button", { name: "Open dialog" }));
+    await user.click(await screen.findByRole("button", { name: "Open dialog" }));
     await waitFor(() => expect(screen.queryByText("Open dialog")).toBeNull());
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await settle();
     expect(screen.queryByRole("dialog", { name: "Opened from popover" })).not.toBeNull();
   });
 });
