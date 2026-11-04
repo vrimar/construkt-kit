@@ -15,7 +15,7 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
       minHeight="100%"
       height="100%"
       width="100%"
-      bg="bg.subtle"
+      bg={{ base: "bg.subtle", _dark: "bg" }}
       position="relative"
       overflow="hidden"
     >
@@ -50,13 +50,13 @@ export const AuthLayout = ({ children, showTitle, title, description, logo }: Au
         >
           <Box>{logo}</Box>
           <Box
-            bg="bg"
+            bg="neutral.surface.bg"
             borderRadius="xl"
             borderWidth="1px"
-            borderColor="border"
+            borderColor="neutral.surface.border"
             p={{ base: "6", md: "8" }}
             width="100%"
-            boxShadow="sm"
+            boxShadow="raised"
           >
             <Stack gap="6">
               {showTitle && title && (

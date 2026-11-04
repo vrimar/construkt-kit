@@ -37,6 +37,14 @@ export const shadows = defineSemanticTokens.shadows({
       _dark: "0px 24px 40px {colors.black.a8}, 0px 0px 1px inset {colors.black.a8}",
     },
   },
+  raised: {
+    value: {
+      _light:
+        "0px 1px 2px {colors.black.a1}, 0px 4px 8px -2px {colors.black.a1}, 0px 24px 48px -12px {colors.black.a2}",
+      _dark:
+        "inset 0px 1px 0px {colors.white.a1}, 0px 1px 2px {colors.black.a6}, 0px 16px 40px -12px {colors.black.a9}",
+    },
+  },
   inset: {
     value: {
       _light: "inset 8px 0 12px -8px {colors.black.a4}",
