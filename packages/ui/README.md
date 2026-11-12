@@ -8,27 +8,31 @@
 
 ### Components
 
-**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator`, `Wrap`, `SimpleGrid`
+**Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator`, `Wrap`, `SimpleGrid`, `AspectRatio`, `ScaleToFit`
 
-**Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `ButtonGroup`
+**Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `SplitButton`, `ButtonGroup`
 
-**Data Display:** `DataTable`, `Badge`, `Avatar`, `Image`, `List`, `Table`, `Stat`, `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
+**Data Display:** `DataTable`, `DataTableColumnPicker`, `DataList`, `Badge`, `Tag`, `Avatar`, `Image`, `List`, `Table`, `Stat`, `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
 
-**Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner`
+**Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner` (`variant="dots"` for a typing indicator)
 
-**Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Sheet`, `Popover`, `Tooltip`, `ToggleTip`, `InfoTip`, `HoverCard`
+**Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `CommandPalette`, `Drawer`, `Sheet`, `Popover`, `ConfirmPopover`, `PromptPopover`, `Tooltip`, `ToggleTip`, `InfoTip`, `HoverCard`
 
-**Form:** `Field`, `SubmitForm`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `FormFileUpload`, `PinInput`, `ColorPicker`
+**Form:** `Field`, `SubmitForm`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `FormFileUpload`, `PinInput`, `ColorPicker`, `HotkeyInput`
 
 **Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
 **Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
 
+**Sortable:** `Sortable`, `applySortableReorder`, `DragPreview` (the drag pill, also exported as `TreeDragPreview`)
+
 **Date Pickers:** `Calendar`, `DatePicker`, `DatePickerSelect`
 
-**Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
+**Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `NavRail`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`
+**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`, `Toolbar`, `formatShortcut`, `matchesShortcut`
+
+**Chat:** `Chat` — `Message`, `Citation`, `ActionLine`, `TypingIndicator`, `Suggestions`, `Suggestion`, `Composer`; callback-driven, no data fetching. Render `TypingIndicator` inside the message list's `role="log"`: screen readers don't reliably announce a live region that mounts with its text, and the log announces it as new content
 
 ### Hooks
 
@@ -38,6 +42,7 @@
 | `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes |
 | `useDebounceQuery`                      | Immediate + debounced search query state                        |
 | `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files  |
+| `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed        |
 | `useMediaQuery`                         | Subscribe to a CSS media query                                  |
 | `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll    |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
@@ -211,13 +216,37 @@ The theme redefines standard pseudo-selectors:
 
 | Condition           | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `_hover`, `_active` | Also match `[data-hover]`/`[data-active]`, and skip `:disabled` and `[data-disabled]`. `_hover` applies only where the device can hover and ranks below every other condition, states (`_active`, `_checked`, `_selected`, `_focusVisible`…) as well as `_dark`, `_odd`/`_even` and the like, so a state keeps its look under the pointer; nest `_hover` inside the other condition (`_dark: { _hover: … }`) to style hovering there, or use a semantic token |
+| `_hover`, `_active` | Also match `[data-hover]`/`[data-active]`, and skip `:disabled` and `[data-disabled]`. `_hover` applies only where the device can hover and ranks below every other condition except `_light` (which it overrides, as it does the base style), states (`_active`, `_checked`, `_selected`, `_focusVisible`…) as well as `_dark`, `_odd`/`_even` and the like, so a state keeps its look under the pointer; nest `_hover` inside the other condition (`_dark: { _hover: … }`) to style hovering there, or use a semantic token |
 | `_checked`          | Matches 5 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]`, `[data-state=indeterminate]`                                                                                                                                                                                                                                                                                                                                |
-| `_light`            | `:where(:root, .light) &` — explicit light mode, which `_dark` overrides                                                                                                                                                                                                                                                                                                                                                                                      |
+| `_light`            | `:where(:root, .light) &` — explicit light mode, which `_dark` overrides, except inside a `.light` scope nested in `.dark`                                                                                                                                                                                                                                                                                                                                    |
+
+### Hover-revealed controls
+
+`_unrevealed` hides a control until its row is in use. Mark the row with `data-reveal-group`; the condition applies
+where the device can hover, while the row is neither hovered, focused within, highlighted (`data-highlighted`, the
+keyboard cursor of a listbox or menu), being dragged (`data-dragging`) nor holding an open popup trigger (an `aria-haspopup` element with `aria-expanded="true"`, such as an open `Menu.Trigger`).
+So the control shows with its row, while anything in the row has focus, while its menu is open, and always on touch
+screens:
+
+```tsx
+<HStack data-reveal-group>
+  <Text flex="1">{name}</Text>
+  <IconButton aria-label="More" _unrevealed={{ opacity: "0" }}>
+    <EllipsisIcon />
+  </IconButton>
+</HStack>
+```
+
+Hide with `opacity` so the control stays focusable. `TreeView` rows, `Listbox` items and `Sortable.Item` are reveal
+groups: `actionsVisibility="hover"` on `TreeView.Root`, `TreeSelectList` or `Listbox` and `handleVisibility="hover"` on
+`Sortable.Root` use the condition.
+
+A tree row with no background of its own paints its hover actions and sticky branch with `--surface-bg`, falling back
+to `bg`. Popovers, menus, dialogs and drawers set it; set it on any other surface a tree sits on, such as a card.
 
 ### Dark mode
 
-Every semantic token carries a light and a dark value, so dark mode is a token flip — no per-component work. Activation is a `dark` class on an ancestor (Panda's `_dark: .dark &` condition); light is the `:root` default (no class needed). The neutral chrome (`bg`/`fg`/`border`/`neutral.*`) uses the **Radix "slate" dark ramp** (`colors.slateDark.1–12`) on the dark side while light stays Tailwind slate. `html { color-scheme }` also flips so native scrollbars, form controls, and autofill match.
+Every semantic token carries a light and a dark value, so dark mode is a token flip — no per-component work. Activation is a `dark` class on an ancestor (the `_dark` condition); light is the `:root` default (no class needed). The neutral chrome (`bg`/`fg`/`border`/`neutral.*`) uses the **Radix "slate" dark ramp** (`colors.slateDark.1–12`) on the dark side while light stays Tailwind slate. `html { color-scheme }` also flips so native scrollbars, form controls, and autofill match.
 
 The runtime lives in `@construkt-kit/ui`:
 
@@ -241,6 +270,44 @@ const { mode, resolvedMode, setMode, toggle } = useColorMode();
 ```
 
 `ColorModeProvider` toggles the `dark` class on `<html>` (the preset flips `color-scheme` from it), resolves `"system"` via `prefers-color-scheme`, and persists the choice to `localStorage` (`construkt-color-mode`). In Storybook, use the toolbar theme switcher (`@storybook/addon-themes`) to preview any story in dark.
+
+A `light` or `dark` class on any element forces that scheme for its subtree, such as an always-light document preview
+inside a dark app. Semantic tokens, `color-scheme` and text colour follow the nearest scope at any depth, and
+`_light`/`_dark` styles do up to three scopes deep (dark, light, dark). A scope resets `colorPalette` to `brand`: set
+`colorPalette` on the scope element to keep another. Give the scope its own background (`bg="bg"`). `_light`/`_dark`
+styles on the scope element itself follow the scheme around it, and an overlay portalled out of the scope follows the
+app's mode.
+
+### Density
+
+Control and surface sizing runs on CSS-variable knobs that `html` sets. Override one on `:root` or any container to
+rescale everything inside it at runtime, or set `data-density="compact"`, `"default"` or `"relaxed"` there for a named
+mode:
+
+| Knob                 | Drives                                                         | compact | default | relaxed |
+| -------------------- | -------------------------------------------------------------- | ------- | ------- | ------- |
+| `--control-base-h`   | `md` control height; other sizes step by `--control-step`, 4px | 32px    | 36px    | 40px    |
+| `--control-base-px`  | Control horizontal padding                                     | 10px    | 12px    | 14px    |
+| `--control-base-gap` | Gap inside controls, table cell vertical padding               | 6px     | 8px     | 10px    |
+| `--control-base-py`  | Multi-line control vertical padding                            | 4px     | 7px     | 10px    |
+| `--surface-scale`    | Multiplier on container and overlay padding                    | 0.75    | 1       | 1.25    |
+
+Menu and listbox rows follow `--control-base-h` one step shorter unless `--control-base-row-h` is set, and stay 44px on
+a coarse pointer in every mode. Modes never touch text (`--control-base-font`, `--control-input-font-min`), icon and
+checkbox boxes (`--control-base-icon`, `--control-base-box`) or `--visual-scale`, the multiplier on spinner, slider and
+progress sizes. `default` restores the defaults inside a compact or relaxed ancestor.
+
+### Highlights and hatching
+
+`animationStyle` takes `fresh` and `changed` (a 0.9s glow on a new or edited item), `flash` (a 1.2s ring and tint),
+`spot` (a 1.8s highlight on a deep-link target that bleeds `--spot-bleed`, 12px by default, past each side), `ring` (a
+bell shake) and `blink` (a pulse that repeats until removed). The highlights take their colour from `colorPalette` and
+fade back to the element's own styles, and every one stops under `prefers-reduced-motion`. Remount the element or
+re-apply the style to replay one; to carry a glow across a render that replaces the element, set `animationDelay` to
+minus its age.
+
+`layerStyle="hatched"` draws neutral diagonal stripes for a value that can't be counted or the hidden remainder of a
+stacked bar.
 
 ### recipes vs slotRecipes
 
@@ -351,6 +418,30 @@ reachable another way.
 Give the app `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`.
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
+
+#### Upgrading from 0.12
+
+- `Menu.ItemGroup` takes its heading as `label`; `title` is the native attribute again. Rename `title=` to `label=`
+- A `.light` or `.dark` scope nested in the other resolves its own scheme: it resets `colorPalette` to `brand` and
+  `color` to `fg`, and `_light` matches inside it. Set either on the scope element to keep the outer values
+- `DataTable` column defs take `enableHiding` again, for `columnVisibility` and `DataTableColumnPicker`;
+  `meta.isVisible: false` still removes a column outright. Column resizing (`enableColumnResizing`) is opt-in
+- `TreeDragPreview` is `DragPreview` from `Sortable`; the old name is still exported
+- `Tooltip` keeps its child in the same element whether or not `label` is set, so toggling the label no longer
+  remounts it, and the tooltip's open state no longer sets `data-state` on the trigger. A text child is wrapped in a
+  `span` even without a label
+- A nested `ButtonGroup` inherits the `variant`, `size` and `colorPalette` of the group around it unless it sets its
+  own
+- `Listbox` items reserve the check column on every row, so trailing hints and actions no longer shift when a row is
+  selected. A managed item's accessible name is its text alone. Item actions render in the `itemActions` slot
+  instead of a `data-listbox-item-action` wrapper
+- `Popover.Content` takes its accessible name and description from `Popover.Title` and `Popover.Description`
+- Under `prefers-reduced-motion`, overlays fade without sliding or scaling
+- `Editable`'s placeholder uses `fg.subtle` at every size
+- `Splitter.Group`'s `onLayoutChanged` reports a double-click reset as a user interaction
+- A `loading` `Button` renders `aria-disabled` instead of `disabled` and stays focusable, so it keeps focus while it
+  loads; it still ignores clicks, presses and keys. Assert `aria-disabled` rather than `disabled` in tests
+- New: `VirtualScrollArea` `scrollPaddingStart`, the space a sticky header covers, and `onVisibleItemsChange`
 
 #### Upgrading from 0.11
 

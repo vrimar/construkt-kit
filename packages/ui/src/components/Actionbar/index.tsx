@@ -1,12 +1,12 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { usePresenceContext } from "@ark-ui/react/presence";
-import type { ComponentProps, ComponentType } from "react";
+import { type ComponentProps, type ComponentType, createContext, useContext } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { actionbar } from "#styled-system/recipes";
 
-import type { PortalledProps } from "../../types";
+import type { PortalledProps, WithRef } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
 import { Popover } from "../Popover";
 import { createPortalledContent } from "../portalledContent";
@@ -23,6 +23,8 @@ const Content = withContext(ArkPopover.Content, "content", {
 const Separator = withContext(ark.div, "separator");
 const SelectionTrigger = withContext(ark.button, "selectionTrigger");
 const CloseTrigger = withContext(ArkPopover.CloseTrigger, "closeTrigger");
+const Lead = withContext(ark.div, "lead");
+const Scope = withContext(ark.span, "scope");
 
 function Positioner(props: ComponentProps<typeof StyledPositioner>) {
   const presence = usePresenceContext();
@@ -30,19 +32,55 @@ function Positioner(props: ComponentProps<typeof StyledPositioner>) {
   return <StyledPositioner {...props} />;
 }
 
-export type ActionBarRootProps = Omit<
+type ActionBarPlacement = "bottom" | "inline";
+
+const PlacementContext = createContext<ActionBarPlacement>("bottom");
+
+export interface ActionBarRootProps extends Omit<
   ComponentProps<typeof StyledRoot>,
   "placement" | "positioning"
->;
+> {
+  /**
+   * `bottom` floats the bar at the bottom centre of the viewport. `inline` renders it in place,
+   * covering its nearest positioned ancestor, such as a table's header band.
+   */
+  placement?: ActionBarPlacement | undefined;
+}
 
-const Root = StyledRoot as ComponentType<ActionBarRootProps>;
+const PlacedRoot = StyledRoot as ComponentType<ActionBarRootProps>;
+
+function Root({ placement = "bottom", ...props }: ActionBarRootProps) {
+  return (
+    <PlacementContext.Provider value={placement}>
+      <PlacedRoot
+        placement={placement}
+        {...props}
+      />
+    </PlacementContext.Provider>
+  );
+}
 
 export interface ActionBarContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 
+const PortalledContent = createPortalledContent(Positioner, Content);
+
+/** Portalled at the `bottom` placement and rendered in place at `inline`, unless `portalled` says otherwise. */
+function ActionBarContent({ portalled, ...props }: WithRef<ActionBarContentProps>) {
+  const placement = useContext(PlacementContext);
+  return (
+    <PortalledContent
+      portalled={portalled ?? placement === "bottom"}
+      {...props}
+    />
+  );
+}
+
 export const ActionBar = {
   Root,
-  Content: createPortalledContent(Positioner, Content),
+  Content: ActionBarContent,
   Separator,
   SelectionTrigger,
   CloseTrigger: createCloseTrigger(CloseTrigger),
+  Lead,
+  Scope,
 };

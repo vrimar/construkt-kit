@@ -1,0 +1,150 @@
+import { comboboxAnatomy } from "@ark-ui/react/anatomy";
+import { defineSlotRecipe } from "@pandacss/dev";
+
+import { controlInputText, controlPxCompact, controlText, dropdownItem } from "./control-size";
+
+const truncate = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+} as const;
+
+export const commandPalette = defineSlotRecipe({
+  className: "command-palette",
+  slots: comboboxAnatomy
+    .extendWith("token", "itemIcon", "itemBody", "itemDescription", "itemMeta", "itemGroupCount")
+    .keys(),
+  base: {
+    root: {
+      display: "flex",
+      flexDirection: "column",
+      flex: "1",
+      minH: "0",
+    },
+    label: {
+      srOnly: true,
+    },
+    control: {
+      display: "flex",
+      alignItems: "center",
+      flexShrink: "0",
+      gap: "2",
+      minH: "12",
+      px: "4",
+      borderBottomWidth: "1px",
+      borderColor: "border",
+      color: "fg.muted",
+      "& > svg": { boxSize: "4.5", flexShrink: "0" },
+    },
+    token: {
+      ...truncate,
+      flex: "0 1 auto",
+      minW: "0",
+      maxW: "56",
+      px: "2",
+      py: "0.5",
+      borderRadius: "sm",
+      bg: "colorPalette.subtle.bg",
+      color: "colorPalette.subtle.fg",
+      fontWeight: "medium",
+      ...controlText("xs"),
+    },
+    input: {
+      flex: "1",
+      minW: "24",
+      alignSelf: "stretch",
+      bg: "transparent",
+      outline: "0",
+      color: "fg",
+      ...controlInputText("lg"),
+      _placeholder: { color: "fg.subtle" },
+    },
+    content: {
+      display: "flex",
+      flexDirection: "column",
+      flex: "1",
+      minH: "0",
+      maxH: { md: "md" },
+      overflowY: "auto",
+      overscrollBehavior: "contain",
+      outline: "0",
+      p: "1.5",
+      ...controlText("md"),
+    },
+    itemGroup: {
+      display: "flex",
+      flexDirection: "column",
+    },
+    itemGroupLabel: {
+      display: "flex",
+      alignItems: "baseline",
+      gap: "2",
+      px: controlPxCompact("md"),
+      pt: "2.5",
+      pb: "1",
+      color: "fg.subtle",
+      fontWeight: "semibold",
+      letterSpacing: "wider",
+      textTransform: "uppercase",
+      userSelect: "none",
+      ...controlText("xs"),
+      "[data-part=item-group]:first-child > &": { pt: "1" },
+    },
+    itemGroupCount: {
+      ms: "auto",
+      fontWeight: "medium",
+      letterSpacing: "normal",
+      textTransform: "none",
+      fontVariantNumeric: "tabular-nums",
+    },
+    item: {
+      ...dropdownItem("md"),
+      display: "flex",
+      alignItems: "center",
+      py: "1.5",
+      borderRadius: "sm",
+      color: "fg",
+      cursor: "pointer",
+      outline: "0",
+      userSelect: "none",
+      _highlighted: { bg: "neutral.surface.bg.hover" },
+      _disabled: { layerStyle: "disabled" },
+    },
+    itemIcon: {
+      display: "flex",
+      flexShrink: "0",
+      color: "fg.subtle",
+      "[data-highlighted] > &": { color: "fg.muted" },
+    },
+    itemBody: {
+      display: "flex",
+      flexDirection: "column",
+      flex: "1",
+      minW: "0",
+    },
+    itemText: truncate,
+    itemDescription: {
+      ...truncate,
+      color: "fg.muted",
+      ...controlText("xs"),
+    },
+    itemMeta: {
+      ...truncate,
+      flexShrink: "0",
+      maxW: "48",
+      color: "fg.muted",
+      fontVariantNumeric: "tabular-nums",
+      ...controlText("xs"),
+    },
+    itemIndicator: {
+      display: "flex",
+      flexShrink: "0",
+      color: "colorPalette.plain.fg",
+    },
+    empty: {
+      px: controlPxCompact("md"),
+      py: "3",
+      color: "fg.muted",
+    },
+  },
+});
