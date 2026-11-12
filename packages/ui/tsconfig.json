@@ -2,6 +2,7 @@
   "extends": "@construkt-kit/config/typescript",
   "compilerOptions": {
     "jsx": "react-jsx",
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
