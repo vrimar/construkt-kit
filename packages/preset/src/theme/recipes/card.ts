@@ -51,18 +51,21 @@ export const card = defineSlotRecipe({
     variant: {
       elevated: {
         root: {
+          "--surface-bg": "colors.colorPalette.surface.bg",
           bg: "colorPalette.surface.bg",
           boxShadow: "lg",
         },
       },
       outline: {
         root: {
+          "--surface-bg": "colors.colorPalette.surface.bg",
           bg: "colorPalette.surface.bg",
           borderWidth: "1px",
         },
       },
       subtle: {
         root: {
+          "--surface-bg": "colors.colorPalette.subtle.bg",
           bg: "colorPalette.subtle.bg",
         },
       },

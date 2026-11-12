@@ -138,4 +138,39 @@ export const keyframes = defineKeyframes({
       insetBlockStart: "var(--animate-to-y)",
     },
   },
+  fresh: {
+    "0%, 35%": { backgroundColor: "colorPalette.subtle.bg" },
+  },
+  changed: {
+    "0%, 25%": {
+      borderColor: "colorPalette.solid.bg",
+      backgroundColor: "colorPalette.surface.bg",
+      boxShadow: "0 0 0 3px {colors.colorPalette.subtle.bg}",
+    },
+  },
+  flash: {
+    from: {
+      backgroundColor: "colorPalette.subtle.bg",
+      boxShadow: "inset 0 0 0 2px {colors.colorPalette.solid.bg}",
+    },
+  },
+  spot: {
+    "0%, 35%": {
+      backgroundColor: "colorPalette.subtle.bg",
+      boxShadow:
+        "calc(-1 * var(--spot-bleed, 0.75rem)) 0 0 {colors.colorPalette.subtle.bg}, var(--spot-bleed, 0.75rem) 0 0 {colors.colorPalette.subtle.bg}",
+    },
+  },
+  ring: {
+    "0%, 100%": { rotate: "0deg" },
+    "15%": { rotate: "14deg" },
+    "30%": { rotate: "-12deg" },
+    "45%": { rotate: "8deg" },
+    "60%": { rotate: "-5deg" },
+    "75%": { rotate: "2deg" },
+  },
+  blink: {
+    "0%, 100%": { opacity: "0.25" },
+    "50%": { opacity: "1" },
+  },
 });

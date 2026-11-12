@@ -2,6 +2,7 @@ import { dialogAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
+import { overlayMotion } from "./overlay-motion";
 
 const phoneFullScreen = {
   positioner: { mdDown: { px: "0", padding: "0" } },
@@ -131,36 +132,11 @@ export const dialog = defineSlotRecipe({
   },
   variants: {
     motionPreset: {
-      scale: {
-        content: {
-          _open: { animationName: "scale-in, fade-in" },
-          _closed: { animationName: "scale-out, fade-out" },
-        },
-      },
-      "slide-in-bottom": {
-        content: {
-          _open: { animationName: "slide-from-bottom, fade-in" },
-          _closed: { animationName: "slide-to-bottom, fade-out" },
-        },
-      },
-      "slide-in-top": {
-        content: {
-          _open: { animationName: "slide-from-top, fade-in" },
-          _closed: { animationName: "slide-to-top, fade-out" },
-        },
-      },
-      "slide-in-left": {
-        content: {
-          _open: { animationName: "slide-from-left, fade-in" },
-          _closed: { animationName: "slide-to-left, fade-out" },
-        },
-      },
-      "slide-in-right": {
-        content: {
-          _open: { animationName: "slide-from-right, fade-in" },
-          _closed: { animationName: "slide-to-right, fade-out" },
-        },
-      },
+      scale: { content: overlayMotion("scale-in", "scale-out") },
+      "slide-in-bottom": { content: overlayMotion("slide-from-bottom", "slide-to-bottom") },
+      "slide-in-top": { content: overlayMotion("slide-from-top", "slide-to-top") },
+      "slide-in-left": { content: overlayMotion("slide-from-left", "slide-to-left") },
+      "slide-in-right": { content: overlayMotion("slide-from-right", "slide-to-right") },
       none: {},
     },
     size: {

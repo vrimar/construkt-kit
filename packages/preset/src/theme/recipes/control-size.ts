@@ -149,8 +149,10 @@ export const controlText = (size: ControlSize) => ({
   lineHeight: off(BASE_FONT, LH[size]),
 });
 
-export const controlInputFont = (size: ControlSize): string =>
-  `max(${INPUT_FONT_MIN}, ${controlFont(size)})`;
+/** Input font-size floored at --control-input-font-min, so iOS doesn't zoom on focus. */
+export const inputFont = (fontSize: string): string => `max(${INPUT_FONT_MIN}, ${fontSize})`;
+
+export const controlInputFont = (size: ControlSize): string => inputFont(controlFont(size));
 
 export const controlInputText = (size: ControlSize) => ({
   ...controlText(size),

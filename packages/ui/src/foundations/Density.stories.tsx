@@ -41,7 +41,9 @@ const meta: Meta<DensityArgs> = {
           "base+offset ladder. **`--surface-scale`** multiplies container/overlay padding. " +
           "**`--visual-scale`** multiplies graphical element sizes (slider thumb, spinner, …). " +
           "Override any knob on `:root` or any container to rescale everything inside it at " +
-          "runtime — no rebuild. Each knob is independent: `--control-base-h` alone still works.",
+          "runtime — no rebuild. Each knob is independent: `--control-base-h` alone still works. " +
+          'For a named mode, set `data-density="compact" | "default" | "relaxed"` on `:root` or any ' +
+          "container: it rescales control heights, padding and gaps, and never text.",
       },
     },
   },
@@ -177,29 +179,34 @@ export const NestedScope: Story = {
   ),
 };
 
-export const Comparison: Story = {
+const densityModes = ["compact", "default", "relaxed"] as const;
+
+export const Modes: Story = {
   render: () => (
     <Stack
       direction={{ base: "column", md: "row" }}
       gap="10"
       alignItems="flex-start"
     >
-      <Stack gap="2">
-        <Text>Compact — 32px</Text>
-        <div style={knobs({ baseHeight: 32 })}>
+      {densityModes.map((mode) => (
+        <Stack
+          key={mode}
+          gap="2"
+          data-density={mode}
+        >
+          <Text>{mode}</Text>
           <Controls />
-        </div>
-      </Stack>
-      <Stack gap="2">
-        <Text>Default — 36px</Text>
-        <Controls />
-      </Stack>
-      <Stack gap="2">
-        <Text>Comfortable — 44px</Text>
-        <div style={knobs({ baseHeight: 44 })}>
-          <Controls />
-        </div>
-      </Stack>
+          <Card.Root w="64">
+            <Card.Header>
+              <Card.Title>Density</Card.Title>
+              <Card.Description>data-density=&quot;{mode}&quot;</Card.Description>
+            </Card.Header>
+            <Card.Footer>
+              <Button variant="outline">Dismiss</Button>
+            </Card.Footer>
+          </Card.Root>
+        </Stack>
+      ))}
     </Stack>
   ),
 };

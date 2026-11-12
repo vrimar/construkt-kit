@@ -2,6 +2,7 @@ import { drawerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
+import { overlayMotion } from "./overlay-motion";
 
 export const drawer = defineSlotRecipe({
   className: "drawer",
@@ -205,18 +206,8 @@ export const drawer = defineSlotRecipe({
           "--drawer-placement-pt": "env(safe-area-inset-top)",
           "--drawer-placement-pb": "env(safe-area-inset-bottom)",
           "--drawer-placement-ps": "var(--drawer-safe-start)",
-          _open: {
-            animationName: {
-              base: "slide-from-left-full, fade-in",
-              _rtl: "slide-from-right-full, fade-in",
-            },
-          },
-          _closed: {
-            animationName: {
-              base: "slide-to-left-full, fade-out",
-              _rtl: "slide-to-right-full, fade-out",
-            },
-          },
+          ...overlayMotion("slide-from-left-full", "slide-to-left-full"),
+          _rtl: overlayMotion("slide-from-right-full", "slide-to-right-full"),
         },
       },
       end: {
@@ -230,18 +221,8 @@ export const drawer = defineSlotRecipe({
           "--drawer-placement-pt": "env(safe-area-inset-top)",
           "--drawer-placement-pb": "env(safe-area-inset-bottom)",
           "--drawer-placement-pe": "var(--drawer-safe-end)",
-          _open: {
-            animationName: {
-              base: "slide-from-right-full, fade-in",
-              _rtl: "slide-from-left-full, fade-in",
-            },
-          },
-          _closed: {
-            animationName: {
-              base: "slide-to-right-full, fade-out",
-              _rtl: "slide-to-left-full, fade-out",
-            },
-          },
+          ...overlayMotion("slide-from-right-full", "slide-to-right-full"),
+          _rtl: overlayMotion("slide-from-left-full", "slide-to-left-full"),
         },
       },
       top: {
@@ -255,8 +236,7 @@ export const drawer = defineSlotRecipe({
           "--drawer-placement-pt": "env(safe-area-inset-top)",
           "--drawer-placement-ps": "var(--drawer-safe-start)",
           "--drawer-placement-pe": "var(--drawer-safe-end)",
-          _open: { animationName: "slide-from-top-full, fade-in" },
-          _closed: { animationName: "slide-to-top-full, fade-out" },
+          ...overlayMotion("slide-from-top-full", "slide-to-top-full"),
         },
       },
 
@@ -277,8 +257,7 @@ export const drawer = defineSlotRecipe({
             scale: "calc(1 - var(--nested-drawers) * 0.04)",
             transformOrigin: "top",
           },
-          _open: { animationName: "slide-from-bottom-full, fade-in" },
-          _closed: { animationName: "slide-to-bottom-full, fade-out" },
+          ...overlayMotion("slide-from-bottom-full", "slide-to-bottom-full"),
         },
       },
     },

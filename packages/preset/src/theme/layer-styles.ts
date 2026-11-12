@@ -1,6 +1,7 @@
 import { defineLayerStyles } from "@pandacss/dev";
 
 const floatingSurface = {
+  "--surface-bg": "colors.neutral.surface.bg",
   background: "neutral.surface.bg",
   borderWidth: "1px",
   borderColor: "neutral.surface.border",
@@ -22,5 +23,12 @@ export const layerStyles = defineLayerStyles({
   },
   "modal.surface": {
     value: { ...floatingSurface, boxShadow: "lg" },
+  },
+  hatched: {
+    value: {
+      color: "fg.muted",
+      backgroundImage:
+        "repeating-linear-gradient(135deg, {colors.bg.subtle} 0 0.375rem, {colors.bg.muted} 0.375rem 0.75rem)",
+    },
   },
 });

@@ -17,6 +17,7 @@ Standard variant names across all recipes, from most visual weight to least:
 - **Input / Textarea** also have `flushed` (bottom border only) and `colored` (colorPalette-aware outline),
   and their `plain` drops the focus ring. Default variants use `neutral.*` tokens (swappable neutral palette, defaults to slate).
 - **Skeleton** uses `animation` (not `variant`) with values `pulse`, `shine`, `none`.
+- **Spinner** uses `variant` for its shape: `ring` (default) and `dots`.
 
 ## Size Tiers
 
@@ -24,7 +25,7 @@ Standard variant names across all recipes, from most visual weight to least:
 | ---------- | ------------------------------------ | ---------------------------------------------------- |
 | Full       | `2xs` `xs` `sm` `md` `lg` `xl` `2xl` | Button                                               |
 | Extended   | `2xs` `xs` `sm` `md` `lg` `xl` `2xl` | Input                                                |
-| Standard   | `xs` `sm` `md` `lg` `xl` `2xl`       | Badge                                                |
+| Standard   | `xs` `sm` `md` `lg` `xl` `2xl`       | Badge (plus `dot`, a bare status dot)                |
 | Default    | `xs` `sm` `md` `lg` `xl`             | Code, Kbd, Progress                                  |
 | Compact    | `sm` `md` `lg`                       | Accordion, Alert, Checkbox, RadioGroup, Slider, Stat |
 | Minimal    | `xs` `sm` `md` `lg`                  | Switch                                               |
