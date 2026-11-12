@@ -39,6 +39,7 @@
 | `useDebounceQuery`                      | Immediate + debounced search query state                        |
 | `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files  |
 | `useMediaQuery`                         | Subscribe to a CSS media query                                  |
+| `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll    |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
 | `useIsMobile`                           | Whether the viewport is below the `md` breakpoint               |
 
