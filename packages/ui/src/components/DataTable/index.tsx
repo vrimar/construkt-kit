@@ -5,7 +5,7 @@ import type {
   Updater,
 } from "@tanstack/react-table";
 import { functionalUpdate, useTable } from "@tanstack/react-table";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Stack } from "#styled-system/jsx";
 import type { JsxStyleProps } from "#styled-system/types";
@@ -15,10 +15,13 @@ import { useLatestRef } from "../../hooks/useLatestRef";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
 import { DataTableProvider, type DataTableContextValue } from "./context";
+import { resolveLabels } from "./labels";
 import { DataTablePagination } from "./Pagination";
 import { withColumnDefaults } from "./rowModelFns";
 import type {
   DataTableColumnDef,
+  DataTableColumnSizing,
+  DataTableColumnVisibility,
   DataTableFilters,
   DataTableLabels,
   DataTableParams,
@@ -34,6 +37,8 @@ export type {
   DataTableColumnAlign,
   DataTableColumnDef,
   DataTableColumnMeta,
+  DataTableColumnSizing,
+  DataTableColumnVisibility,
   DataTableFeatures,
   DataTableFilters,
   DataTableLabels,
@@ -45,6 +50,7 @@ export type {
   TableFilterSelections,
 } from "./types";
 export { createDataTableColumnHelper } from "./types";
+export { DataTableColumnPicker, type DataTableColumnPickerProps } from "./ColumnPicker";
 
 export type DataTableProps<TData extends object> = JsxStyleProps & {
   data: TData[];
@@ -68,6 +74,23 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
    *   search box, sort chip and filters drawer in place of the header rows.
    */
   mobileLayout?: "scroll" | "cards";
+  /**
+   * Lets the user drag the end edge of a column header to resize the column, and double-click
+   * the edge to reset it. A column with `meta.resizable: false` keeps its width.
+   */
+  enableColumnResizing?: boolean;
+  /**
+   * Column widths from resizing, in px by column id, over `meta.width`. Leave out to keep them in
+   * the table; pass with `onColumnSizingChange` to own them, such as to persist them.
+   */
+  columnSizing?: DataTableColumnSizing;
+  /** Called when a resize ends or a column is reset, with the width of every resized column. */
+  onColumnSizingChange?: (columnSizing: DataTableColumnSizing) => unknown;
+  /**
+   * Hides the columns set to `false`, such as from a `DataTableColumnPicker`. A hidden column's
+   * sort and filter params still apply. A column with `meta.isVisible: false` never shows.
+   */
+  columnVisibility?: DataTableColumnVisibility;
 } & (
     | { totalItems: number; clientSide?: false }
     | {
@@ -80,40 +103,6 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
         totalItems?: never;
       }
   );
-
-const defaultLabels: Required<DataTableLabels> = {
-  noResults: "No results available.",
-  resetFilters: "Reset filters",
-  items: "Items",
-  item: "Item",
-  page: "Page",
-  outOf: "out of",
-  filterBy: "Filter by",
-  sortBy: "Sort by",
-  clearSearch: "Clear search",
-  clearNumber: "Clear filter",
-  clearDate: "Clear date",
-  firstPage: "First page",
-  previousPage: "Previous page",
-  nextPage: "Next page",
-  lastPage: "Last page",
-  sort: "Sort",
-  filters: "Filters",
-  ascending: "Ascending",
-  descending: "Descending",
-  clearSort: "Clear",
-  done: "Done",
-  removeFilter: "Remove filter",
-};
-
-const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableLabels> => {
-  const resolved = { ...defaultLabels };
-  for (const key of Object.keys(defaultLabels) as (keyof DataTableLabels)[]) {
-    resolved[key] = labels?.[key] ?? defaultLabels[key];
-  }
-  if (labels?.items !== undefined && labels.item === undefined) resolved.item = labels.items;
-  return resolved;
-};
 
 const INTERACTIVE_SELECTOR = [
   "a",
@@ -135,6 +124,11 @@ const INTERACTIVE_SELECTOR = [
   "[role=tab]",
   "[role=textbox]",
 ].join(", ");
+
+const NO_HIDDEN_COLUMNS: DataTableColumnVisibility = {};
+
+const withoutKey = <V,>(record: Record<string, V>, key: string) =>
+  Object.fromEntries(Object.entries(record).filter(([entryKey]) => entryKey !== key));
 
 const isSameFilterValue = (a: string[] = [], b: string[] = []) =>
   a.length === b.length && a.every((item, index) => item === b[index]);
@@ -167,10 +161,35 @@ export const DataTable = <TData extends object>({
   variant,
   labels,
   mobileLayout = "scroll",
+  enableColumnResizing = false,
+  columnSizing,
+  onColumnSizingChange,
+  columnVisibility = NO_HIDDEN_COLUMNS,
   ...styleProps
 }: DataTableProps<TData>) => {
   const isMobile = useIsMobile();
   const showCards = mobileLayout === "cards" && isMobile;
+
+  const [ownColumnSizing, setOwnColumnSizing] = useState<DataTableColumnSizing>({});
+  const resolvedColumnSizing = columnSizing ?? ownColumnSizing;
+  const sizingRef = useLatestRef({
+    columnSizing: resolvedColumnSizing,
+    controlled: columnSizing !== undefined,
+    onColumnSizingChange,
+  });
+
+  const resizeColumn = useCallback(
+    (columnId: string, width: number | undefined) => {
+      const latest = sizingRef.current;
+      const current = latest.columnSizing;
+      if (width === undefined ? !(columnId in current) : current[columnId] === width) return;
+      const next =
+        width === undefined ? withoutKey(current, columnId) : { ...current, [columnId]: width };
+      if (!latest.controlled) setOwnColumnSizing(next);
+      latest.onColumnSizingChange?.(next);
+    },
+    [sizingRef],
+  );
 
   const visibleColumns = useMemo(
     () => withColumnDefaults(columnDefs.filter((column) => column.meta?.isVisible !== false)),
@@ -269,6 +288,7 @@ export const DataTable = <TData extends object>({
       sorting: sortingState,
       pagination: paginationState,
       columnFilters: filtersState,
+      columnVisibility,
     },
     manualSorting: !clientSide,
     manualPagination: !clientSide,
@@ -317,8 +337,20 @@ export const DataTable = <TData extends object>({
       labels: resolveLabels(labels),
       selections,
       clientSide,
+      columnSizing: resolvedColumnSizing,
+      resizeColumn: enableColumnResizing ? resizeColumn : undefined,
     }),
-    [clientSide, getRowInteractionProps, labels, loading, onReset, selections],
+    [
+      clientSide,
+      enableColumnResizing,
+      getRowInteractionProps,
+      labels,
+      loading,
+      onReset,
+      resizeColumn,
+      resolvedColumnSizing,
+      selections,
+    ],
   );
 
   return (

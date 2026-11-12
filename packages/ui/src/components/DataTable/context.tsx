@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 import type {
+  DataTableColumnSizing,
   DataTableLabels,
   DataTableRow,
   DataTableRowProps,
@@ -14,6 +15,8 @@ export interface DataTableContextValue<TData extends object = any> {
   labels: Required<DataTableLabels>;
   selections: TableFilterSelections | undefined;
   clientSide: boolean;
+  columnSizing: DataTableColumnSizing;
+  resizeColumn?: (columnId: string, width: number | undefined) => void;
 }
 
 const DataTableContext = createContext<DataTableContextValue | null>(null);

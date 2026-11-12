@@ -1,4 +1,5 @@
 export {
+  AspectRatio,
   Box,
   Center,
   Container,
@@ -15,6 +16,7 @@ export {
 } from "#styled-system/jsx";
 
 export type {
+  AspectRatioProps,
   BoxProps,
   CenterProps,
   ContainerProps,
@@ -31,3 +33,4 @@ export type {
 } from "#styled-system/jsx";
 
 export { SimpleGrid, type SimpleGridProps } from "./SimpleGrid";
+export { ScaleToFit, type ScaleToFitProps } from "./ScaleToFit";

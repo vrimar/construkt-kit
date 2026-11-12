@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import {
+  AspectRatio,
   Box,
   Center,
   Container,
@@ -11,6 +12,7 @@ import {
   HStack,
   Separator,
   SimpleGrid,
+  ScaleToFit,
   Spacer,
   Stack,
   VStack,
@@ -247,5 +249,101 @@ export const SpacerStory: Story = {
       <Spacer />
       <Box {...boxStyle}>Right</Box>
     </Flex>
+  ),
+};
+
+export const AspectRatioStory: Story = {
+  name: "AspectRatio",
+  render: () => (
+    <Box maxW="400px">
+      <AspectRatio
+        ratio={16 / 9}
+        bg="bg.muted"
+        borderRadius="md"
+      >
+        <Box>16 / 9</Box>
+      </AspectRatio>
+    </Box>
+  ),
+};
+
+const Canvas = () => (
+  <Stack
+    w="full"
+    h="full"
+    gap="4"
+    px="16"
+    py="12"
+    bg="bg"
+  >
+    <Box
+      textStyle="lg"
+      color="fg.muted"
+    >
+      Q3 · Product update
+    </Box>
+    <Box
+      textStyle="4xl"
+      fontWeight="semibold"
+    >
+      Sign-ups grew every month
+    </Box>
+    <Box
+      flex="1"
+      bg="bg.muted"
+      borderRadius="md"
+    />
+  </Stack>
+);
+
+export const ScaleToFitStory: Story = {
+  name: "ScaleToFit",
+  render: () => (
+    <Stack gap="4">
+      <Box
+        textStyle="sm"
+        color="fg.muted"
+      >
+        A 960 × 540 canvas scaled to each box; the last box sets its own height and letterboxes.
+      </Box>
+      <HStack
+        gap="4"
+        alignItems="flex-start"
+      >
+        <Box
+          w="160px"
+          borderWidth="1px"
+          borderColor="border"
+        >
+          <ScaleToFit
+            designWidth={960}
+            designHeight={540}
+          >
+            <Canvas />
+          </ScaleToFit>
+        </Box>
+        <Box
+          w="320px"
+          borderWidth="1px"
+          borderColor="border"
+        >
+          <ScaleToFit
+            designWidth={960}
+            designHeight={540}
+          >
+            <Canvas />
+          </ScaleToFit>
+        </Box>
+        <ScaleToFit
+          designWidth={960}
+          designHeight={540}
+          w="240px"
+          h="240px"
+          bg="bg.muted"
+        >
+          <Canvas />
+        </ScaleToFit>
+      </HStack>
+    </Stack>
   ),
 };

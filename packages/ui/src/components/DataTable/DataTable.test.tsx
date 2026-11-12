@@ -188,6 +188,19 @@ describe("DataTable", () => {
     expect(screen.getByRole("button", { name: "Admin" })).toBeTruthy();
   });
 
+  it("resizes a column from the keyboard on its resize handle", async () => {
+    const onColumnSizingChange = vi.fn();
+    renderTable({ enableColumnResizing: true, onColumnSizingChange });
+    const handle = screen.getByRole("separator", { name: "Resize Name" });
+    vi.spyOn(handle.parentElement as HTMLElement, "offsetWidth", "get").mockReturnValue(200);
+
+    handle.focus();
+    await user.keyboard("{ArrowRight}");
+    expect(onColumnSizingChange).toHaveBeenLastCalledWith({ name: 216 });
+    await user.keyboard("{ArrowLeft}");
+    expect(onColumnSizingChange).toHaveBeenLastCalledWith({ name: 184 });
+  });
+
   it("renders a header and a cell per column for every row", () => {
     renderTable();
 

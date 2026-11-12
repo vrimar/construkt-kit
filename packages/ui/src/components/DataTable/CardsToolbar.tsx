@@ -130,8 +130,12 @@ export const DataTableCardsToolbar = <TData extends object>({
     return values ? [{ header, values }] : [];
   });
   const sortHeaders = headers.filter((header) => header.column.getCanSort());
-  const sortedHeader = sortHeaders.find((header) => header.column.getIsSorted());
-  const sortDirection = sortedHeader?.column.getIsSorted() || null;
+  const [currentSort] = table.state.sorting;
+  const sortedColumn = currentSort ? table.getColumn(currentSort.id) : undefined;
+  const sortDirection = sortedColumn?.getIsSorted() || null;
+  const appliedSort: SortDraft | null = sortedColumn
+    ? { id: sortedColumn.id, desc: sortDirection === "desc" }
+    : null;
 
   if (!searchHeader && drawerHeaders.length === 0 && sortHeaders.length === 0) return null;
 
@@ -143,14 +147,14 @@ export const DataTableCardsToolbar = <TData extends object>({
         : ArrowUpDownIcon;
 
   const openSort = () => {
-    setSortDraft(
-      sortedHeader ? { id: sortedHeader.column.id, desc: sortDirection === "desc" } : null,
-    );
+    setSortDraft(appliedSort);
     setSheet("sort");
   };
 
   const applySort = () => {
-    table.setSorting(sortDraft ? [sortDraft] : []);
+    if (sortDraft?.id !== appliedSort?.id || sortDraft?.desc !== appliedSort?.desc) {
+      table.setSorting(sortDraft ? [sortDraft] : []);
+    }
     closeSheet();
   };
 
@@ -210,10 +214,12 @@ export const DataTableCardsToolbar = <TData extends object>({
         {sortHeaders.length > 0 && (
           <IconButton
             variant="outline"
-            colorPalette={sortedHeader ? "brand" : "neutral"}
+            colorPalette={sortedColumn ? "brand" : "neutral"}
             flexShrink="0"
             aria-label={
-              sortedHeader ? `${labels.sortBy} ${getColumnLabel(sortedHeader)}` : labels.sort
+              sortedColumn
+                ? `${labels.sortBy} ${getColumnLabel({ column: sortedColumn })}`
+                : labels.sort
             }
             onClick={openSort}
           >

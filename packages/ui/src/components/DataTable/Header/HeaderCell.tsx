@@ -1,10 +1,13 @@
 import { flexRender } from "@tanstack/react-table";
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import { Box } from "#styled-system/jsx";
 
 import { Text } from "../../Text";
+import { useDataTableContext } from "../context";
 import type { DataTableHeader } from "../types";
+import { getColumnLabel } from "./columnLabel";
+import { ColumnResizeHandle } from "./ColumnResizeHandle";
 import { ColumnSorter, columnSorterGutter } from "./ColumnSorter";
 
 interface HeaderCellProps<TData extends object> {
@@ -13,10 +16,22 @@ interface HeaderCellProps<TData extends object> {
 
 export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
   const labelId = useId();
+  const labelRef = useRef<HTMLParagraphElement>(null);
+  // A display column's default header renders nothing, so emptiness shows only once rendered.
+  const [labelEmpty, setLabelEmpty] = useState(false);
+  const { resizeColumn } = useDataTableContext<TData>();
   const { column, colSpan, isPlaceholder } = header;
+  const label = column.columnDef.header;
+  useLayoutEffect(() => {
+    setLabelEmpty(!labelRef.current?.textContent?.trim());
+  }, [label]);
+  const resizable =
+    !!resizeColumn &&
+    !isPlaceholder &&
+    header.subHeaders.length === 0 &&
+    column.columnDef.meta?.resizable !== false;
   const sortable = column.getCanSort();
   const sort = column.getIsSorted();
-  const label = column.columnDef.header;
   const ariaSort = sort
     ? sort === "asc"
       ? "ascending"
@@ -32,7 +47,8 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
     <Box
       role="columnheader"
       aria-sort={isPlaceholder ? undefined : ariaSort}
-      aria-labelledby={isPlaceholder ? undefined : labelId}
+      aria-labelledby={isPlaceholder || labelEmpty ? undefined : labelId}
+      aria-label={!isPlaceholder && labelEmpty ? getColumnLabel(header) : undefined}
       aria-colspan={colSpan > 1 ? colSpan : undefined}
       display="flex"
       alignItems="center"
@@ -44,6 +60,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
+      position={resizable ? "relative" : undefined}
       style={{ gridColumn: `span ${colSpan}` }}
     >
       {!isPlaceholder && (
@@ -55,6 +72,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
           style={{ maxWidth: labelMaxWidth }}
         >
           <Text
+            ref={labelRef}
             id={labelId}
             truncate
             title={typeof label === "string" ? label : undefined}
@@ -64,6 +82,7 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
           <ColumnSorter header={header} />
         </Box>
       )}
+      {resizable && <ColumnResizeHandle header={header} />}
     </Box>
   );
 };

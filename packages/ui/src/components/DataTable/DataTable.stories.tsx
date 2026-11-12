@@ -3,10 +3,18 @@ import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
-import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
+import {
+  createDataTableColumnHelper,
+  DataTable,
+  DataTableColumnPicker,
+  type DataTableColumnSizing,
+  type DataTableColumnVisibility,
+  type DataTableProps,
+} from ".";
 import { IconButton } from "../Buttons";
-import { Box } from "../Layout";
+import { Box, HStack, Stack } from "../Layout";
 import { Menu } from "../Menu";
+import { Text } from "../Text";
 import type { DataTableParams } from "./types";
 
 const meta: Meta = {
@@ -350,6 +358,125 @@ export const MobileCards: Story = {
         columnDefs={cardColumns}
         mobileLayout="cards"
       />
+    </Box>
+  ),
+};
+
+const resizableColumns = [
+  columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 96 } }),
+  columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
+  columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
+  columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
+  columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
+  { ...actionsColumn, meta: { ...actionsColumn.meta, resizable: false } },
+];
+
+function ColumnResizingStory() {
+  const [params, setParams] = useState<DataTableParams>(defaultParams);
+  const [columnSizing, setColumnSizing] = useState<DataTableColumnSizing>({});
+
+  return (
+    <Stack
+      gap="2"
+      flex="1"
+      minHeight="0"
+      minWidth="0"
+    >
+      <Text
+        textStyle="sm"
+        color="fg.muted"
+      >
+        Drag a header edge to resize, double-click it to reset. Widths:{" "}
+        {JSON.stringify(columnSizing)}
+      </Text>
+      <DataTable
+        clientSide
+        enableColumnResizing
+        columnSizing={columnSizing}
+        onColumnSizingChange={setColumnSizing}
+        columnDefs={resizableColumns}
+        data={data}
+        params={params}
+        onParamChange={setParams}
+      />
+    </Stack>
+  );
+}
+
+export const ColumnResizing: Story = {
+  render: () => (
+    <Box
+      display="flex"
+      maxW="900px"
+      height="460px"
+    >
+      <ColumnResizingStory />
+    </Box>
+  ),
+};
+
+const groupedColumns = [
+  columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 96 } }),
+  columnHelper.group({
+    id: "person",
+    header: "Person",
+    columns: columnHelper.columns([
+      columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),
+      columnHelper.accessor("email", { header: "Email", meta: { type: "input" } }),
+    ]),
+  }),
+  columnHelper.group({
+    id: "account",
+    header: "Account",
+    columns: columnHelper.columns([
+      columnHelper.accessor("role", { header: "Role", meta: { type: "select" } }),
+      columnHelper.accessor("createdAt", { header: "Created At", meta: { type: "date" } }),
+    ]),
+  }),
+  { ...actionsColumn, enableHiding: false },
+];
+
+function ColumnVisibilityStory() {
+  const [params, setParams] = useState<DataTableParams>(defaultParams);
+  const [columnVisibility, setColumnVisibility] = useState<DataTableColumnVisibility>({
+    createdAt: false,
+  });
+
+  return (
+    <Stack
+      gap="2"
+      flex="1"
+      minHeight="0"
+      minWidth="0"
+    >
+      <HStack justifyContent="flex-end">
+        <DataTableColumnPicker
+          columnDefs={groupedColumns}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
+        />
+      </HStack>
+      <DataTable
+        clientSide
+        enableColumnResizing
+        columnVisibility={columnVisibility}
+        columnDefs={groupedColumns}
+        data={data}
+        params={params}
+        onParamChange={setParams}
+      />
+    </Stack>
+  );
+}
+
+export const ColumnVisibility: Story = {
+  render: () => (
+    <Box
+      display="flex"
+      maxW="900px"
+      height="480px"
+    >
+      <ColumnVisibilityStory />
     </Box>
   ),
 };

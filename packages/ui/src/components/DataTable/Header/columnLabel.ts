@@ -2,7 +2,9 @@ import { flexRender } from "@tanstack/react-table";
 
 import type { DataTableHeader } from "../types";
 
-export const getColumnLabel = <TData extends object>({ column }: DataTableHeader<TData>) => {
+export const getColumnLabel = <TData extends object>({
+  column,
+}: Pick<DataTableHeader<TData>, "column">) => {
   const { header } = column.columnDef;
   return typeof header === "string" ? header : column.id;
 };

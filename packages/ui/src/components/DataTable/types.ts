@@ -1,7 +1,16 @@
-import type { Cell, ColumnDef, ColumnHelper, Header, ReactTable, Row } from "@tanstack/react-table";
+import type {
+  Cell,
+  Column,
+  ColumnDef,
+  ColumnHelper,
+  Header,
+  ReactTable,
+  Row,
+} from "@tanstack/react-table";
 import {
   columnFacetingFeature,
   columnFilteringFeature,
+  columnVisibilityFeature,
   createColumnHelper,
   createFacetedUniqueValues,
   createFilteredRowModel,
@@ -65,7 +74,15 @@ export type DataTableColumnMeta = {
   align?: DataTableColumnAlign;
   /** The column's place in the mobile card layout. Defaults to `"detail"`. */
   card?: DataTableCardRole;
+  /** Set `false` to keep the column at its width when the table has `enableColumnResizing`. */
+  resizable?: boolean;
 };
+
+/** Column widths in px by column id, as resizing a column's header sets them. */
+export type DataTableColumnSizing = Record<string, number>;
+
+/** Column visibility by column id: `false` hides a column, and a column left out shows. */
+export type DataTableColumnVisibility = Record<string, boolean>;
 
 export type DataTableLabels = {
   noResults?: string;
@@ -98,6 +115,12 @@ export type DataTableLabels = {
   done?: string;
   /** Prefix of an active filter chip's accessible name, followed by the column name. */
   removeFilter?: string;
+  /** `DataTableColumnPicker`: the trigger button. */
+  columns?: string;
+  /** `DataTableColumnPicker`: shows every hidden column. */
+  showAllColumns?: string;
+  /** Prefix of a column resize handle's accessible name, followed by the column name. */
+  resizeColumn?: string;
 };
 
 export type ColumnFilterLayout = "cell" | "field";
@@ -122,12 +145,15 @@ export interface ColumnFilterProps {
  * Faceting reads every row, not the rows the other filters leave, so a select
  * filter lists all of its options.
  *
+ * A column hidden through `columnVisibility` keeps its sorting and filtering.
+ *
  * The meta slot scopes `columnDef.meta` to this table instead of declaration-merging
  * it into every `@tanstack/react-table` consumer.
  */
 export const dataTableFeatures = tableFeatures({
   columnFacetingFeature,
   columnFilteringFeature,
+  columnVisibilityFeature,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
@@ -156,6 +182,11 @@ export const createDataTableColumnHelper = <TData extends object>(): ColumnHelpe
 > => createColumnHelper<DataTableFeatures, TData>();
 
 export type DataTableColumnDef<TData extends object, TValue = unknown> = ColumnDef<
+  DataTableFeatures,
+  TData,
+  TValue
+>;
+export type DataTableColumn<TData extends object, TValue = unknown> = Column<
   DataTableFeatures,
   TData,
   TValue

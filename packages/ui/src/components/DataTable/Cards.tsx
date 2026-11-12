@@ -33,7 +33,7 @@ const DataTableCard = <TData extends object>({
   headers,
   interactionProps,
 }: DataTableCardProps<TData>) => {
-  const cells = row.getAllCells();
+  const cells = row.getVisibleCells();
   const withRole = (role: DataTableCardRole) => cells.filter((cell) => cardRole(cell) === role);
   const titles = withRole("title");
   const subtitles = withRole("subtitle");
