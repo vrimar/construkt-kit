@@ -31,6 +31,25 @@ describe("Menu", () => {
     expect(screen.getByRole("menuitem", { name: "Settings" }).parentElement).toBe(menu);
   });
 
+  it("returns focus to a context trigger after a keyboard-opened context menu closes", async () => {
+    render(
+      <Menu.Root>
+        <Menu.ContextTrigger>Row</Menu.ContextTrigger>
+        <Menu.Content>
+          <Menu.Item value="rename">Rename</Menu.Item>
+        </Menu.Content>
+      </Menu.Root>,
+    );
+    const trigger = screen.getByRole("button", { name: "Row" });
+
+    trigger.focus();
+    await userEvent.pointer({ keys: "[MouseRight]", target: trigger });
+    await screen.findByRole("menu");
+    await userEvent.keyboard("{Escape}");
+
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
   it("renders an asChild link as the menu item itself", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     render(

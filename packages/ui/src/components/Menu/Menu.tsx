@@ -15,6 +15,8 @@ import {
   type ReactNode,
   type RefObject,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -24,6 +26,7 @@ import { menu } from "#styled-system/recipes";
 import type { PortalledProps, WithRef } from "../../types";
 import { wrapAsChildContent } from "../asChildContent";
 import { createItemIndicator } from "../itemIndicator";
+import { useItemSlotIds } from "../itemSlots";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import {
   type MobileLayoutProps,
@@ -52,7 +55,7 @@ const Arrow = withContext(ArkMenu.Arrow, "arrow", {
 });
 const CheckboxItem = withContext(ArkMenu.CheckboxItem, "item");
 const Content = withContext(ArkMenu.Content, "content");
-const ContextTrigger = withContext(ArkMenu.ContextTrigger, "contextTrigger");
+const StyledContextTrigger = withContext(ArkMenu.ContextTrigger, "contextTrigger");
 const Item = withContext(ArkMenu.Item, "item");
 const ItemGroup = withContext(ArkMenu.ItemGroup, "itemGroup");
 const ItemGroupLabel = withContext(ArkMenu.ItemGroupLabel, "itemGroupLabel");
@@ -63,6 +66,49 @@ const RadioItemGroup = withContext(ArkMenu.RadioItemGroup, "itemGroup");
 const Separator = withContext(ArkMenu.Separator, "separator");
 const StyledTrigger = withContext(ArkMenu.Trigger, "trigger");
 const TriggerItem = withContext(ArkMenu.TriggerItem, "item");
+const ItemHint = withContext("span", "itemHint", {
+  defaultProps: { "data-scope": "menu", "data-part": "item-hint" },
+});
+const ItemDescription = withContext("div", "itemDescription", {
+  defaultProps: { "data-scope": "menu", "data-part": "item-description" },
+});
+
+// zag skips returning focus for menus anchored at a point, so a keyboard-opened context menu would drop it.
+function ContextTrigger({
+  ref,
+  onContextMenu,
+  ...props
+}: WithRef<ComponentProps<typeof StyledContextTrigger>>) {
+  const api = useMenuContext();
+  const { open } = api;
+  const contentId = api.getContentProps().id;
+  const returnFocusTo = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const target = returnFocusTo.current;
+    if (open || !target) return;
+    returnFocusTo.current = null;
+    queueMicrotask(() => {
+      const active = document.activeElement;
+      const content = contentId ? document.getElementById(contentId) : null;
+      const lost = active == null || active === document.body || !!content?.contains(active);
+      if (target.isConnected && lost) target.focus({ preventScroll: true });
+    });
+  }, [open, contentId]);
+
+  return (
+    <StyledContextTrigger
+      ref={ref}
+      {...props}
+      onContextMenu={(event) => {
+        onContextMenu?.(event);
+        const active = document.activeElement;
+        returnFocusTo.current =
+          active instanceof HTMLElement && event.currentTarget.contains(active) ? active : null;
+      }}
+    />
+  );
+}
 
 export type { MenuSelectionDetails } from "@ark-ui/react/menu";
 
@@ -256,17 +302,65 @@ function MenuContent({
   );
 }
 
+interface MenuItemSlotProps {
+  /** Faint text at the end of the row: a count, a shortcut, or why the item is disabled. */
+  hint?: ReactNode;
+  /** Muted line under the label, clamped to two lines. */
+  description?: ReactNode;
+}
+
+function useItemSlots({ hint, description }: MenuItemSlotProps, describedBy: string | undefined) {
+  const {
+    hintId,
+    descriptionId,
+    describedBy: itemDescribedBy,
+  } = useItemSlotIds({ hint, description }, describedBy);
+
+  return {
+    describedBy: itemDescribedBy,
+    hint: hintId && (
+      <ItemHint
+        id={hintId}
+        aria-hidden
+      >
+        {hint}
+      </ItemHint>
+    ),
+    description: descriptionId && (
+      <ItemDescription
+        id={descriptionId}
+        aria-hidden
+      >
+        {description}
+      </ItemDescription>
+    ),
+  };
+}
+
+type MenuOptionItemProps<T extends typeof CheckboxItem | typeof RadioItem> = WithRef<
+  Omit<ComponentProps<T>, "asChild"> & MenuItemSlotProps
+>;
+
 function MenuCheckboxItem({
   ref,
+  hint,
+  description,
   children,
   ...props
-}: WithRef<Omit<ComponentProps<typeof CheckboxItem>, "asChild">>) {
+}: MenuOptionItemProps<typeof CheckboxItem>) {
+  const slots = useItemSlots({ hint, description }, props["aria-describedby"]);
+
   return (
     <CheckboxItem
       ref={ref}
       {...props}
+      aria-describedby={slots.describedBy}
     >
-      <ItemText>{children}</ItemText>
+      <ItemText>
+        {children}
+        {slots.description}
+      </ItemText>
+      {slots.hint}
       <ItemIndicator />
     </CheckboxItem>
   );
@@ -274,42 +368,83 @@ function MenuCheckboxItem({
 
 function MenuRadioItem({
   ref,
+  hint,
+  description,
   children,
   ...rest
-}: WithRef<Omit<ComponentProps<typeof RadioItem>, "asChild">>) {
+}: MenuOptionItemProps<typeof RadioItem>) {
+  const slots = useItemSlots({ hint, description }, rest["aria-describedby"]);
+
   return (
     <RadioItem
       ref={ref}
       {...rest}
+      aria-describedby={slots.describedBy}
     >
-      <ItemText>{children}</ItemText>
+      <ItemText>
+        {children}
+        {slots.description}
+      </ItemText>
+      {slots.hint}
       <ItemIndicator />
     </RadioItem>
   );
 }
 
-function ItemLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+function ItemLabel({
+  icon,
+  description,
+  hint,
+  children,
+}: {
+  icon: ReactNode;
+  description: ReactNode;
+  hint: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <>
       {icon}
-      <Box flex="1">{children}</Box>
+      <Box flex="1">
+        {children}
+        {description}
+      </Box>
+      {hint}
     </>
   );
 }
 
-export interface MenuItemProps extends ComponentProps<typeof Item> {
+export interface MenuItemProps extends ComponentProps<typeof Item>, MenuItemSlotProps {
   icon?: ReactNode;
   /** Colors the item with the danger palette, for actions that delete or can't be undone. */
   destructive?: boolean;
 }
 
-function MenuItem({ ref, icon, destructive, children, ...rest }: WithRef<MenuItemProps>) {
-  const content = (label: ReactNode) => <ItemLabel icon={icon}>{label}</ItemLabel>;
+function MenuItem({
+  ref,
+  icon,
+  destructive,
+  hint,
+  description,
+  children,
+  ...rest
+}: WithRef<MenuItemProps>) {
+  const slots = useItemSlots({ hint, description }, rest["aria-describedby"]);
+  const content = (label: ReactNode) => (
+    <ItemLabel
+      icon={icon}
+      description={slots.description}
+      hint={slots.hint}
+    >
+      {label}
+    </ItemLabel>
+  );
 
   return (
     <Item
       {...rest}
       ref={ref}
+      aria-describedby={slots.describedBy}
       data-destructive={destructive ? "" : undefined}
     >
       {rest.asChild ? wrapAsChildContent(children, content) : content(children)}
@@ -317,40 +452,47 @@ function MenuItem({ ref, icon, destructive, children, ...rest }: WithRef<MenuIte
   );
 }
 
-function MenuItemGroup({
-  ref,
-  title,
-  children,
-  ...rest
-}: WithRef<ComponentProps<typeof ItemGroup>>) {
+export interface MenuItemGroupProps extends ComponentProps<typeof ItemGroup> {
+  /** Heading shown above the group's items. */
+  label?: ReactNode;
+}
+
+function MenuItemGroup({ ref, label, children, ...rest }: WithRef<MenuItemGroupProps>) {
   return (
     <ItemGroup
       ref={ref}
       {...rest}
     >
-      {title && <ItemGroupLabel userSelect="none">{title}</ItemGroupLabel>}
+      {label != null && label !== false && label !== "" && (
+        <ItemGroupLabel userSelect="none">{label}</ItemGroupLabel>
+      )}
       {children}
     </ItemGroup>
   );
 }
 
-export interface MenuTriggerItemProps extends Omit<ComponentProps<typeof TriggerItem>, "asChild"> {
+export interface MenuTriggerItemProps
+  extends Omit<ComponentProps<typeof TriggerItem>, "asChild">, MenuItemSlotProps {
   icon?: ReactNode;
 }
 
 function MenuTriggerItem({
   ref,
   icon,
+  hint,
+  description,
   children,
   onPointerMoveCapture,
   ...rest
 }: WithRef<MenuTriggerItemProps>) {
   const inSheet = useContext(ParentMenuContext)?.mode === "sheet";
+  const slots = useItemSlots({ hint, description }, rest["aria-describedby"]);
 
   return (
     <TriggerItem
       ref={ref}
       {...rest}
+      aria-describedby={slots.describedBy}
       onPointerMoveCapture={(event) => {
         onPointerMoveCapture?.(event);
         // In a sheet the submenu replaces the list under the pointer, so a hover must not open it.
@@ -359,7 +501,13 @@ function MenuTriggerItem({
         }
       }}
     >
-      <ItemLabel icon={icon}>{children}</ItemLabel>
+      <ItemLabel
+        icon={icon}
+        description={slots.description}
+        hint={slots.hint}
+      >
+        {children}
+      </ItemLabel>
       <ChevronRightIcon />
     </TriggerItem>
   );

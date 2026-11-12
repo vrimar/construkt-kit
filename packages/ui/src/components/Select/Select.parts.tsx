@@ -57,11 +57,13 @@ export function SelectTrigger({
 
 export function SelectContent({ children, style, ...props }: SelectContentProps) {
   const { contentWidth, sameWidth, wideContent } = useSelectContext();
+  const popover = usePopoverContext();
   const anchored = useOverlayMode() !== "sheet";
   const minContentWidth = wideContent ? WIDE_MIN_CONTENT_WIDTH : MIN_CONTENT_WIDTH;
 
   return (
     <Popover.Content
+      aria-labelledby={popover.getTriggerProps().id}
       layerStyle={anchored ? "dropdown.surface" : undefined}
       minW={anchored && contentWidth == null ? minContentWidth : undefined}
       width={anchored && sameWidth ? "full" : undefined}
@@ -94,12 +96,13 @@ export function SelectSearch({ children, ...props }: SelectSearchProps) {
 
 export function SelectList(props: SelectListProps) {
   const { managed, list } = useSelectContext();
+  const popover = usePopoverContext();
 
   return (
     <ManagedList
       managed={managed}
       {...list}
-      contentProps={props}
+      contentProps={{ "aria-labelledby": popover.getTriggerProps().id, ...props }}
     />
   );
 }

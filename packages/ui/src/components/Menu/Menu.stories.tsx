@@ -1,11 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
+  ClipboardPasteIcon,
   CopyIcon,
   ExternalLinkIcon,
+  FolderInputIcon,
+  GlobeIcon,
+  LockIcon,
+  MessageSquareIcon,
   PencilIcon,
+  ScissorsIcon,
   SettingsIcon,
   ShareIcon,
   TrashIcon,
+  UsersIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -14,6 +21,7 @@ import { menu } from "#styled-system/recipes";
 import { Menu } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
+import { Kbd } from "../Kbd";
 import { Flex } from "../Layout";
 
 const meta: Meta = {
@@ -103,12 +111,12 @@ export const WithGroups: Story = {
         <Button variant="outline">Grouped Menu</Button>
       </Menu.Trigger>
       <Menu.Content>
-        <Menu.ItemGroup title="Actions">
+        <Menu.ItemGroup label="Actions">
           <Menu.Item value="edit">Edit</Menu.Item>
           <Menu.Item value="duplicate">Duplicate</Menu.Item>
         </Menu.ItemGroup>
         <Menu.Separator />
-        <Menu.ItemGroup title="Danger Zone">
+        <Menu.ItemGroup label="Danger Zone">
           <Menu.Item value="delete">Delete</Menu.Item>
         </Menu.ItemGroup>
       </Menu.Content>
@@ -137,6 +145,121 @@ export const Destructive: Story = {
         >
           Delete
         </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
+export const Hints: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Edit</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="cut"
+          icon={<ScissorsIcon />}
+          hint={<Kbd size="sm">⌘X</Kbd>}
+        >
+          Cut
+        </Menu.Item>
+        <Menu.Item
+          value="copy"
+          icon={<CopyIcon />}
+          hint={<Kbd size="sm">⌘C</Kbd>}
+        >
+          Copy
+        </Menu.Item>
+        <Menu.Item
+          value="paste"
+          icon={<ClipboardPasteIcon />}
+          hint={<Kbd size="sm">⌘V</Kbd>}
+        >
+          Paste
+        </Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          value="comments"
+          icon={<MessageSquareIcon />}
+          hint={12}
+        >
+          Comments
+        </Menu.Item>
+        <Menu.Item
+          value="move"
+          icon={<FolderInputIcon />}
+          hint="›"
+        >
+          Move to…
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
+export const Descriptions: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Visibility</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="public"
+          icon={<GlobeIcon />}
+          description="Anyone with the link can view."
+        >
+          Public
+        </Menu.Item>
+        <Menu.Item
+          value="team"
+          icon={<UsersIcon />}
+          description="Members of your workspace can view. Guests need an invite before they can open it."
+        >
+          Team
+        </Menu.Item>
+        <Menu.Item
+          value="private"
+          icon={<LockIcon />}
+          description="Only you and the people you invite can view or edit this board, its comments and its full revision history."
+        >
+          Private
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+};
+
+export const DisabledWithReason: Story = {
+  render: () => (
+    <Menu.Root>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Assign</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.ItemGroup label="Team members">
+          <Menu.Item
+            value="ada"
+            disabled
+            hint="Already assigned"
+          >
+            Ada Lovelace
+          </Menu.Item>
+          <Menu.Item
+            value="grace"
+            hint="8 tasks"
+          >
+            Grace Hopper
+          </Menu.Item>
+          <Menu.Item
+            value="alan"
+            disabled
+            hint="On leave"
+          >
+            Alan Turing
+          </Menu.Item>
+        </Menu.ItemGroup>
       </Menu.Content>
     </Menu.Root>
   ),

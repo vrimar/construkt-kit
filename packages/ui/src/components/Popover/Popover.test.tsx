@@ -44,6 +44,29 @@ describe("Popover", () => {
     expect(placement).toBe("right");
   });
 
+  it("names lazily mounted content after its title and description", async () => {
+    render(
+      <Popover.Root>
+        <Popover.Trigger>Open</Popover.Trigger>
+        <Popover.Content>
+          <Popover.Title>Rename</Popover.Title>
+          <Popover.Description>Pick a new name</Popover.Description>
+        </Popover.Content>
+      </Popover.Root>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await waitFor(() => expect(dialog.getAttribute("aria-labelledby")).not.toBeNull());
+    expect(document.getElementById(dialog.getAttribute("aria-labelledby") ?? "")?.textContent).toBe(
+      "Rename",
+    );
+    expect(
+      document.getElementById(dialog.getAttribute("aria-describedby") ?? "")?.textContent,
+    ).toBe("Pick a new name");
+  });
+
   it("prefers placement over positioning.placement", async () => {
     const { placement } = await renderOpen({
       placement: "top",

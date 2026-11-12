@@ -1,12 +1,24 @@
 import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
+import {
+  type ControlSize,
+  controlGap,
+  controlPy,
+  controlText,
+  dropdownItem,
+  dropdownItemGroupLabel,
+} from "./control-size";
 import { floatingArrow } from "./floating-arrow";
+
+const menuItem = (size: ControlSize) => ({
+  ...dropdownItem(size),
+  "&:has([data-part=item-description])": { py: controlPy(size) },
+});
 
 export const menu = defineSlotRecipe({
   className: "menu",
-  slots: menuAnatomy.keys(),
+  slots: [...menuAnatomy.keys(), "itemHint", "itemDescription"],
   base: {
     content: {
       "--menu-z-index": "zIndex.popover",
@@ -66,6 +78,23 @@ export const menu = defineSlotRecipe({
       _checked: {
         color: "colorPalette.plain.fg",
       },
+      // A growing indicator would take the free space the hint's auto margin needs to right-align it.
+      "[data-part=item-hint] + &": {
+        flex: "none",
+      },
+    },
+    itemHint: {
+      color: "fg.subtle",
+      display: "inline-flex",
+      alignItems: "center",
+      flexShrink: "0",
+      marginInlineStart: "auto",
+      whiteSpace: "nowrap",
+    },
+    itemDescription: {
+      color: "fg.muted",
+      lineClamp: "2",
+      maxWidth: "xs",
     },
     arrow: floatingArrow.arrow,
     arrowTip: floatingArrow.arrowTip,
@@ -82,9 +111,11 @@ export const menu = defineSlotRecipe({
           ...controlText("xs"),
           minWidth: "max(var(--reference-width), {sizes.28})",
         },
-        item: dropdownItem("xs"),
+        item: menuItem("xs"),
         itemGroup: { gap: "0.5" },
         itemGroupLabel: dropdownItemGroupLabel("xs"),
+        itemHint: { ...controlText("xs"), ps: controlGap("xs") },
+        itemDescription: controlText("xs"),
         separator: { mx: "-1", my: "0.5" },
       },
       sm: {
@@ -94,9 +125,11 @@ export const menu = defineSlotRecipe({
           ...controlText("sm"),
           minWidth: "max(var(--reference-width), {sizes.32})",
         },
-        item: dropdownItem("sm"),
+        item: menuItem("sm"),
         itemGroup: { gap: "0.5" },
         itemGroupLabel: dropdownItemGroupLabel("sm"),
+        itemHint: { ...controlText("xs"), ps: controlGap("sm") },
+        itemDescription: controlText("xs"),
         separator: { mx: "-1.5", my: "0.5" },
       },
       md: {
@@ -106,9 +139,11 @@ export const menu = defineSlotRecipe({
           ...controlText("md"),
           minWidth: "max(var(--reference-width), {sizes.40})",
         },
-        item: dropdownItem("md"),
+        item: menuItem("md"),
         itemGroup: { gap: "0.5" },
         itemGroupLabel: dropdownItemGroupLabel("md"),
+        itemHint: { ...controlText("xs"), ps: controlGap("md") },
+        itemDescription: controlText("xs"),
         separator: { mx: "-2", my: "0.5" },
       },
       lg: {
@@ -118,9 +153,11 @@ export const menu = defineSlotRecipe({
           ...controlText("lg"),
           minWidth: "max(var(--reference-width), {sizes.48})",
         },
-        item: dropdownItem("lg"),
+        item: menuItem("lg"),
         itemGroup: { gap: "0.5" },
         itemGroupLabel: dropdownItemGroupLabel("lg"),
+        itemHint: { ...controlText("sm"), ps: controlGap("lg") },
+        itemDescription: controlText("sm"),
         separator: { mx: "-2.5", my: "0.5" },
       },
       xl: {
@@ -130,9 +167,11 @@ export const menu = defineSlotRecipe({
           ...controlText("xl"),
           minWidth: "max(var(--reference-width), {sizes.56})",
         },
-        item: dropdownItem("xl"),
+        item: menuItem("xl"),
         itemGroup: { gap: "1" },
         itemGroupLabel: dropdownItemGroupLabel("xl"),
+        itemHint: { ...controlText("sm"), ps: controlGap("xl") },
+        itemDescription: controlText("sm"),
         separator: { mx: "-3", my: "0" },
       },
     },

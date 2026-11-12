@@ -67,6 +67,7 @@ const MANAGED_LIST_OPTIONS = {
   indicatorPosition: true,
   renderItem: true,
   renderItemActions: true,
+  renderItemHint: true,
   renderGroupLabel: true,
   getItemProps: true,
   listMaxHeight: true,

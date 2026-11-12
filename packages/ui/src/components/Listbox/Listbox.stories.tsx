@@ -74,6 +74,33 @@ export const CustomRendering: Story = {
   ),
 };
 
+const teamMembers = [
+  { id: 1, name: "Ada Lovelace", count: 12, unavailable: "Already assigned" },
+  { id: 2, name: "Grace Hopper", count: 8 },
+  { id: 3, name: "Alan Turing", count: 3, unavailable: "On leave" },
+  { id: 4, name: "Mary Jackson", count: 5 },
+];
+
+export const Hints: Story = {
+  render: function HintsStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Listbox
+        items={teamMembers}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        isItemDisabled={(item) => item.unavailable != null}
+        renderItemHint={(item, state) =>
+          state.disabled ? item.unavailable : `${item.count} tasks`
+        }
+        value={value}
+        onValueChange={setValue}
+        maxW="64"
+      />
+    );
+  },
+};
+
 export const IndicatorPositions: Story = {
   render: () => (
     <HStack alignItems="flex-start">

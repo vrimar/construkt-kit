@@ -1,4 +1,5 @@
 import type { CollectionItem } from "@ark-ui/react/collection";
+import { ark } from "@ark-ui/react/factory";
 import { Listbox as ArkListbox, ListboxContext, useListboxContext } from "@ark-ui/react/listbox";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "lucide-react";
@@ -11,12 +12,13 @@ import {
   type RefObject,
   type SyntheticEvent,
   useEffect,
+  useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
 import {
-  Box,
   HStack,
   type HTMLStyledProps,
   VisuallyHidden,
@@ -29,6 +31,7 @@ import { useComposedRefs } from "../../hooks/useComposedRefs";
 import type { CssProp, StyledRootProps, Unstyled, WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput, type SearchInputProps } from "../Input";
+import { useItemSlotIds } from "../itemSlots";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
 import { VirtualRows } from "../ScrollArea/VirtualRows";
 import type {
@@ -60,20 +63,26 @@ const RootProvider = withProvider(
 const StyledContent = withContext(ArkListbox.Content, "content");
 const Empty = withContext(ArkListbox.Empty, "empty");
 const Input = withContext(ArkListbox.Input, "input");
-const Item = withContext(ArkListbox.Item, "item");
+const Item = withContext(ArkListbox.Item, "item", {
+  defaultProps: { "data-reveal-group": "" },
+});
 const ItemGroup = withContext(ArkListbox.ItemGroup, "itemGroup");
 const ItemGroupLabel = withContext(ArkListbox.ItemGroupLabel, "itemGroupLabel");
+const ItemHint = withContext("span", "itemHint", {
+  defaultProps: { "data-scope": "listbox", "data-part": "item-hint" },
+});
 const ItemText = withContext(ArkListbox.ItemText, "itemText");
 const Label = withContext(ArkListbox.Label, "label");
 const ValueText = withContext(ArkListbox.ValueText, "valueText");
 
 const StyledItemIndicator = withContext(ArkListbox.ItemIndicator, "itemIndicator");
-const LISTBOX_ACTION_ATTRIBUTE = "data-listbox-item-action";
+const StyledItemActions = withContext(ark.div, "itemActions");
 
 function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
   return (
     <StyledItemIndicator
       ref={ref}
+      hidden={false}
       {...props}
     >
       <CheckIcon />
@@ -131,18 +140,13 @@ function ItemActions({
   onMouseDown,
   onPointerDown,
   ...props
-}: HTMLStyledProps<"div">) {
+}: ComponentProps<typeof StyledItemActions>) {
   const stopPropagation = (event: SyntheticEvent) => {
     event.stopPropagation();
   };
 
   return (
-    <Box
-      {...{ [LISTBOX_ACTION_ATTRIBUTE]: "" }}
-      display="inline-flex"
-      alignItems="center"
-      gap="1"
-      flexShrink="0"
+    <StyledItemActions
       role="presentation"
       {...props}
       onPointerDown={(event) => {
@@ -163,7 +167,37 @@ function ItemActions({
       }}
     >
       {children}
-    </Box>
+    </StyledItemActions>
+  );
+}
+
+function ManagedItem({
+  text,
+  hint,
+  actions,
+  ...props
+}: ComponentProps<typeof Item> & { text: ReactNode; hint: ReactNode; actions: ReactNode }) {
+  const textId = useId();
+  const { hintId, describedBy } = useItemSlotIds({ hint }, props["aria-describedby"]);
+
+  return (
+    <Item
+      aria-labelledby={props["aria-label"] === undefined ? textId : undefined}
+      {...props}
+      aria-describedby={describedBy}
+    >
+      <ItemText id={textId}>{text}</ItemText>
+      {hintId && (
+        <ItemHint
+          id={hintId}
+          aria-hidden
+        >
+          {hint}
+        </ItemHint>
+      )}
+      {actions}
+      <ItemIndicator />
+    </Item>
   );
 }
 
@@ -302,12 +336,25 @@ function VirtualListRows<T>({
   getItemKey: (index: number) => string | number;
   scrollToIndexRef: ScrollToIndexRef;
 }) {
+  const [inset, setInset] = useState({ start: 0, end: 0 });
+  useLayoutEffect(() => {
+    if (!scrollElement) return;
+    const style = getComputedStyle(scrollElement);
+    setInset({
+      start: parseFloat(style.paddingTop) || 0,
+      end: parseFloat(style.paddingBottom) || 0,
+    });
+  }, [scrollElement]);
+
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollElement,
     estimateSize: () => VIRTUAL_ITEM_HEIGHT,
     overscan: 10,
     getItemKey,
+    scrollMargin: inset.start,
+    scrollPaddingStart: inset.start,
+    scrollPaddingEnd: inset.end,
   });
 
   // Expose scrollToIndex to the parent's Ark `scrollToIndexFn` (keyboard nav past the rendered window).
@@ -361,6 +408,7 @@ export function ManagedList<T, V extends SelectionValue>({
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
   renderItem,
   renderItemActions,
+  renderItemHint,
   renderGroupLabel,
   getItemProps,
   listMaxHeight,
@@ -373,15 +421,14 @@ export function ManagedList<T, V extends SelectionValue>({
   const renderRow = (item: T) => {
     const state = controller.getItemState(item);
     return (
-      <Item
+      <ManagedItem
         key={collection.getItemValue(item)}
         item={item}
         {...getItemProps?.(item)}
-      >
-        <ItemText>{renderItem ? renderItem(item, state) : collection.stringifyItem(item)}</ItemText>
-        {renderItemActions && <ItemActions>{renderItemActions(item, state)}</ItemActions>}
-        <ItemIndicator />
-      </Item>
+        text={renderItem ? renderItem(item, state) : collection.stringifyItem(item)}
+        hint={renderItemHint?.(item, state)}
+        actions={renderItemActions && <ItemActions>{renderItemActions(item, state)}</ItemActions>}
+      />
     );
   };
 
@@ -532,6 +579,7 @@ export const Listbox = Object.assign(ListboxSimple, {
   ItemActions,
   ItemGroup,
   ItemGroupLabel,
+  ItemHint,
   ItemIndicator,
   ItemText,
   Label,

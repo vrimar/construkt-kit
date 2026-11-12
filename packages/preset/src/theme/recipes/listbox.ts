@@ -1,11 +1,11 @@
 import { listboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
+import { controlGap, controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
 
 export const listbox = defineSlotRecipe({
   className: "listbox",
-  slots: listboxAnatomy.keys(),
+  slots: [...listboxAnatomy.keys(), "itemHint", "itemActions"],
   base: {
     root: {
       display: "flex",
@@ -61,12 +61,27 @@ export const listbox = defineSlotRecipe({
       whiteSpace: "nowrap",
       fontWeight: "medium",
     },
+    itemHint: {
+      color: "fg.subtle",
+      display: "inline-flex",
+      alignItems: "center",
+      flexShrink: "0",
+      whiteSpace: "nowrap",
+    },
+    itemActions: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "1",
+      flexShrink: "0",
+      transition: "opacity 0.12s ease-out",
+    },
     itemIndicator: {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       color: "colorPalette.plain.fg",
       flexShrink: "0",
+      "&[data-state=unchecked]": { visibility: "hidden" },
     },
     itemGroup: {
       display: "flex",
@@ -123,24 +138,14 @@ export const listbox = defineSlotRecipe({
     actionsVisibility: {
       always: {},
       hover: {
-        item: {
-          "@media (hover: hover)": {
-            "& [data-listbox-item-action]": {
-              opacity: "0",
-              transition: "opacity 0.12s ease-out",
-            },
-            "&:hover [data-listbox-item-action], &[data-highlighted] [data-listbox-item-action], &:focus-within [data-listbox-item-action]":
-              {
-                opacity: "1",
-              },
-          },
-        },
+        itemActions: { _unrevealed: { opacity: "0" } },
       },
     },
     size: {
       xs: {
         content: { p: "1", gap: "0.5", ...controlText("2xs") },
         item: dropdownItem("xs"),
+        itemHint: { ...controlText("2xs"), ps: controlGap("xs") },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { ...dropdownItemGroupLabel("xs"), ...controlText("2xs") },
         label: controlText("xs"),
@@ -148,6 +153,7 @@ export const listbox = defineSlotRecipe({
       sm: {
         content: { p: "1", gap: "0.5", ...controlText("xs") },
         item: dropdownItem("sm"),
+        itemHint: { ...controlText("2xs"), ps: controlGap("sm") },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { ...dropdownItemGroupLabel("sm"), ...controlText("xs") },
         label: controlText("sm"),
@@ -155,6 +161,7 @@ export const listbox = defineSlotRecipe({
       md: {
         content: { p: "1", gap: "0.5", ...controlText("sm") },
         item: dropdownItem("md"),
+        itemHint: { ...controlText("xs"), ps: controlGap("md") },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { ...dropdownItemGroupLabel("md"), ...controlText("xs") },
         label: controlText("sm"),
@@ -162,6 +169,7 @@ export const listbox = defineSlotRecipe({
       lg: {
         content: { p: "1", gap: "0.5", ...controlText("md") },
         item: dropdownItem("lg"),
+        itemHint: { ...controlText("xs"), ps: controlGap("lg") },
         itemGroup: { gap: "0.5" },
         itemGroupLabel: { ...dropdownItemGroupLabel("lg"), ...controlText("sm") },
         label: controlText("md"),

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { Tooltip, type TooltipProps } from ".";
+import { advance, setupUser, useFakeTime } from "../../_shared/fakeTime";
 
 const renderOpen = async (props: Omit<TooltipProps, "children" | "label">) => {
   render(
@@ -70,5 +71,35 @@ describe("Tooltip", () => {
 
     expect(screen.getByRole("button", { name: "Trigger" }).hasAttribute("data-scope")).toBe(false);
     expect(document.querySelector("[data-scope='tooltip']")).toBeNull();
+  });
+});
+
+describe("Tooltip showWhenTruncated", () => {
+  useFakeTime();
+
+  it.each([
+    { state: "cut off", scrollWidth: 240, opens: true },
+    { state: "fully shown", scrollWidth: 120, opens: false },
+  ])("opens on hover only when the text is $state", async ({ scrollWidth, opens }) => {
+    const user = setupUser();
+    render(
+      <Tooltip
+        label="Quarterly revenue by region"
+        showWhenTruncated
+      >
+        <button type="button">
+          <span style={{ overflow: "hidden" }}>Quarterly revenue by region</span>
+        </button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByRole("button");
+    const text = trigger.firstElementChild as HTMLElement;
+    Object.defineProperty(text, "scrollWidth", { configurable: true, value: scrollWidth });
+    Object.defineProperty(text, "clientWidth", { configurable: true, value: 120 });
+
+    await user.hover(trigger);
+    await advance(1000);
+
+    expect(screen.queryByRole("tooltip") != null).toBe(opens);
   });
 });

@@ -105,6 +105,8 @@ export interface ManagedListOptions<T, V extends SelectionValue> {
   indicatorPosition?: SelectionIndicatorPosition;
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  /** Faint text at the end of the row, such as a count or why the item is disabled. */
+  renderItemHint?: (item: T, state: SelectionItemState<V>) => ReactNode;
   renderGroupLabel?: SelectionGroupLabelRenderer<T>;
   getItemProps?: (item: T) => ManagedItemProps;
   /** Max height of the list: px if a number, otherwise a size token or CSS length. */
