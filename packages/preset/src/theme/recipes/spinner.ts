@@ -20,6 +20,7 @@ export const spinner = defineRecipe({
   },
   defaultVariants: {
     size: "md",
+    variant: "ring",
   },
   variants: {
     size: {
@@ -30,6 +31,26 @@ export const spinner = defineRecipe({
       lg: { "--spinner-size": visual("1.5rem") },
       xl: { "--spinner-size": visual("1.75rem") },
       "2xl": { "--spinner-size": visual("2rem") },
+    },
+    variant: {
+      ring: {},
+      dots: {
+        animation: "none",
+        borderWidth: "0",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: "auto",
+        "& > span": {
+          boxSize: "calc(var(--spinner-size) / 5)",
+          borderRadius: "full",
+          bg: "currentColor",
+          animation: "blink 1s ease-in-out infinite",
+          _motionReduce: { animation: "none" },
+        },
+        "& > span:nth-child(2)": { animationDelay: "0.15s" },
+        "& > span:nth-child(3)": { animationDelay: "0.3s" },
+      },
     },
   },
 });

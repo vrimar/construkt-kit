@@ -5,7 +5,7 @@ import { visual } from "./control-size";
 
 export const progress = defineSlotRecipe({
   className: "progress",
-  slots: progressAnatomy.keys(),
+  slots: progressAnatomy.extendWith("segments", "segment").keys(),
   base: {
     root: {
       textStyle: "sm",
@@ -50,6 +50,20 @@ export const progress = defineSlotRecipe({
         backgroundImage: `linear-gradient(to right, transparent 0%, var(--track-color) 50%, transparent 100%)`,
       },
     },
+    segments: {
+      display: "flex",
+      gap: "1",
+    },
+    segment: {
+      flex: "1",
+      minWidth: "0",
+      bgColor: "var(--progress-segment-bg)",
+      transitionProperty: "background-color, border-color",
+      transitionDuration: "slow",
+      "&[data-filled]": {
+        bgColor: "colorPalette.solid.bg",
+      },
+    },
     label: {
       display: "inline-flex",
       fontWeight: "medium",
@@ -78,6 +92,9 @@ export const progress = defineSlotRecipe({
         circleTrack: {
           stroke: "neutral.subtle.bg",
         },
+        segment: {
+          "--progress-segment-bg": "colors.neutral.subtle.bg",
+        },
         range: {
           color: "colorPalette.solid.fg",
         },
@@ -88,6 +105,9 @@ export const progress = defineSlotRecipe({
         },
         circleTrack: {
           stroke: "colorPalette.subtle.bg.active",
+        },
+        segment: {
+          "--progress-segment-bg": "colors.colorPalette.subtle.bg.active",
         },
         range: {
           color: "colorPalette.solid.fg",
@@ -101,6 +121,14 @@ export const progress = defineSlotRecipe({
         circleTrack: {
           stroke: "colorPalette.outline.border",
         },
+        segment: {
+          "--progress-segment-bg": "transparent",
+          borderWidth: "1px",
+          borderColor: "colorPalette.outline.border",
+          "&[data-filled]": {
+            borderColor: "colorPalette.solid.bg",
+          },
+        },
         range: {
           color: "colorPalette.solid.fg",
         },
@@ -113,9 +141,15 @@ export const progress = defineSlotRecipe({
         track: {
           borderRadius: "sm",
         },
+        segment: {
+          borderRadius: "sm",
+        },
       },
       full: {
         track: {
+          borderRadius: "full",
+        },
+        segment: {
           borderRadius: "full",
         },
       },
@@ -151,6 +185,7 @@ export const progress = defineSlotRecipe({
           "--thickness": "2px",
         },
         track: { h: visual("0.375rem") },
+        segments: { h: visual("0.375rem") },
       },
       sm: {
         circle: {
@@ -158,6 +193,7 @@ export const progress = defineSlotRecipe({
           "--thickness": "2px",
         },
         track: { h: visual("0.5rem") },
+        segments: { h: visual("0.5rem") },
       },
       md: {
         circle: {
@@ -165,6 +201,7 @@ export const progress = defineSlotRecipe({
           "--thickness": "2px",
         },
         track: { h: visual("0.625rem") },
+        segments: { h: visual("0.625rem") },
       },
       lg: {
         circle: {
@@ -172,6 +209,7 @@ export const progress = defineSlotRecipe({
           "--thickness": "3px",
         },
         track: { h: visual("0.75rem") },
+        segments: { h: visual("0.75rem") },
       },
       xl: {
         circle: {
@@ -179,6 +217,7 @@ export const progress = defineSlotRecipe({
           "--thickness": "4px",
         },
         track: { h: visual("0.875rem") },
+        segments: { h: visual("0.875rem") },
       },
     },
   },

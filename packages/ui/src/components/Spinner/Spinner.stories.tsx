@@ -4,6 +4,7 @@ import { spinner } from "#styled-system/recipes";
 
 import { Spinner } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Text } from "../Text";
 
 const meta: Meta<typeof Spinner> = {
   title: "Components/Spinner",
@@ -30,4 +31,22 @@ export const WithColor: Story = {
     color: "brand.fg",
     size: "lg",
   },
+};
+
+export const Dots: Story = {
+  render: () => (
+    <SizePreviewTable
+      sizes={spinner.variantMap.size}
+      renderPreview={(size) => (
+        <Text color="fg.muted">
+          Drafting
+          <Spinner
+            variant="dots"
+            size={size}
+            ms="1"
+          />
+        </Text>
+      )}
+    />
+  ),
 };

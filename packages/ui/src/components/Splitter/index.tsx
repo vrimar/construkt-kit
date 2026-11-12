@@ -1,4 +1,5 @@
 import { ark } from "@ark-ui/react/factory";
+import { useEffect, useRef } from "react";
 import {
   Group,
   type GroupProps,
@@ -10,9 +11,10 @@ import {
 
 import { css, cx } from "#styled-system/css";
 import { type HTMLStyledProps, createSlotRecipeContext, splitCssProps } from "#styled-system/jsx";
-import { splitter } from "#styled-system/recipes";
+import { type SplitterVariantProps, splitter } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 
 export type { PanelImperativeHandle as SplitterPanelHandle } from "react-resizable-panels";
 
@@ -35,9 +37,44 @@ export type SplitterGroupProps = Pick<
   | "orientation"
   | "resizeTargetMinimumSize"
 > &
+  SplitterVariantProps &
   BoxProps;
 
-function SplitterGroup({ style, ...props }: SplitterGroupProps) {
+// react-resizable-panels resets on double-click through its imperative API, which reports a programmatic change.
+function useDoubleClickResetIsUserInteraction(
+  groupElement: { current: HTMLDivElement | null },
+  onLayoutChanged: GroupProps["onLayoutChanged"],
+): GroupProps["onLayoutChanged"] {
+  const resetting = useRef(false);
+
+  useEffect(() => {
+    if (!onLayoutChanged) return;
+    const onDoubleClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Node) || !groupElement.current?.contains(event.target)) return;
+      resetting.current = true;
+      setTimeout(() => {
+        resetting.current = false;
+      });
+    };
+    window.addEventListener("dblclick", onDoubleClick, true);
+    return () => window.removeEventListener("dblclick", onDoubleClick, true);
+  }, [groupElement, onLayoutChanged]);
+
+  return (
+    onLayoutChanged &&
+    ((layout, details) =>
+      onLayoutChanged(
+        layout,
+        resetting.current ? { ...details, isUserInteraction: true } : details,
+      ))
+  );
+}
+
+function SplitterGroup({ style, elementRef, onLayoutChanged, ...props }: SplitterGroupProps) {
+  const groupElement = useRef<HTMLDivElement | null>(null);
+  const composedElementRef = useComposedRefs(elementRef, groupElement);
+  const reportLayoutChanged = useDoubleClickResetIsUserInteraction(groupElement, onLayoutChanged);
+
   const [sizeStyle, sizedProps] = splitInlineSizes(props, [
     "height",
     "maxHeight",
@@ -55,6 +92,8 @@ function SplitterGroup({ style, ...props }: SplitterGroupProps) {
     <RootProvider
       className={cx(splitter().root, css(cssProps), className)}
       style={groupStyle}
+      elementRef={composedElementRef}
+      onLayoutChanged={reportLayoutChanged}
       {...groupProps}
     />
   );
@@ -115,10 +154,19 @@ function SplitterPanel({
   );
 }
 
-export type SplitterSeparatorProps = Pick<SeparatorProps, "disabled" | "elementRef" | "id"> &
+export type SplitterSeparatorProps = Pick<
+  SeparatorProps,
+  "disabled" | "disableDoubleClick" | "elementRef" | "id"
+> &
   BoxProps;
 
-function SplitterSeparator({ disabled, elementRef, id, ...boxProps }: SplitterSeparatorProps) {
+function SplitterSeparator({
+  disabled,
+  disableDoubleClick,
+  elementRef,
+  id,
+  ...boxProps
+}: SplitterSeparatorProps) {
   return (
     <StyledResizeTrigger
       asChild
@@ -127,6 +175,7 @@ function SplitterSeparator({ disabled, elementRef, id, ...boxProps }: SplitterSe
     >
       <Separator
         disabled={disabled}
+        disableDoubleClick={disableDoubleClick}
         elementRef={elementRef}
         id={id}
       />

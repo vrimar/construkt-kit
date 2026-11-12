@@ -3,6 +3,8 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
 
+const labelColumn = "var(--field-label-width, {sizes.44})";
+
 export const field = defineSlotRecipe({
   className: "field",
   slots: [...fieldAnatomy.keys(), "labelAction"],
@@ -50,5 +52,29 @@ export const field = defineSlotRecipe({
       color: "fg.error",
       textStyle: "sm",
     },
+  },
+  variants: {
+    orientation: {
+      vertical: {},
+      horizontal: {
+        root: {
+          md: {
+            display: "grid",
+            gridTemplateColumns: `${labelColumn} minmax(0, 1fr)`,
+            columnGap: surface("0.75rem"),
+            alignItems: "center",
+            "& > *": { gridColumn: "2" },
+            "& > [data-part=label]": { gridColumn: "1", gridRow: "1" },
+            "&:has(> [data-part=label-action])": {
+              gridTemplateColumns: `${labelColumn} minmax(0, 1fr) auto`,
+            },
+            "& > [data-part=label-action]": { gridColumn: "3", gridRow: "1" },
+          },
+        },
+      },
+    },
+  },
+  defaultVariants: {
+    orientation: "vertical",
   },
 });

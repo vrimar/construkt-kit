@@ -1,7 +1,7 @@
 import { editableAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlInputText, controlPx, controlText } from "./control-size";
+import { controlInputText, controlPx, controlText, inputFont } from "./control-size";
 
 export const editable = defineSlotRecipe({
   className: "editable",
@@ -26,6 +26,9 @@ export const editable = defineSlotRecipe({
       },
       _hover: {
         bg: "colorPalette.plain.bg.hover",
+      },
+      _placeholderShown: {
+        color: "fg.subtle",
       },
     },
     input: {
@@ -70,6 +73,23 @@ export const editable = defineSlotRecipe({
       lg: {
         preview: { ...controlText("lg"), px: controlPx("lg"), py: "2.5" },
         input: { ...controlInputText("lg"), px: controlPx("lg"), py: "2.5" },
+      },
+      inherit: {
+        preview: {
+          font: "inherit",
+          px: "1.5",
+          py: "0.5",
+          mx: "-1.5",
+        },
+        input: {
+          font: "inherit",
+          fontSize: inputFont("1em"),
+          letterSpacing: "inherit",
+          px: "1.5",
+          py: "0.5",
+          mx: "-1.5",
+          width: "calc(100% + {spacing.3})",
+        },
       },
     },
   },
