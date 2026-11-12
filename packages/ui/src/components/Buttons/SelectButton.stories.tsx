@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 
 import { button } from "#styled-system/recipes";
 
-import { SelectButton } from ".";
+import { ButtonGroup, SelectButton } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
-import { VStack } from "../Layout";
+import { HStack, VStack } from "../Layout";
 
 const meta: Meta<typeof SelectButton> = {
   title: "Components/Buttons/SelectButton",
@@ -46,4 +47,81 @@ export const Sizes: Story = {
       )}
     />
   ),
+};
+
+export const Active: Story = {
+  render: () => (
+    <HStack gap="2">
+      <SelectButton
+        sublabel="Group by"
+        label="None"
+        hasValue
+      />
+      <SelectButton
+        active
+        sublabel="Group by"
+        label="Status"
+        hasValue
+      />
+    </HStack>
+  ),
+};
+
+const FILTER = "Open tasks assigned to me due this month";
+
+function ClearableDemo() {
+  const [filter, setFilter] = useState<string>();
+
+  return (
+    <SelectButton
+      maxW="72"
+      active={filter != null}
+      sublabel="Filter"
+      label={filter ?? "None"}
+      hasValue={filter != null}
+      onClick={() => setFilter(FILTER)}
+      onClear={filter == null ? undefined : () => setFilter(undefined)}
+      clearLabel="Clear filter"
+    />
+  );
+}
+
+export const Clearable: Story = {
+  render: () => <ClearableDemo />,
+};
+
+function StripDemo() {
+  const [filter, setFilter] = useState<string | undefined>(FILTER);
+
+  return (
+    <ButtonGroup
+      attached
+      size="sm"
+    >
+      <SelectButton
+        maxW="64"
+        active={filter != null}
+        sublabel="Filter"
+        label={filter ?? "None"}
+        hasValue={filter != null}
+        onClick={() => setFilter(FILTER)}
+        onClear={filter == null ? undefined : () => setFilter(undefined)}
+        clearLabel="Clear filter"
+      />
+      <SelectButton
+        sublabel="Group by"
+        label="Status"
+        hasValue
+      />
+      <SelectButton
+        sublabel="Owner"
+        label="All team members"
+        hasValue
+      />
+    </ButtonGroup>
+  );
+}
+
+export const Strip: Story = {
+  render: () => <StripDemo />,
 };

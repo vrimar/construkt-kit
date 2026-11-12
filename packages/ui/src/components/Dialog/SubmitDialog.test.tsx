@@ -208,7 +208,7 @@ describe("SubmitDialog", () => {
     );
     const submit = screen.getByRole<HTMLButtonElement>("button", { name: "Submit" });
     expect(submit.hasAttribute("data-loading")).toBe(true);
-    expect(submit.disabled).toBe(true);
+    expect(submit.getAttribute("aria-disabled")).toBe("true");
   });
 
   it("stays open while loading", async () => {

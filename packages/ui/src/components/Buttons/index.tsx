@@ -4,4 +4,5 @@ export * from "./DeleteButton";
 export * from "./EditButton";
 export * from "./IconButton";
 export * from "./SelectButton";
+export * from "./SplitButton";
 export * from "./TooltipIconButton";

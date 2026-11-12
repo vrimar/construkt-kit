@@ -26,7 +26,14 @@ function submitForm(field: HTMLTextAreaElement) {
       (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
       element.type === "submit",
   );
-  if (form && submitter && !submitter.disabled) form.requestSubmit(submitter);
+  if (
+    form &&
+    submitter &&
+    !submitter.disabled &&
+    submitter.getAttribute("aria-disabled") !== "true"
+  ) {
+    form.requestSubmit(submitter);
+  }
 }
 
 export const Textarea = ({

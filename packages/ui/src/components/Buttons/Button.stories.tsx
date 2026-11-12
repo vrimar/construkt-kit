@@ -3,9 +3,10 @@ import { Trash2 } from "lucide-react";
 
 import { button } from "#styled-system/recipes";
 
-import { Button } from ".";
+import { Button, TooltipIconButton } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack, Stack, Wrap } from "../Layout";
+import { Tooltip } from "../Tooltip";
 
 const meta: Meta<typeof Button> = {
   title: "Components/Buttons/Button",
@@ -31,6 +32,29 @@ export const LoadingWithText: Story = {
 
 export const Disabled: Story = {
   args: { disabled: true },
+};
+
+export const DisabledWithReason: Story = {
+  render: () => (
+    <HStack gap="2">
+      <Tooltip label="Only owners can publish">
+        <Button
+          disabled
+          focusableWhenDisabled
+        >
+          Publish
+        </Button>
+      </Tooltip>
+      <TooltipIconButton
+        variant="outline"
+        label="Delete (needs edit access)"
+        disabled
+        focusableWhenDisabled
+      >
+        <Trash2 />
+      </TooltipIconButton>
+    </HStack>
+  ),
 };
 
 export const Variants: Story = {
