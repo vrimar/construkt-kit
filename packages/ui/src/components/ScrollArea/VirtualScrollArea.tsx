@@ -1,7 +1,9 @@
 import {
   type Range,
   type VirtualItem,
+  type Virtualizer,
   defaultRangeExtractor,
+  observeElementOffset,
   useVirtualizer,
 } from "@tanstack/react-virtual";
 import {
@@ -18,6 +20,7 @@ import { Box } from "#styled-system/jsx";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useLatestRef } from "../../hooks/useLatestRef";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
 import { VirtualRows } from "./VirtualRows";
 
@@ -32,7 +35,10 @@ export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "childr
   children: (item: T, index: number, virtualItem: VirtualItem) => React.ReactNode;
   /** Key extractor. Defaults to the index. */
   getItemKey?: (index: number) => React.Key;
-  /** Content rendered before the virtualized list, inside the scroll container. */
+  /**
+   * Content rendered before the virtualized list, inside the scroll container. A sticky header
+   * needs a `zIndex`, since the rows come after it.
+   */
   header?: React.ReactNode;
   /** Ref to the scroll viewport element (e.g. for drag auto-scroll). */
   viewportRef?: Ref<HTMLDivElement>;
@@ -48,7 +54,36 @@ export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "childr
    * past the rendered window); cleared on unmount.
    */
   scrollToIndexRef?: RefObject<((index: number) => void) | undefined>;
+  /**
+   * Called as the list scrolls with `firstVisible`, the first item at least partly in view below
+   * `scrollPaddingStart`, and `firstUncut`, the first item whose top edge is in view; each is -1
+   * when there is none.
+   */
+  onVisibleItemsChange?: (items: VisibleItems) => void;
+  /**
+   * Px at the top of the viewport that an overlaying sticky header covers: items scrolled into
+   * view, by this list or by the browser, stop below it, and `firstVisible` skips items hidden
+   * under it. @default 0
+   */
+  scrollPaddingStart?: number;
 }
+
+export interface VisibleItems {
+  firstVisible: number;
+  firstUncut: number;
+}
+
+const findVisibleItems = (
+  instance: Virtualizer<HTMLDivElement, Element>,
+  coveredStart: number,
+): VisibleItems => {
+  const offset = instance.scrollOffset ?? 0;
+  const items = instance.getVirtualItems();
+  return {
+    firstVisible: items.find((item) => item.end > offset + coveredStart)?.index ?? -1,
+    firstUncut: items.find((item) => item.start >= offset)?.index ?? -1,
+  };
+};
 
 export const VirtualScrollArea = <T,>({
   items,
@@ -61,6 +96,8 @@ export const VirtualScrollArea = <T,>({
   viewportRef,
   keepMountedIndex,
   scrollToIndexRef,
+  onVisibleItemsChange,
+  scrollPaddingStart = 0,
   ...scrollAreaProps
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -112,6 +149,8 @@ export const VirtualScrollArea = <T,>({
     [keepMountedIndex],
   );
 
+  const visibleItemsRef = useLatestRef({ onVisibleItemsChange, scrollPaddingStart });
+
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
@@ -120,8 +159,26 @@ export const VirtualScrollArea = <T,>({
     getItemKey,
     rangeExtractor,
     scrollMargin,
-    scrollPaddingStart: scrollMargin,
+    scrollPaddingStart: scrollMargin + scrollPaddingStart,
+    // onChange only fires when the rendered range changes; firstVisible moves with every offset.
+    observeElementOffset: (instance, onOffset) =>
+      observeElementOffset(instance, (offset, isScrolling) => {
+        onOffset(offset, isScrolling);
+        const latest = visibleItemsRef.current;
+        latest.onVisibleItemsChange?.(findVisibleItems(instance, latest.scrollPaddingStart));
+      }),
+    onChange: (instance) => onVisibleItemsChange?.(findVisibleItems(instance, scrollPaddingStart)),
   });
+
+  useLayoutEffect(() => {
+    onVisibleItemsChange?.(findVisibleItems(virtualizer, scrollPaddingStart));
+  }, [onVisibleItemsChange, scrollPaddingStart, virtualizer]);
+
+  useLayoutEffect(() => {
+    const viewport = parentRef.current;
+    if (viewport)
+      viewport.style.scrollPaddingTop = scrollPaddingStart ? `${scrollPaddingStart}px` : "";
+  }, [scrollPaddingStart]);
 
   const fixedItemHeight = typeof itemHeight === "number" ? itemHeight : undefined;
   const measuredItemHeightRef = useRef(fixedItemHeight);

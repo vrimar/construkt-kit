@@ -16,13 +16,20 @@ vi.mock("../ScrollArea/VirtualScrollArea", () => ({
   VirtualScrollArea: ({
     items,
     children,
+    header,
     ...props
   }: {
     items: unknown[];
     children: (item: unknown, index: number) => React.ReactNode;
+    header?: React.ReactNode;
   }) => {
     virtualScrollAreaProps.current = props;
-    return <>{items.map((item, index) => children(item, index))}</>;
+    return (
+      <>
+        {header}
+        {items.map((item, index) => children(item, index))}
+      </>
+    );
   },
 }));
 
@@ -350,6 +357,53 @@ const deferred = <T,>() => {
   });
   return { promise, resolve, reject };
 };
+
+describe("TreeSelectList sticky branches and rename", () => {
+  it("pins the branch of the topmost visible row above the list", async () => {
+    renderList({
+      ...listOnly,
+      collection: fileTreeCollection,
+      defaultExpandedValue: ["src", "src/components"],
+      stickyBranches: true,
+    });
+    const onVisibleItemsChange = virtualScrollAreaProps.current.onVisibleItemsChange as (items: {
+      firstVisible: number;
+      firstUncut: number;
+    }) => void;
+    const rowIndex = (label: string) =>
+      Array.from(document.querySelectorAll('[data-scope="tree-view"][data-part]'))
+        .filter((el) => ["branch-control", "item"].includes(el.getAttribute("data-part") ?? ""))
+        .findIndex((el) => el.textContent?.includes(label) && !el.closest("[aria-hidden=true]"));
+
+    const inputRow = rowIndex("Input.tsx");
+    act(() => onVisibleItemsChange({ firstVisible: inputRow, firstUncut: inputRow }));
+
+    const pinned = document.querySelector<HTMLElement>("[aria-hidden=true][data-state=open]");
+    expect(pinned?.textContent).toBe("components");
+  });
+
+  it("renames the focused node on F2", async () => {
+    const onRenameComplete = vi.fn();
+    renderList({
+      ...listOnly,
+      collection: fileTreeCollection,
+      defaultExpandedValue: ["src", "src/components"],
+      canRename: () => true,
+      onRenameComplete,
+    });
+    await clickRow("Button.tsx");
+
+    fireEvent.keyDown(rowOf("Button.tsx"), { key: "F2" });
+    const input = await screen.findByDisplayValue("Button.tsx");
+    fireEvent.change(input, { target: { value: "Link.tsx" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await flush();
+
+    expect(onRenameComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ value: "src/components/Button.tsx", label: "Link.tsx" }),
+    );
+  });
+});
 
 describe("TreeSelectList search", () => {
   it("renders the virtual scroll area with vertical scrollbars only", () => {

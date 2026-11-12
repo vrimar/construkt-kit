@@ -4,19 +4,20 @@ import type {
   TreeViewLoadChildrenCompleteDetails,
   TreeViewLoadChildrenDetails,
   TreeViewLoadChildrenErrorDetails,
+  TreeViewRenameCompleteDetails,
 } from "@ark-ui/react/tree-view";
 import { useTreeView } from "@ark-ui/react/tree-view";
-import { SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
+import { ChevronRightIcon, SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Box, Flex } from "#styled-system/jsx";
-import type { TreeViewVariant } from "#styled-system/recipes";
+import { type TreeViewVariant, treeView } from "#styled-system/recipes";
 
 import { TooltipIconButton, type TooltipIconButtonProps } from "../Buttons";
 import { SelectionSearchField, getSelectAllState, normalizeQuery } from "../Listbox/managed";
 import type { SelectionSearchOptions } from "../Listbox/types";
-import { VirtualScrollArea } from "../ScrollArea";
+import { VirtualScrollArea, type VisibleItems } from "../ScrollArea";
 import {
   type TreeCanDropDetails,
   TreeViewDndProvider,
@@ -69,6 +70,22 @@ interface TreeSelectListBaseProps<TNode extends TreeNode> extends TreeSelectList
   renderNode?: (details: TreeNodeRenderDetails<TNode>) => ReactNode;
   /** Render actions aligned to the end of a row. */
   renderActions?: (details: TreeNodeRenderDetails<TNode>) => ReactNode;
+  /**
+   * `hover` shows row actions over the end of the row only while it is hovered, focused within or
+   * holding an open menu, and always on touch screens. @default "always"
+   */
+  actionsVisibility?: TreeViewVariant["actionsVisibility"];
+  /** Wrap node text onto up to two lines instead of truncating it. @default false */
+  clampText?: boolean;
+  /**
+   * Pins the branch heading of the topmost visible row above the list while its children scroll
+   * by. @default false
+   */
+  stickyBranches?: boolean;
+  /** Lets F2 rename the focused node when it returns true. */
+  canRename?: (details: TreeNodeRenderDetails<TNode>) => boolean;
+  /** Called when a rename is submitted, with the new label. */
+  onRenameComplete?: (details: TreeViewRenameCompleteDetails) => void;
   /**
    * Determine whether a node should show a checkbox. Select-all skips leaves it rejects. Defaults
    * to true for all nodes.
@@ -141,6 +158,7 @@ const TreeIndicatorSpacer = () => (
 interface TreeRowProps {
   isBranch: boolean;
   expanded: boolean;
+  renaming: boolean;
   loading: boolean;
   checkable: boolean;
   indexPath: number[];
@@ -158,6 +176,7 @@ const depthStyleFor = (indexPath: number[]): React.CSSProperties & { "--depth": 
 const TreeSelectRow = ({
   isBranch,
   expanded,
+  renaming,
   loading,
   checkable,
   indexPath,
@@ -196,22 +215,93 @@ const TreeSelectRow = ({
       />
     )}
     <Box
+      display="flex"
+      alignItems="center"
       flex="1"
       minWidth="0"
+      css={{ "& > *": { minWidth: "0" } }}
     >
-      {children}
+      {renaming ? <TreeView.NodeRenameInput /> : children}
     </Box>
-    {actions && (
-      <Box
-        flexShrink={0}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        {actions}
-      </Box>
-    )}
+    {actions && !renaming && <TreeView.NodeActions>{actions}</TreeView.NodeActions>}
   </TreeDndRow>
 );
+
+const samePath = (a: number[], b: number[]) =>
+  a.length === b.length && a.every((step, index) => step === b[index]);
+
+interface StickyBranchProps {
+  indexPath: number[];
+  size: TreeSize;
+  checkable: boolean;
+  children: ReactNode;
+  onActivate: () => void;
+  onHeightChange: (height: number) => void;
+}
+
+const StickyBranch = ({
+  indexPath,
+  size,
+  checkable,
+  children,
+  onActivate,
+  onHeightChange,
+}: StickyBranchProps) => {
+  const classes = treeView({ size });
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    onHeightChange(row.offsetHeight);
+    const observer = new ResizeObserver(() => onHeightChange(row.offsetHeight));
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [onHeightChange]);
+
+  return (
+    <Box
+      position="sticky"
+      top="0"
+      height="0"
+      zIndex="2"
+    >
+      <Box
+        ref={rowRef}
+        aria-hidden="true"
+        data-state="open"
+        className={classes.branchControl}
+        borderBottomWidth="1px"
+        borderColor="border"
+        css={{ "--tree-row-bg": "var(--surface-bg, {colors.bg})" }}
+        style={depthStyleFor(indexPath)}
+        onClick={onActivate}
+      >
+        <span
+          className={classes.branchIndicator}
+          data-state="open"
+        >
+          <ChevronRightIcon />
+        </span>
+        {checkable && (
+          <span
+            className={classes.nodeCheckbox}
+            style={{ visibility: "hidden" }}
+          />
+        )}
+        <Box
+          display="flex"
+          alignItems="center"
+          flex="1"
+          minWidth="0"
+          css={{ "& > *": { minWidth: "0" } }}
+        >
+          {children}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 export const TreeSelectList = <TNode extends TreeNode>({
   collection,
@@ -219,6 +309,11 @@ export const TreeSelectList = <TNode extends TreeNode>({
   onValueChange,
   renderNode,
   renderActions,
+  actionsVisibility,
+  clampText,
+  stickyBranches = false,
+  canRename,
+  onRenameComplete,
   isNodeCheckable,
   search,
   showSelectAll = true,
@@ -285,14 +380,29 @@ export const TreeSelectList = <TNode extends TreeNode>({
     );
   };
 
+  const toSourceIndexPath = useCallback(
+    (indexPath: number[]) =>
+      displayedCollection === collection
+        ? indexPath
+        : collection.getIndexPath(displayedCollection.getValuePath(indexPath)),
+    [collection, displayedCollection],
+  );
+
+  const nodeDetails = (node: TNode, indexPath: number[], isBranch: boolean) => ({
+    node,
+    indexPath: toSourceIndexPath(indexPath),
+    isBranch,
+  });
+
   // Filtering keeps a matching branch with no children, which then reads as a leaf.
   const leafValueSet = useMemo(() => new Set(collection.getDescendantValues([])), [collection]);
 
   const isLeafCheckable = useCallback(
     (node: TNode, indexPath: number[]) =>
       leafValueSet.has(displayedCollection.getNodeValue(node)) &&
-      (isNodeCheckable?.({ node, indexPath, isBranch: false }) ?? true),
-    [displayedCollection, isNodeCheckable, leafValueSet],
+      (isNodeCheckable?.({ node, indexPath: toSourceIndexPath(indexPath), isBranch: false }) ??
+        true),
+    [displayedCollection, isNodeCheckable, leafValueSet, toSourceIndexPath],
   );
 
   const selectableLeafValues = useMemo(() => {
@@ -321,7 +431,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
   const resolvedIsNodeCheckable = ({ node, indexPath, isBranch }: TreeNodeRenderDetails<TNode>) => {
     if (!isBranch) return isLeafCheckable(node, indexPath);
     if (!checkableBranches.has(displayedCollection.getNodeValue(node))) return false;
-    return isNodeCheckable?.({ node, indexPath, isBranch }) ?? true;
+    return isNodeCheckable?.(nodeDetails(node, indexPath, isBranch)) ?? true;
   };
 
   const selectAll = useMemo(
@@ -361,6 +471,14 @@ export const TreeSelectList = <TNode extends TreeNode>({
     scrollToIndexFn: (details) => scrollToIndexRef.current?.(details.index),
     selectedValue: [],
     onSelectionChange: () => {}, // No selection management (focus only) since it interferes with checkbox interactions
+    canRename:
+      canRename &&
+      ((node, indexPath) =>
+        canRename(nodeDetails(node, indexPath, displayedCollection.isBranchNode(node)))),
+    onRenameComplete:
+      onRenameComplete &&
+      ((details) =>
+        onRenameComplete({ ...details, indexPath: toSourceIndexPath(details.indexPath) })),
   });
 
   const visibleNodes = tree.getVisibleNodes();
@@ -371,6 +489,23 @@ export const TreeSelectList = <TNode extends TreeNode>({
       : visibleNodes.findIndex(
           ({ node }) => displayedCollection.getNodeValue(node) === focusedValue,
         );
+
+  const [firstVisibleIndex, setFirstVisibleIndex] = useState(-1);
+  const [firstUncutIndex, setFirstUncutIndex] = useState(-1);
+  const [stickyHeight, setStickyHeight] = useState<number>();
+  const handleVisibleItems = useCallback(({ firstVisible, firstUncut }: VisibleItems) => {
+    setFirstVisibleIndex(firstVisible);
+    setFirstUncutIndex(firstUncut);
+  }, []);
+  const firstVisible = stickyBranches ? visibleNodes[firstVisibleIndex] : undefined;
+  const stickyPath =
+    firstVisible && firstVisible.indexPath.length > 1 ? firstVisible.indexPath.slice(0, -1) : null;
+  const stickyIndex = stickyPath
+    ? visibleNodes.findIndex(({ indexPath }) => samePath(indexPath, stickyPath))
+    : -1;
+  const branchScrolledAway = firstUncutIndex < 0 || stickyIndex < firstUncutIndex;
+  const stickyEntry =
+    stickyIndex >= 0 && branchScrolledAway ? visibleNodes[stickyIndex] : undefined;
 
   // --- Drag and drop ---
   // Disabled during a query so rendered indexPaths match the source collection DnD mutates.
@@ -425,14 +560,48 @@ export const TreeSelectList = <TNode extends TreeNode>({
         scrollbars="vertical"
         measure
         p="2"
+        onVisibleItemsChange={stickyBranches ? handleVisibleItems : undefined}
+        scrollPaddingStart={
+          stickyBranches ? (stickyHeight ?? TREE_ROW_HEIGHT_ESTIMATE[size]) : undefined
+        }
+        header={
+          stickyEntry && (
+            <TreeView.NodeProvider
+              node={stickyEntry.node}
+              indexPath={stickyEntry.indexPath}
+            >
+              <StickyBranch
+                indexPath={stickyEntry.indexPath}
+                size={size}
+                checkable={resolvedIsNodeCheckable({
+                  node: stickyEntry.node,
+                  indexPath: stickyEntry.indexPath,
+                  isBranch: true,
+                })}
+                onHeightChange={setStickyHeight}
+                onActivate={() => {
+                  const stickyValue = displayedCollection.getNodeValue(stickyEntry.node);
+                  scrollToIndexRef.current?.(stickyIndex);
+                  requestAnimationFrame(() => tree.focus(stickyValue));
+                }}
+              >
+                {renderNode?.(nodeDetails(stickyEntry.node, stickyEntry.indexPath, true)) ?? (
+                  <TreeNodeLabel isBranch>
+                    {displayedCollection.stringifyNode(stickyEntry.node)}
+                  </TreeNodeLabel>
+                )}
+              </StickyBranch>
+            </TreeView.NodeProvider>
+          )
+        }
       >
         {({ node, indexPath }) => {
           const nodeState = tree.getNodeState({ node, indexPath });
           const nodeValue = displayedCollection.getNodeValue(node);
           const isBranch = nodeState.isBranch;
           const checkable = resolvedIsNodeCheckable({ node, indexPath, isBranch });
-          const renderedNode = renderNode?.({ node, indexPath, isBranch });
-          const renderedActions = renderActions?.({ node, indexPath, isBranch });
+          const renderedNode = renderNode?.(nodeDetails(node, indexPath, isBranch));
+          const renderedActions = renderActions?.(nodeDetails(node, indexPath, isBranch));
 
           return (
             <TreeView.NodeProvider
@@ -443,12 +612,13 @@ export const TreeSelectList = <TNode extends TreeNode>({
               <TreeSelectRow
                 isBranch={isBranch}
                 expanded={nodeState.expanded}
+                renaming={nodeState.renaming}
                 loading={lazyLoad.loadingValues.has(nodeValue)}
                 checkable={checkable}
                 indexPath={indexPath}
                 actions={renderedActions}
                 onPointerDown={(e) => {
-                  if (e.button !== 0) return;
+                  if (e.button !== 0 || nodeState.renaming) return;
                   tree.focus(nodeValue);
                 }}
                 onToggleChecked={() => toggleChecked(node, isBranch)}
@@ -498,6 +668,8 @@ export const TreeSelectList = <TNode extends TreeNode>({
       <TreeView.RootProvider
         value={tree as ReturnType<typeof useTreeView>}
         size={size}
+        actionsVisibility={actionsVisibility}
+        clampText={clampText}
       >
         {onCollectionChange ? (
           // Keep the provider mounted: toggling `enabled` must not remount the tree.

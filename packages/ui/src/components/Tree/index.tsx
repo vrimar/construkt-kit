@@ -21,7 +21,7 @@ export {
   TreeViewDndProvider,
   type TreeViewDndProviderProps,
 } from "./dnd/TreeDndContext";
-export { TreeDragPreview } from "./dnd/TreeDragPreview";
+export { DragPreview as TreeDragPreview } from "../Sortable/DragPreview";
 export { TreeDropIndicator } from "./dnd/TreeDropIndicator";
 export {
   applyTreeDrop,

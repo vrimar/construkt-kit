@@ -1,9 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { EllipsisIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { type TreeViewLoadChildrenDetails, TreeSelectList, createTreeCollection } from ".";
 import { useDebounceQuery } from "../../hooks";
+import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
+import { Menu } from "../Menu";
 
 const meta: Meta = {
   title: "Components/TreeSelectList",
@@ -105,6 +108,72 @@ export const WithoutToolbar: Story = {
   render: () => <BareTreeDemo />,
 };
 
+const longLabelCollection = createTreeCollection<DemoNode>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.label,
+  rootNode: {
+    id: "ROOT",
+    label: "",
+    children: [
+      {
+        id: "reports",
+        label: "Quarterly reports shared with the leadership team",
+        children: [
+          { id: "q1", label: "Q1 performance review with regional breakdowns" },
+          { id: "q2", label: "Q2 performance review" },
+          { id: "q3", label: "Q3 performance review with the revised forecast and commentary" },
+        ],
+      },
+    ],
+  },
+});
+
+function HoverActionsDemo() {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  return (
+    <Box
+      maxW="320px"
+      borderWidth="1px"
+      borderColor="border"
+      borderRadius="lg"
+    >
+      <TreeSelectList
+        collection={longLabelCollection}
+        value={selected}
+        onValueChange={setSelected}
+        search={{ showInput: false }}
+        showSelectAll={false}
+        listHeight="200px"
+        actionsVisibility="hover"
+        renderActions={({ node }) => (
+          <Menu.Root>
+            <Menu.Trigger asChild>
+              <IconButton
+                aria-label={`Actions for ${node.label}`}
+                size="2xs"
+                variant="plain"
+              >
+                <EllipsisIcon />
+              </IconButton>
+            </Menu.Trigger>
+            <Menu.Content>
+              <Menu.Item value="rename">Rename</Menu.Item>
+              <Menu.Item value="duplicate">Duplicate</Menu.Item>
+              <Menu.Item value="delete">Delete</Menu.Item>
+            </Menu.Content>
+          </Menu.Root>
+        )}
+      />
+    </Box>
+  );
+}
+
+/** Row actions cover the end of long labels only while the row is hovered or focused. */
+export const HoverActions: Story = {
+  render: () => <HoverActionsDemo />,
+};
+
 // --- Long list for virtual scroll testing ---
 
 function generateLargeTree(): DemoNode[] {
@@ -158,6 +227,52 @@ function LongListDemo() {
 
 export const LongList: Story = {
   render: () => <LongListDemo />,
+};
+
+function StickyBranchesDemo() {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  return (
+    <Box maxW="400px">
+      <TreeSelectList
+        collection={largeCollection}
+        value={selected}
+        onValueChange={setSelected}
+        listHeight="360px"
+        stickyBranches
+      />
+    </Box>
+  );
+}
+
+/** The branch of the topmost visible row stays pinned above the list; click it to jump back. */
+export const StickyBranches: Story = {
+  render: () => <StickyBranchesDemo />,
+};
+
+function RenameDemo() {
+  const [tree, setTree] = useState(collection);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  return (
+    <Box maxW="400px">
+      <TreeSelectList
+        collection={tree}
+        value={selected}
+        onValueChange={setSelected}
+        canRename={({ isBranch }) => !isBranch}
+        onRenameComplete={({ indexPath, label }) => {
+          const node = tree.at(indexPath);
+          if (node) setTree(tree.replace(indexPath, { ...node, label }));
+        }}
+      />
+    </Box>
+  );
+}
+
+/** Focus a leaf and press F2 to rename it; Enter saves, Escape cancels. */
+export const Rename: Story = {
+  render: () => <RenameDemo />,
 };
 
 interface LazyDemoNode {

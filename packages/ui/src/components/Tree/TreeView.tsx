@@ -25,7 +25,9 @@ const RootProvider = withProvider(
 const Tree = withContext(ArkTreeView.Tree, "tree");
 const Label = withContext(ArkTreeView.Label, "label");
 const Branch = withContext(ArkTreeView.Branch, "branch");
-const BranchControl = withContext(ArkTreeView.BranchControl, "branchControl");
+const BranchControl = withContext(ArkTreeView.BranchControl, "branchControl", {
+  defaultProps: { "data-reveal-group": "" },
+});
 const BranchTrigger = withContext(ArkTreeView.BranchTrigger, "branchTrigger");
 const BranchIndicator = withContext(ArkTreeView.BranchIndicator, "branchIndicator", {
   defaultProps: { children: <ChevronRightIcon /> },
@@ -33,7 +35,9 @@ const BranchIndicator = withContext(ArkTreeView.BranchIndicator, "branchIndicato
 const BranchText = withContext(ArkTreeView.BranchText, "branchText");
 const BranchContent = withContext(ArkTreeView.BranchContent, "branchContent");
 const BranchIndentGuide = withContext(ArkTreeView.BranchIndentGuide, "branchIndentGuide");
-const Item = withContext(ArkTreeView.Item, "item");
+const Item = withContext(ArkTreeView.Item, "item", {
+  defaultProps: { "data-reveal-group": "" },
+});
 const ItemIndicator = withContext(ArkTreeView.ItemIndicator, "itemIndicator");
 const ItemText = withContext(ArkTreeView.ItemText, "itemText");
 const NodeProvider = ArkTreeView.NodeProvider;
@@ -47,10 +51,40 @@ const NodeCheckbox = withContext(ArkTreeView.NodeCheckbox, "nodeCheckbox", {
     ),
   },
 });
-const NodeRenameInput = withContext(ArkTreeView.NodeRenameInput, "nodeRenameInput");
+const StyledNodeRenameInput = withContext(ArkTreeView.NodeRenameInput, "nodeRenameInput");
 // Not an Ark part — a drag-and-drop drop indicator that inherits the tree's size context.
 const DropIndicator = withContext(ark.div, "dropIndicator");
+const StyledNodeActions = withContext(ark.div, "nodeActions");
+const BranchCount = withContext(ark.span, "branchCount");
 export const FlatIndentGuide = withContext(ark.div, "branchIndentGuide");
+
+function NodeActions({ onClick, onKeyDown, ...props }: ComponentProps<typeof StyledNodeActions>) {
+  return (
+    <StyledNodeActions
+      {...props}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.(event);
+      }}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        onKeyDown?.(event);
+      }}
+    />
+  );
+}
+
+function NodeRenameInput({ onClick, ...props }: ComponentProps<typeof StyledNodeRenameInput>) {
+  return (
+    <StyledNodeRenameInput
+      {...props}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.(event);
+      }}
+    />
+  );
+}
 
 export type TreeViewRootProps = ComponentProps<typeof Root>;
 export type { TreeViewVariantProps };
@@ -63,6 +97,10 @@ export type { TreeViewVariantProps };
  * `DropIndicator` is a low-level styled slot for drag-and-drop that expects a
  * manually set `data-instruction` and inset — most consumers should use the
  * higher-level `TreeDropIndicator` (from `./dnd`) instead.
+ *
+ * `NodeActions` holds a row's trailing controls and keeps their clicks and keys from the row; the
+ * root's `actionsVisibility="hover"` reveals them with the row. `BranchCount` is a muted count at
+ * the end of a branch row.
  */
 export const TreeView = {
   Root,
@@ -74,6 +112,7 @@ export const TreeView = {
   BranchTrigger,
   BranchIndicator,
   BranchText,
+  BranchCount,
   BranchContent,
   BranchIndentGuide,
   Item,
@@ -83,6 +122,7 @@ export const TreeView = {
   NodeCheckbox,
   NodeCheckboxIndicator,
   NodeRenameInput,
+  NodeActions,
   DropIndicator,
   Context: TreeViewContext,
   NodeContext: TreeViewNodeContext,

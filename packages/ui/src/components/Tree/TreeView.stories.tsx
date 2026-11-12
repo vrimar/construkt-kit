@@ -218,6 +218,116 @@ export const WithDragAndDrop: StoryObj = {
   render: () => <DragAndDropExample />,
 };
 
+const sectionCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: "root",
+    name: "",
+    children: ["Design", "Engineering", "Marketing", "Sales"].map((section) => ({
+      id: section,
+      name: section,
+      children: Array.from({ length: 8 }, (_, index) => ({
+        id: `${section}-${index + 1}`,
+        name: `${section} file ${index + 1}`,
+      })),
+    })),
+  },
+});
+
+const renderWithCount = ({ node, isBranch }: TreeNodeRenderDetails<Node>) =>
+  isBranch ? (
+    <>
+      <TreeView.BranchText>{node.name}</TreeView.BranchText>
+      <TreeView.BranchCount>{node.children?.length}</TreeView.BranchCount>
+    </>
+  ) : (
+    <TreeView.ItemText>{node.name}</TreeView.ItemText>
+  );
+
+/** Each branch row sticks to the top of the scroll container while its children scroll past. */
+export const StickyBranches: StoryObj = {
+  render: () => (
+    <Box
+      maxW="320px"
+      h="280px"
+      overflowY="auto"
+      border="1px solid"
+      borderColor="border"
+      rounded="md"
+      px="2"
+      pb="2"
+    >
+      <TreeView.Root
+        collection={sectionCollection}
+        defaultExpandedValue={["Design", "Engineering", "Marketing", "Sales"]}
+        stickyBranches
+      >
+        <TreeView.Tree>
+          {sectionCollection.rootNode.children?.map((node, index) => (
+            <DraggableTreeNode
+              key={node.id}
+              node={node}
+              indexPath={[index]}
+              renderNode={renderWithCount}
+            />
+          ))}
+        </TreeView.Tree>
+      </TreeView.Root>
+    </Box>
+  ),
+};
+
+const longNameCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: "root",
+    name: "",
+    children: [
+      {
+        id: "redesign",
+        name: "Website redesign, phase 2 (research from March to April)",
+        children: [
+          { id: "interviews", name: "Interview notes from the first round of customer calls" },
+          { id: "sitemap", name: "Sitemap" },
+          { id: "comparison", name: "Comparison against the three nearest competitors by feature" },
+        ],
+      },
+    ],
+  },
+});
+
+/** Long names wrap onto two lines before truncating. */
+export const ClampedText: StoryObj = {
+  render: () => (
+    <Box
+      maxW="240px"
+      border="1px solid"
+      borderColor="border"
+      rounded="md"
+      p="2"
+    >
+      <TreeView.Root
+        collection={longNameCollection}
+        defaultExpandedValue={["redesign"]}
+        clampText
+      >
+        <TreeView.Tree>
+          {longNameCollection.rootNode.children?.map((node, index) => (
+            <DraggableTreeNode
+              key={node.id}
+              node={node}
+              indexPath={[index]}
+              renderNode={renderWithIcons}
+            />
+          ))}
+        </TreeView.Tree>
+      </TreeView.Root>
+    </Box>
+  ),
+};
+
 export const Sizes: StoryObj = {
   render: () => (
     <SizePreviewTable

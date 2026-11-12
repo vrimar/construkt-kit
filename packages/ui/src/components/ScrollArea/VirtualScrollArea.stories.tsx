@@ -61,6 +61,7 @@ export const WithHeader: Story = {
           borderColor="border"
           position="sticky"
           top="0"
+          zIndex="1"
         >
           <Text fontWeight="semibold">1 000 items</Text>
         </Box>

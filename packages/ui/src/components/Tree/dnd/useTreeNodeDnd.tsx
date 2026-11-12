@@ -8,20 +8,19 @@ import {
   dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/utils/combine";
-import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/pointer-outside-of-preview";
-import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/set-custom-native-drag-preview";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { createPortal, flushSync } from "react-dom";
+import { createPortal } from "react-dom";
 
 import { useLatestRef } from "../../../hooks/useLatestRef";
+import { DragPreview } from "../../Sortable/DragPreview";
+import { useNativeDragPreview } from "../../Sortable/useNativeDragPreview";
 import {
   readTreeDragSource,
   readTreeDropInstruction,
   TREE_DND_INSTANCE_KEY,
   useTreeDndContext,
 } from "./TreeDndContext";
-import { TreeDragPreview } from "./TreeDragPreview";
 import {
   canNestInto,
   getItemMode,
@@ -119,7 +118,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [instruction, setInstruction] = useState<TreeDropInstruction | null>(null);
-  const [previewContainer, setPreviewContainer] = useState<HTMLElement | null>(null);
+  const { container: previewContainer, onGenerateDragPreview } = useNativeDragPreview();
 
   const value = nodeState.value;
 
@@ -158,7 +157,10 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       event.preventDefault();
       event.stopPropagation();
       if (drop.instruction.type === "make-child") apiRef.current.expand([drop.targetValue]);
-      requestAnimationFrame(() => apiRef.current.focus(value));
+      requestAnimationFrame(() => {
+        apiRef.current.focus(value);
+        if (element.isConnected) element.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
     };
     element.addEventListener("keydown", handleKeyDown);
 
@@ -172,18 +174,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           [TREE_DND_INSTANCE_KEY]: instanceId,
           value,
         }),
-        onGenerateDragPreview: ({ nativeSetDragImage }) => {
-          // Always a compact offset chip (never the full-row native image) so target + indicator stay visible.
-          setCustomNativeDragPreview({
-            nativeSetDragImage,
-            getOffset: pointerOutsideOfPreview({ x: "16px", y: "8px" }),
-            render: ({ container }) => {
-              // flushSync so the portal is committed into `container` before pdnd snapshots it.
-              flushSync(() => setPreviewContainer(container));
-              return () => setPreviewContainer(null);
-            },
-          });
-        },
+        onGenerateDragPreview,
         onDragStart: () => setIsDragging(true),
         onDrop: () => setIsDragging(false),
       }),
@@ -262,13 +253,13 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       element.removeEventListener("keydown", handleKeyDown);
       cleanup();
     };
-  }, [element, dnd, value, apiRef, snapshotRef]);
+  }, [element, dnd, value, apiRef, snapshotRef, onGenerateDragPreview]);
 
   const dragPreview =
     previewContainer && dnd
       ? createPortal(
           dnd.renderDragPreview(value) ?? (
-            <TreeDragPreview
+            <DragPreview
               label={dnd.collectionRef.current.stringify(value) ?? ""}
               count={dnd.getDragValues(value).length}
             />

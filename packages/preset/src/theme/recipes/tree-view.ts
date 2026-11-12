@@ -4,9 +4,20 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 import { controlText } from "./control-size";
 
+const clampedRow = {
+  alignItems: "flex-start",
+  "& > :where(svg)": { marginBlock: "calc((1lh - var(--tree-icon-size)) / 2)" },
+};
+
+const clampedText = {
+  lineClamp: "2",
+  whiteSpace: "normal",
+  overflowWrap: "anywhere",
+};
+
 export const treeView = defineSlotRecipe({
   className: "tree-view",
-  slots: [...treeViewAnatomy.keys(), "dropIndicator"],
+  slots: [...treeViewAnatomy.keys(), "dropIndicator", "nodeActions", "branchCount"],
   staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
@@ -43,12 +54,13 @@ export const treeView = defineSlotRecipe({
       cursor: "pointer",
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
+      bg: "var(--tree-row-bg)",
       transition: "colors",
       _hover: {
-        bg: "bg.subtle",
+        "--tree-row-bg": "colors.bg.subtle",
       },
       _selected: {
-        bg: "bg.emphasized",
+        "--tree-row-bg": "colors.bg.emphasized",
       },
       focusVisibleRing: "inside",
       focusRingColor: "border.emphasized",
@@ -100,8 +112,7 @@ export const treeView = defineSlotRecipe({
       },
     },
     branchText: {
-      display: "inline-flex",
-      alignItems: "center",
+      display: "block",
       flex: "1",
       minWidth: "0",
       truncate: true,
@@ -131,12 +142,13 @@ export const treeView = defineSlotRecipe({
       cursor: "pointer",
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
+      bg: "var(--tree-row-bg)",
       transition: "colors",
       _hover: {
-        bg: "bg.subtle",
+        "--tree-row-bg": "colors.bg.subtle",
       },
       _selected: {
-        bg: "bg.emphasized",
+        "--tree-row-bg": "colors.bg.emphasized",
       },
       focusVisibleRing: "inside",
       focusRingColor: "border.emphasized",
@@ -161,8 +173,7 @@ export const treeView = defineSlotRecipe({
       },
     },
     itemText: {
-      display: "inline-flex",
-      alignItems: "center",
+      display: "block",
       flex: "1",
       minWidth: "0",
       truncate: true,
@@ -222,11 +233,92 @@ export const treeView = defineSlotRecipe({
         _before: { display: "none" },
       },
     },
+    nodeActions: {
+      flexShrink: "0",
+    },
+    nodeRenameInput: {
+      flex: "1",
+      minWidth: "0",
+      font: "inherit",
+      color: "fg",
+      bg: "bg",
+      px: "1",
+      borderWidth: "1px",
+      borderColor: "border.emphasized",
+      borderRadius: "sm",
+      outline: "none",
+      _focusVisible: { borderColor: "colorPalette.solid.bg" },
+    },
+    branchCount: {
+      flexShrink: "0",
+      marginInlineStart: "auto",
+      color: "fg.muted",
+      fontVariantNumeric: "tabular-nums",
+    },
   },
   defaultVariants: {
     size: "md",
+    actionsVisibility: "always",
   },
   variants: {
+    actionsVisibility: {
+      always: {},
+      hover: {
+        nodeActions: {
+          position: "absolute",
+          insetBlock: "0",
+          insetInlineEnd: "0",
+          display: "flex",
+          alignItems: "center",
+          paddingInlineEnd: "inherit",
+          borderRadius: "inherit",
+          bg: "var(--tree-row-bg, var(--surface-bg, {colors.bg}))",
+          transitionProperty: "opacity",
+          transitionDuration: "fast",
+          transitionTimingFunction: "default",
+          _before: {
+            content: '""',
+            position: "absolute",
+            insetBlock: "0",
+            insetInlineEnd: "100%",
+            width: "4",
+            backgroundImage:
+              "linear-gradient(to right, transparent, var(--tree-row-bg, var(--surface-bg, {colors.bg})))",
+            pointerEvents: "none",
+          },
+          _rtl: {
+            _before: {
+              backgroundImage:
+                "linear-gradient(to left, transparent, var(--tree-row-bg, var(--surface-bg, {colors.bg})))",
+            },
+          },
+          _unrevealed: {
+            opacity: "0",
+          },
+        },
+      },
+    },
+    stickyBranches: {
+      true: {
+        branchControl: {
+          position: "sticky",
+          top: "var(--tree-sticky-offset, 0)",
+          zIndex: "calc(var(--depth) + 1)",
+          bg: "var(--tree-row-bg, var(--surface-bg, {colors.bg}))",
+        },
+      },
+    },
+    clampText: {
+      true: {
+        branchControl: clampedRow,
+        item: clampedRow,
+        branchIndicator: { height: "1lh" },
+        itemIndicator: { height: "1lh" },
+        nodeCheckbox: { marginBlock: "calc((1lh - var(--tree-checkbox-size)) / 2)" },
+        branchText: clampedText,
+        itemText: clampedText,
+      },
+    },
     size: {
       sm: {
         tree: {
@@ -243,7 +335,8 @@ export const treeView = defineSlotRecipe({
           pe: "1.5",
         },
         nodeCheckbox: {
-          boxSize: "3",
+          "--tree-checkbox-size": "sizes.3",
+          boxSize: "var(--tree-checkbox-size)",
           _icon: { boxSize: "2" },
         },
       },
@@ -261,7 +354,8 @@ export const treeView = defineSlotRecipe({
           pe: "2",
         },
         nodeCheckbox: {
-          boxSize: "4",
+          "--tree-checkbox-size": "sizes.4",
+          boxSize: "var(--tree-checkbox-size)",
           _icon: { boxSize: "3" },
         },
       },

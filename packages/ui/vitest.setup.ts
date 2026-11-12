@@ -34,6 +34,10 @@ if (!("scrollTo" in Element.prototype)) {
   Element.prototype.scrollTo = () => {};
 }
 
+if (!("scrollIntoView" in Element.prototype)) {
+  Element.prototype.scrollIntoView = () => {};
+}
+
 globalThis.matchMedia ??= createMatchMedia(false);
 
 afterEach(cleanup);

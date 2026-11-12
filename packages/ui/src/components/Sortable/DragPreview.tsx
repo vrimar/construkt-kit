@@ -5,7 +5,7 @@ import { Box } from "#styled-system/jsx";
  * offset from the pointer, keeps the drop target and drop indicator visible — unlike a
  * full-row preview under the cursor.
  */
-export function TreeDragPreview({ label, count = 1 }: { label: string; count?: number }) {
+export function DragPreview({ label, count = 1 }: { label: string; count?: number }) {
   return (
     <Box
       display="inline-flex"

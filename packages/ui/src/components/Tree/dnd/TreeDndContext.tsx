@@ -1,13 +1,12 @@
 import { type TreeCollection, type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
-import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import type { ReactNode, RefObject } from "react";
-import { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useId, useMemo } from "react";
 
-import { VisuallyHidden } from "#styled-system/jsx";
-
+import { useAnnouncer } from "../../../hooks/useAnnouncer";
 import { useLatestRef } from "../../../hooks/useLatestRef";
+import { useDragAutoScroll } from "../../Sortable/useDragAutoScroll";
 import {
   applyTreeDrop,
   getKeyboardDropTarget,
@@ -167,8 +166,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
   children,
 }: TreeViewDndProviderProps<T>) {
   const instanceId = useId();
-  const [announcement, setAnnouncement] = useState("");
-  const announceToggle = useRef(false);
+  const { announce, liveRegion } = useAnnouncer();
 
   const tree = useTreeViewContext();
   const treeRef = useLatestRef(tree);
@@ -184,16 +182,9 @@ export function TreeViewDndProvider<T extends TreeNode>({
     renderDragPreview,
     getDropAnnouncement,
     isNodeDraggable,
-    autoScrollSpeed,
   });
 
   const [contextValue, commitDrop] = useMemo(() => {
-    // A toggled zero-width space makes screen readers re-announce identical messages.
-    const announce = (message: string) => {
-      announceToggle.current = !announceToggle.current;
-      setAnnouncement(announceToggle.current ? message : `${message}\u200b`);
-    };
-
     const canDrag = (value: string) => {
       const collection = collectionRef.current;
       const node = collection.findNode(value);
@@ -255,7 +246,16 @@ export function TreeViewDndProvider<T extends TreeNode>({
     };
 
     return [context, commit] as const;
-  }, [instanceId, enabled, collectionRef, treeRef, blockReparent, autoExpandDelay, handlers]);
+  }, [
+    instanceId,
+    enabled,
+    collectionRef,
+    treeRef,
+    blockReparent,
+    autoExpandDelay,
+    handlers,
+    announce,
+  ]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -288,26 +288,17 @@ export function TreeViewDndProvider<T extends TreeNode>({
     });
   }, [instanceId, enabled, contextValue, commitDrop, handlers, treeRef]);
 
-  // Edge auto-scroll; re-binds when the scroll element mounts/changes, constrained to vertical.
-  useEffect(() => {
-    if (!enabled || !scrollElement) return;
-    return autoScrollForElements({
-      element: scrollElement,
-      getAllowedAxis: () => "vertical",
-      getConfiguration: () => ({ maxScrollSpeed: handlers.current.autoScrollSpeed }),
-    });
-  }, [enabled, scrollElement, handlers]);
+  useDragAutoScroll({
+    element: scrollElement,
+    axis: "vertical",
+    enabled,
+    maxScrollSpeed: autoScrollSpeed,
+  });
 
   return (
     <TreeDndContext.Provider value={contextValue as TreeDndContextValue}>
       {children}
-      <VisuallyHidden
-        aria-live="polite"
-        aria-atomic="true"
-        role="status"
-      >
-        {announcement}
-      </VisuallyHidden>
+      {liveRegion}
     </TreeDndContext.Provider>
   );
 }
