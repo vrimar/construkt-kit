@@ -1,12 +1,7 @@
 import { createOxlintConfig } from "@construkt-kit/config/oxlint";
 
 export default createOxlintConfig({
-  ignorePatterns: [
-    "**/dist/**",
-    "**/storybook-static/**",
-    "**/styled-system/**",
-    "**/test/gen/**",
-  ],
+  ignorePatterns: ["**/dist/**", "**/storybook-static/**", "**/styled-system/**", "**/test/gen/**"],
   overrides: [
     {
       files: ["**/bin/**", "**/scripts/**"],

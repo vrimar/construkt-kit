@@ -12,7 +12,7 @@
     "test": "turbo run test",
     "lint": "oxlint packages apps --format=default",
     "lint:fix": "oxlint packages apps --format=default --fix",
-    "format": "turbo run format",
+    "format": "turbo run format && oxfmt scripts oxlint.config.ts oxfmt.config.mts",
     "typecheck": "turbo run typecheck",
     "storybook": "turbo run storybook --filter @construkt-kit/storybook",
     "build-storybook": "turbo run build --filter @construkt-kit/storybook",

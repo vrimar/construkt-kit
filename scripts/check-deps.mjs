@@ -5,14 +5,32 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const SKIP_DIRS = new Set(["node_modules", "dist", ".turbo", ".panda", "styled-system", "storybook-static"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  ".turbo",
+  ".panda",
+  "styled-system",
+  "storybook-static",
+]);
 const SOURCE = /\.(ts|tsx|mjs|cjs|js|jsx)$/;
 
 // Imported for side effects or by tooling convention, so no import statement names them.
 const ASSUMED_USED = new Set([
-  "tsdown", "vitest", "oxfmt", "oxlint", "oxlint-tsgolint", "typescript", "turbo",
-  "publint", "@arethetypeswrong/cli", "jsdom", "@types/react", "@types/react-dom",
-  "@types/node", "postcss",
+  "tsdown",
+  "vitest",
+  "oxfmt",
+  "oxlint",
+  "oxlint-tsgolint",
+  "typescript",
+  "turbo",
+  "publint",
+  "@arethetypeswrong/cli",
+  "jsdom",
+  "@types/react",
+  "@types/react-dom",
+  "@types/node",
+  "postcss",
 ]);
 
 // Storybook discovers these through glob patterns in .storybook/main.ts, never an import.
@@ -34,7 +52,8 @@ function walk(dir, out = []) {
 const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/i;
 
 function packageNameOf(specifier) {
-  if (specifier.startsWith(".") || specifier.startsWith("/") || specifier.startsWith("@/")) return null;
+  if (specifier.startsWith(".") || specifier.startsWith("/") || specifier.startsWith("@/"))
+    return null;
   if (specifier.startsWith("node:")) return null;
   const parts = specifier.split("/");
   const name = specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];

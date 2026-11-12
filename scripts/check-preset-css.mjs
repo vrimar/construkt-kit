@@ -31,11 +31,10 @@ export default defineConfig({
 
 let css;
 try {
-  execFileSync(
-    "npx",
-    ["panda", "cssgen", "--config", "panda.check.ts", "--outfile", cssPath],
-    { cwd: pandaCwd, stdio: "pipe" },
-  );
+  execFileSync("npx", ["panda", "cssgen", "--config", "panda.check.ts", "--outfile", cssPath], {
+    cwd: pandaCwd,
+    stdio: "pipe",
+  });
   css = fs.readFileSync(cssPath, "utf8");
 } finally {
   fs.rmSync(configPath, { force: true });
@@ -49,8 +48,17 @@ const declarationValue = /^\s*[^\s:{}]+:\s*(.+);/;
 const customProperty = /--[\w\\.-]+/g;
 const escapedDot = /[\w-]\\\./;
 const TIMING_KEYWORDS = new Set([
-  "linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end",
-  "inherit", "initial", "unset", "revert",
+  "linear",
+  "ease",
+  "ease-in",
+  "ease-out",
+  "ease-in-out",
+  "step-start",
+  "step-end",
+  "inherit",
+  "initial",
+  "unset",
+  "revert",
 ]);
 const timingFn = /^\s*(animation|transition)-timing-function:\s*(.+);/;
 
@@ -73,7 +81,8 @@ css.split("\n").forEach((line, i) => {
 
 // Ark sets data-focus-visible on only some parts, so _focusVisible must also match :focus-visible.
 const NARROWED_FOCUS_VISIBLE = /(?<!:focus-visible,\s*)\[data-focus-visible\]/;
-const TABS_FOCUS_VISIBLE = /^\s*\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)\s*\{/m;
+const TABS_FOCUS_VISIBLE =
+  /^\s*\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)\s*\{/m;
 const focusRings = css
   .split("\n")
   .filter((line) => NARROWED_FOCUS_VISIBLE.test(line))
@@ -84,9 +93,20 @@ if (!TABS_FOCUS_VISIBLE.test(css)) {
 
 const KNOWN_PROPERTIES = new Set(knownCssProperties.all);
 // An outline/border shorthand without a line style resets the style to none and draws nothing.
-const STROKE_SHORTHAND = /^(outline|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?)$/;
+const STROKE_SHORTHAND =
+  /^(outline|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?)$/;
 const LINE_STYLES = new Set([
-  "none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "auto",
+  "none",
+  "hidden",
+  "dotted",
+  "dashed",
+  "solid",
+  "double",
+  "groove",
+  "ridge",
+  "inset",
+  "outset",
+  "auto",
 ]);
 const NO_STROKE = new Set(["0", "inherit", "initial", "unset", "revert", "revert-layer"]);
 const invalidDeclarations = [];
@@ -134,7 +154,7 @@ const parseStates = (selector) => {
   const base = selector.match(/^\.[\w-]+/)?.[0];
   if (!base) return null;
   const states = [];
-  for (let rest = selector.slice(base.length); rest; ) {
+  for (let rest = selector.slice(base.length); rest;) {
     const name = Object.keys(STATES).find((key) => rest.startsWith(STATES[key]));
     if (!name) return null;
     states.push(name);
@@ -205,42 +225,64 @@ for (const ch of css) {
   }
 }
 const overlaps = [...variantValues]
-  .filter(([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1)
+  .filter(
+    ([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1,
+  )
   .map(([id, byKey]) => `${id} set by variants ${[...byKey.keys()].join(", ")}`);
 
 const stateConflicts = [...stateValues].flatMap(([id, byCombo]) =>
   CO_OCCURRING.filter(([a, b]) => {
     const one = byCombo.get(a);
     const other = byCombo.get(b);
-    return one && other && [...one].join() !== [...other].join() && !byCombo.has([a, b].sort().join("+"));
+    return (
+      one && other && [...one].join() !== [...other].join() && !byCombo.has([a, b].sort().join("+"))
+    );
   }).map(([a, b]) => `${id} differs for ${a} and ${b}`),
 );
 
-if (failures.length || invalidDeclarations.length || overlaps.length || focusRings.length || stateConflicts.length) {
+if (
+  failures.length ||
+  invalidDeclarations.length ||
+  overlaps.length ||
+  focusRings.length ||
+  stateConflicts.length
+) {
   if (failures.length) {
     console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
     for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
     console.error("\nCheck the token exists in packages/preset/src/theme/tokens/.\n");
   }
   if (invalidDeclarations.length) {
-    console.error(`\n${invalidDeclarations.length} declaration(s) the browser drops or draws nothing for:\n`);
+    console.error(
+      `\n${invalidDeclarations.length} declaration(s) the browser drops or draws nothing for:\n`,
+    );
     for (const d of invalidDeclarations) console.error(`  ${d}`);
-    console.error("\nUse Panda's real utilities (e.g. focusVisibleRing, not Tailwind ring*) and give strokes a style.\n");
+    console.error(
+      "\nUse Panda's real utilities (e.g. focusVisibleRing, not Tailwind ring*) and give strokes a style.\n",
+    );
   }
   if (overlaps.length) {
     console.error(`\n${overlaps.length} property set by more than one variant key:\n`);
     for (const o of overlaps) console.error(`  ${o}`);
-    console.error("\nSet a CSS variable in each variant and resolve the property once in the base.\n");
+    console.error(
+      "\nSet a CSS variable in each variant and resolve the property once in the base.\n",
+    );
   }
   if (focusRings.length) {
-    console.error(`\n${focusRings.length} focus-visible selector(s) narrower than Panda's focusVisible:\n`);
+    console.error(
+      `\n${focusRings.length} focus-visible selector(s) narrower than Panda's focusVisible:\n`,
+    );
     for (const r of focusRings) console.error(`  ${r}`);
     console.error("\nDon't override focusVisible; add a separately named condition instead.\n");
   }
   if (stateConflicts.length) {
-    console.error(`\n${stateConflicts.length} state pair(s) whose winner depends on Panda's rule order:\n`);
+    console.error(
+      `\n${stateConflicts.length} state pair(s) whose winner depends on Panda's rule order:\n`,
+    );
     for (const c of stateConflicts) console.error(`  ${c}`);
-    console.error("\nNest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.\n");
+    console.error(
+      "\nNest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.\n",
+    );
   }
   process.exit(1);
 }
