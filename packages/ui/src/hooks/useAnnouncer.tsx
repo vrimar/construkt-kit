@@ -2,8 +2,17 @@ import { useCallback, useRef, useState } from "react";
 
 import { VisuallyHidden } from "#styled-system/jsx";
 
-/** A polite live region and a function that announces a message through it. */
-export function useAnnouncer() {
+export interface UseAnnouncerOptions {
+  /** `"assertive"` interrupts what the screen reader is saying. Defaults to `"polite"`. */
+  politeness?: "polite" | "assertive";
+}
+
+/**
+ * A visually hidden live region and a function that announces a message through it. Render
+ * `liveRegion` once, before the first announcement: a region that mounts with its text is not
+ * reliably read.
+ */
+export function useAnnouncer({ politeness = "polite" }: UseAnnouncerOptions = {}) {
   const [message, setMessage] = useState("");
   const toggle = useRef(false);
 
@@ -15,9 +24,9 @@ export function useAnnouncer() {
 
   const liveRegion = (
     <VisuallyHidden
-      aria-live="polite"
+      aria-live={politeness}
       aria-atomic="true"
-      role="status"
+      role={politeness === "assertive" ? "alert" : "status"}
     >
       {message}
     </VisuallyHidden>

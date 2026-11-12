@@ -11,6 +11,7 @@ const attachRef = <T>(ref: Ref<T> | undefined, node: T | null): (() => void) => 
   };
 };
 
+/** One ref callback that attaches a node to both refs and runs their cleanups when it detaches. */
 export const useComposedRefs = <T>(
   first: Ref<T> | undefined,
   second: Ref<T> | undefined,

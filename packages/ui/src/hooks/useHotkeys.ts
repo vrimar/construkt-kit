@@ -1,4 +1,9 @@
-import { useEffect } from "react";
+import {
+  type KeyboardEventHandler,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+} from "react";
 
 import { isComposingEvent } from "../components/imeComposition";
 import { matchesShortcut } from "../foundations/shortcuts";
@@ -32,6 +37,17 @@ const isEditable = (target: EventTarget | null) => {
   return target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
 };
 
+const matchHotkey = (
+  event: KeyboardEvent,
+  shortcuts: string | readonly string[],
+  enableOnEditable: boolean,
+) => {
+  if (event.defaultPrevented || isComposingEvent(event)) return undefined;
+  if (!enableOnEditable && isEditable(event.target)) return undefined;
+  const list = typeof shortcuts === "string" ? [shortcuts] : shortcuts;
+  return list.find((item) => matchesShortcut(event, item));
+};
+
 /**
  * Calls `handler` when a keydown anywhere in the document matches one of `shortcuts`, written as
  * {@link matchesShortcut} reads them (`"Mod+K"`, `"Shift+?"`). Skips IME composition, events another
@@ -47,11 +63,8 @@ export function useHotkeys(
   useEffect(() => {
     if (!enabled) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || isComposingEvent(event)) return;
       const latest = latestRef.current;
-      if (!latest.enableOnEditable && isEditable(event.target)) return;
-      const list = typeof latest.shortcuts === "string" ? [latest.shortcuts] : latest.shortcuts;
-      const shortcut = list.find((item) => matchesShortcut(event, item));
+      const shortcut = matchHotkey(event, latest.shortcuts, latest.enableOnEditable);
       if (shortcut === undefined) return;
       if (latest.preventDefault) event.preventDefault();
       latest.handler(event, shortcut);
@@ -59,4 +72,28 @@ export function useHotkeys(
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [enabled, latestRef]);
+}
+
+/**
+ * The element-scoped {@link useHotkeys}: an `onKeyDown` handler that calls `handler` when a keydown on
+ * the element or inside it matches one of `shortcuts`. Matching and options are the same.
+ */
+export function useHotkeyHandler<T extends Element = Element>(
+  shortcuts: string | readonly string[],
+  handler: (event: ReactKeyboardEvent<T>, shortcut: string) => void,
+  { enabled = true, enableOnEditable = false, preventDefault = true }: UseHotkeysOptions = {},
+): KeyboardEventHandler<T> {
+  const latestRef = useLatestRef({ shortcuts, handler, enabled, enableOnEditable, preventDefault });
+
+  return useCallback(
+    (event: ReactKeyboardEvent<T>) => {
+      const latest = latestRef.current;
+      if (!latest.enabled) return;
+      const shortcut = matchHotkey(event.nativeEvent, latest.shortcuts, latest.enableOnEditable);
+      if (shortcut === undefined) return;
+      if (latest.preventDefault) event.preventDefault();
+      latest.handler(event, shortcut);
+    },
+    [latestRef],
+  );
 }

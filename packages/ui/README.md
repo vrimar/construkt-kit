@@ -38,11 +38,15 @@
 
 | Hook                                    | Description                                                     |
 | --------------------------------------- | --------------------------------------------------------------- |
+| `useAnnouncer`                          | Live region + `announce(message)`; `politeness` polite/assertive |
 | `useAutoFocus`                          | Auto-focus + optional select on mount                           |
+| `useComposedRefs`                       | One ref callback that feeds two refs                            |
 | `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes |
 | `useDebounceQuery`                      | Immediate + debounced search query state                        |
 | `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files  |
 | `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed        |
+| `useHotkeyHandler`                      | `useHotkeys` scoped to an element: returns its `onKeyDown`      |
+| `useLatestRef`                          | Ref to the last committed value, for stable callbacks           |
 | `useMediaQuery`                         | Subscribe to a CSS media query                                  |
 | `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll    |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
