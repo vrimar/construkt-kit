@@ -3,7 +3,17 @@ import { isCssProperty } from "./styled-system/jsx/is-valid-prop.js";
 const PASCAL_CASE = /^[A-Z]/;
 const PROPS_TYPE = /Props$/;
 const STYLE_PROPS = new Set(["colorPalette"]);
-const UTILITY_TYPES = new Set(["Omit", "Pick", "Partial", "Readonly", "Required"]);
+const COMPONENT_TYPES = new Set(["FC", "FunctionComponent", "ComponentType"]);
+const UTILITY_TYPES = new Set([
+  "Omit",
+  "Pick",
+  "Partial",
+  "Readonly",
+  "Required",
+  "PropsWithChildren",
+  "WithRef",
+  ...COMPONENT_TYPES,
+]);
 const COMBINATORS = new Set(["TSIntersectionType", "TSUnionType", "TSParenthesizedType"]);
 const FUNCTIONS = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 
@@ -29,9 +39,31 @@ function isComponentParam(annotation) {
   );
 }
 
+const typeReferenceName = ({ typeName }) =>
+  typeName.type === "TSQualifiedName" ? typeName.right.name : typeName.name;
+
+function isComponentVariable(annotation) {
+  const id = annotation.parent;
+  const type = annotation.typeAnnotation;
+  return (
+    id.type === "Identifier" &&
+    id.parent.type === "VariableDeclarator" &&
+    PASCAL_CASE.test(id.name) &&
+    type.type === "TSTypeReference" &&
+    COMPONENT_TYPES.has(typeReferenceName(type))
+  );
+}
+
+const isComponentAnnotation = (annotation) =>
+  isComponentParam(annotation) || isComponentVariable(annotation);
+
+const heritageName = ({ expression }) =>
+  expression.type === "MemberExpression" ? expression.property.name : expression.name;
+
 const isUtilityName = (name) => typeof name === "string" && UTILITY_TYPES.has(name);
 const isUtilityType = (node) =>
-  node.type === "TSTypeReference" && isUtilityName(node.typeName.name);
+  (node.type === "TSTypeReference" && isUtilityName(typeReferenceName(node))) ||
+  (node.type === "TSInterfaceHeritage" && isUtilityName(heritageName(node)));
 
 function typeOwner(node) {
   let owner = node.parent;
@@ -48,15 +80,19 @@ function typeOwner(node) {
 function referencedTypes(type) {
   if (type.type === "TSParenthesizedType") return referencedTypes(type.typeAnnotation);
   if (COMBINATORS.has(type.type)) return type.types.flatMap(referencedTypes);
-  if (type.type !== "TSTypeReference" || type.typeName.type !== "Identifier") return [];
-  if (!isUtilityType(type)) return [type.typeName.name];
-  return type.typeArguments ? referencedTypes(type.typeArguments.params[0]) : [];
+  if (type.type !== "TSTypeReference") return [];
+  if (isUtilityType(type)) {
+    return type.typeArguments ? referencedTypes(type.typeArguments.params[0]) : [];
+  }
+  return type.typeName.type === "Identifier" ? [type.typeName.name] : [];
 }
 
-function heritageTypes({ expression, typeArguments }) {
-  if (expression.type !== "Identifier") return [];
-  if (!isUtilityName(expression.name)) return [expression.name];
-  return typeArguments ? referencedTypes(typeArguments.params[0]) : [];
+function heritageTypes(heritage) {
+  const { expression, typeArguments } = heritage;
+  if (isUtilityType(heritage)) {
+    return typeArguments ? referencedTypes(typeArguments.params[0]) : [];
+  }
+  return expression.type === "Identifier" ? [expression.name] : [];
 }
 
 const noStylePropName = {
@@ -77,6 +113,21 @@ const noStylePropName = {
     const report = (key, name) =>
       context.report({ node: key, messageId: "styleProp", data: { name } });
 
+    const checkMember = (node) => {
+      const name = node.computed ? null : propName(node.key);
+      if (!name || STYLE_PROPS.has(name) || !isCssProperty(name)) return;
+      const owner =
+        node.parent.type === "TSInterfaceBody" ? node.parent.parent : typeOwner(node.parent);
+      if (owner.type === "TSTypeAnnotation") {
+        if (isComponentAnnotation(owner)) report(node.key, name);
+      } else if (
+        owner.type === "TSInterfaceDeclaration" ||
+        owner.type === "TSTypeAliasDeclaration"
+      ) {
+        members.push({ key: node.key, name, owner: owner.id.name });
+      }
+    };
+
     return {
       TSInterfaceDeclaration(node) {
         declare(node.id.name, node.extends.flatMap(heritageTypes));
@@ -85,23 +136,11 @@ const noStylePropName = {
         declare(node.id.name, referencedTypes(node.typeAnnotation));
       },
       TSTypeAnnotation(node) {
-        if (!isComponentParam(node)) return;
+        if (!isComponentAnnotation(node)) return;
         for (const name of referencedTypes(node.typeAnnotation)) componentTypes.add(name);
       },
-      TSPropertySignature(node) {
-        const name = node.computed ? null : propName(node.key);
-        if (!name || STYLE_PROPS.has(name) || !isCssProperty(name)) return;
-        const owner =
-          node.parent.type === "TSInterfaceBody" ? node.parent.parent : typeOwner(node.parent);
-        if (owner.type === "TSTypeAnnotation") {
-          if (isComponentParam(owner)) report(node.key, name);
-        } else if (
-          owner.type === "TSInterfaceDeclaration" ||
-          owner.type === "TSTypeAliasDeclaration"
-        ) {
-          members.push({ key: node.key, name, owner: owner.id.name });
-        }
-      },
+      TSPropertySignature: checkMember,
+      TSMethodSignature: checkMember,
       "Program:exit"() {
         const propsTypes = new Set();
         const visit = (name) => {
