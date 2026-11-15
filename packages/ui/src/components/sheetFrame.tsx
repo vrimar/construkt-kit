@@ -17,6 +17,7 @@ import { Sheet } from "./Sheet";
 
 export interface SheetApi {
   open: boolean;
+  inline?: boolean;
   setOpen: (open: boolean) => void;
   getTriggerProps: () => { id?: string | undefined };
 }
@@ -151,20 +152,35 @@ export function createSheetCapableContent<C extends ElementType>(
   Content: C,
   useSheetApi: () => SheetApi,
 ): PortalledContentComponent<C> {
+  const ContentElement: ElementType = Content;
   const AnchoredContent = createPortalledContent(Positioner, Content);
 
-  function SheetContent(props: WithRef<ComponentProps<C> & PortalledProps>) {
+  function InlineContent({
+    portalled: _inlineNeverPortals,
+    portalRef: _inlineHasNoPortal,
+    ...rest
+  }: WithRef<ComponentProps<C> & PortalledProps>) {
     return (
-      <SheetOverlayContent
-        {...(props as Record<string, unknown>)}
-        api={useSheetApi()}
-        Content={Content}
+      <ContentElement
+        animation="none"
+        {...rest}
       />
     );
   }
 
   return function SheetCapableContent(props) {
-    if (useOverlayMode() === "sheet") return <SheetContent {...props} />;
+    const api = useSheetApi();
+    const mode = useOverlayMode();
+    if (api.inline) return <InlineContent {...props} />;
+    if (mode === "sheet") {
+      return (
+        <SheetOverlayContent
+          {...(props as Record<string, unknown>)}
+          api={api}
+          Content={Content}
+        />
+      );
+    }
     return <AnchoredContent {...props} />;
   };
 }

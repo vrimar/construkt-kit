@@ -70,9 +70,10 @@ function useDoubleClickResetIsUserInteraction(
   );
 }
 
-function SplitterGroup({ style, elementRef, onLayoutChanged, ...props }: SplitterGroupProps) {
+function SplitterGroup({ ref, style, elementRef, onLayoutChanged, ...props }: SplitterGroupProps) {
   const groupElement = useRef<HTMLDivElement | null>(null);
-  const composedElementRef = useComposedRefs(elementRef, groupElement);
+  const callerElementRef = useComposedRefs(elementRef, ref);
+  const composedElementRef = useComposedRefs(callerElementRef, groupElement);
   const reportLayoutChanged = useDoubleClickResetIsUserInteraction(groupElement, onLayoutChanged);
 
   const [sizeStyle, sizedProps] = splitInlineSizes(props, [
@@ -116,6 +117,7 @@ export type SplitterPanelProps = Pick<
   BoxProps;
 
 function SplitterPanel({
+  ref,
   children,
   collapsedSize,
   collapsible,
@@ -130,6 +132,8 @@ function SplitterPanel({
   panelRef,
   ...boxProps
 }: SplitterPanelProps) {
+  const composedElementRef = useComposedRefs(elementRef, ref);
+
   return (
     <StyledPanel
       asChild
@@ -140,7 +144,7 @@ function SplitterPanel({
         collapsible={collapsible}
         defaultSize={defaultSize}
         disabled={disabled}
-        elementRef={elementRef}
+        elementRef={composedElementRef}
         groupResizeBehavior={groupResizeBehavior}
         id={id}
         maxSize={maxSize}
@@ -161,12 +165,15 @@ export type SplitterSeparatorProps = Pick<
   BoxProps;
 
 function SplitterSeparator({
+  ref,
   disabled,
   disableDoubleClick,
   elementRef,
   id,
   ...boxProps
 }: SplitterSeparatorProps) {
+  const composedElementRef = useComposedRefs(elementRef, ref);
+
   return (
     <StyledResizeTrigger
       asChild
@@ -176,7 +183,7 @@ function SplitterSeparator({
       <Separator
         disabled={disabled}
         disableDoubleClick={disableDoubleClick}
-        elementRef={elementRef}
+        elementRef={composedElementRef}
         id={id}
       />
     </StyledResizeTrigger>

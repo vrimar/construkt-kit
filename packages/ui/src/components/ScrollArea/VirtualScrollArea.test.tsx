@@ -44,13 +44,33 @@ const rowBox = (label: string) => screen.getByText(label).parentElement as HTMLE
 
 const header = <div data-header>Header</div>;
 
+const stickyHeader = (
+  <div
+    data-header
+    style={{ position: "sticky", top: 0 }}
+  >
+    Header
+  </div>
+);
+
 const mockHeaderHeight = (initial: number) => {
   let height = initial;
   const rect = vi
     .spyOn(HTMLElement.prototype, "getBoundingClientRect")
     .mockImplementation(function (this: HTMLElement) {
       const top = this.previousElementSibling?.hasAttribute("data-header") ? height : 0;
-      return { x: 0, y: top, top, bottom: top, left: 0, right: 0, width: 0, height: 0 } as DOMRect;
+      const boxHeight = this.hasAttribute("data-header") ? height : 0;
+      const bottom = top + boxHeight;
+      return {
+        x: 0,
+        y: top,
+        top,
+        bottom,
+        left: 0,
+        right: 0,
+        width: 0,
+        height: boxHeight,
+      } as DOMRect;
     });
   onTestFinished(() => rect.mockRestore());
   return (next: number) => {
@@ -204,7 +224,7 @@ describe("VirtualScrollArea", () => {
     });
     const viewportRef = createRef<HTMLDivElement>();
     const scrollToIndexRef = { current: undefined as ((index: number) => void) | undefined };
-    renderRows({ header, scrollToIndexRef, viewportRef });
+    renderRows({ header: stickyHeader, scrollToIndexRef, viewportRef });
 
     const scrollTop = vi.spyOn(Element.prototype, "scrollTop", "get").mockReturnValue(1900);
     onTestFinished(() => scrollTop.mockRestore());

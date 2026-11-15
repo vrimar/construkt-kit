@@ -112,21 +112,30 @@ export const VirtualScrollArea = <T,>({
 
   const [listElement, setListElement] = useState<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
+  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
 
   // Measures the list's offset instead of wrapping `header`: a wrapper would confine a sticky header.
   useLayoutEffect(() => {
     const viewport = parentRef.current;
     const content = listElement?.parentElement;
     if (!viewport || !listElement || !content) return;
-    const measureScrollMargin = () =>
+    const measureHeader = () => {
       setScrollMargin(
         listElement.getBoundingClientRect().top -
           viewport.getBoundingClientRect().top -
           viewport.clientTop +
           viewport.scrollTop,
       );
-    measureScrollMargin();
-    const observer = new ResizeObserver(measureScrollMargin);
+      let stickyHeight = 0;
+      for (let el = listElement.previousElementSibling; el; el = el.previousElementSibling) {
+        if (getComputedStyle(el).position === "sticky") {
+          stickyHeight += el.getBoundingClientRect().height;
+        }
+      }
+      setStickyHeaderHeight(stickyHeight);
+    };
+    measureHeader();
+    const observer = new ResizeObserver(measureHeader);
     observer.observe(content);
     return () => observer.disconnect();
   }, [listElement]);
@@ -159,7 +168,7 @@ export const VirtualScrollArea = <T,>({
     getItemKey,
     rangeExtractor,
     scrollMargin,
-    scrollPaddingStart: scrollMargin + scrollPaddingStart,
+    scrollPaddingStart: stickyHeaderHeight + scrollPaddingStart,
     // onChange only fires when the rendered range changes; firstVisible moves with every offset.
     observeElementOffset: (instance, onOffset) =>
       observeElementOffset(instance, (offset, isScrolling) => {
@@ -186,6 +195,10 @@ export const VirtualScrollArea = <T,>({
     if (measuredItemHeightRef.current === fixedItemHeight) return;
     measuredItemHeightRef.current = fixedItemHeight;
     virtualizer.measure();
+    // measureElement compares against measurements that stay stale until read.
+    virtualizer.getVirtualItems();
+    // measure() drops real row sizes too; a mounted row that doesn't resize is never re-measured.
+    virtualizer.elementsCache.forEach((element) => virtualizer.measureElement(element));
   }, [virtualizer, fixedItemHeight]);
 
   useEffect(() => {

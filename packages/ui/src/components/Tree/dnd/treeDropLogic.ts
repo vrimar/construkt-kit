@@ -61,18 +61,35 @@ export function applyTreeDrop<T extends TreeNode>(
   if (!anchor) return null;
 
   const movedNodes = movedPaths.flatMap((path) => collection.at(path) ?? []);
+  const sourceParentValues = movedPaths.flatMap((path) =>
+    collection.getValuePath(path.slice(0, -1)).slice(-1),
+  );
   const remaining = collection.remove(movedPaths);
   const anchorPath = remaining.getIndexPath(anchor.value);
   if (!anchorPath?.length) return null;
 
-  const next =
+  const inserted =
     anchor.position === "after"
       ? remaining.insertAfter(anchorPath, movedNodes)
       : remaining.insertBefore(
           anchor.position === "inside" ? [...anchorPath, 0] : anchorPath,
           movedNodes,
         );
+  const next = inserted && keepBranches(inserted, sourceParentValues);
   return next && !next.isEqual(collection) ? next : null;
+}
+
+// Removing a branch's last child leaves `children: []`, which zag reads as a leaf.
+function keepBranches<T extends TreeNode>(
+  collection: TreeCollection<T>,
+  values: string[],
+): TreeCollection<T> {
+  return values.reduce((current, value) => {
+    const indexPath = current.getIndexPath(value);
+    const node = indexPath ? current.at(indexPath) : undefined;
+    if (!indexPath || node === undefined || current.isBranchNode(node)) return current;
+    return current.replace(indexPath, { ...node, childrenCount: 0 });
+  }, collection);
 }
 
 export function canNestInto<T extends TreeNode>(

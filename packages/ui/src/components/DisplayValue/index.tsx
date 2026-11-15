@@ -47,7 +47,7 @@ export const DisplayValue = <T = never,>(props: DisplayValueProps<T>) => {
 const isString = (value: unknown): value is string => typeof value === "string";
 
 const isNotEmpty = <T,>(value: T | null | undefined): value is NonNullable<T> => {
-  if (value == null) return false;
+  if (value == null || Number.isNaN(value)) return false;
   if (isString(value) || Array.isArray(value)) return value.length > 0;
   return true;
 };

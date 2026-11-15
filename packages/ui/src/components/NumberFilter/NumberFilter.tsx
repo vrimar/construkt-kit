@@ -70,11 +70,11 @@ function deriveValue(
 }
 
 const isSameValue = (a: NumberFilterValue | undefined, b: NumberFilterValue | undefined) =>
-  a?.operator === b?.operator && Object.is(a?.value, b?.value) && Object.is(a?.to, b?.to);
+  a?.operator === b?.operator && a?.value === b?.value && a?.to === b?.to;
 
 const textMatches = (text: string, operand: number | undefined) => {
   const parsed = parseOperand(text);
-  return parsed !== undefined && Object.is(parsed, operand);
+  return parsed !== undefined && parsed === operand;
 };
 
 const isInvalidText = (text: string) => text.trim() !== "" && parseOperand(text) === undefined;
@@ -152,6 +152,7 @@ export const NumberFilter = ({
 
   const handleOperatorChange = (next: NumberFilterOperator) => {
     setOperator(next);
+    if (next !== "between") setToText("");
     const candidate = deriveValue(next, fromText, toText);
     if (candidate && !isSameValue(candidate, appliedValue)) emit(candidate);
   };

@@ -53,6 +53,7 @@ export function useManagedListbox<T, V extends SelectionValue>({
       selectionMode,
       deselectable: selectionMode === "single" ? false : undefined,
       disallowSelectAll: true,
+      typeahead: false,
       scrollToIndexFn: virtualized
         ? (details: ListboxScrollToIndexDetails) => scrollToIndexRef.current?.(details.index)
         : scrollToIndexFn,

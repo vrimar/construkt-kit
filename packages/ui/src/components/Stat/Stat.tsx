@@ -1,4 +1,5 @@
 import { ark } from "@ark-ui/react/factory";
+import { useLocaleContext } from "@ark-ui/react/locale";
 import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
@@ -43,12 +44,13 @@ interface StatValueTextProps extends StatValueTextBaseProps {
 }
 
 function StatValueText({ ref, value, formatOptions, children, ...rest }: StatValueTextProps) {
+  const { locale } = useLocaleContext();
   return (
     <StatValueTextRoot
       {...rest}
       ref={ref}
     >
-      {children || (value != null && new Intl.NumberFormat(undefined, formatOptions).format(value))}
+      {children || (value != null && new Intl.NumberFormat(locale, formatOptions).format(value))}
     </StatValueTextRoot>
   );
 }

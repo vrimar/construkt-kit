@@ -13,6 +13,7 @@ import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 import {
   type ComponentProps,
   type ElementType,
+  type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
   type RefObject,
@@ -29,6 +30,7 @@ import { type ComboboxVariantProps, combobox } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import type { PortalledProps, StyledRootProps, WithRef } from "../../types";
+import { isComposingEvent } from "../imeComposition";
 import { createItemIndicator } from "../itemIndicator";
 import {
   type MobileLayoutProps,
@@ -219,15 +221,33 @@ function SheetInputProxy(props: InputProps) {
   );
 }
 
-function ComboboxInput({ ref, ...props }: WithRef<InputProps, HTMLInputElement>) {
+// zag's Enter selects and then clicks the link, selecting twice in a combobox that stays open.
+function clickHighlightedLinkOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+  if (event.key !== "Enter" || event.defaultPrevented) return;
+  if (event.ctrlKey || event.shiftKey || isComposingEvent(event)) return;
+  const input = event.currentTarget;
+  if (input.getAttribute("aria-expanded") !== "true") return;
+  const id = input.getAttribute("aria-activedescendant");
+  const item = id ? input.ownerDocument.getElementById(id) : null;
+  if (!item?.matches("a[href]")) return;
+  event.preventDefault();
+  queueMicrotask(() => item.click());
+}
+
+function ComboboxInput({ ref, onKeyDown, ...props }: WithRef<InputProps, HTMLInputElement>) {
   const sheetInput = useContext(SheetInputHostContext);
   const [, inputProps] = splitCssProps(props);
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    onKeyDown?.(event);
+    clickHighlightedLinkOnEnter(event);
+  };
 
   if (useOverlayMode() !== "sheet" || sheetInput == null) {
     return (
       <Input
         ref={ref}
         {...props}
+        onKeyDown={handleKeyDown}
       />
     );
   }
@@ -242,6 +262,7 @@ function ComboboxInput({ ref, ...props }: WithRef<InputProps, HTMLInputElement>)
             {...inputProps}
             name={undefined}
             form={undefined}
+            onKeyDown={handleKeyDown}
           />,
           sheetInput.host,
         )}

@@ -1,5 +1,6 @@
 import { useEnvironmentContext } from "@ark-ui/react/environment";
 import { useListboxContext } from "@ark-ui/react/listbox";
+import { usePresenceContext } from "@ark-ui/react/presence";
 import { type JSX, type RefObject, useContext, useEffect, useRef, useState } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
@@ -32,6 +33,7 @@ import { SelectContent, SelectSimpleBody, SelectTrigger, selectListParts } from 
 import type { SelectProps, SelectRootProps, SelectSimpleProps } from "./Select.types";
 
 const ITEM_SELECTOR = '[data-scope="listbox"][data-part="item"]';
+const LIST_SELECTOR = '[role="listbox"]';
 const CONTENT_SELECTOR = '[data-scope="popover"][data-part="content"]';
 
 function findItem(target: EventTarget, highlighted: boolean) {
@@ -40,6 +42,9 @@ function findItem(target: EventTarget, highlighted: boolean) {
     ? target.closest(CONTENT_SELECTOR)?.querySelector(`${ITEM_SELECTOR}[data-highlighted]`)
     : target.closest(ITEM_SELECTOR);
 }
+
+const isInList = (target: EventTarget) =>
+  target instanceof Element && target.closest(LIST_SELECTOR) != null;
 
 interface SelectHighlightSyncProps {
   open: boolean;
@@ -57,12 +62,24 @@ function SelectHighlightSync({
 }: SelectHighlightSyncProps) {
   const listbox = useListboxContext();
   const environment = useEnvironmentContext();
+  const { present } = usePresenceContext();
   const listboxRef = useLatestRef(listbox);
   const { highlightedValue } = listbox;
+  const shown = open && present;
 
   useEffect(() => {
-    if (open) listboxRef.current.clearHighlightedValue();
-  }, [listboxRef, open]);
+    if (!shown) return;
+    const { clearHighlightedValue, collection, value } = listboxRef.current;
+    clearHighlightedValue();
+    const [selected] = collection.sort(value.filter((item) => collection.has(item)));
+    if (selected == null) return;
+    // A frame lets the popover place itself before the highlight scrolls the selection into view.
+    const frame = requestAnimationFrame(() => {
+      pointerRef.current = false;
+      listboxRef.current.highlightValue(selected);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [listboxRef, pointerRef, shown]);
 
   useEffect(() => {
     if (highlightedValue == null || pointerRef.current) return;
@@ -198,7 +215,8 @@ function SelectRoot<T, V extends SelectionValue>(props: SelectRootProps<T, V, Se
           {...listboxRootProps}
           onClick={(event) => closeOnReselect(findItem(event.target, false))}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !isComposingEvent(event))
+            if (isComposingEvent(event)) return;
+            if (event.key === "Enter" || (event.key === " " && isInList(event.target)))
               closeOnReselect(findItem(event.target, true));
           }}
           onKeyDownCapture={() => {

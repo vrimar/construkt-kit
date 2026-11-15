@@ -79,6 +79,7 @@ export function createDialogParts(
 
     return (
       <StyledButton
+        type={props.asChild ? undefined : "button"}
         ref={ref}
         {...props}
         onClick={(e) => {

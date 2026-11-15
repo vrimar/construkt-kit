@@ -76,4 +76,5 @@ export * from "./Toolbar";
 export * from "./Tooltip";
 export * from "./Tree";
 export type { MobileLayout, MobileLayoutProps } from "./overlayPresentation";
+export { LocaleProvider } from "@ark-ui/react/locale";
 export { Portal } from "@ark-ui/react/portal";

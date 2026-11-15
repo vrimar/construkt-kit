@@ -4,10 +4,18 @@ import type {
   TreeViewLoadChildrenCompleteDetails,
   TreeViewLoadChildrenDetails,
   TreeViewLoadChildrenErrorDetails,
+  TreeViewNodeState,
   TreeViewRenameCompleteDetails,
 } from "@ark-ui/react/tree-view";
 import { useTreeView } from "@ark-ui/react/tree-view";
-import { ChevronRightIcon, SquareCheckIcon, SquareIcon, SquareMinusIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  MinusIcon,
+  SquareCheckIcon,
+  SquareIcon,
+  SquareMinusIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
@@ -131,10 +139,10 @@ type TreeSelectListLoadProps<TNode extends TreeNode> =
   | { loadChildren?: never; onLoadChildrenComplete?: never; onLoadChildrenError?: never }
   | {
       /**
-       * Loads a branch's children when it is expanded. A node needs loading while it has
-       * `childrenCount` set, no `children` in `collection` and no finished load; a `collection` not
-       * returned by `onLoadChildrenComplete` starts afresh. The branch stays collapsed until the
-       * load finishes, then opens even if it came back empty.
+       * Loads a branch's children when it is expanded. A node needs loading while it has a
+       * non-zero `childrenCount`, no `children` in `collection` and no finished load; a
+       * `collection` not returned by `onLoadChildrenComplete` starts afresh. The branch stays
+       * collapsed until the load finishes, then opens even if it came back empty.
        */
       loadChildren: (details: TreeViewLoadChildrenDetails<TNode>) => Promise<TNode[]>;
       /** Receives `collection` with the loaded `children` merged in; pass it back as `collection`. */
@@ -160,8 +168,11 @@ interface TreeRowProps {
   expanded: boolean;
   renaming: boolean;
   loading: boolean;
+  disabled: boolean;
   checkable: boolean;
+  checked: TreeViewNodeState["checked"];
   indexPath: number[];
+  setSize: number;
   children: ReactNode;
   actions: ReactNode | undefined;
   onPointerDown: (e: React.PointerEvent) => void;
@@ -178,8 +189,11 @@ const TreeSelectRow = ({
   expanded,
   renaming,
   loading,
+  disabled,
   checkable,
+  checked,
   indexPath,
+  setSize,
   children,
   actions,
   onPointerDown,
@@ -191,6 +205,10 @@ const TreeSelectRow = ({
     role={isBranch ? "treeitem" : undefined}
     aria-expanded={isBranch ? expanded : undefined}
     aria-level={isBranch ? indexPath.length : undefined}
+    aria-setsize={setSize}
+    aria-posinset={indexPath[indexPath.length - 1] + 1}
+    aria-disabled={disabled || undefined}
+    aria-checked={checkable ? (checked === "indeterminate" ? "mixed" : checked) : undefined}
     onPointerDown={onPointerDown}
     onKeyDown={(e) => {
       if (!checkable || e.target !== e.currentTarget) return;
@@ -205,6 +223,10 @@ const TreeSelectRow = ({
     {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
     {checkable && (
       <TreeView.NodeCheckbox
+        aria-hidden
+        data-state={
+          checked === "indeterminate" ? "indeterminate" : checked ? "checked" : "unchecked"
+        }
         onClick={(e) => {
           // Bails out zag's own toggle, which would also check unselectable leaves.
           e.preventDefault();
@@ -212,7 +234,9 @@ const TreeSelectRow = ({
           e.currentTarget.closest<HTMLElement>("[role=treeitem]")?.focus({ preventScroll: true });
           onToggleChecked();
         }}
-      />
+      >
+        {checked === "indeterminate" ? <MinusIcon /> : checked && <CheckIcon />}
+      </TreeView.NodeCheckbox>
     )}
     <Box
       display="flex"
@@ -439,11 +463,20 @@ export const TreeSelectList = <TNode extends TreeNode>({
     [selectableLeafValues, value],
   );
 
-  const toggleChecked = (node: TNode, isBranch: boolean) => {
-    if (displayedCollection.getNodeDisabled(node)) return;
+  const selectableLeavesOf = (node: TNode, isBranch: boolean) => {
     const nodeValue = displayedCollection.getNodeValue(node);
     const leafValues = isBranch ? displayedCollection.getDescendantValues(nodeValue) : [nodeValue];
-    const selectable = leafValues.filter((leafValue) => selectableLeafSet.has(leafValue));
+    return leafValues.filter((leafValue) => selectableLeafSet.has(leafValue));
+  };
+
+  const branchCheckedState = (node: TNode): TreeViewNodeState["checked"] => {
+    const { allSelected, someSelected } = getSelectAllState(value, selectableLeavesOf(node, true));
+    return allSelected ? true : someSelected ? "indeterminate" : false;
+  };
+
+  const toggleChecked = (node: TNode, isBranch: boolean) => {
+    if (displayedCollection.getNodeDisabled(node)) return;
+    const selectable = selectableLeavesOf(node, isBranch);
     if (selectable.length) onValueChange(getSelectAllState(value, selectable).toggle());
   };
 
@@ -467,6 +500,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
     onCheckedChange: (details) => handleCheckedChange(details.checkedValue),
     expandedValue: expansion.visibleExpandedValue,
     onExpandedChange: (details) => handleExpandedChange(details.expandedValue),
+    focusedValue,
     onFocusChange: (details) => setFocusedValue(details.focusedValue),
     scrollToIndexFn: (details) => scrollToIndexRef.current?.(details.index),
     selectedValue: [],
@@ -482,13 +516,18 @@ export const TreeSelectList = <TNode extends TreeNode>({
   });
 
   const visibleNodes = tree.getVisibleNodes();
-  // With nothing focused yet, the tree's tab stop is its first row.
   const focusedIndex =
     focusedValue === null
-      ? 0
+      ? -1
       : visibleNodes.findIndex(
           ({ node }) => displayedCollection.getNodeValue(node) === focusedValue,
         );
+  if (focusedValue !== null && focusedIndex < 0) setFocusedValue(null);
+  // Matches zag's tab stop while nothing is focused.
+  const tabStopIndex =
+    focusedIndex >= 0
+      ? focusedIndex
+      : visibleNodes.findIndex(({ node }) => !displayedCollection.getNodeDisabled(node));
 
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(-1);
   const [firstUncutIndex, setFirstUncutIndex] = useState(-1);
@@ -556,7 +595,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
         maxHeight={listHeight}
         viewportRef={setScrollViewport}
         scrollToIndexRef={scrollToIndexRef}
-        keepMountedIndex={focusedIndex >= 0 ? focusedIndex : undefined}
+        keepMountedIndex={tabStopIndex >= 0 ? tabStopIndex : undefined}
         scrollbars="vertical"
         measure
         p="2"
@@ -614,8 +653,11 @@ export const TreeSelectList = <TNode extends TreeNode>({
                 expanded={nodeState.expanded}
                 renaming={nodeState.renaming}
                 loading={lazyLoad.loadingValues.has(nodeValue)}
+                disabled={nodeState.disabled}
                 checkable={checkable}
+                checked={checkable && (isBranch ? branchCheckedState(node) : nodeState.checked)}
                 indexPath={indexPath}
+                setSize={displayedCollection.getSiblingNodes(indexPath).length}
                 actions={renderedActions}
                 onPointerDown={(e) => {
                   if (e.button !== 0 || nodeState.renaming) return;

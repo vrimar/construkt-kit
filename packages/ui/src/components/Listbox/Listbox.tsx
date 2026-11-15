@@ -400,10 +400,12 @@ interface ManagedListProps<T, V extends SelectionValue> extends Omit<
 > {
   managed: ManagedListbox<T, V>;
   contentProps?: HTMLStyledProps<"div">;
+  typeahead?: boolean;
 }
 
 export function ManagedList<T, V extends SelectionValue>({
   managed,
+  typeahead = true,
   loading,
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
   renderItem,
@@ -416,6 +418,8 @@ export function ManagedList<T, V extends SelectionValue>({
 }: ManagedListProps<T, V>) {
   const { controller, selectionMode, virtual, scrollToIndexRef, inputRef } = managed;
   const { collection, groups, grouped } = controller;
+  const api = useListboxContext();
+  const typeaheadRef = useRef({ keysSoFar: "", timer: -1 });
   // State, not a ref: the rows' layout effects run before this ancestor's ref attaches.
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
   const renderRow = (item: T) => {
@@ -437,12 +441,30 @@ export function ManagedList<T, V extends SelectionValue>({
   const {
     ref: contentRef,
     onKeyDown,
+    onKeyDownCapture,
     ...listContentProps
   } = useSearchFocusRetention(
     inputRef,
     listMaxHeight == null ? contentProps : { ...contentProps, maxHeight: listMaxHeight },
   );
   const listRef = useComposedRefs(setScrollElement, contentRef);
+
+  const handleKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>) => {
+    onKeyDownCapture?.(event);
+    if (!typeahead || event.defaultPrevented || api.disabled) return;
+    if (event.target !== event.currentTarget) return;
+    if (event.key.length !== 1 || event.ctrlKey || event.metaKey) return;
+    const state = typeaheadRef.current;
+    if (event.key === " " && state.keysSoFar === "") return;
+    event.preventDefault();
+    // zag's Space picks the highlighted option whenever its own typeahead is off.
+    if (event.key === " ") event.stopPropagation();
+    const match = collection.search(event.key, {
+      state,
+      currentValue: api.highlightedValue,
+    });
+    if (match != null) api.highlightValue(match);
+  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
@@ -487,6 +509,7 @@ export function ManagedList<T, V extends SelectionValue>({
       <Content
         {...listContentProps}
         ref={listRef}
+        onKeyDownCapture={handleKeyDownCapture}
         onKeyDown={handleKeyDown}
       >
         {renderRows()}
@@ -527,6 +550,7 @@ function ListboxSimple<T, V extends SelectionValue>(
     search = true,
     contentCss,
     scrollToIndexFn,
+    typeahead,
     ...listboxProps
   } = props;
   const [listOptions, rest] = splitManagedListOptions<T, V, typeof listboxProps>(listboxProps);
@@ -559,6 +583,7 @@ function ListboxSimple<T, V extends SelectionValue>(
       />
       <ManagedList
         managed={managed}
+        typeahead={typeahead}
         {...listOptions}
         contentProps={{ css: contentCss }}
       />

@@ -58,13 +58,13 @@ function AlertComponent({
       {...rest}
     >
       {startElement || <Indicator>{icon ?? (StatusIcon && <StatusIcon />)}</Indicator>}
-      {children ? (
-        <Content>
-          <Title>{title}</Title>
-          <Description>{children}</Description>
-        </Content>
-      ) : (
+      {title && !children ? (
         <Title flex="1">{title}</Title>
+      ) : (
+        <Content>
+          {title ? <Title>{title}</Title> : null}
+          {children ? <Description>{children}</Description> : null}
+        </Content>
       )}
       {endElement}
       {closable && (

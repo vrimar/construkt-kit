@@ -75,7 +75,7 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     const node = source.findNode(value);
     return (
       node !== undefined &&
-      source.getNodeChildrenCount(node) != null &&
+      (source.getNodeChildrenCount(node) ?? 0) > 0 &&
       source.getNodeChildren(node).length === 0 &&
       !getLoaded(sourceRef.current, collection).has(value)
     );

@@ -52,9 +52,11 @@ export const Loader = ({
     return (
       <Span display="contents">
         <AbsoluteCenter display="inline-flex">{spinner}</AbsoluteCenter>
+        {/* visibility would empty the accessible name; display: contents gives opacity no box. */}
         <Span
-          visibility="hidden"
           display="contents"
+          color="transparent"
+          css={{ "& *": { opacity: "0" } }}
         >
           {children}
         </Span>

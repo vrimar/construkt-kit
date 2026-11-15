@@ -15,14 +15,14 @@ export const TooltipIconButton = ({
   children,
   tooltipProps,
   ...props
-}: WithRef<TooltipIconButtonProps>) => {
+}: WithRef<TooltipIconButtonProps, HTMLButtonElement>) => {
   return (
     <Tooltip
-      ref={ref}
       label={label}
       {...tooltipProps}
     >
       <IconButton
+        ref={ref}
         aria-label={label}
         {...props}
       >

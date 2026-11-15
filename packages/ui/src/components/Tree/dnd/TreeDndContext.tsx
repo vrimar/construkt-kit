@@ -281,7 +281,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
           targetValue: String(target.data.value),
           instruction,
         });
-        if (drop?.instruction.type === "make-child" && contextValue.autoExpandDelay !== false) {
+        if (drop?.instruction.type === "make-child") {
           treeRef.current.expand([drop.targetValue]);
         }
       },

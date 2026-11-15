@@ -446,6 +446,9 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - A `loading` `Button` renders `aria-disabled` instead of `disabled` and stays focusable, so it keeps focus while it
   loads; it still ignores clicks, presses and keys. Assert `aria-disabled` rather than `disabled` in tests
 - New: `VirtualScrollArea` `scrollPaddingStart`, the space a sticky header covers, and `onVisibleItemsChange`
+- `TooltipIconButton`'s `ref` reaches its button (`HTMLButtonElement`) instead of the tooltip content
+- `Stat.ValueText` formats `value` in the `LocaleProvider` locale, `en-US` without one, instead of the runtime's, so
+  server and client render the same text. New: `LocaleProvider` is exported
 
 #### Upgrading from 0.11
 
