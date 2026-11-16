@@ -3,7 +3,6 @@
 Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases publish from CI on a `release-*` tag — see `.github/workflows/release.yml`.
 
 > For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
-> Full AI instructions are in `.github/copilot-instructions.md`.
 
 ## Packages
 
