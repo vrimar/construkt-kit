@@ -1,5 +1,7 @@
 import React, { type CSSProperties, useLayoutEffect, useRef } from "react";
 
+import { Box } from "#styled-system/jsx";
+
 import { ScrollArea } from "../../ScrollArea";
 import { columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
@@ -21,10 +23,11 @@ export const DataTableBody = <TData extends object>({
   showFiltersRow,
   renderSubRow,
 }: DataTableBodyProps<TData>) => {
-  const { getRowInteractionProps, columnSizing, gridRef } = useDataTableContext<TData>();
+  const { getRowInteractionProps, columnSizing, gridRef, loading } = useDataTableContext<TData>();
   const scrollRef = useScrollTopOnPage(table);
   const bodyRef = useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
+  const statusShown = loading || rows.length === 0;
   const columnTemplate = getColumnTemplate(table.getVisibleLeafColumns(), columnSizing);
 
   useLayoutEffect(() => {
@@ -77,10 +80,20 @@ export const DataTableBody = <TData extends object>({
           minWidth="min-content"
           py="2"
         >
-          <DataTableStatus
-            layout="fill"
-            isEmpty={rows.length === 0}
-          />
+          <Box
+            role={statusShown ? "row" : undefined}
+            display="contents"
+          >
+            <Box
+              role={statusShown ? "cell" : undefined}
+              display="contents"
+            >
+              <DataTableStatus
+                layout="fill"
+                isEmpty={rows.length === 0}
+              />
+            </Box>
+          </Box>
           {rows.map((row) => (
             <React.Fragment key={row.id}>
               <GridRow

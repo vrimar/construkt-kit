@@ -1,5 +1,6 @@
+import { usePopoverContext } from "@ark-ui/react/popover";
 import { InfoIcon } from "lucide-react";
-import { type ReactNode, isValidElement } from "react";
+import { type ComponentProps, type ReactNode, isValidElement } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { IconButton } from "../Buttons";
@@ -14,6 +15,15 @@ export interface ToggleTipProps extends Omit<PopoverRootProps, "mobileLayout">, 
 }
 
 export type InfoTipProps = Partial<Omit<ToggleTipProps, "label">>;
+
+function ToggleTipContent(props: ComponentProps<typeof Popover.Content>) {
+  return (
+    <Popover.Content
+      aria-labelledby={usePopoverContext().getTriggerProps().id}
+      {...props}
+    />
+  );
+}
 
 export const ToggleTip = ({
   ref,
@@ -33,7 +43,7 @@ export const ToggleTip = ({
       positioning={{ gutter: TRIGGER_GUTTER, ...rest.positioning }}
     >
       <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>
-      <Popover.Content
+      <ToggleTipContent
         portalled={portalled}
         portalRef={portalRef}
         width="auto"
@@ -45,7 +55,7 @@ export const ToggleTip = ({
       >
         {showArrow && <Popover.Arrow />}
         {label}
-      </Popover.Content>
+      </ToggleTipContent>
     </Popover.Root>
   );
 };

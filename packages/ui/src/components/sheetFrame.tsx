@@ -62,6 +62,12 @@ function keepPanelsOpenOnChrome(frame: HTMLDivElement | null) {
   };
 }
 
+// null, unlike undefined, drops zag's aria-modal, which a presentational element must not carry.
+const frameAttributes: Record<string, unknown> = {
+  [SHEET_FRAME_ATTRIBUTE]: "",
+  "aria-modal": null,
+};
+
 interface SheetFrameProps {
   api: SheetApi;
   portalRef?: RefObject<HTMLElement | null>;
@@ -128,8 +134,7 @@ function SheetFrame({ api, portalRef, fullHeight = false, children }: SheetFrame
         portalRef={portalRef}
         fullHeight={fullHeight}
         role="presentation"
-        aria-modal={false}
-        {...{ [SHEET_FRAME_ATTRIBUTE]: "" }}
+        {...frameAttributes}
       >
         <InnerPresence onUnmount={restoreLostFocus}>{children}</InnerPresence>
       </Sheet.Content>

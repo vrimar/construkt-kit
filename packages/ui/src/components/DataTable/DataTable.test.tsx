@@ -803,7 +803,7 @@ describe("DataTable", () => {
     expect(person.style.gridColumn).toBe("span 2");
     expect(person.getAttribute("aria-colspan")).toBe("2");
     expect(screen.getAllByRole("button", { name: "Sort by ID" })).toHaveLength(1);
-    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(4);
     for (const placeholder of ["Filter by ID", "Filter by Name", "Filter by Role"])
       expect(screen.getAllByPlaceholderText(placeholder)).toHaveLength(1);
     expect(rows()).toHaveLength(2 + 1 + data.length);

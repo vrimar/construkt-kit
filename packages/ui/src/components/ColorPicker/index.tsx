@@ -46,12 +46,19 @@ const ChannelSliderValueText = withContext(
   ArkColorPicker.ChannelSliderValueText,
   "channelSliderValueText",
 );
-const Content = withContext(ArkColorPicker.Content, "content");
+const Content = withContext(ArkColorPicker.Content, "content", {
+  defaultProps: { "aria-label": "Color picker" },
+});
 const Control = withContext(ArkColorPicker.Control, "control");
 const EyeDropperTrigger = withContext(ArkColorPicker.EyeDropperTrigger, "eyeDropperTrigger");
 const FormatSelect = withContext(ArkColorPicker.FormatSelect, "formatSelect");
 const FormatTrigger = withContext(ArkColorPicker.FormatTrigger, "formatTrigger");
-const HiddenInput = ArkColorPicker.HiddenInput;
+const HiddenInput = (props: ComponentProps<typeof ArkColorPicker.HiddenInput>) => (
+  <ArkColorPicker.HiddenInput
+    aria-hidden
+    {...props}
+  />
+);
 const Label = withContext(ArkColorPicker.Label, "label");
 const Positioner = withContext(ArkColorPicker.Positioner, "positioner");
 const Swatch = withContext(ArkColorPicker.Swatch, "swatch");

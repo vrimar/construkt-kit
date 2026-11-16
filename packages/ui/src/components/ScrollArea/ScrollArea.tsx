@@ -1,5 +1,5 @@
-import { ScrollArea as ArkScrollArea } from "@ark-ui/react/scroll-area";
-import type { ComponentProps } from "react";
+import { ScrollArea as ArkScrollArea, useScrollAreaContext } from "@ark-ui/react/scroll-area";
+import { type ComponentProps, useCallback, useState, useSyncExternalStore } from "react";
 
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import {
@@ -9,6 +9,7 @@ import {
 } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 import type { CssProp } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
@@ -22,13 +23,55 @@ const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar", {
 const Thumb = withContext(ArkScrollArea.Thumb, "thumb");
 const Corner = withContext(ArkScrollArea.Corner, "corner");
 
+const TABBABLE =
+  'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+
+function useHasTabbable(node: HTMLElement | null, watch: boolean) {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!node || !watch) return () => {};
+      const observer = new MutationObserver(onChange);
+      observer.observe(node, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["tabindex", "disabled", "href", "contenteditable"],
+      });
+      return () => observer.disconnect();
+    },
+    [node, watch],
+  );
+
+  return useSyncExternalStore(
+    subscribe,
+    () => !node || !watch || node.querySelector(TABBABLE) !== null,
+    () => true,
+  );
+}
+
 // Clears zag's inline `overflow: auto` so the recipe's per-axis overflow applies.
-const Viewport = ({ style, ...props }: ComponentProps<typeof StyledViewport>) => (
-  <StyledViewport
-    {...props}
-    style={{ overflow: undefined, ...style }}
-  />
-);
+const Viewport = ({ ref, style, ...props }: ComponentProps<typeof StyledViewport>) => {
+  const { hasOverflowX, hasOverflowY } = useScrollAreaContext();
+  const overflows = hasOverflowX || hasOverflowY;
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const hasTabbable = useHasTabbable(node, overflows && !props.asChild);
+  const composedRef = useComposedRefs(ref, setNode);
+
+  // A scroller with nothing focusable inside takes focus itself, as Chromium does natively; null
+  // drops zag's tabIndex, which it sets only when both axes overflow. An asChild element owns its focus.
+  const focus: Record<string, unknown> = props.asChild
+    ? {}
+    : { tabIndex: overflows && !hasTabbable ? 0 : null };
+
+  return (
+    <StyledViewport
+      ref={composedRef}
+      {...focus}
+      {...props}
+      style={{ overflow: undefined, ...style }}
+    />
+  );
+};
 
 // Clears zag's inline `min-width: fit-content` so the recipe's width applies and `css` can override it.
 const Content = ({ style, ...props }: ComponentProps<typeof StyledContent>) => (

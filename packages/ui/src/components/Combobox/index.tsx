@@ -138,7 +138,10 @@ const ItemGroup = withContext(ArkCombobox.ItemGroup, "itemGroup");
 const ItemGroupLabel = withContext(ArkCombobox.ItemGroupLabel, "itemGroupLabel");
 const ItemText = withContext(ArkCombobox.ItemText, "itemText");
 const Label = withContext(ArkCombobox.Label, "label");
-const List = withContext(ArkCombobox.List, "list");
+// zag names the list without giving it a role in composite mode, which ARIA forbids; null drops it.
+const List = withContext(ArkCombobox.List, "list", {
+  defaultProps: { "aria-labelledby": null } as Record<string, unknown>,
+});
 const Positioner = withContext(ArkCombobox.Positioner, "positioner");
 const StyledTrigger = withContext(ArkCombobox.Trigger, "trigger", {
   defaultProps: { children: <ChevronsUpDownIcon /> },

@@ -19,7 +19,10 @@ type ItemProps = ComponentProps<typeof Item>;
 const Root = withProvider(ArkFileUpload.Root, "root");
 const RootProvider = withProvider(ArkFileUpload.RootProvider, "root");
 const ClearTrigger = withContext(ArkFileUpload.ClearTrigger, "clearTrigger");
-const Dropzone = withContext(ArkFileUpload.Dropzone, "dropzone");
+// zag names the dropzone "dropzone"; null lets its visible text name it instead.
+const Dropzone = withContext(ArkFileUpload.Dropzone, "dropzone", {
+  defaultProps: { "aria-label": null } as Record<string, unknown>,
+});
 const HiddenInput = ArkFileUpload.HiddenInput;
 const Item = withContext(ArkFileUpload.Item, "item");
 const ItemDeleteTrigger = withContext(ArkFileUpload.ItemDeleteTrigger, "itemDeleteTrigger", {

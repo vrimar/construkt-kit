@@ -1,7 +1,7 @@
 import { flexRender } from "@tanstack/react-table";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
-import { Box } from "#styled-system/jsx";
+import { Box, VisuallyHidden } from "#styled-system/jsx";
 
 import { Text } from "../../Text";
 import { useDataTableContext } from "../context";
@@ -17,6 +17,7 @@ interface HeaderCellProps<TData extends object> {
 
 export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCellProps<TData>) => {
   const labelId = useId();
+  const fallbackLabelId = useId();
   const labelRef = useRef<HTMLParagraphElement>(null);
   // A display column's default header renders nothing, so emptiness shows only once rendered.
   const [labelEmpty, setLabelEmpty] = useState(false);
@@ -45,9 +46,9 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
 
   return (
     <GridHeader
+      role={isPlaceholder ? "cell" : undefined}
       aria-sort={isPlaceholder ? undefined : ariaSort}
-      aria-labelledby={isPlaceholder || labelEmpty ? undefined : labelId}
-      aria-label={!isPlaceholder && labelEmpty ? getColumnLabel(header) : undefined}
+      aria-labelledby={isPlaceholder ? undefined : labelEmpty ? fallbackLabelId : labelId}
       aria-colspan={colSpan > 1 ? colSpan : undefined}
       display="flex"
       alignItems="center"
@@ -76,6 +77,9 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
           </Text>
           <ColumnSorter header={header} />
         </Box>
+      )}
+      {!isPlaceholder && labelEmpty && (
+        <VisuallyHidden id={fallbackLabelId}>{getColumnLabel(header)}</VisuallyHidden>
       )}
       {resize && (
         <ColumnResizeHandle

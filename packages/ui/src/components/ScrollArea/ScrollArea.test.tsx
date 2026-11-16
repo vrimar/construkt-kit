@@ -1,7 +1,11 @@
-import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, render, waitFor } from "@testing-library/react";
+import { useState } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ScrollArea } from "./ScrollArea";
+
+const viewportOf = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('[data-scope="scroll-area"][data-part="viewport"]');
 
 const contentOf = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-scope="scroll-area"][data-part="content"]');
@@ -41,10 +45,38 @@ describe("ScrollArea", () => {
       </ScrollArea>,
     );
 
-    const viewport = container.querySelector<HTMLElement>(
-      '[data-scope="scroll-area"][data-part="viewport"]',
-    );
+    const viewport = viewportOf(container);
     expect(viewport?.style.overflow).toBe("");
     expect(viewport?.className).toContain("scroll-area__viewport--scrollbars_vertical");
+  });
+
+  describe("with overflowing content", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("drops the viewport's tab stop once its content gains a focusable element", async () => {
+      vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(500);
+      vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(100);
+      vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(100);
+      vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(100);
+      let showButton: (show: boolean) => void = () => {};
+      function Body() {
+        const [show, setShow] = useState(false);
+        showButton = setShow;
+        return show ? <button type="button">Go</button> : <p>text</p>;
+      }
+
+      const { container } = render(
+        <ScrollArea scrollbars="vertical">
+          <Body />
+        </ScrollArea>,
+      );
+      const viewport = viewportOf(container);
+      await waitFor(() => expect(viewport?.getAttribute("tabindex")).toBe("0"));
+
+      act(() => showButton(true));
+      await waitFor(() => expect(viewport?.hasAttribute("tabindex")).toBe(false));
+    });
   });
 });
