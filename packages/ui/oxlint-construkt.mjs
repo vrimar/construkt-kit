@@ -156,4 +156,67 @@ const noStylePropName = {
   },
 };
 
-export default { meta: { name: "construkt" }, rules: { "no-style-prop-name": noStylePropName } };
+function isComponentElement(name) {
+  if (name.type === "JSXMemberExpression") return true;
+  return name.type === "JSXIdentifier" && PASCAL_CASE.test(name.name);
+}
+
+const isStyleAttribute = (name) =>
+  name === "css" || name.endsWith("Css") || (!STYLE_PROPS.has(name) && isCssProperty(name));
+
+function literalKeys(node) {
+  switch (node.type) {
+    case "ObjectExpression":
+      return node.properties.flatMap((property) => {
+        if (property.type === "SpreadElement") return literalKeys(property.argument);
+        return property.computed ? [] : [property.key];
+      });
+    case "ConditionalExpression":
+      return [...literalKeys(node.consequent), ...literalKeys(node.alternate)];
+    case "LogicalExpression":
+      return [...literalKeys(node.left), ...literalKeys(node.right)];
+    case "ParenthesizedExpression":
+    case "TSAsExpression":
+    case "TSSatisfiesExpression":
+    case "TSNonNullExpression":
+      return literalKeys(node.expression);
+    default:
+      return [];
+  }
+}
+
+const noLiteralStyleProps = {
+  meta: {
+    type: "problem",
+    messages: {
+      styleProp:
+        '"{{name}}" styles through Panda, and no Panda build extracts this package\'s source, so it ships a class with no CSS. Style through the recipe, inline geometry or CSS variables.',
+    },
+  },
+  create(context) {
+    const check = (node, name) => {
+      if (name !== null && isStyleAttribute(name)) {
+        context.report({ node, messageId: "styleProp", data: { name } });
+      }
+    };
+
+    return {
+      JSXAttribute(node) {
+        if (node.name.type !== "JSXIdentifier" || !isComponentElement(node.parent.name)) return;
+        check(node.name, node.name.name);
+      },
+      JSXSpreadAttribute(node) {
+        if (!isComponentElement(node.parent.name)) return;
+        for (const key of literalKeys(node.argument)) check(key, propName(key));
+      },
+    };
+  },
+};
+
+export default {
+  meta: { name: "construkt" },
+  rules: {
+    "no-literal-style-props": noLiteralStyleProps,
+    "no-style-prop-name": noStylePropName,
+  },
+};

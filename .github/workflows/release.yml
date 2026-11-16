@@ -34,8 +34,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        run: pnpm --filter @construkt-kit/data-grid exec playwright install --with-deps chromium
+
       - name: Lint, typecheck, test
-        run: pnpm turbo run //#lint typecheck test
+        run: pnpm turbo run //#lint typecheck test test:browser
 
       # The publish script creates an annotated tag per package.
       - name: Configure git identity

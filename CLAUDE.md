@@ -10,21 +10,23 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
+- **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid (private, pre-0.1). Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/vitest`, `/tsdown`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
 
 ## Build & Dev Commands
 
-| Command          | Purpose                              |
-| ---------------- | ------------------------------------ |
-| `pnpm install`   | Install all workspace dependencies   |
-| `pnpm dev`       | Dev mode (watch + rebuild all pkgs)  |
-| `pnpm build`     | Build all packages (`dist/`)         |
-| `pnpm test`      | Run all tests                        |
-| `pnpm typecheck` | Type-check all packages              |
-| `pnpm lint`      | Lint the repo in one type-aware pass |
-| `pnpm format`    | Format the repo in one pass (oxfmt)  |
-| `pnpm storybook` | Start Storybook dev server           |
-| `pnpm release`   | Build, gate exports, publish to npm  |
+| Command             | Purpose                                  |
+| ------------------- | ---------------------------------------- |
+| `pnpm install`      | Install all workspace dependencies       |
+| `pnpm dev`          | Dev mode (watch + rebuild all pkgs)      |
+| `pnpm build`        | Build all packages (`dist/`)             |
+| `pnpm test`         | Run all tests                            |
+| `pnpm test:browser` | Run Vitest browser-mode tests (Chromium) |
+| `pnpm typecheck`    | Type-check all packages                  |
+| `pnpm lint`         | Lint the repo in one type-aware pass     |
+| `pnpm format`       | Format the repo in one pass (oxfmt)      |
+| `pnpm storybook`    | Start Storybook dev server               |
+| `pnpm release`      | Build, gate exports, publish to npm      |
 
 Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
 Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint
@@ -37,7 +39,8 @@ honours `options.typeAware` only in the config it loads as its root.
 - React 19 peer dep (`^19.0.0`)
 - Never import from `@ark-ui/react` directly — use `@construkt-kit/ui`
 - Consuming apps import `css`/`cx`/`styled`/`token` and Panda's types from their own generated `styled-system/`, through the specifier their Panda `importMap` names (an alias such as `@construkt-kit/styled-system/*` is fine) — never from `@construkt-kit/ui` or `@construkt-kit/pages`, which Panda doesn't extract from and whose `token` knows only the kit's theme
-- Don't name a non-style component prop after a CSS property (`content`, `width`, `fill`, …) — Panda extracts it as a style from every PascalCase JSX element, and free text there emits invalid CSS. `construkt/no-style-prop-name` enforces this in ui and pages
+- Inside `packages/data-grid/src`: no `css()`, `styled`, patterns, `*Css` props or style props on components — no Panda build extracts that source. Style through the `dataGrid` recipe, inline geometry and CSS variables; `construkt/no-literal-style-props` and `no-restricted-imports` enforce it. `*.stories.tsx` may use style and `*Css` props (Storybook's Panda extracts them), not the imports. `src/core/**` imports no `react`, `react-dom`, `@construkt-kit/ui` or Panda
+- Don't name a non-style component prop after a CSS property (`content`, `width`, `fill`, …) — Panda extracts it as a style from every PascalCase JSX element, and free text there emits invalid CSS. `construkt/no-style-prop-name` enforces this in ui, pages and data-grid
 - Never use hardcoded colors — use Panda tokens
 - Never import between packages via relative paths — use `@construkt-kit/*` aliases
 - `react` / `react-dom` are peer deps — never add to `dependencies`
@@ -48,8 +51,9 @@ honours `options.typeAware` only in the config it loads as its root.
 ```
 @construkt-kit/config         ← all packages (tool configs)
 @construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, consuming apps
-@construkt-kit/ui             ← @construkt-kit/pages, consuming apps  (depends on @construkt-kit/utils)
+@construkt-kit/ui             ← @construkt-kit/pages, @construkt-kit/data-grid, consuming apps  (depends on @construkt-kit/utils)
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
+@construkt-kit/data-grid      ← consuming apps  (peer-depends on @construkt-kit/ui; preset opt-in)
 @construkt-kit/api            ← consuming apps  (configures the generated Kubb fetch client)
 ```
 

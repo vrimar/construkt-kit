@@ -10,6 +10,7 @@ import knownCssProperties from "known-css-properties";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pandaCwd = path.join(repoRoot, "packages/ui");
+const dataGridPreset = path.join(repoRoot, "packages/data-grid/src/preset/index.ts");
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "preset-css-"));
 const configPath = path.join(pandaCwd, "panda.check.ts");
@@ -19,10 +20,11 @@ fs.writeFileSync(
   configPath,
   `import { construktKitPreset } from "@construkt-kit/preset";
 import { defineConfig } from "@pandacss/dev";
+import { dataGridPreset } from ${JSON.stringify(dataGridPreset)};
 
 export default defineConfig({
   preflight: false,
-  presets: ["@pandacss/preset-base", construktKitPreset],
+  presets: ["@pandacss/preset-base", construktKitPreset, dataGridPreset],
   outdir: ${JSON.stringify(path.join(tmpDir, "styled-system"))},
   staticCss: { recipes: "*" },
 });

@@ -23,6 +23,9 @@
     "test": {
       "dependsOn": ["build", "gen:fixture"]
     },
+    "test:browser": {
+      "dependsOn": ["build"]
+    },
     "codegen": {
       "dependsOn": ["^build"],
       "outputs": ["styled-system/**"]
@@ -31,9 +34,14 @@
       "dependsOn": ["^build", "codegen", "gen:fixture"]
     },
     "//#lint": {
-      // Type-aware rules read each package's built types; these three pull in
-      // every other package's build transitively.
-      "dependsOn": ["@construkt-kit/ui#build", "@construkt-kit/pages#build", "@construkt-kit/api#build"],
+      // Type-aware rules read each package's built types and data-grid's generated
+      // recipe; these pull in every other package's build transitively.
+      "dependsOn": [
+        "@construkt-kit/ui#build",
+        "@construkt-kit/pages#build",
+        "@construkt-kit/api#build",
+        "@construkt-kit/data-grid#codegen"
+      ],
       "inputs": [
         "oxlint.config.ts",
         "packages/*/src/**",

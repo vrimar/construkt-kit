@@ -12,6 +12,8 @@
     "../../packages/ui/src/**/*.stories.ts",
     "../../packages/ui/src/**/*.stories.tsx",
     "../../packages/pages/src/**/*.stories.ts",
-    "../../packages/pages/src/**/*.stories.tsx"
+    "../../packages/pages/src/**/*.stories.tsx",
+    "../../packages/data-grid/src/**/*.stories.ts",
+    "../../packages/data-grid/src/**/*.stories.tsx"
   ]
 }

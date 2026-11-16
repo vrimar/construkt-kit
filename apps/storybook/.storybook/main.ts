@@ -13,6 +13,7 @@ const config: StorybookConfig = {
   stories: [
     "../../../packages/ui/src/**/*.stories.@(ts|tsx)",
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
+    "../../../packages/data-grid/src/**/*.stories.@(ts|tsx)",
   ],
 
   addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-themes")],
