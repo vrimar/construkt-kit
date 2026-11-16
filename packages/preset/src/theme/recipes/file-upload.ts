@@ -35,6 +35,14 @@ export const fileUpload = defineSlotRecipe({
         borderStyle: "solid",
         borderColor: "colorPalette.solid.bg",
       },
+      _disabled: { layerStyle: "disabled" },
+      "&[data-readonly]": { display: "none" },
+    },
+    trigger: {
+      "&[data-readonly]": { display: "none" },
+    },
+    clearTrigger: {
+      "&[data-readonly]": { display: "none" },
     },
     item: {
       alignItems: "start",
@@ -62,6 +70,8 @@ export const fileUpload = defineSlotRecipe({
     },
     itemDeleteTrigger: {
       color: "fg.subtle",
+      _disabled: { layerStyle: "disabled" },
+      "&[data-readonly]": { display: "none" },
     },
     itemPreviewImage: {
       aspectRatio: "1",

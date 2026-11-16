@@ -503,6 +503,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `indicatorPlacement="inside"` on a `CheckboxCard` or `RadioCard.Item` with no label, description or icon still
   renders the control, and `"end"` puts it at the end
 - `FileUpload.FileText` shows its fallback in the placeholder colour
+- A disabled `FileUpload` dims its dropzone and delete buttons; a read-only one hides its dropzone, trigger, delete and
+  clear buttons and keeps the file list
 - `ColorModeProvider` resolves `"system"` to light where `matchMedia` is missing, such as jsdom, instead of throwing
 - `ToggleGroup.RootProvider` joins a `Toolbar`'s arrow keys and tab stop like `ToggleGroup.Root`
 - `DataTable` takes the `table` recipe's look: a 12px semibold muted header, cell padding from the density knobs and

@@ -68,3 +68,34 @@ export const Dropzone: Story = {
     </Box>
   ),
 };
+
+const sampleFiles = [new File(["quarterly figures"], "q3-report.pdf", { type: "application/pdf" })];
+
+export const DisabledAndReadOnly: Story = {
+  render: () => (
+    <Box
+      display="grid"
+      gridTemplateColumns="repeat(2, minmax(0, 320px))"
+      gap="6"
+    >
+      {(["disabled", "readOnly"] as const).map((state) => (
+        <FileUpload.Root
+          key={state}
+          maxFiles={3}
+          defaultAcceptedFiles={sampleFiles}
+          disabled={state === "disabled"}
+          readOnly={state === "readOnly"}
+        >
+          <FileUpload.Label>{state === "disabled" ? "Disabled" : "Read-only"}</FileUpload.Label>
+          <FileUpload.HiddenInput />
+          <FileUpload.Dropzone>
+            <Center p="6">Drop files here</Center>
+          </FileUpload.Dropzone>
+          <FileUpload.ItemGroup>
+            <FileUpload.Items clearable />
+          </FileUpload.ItemGroup>
+        </FileUpload.Root>
+      ))}
+    </Box>
+  ),
+};
