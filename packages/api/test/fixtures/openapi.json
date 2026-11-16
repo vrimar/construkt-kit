@@ -16,6 +16,21 @@
             "name": "orderBy",
             "in": "query",
             "schema": { "type": "string" }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "additionalProperties": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "style": "form",
+            "explode": false,
+            "schema": { "type": "array", "items": { "type": "integer", "format": "int32" } }
           }
         ],
         "responses": {

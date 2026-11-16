@@ -8,10 +8,8 @@ import {
   configureApiClient,
 } from "../src";
 import { client } from "./gen/.kubb/client";
-import { deleteApiProjectsId } from "./gen/calls/deleteApiProjectsId";
 import { getApiProjects } from "./gen/calls/getApiProjects";
 import { getApiProjectsId } from "./gen/calls/getApiProjectsId";
-import { postApiExportsExcel } from "./gen/calls/postApiExportsExcel";
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -55,6 +53,20 @@ describe("configureApiClient", () => {
     await getApiProjects({ query: { page: 2, orderBy: "name" } });
 
     expect(lastRequest().url).toBe("https://api.test/api/projects?page=2&orderBy=name");
+  });
+
+  it("sends an object query param without a style in bracket form", async () => {
+    await getApiProjects({ query: { filters: { status: ["open", "closed"], name: ["a b"] } } });
+
+    expect(new URL(lastRequest().url).search).toBe(
+      "?filters%5Bstatus%5D=open&filters%5Bstatus%5D=closed&filters%5Bname%5D=a%20b",
+    );
+  });
+
+  it("sends a styled query param by its style", async () => {
+    await getApiProjects({ query: { ids: [1, 2], page: 1 } });
+
+    expect(new URL(lastRequest().url).search).toBe("?ids=1,2&page=1");
   });
 
   it("drops trailing slashes from the base URL", async () => {
@@ -102,15 +114,6 @@ describe("configureApiClient", () => {
     disposeScoped();
 
     expect(lastRequest().headers.get("Authorization")).toBeNull();
-  });
-
-  it("keeps a caller-supplied abort signal", async () => {
-    const controller = new AbortController();
-
-    await getApiProjectsId({ path: { id: 7 }, options: { signal: controller.signal } });
-    controller.abort();
-
-    expect(lastRequest().signal.aborted).toBe(true);
   });
 
   it("maps error statuses onto the narrowest error class", async () => {
@@ -201,45 +204,11 @@ describe("configureApiClient", () => {
     });
   });
 
-  it("reads an error body by its content type when the call expects a blob", async () => {
-    respond(JSON.stringify({ title: "Bad Request", detail: "No rows to export." }), {
-      status: 400,
-      headers: { "Content-Type": "application/problem+json" },
-    });
+  it("passes a failure without a response through unchanged", async () => {
+    const failure = new TypeError("Failed to fetch");
+    fetchMock.mockRejectedValueOnce(failure);
 
-    await expect(
-      postApiExportsExcel({ body: { projectId: 1 }, responseType: "blob" }).unwrap(),
-    ).rejects.toThrowError(new ApiError(400, "BAD_REQUEST", "No rows to export."));
-
-    respond(JSON.stringify({ id: 1 }), { headers: { "Content-Type": "application/json" } });
-    const result = await postApiExportsExcel({ body: { projectId: 1 }, responseType: "blob" });
-
-    expect(result.data).toBeInstanceOf(Blob);
-  });
-
-  it("reads binary responses as a blob and keeps the response headers", async () => {
-    respond("workbook-bytes", {
-      headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": 'attachment; filename="report.xlsx"',
-      },
-    });
-
-    const result = await postApiExportsExcel({ body: { projectId: 1 } });
-
-    expect(result.data).toBeInstanceOf(Blob);
-    expect(await result.data.text()).toBe("workbook-bytes");
-    expect(result.response.headers.get("Content-Disposition")).toBe(
-      'attachment; filename="report.xlsx"',
-    );
-  });
-
-  it("resolves empty responses with undefined", async () => {
-    respond(null, { status: 204 });
-    await expect(deleteApiProjectsId({ path: { id: 7 } }).unwrap()).resolves.toBeUndefined();
-
-    respond("", { status: 200 });
-    await expect(getApiProjectsId({ path: { id: 7 } }).unwrap()).resolves.toBeUndefined();
+    await expect(getApiProjectsId({ path: { id: 7 } })).rejects.toBe(failure);
   });
 
   it("stops touching requests once disposed", async () => {

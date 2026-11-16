@@ -62,7 +62,7 @@ bundled fetch runtime:
 | `dtos/`    | TypeScript types from OpenAPI schemas | `pluginTs`         |
 | `calls/`   | API call functions                    | `pluginFetch`      |
 | `hooks/`   | React Query hooks (grouped by path)   | `pluginReactQuery` |
-| `.kubb/`   | Fetch client runtime                  | `pluginFetch`      |
+| `.kubb/`   | Fetch client runtime and serializers  | `pluginFetch`      |
 
 Options (all optional):
 
@@ -82,6 +82,29 @@ Key behaviors:
 
 The peer Kubb packages (`kubb`, `@kubb/adapter-oas`, `@kubb/plugin-ts`, `@kubb/plugin-fetch`,
 `@kubb/plugin-react-query`) are optional — install them in apps that run codegen.
+
+## Upgrading from 0.6
+
+- Apps that run codegen need `kubb` and `@kubb/adapter-oas` 5.20.2 or later, `@kubb/plugin-fetch` 6.0.4,
+  `@kubb/plugin-react-query` 5.10.4 and `@kubb/plugin-ts` 5.5.4, on Node 22.22 or later. Upgrade `kubb` and
+  `@kubb/plugin-fetch` together: `@kubb/plugin-fetch` 5 under `kubb` 5.20 generates hooks that import calls that don't
+  exist (`getApiProjects2`)
+- Regenerate and run `tsc`; `@construkt-kit/api`'s "Upgrading from 0.5" covers `configureApiClient`. In the generated
+  client:
+  - `responseType` is `parseAs`, and an operation with only binary success bodies is generated with `parseAs: 'blob'`
+  - A custom `transport` returns a web `Response`, built with `toRequestInit(request)`, or wraps `defaultTransport`
+  - `client.interceptors.error` handlers get network, abort and parse errors too; narrow with `ResponseError.is`
+  - `FetchOptions` is `NativeOptions`, `codecs` is `mediaTypes`, and `defaultQuerySerializer` and
+    `defaultPathSerializer` are `serializeQuery` and `serializePath`
+  - Results and `ResponseError` carry the response `headers`
+  - `text/event-stream` and JSON Lines operations return a `StreamResult` to iterate
+  - Hook and query-option `client` options no longer take `cookies` or `throwOnError`
+- Regenerating also changes what the client sends:
+  - An object query parameter without a `style` goes out as `name=odie`, not `filter[name]=odie`, unless the client
+    is set up with `@construkt-kit/api`'s `configureApiClient`, which keeps the brackets
+  - An array or object header parameter goes out as `X-Ids: 3,4` instead of JSON, and a space in a query value as
+    `%20`
+  - `body: null` is sent as the JSON document `null`
 
 ## Upgrading from 0.5
 
