@@ -82,12 +82,12 @@
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
-    "@ark-ui/react": "~5.39.3",
+    "@ark-ui/react": "~5.40.0",
     "@construkt-kit/utils": "workspace:^",
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/react-virtual": "^3.14.26",
-    "lucide-react": "^1.67.0",
-    "react-resizable-panels": "^4.18.0"
+    "lucide-react": "^1.73.0",
+    "react-resizable-panels": "^4.24.0"
   },
   "devDependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
@@ -98,17 +98,17 @@
     "@pandacss/dev": "^2.5.0",
     "@pandacss/eslint-plugin": "^2.5.0",
     "@pandacss/preset-base": "^2.5.0",
-    "@storybook/react-vite": "^10.6.5",
+    "@storybook/react-vite": "^10.6.7",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.8",
+    "@testing-library/user-event": "^14.6.12",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "jsdom": "^30.1.3",
+    "jsdom": "^31.0.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "storybook": "^10.6.5",
-    "tsdown": "^0.23.5",
+    "storybook": "^10.6.7",
+    "tsdown": "^0.23.7",
     "vitest": "^5.1.0"
   },
   "peerDependencies": {

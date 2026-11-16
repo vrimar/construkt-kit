@@ -26,11 +26,11 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@construkt-kit/config": "workspace:*",
     "known-css-properties": "^0.37.0",
-    "oxfmt": "^0.76.0",
-    "oxlint": "^1.91.0",
-    "oxlint-tsgolint": "^7.0.2005",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "oxlint-tsgolint": "^7.0.2007",
     "publint": "^0.3.25",
-    "turbo": "^2.11.10",
+    "turbo": "^2.11.11",
     "typescript": "^7.0.2"
   },
   "engines": {

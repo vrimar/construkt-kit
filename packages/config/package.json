@@ -54,13 +54,13 @@
     "@kubb/plugin-fetch": "^5.11.0",
     "@kubb/plugin-react-query": "^5.9.0",
     "@kubb/plugin-ts": "^5.4.0",
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6",
-    "@vitejs/plugin-react": "^6.2.1",
     "kubb": "^5.15.3",
-    "tsdown": "^0.23.5",
-    "vite": "^8.3.5",
-    "vite-plugin-checker": "^0.14.5"
+    "@vitejs/plugin-react": "^6.3.0",
+    "tsdown": "^0.23.7",
+    "vite": "^8.3.8",
+    "vite-plugin-checker": "^1.0.0"
   },
   "peerDependencies": {
     "@kubb/adapter-oas": "^5.15.3",
@@ -74,7 +74,7 @@
     "oxlint": "^1.79.0",
     "tsdown": ">=0.23.0 <1",
     "vite": "^8.2.1",
-    "vite-plugin-checker": ">=0.14.5 <1"
+    "vite-plugin-checker": ">=0.14.5 <2"
   },
   "peerDependenciesMeta": {
     "@kubb/adapter-oas": {

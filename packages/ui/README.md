@@ -434,6 +434,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 #### Upgrading from 0.12
 
+- ui depends on Ark UI `~5.40.0`. A partly filled `PinInput` now blocks form submission, Escape closes an overlay
+  right after it opens, and each `TagsInput` and `Combobox` mounts a hidden `role="alert"` live region
 - `Menu.ItemGroup` takes its heading as `label`; `title` is the native attribute again. Rename `title=` to `label=`
 - A `.light` or `.dark` scope nested in the other resolves its own scheme: it resets `colorPalette` to `brand` and
   `color` to `fg`, and `_light` matches inside it. Set either on the scope element to keep the outer values

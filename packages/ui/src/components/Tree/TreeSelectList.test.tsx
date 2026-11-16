@@ -307,9 +307,12 @@ describe("TreeSelectList", () => {
     const vegetables = screen.getByText("Vegetables").closest("[draggable='true']") as HTMLElement;
     vegetables.focus();
 
-    fireEvent.keyDown(vegetables, { key: "ArrowRight", ctrlKey: true });
+    // Flushes the microtask-deferred expansion before the refocus frame, as a real keypress does.
+    await act(async () => {
+      fireEvent.keyDown(vegetables, { key: "ArrowRight", ctrlKey: true });
+    });
 
-    await waitFor(() => expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]));
+    expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]);
     const moved = screen.getByText("Vegetables").closest("[draggable='true']");
     expect(moved?.getAttribute("data-depth")).toBe("2");
     await waitFor(() => expect(document.activeElement).toBe(moved));

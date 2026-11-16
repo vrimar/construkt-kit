@@ -42,9 +42,9 @@
     "@kubb/plugin-fetch": "^5.11.0",
     "@kubb/plugin-react-query": "^5.9.0",
     "@kubb/plugin-ts": "^5.4.0",
-    "@tanstack/react-query": "^5.105.3",
     "kubb": "^5.15.3",
-    "tsdown": "^0.23.5",
+    "@tanstack/react-query": "^5.107.1",
+    "tsdown": "^0.23.7",
     "vitest": "^5.1.0"
   },
   "peerDependencies": {
