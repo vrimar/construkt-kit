@@ -2,12 +2,16 @@
   "name": "@construkt-kit/config",
   "version": "0.6.0",
   "description": "Shared tool configuration for all Construkt Kit frontend projects",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
     "directory": "packages/config"
   },
+  "files": [
+    "dist",
+    "typescript"
+  ],
+  "type": "module",
   "exports": {
     "./typescript": "./typescript/base.json",
     "./vite": {
@@ -33,18 +37,17 @@
     "./tsdown": {
       "types": "./dist/tsdown/index.d.mts",
       "default": "./dist/tsdown/index.mjs"
+    },
+    "./vitest": {
+      "types": "./dist/vitest/index.d.mts",
+      "default": "./dist/vitest/index.mjs"
     }
   },
-  "files": [
-    "dist",
-    "typescript"
-  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./typescript",
-    "typecheck": "tsc --noEmit",
-    "format": "oxfmt --config ./dist/oxfmt/index.mjs vite playwright kubb oxlint oxfmt tsdown internal"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json"
   },
   "devDependencies": {
     "@kubb/adapter-oas": "^5.15.3",

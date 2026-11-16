@@ -7,16 +7,16 @@ Construkt Kit frontend apps.
 
 ### Client
 
-| Export                       | Description                                                            |
-| ---------------------------- | ---------------------------------------------------------------------- |
-| `configureApiClient`         | Points a generated Kubb client at an API; returns a disposer            |
-| `fetchTransport`             | Fetch transport used by default — JSON, text, SSE and binary responses |
-| `ApiClient`                  | Structural type of the generated client this package drives            |
-| `ApiRequest`                 | Resolved request handed to a transport                                  |
-| `ApiTransport`               | Transport signature (`ApiRequest` → `ApiTransportResult`)              |
-| `ApiTransportResult`         | What a transport returns (parsed body plus native request/response)     |
-| `ApiResponseError`           | Non-2xx response the error interceptor maps                             |
-| `ConfigureApiClientOptions`  | `{ baseURL, getToken, transport? }`                                     |
+| Export                      | Description                                                            |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `configureApiClient`        | Points a generated Kubb client at an API; returns a disposer           |
+| `fetchTransport`            | Fetch transport used by default — JSON, text, SSE and binary responses |
+| `ApiClient`                 | Structural type of the generated client this package drives            |
+| `ApiRequest`                | Resolved request handed to a transport                                 |
+| `ApiTransport`              | Transport signature (`ApiRequest` → `ApiTransportResult`)              |
+| `ApiTransportResult`        | What a transport returns (parsed body plus native request/response)    |
+| `ApiResponseError`          | Non-2xx response the error interceptor maps                            |
+| `ConfigureApiClientOptions` | `{ baseURL, getToken, transport? }`                                    |
 
 ### Error Classes
 
@@ -26,8 +26,8 @@ Construkt Kit frontend apps.
 | `ValidationError`   | 422 error (extends `ApiError`)                 |
 | `NotFoundError`     | 404 error (extends `ApiError`)                 |
 | `UnauthorizedError` | 401 error (extends `ApiError`)                 |
-| `toApiError`        | Maps a status onto the narrowest class          |
-| `toErrorMessage`    | Picks the message out of an error body          |
+| `toApiError`        | Maps a status onto the narrowest class         |
+| `toErrorMessage`    | Picks the message out of an error body         |
 | `ApiErrorResponse`  | Interface — `{ detail?, title?, Message? }`    |
 
 ### Data-Table Types
@@ -174,12 +174,12 @@ configureApiClient(client, {
 
 Consuming apps generate typed API code with `createKubbConfig()` from `@construkt-kit/config/kubb`:
 
-| Output dir     | Contents                                                |
-| -------------- | ------------------------------------------------------- |
-| `dtos/`        | TypeScript types generated from OpenAPI schemas         |
-| `calls/`       | One function per operation, returning the full result   |
-| `hooks/`       | React Query hooks grouped by API path                   |
-| `.kubb/`       | The bundled fetch runtime (`client`, `createClient`)    |
+| Output dir | Contents                                              |
+| ---------- | ----------------------------------------------------- |
+| `dtos/`    | TypeScript types generated from OpenAPI schemas       |
+| `calls/`   | One function per operation, returning the full result |
+| `hooks/`   | React Query hooks grouped by API path                 |
+| `.kubb/`   | The bundled fetch runtime (`client`, `createClient`)  |
 
 Every generated function takes one grouped options object — `{ path, query, body, headers }` — and
 resolves to `{ status, data, error, request, response }`. Add `.unwrap()` for the body alone, which

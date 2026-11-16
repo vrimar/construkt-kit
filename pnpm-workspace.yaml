@@ -1,9 +1,9 @@
 packages:
-  - 'packages/*'
-  - 'apps/*'
+  - "packages/*"
+  - "apps/*"
 
 allowBuilds:
-  '@parcel/watcher': false
+  "@parcel/watcher": false
   es5-ext: false
   esbuild: true
   # Transitive optional peer of @vitest/mocker; its postinstall only copies the browser

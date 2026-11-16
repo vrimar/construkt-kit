@@ -3,35 +3,34 @@
   "version": "0.5.0",
   "private": false,
   "description": "HTTP client, query factories, typed errors, and generated API types for Construkt Kit apps",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
     "directory": "packages/api"
   },
+  "bin": {
+    "construkt-kit-api-gen": "./bin/api-gen.mjs"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     }
   },
-  "main": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "files": [
-    "dist",
-    "bin"
-  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit && tsc -p test --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p test --noEmit && tsc -p tsconfig.tools.json",
     "test": "vitest run",
-    "format": "oxfmt src test",
     "gen:fixture": "node bin/api-gen.mjs --config test/api.config.ts --input test/fixtures/openapi.json",
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
-  },
-  "bin": {
-    "construkt-kit-api-gen": "./bin/api-gen.mjs"
   },
   "dependencies": {
     "tsx": "^4.23.15"

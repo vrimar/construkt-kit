@@ -41,7 +41,7 @@
         "packages/*/scripts/**",
         "packages/*/test/**",
         "!packages/*/test/gen/**",
-        "packages/config/{oxlint,vite,playwright,kubb,oxfmt,tsdown,internal,typescript}/**",
+        "packages/config/{oxlint,vite,vitest,playwright,kubb,oxfmt,tsdown,internal,typescript}/**",
         "packages/*/*.config.ts",
         "packages/*/oxlint-*.mjs",
         "packages/*/vitest.setup.ts",
@@ -52,7 +52,6 @@
         "apps/*/tsconfig.json"
       ]
     },
-    "format": {},
     "storybook": {
       "dependsOn": ["^build"],
       "persistent": true

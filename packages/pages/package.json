@@ -3,12 +3,19 @@
   "version": "0.8.0",
   "private": false,
   "description": "Shared full-page components (login, register, forgot password) for Construkt Kit apps",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
     "directory": "packages/pages"
   },
+  "files": [
+    "dist",
+    "panda",
+    "styled-system"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
@@ -59,31 +66,17 @@
       "types": "./styled-system/types/index.d.ts"
     }
   },
-  "main": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "files": [
-    "dist",
-    "panda",
-    "styled-system"
-  ],
   "scripts": {
     "codegen": "panda codegen --clean",
     "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
-    "format": "oxfmt src",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json",
     "test": "vitest run",
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
     "@construkt-kit/utils": "workspace:^",
     "lucide-react": "^1.67.0"
-  },
-  "peerDependencies": {
-    "@construkt-kit/ui": ">=0.12.0",
-    "@pandacss/dev": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
@@ -98,5 +91,11 @@
     "storybook": "^10.6.5",
     "tsdown": "^0.23.5",
     "vitest": "^5.1.0"
+  },
+  "peerDependencies": {
+    "@construkt-kit/ui": ">=0.12.0",
+    "@pandacss/dev": "^2.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

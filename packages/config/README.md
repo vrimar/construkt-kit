@@ -13,6 +13,7 @@ Shared tool configuration for Construkt Kit frontend projects.
 | `@construkt-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                                  |
 | `@construkt-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen                       |
 | `@construkt-kit/config/tsdown`     | `createTsdownConfig(options?)` factory; a given `entry` replaces the default  |
+| `@construkt-kit/config/vitest`     | `installDomPolyfills()` for jsdom Vitest setup files                          |
 
 ## Oxlint Config
 
@@ -35,6 +36,22 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 `createPlaywrightConfig(overrides?)` starts `pnpm dev` as its web server and tests `http://localhost:5173`. With
 `PLAYWRIGHT_BASE_URL` set it tests that URL instead and starts no server, unless `overrides.webServer` names one.
 
+## Vitest Setup
+
+`installDomPolyfills()` installs no-op `ResizeObserver`, `IntersectionObserver`, `Element#scrollTo`,
+`Element#scrollIntoView` and `Element#setPointerCapture`, which jsdom lacks and the kit's components call. An API the
+environment already has stays. It doesn't register Testing Library's `cleanup`, which only registers itself under
+Vitest `globals`:
+
+```ts
+import { installDomPolyfills } from "@construkt-kit/config/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+installDomPolyfills();
+afterEach(cleanup);
+```
+
 ## Kubb Config (OpenAPI Codegen)
 
 `createKubbConfig(options?)` generates a Kubb v5 config that produces 3 output directories plus the
@@ -49,11 +66,11 @@ bundled fetch runtime:
 
 Options (all optional):
 
-| Option       | Default                  | Description                                |
-| ------------ | ------------------------ | ------------------------------------------ |
-| `inputPath`  | `./src/api/openapi.json` | Path to OpenAPI spec                       |
-| `outputPath` | `./src/api/gen`          | Output directory                           |
-| `overrides`  | `{}`                     | Merged over the config; arrays replace     |
+| Option       | Default                  | Description                            |
+| ------------ | ------------------------ | -------------------------------------- |
+| `inputPath`  | `./src/api/openapi.json` | Path to OpenAPI spec                   |
+| `outputPath` | `./src/api/gen`          | Output directory                       |
+| `overrides`  | `{}`                     | Merged over the config; arrays replace |
 
 Key behaviors:
 

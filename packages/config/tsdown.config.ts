@@ -8,6 +8,7 @@ export default defineConfig({
     "oxlint/index": "oxlint/index.ts",
     "oxfmt/index": "oxfmt/index.ts",
     "tsdown/index": "tsdown/index.ts",
+    "vitest/index": "vitest/index.ts",
   },
   format: ["esm"],
   dts: true,

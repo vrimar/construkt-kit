@@ -11,21 +11,21 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
-- **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
+- **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/vitest`, `/tsdown`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
 
 ## Build & Dev Commands
 
-| Command          | Purpose                             |
-| ---------------- | ----------------------------------- |
-| `pnpm install`   | Install all workspace dependencies  |
-| `pnpm dev`       | Dev mode (watch + rebuild all pkgs) |
-| `pnpm build`     | Build all packages (`dist/`)        |
-| `pnpm test`      | Run all tests                       |
-| `pnpm typecheck` | Type-check all packages             |
+| Command          | Purpose                              |
+| ---------------- | ------------------------------------ |
+| `pnpm install`   | Install all workspace dependencies   |
+| `pnpm dev`       | Dev mode (watch + rebuild all pkgs)  |
+| `pnpm build`     | Build all packages (`dist/`)         |
+| `pnpm test`      | Run all tests                        |
+| `pnpm typecheck` | Type-check all packages              |
 | `pnpm lint`      | Lint the repo in one type-aware pass |
-| `pnpm format`    | Format all packages (oxfmt)         |
-| `pnpm storybook` | Start Storybook dev server          |
-| `pnpm release`   | Build, gate exports, publish to npm |
+| `pnpm format`    | Format the repo in one pass (oxfmt)  |
+| `pnpm storybook` | Start Storybook dev server           |
+| `pnpm release`   | Build, gate exports, publish to npm  |
 
 Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
 Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint

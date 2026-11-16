@@ -4,11 +4,24 @@
   "private": false,
   "description": "Shared component library for Construkt Kit frontend apps",
   "author": "Vasil Rimar",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
     "directory": "packages/ui"
+  },
+  "files": [
+    "dist",
+    "panda",
+    "styled-system"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "imports": {
+    "#styled-system/*": {
+      "types": "./styled-system/*/index.d.ts",
+      "default": "./styled-system/*/index.js"
+    }
   },
   "exports": {
     ".": {
@@ -60,25 +73,11 @@
       "types": "./styled-system/types/index.d.ts"
     }
   },
-  "imports": {
-    "#styled-system/*": {
-      "types": "./styled-system/*/index.d.ts",
-      "default": "./styled-system/*/index.js"
-    }
-  },
-  "main": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "files": [
-    "dist",
-    "panda",
-    "styled-system"
-  ],
   "scripts": {
     "codegen": "panda codegen --clean",
     "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
-    "format": "oxfmt src",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json",
     "test": "vitest run",
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
