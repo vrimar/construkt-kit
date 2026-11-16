@@ -8,6 +8,7 @@ import { checkboxCard } from "#styled-system/recipes";
 import type { HiddenInputControlProps, WithRef } from "../../types";
 import { type CardBodyProps, createCardBody } from "../cardBody";
 import { Checkbox } from "../Checkbox";
+import { isRenderable } from "../itemSlots";
 
 const { withProvider, withContext } = createSlotRecipeContext(checkboxCard);
 
@@ -45,6 +46,9 @@ export const CheckboxCard = ({
   indicatorPlacement,
   ...rest
 }: WithRef<CheckboxCardProps, HTMLInputElement>) => {
+  const descriptionId = React.useId();
+  const described = isRenderable(description);
+
   return (
     <CardRoot
       ref={rootRef}
@@ -52,9 +56,11 @@ export const CheckboxCard = ({
     >
       <ArkCheckbox.HiddenInput
         ref={ref}
+        aria-describedby={described ? descriptionId : undefined}
         {...inputProps}
       />
       <CardBody
+        descriptionId={described ? descriptionId : undefined}
         icon={icon}
         label={label}
         description={description}

@@ -532,6 +532,10 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - A lone child of an attached `ButtonGroup` keeps its corner radius and margin
 - Items in a `Menu.ItemGroup` sit as far apart as ungrouped items
 - `SegmentGroup.Items` renders no empty item control, so each item is narrower and its label centred
+- A `CheckboxCard`'s `description` describes its checkbox to screen readers
+- `SearchInput` takes `onClear` only with a `value`, since its clear button shows only for a non-empty `value`.
+  `SearchInputProps` is a type alias; replace `interface X extends SearchInputProps` with an intersection
+- Shift+Enter in a `Textarea` with both `onEnter` and `preventNewline` does nothing instead of submitting the form
 - A disabled `RadioCard.Root` or `RadioCard.Item` dims like a disabled `CheckboxCard`
 - `RadioCard.Root` `orientation="horizontal"` lays the cards out in a row below the label
 - `useFileSelect`'s options type is `UseFileSelectOptions`, and `UseFileUploadProps`/`UseFileUploadReturn` are exported

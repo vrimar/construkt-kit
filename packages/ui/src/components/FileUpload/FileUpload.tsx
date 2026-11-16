@@ -97,7 +97,7 @@ function FileText({
   return (
     <StyledFileText
       ref={ref}
-      data-placeholder={fileText === fallback ? "" : undefined}
+      data-placeholder={acceptedFiles.length === 0 ? "" : undefined}
       data-scope="file-upload"
       data-part="file-text"
       {...rest}

@@ -10,11 +10,15 @@ type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
 const BaseTextarea = styled(Field.Textarea, textarea);
 
 export interface TextareaProps extends BaseTextareaProps {
-  /** Fired on Enter (Shift+Enter still inserts a newline; ignored during IME composition). */
+  /**
+   * Fired on Enter (Shift+Enter inserts a newline unless `preventNewline`; ignored during IME
+   * composition).
+   */
   onEnter?: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   /**
-   * Block Enter from inserting newlines; Enter submits the enclosing form like a single-line
-   * input (skipped while its submit button is disabled). Also defaults CSS resize to "none".
+   * Block Enter from inserting newlines; without `onEnter`, Enter submits the enclosing form like
+   * a single-line input (skipped while its submit button is disabled). Also defaults CSS resize
+   * to "none".
    */
   preventNewline?: boolean;
 }
@@ -52,7 +56,7 @@ export const Textarea = ({
       onEnter(e);
     } else if (preventNewline) {
       e.preventDefault();
-      submitForm(e.currentTarget);
+      if (!onEnter) submitForm(e.currentTarget);
     }
   };
 

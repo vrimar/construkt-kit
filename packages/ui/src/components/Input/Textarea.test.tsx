@@ -35,4 +35,24 @@ describe("Textarea", () => {
     expect(fireEvent.keyDown(field, { key: "Enter" })).toBe(false);
     expect(onSubmit).toHaveBeenCalledOnce();
   });
+
+  it("leaves submitting to onEnter when preventNewline blocks Shift+Enter", () => {
+    const onEnter = vi.fn();
+    const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Textarea
+          onEnter={onEnter}
+          preventNewline
+        />
+        <button type="submit">Save</button>
+      </form>,
+    );
+
+    expect(fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter", shiftKey: true })).toBe(
+      false,
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onEnter).not.toHaveBeenCalled();
+  });
 });
