@@ -1,0 +1,12 @@
+- tablist:
+  - tab "Tab A" [selected]
+  - tab "Tab B"
+- tabpanel "Tab A": Tab A Content
+- tablist:
+  - tab "Tab A" [selected]
+  - tab "Tab B"
+- tabpanel "Tab A": Tab A Content
+- tablist:
+  - tab "Tab A" [selected]
+  - tab "Tab B"
+- tabpanel "Tab A": Tab A Content

@@ -1,0 +1,7 @@
+- textbox "Search..."
+- listbox:
+  - option "Apple"
+  - option "Banana"
+  - option "Cherry"
+  - option "Dragon fruit"
+- status

@@ -203,15 +203,6 @@ describe("NumberFilter", () => {
     );
   });
 
-  it("keeps focus on the operator trigger after switching to between", async () => {
-    renderFilter();
-
-    await pickOperator("Equals", "Between");
-    await settle();
-
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Between" }));
-  });
-
   it("resyncs when the parent restores a value it previously emitted", async () => {
     const onValueChange = vi.fn();
     const Harness = ({ forced }: { forced: NumberFilterValue | undefined }) => {

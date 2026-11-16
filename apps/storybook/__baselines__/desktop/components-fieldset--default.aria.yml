@@ -1,0 +1,4 @@
+- group "Contact Information":
+  - text: ""
+  - textbox "Full name"
+  - text: Enter your legal name.

@@ -1,0 +1,27 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "inherit":
+      - cell "inherit"
+      - cell
+    - row "xs":
+      - cell "xs"
+      - cell
+    - row "sm":
+      - cell "sm"
+      - cell
+    - row "md":
+      - cell "md"
+      - cell
+    - row "lg":
+      - cell "lg"
+      - cell
+    - row "xl":
+      - cell "xl"
+      - cell
+    - row "2xl":
+      - cell "2xl"
+      - cell

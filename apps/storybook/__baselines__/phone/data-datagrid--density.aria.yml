@@ -1,0 +1,123 @@
+- paragraph: compact
+- grid "Invoices, compact":
+  - rowgroup:
+    - row "# Customer":
+      - columnheader "#"
+      - columnheader "Customer"
+  - rowgroup:
+    - row "0 Acme Corporation":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+    - row "1 Globex":
+      - gridcell "1"
+      - gridcell "Globex"
+    - row "2 Initech":
+      - gridcell "2"
+      - gridcell "Initech"
+    - row "3 Umbrella":
+      - gridcell "3"
+      - gridcell "Umbrella"
+    - row "4 Hooli":
+      - gridcell "4"
+      - gridcell "Hooli"
+    - row "5 Stark Industries":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+    - row "6 Acme Corporation":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+    - row "7 Globex":
+      - gridcell "7"
+      - gridcell "Globex"
+    - row "8 Initech":
+      - gridcell "8"
+      - gridcell "Initech"
+    - row "9 Umbrella":
+      - gridcell "9"
+      - gridcell "Umbrella"
+    - row /\d+ Hooli/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+- status
+- paragraph: default
+- grid "Invoices, default":
+  - rowgroup:
+    - row "# Customer":
+      - columnheader "#"
+      - columnheader "Customer"
+  - rowgroup:
+    - row "0 Acme Corporation":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+    - row "1 Globex":
+      - gridcell "1"
+      - gridcell "Globex"
+    - row "2 Initech":
+      - gridcell "2"
+      - gridcell "Initech"
+    - row "3 Umbrella":
+      - gridcell "3"
+      - gridcell "Umbrella"
+    - row "4 Hooli":
+      - gridcell "4"
+      - gridcell "Hooli"
+    - row "5 Stark Industries":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+    - row "6 Acme Corporation":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+    - row "7 Globex":
+      - gridcell "7"
+      - gridcell "Globex"
+    - row "8 Initech":
+      - gridcell "8"
+      - gridcell "Initech"
+    - row "9 Umbrella":
+      - gridcell "9"
+      - gridcell "Umbrella"
+    - row /\d+ Hooli/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+- status
+- paragraph: relaxed
+- grid "Invoices, relaxed":
+  - rowgroup:
+    - row "# Customer":
+      - columnheader "#"
+      - columnheader "Customer"
+  - rowgroup:
+    - row "0 Acme Corporation":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+    - row "1 Globex":
+      - gridcell "1"
+      - gridcell "Globex"
+    - row "2 Initech":
+      - gridcell "2"
+      - gridcell "Initech"
+    - row "3 Umbrella":
+      - gridcell "3"
+      - gridcell "Umbrella"
+    - row "4 Hooli":
+      - gridcell "4"
+      - gridcell "Hooli"
+    - row "5 Stark Industries":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+    - row "6 Acme Corporation":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+    - row "7 Globex":
+      - gridcell "7"
+      - gridcell "Globex"
+    - row "8 Initech":
+      - gridcell "8"
+      - gridcell "Initech"
+    - row "9 Umbrella":
+      - gridcell "9"
+      - gridcell "Umbrella"
+    - row /\d+ Hooli/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+- status

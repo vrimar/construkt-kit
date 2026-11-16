@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Box, HStack, Stack } from "../components/Layout";
 import { Table } from "../components/Table";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Foundations/Layer styles",
   parameters: {
     docs: {
@@ -14,12 +14,9 @@ const meta: Meta = {
       },
     },
   },
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Hatched: Story = {
+export const Hatched = meta.story({
   render: () => (
     <Stack
       gap="8"
@@ -95,4 +92,4 @@ export const Hatched: Story = {
       </HStack>
     </Stack>
   ),
-};
+});

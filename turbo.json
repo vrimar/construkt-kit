@@ -26,6 +26,11 @@
     "test:browser": {
       "dependsOn": ["build"]
     },
+    "test:stories": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": ["CI", "GITHUB_*", "STORIES_*", "DOCKER_*", "HOME", "XDG_*"]
+    },
     "codegen": {
       "dependsOn": ["^build"],
       "outputs": ["styled-system/**"]
@@ -56,6 +61,9 @@
         "packages/*/tsconfig.json",
         "apps/*/.storybook/**",
         "apps/*/scripts/**",
+        "apps/*/gallery/**",
+        "apps/*/tests/**",
+        "apps/*/*.ts",
         "apps/*/*.config.{ts,mjs,cjs}",
         "apps/*/tsconfig.json"
       ]

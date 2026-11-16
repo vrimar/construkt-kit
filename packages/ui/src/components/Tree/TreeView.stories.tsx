@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { FileIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -92,14 +92,12 @@ const renderWithCheckbox = ({ node, isBranch }: TreeNodeRenderDetails<Node>) => 
   </>
 );
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/TreeView",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-
-export const Basic: StoryObj = {
+export const Basic = meta.story({
   render: () => (
     <Box
       maxW="320px"
@@ -124,9 +122,9 @@ export const Basic: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
-};
+});
 
-export const WithCustomRender: StoryObj = {
+export const WithCustomRender = meta.story({
   render: () => (
     <Box
       maxW="320px"
@@ -152,9 +150,9 @@ export const WithCustomRender: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
-};
+});
 
-export const WithCheckboxes: StoryObj = {
+export const WithCheckboxes = meta.story({
   render: () => (
     <Box
       maxW="320px"
@@ -180,7 +178,7 @@ export const WithCheckboxes: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
-};
+});
 
 function DragAndDropExample() {
   const [treeCollection, setTreeCollection] = useState(collection);
@@ -214,9 +212,9 @@ function DragAndDropExample() {
   );
 }
 
-export const WithDragAndDrop: StoryObj = {
+export const WithDragAndDrop = meta.story({
   render: () => <DragAndDropExample />,
-};
+});
 
 const sectionCollection = createTreeCollection<Node>({
   nodeToValue: (node) => node.id,
@@ -246,7 +244,7 @@ const renderWithCount = ({ node, isBranch }: TreeNodeRenderDetails<Node>) =>
   );
 
 /** Each branch row sticks to the top of the scroll container while its children scroll past. */
-export const StickyBranches: StoryObj = {
+export const StickyBranches = meta.story({
   render: () => (
     <Box
       maxW="320px"
@@ -276,7 +274,7 @@ export const StickyBranches: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
-};
+});
 
 const longNameCollection = createTreeCollection<Node>({
   nodeToValue: (node) => node.id,
@@ -299,7 +297,7 @@ const longNameCollection = createTreeCollection<Node>({
 });
 
 /** Long names wrap onto two lines before truncating. */
-export const ClampedText: StoryObj = {
+export const ClampedText = meta.story({
   render: () => (
     <Box
       maxW="240px"
@@ -326,9 +324,9 @@ export const ClampedText: StoryObj = {
       </TreeView.Root>
     </Box>
   ),
-};
+});
 
-export const Sizes: StoryObj = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={treeView.variantMap.size}
@@ -359,4 +357,4 @@ export const Sizes: StoryObj = {
       )}
     />
   ),
-};
+});

@@ -1,0 +1,38 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm Tree View":
+      - cell "sm"
+      - cell "Tree View":
+        - tree "Tree View":
+          - treeitem "src" [expanded] [level=1]:
+            - button "src"
+            - group:
+              - treeitem "components" [level=2]:
+                - button "components"
+              - treeitem "utils" [level=2]:
+                - button "utils"
+              - treeitem "index.ts" [level=2]
+          - treeitem "docs" [level=1]:
+            - button "docs"
+          - treeitem "config" [level=1]:
+            - button "config"
+    - row "md Tree View":
+      - cell "md"
+      - cell "Tree View":
+        - tree "Tree View":
+          - treeitem "src" [expanded] [level=1]:
+            - button "src"
+            - group:
+              - treeitem "components" [level=2]:
+                - button "components"
+              - treeitem "utils" [level=2]:
+                - button "utils"
+              - treeitem "index.ts" [level=2]
+          - treeitem "docs" [level=1]:
+            - button "docs"
+          - treeitem "config" [level=1]:
+            - button "config"

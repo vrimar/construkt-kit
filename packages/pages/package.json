@@ -80,15 +80,16 @@
   },
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/story-kit": "workspace:*",
     "@construkt-kit/ui": "workspace:*",
     "@pandacss/dev": "^2.5.0",
-    "@storybook/react-vite": "^10.6.7",
+    "@storybook/react-vite": "11.0.0-beta.3",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.12",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "jsdom": "^31.0.1",
-    "storybook": "^10.6.7",
+    "storybook": "11.0.0-beta.3",
     "tsdown": "^0.23.7",
     "vitest": "^5.1.0"
   },

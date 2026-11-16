@@ -1,10 +1,10 @@
+import preview from "@construkt-kit/story-kit/preview";
 import { Box } from "@construkt-kit/ui";
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
 import { LoginPage } from "./index";
 
-const meta: Meta<typeof LoginPage> = {
+const meta = preview.meta({
   title: "Pages/LoginPage",
   component: LoginPage,
   tags: ["autodocs"],
@@ -12,14 +12,11 @@ const meta: Meta<typeof LoginPage> = {
     onSubmit: fn(),
     onForgotPassword: fn(),
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof LoginPage>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const WithLogo: Story = {
+export const WithLogo = meta.story({
   args: {
     logo: (
       <Box
@@ -31,15 +28,15 @@ export const WithLogo: Story = {
       </Box>
     ),
   },
-};
+});
 
-export const NoForgotPassword: Story = {
+export const NoForgotPassword = meta.story({
   args: {
     onForgotPassword: undefined,
   },
-};
+});
 
-export const ShortViewport: Story = {
+export const ShortViewport = meta.story({
   decorators: [
     (Story) => (
       <Box height="360px">
@@ -47,4 +44,4 @@ export const ShortViewport: Story = {
       </Box>
     ),
   ],
-};
+});

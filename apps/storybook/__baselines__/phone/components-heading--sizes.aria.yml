@@ -1,0 +1,30 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "h1 H1":
+      - cell "h1"
+      - cell "H1":
+        - heading "H1" [level=1]
+    - row "h2 H2":
+      - cell "h2"
+      - cell "H2":
+        - heading "H2" [level=2]
+    - row "h3 H3":
+      - cell "h3"
+      - cell "H3":
+        - heading "H3" [level=3]
+    - row "h4 H4":
+      - cell "h4"
+      - cell "H4":
+        - heading "H4" [level=4]
+    - row "h5 H5":
+      - cell "h5"
+      - cell "H5":
+        - heading "H5" [level=5]
+    - row "h6 H6":
+      - cell "h6"
+      - cell "H6":
+        - heading "H6" [level=6]

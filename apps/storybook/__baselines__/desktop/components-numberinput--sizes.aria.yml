@@ -1,0 +1,38 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /sm Quantity \d+/:
+      - cell "sm"
+      - cell /Quantity \d+/:
+        - text: ""
+        - spinbutton "Quantity": /\d+/
+        - group:
+          - button "increment value"
+          - button "decrease value"
+    - row /md Quantity \d+/:
+      - cell "md"
+      - cell /Quantity \d+/:
+        - text: ""
+        - spinbutton "Quantity": /\d+/
+        - group:
+          - button "increment value"
+          - button "decrease value"
+    - row /lg Quantity \d+/:
+      - cell "lg"
+      - cell /Quantity \d+/:
+        - text: ""
+        - spinbutton "Quantity": /\d+/
+        - group:
+          - button "increment value"
+          - button "decrease value"
+    - row /xl Quantity \d+/:
+      - cell "xl"
+      - cell /Quantity \d+/:
+        - text: ""
+        - spinbutton "Quantity": /\d+/
+        - group:
+          - button "increment value"
+          - button "decrease value"

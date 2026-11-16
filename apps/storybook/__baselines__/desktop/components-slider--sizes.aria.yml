@@ -1,0 +1,21 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /sm Volume \d+/:
+      - cell "sm"
+      - cell /Volume \d+/:
+        - text: ""
+        - slider "Volume"
+    - row /md Volume \d+/:
+      - cell "md"
+      - cell /Volume \d+/:
+        - text: ""
+        - slider "Volume"
+    - row /lg Volume \d+/:
+      - cell "lg"
+      - cell /Volume \d+/:
+        - text: ""
+        - slider "Volume"

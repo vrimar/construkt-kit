@@ -1,0 +1,5 @@
+- button "What stands out?"
+- button "Open" [pressed]
+- button "In progress"
+- button "Done"
+- button "Disabled" [disabled]

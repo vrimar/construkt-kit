@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { EyeOffIcon, LayersIcon, ListPlusIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
@@ -10,13 +10,10 @@ import { Menu } from "../Menu";
 import { Text } from "../Text";
 import { Toolbar } from "../Toolbar";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Actionbar",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 function ControlledActionBarStory() {
   const [open, setOpen] = useState(false);
@@ -52,9 +49,9 @@ function ControlledActionBarStory() {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <ControlledActionBarStory />,
-};
+});
 
 const TASKS = [
   { id: "copy", label: "Update onboarding copy" },
@@ -191,6 +188,6 @@ function InlineActionBarStory() {
   );
 }
 
-export const Inline: Story = {
+export const Inline = meta.story({
   render: () => <InlineActionBarStory />,
-};
+});

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 
 import { radioCardGroup } from "#styled-system/recipes";
@@ -6,15 +6,12 @@ import { radioCardGroup } from "#styled-system/recipes";
 import { RadioCard } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/RadioCard",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <RadioCard.Root
       defaultValue="option-1"
@@ -35,9 +32,9 @@ export const Default: Story = {
       ))}
     </RadioCard.Root>
   ),
-};
+});
 
-export const WithAddon: Story = {
+export const WithAddon = meta.story({
   render: () => (
     <RadioCard.Root
       defaultValue="monthly"
@@ -57,9 +54,9 @@ export const WithAddon: Story = {
       />
     </RadioCard.Root>
   ),
-};
+});
 
-export const Horizontal: Story = {
+export const Horizontal = meta.story({
   render: () => (
     <RadioCard.Root
       defaultValue="monthly"
@@ -79,9 +76,9 @@ export const Horizontal: Story = {
       />
     </RadioCard.Root>
   ),
-};
+});
 
-export const CustomIndicator: Story = {
+export const CustomIndicator = meta.story({
   render: () => (
     <RadioCard.Root
       defaultValue="light"
@@ -102,9 +99,9 @@ export const CustomIndicator: Story = {
       ))}
     </RadioCard.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={radioCardGroup.variantMap.size}
@@ -129,4 +126,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

@@ -1,0 +1,14 @@
+- text: Verification Code
+- group "Verification Code":
+  - textbox "pin code 1 of 6":
+    - /placeholder: ○
+  - textbox "pin code 2 of 6":
+    - /placeholder: ○
+  - textbox "pin code 3 of 6":
+    - /placeholder: ○
+  - textbox "pin code 4 of 6":
+    - /placeholder: ○
+  - textbox "pin code 5 of 6":
+    - /placeholder: ○
+  - textbox "pin code 6 of 6":
+    - /placeholder: ○

@@ -1,0 +1,30 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - 'row "sm Size: sm Value Row 1 Data"':
+      - cell "sm"
+      - 'cell "Size: sm Value Row 1 Data"':
+        - table:
+          - rowgroup:
+            - 'row "Size: sm Value"':
+              - 'columnheader "Size: sm"'
+              - columnheader "Value"
+          - rowgroup:
+            - row "Row 1 Data":
+              - cell "Row 1"
+              - cell "Data"
+    - 'row "md Size: md Value Row 1 Data"':
+      - cell "md"
+      - 'cell "Size: md Value Row 1 Data"':
+        - table:
+          - rowgroup:
+            - 'row "Size: md Value"':
+              - 'columnheader "Size: md"'
+              - columnheader "Value"
+          - rowgroup:
+            - row "Row 1 Data":
+              - cell "Row 1"
+              - cell "Data"

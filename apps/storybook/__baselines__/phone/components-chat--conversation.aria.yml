@@ -1,0 +1,21 @@
+- log:
+  - text: Assistant
+  - paragraph: Ask me anything about this project, or tell me what to change. Every number I give you links back to its source.
+  - text: /Which team closed the most tasks\? And why\? Assistant from Sprint \d+ Grouped tasks by team/
+  - button "Undo"
+  - paragraph:
+    - text: /The Design team leads with \d+ closed/
+    - button "Source 1"
+    - text: /, well ahead of Platform at \d+/
+    - button "Source 2"
+    - text: .
+  - group "Next":
+    - paragraph: Next
+    - button "How does Platform differ here?"
+    - button "Share this with the team"
+    - button "Show it by week"
+- text: /Reading Sprint \d+ · Tasks by team and status/
+- textbox "Ask or tell the assistant":
+  - /placeholder: Ask or tell the assistant…
+- button "Dictate"
+- button "Send" [disabled]

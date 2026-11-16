@@ -1,0 +1,10 @@
+- checkbox "Solid" [checked]
+- text: Solid
+- checkbox "Surface" [checked]
+- text: Surface
+- checkbox "Subtle" [checked]
+- text: Subtle
+- checkbox "Outline" [checked]
+- text: Outline
+- checkbox "Plain" [checked]
+- text: Plain

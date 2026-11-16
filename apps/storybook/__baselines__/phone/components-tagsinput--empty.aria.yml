@@ -1,0 +1,4 @@
+- text: Keywords
+- textbox "Keywords":
+  - /placeholder: Type and press Enter...
+- alert

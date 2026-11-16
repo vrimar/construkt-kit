@@ -1,0 +1,30 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Open xs":
+      - cell "xs"
+      - cell "Open xs":
+        - button "Open xs"
+    - row "sm Open sm":
+      - cell "sm"
+      - cell "Open sm":
+        - button "Open sm"
+    - row "md Open md":
+      - cell "md"
+      - cell "Open md":
+        - button "Open md"
+    - row "lg Open lg":
+      - cell "lg"
+      - cell "Open lg":
+        - button "Open lg"
+    - row "xl Open xl":
+      - cell "xl"
+      - cell "Open xl":
+        - button "Open xl"
+    - row "full Open full":
+      - cell "full"
+      - cell "Open full":
+        - button "Open full"

@@ -1,0 +1,21 @@
+- text: start
+- listbox "start":
+  - option "Apple" [selected]
+  - option "Banana"
+  - option "Cherry"
+  - option "Dragon fruit"
+- status
+- text: end
+- listbox "end":
+  - option "Apple" [selected]
+  - option "Banana"
+  - option "Cherry"
+  - option "Dragon fruit"
+- status
+- text: none
+- listbox "none":
+  - option "Apple" [selected]
+  - option "Banana"
+  - option "Cherry"
+  - option "Dragon fruit"
+- status

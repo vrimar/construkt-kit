@@ -1,0 +1,8 @@
+- paragraph: Open invoices by customer
+- toolbar "Table actions":
+  - button "Filter"
+  - button "Sort"
+  - button "Columns"
+  - separator
+  - button "Notes"
+  - button "Export"

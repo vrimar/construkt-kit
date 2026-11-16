@@ -1,0 +1,36 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Framework Toggle suggestions":
+      - cell "xs"
+      - cell "Framework Toggle suggestions":
+        - text: ""
+        - combobox "Framework"
+        - button "Toggle suggestions"
+    - row "sm Framework Toggle suggestions":
+      - cell "sm"
+      - cell "Framework Toggle suggestions":
+        - text: ""
+        - combobox "Framework"
+        - button "Toggle suggestions"
+    - row "md Framework Toggle suggestions":
+      - cell "md"
+      - cell "Framework Toggle suggestions":
+        - text: ""
+        - combobox "Framework"
+        - button "Toggle suggestions"
+    - row "lg Framework Toggle suggestions":
+      - cell "lg"
+      - cell "Framework Toggle suggestions":
+        - text: ""
+        - combobox "Framework"
+        - button "Toggle suggestions"
+    - row "xl Framework Toggle suggestions":
+      - cell "xl"
+      - cell "Framework Toggle suggestions":
+        - text: ""
+        - combobox "Framework"
+        - button "Toggle suggestions"

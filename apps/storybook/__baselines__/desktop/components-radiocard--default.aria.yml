@@ -1,0 +1,8 @@
+- radiogroup "Select a plan":
+  - text: ""
+  - radio "Starter" [checked]
+  - text: Starter Best for small projects
+  - radio "Pro"
+  - text: Pro Best for growing teams
+  - radio "Enterprise"
+  - text: Enterprise Best for large organizations

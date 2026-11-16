@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import {
   ClipboardPasteIcon,
   CopyIcon,
@@ -24,15 +24,12 @@ import { Button } from "../Buttons";
 import { Kbd } from "../Kbd";
 import { Flex } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Menu",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -46,9 +43,9 @@ export const Default: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const TriggerWithTooltip: Story = {
+export const TriggerWithTooltip = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger
@@ -65,9 +62,9 @@ export const TriggerWithTooltip: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const WithIcons: Story = {
+export const WithIcons = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -102,9 +99,9 @@ export const WithIcons: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const WithGroups: Story = {
+export const WithGroups = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -122,9 +119,9 @@ export const WithGroups: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Destructive: Story = {
+export const Destructive = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -148,9 +145,9 @@ export const Destructive: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Hints: Story = {
+export const Hints = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -196,9 +193,9 @@ export const Hints: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Descriptions: Story = {
+export const Descriptions = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -229,9 +226,9 @@ export const Descriptions: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const DisabledWithReason: Story = {
+export const DisabledWithReason = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -263,9 +260,9 @@ export const DisabledWithReason: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Links: Story = {
+export const Links = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -295,9 +292,10 @@ export const Links: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
+  tags: ["desktop-only"],
   render: () => (
     <SizePreviewTable
       sizes={menu.variantMap.size}
@@ -326,7 +324,7 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
 function TypesDemo() {
   const [bold, setBold] = useState(false);
@@ -394,11 +392,12 @@ function TypesDemo() {
   );
 }
 
-export const Types: Story = {
+export const Types = meta.story({
+  tags: ["desktop-only"],
   render: () => <TypesDemo />,
-};
+});
 
-export const ContextMenu: Story = {
+export const ContextMenu = meta.story({
   render: () => (
     <Menu.Root>
       <Menu.ContextTrigger
@@ -420,9 +419,10 @@ export const ContextMenu: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
 
-export const Phone: Story = {
+export const Phone = meta.story({
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
   render: () => (
     <Menu.Root>
@@ -454,4 +454,52 @@ export const Phone: Story = {
       </Menu.Content>
     </Menu.Root>
   ),
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  // The phone sheet traps focus, so the trigger behind its aria-hidden page is unreachable.
+  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
+  render: () => (
+    <Menu.Root defaultOpen>
+      <Menu.Trigger asChild>
+        <Button variant="outline">Actions</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item
+          value="edit"
+          icon={<PencilIcon />}
+        >
+          Edit
+        </Menu.Item>
+        <Menu.Item
+          value="duplicate"
+          icon={<CopyIcon />}
+          hint={<Kbd size="sm">⌘D</Kbd>}
+        >
+          Duplicate
+        </Menu.Item>
+        <Menu.Item
+          value="share"
+          icon={<ShareIcon />}
+        >
+          Share
+        </Menu.Item>
+        <Menu.Item
+          value="move"
+          icon={<FolderInputIcon />}
+        >
+          Move to…
+        </Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          value="delete"
+          icon={<TrashIcon />}
+          destructive
+        >
+          Delete
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+});

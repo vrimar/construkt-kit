@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { EllipsisIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -8,13 +8,10 @@ import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
 import { Menu } from "../Menu";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/TreeSelectList",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 interface DemoNode {
   id: string;
@@ -78,9 +75,9 @@ function TreeSelectListDemo() {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <TreeSelectListDemo />,
-};
+});
 
 function BareTreeDemo() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -104,9 +101,9 @@ function BareTreeDemo() {
   );
 }
 
-export const WithoutToolbar: Story = {
+export const WithoutToolbar = meta.story({
   render: () => <BareTreeDemo />,
-};
+});
 
 const longLabelCollection = createTreeCollection<DemoNode>({
   nodeToValue: (node) => node.id,
@@ -170,9 +167,9 @@ function HoverActionsDemo() {
 }
 
 /** Row actions cover the end of long labels only while the row is hovered or focused. */
-export const HoverActions: Story = {
+export const HoverActions = meta.story({
   render: () => <HoverActionsDemo />,
-};
+});
 
 // --- Long list for virtual scroll testing ---
 
@@ -225,9 +222,9 @@ function LongListDemo() {
   );
 }
 
-export const LongList: Story = {
+export const LongList = meta.story({
   render: () => <LongListDemo />,
-};
+});
 
 function StickyBranchesDemo() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -246,9 +243,9 @@ function StickyBranchesDemo() {
 }
 
 /** The branch of the topmost visible row stays pinned above the list; click it to jump back. */
-export const StickyBranches: Story = {
+export const StickyBranches = meta.story({
   render: () => <StickyBranchesDemo />,
-};
+});
 
 function RenameDemo() {
   const [tree, setTree] = useState(collection);
@@ -271,9 +268,9 @@ function RenameDemo() {
 }
 
 /** Focus a leaf and press F2 to rename it; Enter saves, Escape cancels. */
-export const Rename: Story = {
+export const Rename = meta.story({
   render: () => <RenameDemo />,
-};
+});
 
 interface LazyDemoNode {
   id: string;
@@ -348,9 +345,9 @@ function LazyLoadingDemo() {
   );
 }
 
-export const LazyLoading: Story = {
+export const LazyLoading = meta.story({
   render: () => <LazyLoadingDemo />,
-};
+});
 
 const searchServer = async (query: string, signal: AbortSignal) => {
   await delay(400, signal);
@@ -390,6 +387,6 @@ function ExternalSearchDemo() {
   );
 }
 
-export const ExternalSearch: Story = {
+export const ExternalSearch = meta.story({
   render: () => <ExternalSearchDemo />,
-};
+});

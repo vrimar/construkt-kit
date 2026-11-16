@@ -1,17 +1,14 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Popover } from ".";
 import { Button } from "../Buttons";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Popover",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Popover.Root>
       <Popover.Trigger asChild>
@@ -29,9 +26,9 @@ export const Default: Story = {
       </Popover.Content>
     </Popover.Root>
   ),
-};
+});
 
-export const TriggerWithTooltip: Story = {
+export const TriggerWithTooltip = meta.story({
   render: () => (
     <Popover.Root>
       <Popover.Trigger
@@ -49,9 +46,9 @@ export const TriggerWithTooltip: Story = {
       </Popover.Content>
     </Popover.Root>
   ),
-};
+});
 
-export const WithArrow: Story = {
+export const WithArrow = meta.story({
   render: () => (
     <Popover.Root>
       <Popover.Trigger asChild>
@@ -64,9 +61,37 @@ export const WithArrow: Story = {
       </Popover.Content>
     </Popover.Root>
   ),
-};
+});
 
-export const Phone: Story = {
-  ...Default,
+export const Phone = meta.story({
+  ...Default.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Popover.Root defaultOpen>
+      <Popover.Trigger asChild>
+        <Button variant="outline">Share</Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        <Popover.Header>
+          <Popover.Title>Share Q3 planning</Popover.Title>
+          <Popover.Description>Anyone in the workspace with the link can view.</Popover.Description>
+        </Popover.Header>
+        <Popover.Footer>
+          <Button
+            size="sm"
+            variant="outline"
+          >
+            Copy link
+          </Button>
+          <Button size="sm">Invite people</Button>
+        </Popover.Footer>
+        <Popover.CloseTrigger />
+      </Popover.Content>
+    </Popover.Root>
+  ),
+});

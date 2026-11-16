@@ -1,3 +1,3 @@
-import config from "@construkt-kit/config/oxfmt";
+import { createOxfmtConfig } from "@construkt-kit/config/oxfmt";
 
-export default config;
+export default createOxfmtConfig({ ignorePatterns: ["apps/storybook/__baselines__/**"] });

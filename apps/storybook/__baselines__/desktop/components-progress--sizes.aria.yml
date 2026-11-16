@@ -1,0 +1,31 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /xs Progress \d+/:
+      - cell "xs"
+      - cell /Progress \d+/:
+        - text: ""
+        - progressbar /\d+%/
+    - row /sm Progress \d+/:
+      - cell "sm"
+      - cell /Progress \d+/:
+        - text: ""
+        - progressbar /\d+%/
+    - row /md Progress \d+/:
+      - cell "md"
+      - cell /Progress \d+/:
+        - text: ""
+        - progressbar /\d+%/
+    - row /lg Progress \d+/:
+      - cell "lg"
+      - cell /Progress \d+/:
+        - text: ""
+        - progressbar /\d+%/
+    - row /xl Progress \d+/:
+      - cell "xl"
+      - cell /Progress \d+/:
+        - text: ""
+        - progressbar /\d+%/

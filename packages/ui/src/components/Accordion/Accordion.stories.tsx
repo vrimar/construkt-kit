@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { accordion } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { Accordion } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Accordion",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <Accordion.Root
@@ -40,9 +37,9 @@ export const Default: Story = {
       </Accordion.Root>
     </Box>
   ),
-};
+});
 
-export const Multiple: Story = {
+export const Multiple = meta.story({
   render: () => (
     <Box maxW="400px">
       <Accordion.Root
@@ -68,9 +65,9 @@ export const Multiple: Story = {
       </Accordion.Root>
     </Box>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={accordion.variantMap.size}
@@ -83,7 +80,7 @@ export const Sizes: Story = {
         >
           <Accordion.Item value="item-1">
             <Accordion.ItemTrigger>
-              First Item
+              First Item ({size})
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
@@ -92,7 +89,7 @@ export const Sizes: Story = {
           </Accordion.Item>
           <Accordion.Item value="item-2">
             <Accordion.ItemTrigger>
-              Another item
+              Another item ({size})
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
@@ -103,4 +100,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

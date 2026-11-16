@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Select } from ".";
@@ -17,7 +17,7 @@ const produce = [
   { id: 4, name: "Spinach", kind: "Vegetable" },
 ];
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Select",
   component: Select,
   decorators: [
@@ -30,12 +30,9 @@ const meta: Meta = {
       </Box>
     ),
   ],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: function DefaultStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -49,9 +46,9 @@ export const Default: Story = {
       />
     );
   },
-};
+});
 
-export const Searchable: Story = {
+export const Searchable = meta.story({
   render: function SearchableStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -66,9 +63,9 @@ export const Searchable: Story = {
       />
     );
   },
-};
+});
 
-export const Multiple: Story = {
+export const Multiple = meta.story({
   render: function MultipleStory() {
     const [value, setValue] = useState<number[]>([]);
     return (
@@ -84,9 +81,9 @@ export const Multiple: Story = {
       />
     );
   },
-};
+});
 
-export const Grouped: Story = {
+export const Grouped = meta.story({
   render: function GroupedStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -104,9 +101,9 @@ export const Grouped: Story = {
       />
     );
   },
-};
+});
 
-export const Compound: Story = {
+export const Compound = meta.story({
   render: function CompoundStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -128,9 +125,30 @@ export const Compound: Story = {
       </Select.Root>
     );
   },
-};
+});
 
-export const Phone: Story = {
-  ...Searchable,
+export const Phone = meta.story({
+  ...Searchable.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: function OpenStory() {
+    const [value, setValue] = useState<number | null>(3);
+    return (
+      <Select
+        defaultOpen
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        groupBy={(item) => item.kind}
+        groupSort="asc"
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select produce"
+      />
+    );
+  },
+});

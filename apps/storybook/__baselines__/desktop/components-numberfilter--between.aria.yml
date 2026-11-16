@@ -1,0 +1,6 @@
+- group:
+  - button "Between": ↔
+  - textbox "From": /\d+/
+  - textbox "To": /\d+/
+  - button "Clear filter"
+- paragraph: "/\\{\"operator\":\"between\",\"value\":\\d+,\"to\":\\d+\\}/"

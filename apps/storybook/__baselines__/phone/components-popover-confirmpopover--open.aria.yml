@@ -1,0 +1,5 @@
+- alertdialog "Delete Q3 planning?":
+  - heading "Delete Q3 planning?" [level=2]
+  - text: 2 tasks go back to the backlog. You can undo this.
+  - button "Cancel"
+  - button "Delete project"

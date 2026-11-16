@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { BellIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
@@ -6,7 +6,7 @@ import { Button } from "../components/Buttons";
 import { Box, Grid, HStack, Stack } from "../components/Layout";
 import { Text } from "../components/Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Foundations/Highlights",
   parameters: {
     docs: {
@@ -19,10 +19,7 @@ const meta: Meta = {
       },
     },
   },
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const Sample = ({ name, children }: { name: string; children: ReactNode }) => (
   <Stack gap="1.5">
@@ -36,7 +33,7 @@ const Sample = ({ name, children }: { name: string; children: ReactNode }) => (
   </Stack>
 );
 
-export const AnimationStyles: Story = {
+export const AnimationStyles = meta.story({
   render: function AnimationStylesStory() {
     const [run, setRun] = useState(0);
 
@@ -132,4 +129,4 @@ export const AnimationStyles: Story = {
       </Stack>
     );
   },
-};
+});

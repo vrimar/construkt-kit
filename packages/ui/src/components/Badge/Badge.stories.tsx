@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { BellIcon, CircleCheckIcon, SparklesIcon, StarIcon, TriangleAlertIcon } from "lucide-react";
 
 import { badge } from "#styled-system/recipes";
@@ -9,21 +9,18 @@ import { IconButton } from "../Buttons";
 import { Float, HStack, Stack, Wrap } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta<typeof Badge> = {
+const meta = preview.meta({
   title: "Components/Badge",
   component: Badge,
   tags: ["autodocs"],
   args: {
     children: "Badge",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Badge>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="2">
       <Badge variant="solid">Solid</Badge>
@@ -33,18 +30,18 @@ export const Variants: Story = {
       <Badge variant="plain">Plain</Badge>
     </Wrap>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={badge.variantMap.size.filter((size) => size !== "dot")}
       renderPreview={(size) => <Badge size={size}>{size}</Badge>}
     />
   ),
-};
+});
 
-export const PlainStatus: Story = {
+export const PlainStatus = meta.story({
   render: () => (
     <Stack gap="2">
       <Badge
@@ -74,9 +71,9 @@ export const PlainStatus: Story = {
       </Badge>
     </Stack>
   ),
-};
+});
 
-export const Dot: Story = {
+export const Dot = meta.story({
   render: () => (
     <Stack
       gap="3"
@@ -118,9 +115,9 @@ export const Dot: Story = {
       />
     </Stack>
   ),
-};
+});
 
-export const CountOnIconButton: Story = {
+export const CountOnIconButton = meta.story({
   render: () => (
     <IconButton
       variant="outline"
@@ -144,4 +141,4 @@ export const CountOnIconButton: Story = {
       }
     />
   ),
-};
+});

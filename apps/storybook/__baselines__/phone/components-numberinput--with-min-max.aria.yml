@@ -1,0 +1,5 @@
+- text: /Rating \(0-\d+\)/
+- spinbutton /Rating \(0-\d+\)/: "5"
+- group:
+  - button "increment value"
+  - button "decrease value"

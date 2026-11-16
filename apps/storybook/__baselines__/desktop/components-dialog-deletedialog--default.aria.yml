@@ -1,0 +1,6 @@
+- dialog "Delete project":
+  - heading "Delete project" [level=2]
+  - paragraph: Are you sure you want to delete Q3 planning?
+  - button "Cancel"
+  - button "Submit"
+  - button "Close"

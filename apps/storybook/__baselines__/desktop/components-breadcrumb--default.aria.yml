@@ -1,0 +1,9 @@
+- navigation "breadcrumb":
+  - list:
+    - listitem:
+      - link "Home":
+        - /url: "#"
+    - listitem:
+      - link "Projects":
+        - /url: "#"
+    - listitem: Current Page

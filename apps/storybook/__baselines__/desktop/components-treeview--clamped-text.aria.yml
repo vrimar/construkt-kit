@@ -1,0 +1,7 @@
+- tree "Tree View":
+  - treeitem "Website redesign, phase 2 (research from March to April)" [expanded] [level=1]:
+    - button "Website redesign, phase 2 (research from March to April)"
+    - group:
+      - treeitem "Interview notes from the first round of customer calls" [level=2]
+      - treeitem "Sitemap" [level=2]
+      - treeitem "Comparison against the three nearest competitors by feature" [level=2]

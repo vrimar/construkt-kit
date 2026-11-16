@@ -1,20 +1,20 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { drawer } from "#styled-system/recipes";
 
 import { Drawer } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
+import { Field } from "../Form";
+import { Input, Textarea } from "../Input";
+import { Stack } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Drawer",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Drawer.Root>
       <Drawer.Trigger asChild>
@@ -33,9 +33,9 @@ export const Default: Story = {
       </Drawer.Content>
     </Drawer.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={drawer.variantMap.size}
@@ -59,9 +59,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const LeftPlacement: Story = {
+export const LeftPlacement = meta.story({
   render: () => (
     <Drawer.Root placement="start">
       <Drawer.Trigger asChild>
@@ -76,4 +76,43 @@ export const LeftPlacement: Story = {
       </Drawer.Content>
     </Drawer.Root>
   ),
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Drawer.Root defaultOpen>
+      <Drawer.Trigger asChild>
+        <Button>Edit task</Button>
+      </Drawer.Trigger>
+      <Drawer.Content>
+        <Drawer.Header>
+          <Drawer.Title>Edit task</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <Stack gap="4">
+            <Field label="Title">
+              <Input defaultValue="Draft the Q3 roadmap" />
+            </Field>
+            <Field label="Assignee">
+              <Input defaultValue="Grace Hopper" />
+            </Field>
+            <Field
+              label="Notes"
+              helperText="Visible to everyone on the project."
+            >
+              <Textarea defaultValue="Collect input from design and sales before Friday." />
+            </Field>
+          </Stack>
+        </Drawer.Body>
+        <Drawer.Footer>
+          <Drawer.ActionTrigger asChild>
+            <Button variant="outline">Cancel</Button>
+          </Drawer.ActionTrigger>
+          <Button>Save</Button>
+        </Drawer.Footer>
+        <Drawer.CloseTrigger />
+      </Drawer.Content>
+    </Drawer.Root>
+  ),
+});

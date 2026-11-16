@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { stat } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { Stat } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Wrap } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Stat",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Stat.Root>
       <Stat.Label>Revenue</Stat.Label>
@@ -25,9 +22,9 @@ export const Default: Story = {
       <Stat.HelpText>Last 30 days</Stat.HelpText>
     </Stat.Root>
   ),
-};
+});
 
-export const WithTrend: Story = {
+export const WithTrend = meta.story({
   render: () => (
     <Wrap gap="8">
       <Stat.Root>
@@ -42,18 +39,18 @@ export const WithTrend: Story = {
       </Stat.Root>
     </Wrap>
   ),
-};
+});
 
-export const WithInfo: Story = {
+export const WithInfo = meta.story({
   render: () => (
     <Stat.Root>
       <Stat.Label info="Total unique visitors in the last 30 days">Visitors</Stat.Label>
       <Stat.ValueText value={24500} />
     </Stat.Root>
   ),
-};
+});
 
-export const WithUnit: Story = {
+export const WithUnit = meta.story({
   render: () => (
     <Stat.Root>
       <Stat.Label>Response Time</Stat.Label>
@@ -62,9 +59,9 @@ export const WithUnit: Story = {
       </Stat.ValueText>
     </Stat.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={stat.variantMap.size}
@@ -77,4 +74,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

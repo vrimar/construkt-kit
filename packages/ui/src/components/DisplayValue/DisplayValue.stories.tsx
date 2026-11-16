@@ -1,28 +1,24 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
-import type { DisplayValueProps } from ".";
 import { DisplayValue } from ".";
 
-const meta: Meta<typeof DisplayValue> = {
+const meta = preview.meta({
   title: "Components/DisplayValue",
-  component: DisplayValue,
+  component: DisplayValue<string | number>,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof DisplayValue>;
-
-export const WithValue: Story = {
+export const WithValue = meta.story({
   args: { value: "Hello World" },
-};
+});
 
-export const Empty: Story = {
+export const Empty = meta.story({
   args: { value: null },
-};
+});
 
-export const WithFormat: StoryObj<DisplayValueProps<number>> = {
+export const WithFormat = meta.story({
   args: {
     value: 1234.56,
-    formatValue: (v) => `$${v.toFixed(2)}`,
+    formatValue: (v) => `$${Number(v).toFixed(2)}`,
   },
-};
+});

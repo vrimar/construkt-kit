@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { SearchHighlight } from ".";
 
-const meta: Meta<typeof SearchHighlight> = {
+const meta = preview.meta({
   title: "Components/Highlight",
   component: SearchHighlight,
   tags: ["autodocs"],
@@ -10,23 +10,20 @@ const meta: Meta<typeof SearchHighlight> = {
     text: "The quick brown fox jumps over the lazy dog",
     query: "quick fox",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof SearchHighlight>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const NoMatch: Story = {
+export const NoMatch = meta.story({
   args: {
     text: "Hello world",
     query: "xyz",
   },
-};
+});
 
-export const MultipleMatches: Story = {
+export const MultipleMatches = meta.story({
   args: {
     text: "React is a JavaScript library for building user interfaces. React makes it easy.",
     query: "React",
   },
-};
+});

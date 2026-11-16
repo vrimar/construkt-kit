@@ -1,0 +1,46 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Tags React Delete tag React Vue Delete tag Vue":
+      - cell "xs"
+      - cell "Tags React Delete tag React Vue Delete tag Vue":
+        - text: ""
+        - button "Delete tag React"
+        - text: ""
+        - button "Delete tag Vue"
+        - textbox "Tags":
+          - /placeholder: Add tag...
+    - row "sm Tags React Delete tag React Vue Delete tag Vue":
+      - cell "sm"
+      - cell "Tags React Delete tag React Vue Delete tag Vue":
+        - text: ""
+        - button "Delete tag React"
+        - text: ""
+        - button "Delete tag Vue"
+        - textbox "Tags":
+          - /placeholder: Add tag...
+    - row "md Tags React Delete tag React Vue Delete tag Vue":
+      - cell "md"
+      - cell "Tags React Delete tag React Vue Delete tag Vue":
+        - text: ""
+        - button "Delete tag React"
+        - text: ""
+        - button "Delete tag Vue"
+        - textbox "Tags":
+          - /placeholder: Add tag...
+    - row "lg Tags React Delete tag React Vue Delete tag Vue":
+      - cell "lg"
+      - cell "Tags React Delete tag React Vue Delete tag Vue":
+        - text: ""
+        - button "Delete tag React"
+        - text: ""
+        - button "Delete tag Vue"
+        - textbox "Tags":
+          - /placeholder: Add tag...
+- alert
+- alert
+- alert
+- alert

@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Pagination } from ".";
 import { Button, IconButton } from "../Buttons";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Pagination",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Pagination.Root
       count={100}
@@ -52,4 +49,4 @@ export const Default: Story = {
       </Pagination.NextTrigger>
     </Pagination.Root>
   ),
-};
+});

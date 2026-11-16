@@ -1,0 +1,45 @@
+- tree "Tree View":
+  - treeitem "Design 8" [expanded] [level=1]:
+    - button "Design 8"
+    - group:
+      - treeitem "Design file 1" [level=2]
+      - treeitem "Design file 2" [level=2]
+      - treeitem "Design file 3" [level=2]
+      - treeitem "Design file 4" [level=2]
+      - treeitem "Design file 5" [level=2]
+      - treeitem "Design file 6" [level=2]
+      - treeitem "Design file 7" [level=2]
+      - treeitem "Design file 8" [level=2]
+  - treeitem "Engineering 8" [expanded] [level=1]:
+    - button "Engineering 8"
+    - group:
+      - treeitem "Engineering file 1" [level=2]
+      - treeitem "Engineering file 2" [level=2]
+      - treeitem "Engineering file 3" [level=2]
+      - treeitem "Engineering file 4" [level=2]
+      - treeitem "Engineering file 5" [level=2]
+      - treeitem "Engineering file 6" [level=2]
+      - treeitem "Engineering file 7" [level=2]
+      - treeitem "Engineering file 8" [level=2]
+  - treeitem "Marketing 8" [expanded] [level=1]:
+    - button "Marketing 8"
+    - group:
+      - treeitem "Marketing file 1" [level=2]
+      - treeitem "Marketing file 2" [level=2]
+      - treeitem "Marketing file 3" [level=2]
+      - treeitem "Marketing file 4" [level=2]
+      - treeitem "Marketing file 5" [level=2]
+      - treeitem "Marketing file 6" [level=2]
+      - treeitem "Marketing file 7" [level=2]
+      - treeitem "Marketing file 8" [level=2]
+  - treeitem "Sales 8" [expanded] [level=1]:
+    - button "Sales 8"
+    - group:
+      - treeitem "Sales file 1" [level=2]
+      - treeitem "Sales file 2" [level=2]
+      - treeitem "Sales file 3" [level=2]
+      - treeitem "Sales file 4" [level=2]
+      - treeitem "Sales file 5" [level=2]
+      - treeitem "Sales file 6" [level=2]
+      - treeitem "Sales file 7" [level=2]
+      - treeitem "Sales file 8" [level=2]

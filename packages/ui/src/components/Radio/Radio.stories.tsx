@@ -1,20 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { radioGroup } from "#styled-system/recipes";
 
 import { Radio, RadioGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof Radio> = {
+const meta = preview.meta({
   title: "Components/Radio",
   component: Radio,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Radio>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <RadioGroup defaultValue="option-1">
       <Radio value="option-1">Option 1</Radio>
@@ -22,9 +19,9 @@ export const Default: Story = {
       <Radio value="option-3">Option 3</Radio>
     </RadioGroup>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={radioGroup.variantMap.size}
@@ -38,4 +35,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

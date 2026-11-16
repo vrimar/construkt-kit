@@ -1,25 +1,22 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { textarea } from "#styled-system/recipes";
 
 import { Textarea } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof Textarea> = {
+const meta = preview.meta({
   title: "Components/Input/Textarea",
   component: Textarea,
   tags: ["autodocs"],
   args: {
     placeholder: "Enter long text...",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Textarea>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={textarea.variantMap.size}
@@ -31,4 +28,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

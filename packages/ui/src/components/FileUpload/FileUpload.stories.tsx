@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { fileUpload } from "#styled-system/recipes";
 
@@ -7,15 +7,12 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
 import { Box, Center } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/FileUpload",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <FileUpload.Root maxFiles={5}>
@@ -29,9 +26,9 @@ export const Default: Story = {
       </FileUpload.Root>
     </Box>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={fileUpload.variantMap.size}
@@ -51,9 +48,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const Dropzone: Story = {
+export const Dropzone = meta.story({
   render: () => (
     <Box maxW="400px">
       <FileUpload.Root maxFiles={3}>
@@ -67,11 +64,11 @@ export const Dropzone: Story = {
       </FileUpload.Root>
     </Box>
   ),
-};
+});
 
 const sampleFiles = [new File(["quarterly figures"], "q3-report.pdf", { type: "application/pdf" })];
 
-export const DisabledAndReadOnly: Story = {
+export const DisabledAndReadOnly = meta.story({
   render: () => (
     <Box
       display="grid"
@@ -98,4 +95,4 @@ export const DisabledAndReadOnly: Story = {
       ))}
     </Box>
   ),
-};
+});

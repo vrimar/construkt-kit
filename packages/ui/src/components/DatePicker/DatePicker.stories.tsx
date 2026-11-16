@@ -1,27 +1,24 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { fn } from "storybook/test";
 
-import { DatePicker, DatePickerSelect, defaultRangePresets } from ".";
+import { DatePicker, DatePickerSelect, defaultRangePresets, parseDate } from ".";
 import { Button } from "../Buttons";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/DatePicker",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Single: Story = {
+export const Single = meta.story({
   render: () => (
     <Box maxW="320px">
       <DatePicker onValueChange={fn()} />
     </Box>
   ),
-};
+});
 
-export const Range: Story = {
+export const Range = meta.story({
   render: () => (
     <Box maxW="320px">
       <DatePicker
@@ -32,9 +29,9 @@ export const Range: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const CustomTrigger: Story = {
+export const CustomTrigger = meta.story({
   name: "Custom Trigger",
   render: () => (
     <Box maxW="320px">
@@ -44,9 +41,9 @@ export const CustomTrigger: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const NotPortalled: Story = {
+export const NotPortalled = meta.story({
   name: "Not Portalled",
   render: () => (
     <Box maxW="320px">
@@ -56,11 +53,26 @@ export const NotPortalled: Story = {
       />
     </Box>
   ),
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  // The phone sheet traps focus, so the trigger behind its aria-hidden page is unreachable.
+  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
+  render: () => (
+    <Box maxW="320px">
+      <DatePicker
+        defaultOpen
+        defaultValue={parseDate("2026-03-12")}
+        onValueChange={fn()}
+      />
+    </Box>
+  ),
+});
 
 // --- DatePickerSelect ---
 
-export const Select: Story = {
+export const Select = meta.story({
   name: "DatePickerSelect / Range",
   render: () => (
     <Box maxW="320px">
@@ -71,10 +83,11 @@ export const Select: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const SelectPhone: Story = {
-  ...Select,
+export const SelectPhone = meta.story({
+  ...Select.input,
   name: "DatePickerSelect / Phone",
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});

@@ -40,6 +40,11 @@ jobs:
       - name: Lint, typecheck, test
         run: pnpm turbo run //#lint typecheck test test:browser
 
+      - name: Story tests
+        env:
+          STORIES_PIXELS: required
+        run: pnpm test:stories
+
       # The publish script creates an annotated tag per package.
       - name: Configure git identity
         run: |

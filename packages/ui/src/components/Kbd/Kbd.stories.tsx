@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { kbd } from "#styled-system/recipes";
 
@@ -6,21 +6,18 @@ import { Kbd } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box, HStack } from "../Layout";
 
-const meta: Meta<typeof Kbd> = {
+const meta = preview.meta({
   title: "Components/Kbd",
   component: Kbd,
   tags: ["autodocs"],
   args: {
     children: "⌘",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Kbd>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Combinations: Story = {
+export const Combinations = meta.story({
   render: () => (
     <HStack gap="2">
       <Kbd>⌘</Kbd>+<Kbd>C</Kbd>
@@ -32,13 +29,13 @@ export const Combinations: Story = {
       </Box>
     </HStack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={kbd.variantMap.size}
       renderPreview={(size) => <Kbd size={size}>{size}</Kbd>}
     />
   ),
-};
+});

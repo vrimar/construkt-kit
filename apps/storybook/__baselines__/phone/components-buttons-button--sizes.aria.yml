@@ -1,0 +1,41 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "2xs Label Label":
+      - cell "2xs"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "xs Label Label":
+      - cell "xs"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "sm Label Label":
+      - cell "sm"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "md Label Label":
+      - cell "md"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "lg Label Label":
+      - cell "lg"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "xl Label Label":
+      - cell "xl"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"
+    - row "2xl Label Label":
+      - cell "2xl"
+      - cell "Label Label":
+        - button "Label"
+        - button "Label"

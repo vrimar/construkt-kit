@@ -1,0 +1,7 @@
+- textbox "Search..."
+- listbox:
+  - option "Ada Lovelace" [disabled]
+  - option "Grace Hopper"
+  - option "Alan Turing" [disabled]
+  - option "Mary Jackson"
+- status

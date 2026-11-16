@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Image } from ".";
 import { Box } from "../Layout";
@@ -22,25 +22,22 @@ const fittedImageSrc = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
   </svg>
 `)}`;
 
-const meta: Meta<typeof Image> = {
+const meta = preview.meta({
   title: "Components/Image",
   component: Image,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Image>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     src: placeholderImageSrc,
     alt: "Placeholder image",
     width: 300,
     height: 200,
   },
-};
+});
 
-export const WithFit: Story = {
+export const WithFit = meta.story({
   render: () => (
     <Box
       w="200px"
@@ -57,4 +54,4 @@ export const WithFit: Story = {
       />
     </Box>
   ),
-};
+});

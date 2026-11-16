@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { progress } from "#styled-system/recipes";
@@ -7,15 +7,12 @@ import { Progress } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
 import { HStack, Stack } from "../Layout";
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Progress",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Linear: Story = {
+export const Linear = meta.story({
   render: () => (
     <Progress.Root
       value={65}
@@ -28,9 +25,9 @@ export const Linear: Story = {
       <Progress.ValueText />
     </Progress.Root>
   ),
-};
+});
 
-export const Circular: Story = {
+export const Circular = meta.story({
   render: () => (
     <Progress.Root
       value={75}
@@ -43,9 +40,9 @@ export const Circular: Story = {
       <Progress.ValueText />
     </Progress.Root>
   ),
-};
+});
 
-export const Indeterminate: Story = {
+export const Indeterminate = meta.story({
   render: () => (
     <Progress.Root
       value={null}
@@ -57,9 +54,9 @@ export const Indeterminate: Story = {
       </Progress.Track>
     </Progress.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={progress.variantMap.size}
@@ -76,9 +73,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const Segmented: Story = {
+export const Segmented = meta.story({
   render: function SegmentedStory() {
     const total = 8;
     const [step, setStep] = useState(3);
@@ -120,9 +117,9 @@ export const Segmented: Story = {
       </Stack>
     );
   },
-};
+});
 
-export const SegmentedVariants: Story = {
+export const SegmentedVariants = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={progress.variantMap.variant}
@@ -137,4 +134,4 @@ export const SegmentedVariants: Story = {
       )}
     />
   ),
-};
+});

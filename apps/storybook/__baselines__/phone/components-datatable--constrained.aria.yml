@@ -1,0 +1,147 @@
+- table:
+  - rowgroup:
+    - row "ID Name Email Address (truncated) Role (center) Created At (end) Status Score actions":
+      - columnheader "ID":
+        - paragraph: ID
+        - button "Sort by ID"
+      - columnheader "Name":
+        - paragraph: Name
+        - button "Sort by Name"
+      - columnheader "Email Address (truncated)":
+        - paragraph: Email Address (truncated)
+        - button "Sort by Email Address (truncated)"
+      - columnheader "Role (center)":
+        - paragraph: Role (center)
+        - button "Sort by Role (center)"
+      - columnheader "Created At (end)":
+        - paragraph: Created At (end)
+        - button "Sort by Created At (end)"
+      - columnheader "Status":
+        - paragraph: Status
+      - columnheader "Score":
+        - paragraph: Score
+      - columnheader "actions":
+        - paragraph
+    - row "Equals Filter by Role (center) Filter by Created At (end)":
+      - cell "Equals":
+        - button "Equals": =
+        - textbox "Filter by ID"
+      - cell:
+        - textbox "Filter by Name"
+      - cell:
+        - textbox "Filter by Email Address (truncated)"
+      - cell "Filter by Role (center)":
+        - button "Filter by Role (center)"
+      - cell "Filter by Created At (end)":
+        - button "Filter by Created At (end)"
+      - cell
+      - cell
+      - cell
+  - rowgroup:
+    - row /1 Alice Johnson alice@example\.com Admin \d+-\d+-\d+ Active 7 Actions/:
+      - cell "1"
+      - cell "Alice Johnson"
+      - cell "alice@example.com"
+      - cell "Admin"
+      - cell /\d+-\d+-\d+/
+      - cell "Active"
+      - cell "7"
+      - cell "Actions":
+        - button "Actions"
+    - row /2 Bob Smith bob@example\.com User \d+-\d+-\d+ Invited \d+ Actions/:
+      - cell "2"
+      - cell "Bob Smith"
+      - cell "bob@example.com"
+      - cell "User"
+      - cell /\d+-\d+-\d+/
+      - cell "Invited"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /3 Charlie Brown charlie@example\.com Editor \d+-\d+-\d+ Active \d+ Actions/:
+      - cell "3"
+      - cell "Charlie Brown"
+      - cell "charlie@example.com"
+      - cell "Editor"
+      - cell /\d+-\d+-\d+/
+      - cell "Active"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /4 Diana Prince diana@example\.com Admin \d+-\d+-\d+ Invited \d+ Actions/:
+      - cell "4"
+      - cell "Diana Prince"
+      - cell "diana@example.com"
+      - cell "Admin"
+      - cell /\d+-\d+-\d+/
+      - cell "Invited"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /5 Eve Williams eve@example\.com User \d+-\d+-\d+ Active \d+ Actions/:
+      - cell "5"
+      - cell "Eve Williams"
+      - cell "eve@example.com"
+      - cell "User"
+      - cell /\d+-\d+-\d+/
+      - cell "Active"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /6 Frank Castle frank@example\.com Admin \d+-\d+-\d+ Invited \d+ Actions/:
+      - cell "6"
+      - cell "Frank Castle"
+      - cell "frank@example.com"
+      - cell "Admin"
+      - cell /\d+-\d+-\d+/
+      - cell "Invited"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /7 Grace Hopper grace@example\.com Editor \d+-\d+-\d+ Active \d+ Actions/:
+      - cell "7"
+      - cell "Grace Hopper"
+      - cell "grace@example.com"
+      - cell "Editor"
+      - cell /\d+-\d+-\d+/
+      - cell "Active"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /8 Hank Pym hank@example\.com User \d+-\d+-\d+ Invited \d+ Actions/:
+      - cell "8"
+      - cell "Hank Pym"
+      - cell "hank@example.com"
+      - cell "User"
+      - cell /\d+-\d+-\d+/
+      - cell "Invited"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /9 Irene Adler irene@example\.com Editor \d+-\d+-\d+ Active \d+ Actions/:
+      - cell "9"
+      - cell "Irene Adler"
+      - cell "irene@example.com"
+      - cell "Editor"
+      - cell /\d+-\d+-\d+/
+      - cell "Active"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+    - row /\d+ Jack Reacher jack@example\.com User \d+-\d+-\d+ Invited \d+ Actions/:
+      - cell /\d+/
+      - cell "Jack Reacher"
+      - cell "jack@example.com"
+      - cell "User"
+      - cell /\d+-\d+-\d+/
+      - cell "Invited"
+      - cell /\d+/
+      - cell "Actions":
+        - button "Actions"
+- paragraph: /\d+ Items/
+- paragraph: Page 1 out of 3
+- button "First page" [disabled]
+- button "Previous page" [disabled]
+- button "Next page"
+- button "Last page"
+- alert

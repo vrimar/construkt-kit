@@ -1,0 +1,3 @@
+- text: Upload progress
+- progressbar /\d+%/
+- text: /\d+%/

@@ -1,0 +1,62 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /xs xs Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+      - cell "xs"
+      - cell /xs Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+        - paragraph: xs
+        - paragraph: Line 1
+        - paragraph: Line 2
+        - paragraph: Line 3
+        - paragraph: Line 4
+        - paragraph: Line 5
+        - paragraph: Line 6
+        - paragraph: Line 7
+        - paragraph: Line 8
+        - paragraph: Line 9
+        - paragraph: /Line \d+/
+    - row /sm sm Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+      - cell "sm"
+      - cell /sm Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+        - paragraph: sm
+        - paragraph: Line 1
+        - paragraph: Line 2
+        - paragraph: Line 3
+        - paragraph: Line 4
+        - paragraph: Line 5
+        - paragraph: Line 6
+        - paragraph: Line 7
+        - paragraph: Line 8
+        - paragraph: Line 9
+        - paragraph: /Line \d+/
+    - row /md md Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+      - cell "md"
+      - cell /md Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+        - paragraph: md
+        - paragraph: Line 1
+        - paragraph: Line 2
+        - paragraph: Line 3
+        - paragraph: Line 4
+        - paragraph: Line 5
+        - paragraph: Line 6
+        - paragraph: Line 7
+        - paragraph: Line 8
+        - paragraph: Line 9
+        - paragraph: /Line \d+/
+    - row /lg lg Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+      - cell "lg"
+      - cell /lg Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line \d+/:
+        - paragraph: lg
+        - paragraph: Line 1
+        - paragraph: Line 2
+        - paragraph: Line 3
+        - paragraph: Line 4
+        - paragraph: Line 5
+        - paragraph: Line 6
+        - paragraph: Line 7
+        - paragraph: Line 8
+        - paragraph: Line 9
+        - paragraph: /Line \d+/

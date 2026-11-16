@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { InfoIcon, PencilIcon, SearchIcon, SettingsIcon } from "lucide-react";
 
 import { button } from "#styled-system/recipes";
@@ -7,16 +7,13 @@ import { CloseButton, DeleteButton, EditButton, IconButton, TooltipIconButton } 
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack } from "../Layout";
 
-const meta: Meta<typeof IconButton> = {
+const meta = preview.meta({
   title: "Components/Buttons/IconButton",
   component: IconButton,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof IconButton>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <HStack gap="2">
       <IconButton aria-label="Search">
@@ -36,9 +33,9 @@ export const Default: Story = {
       </IconButton>
     </HStack>
   ),
-};
+});
 
-export const IconButtonSizes: Story = {
+export const IconButtonSizes = meta.story({
   name: "IconButton Sizes",
   render: () => (
     <SizePreviewTable
@@ -53,28 +50,28 @@ export const IconButtonSizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const TooltipIconButtonStory: Story = {
+export const TooltipIconButtonStory = meta.story({
   name: "TooltipIconButton",
   render: () => (
     <TooltipIconButton label="Edit item">
       <PencilIcon />
     </TooltipIconButton>
   ),
-};
+});
 
-export const DeleteButtonStory: Story = {
+export const DeleteButtonStory = meta.story({
   name: "DeleteButton",
   render: () => <DeleteButton />,
-};
+});
 
-export const EditButtonStory: Story = {
+export const EditButtonStory = meta.story({
   name: "EditButton",
   render: () => <EditButton />,
-};
+});
 
-export const CloseButtonStory: Story = {
+export const CloseButtonStory = meta.story({
   name: "CloseButton",
   render: () => <CloseButton />,
-};
+});

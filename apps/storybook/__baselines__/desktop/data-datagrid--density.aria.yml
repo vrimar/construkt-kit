@@ -1,0 +1,270 @@
+- paragraph: compact
+- grid "Invoices, compact":
+  - rowgroup:
+    - row "# Customer Region Status":
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Status"
+  - rowgroup:
+    - row "0 Acme Corporation North paid":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row "1 Globex West overdue":
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+    - row "2 Initech East open":
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+    - row "3 Umbrella South paid":
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+    - row "4 Hooli North overdue":
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+    - row "5 Stark Industries West open":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+    - row "6 Acme Corporation East paid":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+      - gridcell "paid"
+    - row "7 Globex South overdue":
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+      - gridcell "overdue"
+    - row "8 Initech North open":
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+      - gridcell "open"
+    - row "9 Umbrella West paid":
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+      - gridcell "paid"
+    - row /\d+ Hooli East overdue/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+      - gridcell "overdue"
+    - row /\d+ Stark Industries South open/:
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+      - gridcell "open"
+    - row /\d+ Acme Corporation North paid/:
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row /\d+ Globex West overdue/:
+      - gridcell /\d+/
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+    - row /\d+ Initech East open/:
+      - gridcell /\d+/
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+    - row /\d+ Umbrella South paid/:
+      - gridcell /\d+/
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+    - row /\d+ Hooli North overdue/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+    - row /\d+ Stark Industries West open/:
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+- status
+- paragraph: default
+- grid "Invoices, default":
+  - rowgroup:
+    - row "# Customer Region Status":
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Status"
+  - rowgroup:
+    - row "0 Acme Corporation North paid":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row "1 Globex West overdue":
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+    - row "2 Initech East open":
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+    - row "3 Umbrella South paid":
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+    - row "4 Hooli North overdue":
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+    - row "5 Stark Industries West open":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+    - row "6 Acme Corporation East paid":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+      - gridcell "paid"
+    - row "7 Globex South overdue":
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+      - gridcell "overdue"
+    - row "8 Initech North open":
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+      - gridcell "open"
+    - row "9 Umbrella West paid":
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+      - gridcell "paid"
+    - row /\d+ Hooli East overdue/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+      - gridcell "overdue"
+    - row /\d+ Stark Industries South open/:
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+      - gridcell "open"
+    - row /\d+ Acme Corporation North paid/:
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row /\d+ Globex West overdue/:
+      - gridcell /\d+/
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+    - row /\d+ Initech East open/:
+      - gridcell /\d+/
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+    - row /\d+ Umbrella South paid/:
+      - gridcell /\d+/
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+- status
+- paragraph: relaxed
+- grid "Invoices, relaxed":
+  - rowgroup:
+    - row "# Customer Region Status":
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Status"
+  - rowgroup:
+    - row "0 Acme Corporation North paid":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row "1 Globex West overdue":
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+    - row "2 Initech East open":
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+    - row "3 Umbrella South paid":
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+    - row "4 Hooli North overdue":
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+    - row "5 Stark Industries West open":
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+    - row "6 Acme Corporation East paid":
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+      - gridcell "paid"
+    - row "7 Globex South overdue":
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+      - gridcell "overdue"
+    - row "8 Initech North open":
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+      - gridcell "open"
+    - row "9 Umbrella West paid":
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+      - gridcell "paid"
+    - row /\d+ Hooli East overdue/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+      - gridcell "overdue"
+    - row /\d+ Stark Industries South open/:
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+      - gridcell "open"
+    - row /\d+ Acme Corporation North paid/:
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+    - row /\d+ Globex West overdue/:
+      - gridcell /\d+/
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+- status

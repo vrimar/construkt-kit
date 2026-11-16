@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { segmentGroup } from "#styled-system/recipes";
 
 import { SegmentGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/SegmentGroup",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <SegmentGroup.Root defaultValue="react">
       <SegmentGroup.Indicator />
@@ -28,9 +25,9 @@ export const Default: Story = {
       ))}
     </SegmentGroup.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={segmentGroup.variantMap.size}
@@ -52,4 +49,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

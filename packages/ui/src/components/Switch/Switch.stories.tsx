@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { MoonIcon, SunIcon } from "lucide-react";
 
 import { switchRecipe } from "#styled-system/recipes";
@@ -6,47 +6,44 @@ import { switchRecipe } from "#styled-system/recipes";
 import { Switch } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof Switch> = {
+const meta = preview.meta({
   title: "Components/Switch",
   component: Switch,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Switch>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     children: "Enable notifications",
   },
-};
+});
 
-export const Checked: Story = {
+export const Checked = meta.story({
   args: {
     children: "Active",
     defaultChecked: true,
   },
-};
+});
 
-export const Disabled: Story = {
+export const Disabled = meta.story({
   args: {
     children: "Unavailable",
     disabled: true,
   },
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={switchRecipe.variantMap.size}
       renderPreview={(size) => <Switch size={size}>{size}</Switch>}
     />
   ),
-};
+});
 
-export const WithTrackLabel: Story = {
+export const WithTrackLabel = meta.story({
   args: {
     children: "Theme",
     trackLabel: { on: <MoonIcon />, off: <SunIcon /> },
   },
-};
+});

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { table } from "#styled-system/recipes";
 
@@ -6,13 +6,10 @@ import { Table } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Table",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const data = [
   { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
@@ -21,7 +18,7 @@ const data = [
   { id: 4, name: "Diana Prince", email: "diana@example.com", role: "Admin" },
 ];
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="600px">
       <Table.Root>
@@ -44,9 +41,9 @@ export const Default: Story = {
       </Table.Root>
     </Box>
   ),
-};
+});
 
-export const WithCaption: Story = {
+export const WithCaption = meta.story({
   render: () => (
     <Box maxW="600px">
       <Table.Root>
@@ -73,9 +70,9 @@ export const WithCaption: Story = {
       </Table.Root>
     </Box>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={table.variantMap.size}
@@ -97,4 +94,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

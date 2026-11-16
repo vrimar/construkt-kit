@@ -1,0 +1,7 @@
+- combobox "Framework" [expanded]
+- listbox "Framework":
+  - option "React"
+  - option "Vue"
+  - option "Angular"
+  - option "Svelte"
+  - option "Solid"

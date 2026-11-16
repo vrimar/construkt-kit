@@ -1,0 +1,5 @@
+- button "Info"
+- button "Success"
+- button "Warning"
+- button "Error"
+- region "Notifications, top-end (alt+T)"

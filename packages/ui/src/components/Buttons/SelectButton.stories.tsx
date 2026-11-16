@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { button } from "#styled-system/recipes";
@@ -7,16 +7,13 @@ import { ButtonGroup, SelectButton } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack, VStack } from "../Layout";
 
-const meta: Meta<typeof SelectButton> = {
+const meta = preview.meta({
   title: "Components/Buttons/SelectButton",
   component: SelectButton,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof SelectButton>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <VStack
       gap="2"
@@ -32,9 +29,9 @@ export const Default: Story = {
       />
     </VStack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={button.variantMap.size}
@@ -47,9 +44,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const Active: Story = {
+export const Active = meta.story({
   render: () => (
     <HStack gap="2">
       <SelectButton
@@ -65,7 +62,7 @@ export const Active: Story = {
       />
     </HStack>
   ),
-};
+});
 
 const FILTER = "Open tasks assigned to me due this month";
 
@@ -86,9 +83,9 @@ function ClearableDemo() {
   );
 }
 
-export const Clearable: Story = {
+export const Clearable = meta.story({
   render: () => <ClearableDemo />,
-};
+});
 
 function StripDemo() {
   const [filter, setFilter] = useState<string | undefined>(FILTER);
@@ -122,6 +119,6 @@ function StripDemo() {
   );
 }
 
-export const Strip: Story = {
+export const Strip = meta.story({
   render: () => <StripDemo />,
-};
+});

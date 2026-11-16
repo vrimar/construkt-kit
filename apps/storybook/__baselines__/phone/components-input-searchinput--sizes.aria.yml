@@ -1,0 +1,41 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "2xs Query 2xs Clear search":
+      - cell "2xs"
+      - cell "Query 2xs Clear search":
+        - textbox "Search (2xs)": Query 2xs
+        - button "Clear search"
+    - row "xs Query xs Clear search":
+      - cell "xs"
+      - cell "Query xs Clear search":
+        - textbox "Search (xs)": Query xs
+        - button "Clear search"
+    - row "sm Query sm Clear search":
+      - cell "sm"
+      - cell "Query sm Clear search":
+        - textbox "Search (sm)": Query sm
+        - button "Clear search"
+    - row "md Query md Clear search":
+      - cell "md"
+      - cell "Query md Clear search":
+        - textbox "Search (md)": Query md
+        - button "Clear search"
+    - row "lg Query lg Clear search":
+      - cell "lg"
+      - cell "Query lg Clear search":
+        - textbox "Search (lg)": Query lg
+        - button "Clear search"
+    - row "xl Query xl Clear search":
+      - cell "xl"
+      - cell "Query xl Clear search":
+        - textbox "Search (xl)": Query xl
+        - button "Clear search"
+    - row "2xl Query 2xl Clear search":
+      - cell "2xl"
+      - cell "Query 2xl Clear search":
+        - textbox "Search (2xl)": Query 2xl
+        - button "Clear search"

@@ -1,0 +1,11 @@
+- dialog "2 selected":
+  - textbox "Search..."
+  - listbox "2 selected":
+    - option "React" [selected]
+    - option "Vue"
+    - option "Angular"
+    - option "Svelte" [selected]
+  - status
+  - button "Select all"
+  - button "Cancel"
+  - button "Apply" [disabled]

@@ -1,0 +1,19 @@
+- paragraph: /Sprint \d+/
+- paragraph: Design team
+- region "Selected tasks":
+  - text: 2 tasksDesign team
+  - toolbar "Task actions":
+    - button "Merge" [disabled]
+    - button "Add to list" [disabled]
+    - button "Hide"
+    - button "Delete"
+    - button "More"
+  - button "Clear selection"
+- checkbox "Update onboarding copy" [checked]
+- text: Update onboarding copy
+- checkbox "Fix login redirect"
+- text: Fix login redirect
+- checkbox "Release 2.4" [checked]
+- text: Release 2.4
+- checkbox "Beta launch"
+- text: Beta launch

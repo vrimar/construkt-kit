@@ -1,0 +1,4 @@
+- heading "Card Title" [level=3]
+- text: Card description goes here. This is the card body content. You can put any content here.
+- button "Cancel"
+- button "Submit"

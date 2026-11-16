@@ -13,18 +13,21 @@ interface Props<T extends string> {
   sizes: ReadonlyArray<T>;
   renderPreview: (size: T) => ReactNode;
   pivot?: boolean;
+  label?: string;
 }
 
 export const SizePreviewTable = <T extends string>({
   sizes: variants,
   renderPreview,
   pivot,
+  label,
 }: Props<T>) => {
   const sizes = [...variants].sort((a, b) => sizeRank(a) - sizeRank(b));
+  const region = label ? { role: "region", "aria-label": label, tabIndex: 0 } : {};
 
   if (pivot) {
     return (
-      <Table.ScrollArea>
+      <Table.ScrollArea {...region}>
         <Table.Root>
           <Table.Head>
             <Table.Row>
@@ -46,7 +49,10 @@ export const SizePreviewTable = <T extends string>({
   }
 
   return (
-    <Table.ScrollArea maxWidth={{ base: "full", sm: "420px" }}>
+    <Table.ScrollArea
+      maxWidth={{ base: "full", sm: "420px" }}
+      {...region}
+    >
       <Table.Root>
         <Table.Head>
           <Table.Row>

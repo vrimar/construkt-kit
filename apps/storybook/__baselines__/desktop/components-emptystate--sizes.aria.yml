@@ -1,0 +1,24 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm 📭 No results (sm) Try adjusting your filters.":
+      - cell "sm"
+      - cell "📭 No results (sm) Try adjusting your filters.":
+        - text: ""
+        - heading "No results (sm)" [level=3]
+        - paragraph: Try adjusting your filters.
+    - row "md 📭 No results (md) Try adjusting your filters.":
+      - cell "md"
+      - cell "📭 No results (md) Try adjusting your filters.":
+        - text: ""
+        - heading "No results (md)" [level=3]
+        - paragraph: Try adjusting your filters.
+    - row "lg 📭 No results (lg) Try adjusting your filters.":
+      - cell "lg"
+      - cell "📭 No results (lg) Try adjusting your filters.":
+        - text: ""
+        - heading "No results (lg)" [level=3]
+        - paragraph: Try adjusting your filters.

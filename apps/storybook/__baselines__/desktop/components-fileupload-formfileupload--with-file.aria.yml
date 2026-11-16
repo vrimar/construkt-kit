@@ -1,0 +1,4 @@
+- group:
+  - text: Report
+  - button "q3-revenue-by-region.csv"
+  - button "Close"

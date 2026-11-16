@@ -1,0 +1,15 @@
+- button "Drag to move Q1"
+- paragraph: Q1
+- button "Drag to move Q2"
+- paragraph: Q2
+- button "Drag to move Q3"
+- paragraph: Q3
+- button "Drag to move Q4"
+- paragraph: Q4
+- button "Drag to move Full year"
+- paragraph: Full year
+- button "Drag to move Last year"
+- paragraph: Last year
+- button "Drag to move Change"
+- paragraph: Change
+- status

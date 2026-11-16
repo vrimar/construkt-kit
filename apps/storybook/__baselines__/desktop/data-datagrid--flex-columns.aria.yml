@@ -1,0 +1,89 @@
+- grid "Invoices with flexible columns":
+  - rowgroup:
+    - row "# Customer Region Amount":
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Amount"
+  - rowgroup:
+    - row "0 Acme Corporation North 0":
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "0"
+    - row /1 Globex West \d+\.\d+/:
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell /\d+\.\d+/
+    - row /2 Initech East \d+\.\d+/:
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell /\d+\.\d+/
+    - row /3 Umbrella South \d+\.\d+/:
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell /\d+\.\d+/
+    - row /4 Hooli North -\d+\.\d+/:
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell /-\d+\.\d+/
+    - row /5 Stark Industries West -\d+\.\d+/:
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell /-\d+\.\d+/
+    - row /6 Acme Corporation East -\d+\.\d+/:
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+      - gridcell /-\d+\.\d+/
+    - row /7 Globex South \d+\.\d+/:
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+      - gridcell /\d+\.\d+/
+    - row /8 Initech North \d+\.\d+/:
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+      - gridcell /\d+\.\d+/
+    - row /9 Umbrella West \d+\.\d+/:
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+      - gridcell /\d+\.\d+/
+    - row /\d+ Hooli East -\d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+      - gridcell /-\d+\.\d+/
+    - row /\d+ Stark Industries South -\d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+      - gridcell /-\d+\.\d+/
+    - row /\d+ Acme Corporation North -\d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell /-\d+\.\d+/
+    - row /\d+ Globex West \d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell /\d+\.\d+/
+    - row /\d+ Initech East \d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell /\d+\.\d+/
+    - row /\d+ Umbrella South \d+\.\d+/:
+      - gridcell /\d+/
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell /\d+\.\d+/
+- status

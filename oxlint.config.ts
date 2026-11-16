@@ -74,6 +74,16 @@ export default createOxlintConfig({
       rules: {
         "construkt/no-style-prop-name": "off",
         "construkt/no-literal-style-props": "off",
+        "construkt/story-a11y-opt-out": "error",
+        "construkt/story-no-play": "error",
+        "construkt/story-viewport-tag": "error",
+      },
+    },
+    {
+      files: ["packages/*/src/**/*.spec.ts"],
+      rules: {
+        "construkt/spec-asserts": "error",
+        "construkt/spec-screenshot-via-gallery": "error",
       },
     },
   ],

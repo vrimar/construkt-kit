@@ -1,19 +1,16 @@
+import preview from "@construkt-kit/story-kit/preview";
 import type { NumberFilterValue } from "@construkt-kit/utils";
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { NumberFilter, type NumberFilterProps } from ".";
 import { Box } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta<typeof NumberFilter> = {
+const meta = preview.meta({
   title: "Components/NumberFilter",
   component: NumberFilter,
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj<typeof NumberFilter>;
+});
 
 function NumberFilterStory(props: Partial<NumberFilterProps>) {
   const [value, setValue] = useState<NumberFilterValue | undefined>(props.value);
@@ -36,14 +33,14 @@ function NumberFilterStory(props: Partial<NumberFilterProps>) {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <NumberFilterStory />,
-};
+});
 
-export const RestrictedOperators: Story = {
+export const RestrictedOperators = meta.story({
   render: () => <NumberFilterStory operators={["gte", "lte", "between"]} />,
-};
+});
 
-export const Between: Story = {
+export const Between = meta.story({
   render: () => <NumberFilterStory value={{ operator: "between", value: 100, to: 200 }} />,
-};
+});

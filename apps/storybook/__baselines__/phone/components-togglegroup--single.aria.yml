@@ -1,0 +1,4 @@
+- radiogroup:
+  - radio "Left" [checked]
+  - radio "Center"
+  - radio "Right"

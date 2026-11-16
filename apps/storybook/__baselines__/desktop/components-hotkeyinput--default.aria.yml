@@ -1,0 +1,7 @@
+- paragraph: Search or run a command
+- button "Search or run a command Ctrl K"
+- paragraph: Ask the assistant
+- button "Ask the assistant Ctrl J"
+- paragraph: Undo
+- button "Undo Ctrl Z"
+- text: Press a shortcut to run it.

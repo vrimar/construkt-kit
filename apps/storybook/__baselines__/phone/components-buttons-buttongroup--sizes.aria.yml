@@ -1,0 +1,48 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "2xs Left Center Right":
+      - cell "2xs"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "xs Left Center Right":
+      - cell "xs"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "sm Left Center Right":
+      - cell "sm"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "md Left Center Right":
+      - cell "md"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "lg Left Center Right":
+      - cell "lg"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "xl Left Center Right":
+      - cell "xl"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"
+    - row "2xl Left Center Right":
+      - cell "2xl"
+      - cell "Left Center Right":
+        - button "Left"
+        - button "Center"
+        - button "Right"

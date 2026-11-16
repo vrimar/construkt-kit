@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { FlameIcon, PartyPopperIcon, StarIcon } from "lucide-react";
 
 import { icon } from "#styled-system/recipes";
@@ -7,16 +7,13 @@ import { Icon } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack } from "../Layout";
 
-const meta: Meta<typeof Icon> = {
+const meta = preview.meta({
   title: "Components/Icon",
   component: Icon,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Icon>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <HStack gap="4">
       <Icon color="yellow.solid.bg">
@@ -30,9 +27,9 @@ export const Default: Story = {
       </Icon>
     </HStack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={icon.variantMap.size}
@@ -43,4 +40,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

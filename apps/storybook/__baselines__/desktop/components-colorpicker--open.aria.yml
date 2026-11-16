@@ -1,0 +1,9 @@
+- button "select color. current color is rgba(0, 0, 0, 1)" [expanded]
+- dialog "Color picker":
+  - group:
+    - slider "saturation and brightness"
+  - textbox "hex": /#\d+/
+  - group
+  - slider "hue"
+  - group
+  - slider "alpha"

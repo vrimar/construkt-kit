@@ -12,21 +12,25 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid (private, pre-0.1). Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/vitest`, `/tsdown`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
+- **`@construkt-kit/story-kit`** — Private. The Storybook preview every story imports, the typed story-id list, and the Playwright story-test harness. See `packages/story-kit/README.md`.
 
 ## Build & Dev Commands
 
-| Command             | Purpose                                  |
-| ------------------- | ---------------------------------------- |
-| `pnpm install`      | Install all workspace dependencies       |
-| `pnpm dev`          | Dev mode (watch + rebuild all pkgs)      |
-| `pnpm build`        | Build all packages (`dist/`)             |
-| `pnpm test`         | Run all tests                            |
-| `pnpm test:browser` | Run Vitest browser-mode tests (Chromium) |
-| `pnpm typecheck`    | Type-check all packages                  |
-| `pnpm lint`         | Lint the repo in one type-aware pass     |
-| `pnpm format`       | Format the repo in one pass (oxfmt)      |
-| `pnpm storybook`    | Start Storybook dev server               |
-| `pnpm release`      | Build, gate exports, publish to npm      |
+| Command                     | Purpose                                        |
+| --------------------------- | ---------------------------------------------- |
+| `pnpm install`              | Install all workspace dependencies             |
+| `pnpm dev`                  | Dev mode (watch + rebuild all pkgs)            |
+| `pnpm build`                | Build all packages (`dist/`)                   |
+| `pnpm test`                 | Run all tests                                  |
+| `pnpm test:browser`         | Run Vitest browser-mode tests (Chromium)       |
+| `pnpm test:stories`         | Test every story and behaviour spec            |
+| `pnpm test:stories:changed` | Only what a change since `origin/main` affects |
+| `pnpm check:stories`        | Every export has a story; overlays covered     |
+| `pnpm typecheck`            | Type-check all packages                        |
+| `pnpm lint`                 | Lint the repo in one type-aware pass           |
+| `pnpm format`               | Format the repo in one pass (oxfmt)            |
+| `pnpm storybook`            | Start Storybook dev server                     |
+| `pnpm release`              | Build, gate exports, publish to npm            |
 
 Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
 Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint
@@ -45,6 +49,26 @@ honours `options.typeAware` only in the config it loads as its root.
 - Never import between packages via relative paths — use `@construkt-kit/*` aliases
 - `react` / `react-dom` are peer deps — never add to `dependencies`
 - `styled-system/` directories are Panda CSS generated output — never edit manually
+
+## Story Tests
+
+Every story is a test: `pnpm test:stories` renders each one alone at desktop (1280×900) and phone (390×844, touch),
+runs axe, compares its accessibility tree and, in the pinned browser container, a full-page screenshot. Behaviour
+specs (`packages/*/src/**/*.spec.ts`) drive stories with real keyboard, mouse and touch.
+
+- After any UI change run `pnpm test:stories:changed`; before finishing run `pnpm test:stories`
+- A failure is real. Read `apps/storybook/.stories-report/report.md` and, for a visual failure, open its image
+  (reference | actual | diff). Fix the code
+- Never pass `-u`/`--update-snapshots`, copy PNGs into `__baselines__`, loosen screenshot options, disable an axe
+  rule to get green, or tag a story out of a device. Agents do not accept screenshot baselines: for an intended
+  visual change, report the story ids and the reason; the owner runs `pnpm stories:accept`
+- An intended accessibility-tree change: `pnpm stories:aria <story id>…`, then commit the `.aria.yml` diff
+- An `unstable` failure means the story is not deterministic; fix the story, never accept it
+- No Docker means a functional run only (no pixels); say so when reporting
+- A new exported component gets a story. A new overlay gets an `open-state` story, and if it opens as a phone sheet,
+  a case in `packages/ui/src/components/sheetFrame.cases.ts`. After adding or renaming stories run `pnpm stories:ids`
+- Stories hold states only, never `play`. A change to focus, keyboard, dismissal or open/close logic the kit owns adds
+  or extends a behaviour spec, and you must be able to name the wrong change it catches that nothing else does
 
 ## Package Dependency Graph
 

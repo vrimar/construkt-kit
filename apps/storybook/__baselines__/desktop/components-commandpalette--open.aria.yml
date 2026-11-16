@@ -1,0 +1,19 @@
+- dialog "Command palette":
+  - text: ""
+  - combobox "Command palette" [expanded]
+  - listbox "Command palette":
+    - group "Recent":
+      - text: ""
+      - option "Open orders"
+      - option "Unpaid invoices"
+      - option "Design team"
+      - option "Product roadmap"
+      - option "Customers"
+    - group "Create":
+      - text: ""
+      - option "New table"
+      - option "New team"
+      - option "New board"
+      - option "New document"
+  - alert
+  - status

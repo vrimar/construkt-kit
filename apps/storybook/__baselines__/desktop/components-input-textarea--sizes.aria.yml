@@ -1,0 +1,26 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs":
+      - cell "xs"
+      - cell:
+        - textbox "Long-form text (xs)"
+    - row "sm":
+      - cell "sm"
+      - cell:
+        - textbox "Long-form text (sm)"
+    - row "md":
+      - cell "md"
+      - cell:
+        - textbox "Long-form text (md)"
+    - row "lg":
+      - cell "lg"
+      - cell:
+        - textbox "Long-form text (lg)"
+    - row "xl":
+      - cell "xl"
+      - cell:
+        - textbox "Long-form text (xl)"

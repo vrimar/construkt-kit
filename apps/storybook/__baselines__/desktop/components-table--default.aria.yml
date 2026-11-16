@@ -1,0 +1,23 @@
+- table:
+  - rowgroup:
+    - row "Name Email Role":
+      - columnheader "Name"
+      - columnheader "Email"
+      - columnheader "Role"
+  - rowgroup:
+    - row "Alice Johnson alice@example.com Admin":
+      - cell "Alice Johnson"
+      - cell "alice@example.com"
+      - cell "Admin"
+    - row "Bob Smith bob@example.com User":
+      - cell "Bob Smith"
+      - cell "bob@example.com"
+      - cell "User"
+    - row "Charlie Brown charlie@example.com Editor":
+      - cell "Charlie Brown"
+      - cell "charlie@example.com"
+      - cell "Editor"
+    - row "Diana Prince diana@example.com Admin":
+      - cell "Diana Prince"
+      - cell "diana@example.com"
+      - cell "Admin"

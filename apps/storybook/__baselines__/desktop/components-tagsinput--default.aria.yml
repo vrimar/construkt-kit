@@ -1,0 +1,8 @@
+- text: Tags React
+- button "Delete tag React"
+- text: Vue
+- button "Delete tag Vue"
+- textbox "Tags":
+  - /placeholder: Add tag...
+- button "Clear all tags"
+- alert

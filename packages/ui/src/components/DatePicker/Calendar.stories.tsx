@@ -1,26 +1,23 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { fn } from "storybook/test";
 
 import { Calendar, defaultRangePresets } from ".";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Calendar",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Single: Story = {
+export const Single = meta.story({
   render: () => (
     <Box maxW="320px">
       <Calendar onValueChange={fn()} />
     </Box>
   ),
-};
+});
 
-export const Range: Story = {
+export const Range = meta.story({
   render: () => (
     <Box>
       <Calendar
@@ -29,9 +26,9 @@ export const Range: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const RangeWithPresets: Story = {
+export const RangeWithPresets = meta.story({
   name: "Range + Presets",
   render: () => (
     <Box>
@@ -43,9 +40,9 @@ export const RangeWithPresets: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const Disabled: Story = {
+export const Disabled = meta.story({
   render: () => (
     <Box maxW="320px">
       <Calendar
@@ -54,4 +51,4 @@ export const Disabled: Story = {
       />
     </Box>
   ),
-};
+});

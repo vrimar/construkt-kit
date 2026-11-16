@@ -3,12 +3,18 @@
   "compilerOptions": {
     "paths": {
       "*": ["./*"]
-    }
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": [
     ".storybook/**/*.d.ts",
     ".storybook/**/*.ts",
     ".storybook/**/*.tsx",
+    "tests/**/*.ts",
+    "gallery/**/*.tsx",
+    "gallery/**/*.ts",
+    "*.ts",
     "../../packages/ui/src/**/*.stories.ts",
     "../../packages/ui/src/**/*.stories.tsx",
     "../../packages/pages/src/**/*.stories.ts",

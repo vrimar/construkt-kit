@@ -1,0 +1,15 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "md MD plan selection":
+      - cell "md"
+      - cell "MD plan selection":
+        - radiogroup "MD plan selection":
+          - text: ""
+          - radio "Starter" [checked]
+          - text: Starter
+          - radio "Pro"
+          - text: Pro

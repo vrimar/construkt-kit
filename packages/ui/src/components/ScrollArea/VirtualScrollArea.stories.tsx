@@ -1,21 +1,18 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { VirtualScrollArea } from ".";
 import { Box } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta<typeof VirtualScrollArea> = {
+const meta = preview.meta({
   title: "Components/VirtualScrollArea",
   component: VirtualScrollArea,
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj<typeof VirtualScrollArea>;
+});
 
 const ITEMS = Array.from({ length: 1000 }, (_, i) => `Item ${i + 1}`);
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <VirtualScrollArea
       items={ITEMS}
@@ -40,9 +37,9 @@ export const Default: Story = {
       )}
     </VirtualScrollArea>
   ),
-};
+});
 
-export const WithHeader: Story = {
+export const WithHeader = meta.story({
   render: () => (
     <VirtualScrollArea
       items={ITEMS}
@@ -81,7 +78,7 @@ export const WithHeader: Story = {
       )}
     </VirtualScrollArea>
   ),
-};
+});
 
 const VARIABLE_ITEMS = Array.from({ length: 200 }, (_, i) => ({
   id: i,
@@ -89,7 +86,7 @@ const VARIABLE_ITEMS = Array.from({ length: 200 }, (_, i) => ({
   description: i % 3 === 0 ? "This item has extra detail text that makes it taller." : undefined,
 }));
 
-export const VariableHeight: Story = {
+export const VariableHeight = meta.story({
   render: () => (
     <VirtualScrollArea
       items={VARIABLE_ITEMS}
@@ -125,4 +122,4 @@ export const VariableHeight: Story = {
       )}
     </VirtualScrollArea>
   ),
-};
+});

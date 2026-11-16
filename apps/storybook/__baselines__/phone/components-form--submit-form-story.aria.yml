@@ -1,0 +1,10 @@
+- group:
+  - text: Name
+  - textbox "Name":
+    - /placeholder: Enter your name
+- group:
+  - text: Email
+  - textbox "Email":
+    - /placeholder: Enter your email
+- button "Cancel"
+- button "Submit"

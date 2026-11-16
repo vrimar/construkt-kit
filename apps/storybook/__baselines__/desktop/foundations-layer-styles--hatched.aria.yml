@@ -1,0 +1,16 @@
+- table:
+  - rowgroup:
+    - row "Channel Q1 Q2":
+      - columnheader "Channel"
+      - columnheader "Q1"
+      - columnheader "Q2"
+  - rowgroup:
+    - row /In store \d+ \d+/:
+      - cell "In store"
+      - cell /\d+/
+      - cell /\d+/
+    - row /Online n\/a \d+/:
+      - cell "Online"
+      - cell "n/a"
+      - cell /\d+/
+- text: /\d+% \d+% 8 more/

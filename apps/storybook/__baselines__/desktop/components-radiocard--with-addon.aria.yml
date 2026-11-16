@@ -1,0 +1,6 @@
+- radiogroup "Billing":
+  - text: ""
+  - radio "Monthly" [checked]
+  - text: Monthly Billed every month
+  - radio "Yearly"
+  - text: Yearly Billed once a year Two months free

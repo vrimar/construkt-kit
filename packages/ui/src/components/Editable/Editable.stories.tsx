@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { editable } from "#styled-system/recipes";
 
@@ -7,15 +7,12 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
 import { Table } from "../Table";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Editable",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Editable.Root
       defaultValue="Click to edit"
@@ -49,9 +46,9 @@ export const Default: Story = {
       </Editable.Control>
     </Editable.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={editable.variantMap.size}
@@ -69,9 +66,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const PageTitle: Story = {
+export const PageTitle = meta.story({
   render: () => (
     <Editable.Root
       size="inherit"
@@ -88,11 +85,11 @@ export const PageTitle: Story = {
       </Editable.Area>
     </Editable.Root>
   ),
-};
+});
 
 const rowLabels = ["In store", "Wholesale", "Online"];
 
-export const DoubleClickRename: Story = {
+export const DoubleClickRename = meta.story({
   render: () => (
     <Table.Root maxW="md">
       <Table.Head>
@@ -122,4 +119,4 @@ export const DoubleClickRename: Story = {
       </Table.Body>
     </Table.Root>
   ),
-};
+});

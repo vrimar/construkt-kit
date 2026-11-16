@@ -1,0 +1,21 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm Option (sm) Description text for this option.":
+      - cell "sm"
+      - cell "Option (sm) Description text for this option.":
+        - checkbox "Option (sm) Description text for this option."
+        - text: ""
+    - row "md Option (md) Description text for this option.":
+      - cell "md"
+      - cell "Option (md) Description text for this option.":
+        - checkbox "Option (md) Description text for this option."
+        - text: ""
+    - row "lg Option (lg) Description text for this option.":
+      - cell "lg"
+      - cell "Option (lg) Description text for this option.":
+        - checkbox "Option (lg) Description text for this option."
+        - text: ""

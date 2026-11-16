@@ -1,0 +1,5 @@
+- button "First section" [expanded]
+- region "First section": This is the content for the first section.
+- button "Second section" [expanded]
+- region "Second section": This is the content for the second section.
+- button "Third section"

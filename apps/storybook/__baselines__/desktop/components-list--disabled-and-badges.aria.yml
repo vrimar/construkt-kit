@@ -1,0 +1,2 @@
+- 'button /New Order confirmation email #\d+/'
+- 'button "Dropped Legacy invoice export #7" [disabled]'

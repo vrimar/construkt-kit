@@ -1,0 +1,6 @@
+- checkbox "Option 1 First option"
+- text: Option 1 First option
+- checkbox "Option 2 Second option" [checked]
+- text: Option 2 Second option
+- checkbox "Option 3 Third option"
+- text: Option 3 Third option

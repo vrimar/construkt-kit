@@ -1,0 +1,11 @@
+- button "Checkbox" [expanded]
+- menu "Checkbox":
+  - menuitemcheckbox "Bold"
+  - menuitemcheckbox "Italic" [checked]
+  - menuitemcheckbox "Underline"
+- button "Radio" [expanded]
+- menu "Radio":
+  - group:
+    - menuitemradio "Small"
+    - menuitemradio "Medium" [checked]
+    - menuitemradio "Large"

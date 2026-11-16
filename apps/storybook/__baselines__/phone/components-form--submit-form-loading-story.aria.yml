@@ -1,0 +1,6 @@
+- group:
+  - text: Name
+  - textbox "Name":
+    - /placeholder: Enter your name
+- button "Cancel" [disabled]
+- button "Submit" [disabled]

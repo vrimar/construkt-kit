@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import {
   FileTextIcon,
   FolderKanbanIcon,
@@ -15,13 +15,10 @@ import { Button } from "../Buttons";
 import { Box, HStack, Stack } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/NavRail",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const PLACES: Array<{ id: string; label: string; icon: ReactNode }> = [
   { id: "overview", label: "Overview", icon: <LayoutGridIcon /> },
@@ -124,6 +121,6 @@ function RailBesidePane() {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <RailBesidePane />,
-};
+});

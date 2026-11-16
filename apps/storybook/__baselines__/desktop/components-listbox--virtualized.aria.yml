@@ -1,0 +1,25 @@
+- textbox "Search..."
+- listbox:
+  - option "Item 0"
+  - option "Item 1"
+  - option "Item 2"
+  - option "Item 3"
+  - option "Item 4"
+  - option "Item 5"
+  - option "Item 6"
+  - option "Item 7"
+  - option "Item 8"
+  - option "Item 9"
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+  - option /Item \d+/
+- status

@@ -548,6 +548,17 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   `useClipboard`, `useCollapsible`, `useDialog`, `useEditable`, `useFieldset`, `useHoverCard`, `useListbox`,
   `usePagination`, `usePinInput`, `useProgress`, `useRadioGroup`, `useRatingGroup`, `useSegmentGroup`, `useTabs`,
   `useTagsInput`, `useToggleGroup`
+- A `ScrollArea` or `VirtualScrollArea` that overflows takes keyboard focus itself while nothing inside it is focusable,
+  so it can be scrolled with the keyboard, and re-checks as its content changes
+- A phone sheet's frame carries no `aria-modal`
+- `ColorPicker.Content` is named "Color picker" unless given `aria-label`, and the hidden form input is hidden from
+  assistive technology
+- `ToggleTip` and `InfoTip` content is named by its trigger
+- `FileUpload.Dropzone` is named by its visible text instead of "dropzone"; pass `aria-label` to name it otherwise
+- The `Combobox` list part no longer carries an `aria-labelledby`; the listbox content keeps it
+- A `DataTable` column with an empty header names itself with visually hidden text instead of `aria-label`, and a
+  grouped header's placeholder above an ungrouped column is a cell, not a column header
+- The `DataTable` empty and loading status sits in a row and cell while it shows
 
 #### Upgrading from 0.11
 
@@ -771,6 +782,18 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - **Aliases:** `#styled-system/*` resolves through `package.json` `imports`
 - **Libraries:** `@testing-library/react` + `userEvent` for component interaction tests
 - **Pattern:** Tests verify non-obvious UX (e.g., interactive descendants in Select items don't trigger selection)
+
+### Stories and behaviour specs
+
+Every story under `src/**/*.stories.tsx` is also a test: `pnpm test:stories` renders it at desktop and phone width,
+runs axe, and compares its accessibility tree and screenshot with committed baselines. Write stories in the factory
+form (`preview.meta(…)`, `meta.story(…)`) against the preview from `@construkt-kit/story-kit/preview`; they hold
+states only, with no `play`.
+
+Focus, keyboard and dismissal behaviour that needs a real browser lives in `*.spec.ts` beside the component, driven
+through `@construkt-kit/story-kit/test`. Overlays that open as phone sheets are listed once in
+`src/components/sheetFrame.cases.ts`, and `sheetFrame.spec.ts` checks all of them. See
+`packages/story-kit/README.md` for the rules and commands.
 
 ## Ark UI MCP
 

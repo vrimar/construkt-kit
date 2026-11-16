@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { dataList } from "#styled-system/recipes";
 
@@ -6,13 +6,10 @@ import { DataList, type DataListRootProps } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Grid } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/DataList",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const items = [
   { label: "Prepared by", value: "Ada Lovelace" },
@@ -31,11 +28,11 @@ const Example = (props: DataListRootProps) => (
   </DataList.Root>
 );
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <Example />,
-};
+});
 
-export const Orientations: Story = {
+export const Orientations = meta.story({
   render: () => (
     <Grid
       gridTemplateColumns={{ base: "1fr", md: "1fr 1fr" }}
@@ -46,9 +43,9 @@ export const Orientations: Story = {
       <Example orientation="vertical" />
     </Grid>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={dataList.variantMap.size}
@@ -60,4 +57,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

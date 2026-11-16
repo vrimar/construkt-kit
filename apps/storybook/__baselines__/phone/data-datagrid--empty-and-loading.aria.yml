@@ -1,0 +1,14 @@
+- button "Load"
+- button "Clear"
+- grid "Invoices":
+  - rowgroup:
+    - row "# Customer Region Status":
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Status"
+  - rowgroup
+  - row "No rows":
+    - gridcell "No rows":
+      - heading "No rows" [level=3]
+- status

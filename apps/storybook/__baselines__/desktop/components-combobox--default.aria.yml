@@ -1,0 +1,3 @@
+- text: Framework
+- combobox "Framework"
+- button "Toggle suggestions"

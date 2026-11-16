@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { emptyState } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { EmptyState } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/EmptyState",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <EmptyState.Root>
@@ -27,9 +24,9 @@ export const Default: Story = {
       </EmptyState.Root>
     </Box>
   ),
-};
+});
 
-export const WithIndicator: Story = {
+export const WithIndicator = meta.story({
   render: () => (
     <Box maxW="400px">
       <EmptyState.Root>
@@ -43,9 +40,9 @@ export const WithIndicator: Story = {
       </EmptyState.Root>
     </Box>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={emptyState.variantMap.size}
@@ -60,4 +57,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

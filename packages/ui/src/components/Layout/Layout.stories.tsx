@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import {
@@ -18,13 +18,10 @@ import {
   VStack,
 } from ".";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Layout",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const boxStyle = {
   bg: "bg.subtle",
@@ -34,7 +31,7 @@ const boxStyle = {
   borderColor: "border",
 };
 
-export const StackStory: Story = {
+export const StackStory = meta.story({
   name: "Stack",
   render: () => (
     <Stack
@@ -46,9 +43,9 @@ export const StackStory: Story = {
       <Box {...boxStyle}>Item 3</Box>
     </Stack>
   ),
-};
+});
 
-export const HStackStory: Story = {
+export const HStackStory = meta.story({
   name: "HStack",
   render: () => (
     <HStack gap="4">
@@ -57,9 +54,9 @@ export const HStackStory: Story = {
       <Box {...boxStyle}>Item 3</Box>
     </HStack>
   ),
-};
+});
 
-export const VStackStory: Story = {
+export const VStackStory = meta.story({
   name: "VStack",
   render: () => (
     <VStack
@@ -71,9 +68,9 @@ export const VStackStory: Story = {
       <Box {...boxStyle}>Item 3</Box>
     </VStack>
   ),
-};
+});
 
-export const FlexStory: Story = {
+export const FlexStory = meta.story({
   name: "Flex",
   render: () => (
     <Flex
@@ -103,9 +100,9 @@ export const FlexStory: Story = {
       </Box>
     </Flex>
   ),
-};
+});
 
-export const CenterStory: Story = {
+export const CenterStory = meta.story({
   name: "Center",
   render: () => (
     <Center
@@ -117,9 +114,9 @@ export const CenterStory: Story = {
       Centered content
     </Center>
   ),
-};
+});
 
-export const GridStory: Story = {
+export const GridStory = meta.story({
   name: "Grid",
   render: () => (
     <Grid
@@ -138,7 +135,7 @@ export const GridStory: Story = {
       <GridItem {...boxStyle}>Cell 5</GridItem>
     </Grid>
   ),
-};
+});
 
 const SimpleGridDemo = () => {
   const [columns, setColumns] = useState(3);
@@ -208,12 +205,12 @@ const SimpleGridDemo = () => {
   );
 };
 
-export const SimpleGridStory: Story = {
+export const SimpleGridStory = meta.story({
   name: "SimpleGrid",
   render: () => <SimpleGridDemo />,
-};
+});
 
-export const ContainerStory: Story = {
+export const ContainerStory = meta.story({
   name: "Container",
   render: () => (
     <Container
@@ -225,9 +222,9 @@ export const ContainerStory: Story = {
       Container with max width
     </Container>
   ),
-};
+});
 
-export const SeparatorStory: Story = {
+export const SeparatorStory = meta.story({
   name: "Separator",
   render: () => (
     <Stack
@@ -239,9 +236,9 @@ export const SeparatorStory: Story = {
       <Box>Below separator</Box>
     </Stack>
   ),
-};
+});
 
-export const SpacerStory: Story = {
+export const SpacerStory = meta.story({
   name: "Spacer",
   render: () => (
     <Flex>
@@ -250,9 +247,9 @@ export const SpacerStory: Story = {
       <Box {...boxStyle}>Right</Box>
     </Flex>
   ),
-};
+});
 
-export const AspectRatioStory: Story = {
+export const AspectRatioStory = meta.story({
   name: "AspectRatio",
   render: () => (
     <Box maxW="400px">
@@ -265,7 +262,7 @@ export const AspectRatioStory: Story = {
       </AspectRatio>
     </Box>
   ),
-};
+});
 
 const Canvas = () => (
   <Stack
@@ -296,7 +293,7 @@ const Canvas = () => (
   </Stack>
 );
 
-export const ScaleToFitStory: Story = {
+export const ScaleToFitStory = meta.story({
   name: "ScaleToFit",
   render: () => (
     <Stack gap="4">
@@ -346,4 +343,4 @@ export const ScaleToFitStory: Story = {
       </HStack>
     </Stack>
   ),
-};
+});

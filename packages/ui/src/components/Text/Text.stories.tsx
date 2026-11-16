@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Text } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
@@ -7,32 +7,30 @@ import { Box } from "../Layout";
 const textSizes = ["xs", "sm", "md", "lg", "xl"] as const;
 type TextSize = (typeof textSizes)[number];
 
-const meta: Meta<typeof Text> = {
+const meta = preview.meta({
   title: "Components/Text",
   component: Text,
   tags: ["autodocs"],
   args: {
     children: "The quick brown fox jumps over the lazy dog.",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Text>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable<TextSize>
       sizes={[...textSizes]}
+      label="Text sizes"
       renderPreview={(size) => (
         <Text textStyle={size}>The quick brown fox jumps over the lazy dog.</Text>
       )}
     />
   ),
-};
+});
 
-export const TruncatedTextStory: Story = {
+export const TruncatedTextStory = meta.story({
   name: "TruncatedText",
   render: () => (
     <Box maxW="200px">
@@ -42,4 +40,4 @@ export const TruncatedTextStory: Story = {
       </Text>
     </Box>
   ),
-};
+});

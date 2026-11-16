@@ -1,0 +1,21 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs xs":
+      - cell "xs"
+      - cell "xs"
+    - row "sm sm":
+      - cell "sm"
+      - cell "sm"
+    - row "md md":
+      - cell "md"
+      - cell "md"
+    - row "lg lg":
+      - cell "lg"
+      - cell "lg"
+    - row "xl xl":
+      - cell "xl"
+      - cell "xl"

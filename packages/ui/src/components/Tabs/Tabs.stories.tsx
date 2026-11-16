@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { tabs } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { Tabs } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box, Stack } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Tabs",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <Tabs.Root defaultValue="tab-1">
@@ -30,9 +27,9 @@ export const Default: Story = {
       </Tabs.Root>
     </Box>
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Stack gap="6">
       {tabs.variantMap.variant.map((variant) => (
@@ -52,9 +49,9 @@ export const Variants: Story = {
       ))}
     </Stack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={tabs.variantMap.size}
@@ -74,4 +71,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

@@ -1,0 +1,11 @@
+- text: Framework
+- combobox "Framework" [expanded]
+- button "Toggle suggestions" [expanded]
+- alert
+- status
+- listbox "Framework":
+  - option "React"
+  - option "Vue"
+  - option "Angular"
+  - option "Svelte"
+  - option "Solid"

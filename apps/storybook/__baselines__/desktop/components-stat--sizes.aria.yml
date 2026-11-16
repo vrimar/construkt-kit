@@ -1,0 +1,15 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /sm Revenue \(sm\) \$\d+,\d+ Last \d+ days/:
+      - cell "sm"
+      - cell /Revenue \(sm\) \$\d+,\d+ Last \d+ days/
+    - row /md Revenue \(md\) \$\d+,\d+ Last \d+ days/:
+      - cell "md"
+      - cell /Revenue \(md\) \$\d+,\d+ Last \d+ days/
+    - row /lg Revenue \(lg\) \$\d+,\d+ Last \d+ days/:
+      - cell "lg"
+      - cell /Revenue \(lg\) \$\d+,\d+ Last \d+ days/

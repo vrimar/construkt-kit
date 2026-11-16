@@ -1,22 +1,26 @@
-import { createRequire } from "node:module";
-import path, { dirname } from "node:path";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // This file has been automatically migrated to valid ESM format by Storybook.
 import type { StorybookConfig } from "@storybook/react-vite";
+import { defineMain } from "@storybook/react-vite/node";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
+import { kitResolution } from "../vite.shared.ts";
+
 const storybookBasePath = normalizeBasePath(process.env.CONSTRUKT_KIT_STORYBOOK_BASE_PATH);
 
-const config: StorybookConfig = {
+export default defineMain({
   stories: [
     "../../../packages/ui/src/**/*.stories.@(ts|tsx)",
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
     "../../../packages/data-grid/src/**/*.stories.@(ts|tsx)",
   ],
 
-  addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-themes")],
+  addons: [
+    getAbsolutePath("@storybook/addon-a11y"),
+    getAbsolutePath("@storybook/addon-themes"),
+    getAbsolutePath("@storybook/addon-mcp"),
+  ],
 
   framework: {
     name: getAbsolutePath("@storybook/react-vite"),
@@ -30,16 +34,7 @@ const config: StorybookConfig = {
   },
 
   viteFinal(configOptions: Parameters<NonNullable<StorybookConfig["viteFinal"]>>[0]) {
-    const uiDir = path.resolve(__dirname, "../../../packages/ui");
-
-    // Force a single React instance by resolving from this package's dependencies
-    const reactDir = path.dirname(require.resolve("react/package.json"));
-    const reactDomDir = path.dirname(require.resolve("react-dom/package.json"));
-
-    // pnpm store instead of frontend-shared's. Tell Vite to resolve it from the correct location.
-    const arkUiDir = path.dirname(
-      require.resolve("@ark-ui/react/package.json", { paths: [uiDir] }),
-    );
+    const kit = kitResolution();
 
     return {
       ...configOptions,
@@ -54,55 +49,22 @@ const config: StorybookConfig = {
           },
         },
       },
-      plugins: [
-        ...(configOptions.plugins ?? []),
-        {
-          name: "resolve-ark-ui",
-          enforce: "pre" as const,
-          resolveId(source: string) {
-            // Redirect @ark-ui/react imports to the correct pnpm store location
-            if (source === "@ark-ui/react" || source.startsWith("@ark-ui/react/")) {
-              try {
-                // require.resolve gives us .cjs paths; swap to .js for ESM
-                const resolved = require.resolve(source, {
-                  paths: [arkUiDir.replace(/[/\\]@ark-ui[/\\]react$/, "")],
-                });
-                return resolved.replace(/\.cjs$/, ".js");
-              } catch {
-                return null;
-              }
-            }
-            return null;
-          },
-        },
-      ],
+      plugins: [...(configOptions.plugins ?? []), ...kit.plugins],
       resolve: {
         ...configOptions.resolve,
         alias: [
           ...(Array.isArray(configOptions.resolve?.alias) ? configOptions.resolve.alias : []),
-          { find: "react/jsx-runtime", replacement: path.join(reactDir, "jsx-runtime") },
-          { find: "react/jsx-dev-runtime", replacement: path.join(reactDir, "jsx-dev-runtime") },
-          { find: /^react-dom($|\/)/, replacement: reactDomDir + "/" },
-          { find: /^react$/, replacement: path.join(reactDir, "index.js") },
+          ...kit.alias,
         ],
-        dedupe: ["react", "react-dom"],
+        dedupe: kit.dedupe,
       },
       optimizeDeps: {
         ...configOptions.optimizeDeps,
-        include: [
-          ...(configOptions.optimizeDeps?.include ?? []),
-          "@tanstack/react-query",
-          "react",
-          "react-dom",
-          "react/jsx-runtime",
-          "react/jsx-dev-runtime",
-        ],
+        include: [...(configOptions.optimizeDeps?.include ?? []), ...kit.optimizeDepsInclude],
       },
     };
   },
-};
-
-export default config;
+});
 
 function normalizeBasePath(value: string | undefined) {
   if (!value) {

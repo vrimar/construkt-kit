@@ -1,0 +1,55 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /2xs \$ \.\d+/:
+      - cell "2xs"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (2xs)"
+        - text: ""
+        - button
+    - row /xs \$ \.\d+/:
+      - cell "xs"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (xs)"
+        - text: ""
+        - button
+    - row /sm \$ \.\d+/:
+      - cell "sm"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (sm)"
+        - text: ""
+        - button
+    - row /md \$ \.\d+/:
+      - cell "md"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (md)"
+        - text: ""
+        - button
+    - row /lg \$ \.\d+/:
+      - cell "lg"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (lg)"
+        - text: ""
+        - button
+    - row /xl \$ \.\d+/:
+      - cell "xl"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (xl)"
+        - text: ""
+        - button
+    - row /2xl \$ \.\d+/:
+      - cell "2xl"
+      - cell /\$ \.\d+/:
+        - text: ""
+        - textbox "Amount (2xl)"
+        - text: ""
+        - button

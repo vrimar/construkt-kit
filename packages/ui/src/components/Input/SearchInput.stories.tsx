@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { input } from "#styled-system/recipes";
 
@@ -6,27 +6,24 @@ import { SearchInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta<typeof SearchInput> = {
+const meta = preview.meta({
   title: "Components/Input/SearchInput",
   component: SearchInput,
   tags: ["autodocs"],
   args: {
     placeholder: "Search...",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof SearchInput>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <SearchInput placeholder="Search..." />
     </Box>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={input.variantMap.size}
@@ -41,4 +38,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

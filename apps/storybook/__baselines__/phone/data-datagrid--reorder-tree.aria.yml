@@ -1,0 +1,106 @@
+- treegrid "Survey":
+  - rowgroup:
+    - row "Select all rows Question / answer Gender":
+      - columnheader "Select all rows":
+        - checkbox "Select all rows"
+      - columnheader "Question / answer"
+      - columnheader "Gender":
+        - paragraph: Gender
+    - row "Male Female":
+      - columnheader "Male":
+        - paragraph: Male
+      - columnheader "Female":
+        - paragraph: Female
+  - rowgroup:
+    - row "Demographics" [level=1]:
+      - gridcell "Demographics":
+        - paragraph: Demographics
+    - row "Select row Collapse row Q1. Age" [expanded] [level=1]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Collapse row Q1. Age":
+        - button "Collapse row" [expanded]
+        - paragraph: Q1. Age
+      - gridcell
+      - gridcell
+    - row /Select row Answer A \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer A":
+        - paragraph: Answer A
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer B \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer B":
+        - paragraph: Answer B
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer C \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer C":
+        - paragraph: Answer C
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row "Select row Collapse row Q2. Region" [expanded] [level=1]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Collapse row Q2. Region":
+        - button "Collapse row" [expanded]
+        - paragraph: Q2. Region
+      - gridcell
+      - gridcell
+    - row /Select row Answer A \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer A":
+        - paragraph: Answer A
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer B \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer B":
+        - paragraph: Answer B
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer C \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer C":
+        - paragraph: Answer C
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row "Select row Collapse row Q3. Income" [expanded] [level=1]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Collapse row Q3. Income":
+        - button "Collapse row" [expanded]
+        - paragraph: Q3. Income
+      - gridcell
+      - gridcell
+    - row /Select row Answer A \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer A":
+        - paragraph: Answer A
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer B \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer B":
+        - paragraph: Answer B
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Select row Answer C \d+% \d+%/ [level=2]:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - rowheader "Answer C":
+        - paragraph: Answer C
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+- paragraph: Drag a grip, or press Alt+Shift+Arrows
+- status

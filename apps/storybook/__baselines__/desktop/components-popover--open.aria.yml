@@ -1,0 +1,7 @@
+- button "Share" [expanded]
+- dialog "Share Q3 planning":
+  - heading "Share Q3 planning" [level=2]
+  - text: Anyone in the workspace with the link can view.
+  - button "Copy link"
+  - button "Invite people"
+  - button "Close"

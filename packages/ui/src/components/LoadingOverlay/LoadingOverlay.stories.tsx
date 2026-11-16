@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { spinner } from "#styled-system/recipes";
 
@@ -6,7 +6,7 @@ import { LoadingOverlay } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta<typeof LoadingOverlay> = {
+const meta = preview.meta({
   title: "Components/LoadingOverlay",
   component: LoadingOverlay,
   tags: ["autodocs"],
@@ -21,19 +21,16 @@ const meta: Meta<typeof LoadingOverlay> = {
       </Box>
     ),
   ],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof LoadingOverlay>;
-
-export const Active: Story = {
+export const Active = meta.story({
   args: {
     loading: true,
     relative: true,
   },
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={spinner.variantMap.size}
@@ -58,19 +55,19 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const WithCustomTip: Story = {
+export const WithCustomTip = meta.story({
   args: {
     loading: true,
     relative: true,
     tip: "Fetching data...",
   },
-};
+});
 
-export const Inactive: Story = {
+export const Inactive = meta.story({
   args: {
     loading: false,
     relative: true,
   },
-};
+});

@@ -1,25 +1,22 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { ColorPicker } from ".";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/ColorPicker",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="320px">
       <ColorPicker />
     </Box>
   ),
-};
+});
 
-export const WithSwatches: Story = {
+export const WithSwatches = meta.story({
   render: () => (
     <Box maxW="320px">
       <ColorPicker
@@ -27,17 +24,30 @@ export const WithSwatches: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const WithAlpha: Story = {
+export const WithAlpha = meta.story({
   render: () => (
     <Box maxW="320px">
       <ColorPicker withAlpha />
     </Box>
   ),
-};
+});
 
-export const Phone: Story = {
-  ...WithSwatches,
+export const Phone = meta.story({
+  ...WithSwatches.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Box maxW="320px">
+      <ColorPicker
+        defaultOpen
+        withAlpha
+      />
+    </Box>
+  ),
+});

@@ -1,0 +1,2 @@
+- progressbar /\d+%/
+- text: /\d+%/

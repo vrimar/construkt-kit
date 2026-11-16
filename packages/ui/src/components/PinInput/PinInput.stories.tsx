@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { pinInput } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { PinInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/PinInput",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="320px">
       <PinInput.Root>
@@ -31,9 +28,9 @@ export const Default: Story = {
       </PinInput.Root>
     </Box>
   ),
-};
+});
 
-export const SixDigits: Story = {
+export const SixDigits = meta.story({
   render: () => (
     <Box maxW="320px">
       <PinInput.Root>
@@ -50,9 +47,9 @@ export const SixDigits: Story = {
       </PinInput.Root>
     </Box>
   ),
-};
+});
 
-export const Masked: Story = {
+export const Masked = meta.story({
   render: () => {
     return (
       <Box maxW="320px">
@@ -71,9 +68,9 @@ export const Masked: Story = {
       </Box>
     );
   },
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={pinInput.variantMap.size}
@@ -93,4 +90,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

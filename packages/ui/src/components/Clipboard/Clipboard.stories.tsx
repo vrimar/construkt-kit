@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Clipboard } from ".";
 import { Button } from "../Buttons";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Clipboard",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="320px">
       <Clipboard.Root value="https://example.com">
@@ -31,12 +28,13 @@ export const Default: Story = {
       </Clipboard.Root>
     </Box>
   ),
-};
+});
 
-export const CopyText: Story = {
+export const CopyText = meta.story({
   render: () => (
     <Box maxW="320px">
       <Clipboard.Root value="Copy me!">
+        <Clipboard.Label>Snippet</Clipboard.Label>
         <Clipboard.Control>
           <Clipboard.Input />
           <Clipboard.Trigger asChild>
@@ -51,4 +49,4 @@ export const CopyText: Story = {
       </Clipboard.Root>
     </Box>
   ),
-};
+});

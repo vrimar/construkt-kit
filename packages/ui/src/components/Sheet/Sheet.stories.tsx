@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { ChevronLeftIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -7,19 +7,16 @@ import { Button, IconButton } from "../Buttons";
 import { Select } from "../Select";
 import { Text } from "../Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Sheet",
-  tags: ["autodocs"],
+  tags: ["autodocs", "phone-only"],
   parameters: { layout: "fullscreen" },
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const lines = Array.from({ length: 30 }, (_, i) => `Row ${i + 1}`);
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Sheet.Root>
       <Sheet.Trigger asChild>
@@ -46,9 +43,9 @@ export const Default: Story = {
       </Sheet.Content>
     </Sheet.Root>
   ),
-};
+});
 
-export const FullHeight: Story = {
+export const FullHeight = meta.story({
   render: () => (
     <Sheet.Root>
       <Sheet.Trigger asChild>
@@ -81,9 +78,9 @@ export const FullHeight: Story = {
       </Sheet.Content>
     </Sheet.Root>
   ),
-};
+});
 
-export const SnapPoints: Story = {
+export const SnapPoints = meta.story({
   render: () => (
     <Sheet.Root snapPoints={[0.5, 1]}>
       <Sheet.Trigger asChild>
@@ -106,9 +103,9 @@ export const SnapPoints: Story = {
       </Sheet.Content>
     </Sheet.Root>
   ),
-};
+});
 
-export const Nested: Story = {
+export const Nested = meta.story({
   render: () => (
     <Sheet.Root>
       <Sheet.Trigger asChild>
@@ -147,7 +144,7 @@ export const Nested: Story = {
       </Sheet.Content>
     </Sheet.Root>
   ),
-};
+});
 
 const fruits = [
   { id: 1, name: "Apple" },
@@ -155,7 +152,7 @@ const fruits = [
   { id: 3, name: "Cherry" },
 ];
 
-export const PickerInSheet: Story = {
+export const PickerInSheet = meta.story({
   render: function PickerInSheetStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -181,4 +178,35 @@ export const PickerInSheet: Story = {
       </Sheet.Root>
     );
   },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Sheet.Root defaultOpen>
+      <Sheet.Trigger asChild>
+        <Button>Open sheet</Button>
+      </Sheet.Trigger>
+      <Sheet.Content>
+        <Sheet.Header
+          endElement={
+            <Sheet.ActionTrigger asChild>
+              <Button
+                variant="plain"
+                size="sm"
+              >
+                Done
+              </Button>
+            </Sheet.ActionTrigger>
+          }
+        >
+          <Sheet.Title>Q3 planning</Sheet.Title>
+        </Sheet.Header>
+        <Sheet.Body>
+          <Text>12 tasks · 4 members · Due 30 September</Text>
+          <Text color="fg.muted">Swipe down, tap the backdrop or press Escape to close.</Text>
+        </Sheet.Body>
+      </Sheet.Content>
+    </Sheet.Root>
+  ),
+});

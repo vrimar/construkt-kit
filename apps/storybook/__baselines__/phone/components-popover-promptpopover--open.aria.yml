@@ -1,0 +1,7 @@
+- dialog "Rename board":
+  - heading "Rename board" [level=2]
+  - textbox "Rename board":
+    - /placeholder: Board name
+    - text: Q3 planning
+  - button "Cancel"
+  - button "Rename"

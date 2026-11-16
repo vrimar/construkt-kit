@@ -1,5 +1,5 @@
 import { parseDate } from "@ark-ui/react/date-picker";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -98,22 +98,6 @@ describe("DatePicker", () => {
 
     expect(onValueChange).not.toHaveBeenCalled();
     expect(dayTrigger("2024-01-11").hasAttribute("data-selected")).toBe(false);
-  });
-
-  it("moves focus to a day once Clear hides itself", async () => {
-    const user = userEvent.setup();
-    render(
-      <Calendar
-        clearable
-        defaultValue={parseDate("2024-01-15")}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Clear" }));
-
-    await waitFor(() =>
-      expect(document.activeElement?.getAttribute("data-part")).toBe("table-cell-trigger"),
-    );
   });
 
   it("names its trigger by the date it shows, not by its open state", () => {

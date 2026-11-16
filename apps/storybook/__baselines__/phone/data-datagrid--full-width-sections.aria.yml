@@ -1,0 +1,54 @@
+- grid "Invoices in sections":
+  - rowgroup:
+    - row "Region / customer Region Amount":
+      - columnheader "Region / customer"
+      - columnheader "Region"
+      - columnheader "Amount"
+  - rowgroup:
+    - row "North":
+      - gridcell "North":
+        - paragraph: North
+    - row /Acme Corporation North \$\d+\.\d+/:
+      - rowheader "Acme Corporation"
+      - gridcell "North"
+      - gridcell /\$\d+\.\d+/
+    - row /Hooli -\$\d+,\d+\.\d+/:
+      - rowheader "Hooli"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli -\$\d+,\d+\.\d+/:
+      - rowheader "Hooli"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli \$\d+,\d+\.\d+/:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli \$\d+,\d+\.\d+/:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Initech \$\d+\.\d+/:
+      - rowheader "Initech"
+      - gridcell /\$\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli \$\d+,\d+\.\d+/:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+- status

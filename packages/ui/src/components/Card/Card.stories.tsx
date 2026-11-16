@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { card } from "#styled-system/recipes";
 
@@ -6,15 +6,12 @@ import { Card } from ".";
 import { Button } from "../Buttons";
 import { Wrap } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Card",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Card.Root maxW="sm">
       <Card.Header>
@@ -28,9 +25,9 @@ export const Default: Story = {
       </Card.Footer>
     </Card.Root>
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="4">
       {card.variantMap.variant.map((variant) => (
@@ -47,4 +44,4 @@ export const Variants: Story = {
       ))}
     </Wrap>
   ),
-};
+});

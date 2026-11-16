@@ -1,17 +1,14 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Chat } from ".";
 import { Stack } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Chat",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const agent = { sender: "assistant", name: "Assistant", icon: <SparklesIcon /> } as const;
 
@@ -21,7 +18,7 @@ const SUGGESTIONS = [
   "Show it by week",
 ];
 
-export const Conversation: Story = {
+export const Conversation = meta.story({
   render: function Render() {
     const [asked, setAsked] = useState<string[]>([]);
     const [undone, setUndone] = useState(false);
@@ -114,4 +111,4 @@ export const Conversation: Story = {
       </Stack>
     );
   },
-};
+});

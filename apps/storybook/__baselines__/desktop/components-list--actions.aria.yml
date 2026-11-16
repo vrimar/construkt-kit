@@ -1,0 +1,7 @@
+- list:
+  - listitem:
+    - button /Tables \d+ of \d+/
+  - listitem:
+    - button "Columns All"
+  - listitem:
+    - button "Format 1 decimal, %"

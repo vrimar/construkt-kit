@@ -1,0 +1,8 @@
+- radiogroup "Theme":
+  - text: ""
+  - radio "Light" [checked]
+  - text: Light
+  - radio "Dark"
+  - text: Dark
+  - radio "System"
+  - text: System

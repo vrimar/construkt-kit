@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Collapsible } from ".";
 import { Button } from "../Buttons";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Collapsible",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <Collapsible.Root>
@@ -28,9 +25,9 @@ export const Default: Story = {
       </Collapsible.Root>
     </Box>
   ),
-};
+});
 
-export const DefaultOpen: Story = {
+export const DefaultOpen = meta.story({
   render: () => (
     <Box maxW="400px">
       <Collapsible.Root defaultOpen>
@@ -43,4 +40,4 @@ export const DefaultOpen: Story = {
       </Collapsible.Root>
     </Box>
   ),
-};
+});

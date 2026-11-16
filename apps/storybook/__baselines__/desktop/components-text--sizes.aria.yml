@@ -1,0 +1,26 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs The quick brown fox jumps over the lazy dog.":
+      - cell "xs"
+      - cell "The quick brown fox jumps over the lazy dog.":
+        - paragraph: The quick brown fox jumps over the lazy dog.
+    - row "sm The quick brown fox jumps over the lazy dog.":
+      - cell "sm"
+      - cell "The quick brown fox jumps over the lazy dog.":
+        - paragraph: The quick brown fox jumps over the lazy dog.
+    - row "md The quick brown fox jumps over the lazy dog.":
+      - cell "md"
+      - cell "The quick brown fox jumps over the lazy dog.":
+        - paragraph: The quick brown fox jumps over the lazy dog.
+    - row "lg The quick brown fox jumps over the lazy dog.":
+      - cell "lg"
+      - cell "The quick brown fox jumps over the lazy dog.":
+        - paragraph: The quick brown fox jumps over the lazy dog.
+    - row "xl The quick brown fox jumps over the lazy dog.":
+      - cell "xl"
+      - cell "The quick brown fox jumps over the lazy dog.":
+        - paragraph: The quick brown fox jumps over the lazy dog.

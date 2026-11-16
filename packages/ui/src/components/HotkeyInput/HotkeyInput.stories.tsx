@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { HotkeyInput } from ".";
@@ -8,14 +8,11 @@ import { Kbd } from "../Kbd";
 import { Box, HStack, Stack } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta<typeof HotkeyInput> = {
+const meta = preview.meta({
   title: "Components/HotkeyInput",
   component: HotkeyInput,
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj<typeof HotkeyInput>;
+});
 
 const SHORTCUTS = [
   { id: "palette", label: "Search or run a command", defaultValue: "Mod+K" },
@@ -82,9 +79,9 @@ const ShortcutSettings = () => {
   );
 };
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <ShortcutSettings />,
-};
+});
 
 const EmptyDemo = () => {
   const [value, setValue] = useState<string | null>(null);
@@ -97,11 +94,11 @@ const EmptyDemo = () => {
   );
 };
 
-export const Empty: Story = {
+export const Empty = meta.story({
   render: () => <EmptyDemo />,
-};
+});
 
-export const Formatting: Story = {
+export const Formatting = meta.story({
   render: () => (
     <Stack gap="2">
       {["Mod+K", "Mod+Shift+P", "Alt+ArrowUp", "Escape", "Shift+?"].map((shortcut) => (
@@ -122,4 +119,4 @@ export const Formatting: Story = {
       ))}
     </Stack>
   ),
-};
+});

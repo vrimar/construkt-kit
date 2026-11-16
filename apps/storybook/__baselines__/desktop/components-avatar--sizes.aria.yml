@@ -1,0 +1,30 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "2xs JD":
+      - cell "2xs"
+      - cell "JD"
+    - row "xs JD":
+      - cell "xs"
+      - cell "JD"
+    - row "sm JD":
+      - cell "sm"
+      - cell "JD"
+    - row "md JD":
+      - cell "md"
+      - cell "JD"
+    - row "lg JD":
+      - cell "lg"
+      - cell "JD"
+    - row "xl JD":
+      - cell "xl"
+      - cell "JD"
+    - row "2xl JD":
+      - cell "2xl"
+      - cell "JD"
+    - row "full JD":
+      - cell "full"
+      - cell "JD"

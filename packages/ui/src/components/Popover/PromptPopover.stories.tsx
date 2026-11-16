@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PlusIcon } from "lucide-react";
+import preview from "@construkt-kit/story-kit/preview";
+import { PencilIcon, PlusIcon } from "lucide-react";
 import { fn } from "storybook/test";
 
 import { PromptPopover } from ".";
 import { Button } from "../Buttons";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Popover/PromptPopover",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <PromptPopover
       title="New folder"
@@ -29,4 +26,25 @@ export const Default: Story = {
       </Button>
     </PromptPopover>
   ),
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <PromptPopover
+      defaultOpen
+      title="Rename board"
+      defaultValue="Q3 planning"
+      placeholder="Board name"
+      submitLabel="Rename"
+      onSubmit={fn()}
+    >
+      <Button
+        variant="outline"
+        leftIcon={<PencilIcon />}
+      >
+        Rename
+      </Button>
+    </PromptPopover>
+  ),
+});

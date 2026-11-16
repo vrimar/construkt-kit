@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { DatabaseIcon, SparklesIcon, UploadIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -8,23 +8,20 @@ import { Tag } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Wrap } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Tag",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Tag.Root>
       <Tag.Label>Draft</Tag.Label>
     </Tag.Root>
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="2">
       {tag.variantMap.variant.map((variant) => (
@@ -43,9 +40,9 @@ export const Variants: Story = {
       </Tag.Root>
     </Wrap>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={tag.variantMap.size}
@@ -60,9 +57,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const Closable: Story = {
+export const Closable = meta.story({
   render: function Render() {
     const [teams, setTeams] = useState(["Design", "Engineering", "Marketing", "Customer support"]);
     return (
@@ -79,9 +76,9 @@ export const Closable: Story = {
       </Wrap>
     );
   },
-};
+});
 
-export const Clickable: Story = {
+export const Clickable = meta.story({
   render: function Render() {
     const [picked, setPicked] = useState<string[]>(["Open"]);
     const toggle = (label: string) =>
@@ -124,4 +121,4 @@ export const Clickable: Story = {
       </Wrap>
     );
   },
-};
+});

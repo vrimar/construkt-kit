@@ -1,10 +1,10 @@
+import preview from "@construkt-kit/story-kit/preview";
 import { Box } from "@construkt-kit/ui";
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
 import { ForgotPasswordPage } from "./index";
 
-const meta: Meta<typeof ForgotPasswordPage> = {
+const meta = preview.meta({
   title: "Pages/ForgotPasswordPage",
   component: ForgotPasswordPage,
   tags: ["autodocs"],
@@ -12,26 +12,23 @@ const meta: Meta<typeof ForgotPasswordPage> = {
     onSubmit: fn(),
     onBack: fn(),
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof ForgotPasswordPage>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Loading: Story = {
+export const Loading = meta.story({
   args: {
     isLoading: true,
   },
-};
+});
 
-export const Success: Story = {
+export const Success = meta.story({
   args: {
     isSuccess: true,
   },
-};
+});
 
-export const WithLogo: Story = {
+export const WithLogo = meta.story({
   args: {
     logo: (
       <Box
@@ -43,4 +40,4 @@ export const WithLogo: Story = {
       </Box>
     ),
   },
-};
+});

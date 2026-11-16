@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { toggleGroup } from "#styled-system/recipes";
 
 import { ToggleGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/ToggleGroup",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <ToggleGroup.Root
       defaultValue={["bold"]}
@@ -39,9 +36,9 @@ export const Default: Story = {
       </ToggleGroup.Item>
     </ToggleGroup.Root>
   ),
-};
+});
 
-export const Single: Story = {
+export const Single = meta.story({
   render: () => (
     <ToggleGroup.Root
       defaultValue={["left"]}
@@ -52,9 +49,9 @@ export const Single: Story = {
       <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
     </ToggleGroup.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={toggleGroup.variantMap.size}
@@ -71,4 +68,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

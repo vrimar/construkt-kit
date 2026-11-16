@@ -1,22 +1,19 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Span } from ".";
 
-const meta: Meta<typeof Span> = {
+const meta = preview.meta({
   title: "Components/Span",
   component: Span,
   tags: ["autodocs"],
   args: {
     children: "Inline text",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Span>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Styled: Story = {
+export const Styled = meta.story({
   render: () => (
     <p>
       This is a paragraph with a{" "}
@@ -29,4 +26,4 @@ export const Styled: Story = {
       inside.
     </p>
   ),
-};
+});

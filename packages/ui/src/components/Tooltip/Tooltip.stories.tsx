@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { CircleHelpIcon, XIcon } from "lucide-react";
 
 import { Tooltip } from ".";
@@ -6,31 +6,28 @@ import { Button, IconButton } from "../Buttons";
 import { VStack, Wrap } from "../Layout";
 import { Span } from "../Span";
 
-const meta: Meta<typeof Tooltip> = {
+const meta = preview.meta({
   title: "Components/Tooltip",
   component: Tooltip,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Tooltip>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     label: "This is a tooltip",
     children: <Button>Hover me</Button>,
   },
-};
+});
 
-export const WithArrow: Story = {
+export const WithArrow = meta.story({
   args: {
     label: "Tooltip with arrow",
     showArrow: true,
     children: <Button variant="outline">With Arrow</Button>,
   },
-};
+});
 
-export const Placements: Story = {
+export const Placements = meta.story({
   render: () => (
     <Wrap
       gap="4"
@@ -47,9 +44,9 @@ export const Placements: Story = {
       ))}
     </Wrap>
   ),
-};
+});
 
-export const ShowWhenTruncated: Story = {
+export const ShowWhenTruncated = meta.story({
   render: () => (
     <VStack
       alignItems="start"
@@ -72,9 +69,9 @@ export const ShowWhenTruncated: Story = {
       ))}
     </VStack>
   ),
-};
+});
 
-export const WithShortcut: Story = {
+export const WithShortcut = meta.story({
   render: () => (
     <Wrap
       gap="4"
@@ -104,4 +101,25 @@ export const WithShortcut: Story = {
       </Tooltip>
     </Wrap>
   ),
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Wrap p="16">
+      <Tooltip
+        label="Keyboard shortcuts"
+        shortcut="?"
+        showArrow
+        defaultOpen
+      >
+        <IconButton
+          variant="outline"
+          aria-label="Keyboard shortcuts"
+        >
+          <CircleHelpIcon />
+        </IconButton>
+      </Tooltip>
+    </Wrap>
+  ),
+});

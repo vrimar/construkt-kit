@@ -1,0 +1,5 @@
+- dialog "Q3 planning":
+  - heading "Q3 planning" [level=2]
+  - button "Done"
+  - paragraph: /\d+ tasks · 4 members · Due \d+ September/
+  - paragraph: Swipe down, tap the backdrop or press Escape to close.

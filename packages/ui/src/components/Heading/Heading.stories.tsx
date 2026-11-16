@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Heading } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
@@ -6,32 +6,29 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 const headingLevels = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
 type HeadingLevel = (typeof headingLevels)[number];
 
-const meta: Meta<typeof Heading> = {
+const meta = preview.meta({
   title: "Components/Heading",
   component: Heading,
   tags: ["autodocs"],
   args: {
     children: "Heading Text",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Heading>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable<HeadingLevel>
       sizes={[...headingLevels]}
       renderPreview={(level) => <Heading as={level}>{level.toUpperCase()}</Heading>}
     />
   ),
-};
+});
 
-export const AsH1: Story = {
+export const AsH1 = meta.story({
   args: {
     as: "h1",
     children: "H1 Heading",
   },
-};
+});

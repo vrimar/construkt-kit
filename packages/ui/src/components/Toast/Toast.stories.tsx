@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import type { ReactElement } from "react";
 
 import { Toaster, toaster } from ".";
 import { Button } from "../Buttons";
 import { Wrap } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Toast",
   tags: ["autodocs"],
   decorators: [
@@ -16,12 +16,9 @@ const meta: Meta = {
       </>
     ),
   ],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Wrap gap="2">
       <Button
@@ -70,4 +67,4 @@ export const Default: Story = {
       </Button>
     </Wrap>
   ),
-};
+});

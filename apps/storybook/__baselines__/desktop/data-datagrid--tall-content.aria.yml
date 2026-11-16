@@ -1,0 +1,53 @@
+- grid "Tall rows":
+  - rowgroup:
+    - row "Column 1 Column 2 Column 3 Column 4 Column 5 Column 6":
+      - columnheader "Column 1"
+      - columnheader "Column 2"
+      - columnheader "Column 3"
+      - columnheader "Column 4"
+      - columnheader "Column 5"
+      - columnheader "Column 6"
+  - rowgroup:
+    - row "R1C1 R1C2 R1C3 R1C4 R1C5 R1C6":
+      - gridcell "R1C1"
+      - gridcell "R1C2"
+      - gridcell "R1C3"
+      - gridcell "R1C4"
+      - gridcell "R1C5"
+      - gridcell "R1C6"
+    - row "R2C1 R2C2 R2C3 R2C4 R2C5 R2C6":
+      - gridcell "R2C1"
+      - gridcell "R2C2"
+      - gridcell "R2C3"
+      - gridcell "R2C4"
+      - gridcell "R2C5"
+      - gridcell "R2C6"
+    - row "R3C1 R3C2 R3C3 R3C4 R3C5 R3C6":
+      - gridcell "R3C1"
+      - gridcell "R3C2"
+      - gridcell "R3C3"
+      - gridcell "R3C4"
+      - gridcell "R3C5"
+      - gridcell "R3C6"
+    - row "R4C1 R4C2 R4C3 R4C4 R4C5 R4C6":
+      - gridcell "R4C1"
+      - gridcell "R4C2"
+      - gridcell "R4C3"
+      - gridcell "R4C4"
+      - gridcell "R4C5"
+      - gridcell "R4C6"
+    - row "R5C1 R5C2 R5C3 R5C4 R5C5 R5C6":
+      - gridcell "R5C1"
+      - gridcell "R5C2"
+      - gridcell "R5C3"
+      - gridcell "R5C4"
+      - gridcell "R5C5"
+      - gridcell "R5C6"
+    - row "R6C1 R6C2 R6C3 R6C4 R6C5 R6C6":
+      - gridcell "R6C1"
+      - gridcell "R6C2"
+      - gridcell "R6C3"
+      - gridcell "R6C4"
+      - gridcell "R6C5"
+      - gridcell "R6C6"
+- status

@@ -1,0 +1,7 @@
+- radiogroup:
+  - radio "Option 1" [checked]
+  - text: Option 1
+  - radio "Option 2"
+  - text: Option 2
+  - radio "Option 3"
+  - text: Option 3

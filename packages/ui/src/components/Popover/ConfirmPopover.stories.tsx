@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { Trash2Icon } from "lucide-react";
 import { fn } from "storybook/test";
 
 import { ConfirmPopover } from ".";
 import { Button } from "../Buttons";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Popover/ConfirmPopover",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Destructive: Story = {
+export const Destructive = meta.story({
   render: () => (
     <ConfirmPopover
       title="Delete Q3 planning?"
@@ -30,9 +27,9 @@ export const Destructive: Story = {
       </Button>
     </ConfirmPopover>
   ),
-};
+});
 
-export const NonDestructive: Story = {
+export const NonDestructive = meta.story({
   render: () => (
     <ConfirmPopover
       title="Switch the project to v3?"
@@ -43,9 +40,9 @@ export const NonDestructive: Story = {
       <Button variant="outline">Switch to v3</Button>
     </ConfirmPopover>
   ),
-};
+});
 
-export const Async: Story = {
+export const Async = meta.story({
   render: () => (
     <ConfirmPopover
       title="Delete Weekly sync?"
@@ -56,9 +53,33 @@ export const Async: Story = {
       <Button variant="outline">Delete meeting</Button>
     </ConfirmPopover>
   ),
-};
+});
 
-export const Phone: Story = {
-  ...Destructive,
+export const Phone = meta.story({
+  ...Destructive.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  // The phone sheet traps focus, so the trigger behind its aria-hidden page is unreachable.
+  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
+  render: () => (
+    <ConfirmPopover
+      defaultOpen
+      title="Delete Q3 planning?"
+      description="2 tasks go back to the backlog. You can undo this."
+      confirmLabel="Delete project"
+      destructive
+      onConfirm={fn()}
+    >
+      <Button
+        variant="outline"
+        leftIcon={<Trash2Icon />}
+      >
+        Delete project
+      </Button>
+    </ConfirmPopover>
+  ),
+});

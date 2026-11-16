@@ -1,0 +1,12 @@
+- button "Banana" [expanded]
+- dialog "Banana":
+  - listbox "Banana":
+    - group "Fruit":
+      - text: ""
+      - option "Apple"
+      - option "Banana" [selected]
+    - group "Vegetable":
+      - text: ""
+      - option "Carrot"
+      - option "Spinach"
+  - status

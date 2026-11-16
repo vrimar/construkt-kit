@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { checkboxCard } from "#styled-system/recipes";
 
@@ -6,39 +6,36 @@ import { CheckboxCard } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { VStack } from "../Layout";
 
-const meta: Meta<typeof CheckboxCard> = {
+const meta = preview.meta({
   title: "Components/CheckboxCard",
   component: CheckboxCard,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof CheckboxCard>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     label: "Option A",
     description: "This is a description for option A.",
   },
-};
+});
 
-export const Checked: Story = {
+export const Checked = meta.story({
   args: {
     label: "Selected Option",
     description: "This option is pre-selected.",
     defaultChecked: true,
   },
-};
+});
 
-export const WithAddon: Story = {
+export const WithAddon = meta.story({
   args: {
     label: "Premium Plan",
     description: "Includes all features.",
     addon: "Recommended",
   },
-};
+});
 
-export const Group: Story = {
+export const Group = meta.story({
   render: () => (
     <VStack
       gap="3"
@@ -59,9 +56,9 @@ export const Group: Story = {
       />
     </VStack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={checkboxCard.variantMap.size}
@@ -74,4 +71,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

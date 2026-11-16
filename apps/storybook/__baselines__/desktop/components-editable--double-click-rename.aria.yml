@@ -1,0 +1,15 @@
+- table:
+  - rowgroup:
+    - row "Channel Orders":
+      - columnheader "Channel"
+      - columnheader "Orders"
+  - rowgroup:
+    - row /edit \d+/:
+      - cell "edit": In store
+      - cell /\d+/
+    - row /edit \d+/:
+      - cell "edit": Wholesale
+      - cell /\d+/
+    - row /edit \d+/:
+      - cell "edit": Online
+      - cell /\d+/

@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { breadcrumb } from "#styled-system/recipes";
 
 import { Breadcrumb } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Breadcrumb",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Breadcrumb.Root>
       <Breadcrumb.List>
@@ -31,9 +28,9 @@ export const Default: Story = {
       </Breadcrumb.List>
     </Breadcrumb.Root>
   ),
-};
+});
 
-export const WithEllipsis: Story = {
+export const WithEllipsis = meta.story({
   render: () => (
     <Breadcrumb.Root>
       <Breadcrumb.List>
@@ -49,14 +46,17 @@ export const WithEllipsis: Story = {
       </Breadcrumb.List>
     </Breadcrumb.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={breadcrumb.variantMap.size}
       renderPreview={(size) => (
-        <Breadcrumb.Root size={size}>
+        <Breadcrumb.Root
+          size={size}
+          aria-label={`Breadcrumb (${size})`}
+        >
           <Breadcrumb.List>
             <Breadcrumb.Item>
               <Breadcrumb.Link href="#">Home</Breadcrumb.Link>
@@ -74,4 +74,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

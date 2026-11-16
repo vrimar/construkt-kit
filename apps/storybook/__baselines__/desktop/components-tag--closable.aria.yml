@@ -1,0 +1,8 @@
+- text: Design
+- button "Remove Design"
+- text: Engineering
+- button "Remove Engineering"
+- text: Marketing
+- button "Remove Marketing"
+- text: Customer support
+- button "Remove Customer support"

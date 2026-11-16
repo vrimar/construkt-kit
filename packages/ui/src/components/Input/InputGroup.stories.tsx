@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { Download } from "lucide-react";
 
 import { input } from "#styled-system/recipes";
@@ -8,16 +8,13 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { IconButton } from "../Buttons";
 import { HStack } from "../Layout";
 
-const meta: Meta<typeof InputGroup> = {
+const meta = preview.meta({
   title: "Components/Input/InputGroup",
   component: InputGroup,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof InputGroup>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <InputGroup
       startElement="$"
@@ -27,9 +24,9 @@ export const Default: Story = {
       <Input placeholder="Amount" />
     </InputGroup>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={input.variantMap.size}
@@ -48,6 +45,7 @@ export const Sizes: Story = {
           <IconButton
             size={size}
             variant="outline"
+            aria-label={`Download (${size})`}
           >
             <Download />
           </IconButton>
@@ -55,4 +53,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

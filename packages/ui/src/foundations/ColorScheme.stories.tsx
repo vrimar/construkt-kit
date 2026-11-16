@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Buttons";
@@ -6,7 +6,7 @@ import { Box, HStack, Stack } from "../components/Layout";
 import { Progress } from "../components/Progress";
 import { Text } from "../components/Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Foundations/Color scheme",
   parameters: {
     docs: {
@@ -18,10 +18,7 @@ const meta: Meta = {
       },
     },
   },
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const Sample = ({ label }: { label: string }) => (
   <Stack gap="3">
@@ -48,7 +45,7 @@ const Sample = ({ label }: { label: string }) => (
   </Stack>
 );
 
-export const NestedScopes: Story = {
+export const NestedScopes = meta.story({
   render: () => (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -97,4 +94,4 @@ export const NestedScopes: Story = {
       </Box>
     </Stack>
   ),
-};
+});

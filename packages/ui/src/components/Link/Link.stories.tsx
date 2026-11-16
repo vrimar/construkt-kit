@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Link } from ".";
 import { HStack } from "../Layout";
 
-const meta: Meta<typeof Link> = {
+const meta = preview.meta({
   title: "Components/Link",
   component: Link,
   tags: ["autodocs"],
@@ -11,14 +11,11 @@ const meta: Meta<typeof Link> = {
     children: "Click me",
     href: "#",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Link>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <HStack gap="4">
       <Link
@@ -35,4 +32,4 @@ export const Variants: Story = {
       </Link>
     </HStack>
   ),
-};
+});

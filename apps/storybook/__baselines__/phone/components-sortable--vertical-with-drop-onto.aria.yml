@@ -1,0 +1,25 @@
+- button "Drag to move Rent"
+- paragraph: Rent
+- button "Drag to move Utilities"
+- paragraph: Utilities
+- button "Drag to move Groceries"
+- paragraph: Groceries
+- button "Drag to move Dining out"
+- paragraph: Dining out
+- button "Drag to move Transport"
+- paragraph: Transport
+- button "Drag to move Fuel"
+- paragraph: Fuel
+- button "Drag to move Insurance"
+- paragraph: Insurance
+- button "Drag to move Subscriptions"
+- paragraph: Subscriptions
+- button "Drag to move Gym membership"
+- paragraph: Gym membership
+- button "Drag to move Travel"
+- paragraph: Travel
+- button "Drag to move Gifts"
+- paragraph: Gifts
+- button "Drag to move Savings"
+- paragraph: Savings
+- status

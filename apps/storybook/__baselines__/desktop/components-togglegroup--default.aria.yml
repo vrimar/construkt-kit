@@ -1,0 +1,6 @@
+- group:
+  - button "Bold" [pressed]:
+    - strong: B
+  - button "Italic":
+    - emphasis: I
+  - button "Underline"

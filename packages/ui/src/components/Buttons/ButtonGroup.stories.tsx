@@ -1,20 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { button } from "#styled-system/recipes";
 
 import { Button, ButtonGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof ButtonGroup> = {
+const meta = preview.meta({
   title: "Components/Buttons/ButtonGroup",
   component: ButtonGroup,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof ButtonGroup>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <ButtonGroup>
       <Button variant="outline">Left</Button>
@@ -22,9 +19,9 @@ export const Default: Story = {
       <Button variant="outline">Right</Button>
     </ButtonGroup>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={button.variantMap.size}
@@ -37,4 +34,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

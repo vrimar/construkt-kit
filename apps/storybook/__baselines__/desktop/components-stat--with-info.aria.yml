@@ -1,0 +1,3 @@
+- text: Visitors
+- button "info"
+- text: /\d+,\d+/

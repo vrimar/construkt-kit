@@ -1,0 +1,119 @@
+- button "Columns"
+- table:
+  - rowgroup:
+    - row "Person Account":
+      - cell
+      - columnheader "Person":
+        - paragraph: Person
+      - columnheader "Account":
+        - paragraph: Account
+      - cell
+    - row "ID Name Email Role actions":
+      - columnheader "ID":
+        - paragraph: ID
+        - button "Sort by ID"
+        - separator "Resize ID"
+      - columnheader "Name":
+        - paragraph: Name
+        - button "Sort by Name"
+        - separator "Resize Name"
+      - columnheader "Email":
+        - paragraph: Email
+        - button "Sort by Email"
+        - separator "Resize Email"
+      - columnheader "Role":
+        - paragraph: Role
+        - button "Sort by Role"
+        - separator "Resize Role"
+      - columnheader "actions":
+        - paragraph
+        - text: ""
+        - separator "Resize actions"
+    - row "Equals Filter by Role":
+      - cell "Equals":
+        - button "Equals": =
+        - textbox "Filter by ID"
+      - cell:
+        - textbox "Filter by Name"
+      - cell:
+        - textbox "Filter by Email"
+      - cell "Filter by Role":
+        - button "Filter by Role"
+      - cell
+  - rowgroup:
+    - row "1 Alice Johnson alice@example.com Admin Actions":
+      - cell "1"
+      - cell "Alice Johnson"
+      - cell "alice@example.com"
+      - cell "Admin"
+      - cell "Actions":
+        - button "Actions"
+    - row "2 Bob Smith bob@example.com User Actions":
+      - cell "2"
+      - cell "Bob Smith"
+      - cell "bob@example.com"
+      - cell "User"
+      - cell "Actions":
+        - button "Actions"
+    - row "3 Charlie Brown charlie@example.com Editor Actions":
+      - cell "3"
+      - cell "Charlie Brown"
+      - cell "charlie@example.com"
+      - cell "Editor"
+      - cell "Actions":
+        - button "Actions"
+    - row "4 Diana Prince diana@example.com Admin Actions":
+      - cell "4"
+      - cell "Diana Prince"
+      - cell "diana@example.com"
+      - cell "Admin"
+      - cell "Actions":
+        - button "Actions"
+    - row "5 Eve Williams eve@example.com User Actions":
+      - cell "5"
+      - cell "Eve Williams"
+      - cell "eve@example.com"
+      - cell "User"
+      - cell "Actions":
+        - button "Actions"
+    - row "6 Frank Castle frank@example.com Admin Actions":
+      - cell "6"
+      - cell "Frank Castle"
+      - cell "frank@example.com"
+      - cell "Admin"
+      - cell "Actions":
+        - button "Actions"
+    - row "7 Grace Hopper grace@example.com Editor Actions":
+      - cell "7"
+      - cell "Grace Hopper"
+      - cell "grace@example.com"
+      - cell "Editor"
+      - cell "Actions":
+        - button "Actions"
+    - row "8 Hank Pym hank@example.com User Actions":
+      - cell "8"
+      - cell "Hank Pym"
+      - cell "hank@example.com"
+      - cell "User"
+      - cell "Actions":
+        - button "Actions"
+    - row "9 Irene Adler irene@example.com Editor Actions":
+      - cell "9"
+      - cell "Irene Adler"
+      - cell "irene@example.com"
+      - cell "Editor"
+      - cell "Actions":
+        - button "Actions"
+    - row /\d+ Jack Reacher jack@example\.com User Actions/:
+      - cell /\d+/
+      - cell "Jack Reacher"
+      - cell "jack@example.com"
+      - cell "User"
+      - cell "Actions":
+        - button "Actions"
+- paragraph: /\d+ Items/
+- paragraph: Page 1 out of 3
+- button "First page" [disabled]
+- button "Previous page" [disabled]
+- button "Next page"
+- button "Last page"

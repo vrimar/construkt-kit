@@ -1,0 +1,8 @@
+- dialog:
+  - group:
+    - slider "saturation and brightness"
+  - textbox "hex": /#\d+/
+  - group
+  - slider "hue"
+  - group
+  - slider "alpha"

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { TagSelect } from ".";
@@ -11,7 +11,7 @@ const colors = [
   { id: 4, name: "Yellow" },
 ];
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/TagSelect",
   component: TagSelect,
   decorators: [
@@ -24,12 +24,9 @@ const meta: Meta = {
       </Box>
     ),
   ],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: function DefaultStory() {
     const [value, setValue] = useState<number[]>([1]);
     return (
@@ -43,9 +40,28 @@ export const Default: Story = {
       />
     );
   },
-};
+});
 
-export const Phone: Story = {
-  ...Default,
+export const Phone = meta.story({
+  ...Default.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: function OpenStory() {
+    const [value, setValue] = useState<number[]>([1, 3]);
+    return (
+      <TagSelect
+        defaultOpen
+        items={colors}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Pick colors"
+      />
+    );
+  },
+});

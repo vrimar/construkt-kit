@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { ColumnsIcon, SlidersHorizontalIcon, SparklesIcon, TableIcon } from "lucide-react";
 
 import { List } from ".";
 import { Badge } from "../Badge";
 import { Box, Stack } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/List",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="320px">
       <List.Root>
@@ -23,9 +20,9 @@ export const Default: Story = {
       </List.Root>
     </Box>
   ),
-};
+});
 
-export const Actions: Story = {
+export const Actions = meta.story({
   render: () => (
     <Box maxW="420px">
       <List.Root>
@@ -56,9 +53,9 @@ export const Actions: Story = {
       </List.Root>
     </Box>
   ),
-};
+});
 
-export const WithDescription: Story = {
+export const WithDescription = meta.story({
   render: () => (
     <Box maxW="480px">
       <List.Root>
@@ -88,9 +85,9 @@ export const WithDescription: Story = {
       </List.Root>
     </Box>
   ),
-};
+});
 
-export const AsLink: Story = {
+export const AsLink = meta.story({
   render: () => (
     <Box maxW="320px">
       <List.Action
@@ -102,9 +99,9 @@ export const AsLink: Story = {
       </List.Action>
     </Box>
   ),
-};
+});
 
-export const DisabledAndBadges: Story = {
+export const DisabledAndBadges = meta.story({
   render: () => (
     <Stack
       gap="0.5"
@@ -127,4 +124,4 @@ export const DisabledAndBadges: Story = {
       </List.Action>
     </Stack>
   ),
-};
+});

@@ -1,0 +1,10 @@
+- text: Secret PIN
+- group "Secret PIN":
+  - textbox "pin code 1 of 4":
+    - /placeholder: ○
+  - textbox "pin code 2 of 4":
+    - /placeholder: ○
+  - textbox "pin code 3 of 4":
+    - /placeholder: ○
+  - textbox "pin code 4 of 4":
+    - /placeholder: ○

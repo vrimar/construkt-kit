@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import type { CSSProperties } from "react";
 
 import { Button } from "../components/Buttons";
@@ -29,7 +29,7 @@ const knobs = (a: Partial<DensityArgs>): CSSProperties =>
     ...(a.visualScale != null && { "--visual-scale": `${a.visualScale}` }),
   }) as CSSProperties;
 
-const meta: Meta<DensityArgs> = {
+const meta = preview.type<{ args: DensityArgs }>().meta({
   title: "Foundations/Control density",
   parameters: {
     docs: {
@@ -70,10 +70,7 @@ const meta: Meta<DensityArgs> = {
     },
   },
   args: { baseHeight: 36, basePx: 12, baseFont: 14, surfaceScale: 1, visualScale: 1 },
-};
-
-export default meta;
-type Story = StoryObj<typeof meta>;
+});
 
 const Controls = () => (
   <Stack
@@ -120,7 +117,10 @@ const Showcase = () => (
         gap="4"
         w="48"
       >
-        <Slider defaultValue={[50]} />
+        <Slider
+          label="Volume"
+          defaultValue={[50]}
+        />
         <HStack gap="4">
           <Spinner size="md" />
           <Spinner size="xl" />
@@ -131,26 +131,26 @@ const Showcase = () => (
 );
 
 // Drive all five knobs at once; the wrapping container scopes them.
-export const RuntimeKnobs: Story = {
+export const RuntimeKnobs = meta.story({
   render: (args) => (
     <div style={knobs(args)}>
       <Showcase />
     </div>
   ),
-};
+});
 
 // Proves a single knob still works on its own: only --control-base-h is set here.
-export const HeightOnly: Story = {
+export const HeightOnly = meta.story({
   render: ({ baseHeight }) => (
     <div style={knobs({ baseHeight })}>
       <Controls />
     </div>
   ),
-};
+});
 
 // A nested scope override rescales controls, surface padding, and graphical controls together,
 // independent of the page-level defaults around it.
-export const NestedScope: Story = {
+export const NestedScope = meta.story({
   render: () => (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -177,11 +177,11 @@ export const NestedScope: Story = {
       </Stack>
     </Stack>
   ),
-};
+});
 
 const densityModes = ["compact", "default", "relaxed"] as const;
 
-export const Modes: Story = {
+export const Modes = meta.story({
   render: () => (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -209,4 +209,4 @@ export const Modes: Story = {
       ))}
     </Stack>
   ),
-};
+});

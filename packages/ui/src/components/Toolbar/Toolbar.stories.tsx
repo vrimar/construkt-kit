@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import {
   AlignCenterIcon,
   AlignLeftIcon,
@@ -18,13 +18,10 @@ import { Menu } from "../Menu";
 import { Popover } from "../Popover";
 import { Text } from "../Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Toolbar",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const TableActions = ({ collapseBelow }: { collapseBelow?: number }) => (
   <Toolbar.Root
@@ -86,16 +83,16 @@ const TableActions = ({ collapseBelow }: { collapseBelow?: number }) => (
   </Toolbar.Root>
 );
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <HStack gap="4">
       <Text fontWeight="semibold">Open invoices by customer</Text>
       <TableActions />
     </HStack>
   ),
-};
+});
 
-export const CollapsingLabels: Story = {
+export const CollapsingLabels = meta.story({
   render: () => (
     <Box
       resize="horizontal"
@@ -119,9 +116,9 @@ export const CollapsingLabels: Story = {
       </HStack>
     </Box>
   ),
-};
+});
 
-export const Vertical: Story = {
+export const Vertical = meta.story({
   render: () => (
     <Toolbar.Root
       aria-label="Alignment"
@@ -151,4 +148,4 @@ export const Vertical: Story = {
       />
     </Toolbar.Root>
   ),
-};
+});

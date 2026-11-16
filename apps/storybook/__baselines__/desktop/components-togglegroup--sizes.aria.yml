@@ -1,0 +1,41 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs":
+      - cell "xs"
+      - cell:
+        - group:
+          - button "A" [pressed]
+          - button "B"
+          - button "C"
+    - row "sm":
+      - cell "sm"
+      - cell:
+        - group:
+          - button "A" [pressed]
+          - button "B"
+          - button "C"
+    - row "md":
+      - cell "md"
+      - cell:
+        - group:
+          - button "A" [pressed]
+          - button "B"
+          - button "C"
+    - row "lg":
+      - cell "lg"
+      - cell:
+        - group:
+          - button "A" [pressed]
+          - button "B"
+          - button "C"
+    - row "xl":
+      - cell "xl"
+      - cell:
+        - group:
+          - button "A" [pressed]
+          - button "B"
+          - button "C"

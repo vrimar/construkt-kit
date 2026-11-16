@@ -1,0 +1,33 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row /sm Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+      - cell "sm"
+      - cell /Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+        - term: Prepared by
+        - definition: Ada Lovelace
+        - term: Due date
+        - definition: /March \d+/
+        - term: Shared with
+        - definition: /All workspace members \(\d+,\d+\)/
+    - row /md Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+      - cell "md"
+      - cell /Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+        - term: Prepared by
+        - definition: Ada Lovelace
+        - term: Due date
+        - definition: /March \d+/
+        - term: Shared with
+        - definition: /All workspace members \(\d+,\d+\)/
+    - row /lg Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+      - cell "lg"
+      - cell /Prepared by Ada Lovelace Due date March \d+ Shared with All workspace members \(\d+,\d+\)/:
+        - term: Prepared by
+        - definition: Ada Lovelace
+        - term: Due date
+        - definition: /March \d+/
+        - term: Shared with
+        - definition: /All workspace members \(\d+,\d+\)/

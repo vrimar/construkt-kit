@@ -1,0 +1,22 @@
+- table "Team Members":
+  - caption: Team Members
+  - rowgroup:
+    - row "Name Role":
+      - columnheader "Name"
+      - columnheader "Role"
+  - rowgroup:
+    - row "Alice Johnson Admin":
+      - cell "Alice Johnson"
+      - cell "Admin"
+    - row "Bob Smith User":
+      - cell "Bob Smith"
+      - cell "User"
+    - row "Charlie Brown Editor":
+      - cell "Charlie Brown"
+      - cell "Editor"
+    - row "Diana Prince Admin":
+      - cell "Diana Prince"
+      - cell "Admin"
+  - rowgroup:
+    - 'row "Total: 4 members"':
+      - 'cell "Total: 4 members"'

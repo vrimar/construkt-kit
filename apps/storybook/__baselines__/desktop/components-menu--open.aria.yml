@@ -1,0 +1,8 @@
+- button "Actions" [expanded]
+- menu "Actions":
+  - menuitem "Edit"
+  - menuitem "Duplicate"
+  - menuitem "Share"
+  - menuitem "Move to…"
+  - separator
+  - menuitem "Delete"

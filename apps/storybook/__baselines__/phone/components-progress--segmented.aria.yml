@@ -1,0 +1,4 @@
+- text: Step 3 / 8
+- progressbar /\d+%/
+- button "Previous"
+- button "Next"

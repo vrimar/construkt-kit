@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { ratingGroup } from "#styled-system/recipes";
 
 import { RatingGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/RatingGroup",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <RatingGroup.Root
       count={5}
@@ -24,9 +21,9 @@ export const Default: Story = {
       <RatingGroup.HiddenInput />
     </RatingGroup.Root>
   ),
-};
+});
 
-export const ReadOnly: Story = {
+export const ReadOnly = meta.story({
   render: () => (
     <RatingGroup.Root
       count={5}
@@ -37,9 +34,9 @@ export const ReadOnly: Story = {
       <RatingGroup.Control />
     </RatingGroup.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={ratingGroup.variantMap.size}
@@ -56,4 +53,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

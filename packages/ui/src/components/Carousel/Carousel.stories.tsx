@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { carousel } from "#styled-system/recipes";
@@ -7,15 +7,12 @@ import { Carousel } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Center } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Carousel",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Carousel.Root slideCount={5}>
       <Carousel.Control>
@@ -47,9 +44,9 @@ export const Default: Story = {
       <Carousel.IndicatorGroup />
     </Carousel.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={carousel.variantMap.size}
@@ -89,4 +86,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

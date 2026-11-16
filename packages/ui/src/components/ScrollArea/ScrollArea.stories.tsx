@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useEffect, useRef } from "react";
 
 import { scrollArea } from "#styled-system/recipes";
@@ -8,14 +8,11 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box, Flex } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta<typeof ScrollArea> = {
+const meta = preview.meta({
   title: "Components/ScrollArea",
   component: ScrollArea,
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj<typeof ScrollArea>;
+});
 
 type FadeEdgesPosition = "initial" | "middle" | "bottom";
 
@@ -66,7 +63,7 @@ function FadeEdgesPreview({ position }: { position: FadeEdgesPosition }) {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <ScrollArea
       height="200px"
@@ -82,9 +79,9 @@ export const Default: Story = {
       </Box>
     </ScrollArea>
   ),
-};
+});
 
-export const HorizontalScroll: Story = {
+export const HorizontalScroll = meta.story({
   render: () => (
     <ScrollArea
       height="100px"
@@ -103,9 +100,9 @@ export const HorizontalScroll: Story = {
       </Box>
     </ScrollArea>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={scrollArea.variantMap.size}
@@ -133,9 +130,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const FadeEdges: Story = {
+export const FadeEdges = meta.story({
   render: () => (
     <Flex
       gap="6"
@@ -151,4 +148,4 @@ export const FadeEdges: Story = {
       ))}
     </Flex>
   ),
-};
+});

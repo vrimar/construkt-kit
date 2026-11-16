@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { fn } from "storybook/test";
 
 import { alert } from "#styled-system/recipes";
@@ -7,19 +7,16 @@ import { Alert } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Grid } from "../Layout";
 
-const meta: Meta<typeof Alert> = {
+const meta = preview.meta({
   title: "Components/Alert",
   component: Alert,
   tags: ["autodocs"],
   args: {
     title: "Alert title",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Alert>;
-
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Grid gap="3">
       <Alert
@@ -40,12 +37,13 @@ export const Variants: Story = {
       />
     </Grid>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={alert.variantMap.size}
+      label="Alert sizes"
       renderPreview={(size) => (
         <Alert
           size={size}
@@ -57,20 +55,20 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const WithDescription: Story = {
+export const WithDescription = meta.story({
   args: {
     status: "info",
     title: "New version available",
     children: "Refresh the page to get the latest updates.",
   },
-};
+});
 
-export const Closable: Story = {
+export const Closable = meta.story({
   args: {
     status: "success",
     title: "Upload complete",
     onClose: fn(),
   },
-};
+});

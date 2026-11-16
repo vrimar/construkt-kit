@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Fieldset } from ".";
 import { Input } from "../Input";
 import { Box } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Fieldset",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <Fieldset.Root>
@@ -26,9 +23,9 @@ export const Default: Story = {
       </Fieldset.Root>
     </Box>
   ),
-};
+});
 
-export const WithError: Story = {
+export const WithError = meta.story({
   render: () => (
     <Box maxW="400px">
       <Fieldset.Root invalid>
@@ -42,4 +39,4 @@ export const WithError: Story = {
       </Fieldset.Root>
     </Box>
   ),
-};
+});

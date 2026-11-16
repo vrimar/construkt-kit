@@ -1,0 +1,11 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "md Drop files here (md)":
+      - cell "md"
+      - cell "Drop files here (md)":
+        - button "Drop files here (md)"
+        - list

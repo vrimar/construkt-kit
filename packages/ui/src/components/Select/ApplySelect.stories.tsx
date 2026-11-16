@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { ApplySelect } from ".";
@@ -11,7 +11,7 @@ const frameworks = [
   { id: 4, name: "Svelte" },
 ];
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/ApplySelect",
   component: ApplySelect,
   decorators: [
@@ -24,12 +24,9 @@ const meta: Meta = {
       </Box>
     ),
   ],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: function DefaultStory() {
     const [value, setValue] = useState<number[]>([]);
     return (
@@ -44,9 +41,9 @@ export const Default: Story = {
       />
     );
   },
-};
+});
 
-export const CustomRendering: Story = {
+export const CustomRendering = meta.story({
   render: function CustomRenderingStory() {
     const [value, setValue] = useState<number[]>([1]);
     return (
@@ -65,9 +62,9 @@ export const CustomRendering: Story = {
       />
     );
   },
-};
+});
 
-export const Compound: Story = {
+export const Compound = meta.story({
   render: function CompoundStory() {
     const [value, setValue] = useState<number[]>([]);
     return (
@@ -88,9 +85,29 @@ export const Compound: Story = {
       </ApplySelect.Root>
     );
   },
-};
+});
 
-export const Phone: Story = {
-  ...Default,
+export const Phone = meta.story({
+  ...Default.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: function OpenStory() {
+    const [value, setValue] = useState<number[]>([1, 4]);
+    return (
+      <ApplySelect
+        defaultOpen
+        items={frameworks}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select frameworks"
+        actions={{ toggleAll: true }}
+      />
+    );
+  },
+});

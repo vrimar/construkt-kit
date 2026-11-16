@@ -1,0 +1,24 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm First Item (sm) Content for this accordion item. Another item (sm)":
+      - cell "sm"
+      - cell "First Item (sm) Content for this accordion item. Another item (sm)":
+        - button "First Item (sm)" [expanded]
+        - region "First Item (sm)": Content for this accordion item.
+        - button "Another item (sm)"
+    - row "md First Item (md) Content for this accordion item. Another item (md)":
+      - cell "md"
+      - cell "First Item (md) Content for this accordion item. Another item (md)":
+        - button "First Item (md)" [expanded]
+        - region "First Item (md)": Content for this accordion item.
+        - button "Another item (md)"
+    - row "lg First Item (lg) Content for this accordion item. Another item (lg)":
+      - cell "lg"
+      - cell "First Item (lg) Content for this accordion item. Another item (lg)":
+        - button "First Item (lg)" [expanded]
+        - region "First Item (lg)": Content for this accordion item.
+        - button "Another item (lg)"

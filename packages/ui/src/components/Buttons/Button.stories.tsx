@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { Trash2 } from "lucide-react";
 
 import { button } from "#styled-system/recipes";
@@ -8,33 +8,30 @@ import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { HStack, Stack, Wrap } from "../Layout";
 import { Tooltip } from "../Tooltip";
 
-const meta: Meta<typeof Button> = {
+const meta = preview.meta({
   title: "Components/Buttons/Button",
   component: Button,
   tags: ["autodocs"],
   args: {
     children: "Button",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Button>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Loading: Story = {
+export const Loading = meta.story({
   args: { loading: true },
-};
+});
 
-export const LoadingWithText: Story = {
+export const LoadingWithText = meta.story({
   args: { loading: true, loadingText: "Saving…" },
-};
+});
 
-export const Disabled: Story = {
+export const Disabled = meta.story({
   args: { disabled: true },
-};
+});
 
-export const DisabledWithReason: Story = {
+export const DisabledWithReason = meta.story({
   render: () => (
     <HStack gap="2">
       <Tooltip label="Only owners can publish">
@@ -55,9 +52,9 @@ export const DisabledWithReason: Story = {
       </TooltipIconButton>
     </HStack>
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="2">
       <Button variant="solid">Solid</Button>
@@ -67,9 +64,9 @@ export const Variants: Story = {
       <Button variant="plain">Plain</Button>
     </Wrap>
   ),
-};
+});
 
-export const Colors: Story = {
+export const Colors = meta.story({
   render: () => (
     <Wrap gap="2">
       <Button>Neutral</Button>
@@ -78,12 +75,12 @@ export const Colors: Story = {
       <Button colorPalette="danger">Danger</Button>
     </Wrap>
   ),
-};
+});
 
 const COLORS = ["neutral", "brand", "success", "danger"] as const;
 const VARIANTS = ["solid", "surface", "subtle", "outline", "plain"] as const;
 
-export const ColorVariants: Story = {
+export const ColorVariants = meta.story({
   render: () => (
     <Stack gap="2">
       {COLORS.map((colorPalette) => (
@@ -104,9 +101,9 @@ export const ColorVariants: Story = {
       ))}
     </Stack>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={button.variantMap.size}
@@ -123,4 +120,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

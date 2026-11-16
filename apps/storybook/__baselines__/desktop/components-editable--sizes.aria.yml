@@ -1,0 +1,24 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "inherit inherit edit":
+      - cell "inherit"
+      - cell "inherit edit": inherit Editable value (inherit)
+    - row "2xs 2xs edit":
+      - cell "2xs"
+      - cell "2xs edit": 2xs Editable value (2xs)
+    - row "xs xs edit":
+      - cell "xs"
+      - cell "xs edit": xs Editable value (xs)
+    - row "sm sm edit":
+      - cell "sm"
+      - cell "sm edit": sm Editable value (sm)
+    - row "md md edit":
+      - cell "md"
+      - cell "md edit": md Editable value (md)
+    - row "lg lg edit":
+      - cell "lg"
+      - cell "lg edit": lg Editable value (lg)

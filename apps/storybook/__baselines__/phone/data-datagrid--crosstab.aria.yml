@@ -1,0 +1,72 @@
+- grid "Crosstab":
+  - rowgroup:
+    - row "Question / Answer Total Gender":
+      - columnheader "Question / Answer":
+        - paragraph: Question / Answer
+      - columnheader "Total"
+      - columnheader "Gender"
+    - row "Male Female":
+      - columnheader "Male"
+      - columnheader "Female"
+  - rowgroup:
+    - row /Q1\. Answer 1 \d+% 9% \d+%/:
+      - rowheader "Q1. Answer 1"
+      - gridcell /\d+%/
+      - gridcell "9%"
+      - gridcell /\d+%/
+    - row /Q1\. Answer 2 \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q1\. Answer 3 \d+% \d+% 6%/:
+      - rowheader "Q1. Answer 3"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "6%"
+    - row /Q1\. Answer 4 \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 4"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q1\. Answer 5 \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 5"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 1 \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 1"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 2 \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 3 \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 3"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 4 \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 4"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 5 \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 5"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 1 \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 1"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 2 \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+- status

@@ -1,6 +1,7 @@
 import { createTsdownConfig } from "@construkt-kit/config/tsdown";
 
 export default createTsdownConfig({
+  tsconfig: "tsconfig.build.json",
   checks: {
     pluginTimings: false,
   },

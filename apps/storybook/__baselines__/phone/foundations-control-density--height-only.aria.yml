@@ -1,0 +1,7 @@
+- button "Save"
+- button "Cancel"
+- textbox "Search…"
+- checkbox "Enable feature" [checked]
+- text: Enable feature
+- checkbox "Notifications" [checked]
+- text: Notifications

@@ -1,0 +1,9 @@
+- navigation "pagination":
+  - button "Previous" [disabled]
+  - button "page 1"
+  - button "page 2"
+  - button "page 3"
+  - button "page 4"
+  - button "page 5"
+  - button /last page, page \d+/
+  - button "Next"

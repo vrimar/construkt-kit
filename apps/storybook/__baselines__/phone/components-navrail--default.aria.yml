@@ -1,0 +1,12 @@
+- navigation "Main":
+  - button "Overview"
+  - button "Projects"
+  - button "Documents"
+  - button "Tasks"
+  - button "Team"
+  - button "Inbox, 3 unread messages"
+  - button "Settings"
+- paragraph: Projects
+- paragraph: The pane for this section.
+- paragraph: Canvas
+- button "Open the assistant"

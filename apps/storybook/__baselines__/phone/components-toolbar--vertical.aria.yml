@@ -1,0 +1,6 @@
+- toolbar "Alignment":
+  - button "Align left"
+  - button "Align center"
+  - button "Align right"
+  - separator
+  - button "More"

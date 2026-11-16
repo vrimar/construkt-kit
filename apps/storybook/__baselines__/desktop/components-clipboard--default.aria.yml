@@ -1,0 +1,3 @@
+- text: Share URL
+- textbox "Share URL": https://example.com
+- button "Copy to clipboard"

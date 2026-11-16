@@ -1,0 +1,24 @@
+- paragraph: Dark scope
+- paragraph: Muted text follows the scope.
+- button "Primary"
+- button "Outline"
+- text: Badge
+- progressbar /\d+%/
+- paragraph: Light card inside it
+- paragraph: Muted text follows the scope.
+- button "Primary"
+- button "Outline"
+- text: Badge
+- progressbar /\d+%/
+- paragraph: Light scope
+- paragraph: Muted text follows the scope.
+- button "Primary"
+- button "Outline"
+- text: Badge
+- progressbar /\d+%/
+- paragraph: Dark panel inside it
+- paragraph: Muted text follows the scope.
+- button "Primary"
+- button "Outline"
+- text: Badge
+- progressbar /\d+%/

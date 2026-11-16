@@ -1,0 +1,91 @@
+- button "Flash a cell"
+- paragraph: Nothing selected
+- grid "Selection":
+  - rowgroup:
+    - 'row "Select all rows # Customer Region"':
+      - columnheader "Select all rows":
+        - checkbox "Select all rows"
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+  - rowgroup:
+    - row "Select row 0 Acme Corporation North":
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+    - row "Select row 1 Globex West":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+    - row "Select row 2 Initech East":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+    - row "Select row 3 Umbrella South":
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+    - row "Select row 4 Hooli North":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+    - row "Select row 5 Stark Industries West":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+    - row "Select row 6 Acme Corporation East":
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+    - row "Select row 7 Globex South":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+    - row "Select row 8 Initech North":
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+    - row "Select row 9 Umbrella West":
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+    - row /Select row \d+ Hooli East/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+    - row /Select row \d+ Stark Industries South/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+    - row /Select row \d+ Acme Corporation North/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+- text: "Selections finished: 0"
+- status

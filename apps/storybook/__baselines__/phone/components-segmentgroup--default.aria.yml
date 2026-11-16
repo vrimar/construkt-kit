@@ -1,0 +1,7 @@
+- radiogroup:
+  - text: React
+  - radio "React" [checked]
+  - text: Vue
+  - radio "Vue"
+  - text: Angular
+  - radio "Angular"

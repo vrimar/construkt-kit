@@ -1,0 +1,2 @@
+- button "What counts as billable?" [expanded]
+- dialog: Hours logged against a client project, rounded to the nearest quarter hour.

@@ -1,0 +1,84 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Pin":
+      - cell "xs"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○
+    - row "sm Pin":
+      - cell "sm"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○
+    - row "md Pin":
+      - cell "md"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○
+    - row "lg Pin":
+      - cell "lg"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○
+    - row "xl Pin":
+      - cell "xl"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○
+    - row "2xl Pin":
+      - cell "2xl"
+      - cell "Pin":
+        - text: ""
+        - group "Pin":
+          - textbox "pin code 1 of 4":
+            - /placeholder: ○
+          - textbox "pin code 2 of 4":
+            - /placeholder: ○
+          - textbox "pin code 3 of 4":
+            - /placeholder: ○
+          - textbox "pin code 4 of 4":
+            - /placeholder: ○

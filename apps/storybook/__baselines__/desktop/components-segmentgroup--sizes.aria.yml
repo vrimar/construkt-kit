@@ -1,0 +1,46 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs":
+      - cell "xs"
+      - cell:
+        - radiogroup:
+          - text: Option A
+          - radio "Option A" [checked]
+          - text: Option B
+          - radio "Option B"
+    - row "sm":
+      - cell "sm"
+      - cell:
+        - radiogroup:
+          - text: Option A
+          - radio "Option A" [checked]
+          - text: Option B
+          - radio "Option B"
+    - row "md":
+      - cell "md"
+      - cell:
+        - radiogroup:
+          - text: Option A
+          - radio "Option A" [checked]
+          - text: Option B
+          - radio "Option B"
+    - row "lg":
+      - cell "lg"
+      - cell:
+        - radiogroup:
+          - text: Option A
+          - radio "Option A" [checked]
+          - text: Option B
+          - radio "Option B"
+    - row "xl":
+      - cell "xl"
+      - cell:
+        - radiogroup:
+          - text: Option A
+          - radio "Option A" [checked]
+          - text: Option B
+          - radio "Option B"

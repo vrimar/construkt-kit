@@ -1,0 +1,34 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "inherit Drafting":
+      - cell "inherit"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "xs Drafting":
+      - cell "xs"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "sm Drafting":
+      - cell "sm"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "md Drafting":
+      - cell "md"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "lg Drafting":
+      - cell "lg"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "xl Drafting":
+      - cell "xl"
+      - cell "Drafting":
+        - paragraph: Drafting
+    - row "2xl Drafting":
+      - cell "2xl"
+      - cell "Drafting":
+        - paragraph: Drafting

@@ -1,0 +1,225 @@
+- grid "Crosstab":
+  - rowgroup:
+    - row "Question / Answer Total Gender Age Region":
+      - columnheader "Question / Answer":
+        - paragraph: Question / Answer
+      - columnheader "Total"
+      - columnheader "Gender"
+      - columnheader "Age"
+      - columnheader "Region"
+    - row /Male Female \d+–\d+ \d+–\d+ \d+\+ North South East West/:
+      - columnheader "Male"
+      - columnheader "Female"
+      - columnheader /\d+–\d+/
+      - columnheader /\d+–\d+/
+      - columnheader /\d+\+/
+      - columnheader "North"
+      - columnheader "South"
+      - columnheader "East"
+      - columnheader "West"
+  - rowgroup:
+    - row /Q1\. Answer 1 \d+% 9% \d+% \d+% \d+% \d+% \d+% \d+% \d+% 7%/:
+      - rowheader "Q1. Answer 1"
+      - gridcell /\d+%/
+      - gridcell "9%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "7%"
+    - row /Q1\. Answer 2 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q1\. Answer 3 \d+% \d+% 6% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 3"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "6%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q1\. Answer 4 \d+% \d+% \d+% \d+% \d+% \d+% \d+% 7% \d+% \d+%/:
+      - rowheader "Q1. Answer 4"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "7%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q1\. Answer 5 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q1. Answer 5"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 1 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 1"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 2 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 3 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 3"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 4 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 4"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q2\. Answer 5 \d+% \d+% \d+% 5% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q2. Answer 5"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "5%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 1 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% 6% \d+%/:
+      - rowheader "Q3. Answer 1"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "6%"
+      - gridcell /\d+%/
+    - row /Q3\. Answer 2 \d+% \d+% \d+% \d+% \d+% 9% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "9%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 3 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 3"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 4 \d+% \d+% \d+% \d+% \d+% \d+% 6% \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 4"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "6%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q3\. Answer 5 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q3. Answer 5"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q4\. Answer 1 \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q4. Answer 1"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+    - row /Q4\. Answer 2 \d+% \d+% \d+% \d+% 5% \d+% \d+% \d+% \d+% \d+%/:
+      - rowheader "Q4. Answer 2"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell "5%"
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+      - gridcell /\d+%/
+- status

@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { numberInput } from "#styled-system/recipes";
 
 import { NumberInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/NumberInput",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <NumberInput.Root
       defaultValue="10"
@@ -25,9 +22,9 @@ export const Default: Story = {
       <NumberInput.Control />
     </NumberInput.Root>
   ),
-};
+});
 
-export const WithMinMax: Story = {
+export const WithMinMax = meta.story({
   render: () => (
     <NumberInput.Root
       defaultValue="5"
@@ -40,9 +37,9 @@ export const WithMinMax: Story = {
       <NumberInput.Control />
     </NumberInput.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={numberInput.variantMap.size}
@@ -53,10 +50,11 @@ export const Sizes: Story = {
           max={100}
           size={size}
         >
+          <NumberInput.Label>Quantity</NumberInput.Label>
           <NumberInput.Input />
           <NumberInput.Control />
         </NumberInput.Root>
       )}
     />
   ),
-};
+});

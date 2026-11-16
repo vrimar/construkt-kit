@@ -1,0 +1,11 @@
+- dialog "Rename board":
+  - heading "Rename board" [level=2]
+  - group:
+    - text: Name
+    - textbox "Name": Q3 planning
+  - group:
+    - text: Description
+    - textbox "Description": Roadmap, hiring and budget for July to September.
+  - button "Cancel"
+  - button "Rename"
+  - button "Close"

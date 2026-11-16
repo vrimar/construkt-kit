@@ -1,0 +1,14 @@
+- paragraph: Control
+- button "Save"
+- button "Cancel"
+- textbox "Search…"
+- checkbox "Enable feature" [checked]
+- text: Enable feature
+- checkbox "Notifications" [checked]
+- text: Notifications
+- paragraph: Surface
+- heading "Density" [level=3]
+- text: Padding follows --surface-scale. Resize the surface knob to see padding grow.
+- button "Dismiss"
+- paragraph: Visual
+- slider

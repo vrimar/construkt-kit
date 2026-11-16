@@ -1,0 +1,54 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Breadcrumb (xs)":
+      - cell "xs"
+      - cell "Breadcrumb (xs)":
+        - navigation "Breadcrumb (xs)":
+          - list:
+            - listitem:
+              - link "Home":
+                - /url: "#"
+            - listitem:
+              - link "Projects":
+                - /url: "#"
+            - listitem: Current (xs)
+    - row "sm Breadcrumb (sm)":
+      - cell "sm"
+      - cell "Breadcrumb (sm)":
+        - navigation "Breadcrumb (sm)":
+          - list:
+            - listitem:
+              - link "Home":
+                - /url: "#"
+            - listitem:
+              - link "Projects":
+                - /url: "#"
+            - listitem: Current (sm)
+    - row "md Breadcrumb (md)":
+      - cell "md"
+      - cell "Breadcrumb (md)":
+        - navigation "Breadcrumb (md)":
+          - list:
+            - listitem:
+              - link "Home":
+                - /url: "#"
+            - listitem:
+              - link "Projects":
+                - /url: "#"
+            - listitem: Current (md)
+    - row "lg Breadcrumb (lg)":
+      - cell "lg"
+      - cell "Breadcrumb (lg)":
+        - navigation "Breadcrumb (lg)":
+          - list:
+            - listitem:
+              - link "Home":
+                - /url: "#"
+            - listitem:
+              - link "Projects":
+                - /url: "#"
+            - listitem: Current (lg)

@@ -1,17 +1,14 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Sortable, type SortableDropOntoDetails, applySortableReorder } from ".";
 import { Box, Flex } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Sortable",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 interface Row {
   id: string;
@@ -95,9 +92,9 @@ function VerticalDemo() {
 }
 
 /** Drag a row by its handle; drop on a row's middle third to merge the two. */
-export const VerticalWithDropOnto: Story = {
+export const VerticalWithDropOnto = meta.story({
   render: () => <VerticalDemo />,
-};
+});
 
 const initialColumns = ["Q1", "Q2", "Q3", "Q4", "Full year", "Last year", "Change"];
 
@@ -159,6 +156,6 @@ function HorizontalDemo() {
 }
 
 /** Columns reorder along the horizontal axis; handles stay visible. */
-export const Horizontal: Story = {
+export const Horizontal = meta.story({
   render: () => <HorizontalDemo />,
-};
+});

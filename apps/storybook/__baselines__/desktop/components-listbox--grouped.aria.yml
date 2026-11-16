@@ -1,0 +1,11 @@
+- textbox "Search..."
+- listbox:
+  - group "Fruit":
+    - text: ""
+    - option "Apple"
+    - option "Banana"
+  - group "Vegetable":
+    - text: ""
+    - option "Carrot"
+    - option "Spinach"
+- status

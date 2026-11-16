@@ -269,3 +269,7 @@ recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is 
 
 `pnpm test` runs `core` and `unit`; `pnpm test:browser` runs `browser` and `touch` and needs Playwright's Chromium
 (`pnpm --filter @construkt-kit/data-grid exec playwright install chromium`).
+
+The stories in `src/react/DataGrid.stories.tsx` also run under `pnpm test:stories` (axe, accessibility tree and
+screenshot at desktop and phone width; see `packages/story-kit/README.md`). They load `@construkt-kit/ui` as a built
+package, so a ui change reaches them after `pnpm build`.

@@ -1,0 +1,34 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Tab A":
+      - cell "xs"
+      - cell "Tab A":
+        - tablist:
+          - tab "Tab A" [selected]
+          - tab "Tab B"
+        - tabpanel "Tab A": Content
+    - row "sm Tab A":
+      - cell "sm"
+      - cell "Tab A":
+        - tablist:
+          - tab "Tab A" [selected]
+          - tab "Tab B"
+        - tabpanel "Tab A": Content
+    - row "md Tab A":
+      - cell "md"
+      - cell "Tab A":
+        - tablist:
+          - tab "Tab A" [selected]
+          - tab "Tab B"
+        - tabpanel "Tab A": Content
+    - row "lg Tab A":
+      - cell "lg"
+      - cell "Tab A":
+        - tablist:
+          - tab "Tab A" [selected]
+          - tab "Tab B"
+        - tabpanel "Tab A": Content

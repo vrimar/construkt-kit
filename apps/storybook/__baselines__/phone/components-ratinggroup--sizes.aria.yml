@@ -1,0 +1,56 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs xs":
+      - cell "xs"
+      - cell "xs":
+        - text: ""
+        - radiogroup "xs":
+          - radio "1 stars"
+          - radio "2 stars"
+          - radio "3 stars" [checked]
+          - radio "4 stars"
+          - radio "5 stars"
+    - row "sm sm":
+      - cell "sm"
+      - cell "sm":
+        - text: ""
+        - radiogroup "sm":
+          - radio "1 stars"
+          - radio "2 stars"
+          - radio "3 stars" [checked]
+          - radio "4 stars"
+          - radio "5 stars"
+    - row "md md":
+      - cell "md"
+      - cell "md":
+        - text: ""
+        - radiogroup "md":
+          - radio "1 stars"
+          - radio "2 stars"
+          - radio "3 stars" [checked]
+          - radio "4 stars"
+          - radio "5 stars"
+    - row "lg lg":
+      - cell "lg"
+      - cell "lg":
+        - text: ""
+        - radiogroup "lg":
+          - radio "1 stars"
+          - radio "2 stars"
+          - radio "3 stars" [checked]
+          - radio "4 stars"
+          - radio "5 stars"
+    - row "xl xl":
+      - cell "xl"
+      - cell "xl":
+        - text: ""
+        - radiogroup "xl":
+          - radio "1 stars"
+          - radio "2 stars"
+          - radio "3 stars" [checked]
+          - radio "4 stars"
+          - radio "5 stars"

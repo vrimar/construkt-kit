@@ -1,0 +1,52 @@
+- paragraph: Drag into the grid
+- text: East West Rural Students
+- grid "Reorder":
+  - rowgroup:
+    - row "Answer Share % Base":
+      - columnheader "Answer"
+      - columnheader "Share %":
+        - paragraph: Share %
+      - columnheader "Base":
+        - paragraph: Base
+  - rowgroup:
+    - row /Male \d+ \d+/:
+      - rowheader "Male":
+        - paragraph: Male
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Female \d+ \d+/:
+      - rowheader "Female":
+        - paragraph: Female
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /\d+-\d+ \d+ \d+/:
+      - rowheader /\d+-\d+/:
+        - paragraph: /\d+-\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /\d+-\d+ \d+ \d+/:
+      - rowheader /\d+-\d+/:
+        - paragraph: /\d+-\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /\d+\+ \d+ \d+/:
+      - rowheader /\d+\+/:
+        - paragraph: /\d+\+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /North \d+ \d+/:
+      - rowheader "North":
+        - paragraph: North
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /South \d+ \d+/:
+      - rowheader "South":
+        - paragraph: South
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Urban \d+ \d+/:
+      - rowheader "Urban":
+        - paragraph: Urban
+      - gridcell /\d+/
+      - gridcell /\d+/
+- status

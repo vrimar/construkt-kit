@@ -1,0 +1,178 @@
+- button "Flash a cell"
+- paragraph: Nothing selected
+- grid "Selection":
+  - rowgroup:
+    - 'row "Select all rows # Customer Region Status Amount Issued"':
+      - columnheader "Select all rows":
+        - checkbox "Select all rows"
+      - columnheader "#"
+      - columnheader "Customer"
+      - columnheader "Region"
+      - columnheader "Status"
+      - columnheader "Amount"
+      - columnheader "Issued"
+  - rowgroup:
+    - row /Select row 0 Acme Corporation North paid \$\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "0"
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+      - gridcell /\$\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 1 Globex West overdue \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "1"
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 2 Initech East open \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "2"
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 3 Umbrella South paid \$\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "3"
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+      - gridcell /\$\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 4 Hooli North overdue -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "4"
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 5 Stark Industries West open -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "5"
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 6 Acme Corporation East paid -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "6"
+      - gridcell "Acme Corporation"
+      - gridcell "East"
+      - gridcell "paid"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 7 Globex South overdue \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "7"
+      - gridcell "Globex"
+      - gridcell "South"
+      - gridcell "overdue"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 8 Initech North open \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell "8"
+      - gridcell "Initech"
+      - gridcell "North"
+      - gridcell "open"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row 9 Umbrella West paid \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell "9"
+      - gridcell "Umbrella"
+      - gridcell "West"
+      - gridcell "paid"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Hooli East overdue -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "East"
+      - gridcell "overdue"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Stark Industries South open -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "South"
+      - gridcell "open"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Acme Corporation North paid -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell /\d+/
+      - gridcell "Acme Corporation"
+      - gridcell "North"
+      - gridcell "paid"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Globex West overdue \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Globex"
+      - gridcell "West"
+      - gridcell "overdue"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Initech East open \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Initech"
+      - gridcell "East"
+      - gridcell "open"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Umbrella South paid \$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row" [disabled]
+      - gridcell /\d+/
+      - gridcell "Umbrella"
+      - gridcell "South"
+      - gridcell "paid"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Hooli North overdue -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Hooli"
+      - gridcell "North"
+      - gridcell "overdue"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+    - row /Select row \d+ Stark Industries West open -\$\d+,\d+\.\d+ \d+-\d+-\d+/:
+      - gridcell "Select row":
+        - checkbox "Select row"
+      - gridcell /\d+/
+      - gridcell "Stark Industries"
+      - gridcell "West"
+      - gridcell "open"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /\d+-\d+-\d+/
+- text: "Selections finished: 0"
+- status

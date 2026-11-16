@@ -1,7 +1,9 @@
+/// <reference types="vite/client" />
 import "@fontsource-variable/inter";
 import "./storybook.css";
-import { withThemeByClassName } from "@storybook/addon-themes";
-import type { Preview } from "@storybook/react-vite";
+import addonA11y from "@storybook/addon-a11y";
+import addonThemes, { withThemeByClassName } from "@storybook/addon-themes";
+import { definePreview } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { INITIAL_VIEWPORTS } from "storybook/viewport";
@@ -15,7 +17,8 @@ function createTestQueryClient() {
   });
 }
 
-const preview: Preview = {
+const preview = definePreview({
+  addons: [addonA11y(), addonThemes()],
   decorators: [
     (Story: () => ReactElement) => (
       <QueryClientProvider client={createTestQueryClient()}>
@@ -42,6 +45,6 @@ const preview: Preview = {
     // Fluid/responsive canvas by default; the toolbar lets you pick a device.
     viewport: { value: undefined, isRotated: false },
   },
-};
+});
 
 export default preview;

@@ -1,16 +1,13 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Splitter } from ".";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Splitter",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Splitter.Group
       height="200px"
@@ -39,9 +36,9 @@ export const Default: Story = {
       </Splitter.Panel>
     </Splitter.Group>
   ),
-};
+});
 
-export const Vertical: Story = {
+export const Vertical = meta.story({
   render: () => (
     <Splitter.Group
       orientation="vertical"
@@ -71,9 +68,9 @@ export const Vertical: Story = {
       </Splitter.Panel>
     </Splitter.Group>
   ),
-};
+});
 
-export const Gutter: Story = {
+export const Gutter = meta.story({
   render: () => (
     <Splitter.Group
       variant="gutter"
@@ -89,7 +86,7 @@ export const Gutter: Story = {
         bg="bg"
         borderRadius="md"
       >
-        Pane — drag the gutter, double-click it to reset, or focus it and use the arrow keys
+        Pane
       </Splitter.Panel>
       <Splitter.Separator />
       <Splitter.Panel
@@ -99,8 +96,8 @@ export const Gutter: Story = {
         bg="bg"
         borderRadius="md"
       >
-        Canvas
+        Canvas — drag the gutter, double-click it to reset, or focus it and use the arrow keys
       </Splitter.Panel>
     </Splitter.Group>
   ),
-};
+});

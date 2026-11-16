@@ -1,47 +1,52 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { avatar } from "#styled-system/recipes";
 
 import { Avatar } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const portraitSrc = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+    <rect width="150" height="150" fill="#c7d2fe" />
+    <circle cx="75" cy="58" r="28" fill="#4f46e5" />
+    <path d="M24 150C24 112 48 92 75 92C102 92 126 112 126 150Z" fill="#4f46e5" />
+  </svg>
+`)}`;
+
+const meta = preview.meta({
   title: "Components/Avatar",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const WithImage: Story = {
+export const WithImage = meta.story({
   render: () => (
     <Avatar.Root>
       <Avatar.Fallback name="John Doe" />
       <Avatar.Image
-        src="https://i.pravatar.cc/150?u=a"
+        src={portraitSrc}
         alt="John Doe"
       />
     </Avatar.Root>
   ),
-};
+});
 
-export const WithInitials: Story = {
+export const WithInitials = meta.story({
   render: () => (
     <Avatar.Root>
       <Avatar.Fallback name="Jane Smith" />
     </Avatar.Root>
   ),
-};
+});
 
-export const WithIcon: Story = {
+export const WithIcon = meta.story({
   render: () => (
     <Avatar.Root>
       <Avatar.Fallback />
     </Avatar.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={avatar.variantMap.size}
@@ -52,4 +57,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

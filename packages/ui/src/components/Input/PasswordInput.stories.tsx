@@ -1,25 +1,22 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { input } from "#styled-system/recipes";
 
 import { PasswordInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof PasswordInput> = {
+const meta = preview.meta({
   title: "Components/Input/PasswordInput",
   component: PasswordInput,
   tags: ["autodocs"],
   args: {
     placeholder: "Enter password",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof PasswordInput>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={input.variantMap.size}
@@ -31,4 +28,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

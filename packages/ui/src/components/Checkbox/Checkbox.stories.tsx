@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { checkbox } from "#styled-system/recipes";
 
@@ -6,45 +6,42 @@ import { Checkbox } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Wrap } from "../Layout";
 
-const meta: Meta<typeof Checkbox> = {
+const meta = preview.meta({
   title: "Components/Checkbox",
   component: Checkbox,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Checkbox>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     children: "Accept terms",
   },
-};
+});
 
-export const Checked: Story = {
+export const Checked = meta.story({
   args: {
     children: "I agree",
     defaultChecked: true,
   },
-};
+});
 
-export const Disabled: Story = {
+export const Disabled = meta.story({
   args: {
     children: "Disabled option",
     disabled: true,
   },
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={checkbox.variantMap.size}
       renderPreview={(size) => <Checkbox size={size}>{size}</Checkbox>}
     />
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="4">
       <Checkbox
@@ -79,11 +76,11 @@ export const Variants: Story = {
       </Checkbox>
     </Wrap>
   ),
-};
+});
 
-export const Indeterminate: Story = {
+export const Indeterminate = meta.story({
   args: {
     children: "Indeterminate",
     checked: "indeterminate",
   },
-};
+});

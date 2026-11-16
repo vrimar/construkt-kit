@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { code } from "#styled-system/recipes";
 
@@ -6,21 +6,18 @@ import { Code } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Wrap } from "../Layout";
 
-const meta: Meta<typeof Code> = {
+const meta = preview.meta({
   title: "Components/Code",
   component: Code,
   tags: ["autodocs"],
   args: {
     children: "console.log('hello')",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Code>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <Wrap gap="2">
       <Code variant="solid">solid</Code>
@@ -30,13 +27,13 @@ export const Variants: Story = {
       <Code variant="plain">plain</Code>
     </Wrap>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={code.variantMap.size}
       renderPreview={(size) => <Code size={size}>{size}</Code>}
     />
   ),
-};
+});

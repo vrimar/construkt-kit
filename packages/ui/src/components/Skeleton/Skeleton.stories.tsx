@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { Skeleton, SkeletonCircle, SkeletonText } from ".";
 import { Box, Flex, HStack, VStack } from "../Layout";
 
-const meta: Meta<typeof Skeleton> = {
+const meta = preview.meta({
   title: "Components/Skeleton",
   component: Skeleton,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Skeleton>;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <VStack
       gap="2"
@@ -26,9 +23,9 @@ export const Default: Story = {
       />
     </VStack>
   ),
-};
+});
 
-export const Circle: Story = {
+export const Circle = meta.story({
   render: () => (
     <HStack gap="4">
       <SkeletonCircle
@@ -45,17 +42,17 @@ export const Circle: Story = {
       />
     </HStack>
   ),
-};
+});
 
-export const Text: Story = {
+export const Text = meta.story({
   render: () => (
     <Box maxW="400px">
       <SkeletonText noOfLines={4} />
     </Box>
   ),
-};
+});
 
-export const CardLoading: Story = {
+export const CardLoading = meta.story({
   render: () => (
     <Flex
       gap="4"
@@ -71,4 +68,4 @@ export const CardLoading: Story = {
       </Box>
     </Flex>
   ),
-};
+});

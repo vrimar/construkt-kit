@@ -19,6 +19,8 @@ packages/*/panda/
 
 # Storybook
 storybook-static/
+apps/storybook/gallery-dist/
+apps/storybook/.stories-report/
 
 # Test outputs
 packages/api/test/gen/

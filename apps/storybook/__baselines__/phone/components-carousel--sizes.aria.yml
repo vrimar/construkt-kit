@@ -1,0 +1,16 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "md Previous slide Next slide 1 of 3 Go to slide 1 Go to slide 2 Go to slide 3":
+      - cell "md"
+      - cell "Previous slide Next slide 1 of 3 Go to slide 1 Go to slide 2 Go to slide 3":
+        - region:
+          - button "Previous slide" [disabled]
+          - button "Next slide"
+          - group "1 of 3": MD 1
+          - button "Go to slide 1"
+          - button "Go to slide 2"
+          - button "Go to slide 3"

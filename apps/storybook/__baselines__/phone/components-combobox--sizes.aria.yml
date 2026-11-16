@@ -1,0 +1,31 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Framework Select a framework...":
+      - cell "xs"
+      - cell "Framework Select a framework...":
+        - text: ""
+        - button "Framework Select a framework..."
+    - row "sm Framework Select a framework...":
+      - cell "sm"
+      - cell "Framework Select a framework...":
+        - text: ""
+        - button "Framework Select a framework..."
+    - row "md Framework Select a framework...":
+      - cell "md"
+      - cell "Framework Select a framework...":
+        - text: ""
+        - button "Framework Select a framework..."
+    - row "lg Framework Select a framework...":
+      - cell "lg"
+      - cell "Framework Select a framework...":
+        - text: ""
+        - button "Framework Select a framework..."
+    - row "xl Framework Select a framework...":
+      - cell "xl"
+      - cell "Framework Select a framework...":
+        - text: ""
+        - button "Framework Select a framework..."

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { ChevronDownIcon, FolderIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -10,13 +10,10 @@ import { VStack } from "../Layout";
 import { Menu } from "../Menu";
 import { Popover } from "../Popover";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Buttons/SplitButton",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 const FOLDERS = [
   { id: "design", name: "Design reviews" },
@@ -66,11 +63,11 @@ function AddToFolderDemo() {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <AddToFolderDemo />,
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <VStack
       alignItems="start"
@@ -89,7 +86,7 @@ export const Variants: Story = {
       ))}
     </VStack>
   ),
-};
+});
 
 const FIELDS = ["Name", "Email", "Role", "Team", "Location", "Start date"];
 
@@ -145,6 +142,6 @@ function CountDemo() {
   );
 }
 
-export const Count: Story = {
+export const Count = meta.story({
   render: () => <CountDemo />,
-};
+});

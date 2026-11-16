@@ -1,38 +1,37 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { slider } from "#styled-system/recipes";
 
 import { Slider } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof Slider> = {
+const meta = preview.meta({
   title: "Components/Slider",
   component: Slider,
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Slider>;
-
-export const Default: Story = {
+export const Default = meta.story({
   args: {
+    label: "Volume",
     defaultValue: [50],
     min: 0,
     max: 100,
     width: "300px",
   },
-};
+});
 
-export const Range: Story = {
+export const Range = meta.story({
   args: {
+    label: "Price range",
     defaultValue: [25, 75],
     min: 0,
     max: 100,
     width: "300px",
   },
-};
+});
 
-export const LabelledMarks: Story = {
+export const LabelledMarks = meta.story({
   args: {
     label: "Decimals",
     defaultValue: [1],
@@ -46,14 +45,15 @@ export const LabelledMarks: Story = {
     ],
     width: "300px",
   },
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={slider.variantMap.size}
       renderPreview={(size) => (
         <Slider
+          label="Volume"
           defaultValue={[50]}
           size={size}
           width="200px"
@@ -61,4 +61,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

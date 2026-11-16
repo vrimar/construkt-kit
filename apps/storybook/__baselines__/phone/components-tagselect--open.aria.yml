@@ -1,0 +1,9 @@
+- dialog "Red Blue":
+  - textbox "Search..."
+  - listbox "Red Blue":
+    - option "Red" [selected]
+    - option "Green"
+    - option "Blue" [selected]
+    - option "Yellow"
+  - status
+- alert

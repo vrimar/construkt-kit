@@ -1,0 +1,24 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm":
+      - cell "sm"
+      - cell:
+        - radiogroup:
+          - radio "sm" [checked]
+          - text: sm
+    - row "md":
+      - cell "md"
+      - cell:
+        - radiogroup:
+          - radio "md" [checked]
+          - text: md
+    - row "lg":
+      - cell "lg"
+      - cell:
+        - radiogroup:
+          - radio "lg" [checked]
+          - text: lg

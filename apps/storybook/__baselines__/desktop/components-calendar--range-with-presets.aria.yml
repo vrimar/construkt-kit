@@ -1,0 +1,179 @@
+- application "calendar":
+  - button "Last 7 days"
+  - button /Last \d+ days/
+  - button /Last \d+ days/
+  - button /Last \d+ days/
+  - button "Switch to previous month"
+  - button /March \d+/
+  - button /April \d+/
+  - button "Switch to next month"
+  - grid /March \d+ - April \d+/:
+    - rowgroup:
+      - row /Choose Monday, February \d+, \d+ Choose Tuesday, February \d+, \d+ Choose Wednesday, February \d+, \d+ Choose Thursday, February \d+, \d+ Choose Friday, February \d+, \d+ Choose Saturday, February \d+, \d+ Choose Sunday, March 1, \d+/:
+        - gridcell /Choose Monday, February \d+, \d+/ [disabled]:
+          - button /Choose Monday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Tuesday, February \d+, \d+/ [disabled]:
+          - button /Choose Tuesday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Wednesday, February \d+, \d+/ [disabled]:
+          - button /Choose Wednesday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Thursday, February \d+, \d+/ [disabled]:
+          - button /Choose Thursday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Friday, February \d+, \d+/ [disabled]:
+          - button /Choose Friday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Saturday, February \d+, \d+/ [disabled]:
+          - button /Choose Saturday, February \d+, \d+/ [disabled]
+        - gridcell /Choose Sunday, March 1, \d+/:
+          - button /Choose Sunday, March 1, \d+/
+      - row /Choose Monday, March 2, \d+ Choose Tuesday, March 3, \d+ Choose Wednesday, March 4, \d+ Choose Thursday, March 5, \d+ Choose Friday, March 6, \d+ Choose Saturday, March 7, \d+ Choose Sunday, March 8, \d+/:
+        - gridcell /Choose Monday, March 2, \d+/:
+          - button /Choose Monday, March 2, \d+/
+        - gridcell /Choose Tuesday, March 3, \d+/:
+          - button /Choose Tuesday, March 3, \d+/
+        - gridcell /Choose Wednesday, March 4, \d+/:
+          - button /Choose Wednesday, March 4, \d+/
+        - gridcell /Choose Thursday, March 5, \d+/:
+          - button /Choose Thursday, March 5, \d+/
+        - gridcell /Choose Friday, March 6, \d+/:
+          - button /Choose Friday, March 6, \d+/
+        - gridcell /Choose Saturday, March 7, \d+/:
+          - button /Choose Saturday, March 7, \d+/
+        - gridcell /Choose Sunday, March 8, \d+/:
+          - button /Choose Sunday, March 8, \d+/
+      - row /Choose Monday, March 9, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+        - gridcell /Choose Monday, March 9, \d+/:
+          - button /Choose Monday, March 9, \d+/
+        - gridcell /Choose Tuesday, March \d+, \d+/:
+          - button /Choose Tuesday, March \d+, \d+/
+        - gridcell /Choose Wednesday, March \d+, \d+/:
+          - button /Choose Wednesday, March \d+, \d+/: /− \d+/
+        - gridcell /Choose Thursday, March \d+, \d+/:
+          - button /Choose Thursday, March \d+, \d+/
+        - gridcell /Choose Friday, March \d+, \d+/:
+          - button /Choose Friday, March \d+, \d+/
+        - gridcell /Choose Saturday, March \d+, \d+/:
+          - button /Choose Saturday, March \d+, \d+/
+        - gridcell /Choose Sunday, March \d+, \d+/:
+          - button /Choose Sunday, March \d+, \d+/
+      - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+        - gridcell /Choose Monday, March \d+, \d+/:
+          - button /Choose Monday, March \d+, \d+/
+        - gridcell /Choose Tuesday, March \d+, \d+/:
+          - button /Choose Tuesday, March \d+, \d+/
+        - gridcell /Choose Wednesday, March \d+, \d+/:
+          - button /Choose Wednesday, March \d+, \d+/
+        - gridcell /Choose Thursday, March \d+, \d+/:
+          - button /Choose Thursday, March \d+, \d+/
+        - gridcell /Choose Friday, March \d+, \d+/:
+          - button /Choose Friday, March \d+, \d+/
+        - gridcell /Choose Saturday, March \d+, \d+/:
+          - button /Choose Saturday, March \d+, \d+/
+        - gridcell /Choose Sunday, March \d+, \d+/:
+          - button /Choose Sunday, March \d+, \d+/
+      - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+        - gridcell /Choose Monday, March \d+, \d+/:
+          - button /Choose Monday, March \d+, \d+/
+        - gridcell /Choose Tuesday, March \d+, \d+/:
+          - button /Choose Tuesday, March \d+, \d+/
+        - gridcell /Choose Wednesday, March \d+, \d+/:
+          - button /Choose Wednesday, March \d+, \d+/
+        - gridcell /Choose Thursday, March \d+, \d+/:
+          - button /Choose Thursday, March \d+, \d+/
+        - gridcell /Choose Friday, March \d+, \d+/:
+          - button /Choose Friday, March \d+, \d+/
+        - gridcell /Choose Saturday, March \d+, \d+/:
+          - button /Choose Saturday, March \d+, \d+/
+        - gridcell /Choose Sunday, March \d+, \d+/:
+          - button /Choose Sunday, March \d+, \d+/
+      - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, April 1, \d+ Choose Thursday, April 2, \d+ Choose Friday, April 3, \d+ Choose Saturday, April 4, \d+ Choose Sunday, April 5, \d+/:
+        - gridcell /Choose Monday, March \d+, \d+/:
+          - button /Choose Monday, March \d+, \d+/
+        - gridcell /Choose Tuesday, March \d+, \d+/:
+          - button /Choose Tuesday, March \d+, \d+/
+        - gridcell /Choose Wednesday, April 1, \d+/ [disabled]:
+          - button /Choose Wednesday, April 1, \d+/ [disabled]
+        - gridcell /Choose Thursday, April 2, \d+/ [disabled]:
+          - button /Choose Thursday, April 2, \d+/ [disabled]
+        - gridcell /Choose Friday, April 3, \d+/ [disabled]:
+          - button /Choose Friday, April 3, \d+/ [disabled]
+        - gridcell /Choose Saturday, April 4, \d+/ [disabled]:
+          - button /Choose Saturday, April 4, \d+/ [disabled]
+        - gridcell /Choose Sunday, April 5, \d+/ [disabled]:
+          - button /Choose Sunday, April 5, \d+/ [disabled]
+  - grid /March \d+ - April \d+/:
+    - rowgroup:
+      - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, April 1, \d+ Choose Thursday, April 2, \d+ Choose Friday, April 3, \d+ Choose Saturday, April 4, \d+ Choose Sunday, April 5, \d+/:
+        - gridcell /Choose Monday, March \d+, \d+/ [disabled]:
+          - button /Choose Monday, March \d+, \d+/ [disabled]
+        - gridcell /Choose Tuesday, March \d+, \d+/ [disabled]:
+          - button /Choose Tuesday, March \d+, \d+/ [disabled]
+        - gridcell /Choose Wednesday, April 1, \d+/:
+          - button /Choose Wednesday, April 1, \d+/
+        - gridcell /Choose Thursday, April 2, \d+/:
+          - button /Choose Thursday, April 2, \d+/
+        - gridcell /Choose Friday, April 3, \d+/:
+          - button /Choose Friday, April 3, \d+/
+        - gridcell /Choose Saturday, April 4, \d+/:
+          - button /Choose Saturday, April 4, \d+/
+        - gridcell /Choose Sunday, April 5, \d+/:
+          - button /Choose Sunday, April 5, \d+/
+      - row /Choose Monday, April 6, \d+ Choose Tuesday, April 7, \d+ Choose Wednesday, April 8, \d+ Choose Thursday, April 9, \d+ Choose Friday, April \d+, \d+ Choose Saturday, April \d+, \d+ Choose Sunday, April \d+, \d+/:
+        - gridcell /Choose Monday, April 6, \d+/:
+          - button /Choose Monday, April 6, \d+/
+        - gridcell /Choose Tuesday, April 7, \d+/:
+          - button /Choose Tuesday, April 7, \d+/
+        - gridcell /Choose Wednesday, April 8, \d+/:
+          - button /Choose Wednesday, April 8, \d+/
+        - gridcell /Choose Thursday, April 9, \d+/:
+          - button /Choose Thursday, April 9, \d+/
+        - gridcell /Choose Friday, April \d+, \d+/:
+          - button /Choose Friday, April \d+, \d+/
+        - gridcell /Choose Saturday, April \d+, \d+/:
+          - button /Choose Saturday, April \d+, \d+/
+        - gridcell /Choose Sunday, April \d+, \d+/:
+          - button /Choose Sunday, April \d+, \d+/
+      - row /Choose Monday, April \d+, \d+ Choose Tuesday, April \d+, \d+ Choose Wednesday, April \d+, \d+ Choose Thursday, April \d+, \d+ Choose Friday, April \d+, \d+ Choose Saturday, April \d+, \d+ Choose Sunday, April \d+, \d+/:
+        - gridcell /Choose Monday, April \d+, \d+/:
+          - button /Choose Monday, April \d+, \d+/
+        - gridcell /Choose Tuesday, April \d+, \d+/:
+          - button /Choose Tuesday, April \d+, \d+/
+        - gridcell /Choose Wednesday, April \d+, \d+/:
+          - button /Choose Wednesday, April \d+, \d+/
+        - gridcell /Choose Thursday, April \d+, \d+/:
+          - button /Choose Thursday, April \d+, \d+/
+        - gridcell /Choose Friday, April \d+, \d+/:
+          - button /Choose Friday, April \d+, \d+/
+        - gridcell /Choose Saturday, April \d+, \d+/:
+          - button /Choose Saturday, April \d+, \d+/
+        - gridcell /Choose Sunday, April \d+, \d+/:
+          - button /Choose Sunday, April \d+, \d+/
+      - row /Choose Monday, April \d+, \d+ Choose Tuesday, April \d+, \d+ Choose Wednesday, April \d+, \d+ Choose Thursday, April \d+, \d+ Choose Friday, April \d+, \d+ Choose Saturday, April \d+, \d+ Choose Sunday, April \d+, \d+/:
+        - gridcell /Choose Monday, April \d+, \d+/:
+          - button /Choose Monday, April \d+, \d+/
+        - gridcell /Choose Tuesday, April \d+, \d+/:
+          - button /Choose Tuesday, April \d+, \d+/
+        - gridcell /Choose Wednesday, April \d+, \d+/:
+          - button /Choose Wednesday, April \d+, \d+/
+        - gridcell /Choose Thursday, April \d+, \d+/:
+          - button /Choose Thursday, April \d+, \d+/
+        - gridcell /Choose Friday, April \d+, \d+/:
+          - button /Choose Friday, April \d+, \d+/
+        - gridcell /Choose Saturday, April \d+, \d+/:
+          - button /Choose Saturday, April \d+, \d+/
+        - gridcell /Choose Sunday, April \d+, \d+/:
+          - button /Choose Sunday, April \d+, \d+/
+      - row /Choose Monday, April \d+, \d+ Choose Tuesday, April \d+, \d+ Choose Wednesday, April \d+, \d+ Choose Thursday, April \d+, \d+ Choose Friday, May 1, \d+ Choose Saturday, May 2, \d+ Choose Sunday, May 3, \d+/:
+        - gridcell /Choose Monday, April \d+, \d+/:
+          - button /Choose Monday, April \d+, \d+/
+        - gridcell /Choose Tuesday, April \d+, \d+/:
+          - button /Choose Tuesday, April \d+, \d+/
+        - gridcell /Choose Wednesday, April \d+, \d+/:
+          - button /Choose Wednesday, April \d+, \d+/
+        - gridcell /Choose Thursday, April \d+, \d+/:
+          - button /Choose Thursday, April \d+, \d+/
+        - gridcell /Choose Friday, May 1, \d+/ [disabled]:
+          - button /Choose Friday, May 1, \d+/ [disabled]
+        - gridcell /Choose Saturday, May 2, \d+/ [disabled]:
+          - button /Choose Saturday, May 2, \d+/ [disabled]
+        - gridcell /Choose Sunday, May 3, \d+/ [disabled]:
+          - button /Choose Sunday, May 3, \d+/ [disabled]
+- alert

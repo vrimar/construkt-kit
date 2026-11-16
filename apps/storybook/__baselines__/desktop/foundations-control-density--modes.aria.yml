@@ -1,0 +1,33 @@
+- paragraph: compact
+- button "Save"
+- button "Cancel"
+- textbox "Search…"
+- checkbox "Enable feature" [checked]
+- text: Enable feature
+- checkbox "Notifications" [checked]
+- text: Notifications
+- heading "Density" [level=3]
+- text: data-density="compact"
+- button "Dismiss"
+- paragraph: default
+- button "Save"
+- button "Cancel"
+- textbox "Search…"
+- checkbox "Enable feature" [checked]
+- text: Enable feature
+- checkbox "Notifications" [checked]
+- text: Notifications
+- heading "Density" [level=3]
+- text: data-density="default"
+- button "Dismiss"
+- paragraph: relaxed
+- button "Save"
+- button "Cancel"
+- textbox "Search…"
+- checkbox "Enable feature" [checked]
+- text: Enable feature
+- checkbox "Notifications" [checked]
+- text: Notifications
+- heading "Density" [level=3]
+- text: data-density="relaxed"
+- button "Dismiss"

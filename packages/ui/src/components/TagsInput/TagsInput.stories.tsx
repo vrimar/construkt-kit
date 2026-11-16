@@ -1,19 +1,16 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { tagsInput } from "#styled-system/recipes";
 
 import { TagsInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/TagsInput",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <TagsInput.Root
       defaultValue={["React", "Vue"]}
@@ -28,9 +25,9 @@ export const Default: Story = {
       <TagsInput.HiddenInput />
     </TagsInput.Root>
   ),
-};
+});
 
-export const Empty: Story = {
+export const Empty = meta.story({
   render: () => (
     <TagsInput.Root maxW="400px">
       <TagsInput.Label>Keywords</TagsInput.Label>
@@ -41,9 +38,9 @@ export const Empty: Story = {
       <TagsInput.HiddenInput />
     </TagsInput.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={tagsInput.variantMap.size}
@@ -62,4 +59,4 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});

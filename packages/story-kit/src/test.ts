@@ -1,0 +1,295 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import AxeBuilder from "@axe-core/playwright";
+import {
+  type Browser,
+  type BrowserContext,
+  type Locator,
+  type Page,
+  type TestInfo,
+  test as base,
+  expect,
+} from "@playwright/test";
+
+import { type StoryEntry, type StoryId, stories } from "./story-ids.gen";
+
+export { expect };
+export type { Locator, Page, StoryEntry, StoryId };
+
+/** The date every story renders on; Calendar "today" and relative dates resolve against it. */
+export const FIXED_NOW = new Date("2026-03-11T09:00:00Z");
+
+const AXE_DISABLED_BY_DEFAULT = ["region"];
+
+export interface SelectedStory extends StoryEntry {
+  id: StoryId;
+}
+
+function onlyIds(): Set<string> | null {
+  const file = process.env.STORIES_ONLY;
+  if (!file) return null;
+  return new Set(JSON.parse(fs.readFileSync(file, "utf8")) as string[]);
+}
+
+/** Every story in the index, narrowed to `STORIES_ONLY` when a run is limited to affected stories. */
+export function selectedStories(): SelectedStory[] {
+  const only = onlyIds();
+  return (Object.entries(stories) as [StoryId, StoryEntry][])
+    .filter(([id]) => only == null || only.has(id))
+    .map(([id, entry]) => ({ id, ...entry }));
+}
+
+/** The given stories that the current run selects. */
+export function selectStories<T extends StoryId>(ids: readonly T[]): T[] {
+  const only = onlyIds();
+  return ids.filter((id) => only == null || only.has(id));
+}
+
+/** Playwright test tags for a story, so projects can skip `phone-only` or `desktop-only` stories. */
+export function storyTags(id: StoryId): string[] {
+  return stories[id].tags.map((tag) => `@${tag}`);
+}
+
+export type StoryTheme = "light" | "dark";
+
+interface GalleryState {
+  error?: string;
+  a11yRules?: string[];
+}
+
+export interface Gallery {
+  /** `phone` on touch projects, `desktop` otherwise. */
+  readonly device: "desktop" | "phone";
+  /** Renders the story alone on the page and waits until it is ready. */
+  open(id: StoryId): Promise<void>;
+  /** Taps on touch projects and clicks elsewhere. */
+  press(target: Locator): Promise<void>;
+  /** Calls recorded on a story arg created with `fn()`, with arguments serialised to JSON. */
+  calls(arg: string): Promise<unknown[][]>;
+  /** Resizes an element by setting its inline width, for stories that size themselves with CSS `resize`. */
+  resizeTo(target: Locator, width: number): Promise<void>;
+  /** Compares the page's accessibility tree with its committed snapshot. */
+  expectAriaTree(name: string): Promise<void>;
+  /** Fails the test with every axe violation on the page. */
+  expectAccessible(): Promise<void>;
+  /** Compares the whole page with the committed baseline; skipped when the run has no pinned browser. */
+  expectScreenshot(name: string): Promise<void>;
+}
+
+interface Fixtures {
+  gallery: Gallery;
+  storyTheme: StoryTheme;
+}
+
+interface WorkerFixtures {
+  pixels: boolean;
+  workerContext: BrowserContext;
+}
+
+function storyUrl(id: StoryId, theme: StoryTheme) {
+  const params = new URLSearchParams({ id });
+  if (theme === "dark") params.set("theme", "dark");
+  return `/?${params}`;
+}
+
+async function readGalleryState(page: Page): Promise<GalleryState> {
+  return page.evaluate(() => {
+    const state = (window as unknown as { __gallery?: GalleryState }).__gallery;
+    return { error: state?.error, a11yRules: state?.a11yRules };
+  });
+}
+
+function formatViolations(violations: Awaited<ReturnType<AxeBuilder["analyze"]>>["violations"]) {
+  return violations
+    .map((violation) => {
+      const targets = violation.nodes
+        .slice(0, 5)
+        .map((node) => `      ${node.target.join(" ")}`)
+        .join("\n");
+      const more = violation.nodes.length > 5 ? `\n      … ${violation.nodes.length - 5} more` : "";
+      return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}${more}`;
+    })
+    .join("\n");
+}
+
+async function expectEnvironment(page: Page, testInfo: TestInfo) {
+  const { viewport, hasTouch } = testInfo.project.use;
+  const actual = await page.evaluate(() => ({
+    width: window.screen.width,
+    coarsePointer: matchMedia("(pointer: coarse)").matches,
+    pixelRatio: window.devicePixelRatio,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locale: navigator.language,
+    interLoaded: document.fonts.check('16px "Inter Variable"'),
+  }));
+  expect(
+    actual,
+    "Environment fingerprint mismatch: the page is not rendering in the configured device",
+  ).toEqual({
+    width: viewport?.width,
+    coarsePointer: Boolean(hasTouch),
+    pixelRatio: 1,
+    timeZone: "UTC",
+    locale: "en-US",
+    interLoaded: true,
+  });
+}
+
+async function expectPinnedBrowser(browser: Browser) {
+  const image = JSON.parse(
+    fs.readFileSync(new URL("../browser-image.json", import.meta.url), "utf8"),
+  ) as {
+    chromium: string;
+    userAgentPlatform: string;
+  };
+  const page = await browser.newPage();
+  try {
+    const userAgent = await page.evaluate(() => navigator.userAgent);
+    expect(
+      { chromium: browser.version(), platform: userAgent.includes(image.userAgentPlatform) },
+      "The connected browser is not the pinned one in packages/story-kit/browser-image.json",
+    ).toEqual({ chromium: image.chromium, platform: true });
+  } finally {
+    await page.close();
+  }
+}
+
+function createGallery(
+  page: Page,
+  testInfo: TestInfo,
+  theme: StoryTheme,
+  pixels: boolean,
+): Gallery {
+  let a11yRules: string[] = [];
+  const isTouch = Boolean(testInfo.project.use.hasTouch);
+
+  return {
+    device: isTouch ? "phone" : "desktop",
+    async open(id) {
+      testInfo.annotations.push({ type: "story", description: id });
+      await page.clock.setSystemTime(FIXED_NOW);
+      await page.goto(storyUrl(id, theme));
+      await page.waitForSelector("html[data-gallery]", { state: "attached" });
+      const state = await readGalleryState(page);
+      if (state.error) throw new Error(`Story ${id} failed to render:\n${state.error}`);
+      a11yRules = state.a11yRules ?? [];
+      await expectEnvironment(page, testInfo);
+    },
+    async press(target) {
+      if (isTouch) await target.tap();
+      else await target.click();
+    },
+    async calls(arg) {
+      return page.evaluate(
+        (name) =>
+          (
+            window as unknown as { __gallery: { calls(name: string): unknown[][] } }
+          ).__gallery.calls(name),
+        arg,
+      );
+    },
+    async resizeTo(target, width) {
+      await target.evaluate((element, next) => {
+        (element as HTMLElement).style.width = `${next}px`;
+      }, width);
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+    },
+    async expectAriaTree(name) {
+      const body = page.locator("body");
+      const file = `${name}.aria.yml`;
+      if ((await body.ariaSnapshot()).trim() !== "") {
+        await expect.soft(body).toMatchAriaSnapshot({ name: file });
+        return;
+      }
+      const stored = testInfo.snapshotPath(file, { kind: "aria" });
+      if (testInfo.config.updateSnapshots !== "none" && !fs.existsSync(stored)) {
+        fs.mkdirSync(path.dirname(stored), { recursive: true });
+        fs.writeFileSync(stored, "");
+      }
+      const recorded = fs.existsSync(stored) ? fs.readFileSync(stored, "utf8").trim() : null;
+      expect
+        .soft(recorded, `The accessibility tree is empty; ${file} must exist and be empty`)
+        .toBe("");
+    },
+    async expectAccessible() {
+      const results = await new AxeBuilder({ page })
+        .include("body")
+        .disableRules([...AXE_DISABLED_BY_DEFAULT, ...a11yRules])
+        .analyze();
+      expect
+        .soft(
+          results.violations.map((violation) => violation.id),
+          `Accessibility violations:\n${formatViolations(results.violations)}`,
+        )
+        .toEqual([]);
+    },
+    async expectScreenshot(name) {
+      if (!pixels) return;
+      const file = `${name}.png`;
+      const baseline = testInfo.snapshotPath(file, { kind: "screenshot" });
+      if (!fs.existsSync(baseline) && testInfo.config.updateSnapshots === "none") {
+        const actual = testInfo.outputPath(`${name}-actual.png`);
+        await page.screenshot({
+          path: actual,
+          fullPage: true,
+          animations: "disabled",
+          caret: "hide",
+          scale: "css",
+        });
+        await testInfo.attach(`${name}-actual.png`, { path: actual, contentType: "image/png" });
+      }
+      await expect.soft(page).toHaveScreenshot(file, { fullPage: true });
+    },
+  };
+}
+
+export const test = base.extend<Fixtures, WorkerFixtures>({
+  pixels: [
+    async ({ browser }, provide) => {
+      const pixels = Boolean(process.env.STORIES_BROWSER_WS);
+      if (pixels) await expectPinnedBrowser(browser);
+      await provide(pixels);
+    },
+    { scope: "worker" },
+  ],
+  workerContext: [
+    async ({ browser }, provide, workerInfo) => {
+      const use = workerInfo.project.use;
+      const context = await browser.newContext({
+        baseURL: use.baseURL,
+        viewport: use.viewport,
+        hasTouch: use.hasTouch,
+        isMobile: use.isMobile,
+        colorScheme: use.colorScheme,
+        locale: use.locale,
+        timezoneId: use.timezoneId,
+        deviceScaleFactor: use.deviceScaleFactor,
+      });
+      await provide(context);
+      await context.close();
+    },
+    { scope: "worker" },
+  ],
+  page: async ({ workerContext }, provide) => {
+    const page = await workerContext.newPage();
+    await provide(page);
+    if (page.url() !== "about:blank") {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    }
+    await page.close();
+    await workerContext.clearCookies();
+  },
+  storyTheme: ["light", { option: true }],
+  gallery: async ({ page, storyTheme, pixels }, provide, testInfo) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.stack ?? error.message));
+    await provide(createGallery(page, testInfo, storyTheme, pixels));
+    expect(pageErrors, `Uncaught errors on the page:\n${pageErrors.join("\n\n")}`).toEqual([]);
+  },
+});

@@ -1,0 +1,312 @@
+- treegrid "Invoices by region":
+  - rowgroup:
+    - row "Region / customer Region Amount Jan Feb Mar Apr May Jun Jul Aug Sep Oct":
+      - columnheader "Region / customer"
+      - columnheader "Region"
+      - columnheader "Amount"
+      - columnheader "Jan"
+      - columnheader "Feb"
+      - columnheader "Mar"
+      - columnheader "Apr"
+      - columnheader "May"
+      - columnheader "Jun"
+      - columnheader "Jul"
+      - columnheader "Aug"
+      - columnheader "Sep"
+      - columnheader "Oct"
+  - rowgroup:
+    - row /Total \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/:
+      - rowheader "Total"
+      - gridcell
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+  - rowgroup:
+    - row /Collapse row North North \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [expanded] [level=1]:
+      - rowheader "Collapse row North":
+        - button "Collapse row" [expanded]
+        - text: ""
+      - gridcell "North"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Acme Corporation North \$\d+\.\d+ 0 0 0 0 0 0 0 0 0 0/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell "North"
+      - gridcell /\$\d+\.\d+/
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+      - gridcell "0"
+    - row /Hooli -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Initech \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Hooli -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Initech \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Hooli \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Initech \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Hooli \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Initech \$\d+\.\d+ 7 7 7 7 7 7 7 7 7 7/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /\$\d+\.\d+/
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+      - gridcell "7"
+    - row /Acme Corporation -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Hooli \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Initech -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Hooli \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Hooli"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+    - row /Initech -\$\d+,\d+\.\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+ -\d+/ [level=2]:
+      - rowheader "Initech"
+      - gridcell /-\$\d+,\d+\.\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+      - gridcell /-\d+/
+    - row /Acme Corporation \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/ [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+  - rowgroup:
+    - row /Grand total \$\d+,\d+\.\d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+/:
+      - rowheader "Grand total"
+      - gridcell
+      - gridcell /\$\d+,\d+\.\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+      - gridcell /\d+/
+- status

@@ -1,0 +1,9 @@
+- text: Disabled
+- button "Drop files here" [disabled]
+- list:
+  - listitem:
+    - text: q3-report.pdf
+    - button "delete file q3-report.pdf" [disabled]
+- text: Read-only
+- list:
+  - listitem: q3-report.pdf

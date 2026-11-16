@@ -1,0 +1,4 @@
+- group:
+  - text: Nickname(optional)
+  - textbox "Nickname(optional)":
+    - /placeholder: Enter nickname

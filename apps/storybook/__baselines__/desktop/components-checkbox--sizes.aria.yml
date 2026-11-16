@@ -1,0 +1,21 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm sm":
+      - cell "sm"
+      - cell "sm":
+        - checkbox "sm"
+        - text: ""
+    - row "md md":
+      - cell "md"
+      - cell "md":
+        - checkbox "md"
+        - text: ""
+    - row "lg lg":
+      - cell "lg"
+      - cell "lg":
+        - checkbox "lg"
+        - text: ""

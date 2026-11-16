@@ -1,0 +1,21 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "sm Alert sm Size preview for the sm alert variant.":
+      - cell "sm"
+      - cell "Alert sm Size preview for the sm alert variant.":
+        - heading "Alert sm" [level=3]
+        - text: ""
+    - row "md Alert md Size preview for the md alert variant.":
+      - cell "md"
+      - cell "Alert md Size preview for the md alert variant.":
+        - heading "Alert md" [level=3]
+        - text: ""
+    - row "lg Alert lg Size preview for the lg alert variant.":
+      - cell "lg"
+      - cell "Alert lg Size preview for the lg alert variant.":
+        - heading "Alert lg" [level=3]
+        - text: ""

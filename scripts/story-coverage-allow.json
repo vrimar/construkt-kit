@@ -1,0 +1,16 @@
+{
+  "ui": {
+    "InputGroupClearButton": "Rendered inside the SearchInput and NumberFilter stories, which show its states.",
+    "LocaleProvider": "Context provider with no output of its own.",
+    "Portal": "Moves its children elsewhere in the document and has no output of its own.",
+    "TreeDragPreview": "An alias of DragPreview, which has its own stories."
+  },
+  "pages": {
+    "AuthForm": "Building block of the three page stories, which render it in every state they show.",
+    "AuthLayout": "Building block of the three page stories, which render it in every state they show.",
+    "AuthLinkButton": "Building block of the three page stories, which render it in every state they show.",
+    "AuthSuccess": "Building block of the ForgotPasswordPage and ResetPasswordPage success stories.",
+    "PasswordRulesPopover": "Building block of the ResetPasswordPage stories."
+  },
+  "data-grid": {}
+}

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Listbox } from ".";
@@ -18,15 +18,12 @@ const produce = [
   { id: 4, name: "Spinach", kind: "Vegetable" },
 ];
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Listbox",
   component: Listbox,
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: function DefaultStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -36,13 +33,14 @@ export const Default: Story = {
         getItemLabel={(item) => item.name}
         value={value}
         onValueChange={setValue}
+        label="Fruit"
         maxW="64"
       />
     );
   },
-};
+});
 
-export const Multiple: Story = {
+export const Multiple = meta.story({
   render: function MultipleStory() {
     const [value, setValue] = useState<number[]>([1]);
     return (
@@ -53,13 +51,18 @@ export const Multiple: Story = {
         selectionMode="multiple"
         value={value}
         onValueChange={setValue}
+        label="Fruits"
         maxW="64"
       />
     );
   },
-};
+});
 
-export const CustomRendering: Story = {
+export const CustomRendering = meta.story({
+  // The name is the item's label; hints and shortcuts are its description, which WCAG 2.5.3 allows.
+  parameters: {
+    a11y: { config: { rules: [{ id: "label-content-name-mismatch", enabled: false }] } },
+  },
   render: () => (
     <Listbox
       items={items}
@@ -69,10 +72,11 @@ export const CustomRendering: Story = {
       onValueChange={() => {}}
       renderItem={(item, state) => `${item.name}${state.selected ? " (selected)" : ""}`}
       renderItemActions={(item) => <button type="button">Edit {item.name}</button>}
+      label="Fruit"
       maxW="64"
     />
   ),
-};
+});
 
 const teamMembers = [
   { id: 1, name: "Ada Lovelace", count: 12, unavailable: "Already assigned" },
@@ -81,7 +85,11 @@ const teamMembers = [
   { id: 4, name: "Mary Jackson", count: 5 },
 ];
 
-export const Hints: Story = {
+export const Hints = meta.story({
+  // The name is the item's label; hints and shortcuts are its description, which WCAG 2.5.3 allows.
+  parameters: {
+    a11y: { config: { rules: [{ id: "label-content-name-mismatch", enabled: false }] } },
+  },
   render: function HintsStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -95,13 +103,14 @@ export const Hints: Story = {
         }
         value={value}
         onValueChange={setValue}
+        label="Assignee"
         maxW="64"
       />
     );
   },
-};
+});
 
-export const IndicatorPositions: Story = {
+export const IndicatorPositions = meta.story({
   render: () => (
     <HStack alignItems="flex-start">
       {(["start", "end", "none"] as const).map((indicatorPosition) => (
@@ -120,9 +129,9 @@ export const IndicatorPositions: Story = {
       ))}
     </HStack>
   ),
-};
+});
 
-export const Grouped: Story = {
+export const Grouped = meta.story({
   render: function GroupedStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
@@ -135,13 +144,14 @@ export const Grouped: Story = {
         value={value}
         onValueChange={setValue}
         search
+        label="Produce"
         maxW="64"
       />
     );
   },
-};
+});
 
-export const Virtualized: Story = {
+export const Virtualized = meta.story({
   render: function VirtualizedStory() {
     const manyItems = Array.from({ length: 1_000 }, (_, index) => ({
       id: index,
@@ -156,8 +166,9 @@ export const Virtualized: Story = {
         value={value}
         onValueChange={setValue}
         virtual
+        label="Item"
         maxW="64"
       />
     );
   },
-};
+});

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import {
   Columns3Icon,
   DownloadIcon,
@@ -21,13 +21,10 @@ import { Kbd } from "../Kbd";
 import { Stack } from "../Layout";
 import { Text } from "../Text";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/CommandPalette",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 interface Command {
   value: string;
@@ -67,7 +64,7 @@ const matches = (command: Command, query: string) => {
     .every((word) => text.includes(word));
 };
 
-export const Default: Story = {
+export const Default = meta.story({
   render: function DefaultStory() {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -207,4 +204,52 @@ export const Default: Story = {
       </Stack>
     );
   },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  // The name is the item's label; hints and shortcuts are its description, which WCAG 2.5.3 allows.
+  parameters: {
+    a11y: { config: { rules: [{ id: "label-content-name-mismatch", enabled: false }] } },
+  },
+  render: function OpenStory() {
+    const [query, setQuery] = useState("");
+    const search = query.trim();
+    const groups = [
+      { label: "Recent", items: RECENT.filter((command) => matches(command, search)) },
+      { label: "Create", items: CREATE.filter((command) => matches(command, search)) },
+    ];
+
+    return (
+      <CommandPalette.Root
+        defaultOpen
+        query={query}
+        onQueryChange={setQuery}
+      >
+        <CommandPalette.Input placeholder="Search or run a command" />
+        <CommandPalette.List>
+          {groups.map(
+            ({ label, items }) =>
+              items.length > 0 && (
+                <CommandPalette.Group
+                  key={label}
+                  label={label}
+                >
+                  {items.map((command) => (
+                    <CommandPalette.Item
+                      key={command.value}
+                      value={command.value}
+                      label={command.label}
+                      icon={command.icon}
+                      meta={command.meta}
+                    />
+                  ))}
+                </CommandPalette.Group>
+              ),
+          )}
+          <CommandPalette.Empty>Nothing matches “{search}”.</CommandPalette.Empty>
+        </CommandPalette.List>
+      </CommandPalette.Root>
+    );
+  },
+});

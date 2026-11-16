@@ -1,0 +1,4 @@
+- group "Email":
+  - text: ""
+  - textbox "Email"
+  - text: Email is required.

@@ -1,0 +1,45 @@
+- table:
+  - rowgroup:
+    - row "xs sm md lg xl":
+      - columnheader "xs"
+      - columnheader "sm"
+      - columnheader "md"
+      - columnheader "lg"
+      - columnheader "xl"
+  - rowgroup:
+    - row "Actions Actions Actions Actions Actions":
+      - cell "Actions":
+        - button "Actions" [expanded]
+        - menu "Actions":
+          - menuitem "Edit"
+          - menuitem "Duplicate"
+          - separator
+          - menuitem "Delete"
+      - cell "Actions":
+        - button "Actions" [expanded]
+        - menu "Actions":
+          - menuitem "Edit"
+          - menuitem "Duplicate"
+          - separator
+          - menuitem "Delete"
+      - cell "Actions":
+        - button "Actions" [expanded]
+        - menu "Actions":
+          - menuitem "Edit"
+          - menuitem "Duplicate"
+          - separator
+          - menuitem "Delete"
+      - cell "Actions":
+        - button "Actions" [expanded]
+        - menu "Actions":
+          - menuitem "Edit"
+          - menuitem "Duplicate"
+          - separator
+          - menuitem "Delete"
+      - cell "Actions":
+        - button "Actions" [expanded]
+        - menu "Actions":
+          - menuitem "Edit"
+          - menuitem "Duplicate"
+          - separator
+          - menuitem "Delete"

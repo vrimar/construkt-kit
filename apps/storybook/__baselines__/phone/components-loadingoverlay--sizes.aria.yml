@@ -1,0 +1,41 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "inherit":
+      - cell "inherit"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "xs":
+      - cell "xs"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "sm":
+      - cell "sm"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "md":
+      - cell "md"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "lg":
+      - cell "lg"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "xl":
+      - cell "xl"
+      - cell:
+        - status:
+          - paragraph: Loading...
+    - row "2xl":
+      - cell "2xl"
+      - cell:
+        - status:
+          - paragraph: Loading...

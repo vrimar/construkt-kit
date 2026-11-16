@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 import { fn } from "storybook/test";
 
@@ -12,15 +12,12 @@ import { Field } from "../Form";
 import { Stack } from "../Layout";
 import { Select } from "../Select";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Dialog",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -41,9 +38,9 @@ export const Default: Story = {
       </Dialog.Content>
     </Dialog.Root>
   ),
-};
+});
 
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={dialog.variantMap.size}
@@ -69,9 +66,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const NoBackdrop: Story = {
+export const NoBackdrop = meta.story({
   render: () => (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -86,7 +83,7 @@ export const NoBackdrop: Story = {
       </Dialog.Content>
     </Dialog.Root>
   ),
-};
+});
 
 const fruits = [
   { id: 1, name: "Apple" },
@@ -94,7 +91,7 @@ const fruits = [
   { id: 3, name: "Cherry" },
 ];
 
-export const WithPickers: Story = {
+export const WithPickers = meta.story({
   render: function WithPickersStory() {
     const [fruit, setFruit] = useState<number | null>(null);
     return (
@@ -134,9 +131,38 @@ export const WithPickers: Story = {
       </Dialog.Root>
     );
   },
-};
+});
 
-export const Phone: Story = {
-  ...Default,
+export const Phone = meta.story({
+  ...Default.input,
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
-};
+});
+
+export const Open = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Dialog.Root defaultOpen>
+      <Dialog.Trigger asChild>
+        <Button>Archive project</Button>
+      </Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Archive Q3 planning?</Dialog.Title>
+          <Dialog.Description>Archived projects are read-only.</Dialog.Description>
+        </Dialog.Header>
+        <Dialog.Body>
+          The project and its 12 tasks move to the archive. Members keep read access, and you can
+          restore it from Settings at any time.
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Dialog.ActionTrigger asChild>
+            <Button variant="outline">Cancel</Button>
+          </Dialog.ActionTrigger>
+          <Button>Archive</Button>
+        </Dialog.Footer>
+        <Dialog.CloseTrigger />
+      </Dialog.Content>
+    </Dialog.Root>
+  ),
+});

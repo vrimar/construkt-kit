@@ -1,0 +1,45 @@
+- table:
+  - rowgroup:
+    - row "ID Name Email Role Created At actions":
+      - columnheader "ID":
+        - paragraph: ID
+        - button "Sort by ID"
+      - columnheader "Name":
+        - paragraph: Name
+        - button "Sort by Name"
+      - columnheader "Email":
+        - paragraph: Email
+        - button "Sort by Email"
+      - columnheader "Role":
+        - paragraph: Role
+        - button "Sort by Role"
+      - columnheader "Created At":
+        - paragraph: Created At
+        - button "Sort by Created At"
+      - columnheader "actions":
+        - paragraph
+        - text: ""
+    - row "Equals Filter by Role Filter by Created At":
+      - cell "Equals":
+        - button "Equals": =
+        - textbox "Filter by ID"
+      - cell:
+        - textbox "Filter by Name"
+      - cell:
+        - textbox "Filter by Email"
+      - cell "Filter by Role":
+        - button "Filter by Role"
+      - cell "Filter by Created At":
+        - button "Filter by Created At"
+      - cell
+  - rowgroup:
+    - row "No results available.":
+      - cell "No results available.":
+        - heading "No results available." [level=3]
+- paragraph: 0 Items
+- paragraph: "-"
+- button "First page" [disabled]
+- button "Previous page" [disabled]
+- button "Next page" [disabled]
+- button "Last page" [disabled]
+- alert

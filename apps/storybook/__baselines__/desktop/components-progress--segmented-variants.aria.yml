@@ -1,0 +1,18 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "solid 3":
+      - cell "solid"
+      - cell "3":
+        - progressbar /\d+%/
+    - row "subtle 3":
+      - cell "subtle"
+      - cell "3":
+        - progressbar /\d+%/
+    - row "outline 3":
+      - cell "outline"
+      - cell "3":
+        - progressbar /\d+%/

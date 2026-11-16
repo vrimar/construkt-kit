@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { RotateCcwIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import { fn } from "storybook/test";
@@ -8,15 +8,12 @@ import { IconButton } from "../Buttons";
 import { Input } from "../Input";
 import { Box, Stack } from "../Layout";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/Form",
   tags: ["autodocs"],
-};
+});
 
-export default meta;
-type Story = StoryObj;
-
-export const FieldStory: Story = {
+export const FieldStory = meta.story({
   name: "Field",
   render: () => (
     <Box maxW="400px">
@@ -28,9 +25,9 @@ export const FieldStory: Story = {
       </Field>
     </Box>
   ),
-};
+});
 
-export const FieldWithErrorStory: Story = {
+export const FieldWithErrorStory = meta.story({
   name: "Field with Error",
   render: () => (
     <Box maxW="400px">
@@ -46,9 +43,9 @@ export const FieldWithErrorStory: Story = {
       </Field>
     </Box>
   ),
-};
+});
 
-export const FieldOptionalStory: Story = {
+export const FieldOptionalStory = meta.story({
   name: "Field Optional",
   render: () => (
     <Box maxW="400px">
@@ -60,9 +57,9 @@ export const FieldOptionalStory: Story = {
       </Field>
     </Box>
   ),
-};
+});
 
-export const FieldHorizontalStory: Story = {
+export const FieldHorizontalStory = meta.story({
   name: "Field Horizontal",
   render: () => (
     <Stack
@@ -123,9 +120,9 @@ export const FieldHorizontalStory: Story = {
       </Stack>
     </Stack>
   ),
-};
+});
 
-export const SubmitFormStory: Story = {
+export const SubmitFormStory = meta.story({
   name: "SubmitForm",
   render: () => (
     <Box maxW="400px">
@@ -142,9 +139,9 @@ export const SubmitFormStory: Story = {
       </SubmitForm>
     </Box>
   ),
-};
+});
 
-export const SubmitFormLoadingStory: Story = {
+export const SubmitFormLoadingStory = meta.story({
   name: "SubmitForm Loading",
   render: () => (
     <Box maxW="400px">
@@ -159,4 +156,4 @@ export const SubmitFormLoadingStory: Story = {
       </SubmitForm>
     </Box>
   ),
-};
+});

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { fn } from "storybook/test";
@@ -17,13 +17,10 @@ import { Menu } from "../Menu";
 import { Text } from "../Text";
 import type { DataTableParams } from "./types";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Components/DataTable",
   tags: ["autodocs"],
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 interface Person {
   id: number;
@@ -290,7 +287,7 @@ function DataTableStory(props: {
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => (
     <Box
       display="flex"
@@ -300,9 +297,9 @@ export const Default: Story = {
       <DataTableStory data={data} />
     </Box>
   ),
-};
+});
 
-export const Loading: Story = {
+export const Loading = meta.story({
   render: () => (
     <Box maxW="800px">
       <DataTableStory
@@ -311,26 +308,26 @@ export const Loading: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const Empty: Story = {
+export const Empty = meta.story({
   render: () => (
     <Box maxW="800px">
       <DataTableStory data={[]} />
     </Box>
   ),
-};
+});
 
-export const Basic: Story = {
+export const Basic = meta.story({
   render: () => (
     <DataTableStory
       data={data}
       variant="basic"
     />
   ),
-};
+});
 
-export const Constrained: Story = {
+export const Constrained = meta.story({
   render: () => (
     <Box
       display="flex"
@@ -343,10 +340,11 @@ export const Constrained: Story = {
       />
     </Box>
   ),
-};
+});
 
-export const MobileCards: Story = {
+export const MobileCards = meta.story({
   parameters: { layout: "fullscreen" },
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },
   render: () => (
     <Box
@@ -360,7 +358,7 @@ export const MobileCards: Story = {
       />
     </Box>
   ),
-};
+});
 
 const resizableColumns = [
   columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 96 } }),
@@ -403,7 +401,7 @@ function ColumnResizingStory() {
   );
 }
 
-export const ColumnResizing: Story = {
+export const ColumnResizing = meta.story({
   render: () => (
     <Box
       display="flex"
@@ -413,7 +411,7 @@ export const ColumnResizing: Story = {
       <ColumnResizingStory />
     </Box>
   ),
-};
+});
 
 const groupedColumns = [
   columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 96 } }),
@@ -469,7 +467,7 @@ function ColumnVisibilityStory() {
   );
 }
 
-export const ColumnVisibility: Story = {
+export const ColumnVisibility = meta.story({
   render: () => (
     <Box
       display="flex"
@@ -479,4 +477,4 @@ export const ColumnVisibility: Story = {
       <ColumnVisibilityStory />
     </Box>
   ),
-};
+});

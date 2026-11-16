@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import preview from "@construkt-kit/story-kit/preview";
 
 import { input } from "#styled-system/recipes";
 
@@ -6,21 +6,18 @@ import { Input } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { VStack } from "../Layout";
 
-const meta: Meta<typeof Input> = {
+const meta = preview.meta({
   title: "Components/Input/Input",
   component: Input,
   tags: ["autodocs"],
   args: {
     placeholder: "Enter text...",
   },
-};
+});
 
-export default meta;
-type Story = StoryObj<typeof Input>;
+export const Default = meta.story();
 
-export const Default: Story = {};
-
-export const Sizes: Story = {
+export const Sizes = meta.story({
   render: () => (
     <SizePreviewTable
       sizes={input.variantMap.size}
@@ -32,9 +29,9 @@ export const Sizes: Story = {
       )}
     />
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <VStack
       gap="2"
@@ -50,4 +47,4 @@ export const Variants: Story = {
       />
     </VStack>
   ),
-};
+});

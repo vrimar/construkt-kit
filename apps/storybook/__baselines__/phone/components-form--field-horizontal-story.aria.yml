@@ -1,0 +1,18 @@
+- group:
+  - text: Project name
+  - textbox "Project name": Website redesign
+  - text: Shown to everyone on this project.
+- group:
+  - text: Code
+  - textbox "Code" [invalid]: /WR-\d+/
+  - text: Code is already in use.
+- group:
+  - text: Session timeout
+  - spinbutton "Session timeout": /\d+/
+  - button "Reset session timeout"
+- group:
+  - text: Name
+  - textbox "Name": Ada Lovelace
+- group:
+  - text: Email
+  - textbox "Email": ada@example.com

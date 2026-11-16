@@ -1,0 +1,26 @@
+- table:
+  - rowgroup:
+    - row "Size Preview":
+      - columnheader "Size"
+      - columnheader "Preview"
+  - rowgroup:
+    - row "xs Data Remove":
+      - cell "xs"
+      - cell "Data Remove":
+        - text: ""
+        - button "Remove Data"
+    - row "sm Data Remove":
+      - cell "sm"
+      - cell "Data Remove":
+        - text: ""
+        - button "Remove Data"
+    - row "md Data Remove":
+      - cell "md"
+      - cell "Data Remove":
+        - text: ""
+        - button "Remove Data"
+    - row "lg Data Remove":
+      - cell "lg"
+      - cell "Data Remove":
+        - text: ""
+        - button "Remove Data"

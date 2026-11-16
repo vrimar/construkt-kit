@@ -1,0 +1,47 @@
+- treegrid "Invoices by region":
+  - rowgroup:
+    - row "Region / customer Region":
+      - columnheader "Region / customer"
+      - columnheader "Region"
+  - rowgroup:
+    - row "Total":
+      - rowheader "Total"
+      - gridcell
+  - rowgroup:
+    - row "Collapse row North North" [expanded] [level=1]:
+      - rowheader "Collapse row North":
+        - button "Collapse row" [expanded]
+        - text: ""
+      - gridcell "North"
+    - row "Acme Corporation North" [level=2]:
+      - rowheader "Acme Corporation"
+      - gridcell "North"
+    - row "Hooli" [level=2]:
+      - rowheader "Hooli"
+    - row "Initech" [level=2]:
+      - rowheader "Initech"
+    - row "Acme Corporation" [level=2]:
+      - rowheader "Acme Corporation"
+    - row "Hooli" [level=2]:
+      - rowheader "Hooli"
+    - row "Initech" [level=2]:
+      - rowheader "Initech"
+    - row "Acme Corporation" [level=2]:
+      - rowheader "Acme Corporation"
+    - row "Hooli" [level=2]:
+      - rowheader "Hooli"
+    - row "Initech" [level=2]:
+      - rowheader "Initech"
+    - row "Acme Corporation" [level=2]:
+      - rowheader "Acme Corporation"
+    - row "Hooli" [level=2]:
+      - rowheader "Hooli"
+    - row "Initech" [level=2]:
+      - rowheader "Initech"
+    - row "Acme Corporation" [level=2]:
+      - rowheader "Acme Corporation"
+  - rowgroup:
+    - row "Grand total":
+      - rowheader "Grand total"
+      - gridcell
+- status

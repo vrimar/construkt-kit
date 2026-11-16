@@ -1,5 +1,5 @@
+import preview from "@construkt-kit/story-kit/preview";
 import { Badge, Box, Button, HStack, Text, type TextProps } from "@construkt-kit/ui";
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useMemo, useRef, useState } from "react";
 
 import { type FixtureRow, createFixture, moveIds } from "../../test/fixture";
@@ -16,14 +16,11 @@ import type {
   ExternalDragEvent,
 } from "./types";
 
-const meta: Meta = {
+const meta = preview.meta({
   title: "Data/DataGrid",
   tags: ["autodocs"],
   parameters: { layout: "padded" },
-};
-
-export default meta;
-type Story = StoryObj;
+});
 
 interface Invoice {
   id: number;
@@ -51,7 +48,7 @@ const invoices: Invoice[] = Array.from({ length: 2_000 }, (_, id) => ({
   region: REGIONS[(id * 7) % REGIONS.length],
   status: STATUSES[(id * 5) % STATUSES.length],
   amount: Math.round(Math.sin(id) * 500_000) / 100,
-  issued: new Date(2026, 0, 1 + (id % 300)).toISOString().slice(0, 10),
+  issued: new Date(Date.UTC(2026, 0, 1 + (id % 300))).toISOString().slice(0, 10),
 }));
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -104,7 +101,7 @@ const negativeAmounts = ({ columnId, value }: { columnId: string; value: unknown
     ? ({ tone: "danger" } satisfies CellSpec<Invoice>)
     : undefined;
 
-export const Basic: Story = {
+export const Basic = meta.story({
   render: () => (
     <DataGrid
       {...invoiceGrid}
@@ -112,10 +109,10 @@ export const Basic: Story = {
       aria-label="Invoices"
       height="480px"
       toolbar={<Text textStyle="sm">Invoices</Text>}
-      statusBar={<Text>{invoices.length.toLocaleString()} invoices</Text>}
+      statusBar={<Text>{invoices.length.toLocaleString("en-US")} invoices</Text>}
     />
   ),
-};
+});
 
 function FixtureStory({
   shape: [rowCount, columnCount],
@@ -132,7 +129,7 @@ function FixtureStory({
   );
 }
 
-export const LargeDataset: Story = {
+export const LargeDataset = meta.story({
   name: "100k rows × 200 columns",
   render: () => (
     <FixtureStory
@@ -141,9 +138,9 @@ export const LargeDataset: Story = {
       height="80vh"
     />
   ),
-};
+});
 
-export const TallContent: Story = {
+export const TallContent = meta.story({
   name: "Content past 15M px",
   render: () => (
     <FixtureStory
@@ -153,9 +150,9 @@ export const TallContent: Story = {
       height="80vh"
     />
   ),
-};
+});
 
-export const Density: Story = {
+export const Density = meta.story({
   render: () => (
     <HStack
       alignItems="start"
@@ -183,9 +180,9 @@ export const Density: Story = {
       ))}
     </HStack>
   ),
-};
+});
 
-export const Variants: Story = {
+export const Variants = meta.story({
   render: () => (
     <DataGrid
       {...invoiceGrid}
@@ -196,7 +193,7 @@ export const Variants: Story = {
       height="360px"
     />
   ),
-};
+});
 
 function EmptyAndLoadingStory() {
   const [rows, setRows] = useState<Invoice[]>([]);
@@ -236,11 +233,12 @@ function EmptyAndLoadingStory() {
   );
 }
 
-export const EmptyAndLoading: Story = {
+export const EmptyAndLoading = meta.story({
   render: () => <EmptyAndLoadingStory />,
-};
+});
 
-export const Phone: Story = {
+export const Phone = meta.story({
+  tags: ["phone-only"],
   globals: { viewport: { value: "mobile2" } },
   render: () => (
     <DataGrid
@@ -249,7 +247,7 @@ export const Phone: Story = {
       height="70vh"
     />
   ),
-};
+});
 
 interface Respondent {
   id: number;
@@ -287,7 +285,7 @@ const crosstabColumns: ColumnDef<Respondent>[] = [
   { id: "region", header: "Region", children: [point(5), point(6), point(7), point(8)] },
 ];
 
-export const Crosstab: Story = {
+export const Crosstab = meta.story({
   render: () => (
     <DataGrid
       rows={crosstabRows}
@@ -300,7 +298,7 @@ export const Crosstab: Story = {
       height="480px"
     />
   ),
-};
+});
 
 const flexColumns: ColumnDef<Invoice>[] = [
   { id: "id", header: "#", field: "id", width: 80 },
@@ -309,7 +307,7 @@ const flexColumns: ColumnDef<Invoice>[] = [
   { id: "amount", header: "Amount", field: "amount", width: 140 },
 ];
 
-export const FlexColumns: Story = {
+export const FlexColumns = meta.story({
   render: () => (
     <DataGrid
       {...invoiceGrid}
@@ -318,7 +316,7 @@ export const FlexColumns: Story = {
       height="360px"
     />
   ),
-};
+});
 
 function ColumnStateStory() {
   const apiRef = useRef<DataGridApi>(null);
@@ -379,9 +377,9 @@ function ColumnStateStory() {
   );
 }
 
-export const ColumnState: Story = {
+export const ColumnState = meta.story({
   render: () => <ColumnStateStory />,
-};
+});
 
 interface Line {
   id: string;
@@ -448,7 +446,7 @@ const totals = (label: string): Line => ({
   amount: treeLines.filter((line) => line.parent).reduce((sum, line) => sum + line.amount, 0),
 });
 
-export const TreeRows: Story = {
+export const TreeRows = meta.story({
   render: () => (
     <DataGrid
       rows={treeLines}
@@ -463,14 +461,14 @@ export const TreeRows: Story = {
       height="520px"
     />
   ),
-};
+});
 
 const sectionLines: Line[] = REGIONS.flatMap((region) => [
   { id: `section-${region}`, label: region, region, amount: 0, section: true },
   ...regionLines(region, 15),
 ]);
 
-export const FullWidthSections: Story = {
+export const FullWidthSections = meta.story({
   render: () => (
     <DataGrid
       rows={sectionLines}
@@ -482,7 +480,7 @@ export const FullWidthSections: Story = {
       height="480px"
     />
   ),
-};
+});
 
 const selectionColumns = (api: DataGridApi | null): ColumnDef<Invoice>[] =>
   invoiceColumns.map((column) => ({
@@ -591,9 +589,9 @@ function SelectionDemo() {
   );
 }
 
-export const Selection: Story = {
+export const Selection = meta.story({
   render: () => <SelectionDemo />,
-};
+});
 
 interface Answer {
   id: string;
@@ -775,9 +773,9 @@ function ReorderDemo() {
   );
 }
 
-export const Reorder: Story = {
+export const Reorder = meta.story({
   render: () => <ReorderDemo />,
-};
+});
 
 interface Survey {
   id: string;
@@ -929,7 +927,7 @@ function ReorderTreeDemo() {
   );
 }
 
-export const ReorderTree: Story = {
+export const ReorderTree = meta.story({
   name: "Reorder tree and groups",
   render: () => <ReorderTreeDemo />,
-};
+});

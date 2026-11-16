@@ -1,0 +1,13 @@
+- textbox "Search..."
+- button "Select all"
+- tree "Tree View":
+  - treeitem "Fruits" [expanded] [level=1]
+  - treeitem "Apple" [level=2]
+  - treeitem "Banana" [level=2]
+  - treeitem "Citrus" [expanded] [level=2]
+  - treeitem "Orange" [level=3]
+  - treeitem "Lemon" [level=3]
+  - treeitem "Vegetables" [expanded] [level=1]
+  - treeitem "Carrot" [level=2]
+  - treeitem "Broccoli" [level=2]
+  - treeitem "Spinach" [level=2]
