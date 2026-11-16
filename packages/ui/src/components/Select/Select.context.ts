@@ -9,19 +9,13 @@ export interface SelectContextValue {
   contentWidth?: string | number;
   sameWidth: boolean;
   wideContent: boolean;
+  appliedItems: readonly unknown[];
   triggerValue: ReactNode;
   hasValue: boolean;
   close: () => void;
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);
-
-export interface SelectRootOverrides<V extends SelectionValue = SelectionValue> {
-  appliedValue: readonly V[];
-  wideContent: boolean;
-}
-
-export const SelectRootOverridesContext = createContext<SelectRootOverrides | null>(null);
 
 export const useSelectContext = () => {
   const context = useContext(SelectContext);

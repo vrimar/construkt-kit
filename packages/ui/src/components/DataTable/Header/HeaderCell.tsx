@@ -5,6 +5,7 @@ import { Box } from "#styled-system/jsx";
 
 import { Text } from "../../Text";
 import { useDataTableContext } from "../context";
+import { GridHeader } from "../parts";
 import type { DataTableHeader } from "../types";
 import { getColumnLabel } from "./columnLabel";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
@@ -25,11 +26,10 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   useLayoutEffect(() => {
     setLabelEmpty(!labelRef.current?.textContent?.trim());
   }, [label]);
-  const resizable =
-    !!resizeColumn &&
-    !isPlaceholder &&
-    header.subHeaders.length === 0 &&
-    column.columnDef.meta?.resizable !== false;
+  const resize =
+    !isPlaceholder && header.subHeaders.length === 0 && column.columnDef.meta?.resizable !== false
+      ? resizeColumn
+      : undefined;
   const sortable = column.getCanSort();
   const sort = column.getIsSorted();
   const ariaSort = sort
@@ -44,23 +44,18 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
   const labelMaxWidth = sortable ? `calc(100% - ${columnSorterGutter}px)` : "100%";
 
   return (
-    <Box
-      role="columnheader"
+    <GridHeader
       aria-sort={isPlaceholder ? undefined : ariaSort}
       aria-labelledby={isPlaceholder || labelEmpty ? undefined : labelId}
       aria-label={!isPlaceholder && labelEmpty ? getColumnLabel(header) : undefined}
       aria-colspan={colSpan > 1 ? colSpan : undefined}
       display="flex"
       alignItems="center"
-      px="2"
-      py="1"
-      fontWeight="medium"
-      fontSize="sm"
       borderRightWidth="1px"
       borderRightColor="border"
       overflow="hidden"
       userSelect="none"
-      position={resizable ? "relative" : undefined}
+      position={resize ? "relative" : undefined}
       style={{ gridColumn: `span ${colSpan}` }}
     >
       {!isPlaceholder && (
@@ -82,7 +77,12 @@ export const DataTableHeaderCell = <TData extends object>({ header }: HeaderCell
           <ColumnSorter header={header} />
         </Box>
       )}
-      {resizable && <ColumnResizeHandle header={header} />}
-    </Box>
+      {resize && (
+        <ColumnResizeHandle
+          header={header}
+          resizeColumn={resize}
+        />
+      )}
+    </GridHeader>
   );
 };

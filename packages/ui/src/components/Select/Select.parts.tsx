@@ -6,7 +6,7 @@ import { Box } from "#styled-system/jsx";
 import { toCssSize } from "../../foundations/cssSize";
 import { SelectButton } from "../Buttons";
 import { Listbox } from "../Listbox/Listbox";
-import { ListboxSearchField, ManagedList } from "../Listbox/managed";
+import { ListboxSearchField, ManagedList, splitKeys } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
 import { useOverlayMode } from "../overlayPresentation";
 import { Popover } from "../Popover";
@@ -107,10 +107,22 @@ export function SelectList(props: SelectListProps) {
   );
 }
 
-type SelectSimpleBodyProps = Pick<
+type SelectBodyProps = Pick<
   SelectSimpleProps<unknown, SelectionValue>,
   "contentCss" | "footer" | "listCss" | "triggerProps"
-> & { children?: ReactNode };
+>;
+
+const SELECT_BODY_KEYS = {
+  contentCss: true,
+  footer: true,
+  listCss: true,
+  triggerProps: true,
+} as const satisfies Record<keyof SelectBodyProps, true>;
+
+export function splitSelectBodyProps<P extends SelectBodyProps>(props: P) {
+  const [bodyProps, rest] = splitKeys(props, SELECT_BODY_KEYS);
+  return [bodyProps as SelectBodyProps, rest] as const;
+}
 
 export function SelectSimpleBody({
   triggerProps,
@@ -118,7 +130,7 @@ export function SelectSimpleBody({
   listCss,
   footer,
   children,
-}: SelectSimpleBodyProps) {
+}: SelectBodyProps & { children?: ReactNode }) {
   return (
     <>
       <SelectTrigger {...triggerProps} />

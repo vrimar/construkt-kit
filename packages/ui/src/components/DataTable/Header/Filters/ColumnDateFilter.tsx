@@ -3,7 +3,7 @@ import {
   parseDateRangeFilter,
   serializeDateRangeFilter,
 } from "@construkt-kit/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
 import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
@@ -18,26 +18,12 @@ function parseDateValue(dateValue: string | undefined): DateValue[] {
 export const ColumnDateFilter = ({ placeholder, value, onChange, layout }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0];
-  const malformed = !!current && !parseDateRangeFilter(current);
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(current));
-  const [appliedValue, setAppliedValue] = useState(current || undefined);
-  const emitToParent = useControlledMirror<string | undefined>({
+  const { applied: appliedValue, emit } = useControlledMirror<string | undefined>({
     value: current || undefined,
     onValueChange: (next) => onChange(next ? [next] : undefined),
-    onExternalChange: (next) => {
-      setAppliedValue(next);
-      setInternalValue(parseDateValue(next));
-    },
+    onExternalChange: (next) => setInternalValue(parseDateValue(next)),
   });
-
-  useEffect(() => {
-    if (malformed) onChange(undefined);
-  }, [malformed, onChange]);
-
-  const emit = (next: string | undefined) => {
-    setAppliedValue(next);
-    emitToParent(next);
-  };
 
   const handleValueChange = (next: DateValue[]) => {
     setInternalValue(next);

@@ -1,17 +1,20 @@
 import { useDatePickerContext } from "@ark-ui/react/date-picker";
-import { ChevronDownIcon } from "lucide-react";
-import type { JSX } from "react";
+import type { ComponentProps, JSX } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
-import { Button } from "../Buttons";
-import { OverlayPresentationProvider, useOverlayPresentation } from "../overlayPresentation";
+import { SelectButton } from "../Buttons";
+import { type MobileLayoutProps, withMobileLayoutProvider } from "../overlayPresentation";
 import { createSheetCapableContent } from "../sheetFrame";
 import { CalendarContent } from "./CalendarContent";
 import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
 import type { CalendarMode, DatePickerProps } from "./types";
 import { useCalendarMachine } from "./useCalendarMachine";
+
+const RootProvider = withMobileLayoutProvider<
+  ComponentProps<typeof Parts.RootProvider> & MobileLayoutProps
+>(Parts.RootProvider);
 
 const DatePickerContent = createSheetCapableContent(
   Parts.Positioner,
@@ -23,7 +26,6 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
   const [styleProps, pickerProps] = splitCssProps(props);
   const {
     trigger,
-    triggerEndElement,
     placeholder,
     formatValue,
     portalled = true,
@@ -44,39 +46,32 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
     },
   });
 
-  const presentation = useOverlayPresentation(mobileLayout, api.open);
-  const displayLabel = getDisplayLabel(api.value, api.selectionMode, placeholder, formatValue);
-
-  const defaultTrigger = (
-    <Button
-      variant="outline"
-      width="full"
-      justifyContent="space-between"
-    >
-      {displayLabel}
-      <ChevronDownIcon />
-    </Button>
-  );
-
   return (
-    <OverlayPresentationProvider value={presentation}>
-      <Parts.RootProvider
-        value={api}
-        {...styleProps}
-      >
-        <Parts.Control>
-          <Parts.Trigger asChild>{trigger ?? defaultTrigger}</Parts.Trigger>
-          {triggerEndElement}
-        </Parts.Control>
+    <RootProvider
+      value={api}
+      mobileLayout={mobileLayout}
+      {...styleProps}
+    >
+      <Parts.Control>
+        <Parts.Trigger asChild>
+          {trigger ?? (
+            <SelectButton
+              variant="outline"
+              width="full"
+              hasValue={api.value.length > 0}
+              label={getDisplayLabel(api.value, api.selectionMode, placeholder, formatValue)}
+            />
+          )}
+        </Parts.Trigger>
+      </Parts.Control>
 
-        <DatePickerContent
-          portalled={portalled}
-          portalRef={portalRef}
-        >
-          <CalendarContent {...contentProps} />
-        </DatePickerContent>
-      </Parts.RootProvider>
-    </OverlayPresentationProvider>
+      <DatePickerContent
+        portalled={portalled}
+        portalRef={portalRef}
+      >
+        <CalendarContent {...contentProps} />
+      </DatePickerContent>
+    </RootProvider>
   );
 };
 

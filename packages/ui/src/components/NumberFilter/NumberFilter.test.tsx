@@ -304,4 +304,13 @@ describe("NumberFilter", () => {
     expect(from.id).not.toBe(to.id);
     expect(screen.getByText("Amount").closest("label")?.htmlFor).toBe(from.id);
   });
+
+  it("focuses the first input once clearing a between filter removes the button", async () => {
+    renderFilter({ value: { operator: "between", value: 10, to: 20 } });
+
+    await user.click(screen.getByRole("button", { name: "Clear filter" }));
+    await settle();
+
+    expect(document.activeElement).toBe(screen.getByPlaceholderText("From"));
+  });
 });

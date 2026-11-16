@@ -11,6 +11,7 @@ import {
   type UseDrawerReturn,
   useDrawer,
 } from "../Drawer";
+import { isRenderable } from "../itemSlots";
 
 export type SheetRootProps = Omit<DrawerRootProps, "placement" | "swipeDirection">;
 
@@ -37,7 +38,7 @@ function SheetContent({ ref, fullHeight = false, children, ...props }: WithRef<S
   return (
     <Drawer.Content
       ref={ref}
-      height={fullHeight ? "90dvh" : undefined}
+      height={fullHeight ? "var(--drawer-placement-max-h)" : undefined}
       {...props}
     >
       <Drawer.Grabber>
@@ -53,8 +54,6 @@ export interface SheetHeaderProps extends ComponentProps<typeof Drawer.Header> {
   endElement?: ReactNode;
 }
 
-const isRendered = (node: ReactNode) => node != null && typeof node !== "boolean" && node !== "";
-
 function SheetHeader({ startElement, endElement, children, ...props }: SheetHeaderProps) {
   return (
     <Drawer.Header
@@ -63,8 +62,8 @@ function SheetHeader({ startElement, endElement, children, ...props }: SheetHead
       gap="1"
       minHeight="11"
       py="0"
-      ps={isRendered(startElement) ? "1" : "4"}
-      pe={isRendered(endElement) ? "2" : "4"}
+      ps={isRenderable(startElement) ? "1" : "4"}
+      pe={isRenderable(endElement) ? "2" : "4"}
       {...props}
     >
       {startElement}

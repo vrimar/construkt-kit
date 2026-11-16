@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { Drawer, useDrawer } from ".";
-import { createMatchMediaController } from "../../_shared/matchMedia";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 
 describe("Drawer", () => {
   it("ActionTrigger closes the drawer", async () => {
@@ -22,13 +22,7 @@ describe("Drawer", () => {
   });
 
   it("swipes in the direction of the placement in effect at the current breakpoint", () => {
-    const media = createMatchMediaController(
-      (query) => Number(/width >= ([\d.]+)rem/.exec(query)?.[1] ?? Infinity) * 16 <= 800,
-    );
-    vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
-    onTestFinished(() => {
-      vi.restoreAllMocks();
-    });
+    mockMatchMedia(viewportWidth(800));
     render(
       <Drawer.Root
         defaultOpen

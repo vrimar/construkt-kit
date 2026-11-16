@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createTestTree, type TestNode } from "./tree.fixtures";
+import { childIdsOf, createTestTree, type TestNode } from "./tree.fixtures";
 import { getExpandableBranchValues, replaceNodeChildren } from "./treeCollectionUtils";
 
 const createCollection = () =>
@@ -37,9 +37,7 @@ describe("replaceNodeChildren", () => {
     const next = replaceNodeChildren(collection, "remote", [{ id: "remote/a", label: "A" }]);
 
     expect(next).not.toBeNull();
-    expect(next?.getNodeChildren(next.findNode("remote") as TestNode).map((n) => n.id)).toEqual([
-      "remote/a",
-    ]);
+    expect(childIdsOf(next, "remote")).toEqual(["remote/a"]);
     expect(next?.findNode("remote")?.childrenCount).toBe(1);
     expect(collection.getNodeChildren(collection.findNode("remote") as TestNode)).toEqual([]);
     expect(next?.findNode("carrot")).toBeDefined();

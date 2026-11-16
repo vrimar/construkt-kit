@@ -7,7 +7,6 @@ import { numberInput } from "#styled-system/recipes";
 
 const { withProvider, withContext } = createSlotRecipeContext(numberInput);
 
-type RootProps = ComponentProps<typeof Root>;
 const Root = withProvider(ArkNumberInput.Root, "root");
 const DecrementTrigger = withContext(ArkNumberInput.DecrementTrigger, "decrementTrigger", {
   defaultProps: { children: <ChevronDownIcon /> },
@@ -29,13 +28,13 @@ const Control = withContext(ArkNumberInput.Control, "control", {
   },
 });
 
-export type NumberInputProps = RootProps;
+export type NumberInputRootProps = ComponentProps<typeof Root>;
 
-export const NumberInput = Object.assign(Root, {
+export const NumberInput = {
   Root,
-  Field: Input,
   Control,
-  Scrubber,
+  Input,
   Label,
+  Scrubber,
   Context: NumberInputContext,
-});
+};

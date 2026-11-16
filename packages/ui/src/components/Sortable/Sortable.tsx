@@ -17,17 +17,17 @@ import {
   useMemo,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import { type SortableVariantProps, sortable as sortableRecipe } from "#styled-system/recipes";
 
+import { isRtl } from "../../foundations/dom";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type { WithRef } from "../../types";
+import { DragPreview, useDragAutoScroll, useNativeDragPreview } from "../dnd";
 import { Tooltip } from "../Tooltip";
-import { DragPreview } from "./DragPreview";
 import {
   type SortableAxis,
   type SortableCanDropDetails,
@@ -38,8 +38,6 @@ import {
   getSortableInstruction,
   isNoopReorder,
 } from "./sortableLogic";
-import { useDragAutoScroll } from "./useDragAutoScroll";
-import { useNativeDragPreview } from "./useNativeDragPreview";
 
 const { withProvider, withContext } = createSlotRecipeContext(sortableRecipe);
 
@@ -63,8 +61,6 @@ function readTarget(data: DragData, instanceId: string) {
     ? { value: data.value, instruction: data.instruction as SortableInstruction | null }
     : null;
 }
-
-const isRtl = (element: Element) => getComputedStyle(element).direction === "rtl";
 
 const instructionKind = (instruction: SortableInstruction) =>
   instruction.type === "onto" ? "onto" : instruction.edge;
@@ -246,7 +242,7 @@ function Root({
   useDragAutoScroll({
     element: scrollElement,
     axis,
-    enabled: !disabled,
+    disabled,
     canScroll: ({ source }) => readSource(source.data, instanceId) !== null,
   });
 
@@ -292,7 +288,9 @@ function Item({
   const [handle, setHandle] = useState<HTMLElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [drop, setDrop] = useState<ItemDrop | null>(null);
-  const { container: previewContainer, onGenerateDragPreview } = useNativeDragPreview();
+  const { preview, onGenerateDragPreview } = useNativeDragPreview(
+    () => sortable.renderDragPreview(value) ?? <DragPreview label={label} />,
+  );
   const composedRef = useComposedRefs(ref, setElement);
   const labelRef = useLatestRef(label);
 
@@ -409,11 +407,7 @@ function Item({
             style={indicatorStyle}
           />
         )}
-        {previewContainer &&
-          createPortal(
-            sortable.renderDragPreview(value) ?? <DragPreview label={label} />,
-            previewContainer,
-          )}
+        {preview}
       </StyledItem>
     </SortableItemContext.Provider>
   );

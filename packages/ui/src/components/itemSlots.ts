@@ -1,14 +1,15 @@
 import { type ReactNode, useId } from "react";
 
-const isShown = (node: ReactNode) => node != null && node !== false && node !== "";
+export const isRenderable = (node: ReactNode) =>
+  node != null && typeof node !== "boolean" && node !== "";
 
 export function useItemSlotIds(
   { hint, description }: { hint?: ReactNode; description?: ReactNode },
   describedBy: string | undefined,
 ) {
   const id = useId();
-  const hintId = isShown(hint) ? `${id}hint` : undefined;
-  const descriptionId = isShown(description) ? `${id}description` : undefined;
+  const hintId = isRenderable(hint) ? `${id}hint` : undefined;
+  const descriptionId = isRenderable(description) ? `${id}description` : undefined;
 
   return {
     hintId,

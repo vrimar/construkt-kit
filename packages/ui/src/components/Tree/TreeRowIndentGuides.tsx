@@ -9,7 +9,6 @@ export const TreeRowIndentGuides = ({ indexPath }: { indexPath: number[] }) =>
       <FlatIndentGuide
         key={index}
         aria-hidden="true"
-        data-virtualized="true"
         style={style}
       />
     );

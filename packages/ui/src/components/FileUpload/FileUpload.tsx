@@ -1,3 +1,4 @@
+import { ark } from "@ark-ui/react/factory";
 import {
   FileUpload as ArkFileUpload,
   FileUploadContext,
@@ -10,7 +11,6 @@ import { type HTMLStyledProps, Stack, createSlotRecipeContext } from "#styled-sy
 import { fileUpload } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
-import { Span } from "../Span";
 
 const { withProvider, withContext } = createSlotRecipeContext(fileUpload);
 
@@ -36,6 +36,7 @@ const ItemPreviewImage = withContext(ArkFileUpload.ItemPreviewImage, "itemPrevie
 const ItemSizeText = withContext(ArkFileUpload.ItemSizeText, "itemSizeText");
 const Label = withContext(ArkFileUpload.Label, "label");
 const Trigger = withContext(ArkFileUpload.Trigger, "trigger");
+const StyledFileText = withContext(ark.span, "fileText");
 
 interface ItemsBaseProps {
   showSize?: boolean | undefined;
@@ -94,7 +95,7 @@ function FileText({
   }, [acceptedFiles, fallback]);
 
   return (
-    <Span
+    <StyledFileText
       ref={ref}
       data-placeholder={fileText === fallback ? "" : undefined}
       data-scope="file-upload"
@@ -102,7 +103,7 @@ function FileText({
       {...rest}
     >
       {fileText}
-    </Span>
+    </StyledFileText>
   );
 }
 
@@ -128,4 +129,8 @@ export const FileUpload = {
   Context: FileUploadContext,
 };
 
-export { useFileUpload } from "@ark-ui/react/file-upload";
+export {
+  type UseFileUploadProps,
+  type UseFileUploadReturn,
+  useFileUpload,
+} from "@ark-ui/react/file-upload";

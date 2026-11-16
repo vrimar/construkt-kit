@@ -1,4 +1,5 @@
-import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
+import type { SortDirection } from "@tanstack/react-table";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, type LucideProps } from "lucide-react";
 
 import { styled } from "#styled-system/jsx";
 
@@ -13,6 +14,11 @@ export const columnSorterGutter = iconSize + iconGap;
 
 const sortIcons = { asc: ArrowUpIcon, desc: ArrowDownIcon };
 
+export const SortIcon = ({ sort, ...props }: LucideProps & { sort: SortDirection | false }) => {
+  const Icon = sort ? sortIcons[sort] : ArrowUpDownIcon;
+  return <Icon {...props} />;
+};
+
 interface ColumnSorterProps<TData extends object> {
   header: DataTableHeader<TData>;
 }
@@ -23,8 +29,6 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
   const sort = column.getIsSorted();
 
   if (!column.getCanSort()) return null;
-
-  const SortIcon = sort ? sortIcons[sort] : ArrowUpDownIcon;
 
   const handleSort = () => {
     if (!sort) column.toggleSorting(false); // unsorted → asc
@@ -54,7 +58,10 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
         _hover: { color: "colorPalette.fg" },
       }}
     >
-      <SortIcon size={iconSize} />
+      <SortIcon
+        sort={sort}
+        size={iconSize}
+      />
     </styled.button>
   );
 };

@@ -52,8 +52,7 @@ function walk(dir, out = []) {
 const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/i;
 
 function packageNameOf(specifier) {
-  if (specifier.startsWith(".") || specifier.startsWith("/") || specifier.startsWith("@/"))
-    return null;
+  if (specifier.startsWith(".") || specifier.startsWith("/")) return null;
   if (specifier.startsWith("node:")) return null;
   const parts = specifier.split("/");
   const name = specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];

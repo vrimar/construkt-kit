@@ -1,15 +1,16 @@
 import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/pointer-outside-of-preview";
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/utils/set-custom-native-drag-preview";
-import { useCallback, useState } from "react";
-import { flushSync } from "react-dom";
+import { type ReactNode, useCallback, useState } from "react";
+import { createPortal, flushSync } from "react-dom";
 
 type NativeSetDragImage = Parameters<typeof setCustomNativeDragPreview>[0]["nativeSetDragImage"];
 
 /**
  * A custom native drag image for a pragmatic-drag-and-drop `draggable`: pass
- * `onGenerateDragPreview` to it and portal the preview into `container` while it is set.
+ * `onGenerateDragPreview` to it and render `preview`, which portals `render()` into the drag image
+ * while one is being generated.
  */
-export function useNativeDragPreview() {
+export function useNativeDragPreview(render: () => ReactNode) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   const onGenerateDragPreview = useCallback(
@@ -28,5 +29,5 @@ export function useNativeDragPreview() {
     [],
   );
 
-  return { container, onGenerateDragPreview };
+  return { preview: container ? createPortal(render(), container) : null, onGenerateDragPreview };
 }

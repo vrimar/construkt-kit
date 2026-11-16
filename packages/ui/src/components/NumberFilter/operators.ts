@@ -1,4 +1,4 @@
-import type { NumberFilterOperator } from "@construkt-kit/utils";
+import type { NumberFilterOperator, NumberFilterValue } from "@construkt-kit/utils";
 
 export const operatorSymbols: Record<NumberFilterOperator, string> = {
   eq: "=",
@@ -17,3 +17,9 @@ export const operatorLabels: Record<NumberFilterOperator, string> = {
   lte: "Less or equal",
   between: "Between",
 };
+
+/** A number filter as short text: its operator symbol and operand, or a range for `between`. */
+export const formatNumberFilter = (filter: NumberFilterValue): string =>
+  filter.operator === "between"
+    ? `${filter.value} – ${filter.to}`
+    : `${operatorSymbols[filter.operator]} ${filter.value}`;

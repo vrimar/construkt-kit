@@ -44,3 +44,9 @@ export const HoverCard = {
   Trigger,
   Context: HoverCardContext,
 };
+
+export {
+  type UseHoverCardProps,
+  type UseHoverCardReturn,
+  useHoverCard,
+} from "@ark-ui/react/hover-card";

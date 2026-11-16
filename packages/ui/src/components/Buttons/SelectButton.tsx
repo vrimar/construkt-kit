@@ -1,22 +1,22 @@
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { type ReactNode, useRef } from "react";
 
 import { HStack, splitCssProps } from "#styled-system/jsx";
-import { splitButton } from "#styled-system/recipes";
 
+import { isAriaExpanded } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import type { WithRef } from "../../types";
 import { Text } from "../Text";
-import { Tooltip } from "../Tooltip";
 import { Button, type ButtonProps } from "./Button";
-import { Group } from "./Group";
-import { IconButton } from "./IconButton";
+import { ClearButton } from "./ClearButton";
+import { SplitButton } from "./SplitButton";
+import { TruncatedLabel } from "./TruncatedLabel";
 
 export interface SelectButtonProps extends ButtonProps {
   sublabel?: ReactNode;
   hasValue: boolean;
   label: ReactNode;
-  /** Shows the set look: a tinted background and border with colored text. */
+  /** Shows the set look: a tinted background and border with colored text. It overrides `variant`. */
   active?: boolean;
   /** Shows a clear button beside the value. */
   onClear?: () => void;
@@ -36,8 +36,6 @@ export const SelectButton = ({
 }: WithRef<SelectButtonProps, HTMLButtonElement>) => {
   const mainRef = useRef<HTMLButtonElement>(null);
   const composedRef = useComposedRefs(ref, mainRef);
-  const expanded = props["aria-expanded"] === true || props["aria-expanded"] === "true";
-  const look = active ? "subtle" : "surface";
   const palette = active ? "brand" : "neutral";
 
   const content = (
@@ -54,38 +52,33 @@ export const SelectButton = ({
           {sublabel}
         </Text>
       )}
-      <Tooltip
-        label={label}
-        showWhenTruncated
-        disabled={expanded}
+      <TruncatedLabel
+        expanded={isAriaExpanded(props["aria-expanded"])}
+        flex="1"
+        textAlign="left"
+        color={hasValue ? undefined : "fg.subtle"}
       >
-        <Text
-          as="span"
-          truncate
-          flex="1"
-          textAlign="left"
-          color={hasValue ? undefined : "fg.subtle"}
-        >
-          {label}
-        </Text>
-      </Tooltip>
+        {label}
+      </TruncatedLabel>
       {!onClear && <ChevronDownIcon />}
     </HStack>
   );
 
   // One tree whether or not `onClear` is set, so adding the clear button never remounts the focused one.
-  const [{ colorPalette = palette, ...wrapperProps }, buttonProps] = splitCssProps(props);
-  const variant = buttonProps.variant ?? look;
+  const [
+    { colorPalette = palette, ...wrapperProps },
+    { variant: inactiveVariant = "surface", ...buttonProps },
+  ] = splitCssProps(props);
+  const variant = active ? "subtle" : inactiveVariant;
 
   return (
-    <Group
-      attached
-      className={splitButton({ variant: active ? "surface" : variant })}
+    <SplitButton.Root
+      variant={active ? "surface" : variant}
       {...wrapperProps}
     >
       <Button
         ref={composedRef}
-        variant={look}
+        variant={variant}
         colorPalette={colorPalette}
         borderWidth={active ? "1px" : undefined}
         borderColor={active ? "colorPalette.subtle.border" : undefined}
@@ -97,7 +90,7 @@ export const SelectButton = ({
         {content}
       </Button>
       {onClear && (
-        <IconButton
+        <ClearButton
           variant={variant}
           colorPalette={colorPalette}
           borderWidth={active ? "1px" : undefined}
@@ -105,17 +98,10 @@ export const SelectButton = ({
           size={buttonProps.size}
           disabled={buttonProps.disabled}
           aria-label={clearLabel}
-          onClick={(event) => {
-            const clearButton = event.currentTarget;
-            onClear();
-            requestAnimationFrame(() => {
-              if (!clearButton.isConnected) mainRef.current?.focus();
-            });
-          }}
-        >
-          <XIcon />
-        </IconButton>
+          field={() => mainRef.current}
+          onClick={onClear}
+        />
       )}
-    </Group>
+    </SplitButton.Root>
   );
 };

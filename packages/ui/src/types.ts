@@ -1,6 +1,5 @@
 import type { InputHTMLAttributes, Ref, RefObject } from "react";
 
-import type { HTMLStyledProps } from "#styled-system/jsx";
 import type {
   DataAttrs,
   DistributiveOmit,
@@ -22,15 +21,15 @@ export type Unstyled<P, Keep extends PropertyKey = "colorPalette"> = Distributiv
 > &
   DataAttrs;
 
-/**
- * Styled `div` props for an Ark root whose own props are `Base`, without the keys `Base` defines.
- * Ark's `RootComponent<P>` lets `P` win, so a DOM `onSelect` or `defaultValue` left in `P`
- * would replace the root's own.
- */
-export type StyledRootProps<Base> = Omit<HTMLStyledProps<"div">, keyof Base>;
-
 /** Props forwarded to a form control's hidden native `<input>`, such as `inputProps`. */
 export type HiddenInputProps = Unstyled<InputHTMLAttributes<HTMLInputElement>>;
+
+/** Props of a control built on a hidden native `<input>`, whose own `ref` reaches that input. */
+export interface HiddenInputControlProps {
+  inputProps?: HiddenInputProps;
+  /** Ref to the control's root `<label>`. */
+  rootRef?: Ref<HTMLLabelElement>;
+}
 
 /** Convenience type for components that accept a forwarded ref.
  *  Defaults to HTMLDivElement when no element type is specified.

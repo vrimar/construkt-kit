@@ -90,3 +90,5 @@ export const Editable = {
   SubmitTrigger,
   Context: EditableContext,
 };
+
+export { type UseEditableProps, type UseEditableReturn, useEditable } from "@ark-ui/react/editable";

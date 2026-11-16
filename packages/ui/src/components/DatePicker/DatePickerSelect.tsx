@@ -1,12 +1,15 @@
 import { type DateValue, useDatePickerContext } from "@ark-ui/react/date-picker";
 import type { JSX } from "react";
 
-import { CloseButton, SelectButton, type SelectButtonProps } from "../Buttons";
+import { SelectButton, type SelectButtonProps } from "../Buttons";
 import { DatePickerBase } from "./DatePicker";
 import { getDisplayLabel } from "./format";
 import type { CalendarMode, DatePickerSelectProps } from "./types";
 
-interface DatePickerSelectTriggerProps extends Omit<SelectButtonProps, "hasValue" | "label"> {
+interface DatePickerSelectTriggerProps extends Omit<
+  SelectButtonProps,
+  "hasValue" | "label" | "onClear"
+> {
   placeholder?: string;
   formatValue?: (value: DateValue) => string;
 }
@@ -16,28 +19,16 @@ function DatePickerSelectTrigger({
   formatValue,
   ...props
 }: DatePickerSelectTriggerProps) {
-  const { value, selectionMode } = useDatePickerContext();
+  const datePicker = useDatePickerContext();
+  const hasValue = datePicker.value.length > 0;
 
   return (
     <SelectButton
       width="100%"
       {...props}
-      hasValue={value.length > 0}
-      label={getDisplayLabel(value, selectionMode, placeholder, formatValue)}
-    />
-  );
-}
-
-function DatePickerSelectClear({ label }: { label: string }) {
-  const datePicker = useDatePickerContext();
-  if (datePicker.value.length === 0) return null;
-
-  return (
-    <CloseButton
-      aria-label={label}
-      disabled={datePicker.disabled || datePicker.readOnly}
-      onClick={() => datePicker.clearValue()}
-      size="sm"
+      hasValue={hasValue}
+      label={getDisplayLabel(datePicker.value, datePicker.selectionMode, placeholder, formatValue)}
+      onClear={hasValue && !datePicker.readOnly ? () => datePicker.clearValue() : undefined}
     />
   );
 }
@@ -55,9 +46,9 @@ const DatePickerSelectBase = ({
         formatValue={props.formatValue}
         size={size}
         variant={variant}
+        clearLabel={props.clearLabel ?? "Clear date"}
       />
     }
-    triggerEndElement={<DatePickerSelectClear label={props.clearLabel ?? "Clear date"} />}
   />
 );
 

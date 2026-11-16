@@ -4,8 +4,13 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { HStack } from "#styled-system/jsx";
 
 import { Button, IconButton } from "../Buttons";
-import { Text } from "../Text";
 import * as Parts from "./parts";
+
+const viewTrigger = (text: string) => (
+  <Parts.ViewTrigger asChild>
+    <Button fontWeight="bold">{text}</Button>
+  </Parts.ViewTrigger>
+);
 
 export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
   const datePicker = useDatePickerContext();
@@ -14,43 +19,17 @@ export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
     <Parts.ViewControl>
       <HStack>
         <Parts.PrevTrigger asChild>
-          <IconButton
-            size="xs"
-            variant="plain"
-            colorPalette="neutral"
-          >
+          <IconButton>
             <ChevronLeftIcon />
           </IconButton>
         </Parts.PrevTrigger>
-        <Parts.ViewTrigger asChild>
-          <Button
-            size="xs"
-            variant="plain"
-            colorPalette="neutral"
-          >
-            <Text fontWeight="bold">{datePicker.visibleRangeText.start}</Text>
-          </Button>
-        </Parts.ViewTrigger>
+        {viewTrigger(datePicker.visibleRangeText.start)}
       </HStack>
 
-      {endLabel && (
-        <Parts.ViewTrigger asChild>
-          <Button
-            size="xs"
-            variant="plain"
-            colorPalette="neutral"
-          >
-            <Text fontWeight="bold">{datePicker.visibleRangeText.end}</Text>
-          </Button>
-        </Parts.ViewTrigger>
-      )}
+      {endLabel && viewTrigger(datePicker.visibleRangeText.end)}
 
       <Parts.NextTrigger asChild>
-        <IconButton
-          size="xs"
-          variant="plain"
-          colorPalette="neutral"
-        >
+        <IconButton>
           <ChevronRightIcon />
         </IconButton>
       </Parts.NextTrigger>
@@ -78,13 +57,7 @@ export const DatePickerGridView = ({ view }: { view: "month" | "year" }) => {
                   value={cell.value}
                 >
                   <Parts.TableCellTrigger asChild>
-                    <Button
-                      size="xs"
-                      variant="plain"
-                      colorPalette="neutral"
-                    >
-                      {cell.label}
-                    </Button>
+                    <Button>{cell.label}</Button>
                   </Parts.TableCellTrigger>
                 </Parts.TableCell>
               ))}

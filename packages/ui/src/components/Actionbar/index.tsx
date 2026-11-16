@@ -1,20 +1,20 @@
 import { ark } from "@ark-ui/react/factory";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { usePresenceContext } from "@ark-ui/react/presence";
-import { type ComponentProps, type ComponentType, createContext, useContext } from "react";
+import { type ComponentProps, createContext, useContext } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { actionbar } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
-import { Popover } from "../Popover";
+import { lazyOverlayDefaults } from "../overlayDefaults";
 import { createPortalledContent } from "../portalledContent";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(actionbar);
 
-const StyledRoot = withRootProvider(Popover.Root, {
-  defaultProps: { closeOnInteractOutside: false, autoFocus: false },
+const StyledRoot = withRootProvider(ArkPopover.Root, {
+  defaultProps: { ...lazyOverlayDefaults, closeOnInteractOutside: false, autoFocus: false },
 });
 const StyledPositioner = withContext(ark.div, "positioner");
 const Content = withContext(ArkPopover.Content, "content", {
@@ -47,12 +47,10 @@ export interface ActionBarRootProps extends Omit<
   placement?: ActionBarPlacement | undefined;
 }
 
-const PlacedRoot = StyledRoot as ComponentType<ActionBarRootProps>;
-
 function Root({ placement = "bottom", ...props }: ActionBarRootProps) {
   return (
     <PlacementContext.Provider value={placement}>
-      <PlacedRoot
+      <StyledRoot
         placement={placement}
         {...props}
       />

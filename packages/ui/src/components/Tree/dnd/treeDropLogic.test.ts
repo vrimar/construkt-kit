@@ -1,11 +1,10 @@
 import type { TreeCollection } from "@ark-ui/react/tree-view";
 import { describe, expect, it } from "vitest";
 
-import { createTestTree, type TestNode } from "../tree.fixtures";
+import { childIdsOf, createTestTree, type TestNode } from "../tree.fixtures";
 import {
   applyTreeDrop,
   getItemMode,
-  isDescendantValue,
   isLastChildOfParent,
   moveNodeByKeyboard,
   type TreeDropInstruction,
@@ -33,14 +32,6 @@ const makeCollection = () =>
     { id: "c", label: "c" },
   ]);
 
-const childIds = (collection: TreeCollection<TestNode> | null, parentValue: string) => {
-  if (!collection) throw new Error("expected a reordered collection");
-  const parent = parentValue === "root" ? collection.rootNode : collection.findNode(parentValue);
-  return collection
-    .getNodeChildren(parent as TestNode)
-    .map((node) => collection.getNodeValue(node));
-};
-
 const indexPathOf = (collection: TreeCollection<TestNode>, value: string) => {
   const path = collection.getIndexPath(value);
   if (!path) throw new Error(`no index path for ${value}`);
@@ -66,7 +57,7 @@ describe("applyTreeDrop", () => {
       instruction: instruction({ type: "reorder-below" }),
     });
     expect(next).not.toBeNull();
-    expect(childIds(next, "a")).toEqual(["a2", "a1", "a3"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2", "a1", "a3"]);
   });
 
   it("reorders a node above a sibling in the same parent", () => {
@@ -75,7 +66,7 @@ describe("applyTreeDrop", () => {
       targetValue: "a1",
       instruction: instruction({ type: "reorder-above" }),
     });
-    expect(childIds(next, "a")).toEqual(["a3", "a1", "a2"]);
+    expect(childIdsOf(next, "a")).toEqual(["a3", "a1", "a2"]);
   });
 
   it("moves a node into a branch as its first child (make-child)", () => {
@@ -84,8 +75,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b",
       instruction: instruction({ type: "make-child" }),
     });
-    expect(childIds(next, "root")).toEqual(["a", "b"]);
-    expect(childIds(next, "b")).toEqual(["c", "b1", "b2"]);
+    expect(childIdsOf(next)).toEqual(["a", "b"]);
+    expect(childIdsOf(next, "b")).toEqual(["c", "b1", "b2"]);
   });
 
   it("reparents a node to a shallower ancestor level", () => {
@@ -95,8 +86,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b2",
       instruction: instruction({ type: "reparent", desiredLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["a", "b", "a1", "c"]);
-    expect(childIds(next, "a")).toEqual(["a2", "a3"]);
+    expect(childIdsOf(next)).toEqual(["a", "b", "a1", "c"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2", "a3"]);
   });
 
   it("moves multiple nodes together (multi-drag)", () => {
@@ -105,8 +96,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b1",
       instruction: instruction({ type: "reorder-above" }),
     });
-    expect(childIds(next, "a")).toEqual(["a2"]);
-    expect(childIds(next, "b")).toEqual(["a1", "a3", "b1", "b2"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2"]);
+    expect(childIdsOf(next, "b")).toEqual(["a1", "a3", "b1", "b2"]);
   });
 
   it("moves a dragged descendant once, inside its dragged ancestor", () => {
@@ -115,8 +106,8 @@ describe("applyTreeDrop", () => {
       targetValue: "c",
       instruction: instruction({ type: "reorder-below", currentLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["b", "c", "a"]);
-    expect(childIds(next, "a")).toEqual(["a1", "a2", "a3"]);
+    expect(childIdsOf(next)).toEqual(["b", "c", "a"]);
+    expect(childIdsOf(next, "a")).toEqual(["a1", "a2", "a3"]);
     expect(allValues(next).filter((value) => value === "a1")).toHaveLength(1);
   });
 
@@ -126,8 +117,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b1",
       instruction: instruction({ type: "reorder-above" }),
     });
-    expect(childIds(next, "a")).toEqual(["a2", "a3"]);
-    expect(childIds(next, "b")).toEqual(["a1", "b1", "b2"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2", "a3"]);
+    expect(childIdsOf(next, "b")).toEqual(["a1", "b1", "b2"]);
   });
 
   it("rejects a multi-drag when the target is inside one dragged subtree", () => {
@@ -146,8 +137,8 @@ describe("applyTreeDrop", () => {
       targetValue: "a",
       instruction: instruction({ type: "reorder-below", currentLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["a", "a1", "b", "c"]);
-    expect(childIds(next, "a")).toEqual(["a2", "a3"]);
+    expect(childIdsOf(next)).toEqual(["a", "a1", "b", "c"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2", "a3"]);
   });
 
   it("rejects make-child onto a leaf (never turns a leaf into a branch)", () => {
@@ -195,7 +186,7 @@ describe("applyTreeDrop", () => {
       targetValue: "D",
       instruction: instruction({ type: "reorder-above", currentLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["B", "A", "C", "D", "E"]);
+    expect(childIdsOf(next)).toEqual(["B", "A", "C", "D", "E"]);
   });
 
   it("multi-drags non-adjacent siblings below a later sibling", () => {
@@ -204,7 +195,7 @@ describe("applyTreeDrop", () => {
       targetValue: "D",
       instruction: instruction({ type: "reorder-below", currentLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["B", "D", "A", "C", "E"]);
+    expect(childIdsOf(next)).toEqual(["B", "D", "A", "C", "E"]);
   });
 
   it("returns null for a multi-drag that leaves the order unchanged", () => {
@@ -222,7 +213,7 @@ describe("applyTreeDrop", () => {
       targetValue: "A",
       instruction: instruction({ type: "reorder-above", currentLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["B", "E", "A", "C", "D"]);
+    expect(childIdsOf(next)).toEqual(["B", "E", "A", "C", "D"]);
   });
 
   it("multi-drags across parents into a sibling list that holds one of them", () => {
@@ -231,8 +222,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b1",
       instruction: instruction({ type: "reorder-below" }),
     });
-    expect(childIds(next, "a")).toEqual(["a2"]);
-    expect(childIds(next, "b")).toEqual(["b1", "a1", "a3", "b2"]);
+    expect(childIdsOf(next, "a")).toEqual(["a2"]);
+    expect(childIdsOf(next, "b")).toEqual(["b1", "a1", "a3", "b2"]);
   });
 
   it("reparents a multi-drag after an ancestor whose earlier siblings move too", () => {
@@ -241,8 +232,8 @@ describe("applyTreeDrop", () => {
       targetValue: "b2",
       instruction: instruction({ type: "reparent", desiredLevel: 0 }),
     });
-    expect(childIds(next, "root")).toEqual(["b", "a", "b1", "c"]);
-    expect(childIds(next, "b")).toEqual(["b2"]);
+    expect(childIdsOf(next)).toEqual(["b", "a", "b1", "c"]);
+    expect(childIdsOf(next, "b")).toEqual(["b2"]);
   });
 
   describe("make-child into a lazy branch", () => {
@@ -266,7 +257,7 @@ describe("applyTreeDrop", () => {
 
     it("accepts it once the branch is known to be loaded", () => {
       expect(
-        childIds(
+        childIdsOf(
           nest("unloaded", (value) => value === "unloaded"),
           "unloaded",
         ),
@@ -274,7 +265,7 @@ describe("applyTreeDrop", () => {
     });
 
     it("accepts a branch whose childrenCount says it is empty", () => {
-      expect(childIds(nest("empty"), "empty")).toEqual(["c"]);
+      expect(childIdsOf(nest("empty"), "empty")).toEqual(["c"]);
     });
   });
 });
@@ -305,27 +296,17 @@ describe("isLastChildOfParent", () => {
   });
 });
 
-describe("isDescendantValue", () => {
-  it("is true only for nodes strictly inside the ancestor's subtree", () => {
-    const c = makeCollection();
-    expect(isDescendantValue(c, "a", "a2")).toBe(true); // child
-    expect(isDescendantValue(c, "a2", "a")).toBe(false); // ancestor, not descendant
-    expect(isDescendantValue(c, "a", "b")).toBe(false); // unrelated
-    expect(isDescendantValue(c, "a", "a")).toBe(false); // self
-  });
-});
-
 describe("moveNodeByKeyboard", () => {
   it("moves a node up among its siblings", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a2", "up");
-    expect(childIds(result?.next ?? null, "a")).toEqual(["a2", "a1", "a3"]);
+    expect(childIdsOf(result?.next, "a")).toEqual(["a2", "a1", "a3"]);
     expect(result?.targetValue).toBe("a1");
     expect(result?.instruction.type).toBe("reorder-above");
   });
 
   it("moves a node down among its siblings", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a2", "down");
-    expect(childIds(result?.next ?? null, "a")).toEqual(["a1", "a3", "a2"]);
+    expect(childIdsOf(result?.next, "a")).toEqual(["a1", "a3", "a2"]);
     expect(result?.targetValue).toBe("a3");
   });
 
@@ -336,8 +317,8 @@ describe("moveNodeByKeyboard", () => {
 
   it("indents a node to the first child of the previous sibling branch, as a pointer drop does", () => {
     const result = moveNodeByKeyboard(makeCollection(), "b", "indent");
-    expect(childIds(result?.next ?? null, "root")).toEqual(["a", "c"]);
-    expect(childIds(result?.next ?? null, "a")).toEqual(["b", "a1", "a2", "a3"]);
+    expect(childIdsOf(result?.next)).toEqual(["a", "c"]);
+    expect(childIdsOf(result?.next, "a")).toEqual(["b", "a1", "a2", "a3"]);
     expect(result?.targetValue).toBe("a");
     expect(result?.instruction).toEqual({ type: "make-child", currentLevel: 0 });
   });
@@ -348,8 +329,8 @@ describe("moveNodeByKeyboard", () => {
 
   it("outdents a node to become its parent's next sibling", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a1", "outdent");
-    expect(childIds(result?.next ?? null, "root")).toEqual(["a", "a1", "b", "c"]);
-    expect(childIds(result?.next ?? null, "a")).toEqual(["a2", "a3"]);
+    expect(childIdsOf(result?.next)).toEqual(["a", "a1", "b", "c"]);
+    expect(childIdsOf(result?.next, "a")).toEqual(["a2", "a3"]);
     expect(result?.targetValue).toBe("a");
     expect(result?.instruction.type).toBe("reparent");
   });

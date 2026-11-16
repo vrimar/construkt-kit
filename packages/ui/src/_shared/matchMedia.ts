@@ -1,18 +1,19 @@
-export const createMatchMedia =
-  (matches: boolean) =>
-  (query: string): MediaQueryList => ({
-    matches,
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  });
+import { onTestFinished, vi } from "vitest";
 
-export function createMatchMediaController(initial: (query: string) => boolean) {
-  let matcher = initial;
+import {
+  breakpointDownQuery,
+  breakpointPx,
+  breakpoints,
+  breakpointUpQuery,
+} from "../foundations/breakpoints";
+
+type MediaMatcher = (query: string) => boolean;
+
+const toMatcher = (matches: MediaMatcher | boolean): MediaMatcher =>
+  typeof matches === "boolean" ? () => matches : matches;
+
+export function createMatchMedia(initial: MediaMatcher | boolean) {
+  let matcher = toMatcher(initial);
   const listeners = new Set<() => void>();
 
   const matchMedia = (query: string) =>
@@ -31,11 +32,27 @@ export function createMatchMediaController(initial: (query: string) => boolean) 
 
   return {
     matchMedia,
-    setMatches(next: (query: string) => boolean) {
-      matcher = next;
+    setMatches(next: MediaMatcher | boolean) {
+      matcher = toMatcher(next);
       for (const listener of listeners) listener();
     },
   };
 }
 
-export const isBelowBreakpointQuery = (query: string) => query.includes("width <");
+export function mockMatchMedia(matches: MediaMatcher | boolean) {
+  const media = createMatchMedia(matches);
+  const spy = vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
+  onTestFinished(() => {
+    spy.mockRestore();
+  });
+  return media;
+}
+
+export const viewportWidth =
+  (px: number): MediaMatcher =>
+  (query) =>
+    breakpoints.some(
+      (bp) =>
+        (query === breakpointUpQuery(bp) && px >= breakpointPx(bp)) ||
+        (query === breakpointDownQuery(bp) && px < breakpointPx(bp)),
+    );

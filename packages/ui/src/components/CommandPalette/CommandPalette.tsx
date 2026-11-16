@@ -9,6 +9,7 @@ import {
   type RefObject,
   createContext,
   useContext,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -18,14 +19,18 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { commandPalette } from "#styled-system/recipes";
 
+import { isComposingEvent } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import type { StyledRootProps, WithRef } from "../../types";
+import type { WithRef } from "../../types";
 import { CloseButton } from "../Buttons";
+import { moveCaretOnHomeEnd } from "../Combobox/inputKeys";
 import { Dialog, type DialogRootProps } from "../Dialog";
 import { SearchHighlight } from "../Highlight";
-import { isComposingEvent } from "../imeComposition";
+import { useItemSlotIds } from "../itemSlots";
 import { Kbd } from "../Kbd";
+import type { StyledRootProps } from "../rootProps";
 
 /** A sub-page on the palette's stack. `label` is its token in the search field. */
 export interface CommandPalettePage {
@@ -93,7 +98,7 @@ const ItemBody = withContext(ark.span, "itemBody");
 const ItemText = withContext(ArkCombobox.ItemText, "itemText");
 const ItemDescription = withContext(ark.span, "itemDescription");
 const ItemMeta = withContext(ark.span, "itemMeta");
-const ItemIndicator = withContext(ark.span, "itemIndicator");
+const ItemIndicator = withContext(ArkCombobox.ItemIndicator, "itemIndicator");
 const Empty = withContext(ArkCombobox.Empty, "empty");
 
 const byDocumentOrder = (a: RegisteredItem, b: RegisteredItem) => {
@@ -266,18 +271,19 @@ function Root({
   children,
   ...dialogProps
 }: CommandPaletteRootProps) {
-  const [ownQuery, setOwnQuery] = useState(defaultQuery);
-  const [ownPages, setOwnPages] = useState(defaultPages);
-  const query = queryProp ?? ownQuery;
-  const pages = pagesProp ?? ownPages;
+  const [query, setQuery, resetQuery] = useControllableState({
+    value: queryProp,
+    defaultValue: defaultQuery,
+    onChange: onQueryChange,
+  });
+  const [pages, changePages, resetPages] = useControllableState({
+    value: pagesProp,
+    defaultValue: defaultPages,
+    onChange: onPagesChange,
+  });
 
-  const setQuery = (next: string) => {
-    setOwnQuery(next);
-    onQueryChange?.(next);
-  };
   const setPages = (next: CommandPalettePage[]) => {
-    setOwnPages(next);
-    onPagesChange?.(next);
+    changePages(next);
     if (query !== "") setQuery("");
   };
   const navigation: Navigation = {
@@ -302,8 +308,8 @@ function Root({
         navigation.closePage();
       }}
       onExitComplete={() => {
-        setOwnQuery(defaultQuery);
-        setOwnPages(defaultPages);
+        resetQuery();
+        resetPages();
         onExitComplete?.();
       }}
     >
@@ -342,16 +348,7 @@ function Input({
         {...props}
         onKeyDown={(event) => {
           onKeyDown?.(event);
-          const caretKey = event.key === "Home" || event.key === "End";
-          const modified = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
-          if (caretKey && !modified && !event.defaultPrevented) {
-            // zag's combobox moves the highlight on Home/End; preventing default is the only way to skip it.
-            event.preventDefault();
-            const input = event.currentTarget;
-            const caret = event.key === "Home" ? 0 : input.value.length;
-            input.setSelectionRange(caret, caret);
-            return;
-          }
+          moveCaretOnHomeEnd(event);
           const backOnePage =
             event.key === "Backspace" &&
             !isComposingEvent(event) &&
@@ -424,7 +421,7 @@ export interface CommandPaletteItemProps extends Omit<
   meta?: ReactNode;
   /** Keyboard shortcut shown at the end of the row. */
   shortcut?: string;
-  /** Marks the item as the current choice. */
+  /** Marks the item as the current choice. `false` keeps the check's space on the other choices. */
   checked?: boolean;
   /** Picking the item opens this sub-page, its token reading `label`, instead of closing. */
   opensPage?: string;
@@ -444,7 +441,7 @@ function Item({
   disabledReason,
   meta,
   shortcut,
-  checked = false,
+  checked,
   opensPage,
   onSelect,
   closeOnSelect = true,
@@ -457,39 +454,67 @@ function Item({
 
   // No deps: registering on every commit keeps keyboard order in step with keyed reorders.
   useLayoutEffect(() =>
-    register({ value, label, disabled, checked, node: nodeRef.current, action }),
+    register({
+      value,
+      label,
+      disabled,
+      checked: checked === true,
+      node: nodeRef.current,
+      action,
+    }),
   );
 
+  const textId = useId();
   const secondLine = disabled && disabledReason != null ? disabledReason : description;
+  const slots = useItemSlotIds({ description: secondLine, hint: meta }, props["aria-describedby"]);
+  const { hintId: shortcutId, describedBy } = useItemSlotIds({ hint: shortcut }, slots.describedBy);
 
   return (
     <StyledItem
       ref={composedRef}
+      aria-labelledby={props["aria-label"] === undefined ? textId : undefined}
       {...props}
+      aria-describedby={describedBy}
       item={{ value, label, disabled }}
       persistFocus
     >
       {icon != null && <ItemIcon>{icon}</ItemIcon>}
       <ItemBody>
-        <ItemText>
+        <ItemText id={textId}>
           <SearchHighlight
             text={label}
             query={query}
           />
         </ItemText>
-        {secondLine != null && <ItemDescription>{secondLine}</ItemDescription>}
+        {slots.descriptionId && (
+          <ItemDescription
+            id={slots.descriptionId}
+            aria-hidden
+          >
+            {secondLine}
+          </ItemDescription>
+        )}
       </ItemBody>
-      {meta != null && <ItemMeta>{meta}</ItemMeta>}
-      {shortcut != null && (
+      {slots.hintId && (
+        <ItemMeta
+          id={slots.hintId}
+          aria-hidden
+        >
+          {meta}
+        </ItemMeta>
+      )}
+      {shortcutId && (
         <Kbd
+          id={shortcutId}
+          aria-hidden
           size="sm"
           colorPalette="neutral"
         >
           {shortcut}
         </Kbd>
       )}
-      {checked && (
-        <ItemIndicator>
+      {checked != null && (
+        <ItemIndicator hidden={false}>
           <CheckIcon />
         </ItemIndicator>
       )}

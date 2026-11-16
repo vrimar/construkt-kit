@@ -136,12 +136,13 @@ describe("VirtualScrollArea", () => {
     expect(rowBox("Row 80").style.marginTop).toBe("1200px");
   });
 
-  it("positions a kept item absolutely when rows are not measured", () => {
+  it("keeps a kept item at its offset and size when rows are not measured", () => {
     mockLayout();
     renderRows({ keepMountedIndex: 80 });
 
     expect(screen.queryByText("Row 50")).toBeNull();
-    expect(rowBox("Row 80").style.transform).toBe("translateY(1600px)");
+    expect(rowBox("Row 80").style.marginTop).toBe("1200px");
+    expect(rowBox("Row 80").style.height).toBe("20px");
   });
 
   it("hands out a scrollToIndex function until unmount", () => {
@@ -172,14 +173,14 @@ describe("VirtualScrollArea", () => {
 
     expect(screen.getByText("Row 17")).toBeTruthy();
     expect(screen.queryByText("Row 18")).toBeNull();
-    expect(rowBox("Row 5").style.transform).toBe("translateY(100px)");
+    expect(listBelowHeader().style.paddingTop).toBe("0px");
 
     setHeaderHeight(120);
     resize(listBelowHeader().parentElement as HTMLElement);
 
     expect(screen.getByText("Row 13")).toBeTruthy();
     expect(screen.queryByText("Row 14")).toBeNull();
-    expect(rowBox("Row 5").style.transform).toBe("translateY(100px)");
+    expect(listBelowHeader().style.paddingTop).toBe("0px");
   });
 
   it("pads measured rows relative to the list below a header", () => {
@@ -224,7 +225,7 @@ describe("VirtualScrollArea", () => {
     });
     const viewportRef = createRef<HTMLDivElement>();
     const scrollToIndexRef = { current: undefined as ((index: number) => void) | undefined };
-    renderRows({ header: stickyHeader, scrollToIndexRef, viewportRef });
+    renderRows({ header: stickyHeader, scrollToIndexRef, ref: viewportRef });
 
     const scrollTop = vi.spyOn(Element.prototype, "scrollTop", "get").mockReturnValue(1900);
     onTestFinished(() => scrollTop.mockRestore());
@@ -237,10 +238,10 @@ describe("VirtualScrollArea", () => {
   it("re-lays out rows when a fixed itemHeight changes", () => {
     mockLayout();
     const { rerender } = renderRows();
-    expect(rowBox("Row 5").style.transform).toBe("translateY(100px)");
+    expect(rowBox("Row 5").style.height).toBe("20px");
 
     rerender({ itemHeight: 40 });
 
-    expect(rowBox("Row 5").style.transform).toBe("translateY(200px)");
+    expect(rowBox("Row 5").style.height).toBe("40px");
   });
 });

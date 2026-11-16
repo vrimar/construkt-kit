@@ -1,9 +1,10 @@
-import { type ReactNode, isValidElement } from "react";
+import type { ReactNode } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
-import { Button } from "../Buttons";
+import { renderFormActions } from "../formActions";
+import { isRenderable } from "../itemSlots";
+import { ActionPopoverRoot } from "./ActionPopoverRoot";
 import { Popover, type PopoverRootProps } from "./Popover";
-import { type ActionPopover, useActionPopover } from "./useActionPopover";
 
 export interface ConfirmPopoverProps extends Omit<PopoverRootProps, "children">, PortalledProps {
   /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
@@ -26,63 +27,6 @@ export interface ConfirmPopoverProps extends Omit<PopoverRootProps, "children">,
   loading?: boolean;
 }
 
-interface ConfirmContentProps extends PortalledProps {
-  title: ReactNode;
-  description: ReactNode;
-  onConfirm: () => unknown;
-  confirmLabel: string;
-  cancelLabel: string;
-  destructive: boolean;
-  action: ActionPopover;
-}
-
-function ConfirmContent({
-  ref,
-  title,
-  description,
-  onConfirm,
-  confirmLabel,
-  cancelLabel,
-  destructive,
-  action,
-  portalled,
-  portalRef,
-}: WithRef<ConfirmContentProps>) {
-  return (
-    <Popover.Content
-      ref={ref}
-      role="alertdialog"
-      width="72"
-      portalled={portalled}
-      portalRef={portalRef}
-    >
-      <Popover.Header gap="0.5">
-        <Popover.Title>{title}</Popover.Title>
-        {description && <Popover.Description>{description}</Popover.Description>}
-      </Popover.Header>
-      <Popover.Footer pt="var(--popover-padding)">
-        <Button
-          size="sm"
-          variant="plain"
-          disabled={action.busy}
-          onClick={action.cancel}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          size="sm"
-          colorPalette={destructive ? "danger" : "brand"}
-          loading={action.busy}
-          data-autofocus
-          onClick={() => action.run(onConfirm)}
-        >
-          {confirmLabel}
-        </Button>
-      </Popover.Footer>
-    </Popover.Content>
-  );
-}
-
 export const ConfirmPopover = ({
   ref,
   children,
@@ -93,33 +37,48 @@ export const ConfirmPopover = ({
   cancelLabel = "Cancel",
   destructive = false,
   loading,
-  open,
-  defaultOpen,
-  onOpenChange,
   portalled,
   portalRef,
   ...rest
-}: WithRef<ConfirmPopoverProps>) => {
-  const action = useActionPopover({ open, defaultOpen, onOpenChange }, loading);
+}: WithRef<ConfirmPopoverProps>) => (
+  <ActionPopoverRoot
+    {...rest}
+    trigger={children}
+    loading={loading}
+  >
+    {(action) => {
+      const { cancelButton, submitButton } = renderFormActions({
+        size: "sm",
+        onCancel: action.cancel,
+        cancelLabel,
+        submitLabel: confirmLabel,
+        loading: action.busy,
+        submitButtonProps: {
+          type: "button",
+          colorPalette: destructive ? "danger" : "brand",
+          "data-autofocus": true,
+          onClick: () => action.run(onConfirm),
+        },
+      });
 
-  return (
-    <Popover.Root
-      {...rest}
-      {...action.rootProps}
-    >
-      <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>
-      <ConfirmContent
-        ref={ref}
-        title={title}
-        description={description}
-        onConfirm={onConfirm}
-        confirmLabel={confirmLabel}
-        cancelLabel={cancelLabel}
-        destructive={destructive}
-        action={action}
-        portalled={portalled}
-        portalRef={portalRef}
-      />
-    </Popover.Root>
-  );
-};
+      return (
+        <Popover.Content
+          ref={ref}
+          role="alertdialog"
+          width="72"
+          portalled={portalled}
+          portalRef={portalRef}
+        >
+          <Popover.Header gap="0.5">
+            <Popover.Title>{title}</Popover.Title>
+            {isRenderable(description) && <Popover.Description>{description}</Popover.Description>}
+          </Popover.Header>
+          <Popover.Footer pt="var(--popover-padding)">
+            {cancelButton}
+            {submitButton}
+          </Popover.Footer>
+        </Popover.Content>
+      );
+    }}
+  </ActionPopoverRoot>
+);

@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 
 import { styled } from "#styled-system/jsx";
 
+import { isRtl } from "../../../foundations/dom";
 import { usePointerDrag } from "../../../hooks/usePointerDrag";
 import { MIN_RESIZED_COLUMN_WIDTH, columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
@@ -13,6 +14,7 @@ const KEYBOARD_STEP = 16;
 
 interface ColumnResizeHandleProps<TData extends object> {
   header: DataTableHeader<TData>;
+  resizeColumn: (columnId: string, width: number | undefined) => void;
 }
 
 interface ResizeDrag {
@@ -27,34 +29,34 @@ interface ResizeDrag {
 
 export const ColumnResizeHandle = <TData extends object>({
   header,
+  resizeColumn,
 }: ColumnResizeHandleProps<TData>) => {
-  const { columnSizing, resizeColumn, labels } = useDataTableContext<TData>();
+  const { columnSizing, gridRef, labels } = useDataTableContext<TData>();
   const { column } = header;
   const handleRef = useRef<HTMLSpanElement>(null);
   const [renderedWidth, setRenderedWidth] = useState<number>();
   const dragRef = useRef<ResizeDrag | null>(null);
-  const resizable = resizeColumn !== undefined;
 
   useLayoutEffect(() => {
     const cell = handleRef.current?.parentElement;
-    if (!resizable || !cell) return;
+    if (!cell) return;
     const observer = new ResizeObserver(([entry]) => {
       const inlineSize = entry?.borderBoxSize[0]?.inlineSize;
       if (inlineSize !== undefined) setRenderedWidth(Math.round(inlineSize));
     });
     observer.observe(cell);
     return () => observer.disconnect();
-  }, [resizable]);
+  }, []);
 
   const minWidth = column.columnDef.meta?.minWidth ?? MIN_RESIZED_COLUMN_WIDTH;
 
   const { onPointerDown } = usePointerDrag<HTMLSpanElement>({
+    claimPress: true,
+    activeAttribute: "data-resizing",
     onPress: (event) => {
-      event.preventDefault();
-      event.stopPropagation();
       const cell = event.currentTarget.parentElement;
-      const grid = event.currentTarget.closest<HTMLElement>("[role=table]");
-      if (!resizeColumn || !cell || !grid) return false;
+      const grid = gridRef.current;
+      if (!cell || !grid) return false;
       const startWidth = cell.offsetWidth;
       // clientX is in screen px, which a scaled ancestor makes differ from layout px.
       const screenWidth = cell.getBoundingClientRect().width;
@@ -63,12 +65,11 @@ export const ColumnResizeHandle = <TData extends object>({
         startWidth,
         floor: Math.min(minWidth, startWidth),
         pxPerScreenPx: screenWidth > 0 ? startWidth / screenWidth : 1,
-        direction: getComputedStyle(cell).direction === "rtl" ? -1 : 1,
+        direction: isRtl(cell) ? -1 : 1,
         committedTemplate: grid.style.getPropertyValue(columnTemplateVar),
         width: startWidth,
       };
     },
-    onStart: () => handleRef.current?.toggleAttribute("data-resizing", true),
     // The drag writes the template straight to the grid, so the table re-renders once, on release.
     onMove: ({ deltaX }) => {
       const drag = dragRef.current;
@@ -88,24 +89,21 @@ export const ColumnResizeHandle = <TData extends object>({
     onEnd: (_, { cancelled }) => {
       const drag = dragRef.current;
       dragRef.current = null;
-      handleRef.current?.toggleAttribute("data-resizing", false);
       if (!drag) return;
       // Back to what React last rendered, so a width the owner of `columnSizing` refuses doesn't stick.
       drag.grid.style.setProperty(columnTemplateVar, drag.committedTemplate);
       if (!cancelled && drag.width !== drag.startWidth) {
-        flushSync(() => resizeColumn?.(column.id, drag.width));
+        flushSync(() => resizeColumn(column.id, drag.width));
       }
     },
   });
-
-  if (!resizeColumn) return null;
 
   const currentWidth = columnSizing[column.id] ?? renderedWidth;
 
   const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     const cell = event.currentTarget.parentElement;
     if (!cell) return;
-    const rtl = getComputedStyle(cell).direction === "rtl";
+    const rtl = isRtl(cell);
     const width = cell.offsetWidth;
     const floor = Math.min(minWidth, width);
     const grow = rtl ? "ArrowLeft" : "ArrowRight";

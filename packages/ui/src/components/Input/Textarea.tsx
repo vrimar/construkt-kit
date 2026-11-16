@@ -4,7 +4,7 @@ import { type ComponentProps, type KeyboardEvent } from "react";
 import { styled } from "#styled-system/jsx";
 import { textarea } from "#styled-system/recipes";
 
-import { isComposingEvent } from "../imeComposition";
+import { isComposingEvent } from "../../foundations/dom";
 
 type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
 const BaseTextarea = styled(Field.Textarea, textarea);

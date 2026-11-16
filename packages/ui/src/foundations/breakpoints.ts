@@ -10,26 +10,26 @@ export type BreakpointOrBase = "base" | Breakpoint;
 /** A value that can vary per breakpoint. */
 export type ResponsiveValue<T> = T | Partial<Record<BreakpointOrBase, T>>;
 
-// Keyed by Breakpoint so a token added to the preset fails to compile until it is ordered here.
-const breakpointOrder = {
-  xs: 0,
-  sm: 1,
-  md: 2,
-  lg: 3,
-  xl: 4,
-  "2xl": 5,
-} satisfies Record<Breakpoint, number>;
-
-/** Non-base breakpoints, ascending. */
-export const breakpoints: readonly Breakpoint[] = (
-  Object.keys(breakpointOrder) as Breakpoint[]
-).sort((a, b) => breakpointOrder[a] - breakpointOrder[b]);
-
 /** Min-width of a breakpoint as a CSS length (e.g. "768px"), from the generated tokens. */
 export const breakpointMinWidth = (bp: Breakpoint): string => token(`breakpoints.${bp}`);
 
 /** Min-width (px, numeric) of a breakpoint, from the generated tokens. */
 export const breakpointPx = (bp: Breakpoint): number => Number.parseFloat(breakpointMinWidth(bp));
+
+// Keyed by Breakpoint so a token added to the preset fails to compile until it is listed here.
+const breakpointKeys = {
+  xs: true,
+  sm: true,
+  md: true,
+  lg: true,
+  xl: true,
+  "2xl": true,
+} satisfies Record<Breakpoint, true>;
+
+/** Non-base breakpoints, ascending. */
+export const breakpoints: readonly Breakpoint[] = (
+  Object.keys(breakpointKeys) as Breakpoint[]
+).sort((a, b) => breakpointPx(a) - breakpointPx(b));
 
 const breakpointRem = (bp: Breakpoint) => `${breakpointPx(bp) / 16}rem`;
 

@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
+import { setupUser, useFakeTime } from "../../_shared/fakeTime";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { Menu } from "./Menu";
 
 const openMenu = async () => {
@@ -31,23 +32,28 @@ describe("Menu", () => {
     expect(screen.getByRole("menuitem", { name: "Settings" }).parentElement).toBe(menu);
   });
 
-  it("returns focus to a context trigger after a keyboard-opened context menu closes", async () => {
-    render(
-      <Menu.Root>
-        <Menu.ContextTrigger>Row</Menu.ContextTrigger>
-        <Menu.Content>
-          <Menu.Item value="rename">Rename</Menu.Item>
-        </Menu.Content>
-      </Menu.Root>,
-    );
-    const trigger = screen.getByRole("button", { name: "Row" });
+  describe("as a context menu", () => {
+    useFakeTime();
 
-    trigger.focus();
-    await userEvent.pointer({ keys: "[MouseRight]", target: trigger });
-    await screen.findByRole("menu");
-    await userEvent.keyboard("{Escape}");
+    it("returns focus to its trigger after a keyboard-opened menu closes", async () => {
+      const user = setupUser();
+      render(
+        <Menu.Root>
+          <Menu.ContextTrigger>Row</Menu.ContextTrigger>
+          <Menu.Content>
+            <Menu.Item value="rename">Rename</Menu.Item>
+          </Menu.Content>
+        </Menu.Root>,
+      );
+      const trigger = screen.getByRole("button", { name: "Row" });
 
-    await waitFor(() => expect(document.activeElement).toBe(trigger));
+      trigger.focus();
+      await user.pointer({ keys: "[MouseRight]", target: trigger });
+      await screen.findByRole("menu");
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => expect(document.activeElement).toBe(trigger));
+    });
   });
 
   it("renders an asChild link as the menu item itself", async () => {
@@ -193,11 +199,7 @@ describe("Menu", () => {
     const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     const renderOnPhone = (ui: ReactNode) => {
-      const media = createMatchMediaController(isBelowBreakpointQuery);
-      vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
-      onTestFinished(() => {
-        vi.restoreAllMocks();
-      });
+      mockMatchMedia(viewportWidth(375));
       render(ui);
     };
 

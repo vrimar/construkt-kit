@@ -10,11 +10,10 @@ import {
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/utils/combine";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
+import { isRtl } from "../../../foundations/dom";
 import { useLatestRef } from "../../../hooks/useLatestRef";
-import { DragPreview } from "../../Sortable/DragPreview";
-import { useNativeDragPreview } from "../../Sortable/useNativeDragPreview";
+import { DragPreview, useNativeDragPreview } from "../../dnd";
 import {
   readTreeDragSource,
   readTreeDropInstruction,
@@ -25,7 +24,7 @@ import {
   canNestInto,
   getItemMode,
   instructionLevel,
-  isDescendantValue,
+  isDropTargetValid,
   isLastChildOfParent,
   type TreeDropInstruction,
   type TreeKeyboardMove,
@@ -86,8 +85,6 @@ function contentAlignedTarget(element: Element, baseInset: number): Element {
   return { getBoundingClientRect: () => rect } as unknown as Element;
 }
 
-const isRtl = (element: Element) => getComputedStyle(element).direction === "rtl";
-
 function mirrorForRtl<I extends { clientX: number }>(input: I, element: Element): I {
   if (!isRtl(element)) return input;
   const { left, right } = element.getBoundingClientRect();
@@ -118,16 +115,26 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [instruction, setInstruction] = useState<TreeDropInstruction | null>(null);
-  const { container: previewContainer, onGenerateDragPreview } = useNativeDragPreview();
 
   const value = nodeState.value;
+  const { preview: dragPreview, onGenerateDragPreview } = useNativeDragPreview(() => {
+    if (!dnd) return null;
+    return (
+      dnd.renderDragPreview(value) ?? (
+        <DragPreview
+          label={dnd.collectionRef.current.stringify(value) ?? ""}
+          count={dnd.getDragValues(value).length}
+        />
+      )
+    );
+  });
 
   const snapshotRef = useLatestRef(nodeState);
   const apiRef = useLatestRef(api);
   const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!element || !dnd || !dnd.enabled) return;
+    if (!element || !dnd || dnd.disabled) return;
     const {
       instanceId,
       collectionRef,
@@ -135,6 +142,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       autoExpandDelay,
       canDrag,
       canDrop,
+      isBranchLoaded,
       getDragValues,
       getExtraDragData,
     } = dnd;
@@ -156,7 +164,6 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       if (!drop) return;
       event.preventDefault();
       event.stopPropagation();
-      if (drop.instruction.type === "make-child") apiRef.current.expand([drop.targetValue]);
       requestAnimationFrame(() => {
         apiRef.current.focus(value);
         if (element.isConnected) element.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -182,11 +189,10 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
         element,
         canDrop: ({ source }) => {
           const sourceValue = readTreeDragSource(source.data, instanceId);
-          if (sourceValue === null) return false;
-          const dragValues = getDragValues(sourceValue);
-          if (dragValues.includes(value)) return false; // can't drop onto a dragged node
-          // No affordance for drops applyTreeDrop would reject (target inside a dragged subtree).
-          return !dragValues.some((dv) => isDescendantValue(collectionRef.current, dv, value));
+          return (
+            sourceValue !== null &&
+            isDropTargetValid(collectionRef.current, getDragValues(sourceValue), value)
+          );
         },
         getData: ({ input, element: el }) => {
           const { indexPath, isBranch, expanded } = snapshotRef.current;
@@ -198,7 +204,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           const block: Instruction["type"][] = [];
           if (blockReparent) block.push("reparent");
           const collection = collectionRef.current;
-          if (!canNestInto(collection, collection.at(indexPath), expanded)) {
+          if (!canNestInto(collection, collection.at(indexPath), isBranchLoaded(value))) {
             block.push("make-child");
           }
           const indent = readCssLengthPx(el, "--tree-indent", FALLBACK_INDENT_PER_LEVEL);
@@ -255,21 +261,8 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
     };
   }, [element, dnd, value, apiRef, snapshotRef, onGenerateDragPreview]);
 
-  const dragPreview =
-    previewContainer && dnd
-      ? createPortal(
-          dnd.renderDragPreview(value) ?? (
-            <DragPreview
-              label={dnd.collectionRef.current.stringify(value) ?? ""}
-              count={dnd.getDragValues(value).length}
-            />
-          ),
-          previewContainer,
-        )
-      : null;
-
   return {
-    ref: dnd?.enabled ? setElement : NOOP_REF,
+    ref: dnd && !dnd.disabled ? setElement : NOOP_REF,
     isDragging,
     instruction,
     dragPreview,

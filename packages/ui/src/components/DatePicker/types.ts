@@ -84,7 +84,6 @@ export type CalendarProps<M extends CalendarMode = "single"> = CalendarPropsByMo
 
 interface DatePickerExtraProps extends PortalledProps, JsxStyleProps, MobileLayoutProps {
   trigger?: ReactNode;
-  triggerEndElement?: ReactNode;
   placeholder?: string;
   formatValue?: (value: DateValue) => string;
   open?: boolean;
@@ -96,10 +95,7 @@ interface DatePickerExtraProps extends PortalledProps, JsxStyleProps, MobileLayo
 export type DatePickerProps<M extends CalendarMode = "single"> = CalendarProps<M> &
   DatePickerExtraProps;
 
-interface DatePickerSelectExtraProps extends Omit<
-  DatePickerExtraProps,
-  "trigger" | "triggerEndElement"
-> {
+interface DatePickerSelectExtraProps extends Omit<DatePickerExtraProps, "trigger"> {
   /** @default "sm" */
   size?: ButtonProps["size"];
   /** @default "plain" */

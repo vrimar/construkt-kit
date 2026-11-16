@@ -3,7 +3,7 @@ import {
   parseNumberFilter,
   serializeNumberFilter,
 } from "@construkt-kit/utils";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import { NumberFilter } from "../../../NumberFilter";
 import { useDataTableContext } from "../../context";
@@ -19,10 +19,6 @@ export const ColumnNumberFilter = ({
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
   const parsed = useMemo(() => parseNumberFilter(current), [current]);
-
-  useEffect(() => {
-    if (current && !parsed) onChange(undefined);
-  }, [current, parsed, onChange]);
 
   const handleValueChange = (filter: NumberFilterValue | undefined) =>
     onChange(filter ? [serializeNumberFilter(filter)] : undefined);

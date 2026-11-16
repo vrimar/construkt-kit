@@ -1,10 +1,4 @@
-import {
-  formatIsoDate,
-  matchesNumberFilter,
-  type NumberFilterValue,
-  parseDateRangeFilter,
-  parseNumberFilter,
-} from "@construkt-kit/utils";
+import { formatIsoDate, matchesNumberFilter, type NumberFilterValue } from "@construkt-kit/utils";
 import {
   constructFilterFn,
   constructSortFn,
@@ -12,12 +6,15 @@ import {
   sortFn_alphanumeric,
 } from "@tanstack/react-table";
 
+import { filterValues, selectItemLabel } from "./columns";
+import { filterKinds } from "./Header/Filters/filterKinds";
 import type { ColumnFilterType, DataTableColumnDef } from "./types";
 
-const filterValues = (value: unknown): string[] =>
-  (Array.isArray(value) ? value : [value])
-    .filter((item) => item !== null && item !== undefined && item !== "")
-    .map(String);
+const parseValues = <T>(value: unknown, parse: (raw: string) => T | undefined): T[] =>
+  filterValues(value).flatMap((raw) => {
+    const parsed = parse(raw);
+    return parsed === undefined ? [] : [parsed];
+  });
 
 const toText = (value: unknown, label: (item: string) => string = (item) => item): string =>
   Array.isArray(value)
@@ -43,13 +40,14 @@ const toIsoDay = (value: unknown) => {
 };
 
 const inputFilter = constructFilterFn({
-  resolveFilterValue: (value) => filterValues(value).map((text) => text.toLowerCase()),
+  resolveFilterValue: (value) =>
+    parseValues(value, filterKinds.input.parse).map((text) => text.toLowerCase()),
   filter: (cell, needles: string[]) =>
     needles.length === 0 || needles.some((needle) => toText(cell).toLowerCase().includes(needle)),
 });
 
 const selectFilter = constructFilterFn({
-  resolveFilterValue: (value) => new Set(filterValues(value)),
+  resolveFilterValue: (value) => new Set(parseValues(value, filterKinds.select.parse)),
   filter: (cell, selected: Set<string>) =>
     selected.size === 0 ||
     (Array.isArray(cell) ? cell : [cell]).some(
@@ -58,18 +56,14 @@ const selectFilter = constructFilterFn({
 });
 
 const numberFilter = constructFilterFn({
-  resolveFilterValue: (value) => filterValues(value).flatMap((raw) => parseNumberFilter(raw) ?? []),
+  resolveFilterValue: (value) => parseValues(value, filterKinds.number.parse),
   filter: (cell, filters: NumberFilterValue[]) =>
     filters.length === 0 ||
     (typeof cell === "number" && filters.some((filter) => matchesNumberFilter(cell, filter))),
 });
 
 const dateFilter = constructFilterFn({
-  resolveFilterValue: (value) =>
-    filterValues(value).flatMap((raw) => {
-      const range = parseDateRangeFilter(raw);
-      return range ? [range] : [];
-    }),
+  resolveFilterValue: (value) => parseValues(value, filterKinds.date.parse),
   filter: (cell, ranges: [start: string, end: string][]) => {
     if (ranges.length === 0) return true;
     const day = toIsoDay(cell);
@@ -84,7 +78,7 @@ export const dataTableFilterFns = {
   date: dateFilter,
 } satisfies Record<ColumnFilterType, FilterFn<any, any>>;
 
-const sortByLabel = (label?: (item: string) => string) =>
+const sortByLabel = (label: (item: string) => string) =>
   constructSortFn({
     ...sortFn_alphanumeric,
     resolveDataValue: (value) => toText(value, label).toLowerCase(),
@@ -97,15 +91,11 @@ export const withColumnDefaults = <TData extends object>(
     const type = def.meta?.type ?? "input";
     return {
       ...def,
+      meta: { ...def.meta, type },
       ...((def.filterFn === undefined || def.filterFn === "auto") && { filterFn: type }),
       ...(def.sortFn === undefined &&
-        type === "select" && { sortFn: sortByLabel(def.meta?.selectProps?.getItemLabel) }),
+        type === "select" && { sortFn: sortByLabel(selectItemLabel(def.meta)) }),
       ...(def.sortUndefined === undefined && { sortUndefined: "last" }),
       ...("columns" in def && def.columns && { columns: withColumnDefaults(def.columns) }),
     } as DataTableColumnDef<TData, any>;
   });
-
-const collator = new Intl.Collator(undefined, { numeric: true });
-
-export const facetOptions = (facets: Map<unknown, number>): string[] =>
-  [...new Set(filterValues([...facets.keys()].flat()))].sort(collator.compare);

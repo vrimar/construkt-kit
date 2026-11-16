@@ -2,8 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, type Mock, vi } from "vitest";
 
-import { Listbox } from ".";
-import { ApplySelect, Select, TagSelect } from "../Select";
+import { ApplySelect, Select, TagSelect } from ".";
+import { Listbox } from "../Listbox";
 import {
   encodedValues,
   groupLabels,
@@ -11,9 +11,9 @@ import {
   optionValues,
   type Produce,
   produceProps,
-} from "./selection.fixtures";
-import type { ManagedListOptions, ManagedSelectionProps } from "./types";
-import { encodeSelectionValue } from "./useSelectionController";
+} from "../Listbox/selection.fixtures";
+import type { ManagedListOptions, ManagedSelectionProps, SelectionMode } from "../Listbox/types";
+import { encodeSelectionValue } from "../Listbox/useSelectionController";
 
 interface ContractProps
   extends
@@ -29,7 +29,7 @@ interface Handlers {
 
 interface SelectionWrapper {
   name: string;
-  mode: "single" | "multiple";
+  mode: SelectionMode;
   closesOnPick: boolean;
   mount: (props: ContractProps, handlers: Handlers) => void;
   commit?: () => Promise<void>;

@@ -111,7 +111,7 @@ describe("ActionBar", () => {
     await waitFor(() => expect(screen.queryByText("2 selected")).toBeNull());
 
     await user.click(toggle);
-    await user.click(await screen.findByRole("button", { name: "close" }));
+    await user.click(await screen.findByRole("button", { name: "Close" }));
     await waitFor(() => expect(screen.queryByText("2 selected")).toBeNull());
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
   });

@@ -1,3 +1,4 @@
+import { ark } from "@ark-ui/react/factory";
 import {
   RatingGroup as ArkRatingGroup,
   RatingGroupContext,
@@ -25,7 +26,7 @@ interface ItemIndicatorProps extends HTMLStyledProps<"span"> {
   icon?: ReactElement | undefined;
 }
 
-const StyledItemIndicator = withContext("span", "itemIndicator");
+const StyledItemIndicator = withContext(ark.span, "itemIndicator");
 
 const cloneIcon = (icon: ReactElement, type: string) => {
   if (!isValidElement(icon)) return null;
@@ -91,3 +92,9 @@ export const RatingGroup = {
   Context: RatingGroupContext,
   ItemContext: RatingGroupItemContext,
 };
+
+export {
+  type UseRatingGroupProps,
+  type UseRatingGroupReturn,
+  useRatingGroup,
+} from "@ark-ui/react/rating-group";

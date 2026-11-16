@@ -1,11 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
 import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
-import type { ComponentProps, ElementType, ReactNode, Ref } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
-import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { switchRecipe } from "#styled-system/recipes";
 
-import type { HiddenInputProps, WithRef } from "../../types";
+import type { HiddenInputControlProps, WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(switchRecipe);
 
@@ -15,34 +15,30 @@ const Label = withContext(ArkSwitch.Label, "label");
 const Thumb = withContext(ArkSwitch.Thumb, "thumb");
 const HiddenInput = ArkSwitch.HiddenInput;
 const Control = withContext(ArkSwitch.Control, "control");
+const Indicator = withContext(ark.span, "indicator");
 
-interface CheckedSwapProps {
-  fallback?: ReactNode | undefined;
-  children?: ReactNode;
+interface SwitchLabel {
+  on: ReactNode;
+  off: ReactNode;
 }
 
-function createCheckedSwap(Base: ElementType) {
-  return function CheckedSwap({ fallback, children, ...rest }: CheckedSwapProps) {
-    const api = useSwitchContext();
-    return (
-      <Base
-        data-checked={api.checked ? "" : undefined}
-        {...rest}
-      >
-        {api.checked ? children : fallback}
-      </Base>
-    );
-  };
+export interface SwitchProps extends Omit<RootProps, "ref">, HiddenInputControlProps {
+  trackLabel?: SwitchLabel;
+  thumbLabel?: SwitchLabel;
 }
 
-const Indicator = createCheckedSwap(withContext(ark.span, "indicator"));
-const ThumbIndicator = createCheckedSwap(styled(ark.span));
+function SwitchControl({ trackLabel, thumbLabel }: Pick<SwitchProps, "trackLabel" | "thumbLabel">) {
+  const { checked } = useSwitchContext();
+  const pick = (label: SwitchLabel) => (checked ? label.on : label.off);
 
-export interface SwitchProps extends Omit<RootProps, "ref"> {
-  inputProps?: HiddenInputProps;
-  rootRef?: Ref<HTMLLabelElement>;
-  trackLabel?: { on: ReactNode; off: ReactNode };
-  thumbLabel?: { on: ReactNode; off: ReactNode };
+  return (
+    <Control>
+      <Thumb>{thumbLabel && pick(thumbLabel)}</Thumb>
+      {trackLabel && (
+        <Indicator data-checked={checked ? "" : undefined}>{pick(trackLabel)}</Indicator>
+      )}
+    </Control>
+  );
 }
 
 export const Switch = ({
@@ -63,12 +59,10 @@ export const Switch = ({
         ref={ref}
         {...inputProps}
       />
-      <Control>
-        <Thumb>
-          {thumbLabel && <ThumbIndicator fallback={thumbLabel.off}>{thumbLabel.on}</ThumbIndicator>}
-        </Thumb>
-        {trackLabel && <Indicator fallback={trackLabel.off}>{trackLabel.on}</Indicator>}
-      </Control>
+      <SwitchControl
+        trackLabel={trackLabel}
+        thumbLabel={thumbLabel}
+      />
       {children != null && <Label>{children}</Label>}
     </Root>
   );

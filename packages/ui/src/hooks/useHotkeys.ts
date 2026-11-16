@@ -5,7 +5,7 @@ import {
   useEffect,
 } from "react";
 
-import { isComposingEvent } from "../components/imeComposition";
+import { isComposingEvent, isEditableTarget } from "../foundations/dom";
 import { matchesShortcut } from "../foundations/shortcuts";
 import { useLatestRef } from "./useLatestRef";
 
@@ -18,32 +18,13 @@ export interface UseHotkeysOptions {
   preventDefault?: boolean;
 }
 
-const NON_TEXT_INPUT_TYPES = new Set([
-  "button",
-  "checkbox",
-  "color",
-  "file",
-  "image",
-  "radio",
-  "range",
-  "reset",
-  "submit",
-]);
-
-const isEditable = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUT_TYPES.has(target.type);
-  return target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
-};
-
 const matchHotkey = (
   event: KeyboardEvent,
   shortcuts: string | readonly string[],
   enableOnEditable: boolean,
 ) => {
   if (event.defaultPrevented || isComposingEvent(event)) return undefined;
-  if (!enableOnEditable && isEditable(event.target)) return undefined;
+  if (!enableOnEditable && isEditableTarget(event.target)) return undefined;
   const list = typeof shortcuts === "string" ? [shortcuts] : shortcuts;
   return list.find((item) => matchesShortcut(event, item));
 };

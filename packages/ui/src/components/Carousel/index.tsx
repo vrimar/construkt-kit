@@ -1,6 +1,9 @@
 import {
   Carousel as ArkCarousel,
   CarouselContext,
+  type UseCarouselProps,
+  type UseCarouselReturn,
+  useCarousel as useArkCarousel,
   useCarouselContext,
 } from "@ark-ui/react/carousel";
 import type { ComponentProps } from "react";
@@ -11,12 +14,24 @@ import { token } from "#styled-system/tokens";
 
 const { withProvider, withContext } = createSlotRecipeContext(carousel);
 
+const SLIDE_SPACING = token.var("spacing.4");
+
 const Root = withProvider(ArkCarousel.Root, "root", {
   forwardProps: ["page", "padding"],
-  defaultProps: { spacing: token.var("spacing.4") },
+  defaultProps: { spacing: SLIDE_SPACING },
 });
 
 export type CarouselRootProps = ComponentProps<typeof Root>;
+
+/** `useCarousel` for `Carousel.RootProvider`, spacing slides like `Carousel.Root`. */
+export function useCarousel({
+  spacing = SLIDE_SPACING,
+  ...props
+}: UseCarouselProps): UseCarouselReturn {
+  return useArkCarousel({ ...props, spacing });
+}
+
+export type { UseCarouselProps, UseCarouselReturn };
 
 const RootProvider = withProvider(ArkCarousel.RootProvider, "root");
 const AutoplayTrigger = withContext(ArkCarousel.AutoplayTrigger, "autoplayTrigger");

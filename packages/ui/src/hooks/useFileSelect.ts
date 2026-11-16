@@ -10,7 +10,7 @@ export interface ParsedFile {
   file: File;
 }
 
-export interface UseFileUploadOptions<TMultiple extends boolean = false> {
+export interface UseFileSelectOptions<TMultiple extends boolean = false> {
   accept?: string;
   multiple?: TMultiple;
   onSelect?: (files: TMultiple extends true ? ParsedFile[] : ParsedFile | null) => void;
@@ -32,7 +32,7 @@ function createInput({
 }
 
 export const useFileSelect = <TMultiple extends boolean = false>(
-  options: UseFileUploadOptions<TMultiple> = {},
+  options: UseFileSelectOptions<TMultiple> = {},
 ) => {
   const optionsRef = useLatestRef(options);
 

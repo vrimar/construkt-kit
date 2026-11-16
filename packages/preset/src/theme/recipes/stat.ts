@@ -2,7 +2,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 
 export const stat = defineSlotRecipe({
   className: "stat",
-  slots: ["root", "label", "valueText", "helpText", "valueUnit"],
+  slots: ["root", "label", "valueText", "helpText", "valueUnit", "trendIndicator"],
   base: {
     root: {
       display: "flex",
@@ -28,6 +28,11 @@ export const stat = defineSlotRecipe({
     valueUnit: {
       fontWeight: "normal",
       color: "fg.muted",
+    },
+    trendIndicator: {
+      fontSize: "xs",
+      "&[data-direction=up]": { _before: { content: '"▲"' } },
+      "&[data-direction=down]": { _before: { content: '"▼"' } },
     },
   },
   defaultVariants: {

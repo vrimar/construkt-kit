@@ -2,9 +2,9 @@ import { createContext } from "@ark-ui/react/utils";
 
 import type { ButtonVariantProps } from "#styled-system/recipes";
 
-import type { ButtonProps } from "./Button";
+import type { GroupProps } from "./Group";
 
-export type ButtonGroupContextProps = ButtonVariantProps & Pick<ButtonProps, "colorPalette">;
+export type ButtonGroupContextProps = ButtonVariantProps & Pick<GroupProps, "colorPalette">;
 
 export const [ButtonPropsProvider, useButtonPropsContext] = createContext<ButtonGroupContextProps>({
   name: "ButtonPropsContext",

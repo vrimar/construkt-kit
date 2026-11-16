@@ -11,7 +11,7 @@ import type { ComponentProps } from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type TreeViewVariantProps, treeView } from "#styled-system/recipes";
 
-import type { StyledRootProps } from "../../types";
+import type { StyledRootProps } from "../rootProps";
 
 const { withProvider, withContext } = createSlotRecipeContext(treeView);
 
@@ -57,6 +57,10 @@ const DropIndicator = withContext(ark.div, "dropIndicator");
 const StyledNodeActions = withContext(ark.div, "nodeActions");
 const BranchCount = withContext(ark.span, "branchCount");
 export const FlatIndentGuide = withContext(ark.div, "branchIndentGuide");
+export const FlatBranchControl = withContext(ark.div, "branchControl");
+export const FlatBranchIndicator = withContext(ark.span, "branchIndicator");
+export const FlatNodeCheckbox = withContext(ark.span, "nodeCheckbox");
+export const TreeRowContent = withContext(ark.div, "nodeContent");
 
 function NodeActions({ onClick, onKeyDown, ...props }: ComponentProps<typeof StyledNodeActions>) {
   return (

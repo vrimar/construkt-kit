@@ -1,6 +1,9 @@
 import {
   ColorPicker as ArkColorPicker,
   ColorPickerContext,
+  type UseColorPickerProps,
+  type UseColorPickerReturn,
+  useColorPicker as useArkColorPicker,
   useColorPickerContext,
 } from "@ark-ui/react/color-picker";
 import { ark } from "@ark-ui/react/factory";
@@ -13,6 +16,7 @@ import type { PortalledProps } from "../../types";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import {
   type MobileLayoutProps,
+  bindSheetDismiss,
   withMobileLayout,
   withMobileLayoutProvider,
 } from "../overlayPresentation";
@@ -76,6 +80,13 @@ export type ColorPickerRootProviderProps = ComponentProps<typeof StyledRootProvi
 
 const Root = withMobileLayout<ColorPickerRootProps>(StyledRoot);
 const RootProvider = withMobileLayoutProvider<ColorPickerRootProviderProps>(StyledRootProvider);
+
+/** `useColorPicker` for `ColorPicker.RootProvider`, whose phone sheet applies its outside handlers. */
+export function useColorPicker(props: UseColorPickerProps = {}): UseColorPickerReturn {
+  return bindSheetDismiss(useArkColorPicker(props), props);
+}
+
+export type { UseColorPickerProps, UseColorPickerReturn };
 
 export interface ColorPickerContentProps extends ComponentProps<typeof Content>, PortalledProps {}
 

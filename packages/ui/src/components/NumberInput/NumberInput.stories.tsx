@@ -5,41 +5,40 @@ import { numberInput } from "#styled-system/recipes";
 import { NumberInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 
-const meta: Meta<typeof NumberInput> = {
+const meta: Meta = {
   title: "Components/NumberInput",
-  component: NumberInput,
   tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<typeof NumberInput>;
+type Story = StoryObj;
 
 export const Default: Story = {
   render: () => (
-    <NumberInput
+    <NumberInput.Root
       defaultValue="10"
       min={0}
       max={100}
     >
       <NumberInput.Label>Quantity</NumberInput.Label>
-      <NumberInput.Field />
+      <NumberInput.Input />
       <NumberInput.Control />
-    </NumberInput>
+    </NumberInput.Root>
   ),
 };
 
 export const WithMinMax: Story = {
   render: () => (
-    <NumberInput
+    <NumberInput.Root
       defaultValue="5"
       min={0}
       max={10}
       step={1}
     >
       <NumberInput.Label>Rating (0-10)</NumberInput.Label>
-      <NumberInput.Field />
+      <NumberInput.Input />
       <NumberInput.Control />
-    </NumberInput>
+    </NumberInput.Root>
   ),
 };
 
@@ -48,15 +47,15 @@ export const Sizes: Story = {
     <SizePreviewTable
       sizes={numberInput.variantMap.size}
       renderPreview={(size) => (
-        <NumberInput
+        <NumberInput.Root
           defaultValue="10"
           min={0}
           max={100}
           size={size}
         >
-          <NumberInput.Field />
+          <NumberInput.Input />
           <NumberInput.Control />
-        </NumberInput>
+        </NumberInput.Root>
       )}
     />
   ),

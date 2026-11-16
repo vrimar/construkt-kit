@@ -27,3 +27,5 @@ export const Fieldset = {
   Control,
   Context: FieldsetContext,
 };
+
+export { type UseFieldsetProps, type UseFieldsetReturn, useFieldset } from "@ark-ui/react/fieldset";

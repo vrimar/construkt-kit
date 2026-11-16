@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { HStack, Stack, type StackProps } from "#styled-system/jsx";
 
 import { ApiErrorAlert } from "../Alert";
-import { renderFormActions } from "./FormActions";
+import { formSubmitProps, renderFormActions } from "../formActions";
 
 export interface SubmitFormProps extends StackProps {
   children: ReactNode;
@@ -39,13 +39,7 @@ export const SubmitForm = ({
     <Stack
       as="form"
       gap="6"
-      {...{ noValidate: true }}
-      onSubmit={(e) => {
-        e.preventDefault();
-        // Inside a portal (a Drawer, say), React still bubbles submit to an outer form.
-        e.stopPropagation();
-        onSubmit();
-      }}
+      {...formSubmitProps(onSubmit)}
       {...props}
     >
       {error ? <ApiErrorAlert error={error} /> : null}

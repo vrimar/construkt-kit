@@ -1,10 +1,10 @@
 import { RadioGroup } from "@ark-ui/react/radio-group";
-import type { ComponentProps, Ref } from "react";
+import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { radioGroup } from "#styled-system/recipes";
 
-import type { HiddenInputProps, WithRef } from "../../types";
+import type { HiddenInputControlProps, WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(radioGroup);
 
@@ -15,10 +15,7 @@ const ItemControl = withContext(RadioGroup.ItemControl, "itemControl");
 const ItemText = withContext(RadioGroup.ItemText, "itemText");
 const ItemHiddenInput = RadioGroup.ItemHiddenInput;
 
-export interface RadioProps extends Omit<ItemProps, "ref"> {
-  rootRef?: Ref<HTMLLabelElement>;
-  inputProps?: HiddenInputProps;
-}
+export interface RadioProps extends Omit<ItemProps, "ref">, HiddenInputControlProps {}
 
 export const Radio = ({
   ref,

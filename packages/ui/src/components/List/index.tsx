@@ -7,6 +7,7 @@ import { list } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
 import { wrapAsChildContent } from "../asChildContent";
+import { isRenderable } from "../itemSlots";
 
 const { withProvider, withContext } = createSlotRecipeContext(list);
 
@@ -50,12 +51,12 @@ function ListAction({
 }: WithRef<ListActionProps, HTMLButtonElement>) {
   const content = (title: ReactNode) => (
     <>
-      {icon && <ActionIcon>{icon}</ActionIcon>}
+      {isRenderable(icon) && <ActionIcon>{icon}</ActionIcon>}
       <ActionContent>
         <ActionTitle>{title}</ActionTitle>
-        {description && <ActionDescription>{description}</ActionDescription>}
+        {isRenderable(description) && <ActionDescription>{description}</ActionDescription>}
       </ActionContent>
-      {value !== undefined && value !== null && <ActionValue>{value}</ActionValue>}
+      {isRenderable(value) && <ActionValue>{value}</ActionValue>}
       {chevron && (
         <ActionChevron>
           <ChevronRightIcon />

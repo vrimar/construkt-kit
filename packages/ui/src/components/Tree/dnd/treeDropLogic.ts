@@ -33,18 +33,14 @@ export function applyTreeDrop<T extends TreeNode>(
   { sourceValues, targetValue, instruction, isBranchLoaded }: TreeDropArgs,
 ): TreeCollection<T> | null {
   const targetPath = collection.getIndexPath(targetValue);
-  if (!targetPath?.length) return null;
-
-  const sourcePaths: number[][] = [];
-  for (const sourceValue of new Set(sourceValues)) {
-    if (sourceValue === targetValue) return null; // can't drop onto a dragged node
-    const sourcePath = collection.getIndexPath(sourceValue);
-    if (!sourcePath?.length) continue;
-    // Never drop a node into its own subtree. `contains` only checks a prefix match, so
-    // guard the length too — otherwise an ancestor target (shorter path) is wrongly blocked.
-    if (isWithinSubtree(sourcePath, targetPath)) return null;
-    sourcePaths.push(sourcePath);
+  if (!targetPath?.length || !isDropTargetValid(collection, sourceValues, targetValue)) {
+    return null;
   }
+
+  const sourcePaths = [...new Set(sourceValues)].flatMap((sourceValue) => {
+    const sourcePath = collection.getIndexPath(sourceValue);
+    return sourcePath?.length ? [sourcePath] : [];
+  });
   const movedPaths = sourcePaths
     .filter((path) => !sourcePaths.some((other) => isWithinSubtree(other, path)))
     .sort(compareIndexPaths);
@@ -115,20 +111,18 @@ function compareIndexPaths(a: number[], b: number[]): number {
   return a.length - b.length;
 }
 
-/**
- * Whether `nodeValue` is a descendant of `ancestorValue` — a drop that must be rejected.
- * Used by drop targets so descendant rows never present a drop affordance.
- */
-export function isDescendantValue<T extends TreeNode>(
+export function isDropTargetValid<T extends TreeNode>(
   collection: TreeCollection<T>,
-  ancestorValue: string,
-  nodeValue: string,
+  sourceValues: readonly string[],
+  targetValue: string,
 ): boolean {
-  if (ancestorValue === nodeValue) return false;
-  const ancestorPath = collection.getIndexPath(ancestorValue);
-  const nodePath = collection.getIndexPath(nodeValue);
-  if (!ancestorPath || !nodePath) return false;
-  return isWithinSubtree(ancestorPath, nodePath);
+  const targetPath = collection.getIndexPath(targetValue);
+  if (!targetPath?.length) return false;
+  return sourceValues.every((sourceValue) => {
+    if (sourceValue === targetValue) return false;
+    const sourcePath = collection.getIndexPath(sourceValue);
+    return !sourcePath?.length || !isWithinSubtree(sourcePath, targetPath);
+  });
 }
 
 interface DropAnchor {
@@ -199,7 +193,7 @@ export interface KeyboardDropTarget {
   instruction: TreeDropInstruction;
 }
 
-export interface KeyboardMoveResult<T extends TreeNode> extends KeyboardDropTarget {
+export interface TreeKeyboardMoveResult<T extends TreeNode> extends KeyboardDropTarget {
   next: TreeCollection<T>;
 }
 
@@ -243,7 +237,7 @@ export function moveNodeByKeyboard<T extends TreeNode>(
   collection: TreeCollection<T>,
   value: string,
   move: TreeKeyboardMove,
-): KeyboardMoveResult<T> | null {
+): TreeKeyboardMoveResult<T> | null {
   const target = getKeyboardDropTarget(collection, value, move);
   if (!target) return null;
   const next = applyTreeDrop(collection, { sourceValues: [value], ...target });

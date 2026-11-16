@@ -9,8 +9,6 @@ import { type ComponentProps, Fragment } from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { pagination } from "#styled-system/recipes";
 
-import { IconButton } from "../Buttons/IconButton";
-
 const { withProvider, withContext } = createSlotRecipeContext(pagination);
 
 const Root = withProvider(ArkPagination.Root, "root", { forwardProps: ["page"] });
@@ -20,32 +18,23 @@ const Ellipsis = withContext(ArkPagination.Ellipsis, "ellipsis");
 const PrevTrigger = withContext(ArkPagination.PrevTrigger, "prevTrigger");
 const NextTrigger = withContext(ArkPagination.NextTrigger, "nextTrigger");
 
-export interface PaginationItemsProps extends React.HTMLAttributes<HTMLElement> {
+export interface PaginationItemsProps {
   render: (page: { type: "page"; value: number; selected: boolean }) => React.ReactNode;
-  ellipsis?: React.ReactElement | undefined;
+  /** Content of each `Pagination.Ellipsis` between page runs. */
+  ellipsis?: React.ReactNode;
 }
 
-function Items(props: PaginationItemsProps) {
+function Items({ render, ellipsis = <EllipsisIcon /> }: PaginationItemsProps) {
   const ctx = usePaginationContext();
-  const { render, ellipsis, ...rest } = props;
 
   return ctx.pages.map((page, index) => {
     if (page.type === "ellipsis") {
       return (
         <Ellipsis
-          asChild
           key={`ellipsis-${index}`}
           index={index}
-          {...rest}
         >
-          {ellipsis || (
-            <IconButton
-              variant="plain"
-              size="sm"
-            >
-              <EllipsisIcon />
-            </IconButton>
-          )}
+          {ellipsis}
         </Ellipsis>
       );
     }
@@ -70,3 +59,9 @@ export const Pagination = {
   NextTrigger,
   Context: PaginationContext,
 };
+
+export {
+  type UsePaginationProps,
+  type UsePaginationReturn,
+  usePagination,
+} from "@ark-ui/react/pagination";

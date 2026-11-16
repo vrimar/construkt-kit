@@ -24,3 +24,5 @@ export const Tabs = {
   Indicator,
   Context: TabsContext,
 };
+
+export { type UseTabsProps, type UseTabsReturn, useTabs } from "@ark-ui/react/tabs";

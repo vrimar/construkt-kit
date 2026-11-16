@@ -1,12 +1,20 @@
 import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { cardAddon, cardBody, cardContent, cardDescription } from "./card-body";
 import { controlBox, controlGap, controlPx, controlText } from "./control-size";
 
 export const radioCardGroup = defineSlotRecipe({
   className: "radio-card-group",
   jsx: ["RadioCard", /RadioCard\..+/],
-  slots: radioGroupAnatomy.keys(),
+  slots: [
+    ...radioGroupAnatomy.keys(),
+    "itemIndicator",
+    "itemBody",
+    "itemContent",
+    "itemDescription",
+    "itemAddon",
+  ],
   base: {
     root: {
       display: "flex",
@@ -15,14 +23,14 @@ export const radioCardGroup = defineSlotRecipe({
       width: "full",
     },
     item: {
-      alignItems: "center",
       borderRadius: "md",
       cursor: "pointer",
       display: "flex",
-      justifyContent: "space-between",
+      flexDirection: "column",
       userSelect: "none",
       width: "full",
     },
+    itemBody: cardBody,
     label: {
       textStyle: "label",
     },
@@ -33,11 +41,6 @@ export const radioCardGroup = defineSlotRecipe({
       flexShrink: "0",
       justifyContent: "center",
       verticalAlign: "top",
-      _after: {
-        content: '""',
-        display: "block",
-        borderRadius: "full",
-      },
       _focusVisible: {
         focusVisibleRing: "outside",
       },
@@ -47,9 +50,16 @@ export const radioCardGroup = defineSlotRecipe({
         outlineOffset: "2px",
       },
     },
+    itemIndicator: {
+      bg: "currentColor",
+      borderRadius: "full",
+    },
     itemText: {
       textStyle: "label",
     },
+    itemContent: cardContent,
+    itemDescription: cardDescription,
+    itemAddon: cardAddon,
     indicator: {
       borderWidth: "1px",
       borderColor: "colorPalette.solid.bg",
@@ -82,9 +92,7 @@ export const radioCardGroup = defineSlotRecipe({
           borderColor: "neutral.subtle.border",
           _checked: {
             borderColor: "colorPalette.solid.bg",
-            _after: {
-              bg: "colorPalette.solid.bg",
-            },
+            color: "colorPalette.solid.bg",
           },
         },
       },
@@ -104,9 +112,7 @@ export const radioCardGroup = defineSlotRecipe({
           _checked: {
             bg: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
-            _after: {
-              background: "colorPalette.solid.fg",
-            },
+            color: "colorPalette.solid.fg",
           },
         },
       },
@@ -128,9 +134,7 @@ export const radioCardGroup = defineSlotRecipe({
           _checked: {
             background: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
-            _after: {
-              background: "colorPalette.solid.fg",
-            },
+            color: "colorPalette.solid.fg",
           },
         },
       },
@@ -149,18 +153,19 @@ export const radioCardGroup = defineSlotRecipe({
           _checked: {
             background: "colorPalette.solid.fg",
             borderColor: "colorPalette.solid.fg",
-            _after: {
-              bg: "colorPalette.solid.bg",
-            },
+            color: "colorPalette.solid.bg",
           },
         },
       },
     },
     size: {
       md: {
-        item: { gap: controlGap("md"), p: controlPx("xl") },
-        itemControl: { boxSize: controlBox("lg"), _after: { boxSize: "2" } },
+        itemBody: { gap: controlGap("md"), p: controlPx("xl") },
+        itemControl: { boxSize: controlBox("lg"), _icon: { boxSize: "3.5" } },
+        itemIndicator: { boxSize: "2" },
         itemText: { ...controlText("sm") },
+        itemDescription: { ...controlText("sm") },
+        itemAddon: { px: controlPx("xl"), py: controlGap("2xl") },
       },
     },
   },

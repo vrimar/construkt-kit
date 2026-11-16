@@ -4,6 +4,7 @@ import { Fragment, type ReactElement, useMemo } from "react";
 
 import { Button } from "../Buttons";
 import { Menu } from "../Menu";
+import { listedColumns } from "./columns";
 import { getColumnLabel } from "./Header/columnLabel";
 import { resolveLabels } from "./labels";
 import {
@@ -44,13 +45,10 @@ export const DataTableColumnPicker = <TData extends object>({
   children,
 }: DataTableColumnPickerProps<TData>) => {
   const { columns: triggerLabel, showAllColumns } = resolveLabels(labels);
-  const listedColumns = useMemo(
-    () => columnDefs.filter((column) => column.meta?.isVisible !== false),
-    [columnDefs],
-  );
+  const listed = useMemo(() => listedColumns(columnDefs), [columnDefs]);
   const table = useTable({
     features: dataTableFeatures,
-    columns: listedColumns,
+    columns: listed,
     data: NO_ROWS,
     state: { columnVisibility },
   });

@@ -5,7 +5,7 @@ import { styled } from "#styled-system/jsx";
 import { toCssSize } from "../../foundations/cssSize";
 import type { Unstyled } from "../../types";
 import type { ButtonProps } from "../Buttons";
-import { type FormActions, renderFormActions } from "../Form/FormActions";
+import { type FormActions, formSubmitProps, renderFormActions } from "../formActions";
 import { Dialog, type DialogRootProps } from "./Dialog";
 
 export type SubmitDialogFooterParts = FormActions;
@@ -85,13 +85,7 @@ export const SubmitDialog = ({
         </Dialog.Header>
         <styled.form
           display="contents"
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault();
-            // Portalled: React still bubbles submit to any form that renders this dialog.
-            e.stopPropagation();
-            onSubmit?.();
-          }}
+          {...formSubmitProps(onSubmit)}
         >
           <Dialog.Body>{children}</Dialog.Body>
           {(onSubmit || footer) && (

@@ -16,6 +16,7 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { toolbar } from "#styled-system/recipes";
 
+import { isAriaExpanded, isRtl } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type { WithRef } from "../../types";
@@ -150,7 +151,7 @@ function targetIndex(
   if (key === "End") return count - 1;
   const step = STEPS[orientation][key];
   if (step === undefined) return undefined;
-  const flip = orientation === "horizontal" && getComputedStyle(root).direction === "rtl";
+  const flip = orientation === "horizontal" && isRtl(root);
   return (index + (flip ? -step : step) + count) % count;
 }
 
@@ -287,7 +288,7 @@ function ToolbarButton({
   const collapsed = useToolbarContext()?.collapsed ?? false;
   const generatedId = useId();
   const triggerId = id ?? generatedId;
-  const expanded = rest["aria-expanded"] === true || rest["aria-expanded"] === "true";
+  const expanded = isAriaExpanded(rest["aria-expanded"]);
 
   // Ids are shared so a Menu.Trigger or Popover.Trigger parent and the tooltip find one element.
   return (

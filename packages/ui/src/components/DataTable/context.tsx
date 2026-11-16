@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, type RefObject, useContext } from "react";
 
 import type {
   DataTableColumnSizing,
@@ -17,6 +17,7 @@ export interface DataTableContextValue<TData extends object = any> {
   clientSide: boolean;
   columnSizing: DataTableColumnSizing;
   resizeColumn?: (columnId: string, width: number | undefined) => void;
+  gridRef: RefObject<HTMLDivElement | null>;
 }
 
 const DataTableContext = createContext<DataTableContextValue | null>(null);

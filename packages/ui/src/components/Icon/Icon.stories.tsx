@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { StarIcon } from "lucide-react";
+import { FlameIcon, PartyPopperIcon, StarIcon } from "lucide-react";
 
 import { icon } from "#styled-system/recipes";
 
@@ -19,9 +19,15 @@ type Story = StoryObj<typeof Icon>;
 export const Default: Story = {
   render: () => (
     <HStack gap="4">
-      <Icon fontSize="xl">⭐</Icon>
-      <Icon fontSize="2xl">🔥</Icon>
-      <Icon fontSize="3xl">🎉</Icon>
+      <Icon color="yellow.solid.bg">
+        <StarIcon />
+      </Icon>
+      <Icon color="orange.solid.bg">
+        <FlameIcon />
+      </Icon>
+      <Icon color="purple.solid.bg">
+        <PartyPopperIcon />
+      </Icon>
     </HStack>
   ),
 };

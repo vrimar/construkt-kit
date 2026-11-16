@@ -69,3 +69,9 @@ export const TagsInput = {
   Label,
   Context: TagsInputContext,
 };
+
+export {
+  type UseTagsInputProps,
+  type UseTagsInputReturn,
+  useTagsInput,
+} from "@ark-ui/react/tags-input";

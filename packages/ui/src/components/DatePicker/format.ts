@@ -1,9 +1,11 @@
 import type { DateValue } from "@ark-ui/react/date-picker";
 import { formatIsoDate } from "@construkt-kit/utils";
 
+import type { CalendarMode } from "./types";
+
 export const getDisplayLabel = (
   value: DateValue[],
-  selectionMode: "single" | "range" | "multiple",
+  selectionMode: CalendarMode,
   placeholder = "Select date",
   formatValue: (value: DateValue) => string = formatIsoDate,
 ): string => {

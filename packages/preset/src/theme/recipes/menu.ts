@@ -21,8 +21,6 @@ export const menu = defineSlotRecipe({
   slots: [...menuAnatomy.keys(), "itemHint", "itemDescription"],
   base: {
     content: {
-      "--menu-z-index": "zIndex.popover",
-
       layerStyle: "dropdown.surface",
       display: "flex",
       flexDirection: "column",
@@ -31,7 +29,7 @@ export const menu = defineSlotRecipe({
       overflow: "hidden",
       overflowY: "auto",
       position: "relative",
-      zIndex: "calc(var(--menu-z-index) + var(--layer-index, 0))",
+      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
     },
     item: {
       alignItems: "center",
@@ -62,6 +60,10 @@ export const menu = defineSlotRecipe({
         focusVisibleRing: "outside",
       },
     },
+    itemGroup: {
+      display: "flex",
+      flexDirection: "column",
+    },
     itemGroupLabel: {
       alignItems: "flex-start",
       color: "fg.subtle",
@@ -78,6 +80,7 @@ export const menu = defineSlotRecipe({
       _checked: {
         color: "colorPalette.plain.fg",
       },
+      "&[data-state=unchecked]": { visibility: "hidden" },
       // A growing indicator would take the free space the hint's auto margin needs to right-align it.
       "[data-part=item-hint] + &": {
         flex: "none",

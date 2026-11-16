@@ -95,15 +95,23 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
           {children}
         </Loader>
       ) : (
-        <>
-          {leftIcon}
-          {children}
-          {rightIcon}
-        </>
+        wrapIcons(children, leftIcon, rightIcon)
       )}
     </BaseButton>
   );
 };
+
+const wrapIcons = (
+  content: React.ReactNode,
+  leftIcon: React.ReactNode,
+  rightIcon: React.ReactNode,
+) => (
+  <>
+    {leftIcon}
+    {content}
+    {rightIcon}
+  </>
+);
 
 const withIcons = (
   child: React.ReactNode,
@@ -111,13 +119,7 @@ const withIcons = (
   rightIcon: React.ReactNode,
 ) => {
   if (!leftIcon && !rightIcon) return child;
-  return wrapAsChildContent(child, (content) => (
-    <>
-      {leftIcon}
-      {content}
-      {rightIcon}
-    </>
-  ));
+  return wrapAsChildContent(child, (content) => wrapIcons(content, leftIcon, rightIcon));
 };
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}

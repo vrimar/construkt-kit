@@ -34,7 +34,7 @@ export const table = defineSlotRecipe({
     },
     row: {
       bg: "var(--table-row-bg)",
-      _last: { "& td": { boxShadow: "none" } },
+      _last: { "& [data-slot=cell]": { boxShadow: "none" } },
     },
     header: {
       textAlign: "start",
@@ -60,7 +60,10 @@ export const table = defineSlotRecipe({
     },
     foot: {
       fontWeight: "medium",
-      "& td": { boxShadow: "inset 0 1px 0 0 var(--shadow-color)!", shadowColor: "border" },
+      "& [data-slot=cell]": {
+        boxShadow: "inset 0 1px 0 0 var(--shadow-color)!",
+        shadowColor: "border",
+      },
     },
   },
   defaultVariants: {
@@ -81,12 +84,14 @@ export const table = defineSlotRecipe({
     },
     striped: {
       true: {
-        row: { "&:nth-of-type(odd) td": { bg: "neutral.surface.bg.hover" } },
+        row: { "&:nth-of-type(odd) [data-slot=cell]": { bg: "neutral.surface.bg.hover" } },
       },
     },
     interactive: {
       true: {
-        body: { "& tr": { _hover: { "--table-row-bg": "colors.neutral.surface.bg.hover" } } },
+        body: {
+          "& [data-slot=row]": { _hover: { "--table-row-bg": "colors.neutral.surface.bg.hover" } },
+        },
       },
     },
     columnBorder: {
@@ -98,12 +103,10 @@ export const table = defineSlotRecipe({
     stickyHeader: {
       true: {
         head: {
-          "& :where(tr)": {
-            top: "var(--table-sticky-offset, 0)",
-            position: "sticky",
-            zIndex: "2",
-            bg: "var(--table-row-bg, {colors.bg})",
-          },
+          top: "var(--table-sticky-offset, 0)",
+          position: "sticky",
+          zIndex: "2",
+          bg: "var(--table-row-bg, {colors.bg})",
         },
       },
     },

@@ -1,6 +1,7 @@
 import type { ComponentProps, ElementType, ReactElement, ReactNode } from "react";
 
 import { CloseButton } from "./Buttons";
+import { namedByContent } from "./namedByContent";
 
 export type CloseTriggerComponent<C extends ElementType> = (
   props: ComponentProps<C> & { children?: ReactNode },
@@ -9,13 +10,15 @@ export type CloseTriggerComponent<C extends ElementType> = (
 export function createCloseTrigger<C extends ElementType>(
   CloseTrigger: C,
 ): CloseTriggerComponent<C> {
-  const TriggerElement: ElementType = CloseTrigger;
+  const TriggerElement: ElementType = namedByContent(CloseTrigger);
 
   return function CloseTriggerWithDefault({ children, ...props }) {
     if (children) return <TriggerElement {...props}>{children}</TriggerElement>;
 
+    // The trigger's label replaces the CloseButton's own, so the default name is set here.
     return (
       <TriggerElement
+        aria-label="Close"
         {...props}
         asChild
       >

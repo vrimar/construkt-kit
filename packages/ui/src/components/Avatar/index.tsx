@@ -58,3 +58,5 @@ export const Avatar = {
   Fallback,
   Context: AvatarContext,
 };
+
+export { type UseAvatarProps, type UseAvatarReturn, useAvatar } from "@ark-ui/react/avatar";

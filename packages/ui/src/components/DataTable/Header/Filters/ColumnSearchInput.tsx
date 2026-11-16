@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
-import { useDebounceQuery } from "../../../../hooks/useDebounceQuery";
-import { useLatestRef } from "../../../../hooks/useLatestRef";
+import { useDebounce } from "../../../../hooks/useDebounce";
 import { SearchInput } from "../../../Input";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
@@ -16,34 +15,30 @@ export const ColumnSearchInput = ({
 }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0] ?? "";
-  const { query, debouncedQuery, setQuery } = useDebounceQuery(current, debounceMs);
-  const [applied, setApplied] = useState(current);
-  const emit = useControlledMirror({
+  const [query, setQuery] = useState(current);
+  const { applied, emit } = useControlledMirror({
     value: current,
     onValueChange: (next: string) => onChange(next ? [next] : undefined),
-    onExternalChange: (next: string) => {
-      setApplied(next);
-      setQuery(next);
-    },
+    onExternalChange: setQuery,
   });
 
   const apply = () => {
-    if (query === applied) return;
-    setApplied(query);
-    emit(query);
+    if (query !== applied) emit(query);
   };
-  const applyRef = useLatestRef(apply);
 
-  useEffect(() => {
-    if (debouncedQuery === query) applyRef.current();
-  }, [applyRef, debouncedQuery, query]);
+  useDebounce(apply, debounceMs, [query]);
+
+  const changeQuery = (next: string) => {
+    setQuery(next);
+    if (next === "" && applied !== "") emit("");
+  };
 
   return (
     <SearchInput
       size={layout === "field" ? "md" : "sm"}
       autoComplete="off"
-      onClear={() => setQuery("")}
-      onChange={(e) => setQuery(e.target.value)}
+      onClear={() => changeQuery("")}
+      onChange={(e) => changeQuery(e.target.value)}
       onBlur={apply}
       placeholder={placeholder}
       clearLabel={labels.clearSearch}

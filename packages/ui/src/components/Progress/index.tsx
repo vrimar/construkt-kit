@@ -1,4 +1,9 @@
-import { Progress as ArkProgress, useProgressContext } from "@ark-ui/react/progress";
+import { ark } from "@ark-ui/react/factory";
+import {
+  Progress as ArkProgress,
+  ProgressContext,
+  useProgressContext,
+} from "@ark-ui/react/progress";
 import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
@@ -17,7 +22,7 @@ const Track = withContext(ArkProgress.Track, "track");
 const ValueText = withContext(ArkProgress.ValueText, "valueText");
 const View = withContext(ArkProgress.View, "view");
 const SegmentsTrack = withContext(ArkProgress.Track, "segments");
-const Segment = withContext("span", "segment");
+const Segment = withContext(ark.span, "segment");
 
 export type ProgressRootProps = ComponentProps<typeof Root>;
 
@@ -52,4 +57,7 @@ export const Progress = {
   Track,
   ValueText,
   View,
+  Context: ProgressContext,
 };
+
+export { type UseProgressProps, type UseProgressReturn, useProgress } from "@ark-ui/react/progress";

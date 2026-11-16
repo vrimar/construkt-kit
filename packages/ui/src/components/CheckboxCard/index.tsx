@@ -5,7 +5,8 @@ import * as React from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { checkboxCard } from "#styled-system/recipes";
 
-import type { HiddenInputProps, WithRef } from "../../types";
+import type { HiddenInputControlProps, WithRef } from "../../types";
+import { type CardBodyProps, createCardBody } from "../cardBody";
 import { Checkbox } from "../Checkbox";
 
 const { withProvider, withContext } = createSlotRecipeContext(checkboxCard);
@@ -18,52 +19,49 @@ const CardLabel = withContext(ark.span, "label");
 const CardDescription = withContext(ark.span, "description");
 const CardAddon = withContext(ark.div, "addon");
 
+const CardBody = createCardBody({
+  Body: CardControl,
+  Content: CardContent,
+  Control: CardCheckbox,
+  Label: CardLabel,
+  Description: CardDescription,
+  Addon: CardAddon,
+});
+
 type CardRootProps = React.ComponentProps<typeof CardRoot>;
 
-export interface CheckboxCardProps extends Omit<CardRootProps, "ref"> {
-  icon?: React.ReactElement;
-  label?: React.ReactNode;
-  description?: React.ReactNode;
-  addon?: React.ReactNode;
-  indicator?: React.ReactNode | null;
-  indicatorPlacement?: "start" | "end" | "inside";
-  inputProps?: HiddenInputProps;
-}
+export interface CheckboxCardProps
+  extends Omit<CardRootProps, "ref">, HiddenInputControlProps, CardBodyProps {}
 
 export const CheckboxCard = ({
   ref,
   inputProps,
+  rootRef,
   label,
   description,
   icon,
   addon,
   indicator = <Checkbox.Indicator />,
-  indicatorPlacement = "end",
+  indicatorPlacement,
   ...rest
 }: WithRef<CheckboxCardProps, HTMLInputElement>) => {
-  const hasContent = label || description || icon;
-
   return (
-    <CardRoot {...rest}>
+    <CardRoot
+      ref={rootRef}
+      {...rest}
+    >
       <ArkCheckbox.HiddenInput
         ref={ref}
         {...inputProps}
       />
-      <CardControl>
-        {indicatorPlacement === "start" && indicator && <CardCheckbox>{indicator}</CardCheckbox>}
-        {hasContent && (
-          <CardContent>
-            {icon}
-            {label && <CardLabel>{label}</CardLabel>}
-            {description && <CardDescription>{description}</CardDescription>}
-            {indicatorPlacement === "inside" && indicator && (
-              <CardCheckbox>{indicator}</CardCheckbox>
-            )}
-          </CardContent>
-        )}
-        {indicatorPlacement === "end" && indicator && <CardCheckbox>{indicator}</CardCheckbox>}
-      </CardControl>
-      {addon && <CardAddon>{addon}</CardAddon>}
+      <CardBody
+        icon={icon}
+        label={label}
+        description={description}
+        addon={addon}
+        indicator={indicator}
+        indicatorPlacement={indicatorPlacement}
+      />
     </CardRoot>
   );
 };

@@ -9,13 +9,17 @@ import {
   useRef,
 } from "react";
 
+import { useComposedRefs } from "../hooks/useComposedRefs";
 import { useLatestRef } from "../hooks/useLatestRef";
 import type { PortalledProps, WithRef } from "../types";
 import { useOverlayMode, useSheetPresentation } from "./overlayPresentation";
 import { type PortalledContentComponent, createPortalledContent } from "./portalledContent";
 import { Sheet } from "./Sheet";
 
-export interface SheetApi {
+export const SHEET_FRAME_ATTRIBUTE = "data-overlay-sheet";
+export const SHEET_PANEL_ATTRIBUTE = "data-overlay-sheet-content";
+
+interface SheetApi {
   open: boolean;
   inline?: boolean;
   setOpen: (open: boolean) => void;
@@ -41,6 +45,23 @@ function InnerPresence({ children, onUnmount }: { children: ReactNode; onUnmount
   );
 }
 
+// zag fires these on the layer it is about to dismiss, which stays open if one is cancelled.
+const OUTSIDE_INTERACTION_EVENTS = ["pointerdown.outside", "focus.outside"];
+
+function keepPanelsOpenOnChrome(frame: HTMLDivElement | null) {
+  if (frame == null) return;
+  const keepOpen = (event: Event) => {
+    const layer = event.target;
+    const { target } = (event as CustomEvent<{ target: EventTarget }>).detail;
+    if (!(layer instanceof Element) || !layer.hasAttribute(SHEET_PANEL_ATTRIBUTE)) return;
+    if (target instanceof Node && frame.contains(target)) event.preventDefault();
+  };
+  for (const type of OUTSIDE_INTERACTION_EVENTS) frame.addEventListener(type, keepOpen, true);
+  return () => {
+    for (const type of OUTSIDE_INTERACTION_EVENTS) frame.removeEventListener(type, keepOpen, true);
+  };
+}
+
 interface SheetFrameProps {
   api: SheetApi;
   portalRef?: RefObject<HTMLElement | null>;
@@ -48,9 +69,10 @@ interface SheetFrameProps {
   children: ReactNode;
 }
 
-export function SheetFrame({ api, portalRef, fullHeight = false, children }: SheetFrameProps) {
+function SheetFrame({ api, portalRef, fullHeight = false, children }: SheetFrameProps) {
   const presentation = useSheetPresentation();
   const frameRef = presentation?.frameRef;
+  const composedFrameRef = useComposedRefs(frameRef, keepPanelsOpenOnChrome);
   const onExitCompleteRef = useLatestRef(presentation?.onSheetExitComplete);
 
   // Unmounting mid-exit skips onExitComplete, which would hold the overlay in sheet mode.
@@ -83,7 +105,7 @@ export function SheetFrame({ api, portalRef, fullHeight = false, children }: She
     if (!openRef.current) return false;
     if (frame == null) return null;
     if (active instanceof HTMLElement && frame.contains(active)) return active;
-    return frame.querySelector<HTMLElement>("[data-overlay-sheet-content]");
+    return frame.querySelector<HTMLElement>(`[${SHEET_PANEL_ATTRIBUTE}]`);
   };
 
   if (!api.open && !presentation?.sheetExiting) return null;
@@ -102,16 +124,29 @@ export function SheetFrame({ api, portalRef, fullHeight = false, children }: She
       finalFocusEl={getReturnFocusEl}
     >
       <Sheet.Content
-        ref={frameRef}
+        ref={composedFrameRef}
         portalRef={portalRef}
         fullHeight={fullHeight}
         role="presentation"
         aria-modal={false}
-        data-overlay-sheet=""
+        {...{ [SHEET_FRAME_ATTRIBUTE]: "" }}
       >
         <InnerPresence onUnmount={restoreLostFocus}>{children}</InnerPresence>
       </Sheet.Content>
     </Sheet.Root>
+  );
+}
+
+export function SheetPanel({
+  Content,
+  ...props
+}: { Content: ElementType } & Record<string, unknown>) {
+  return (
+    <Content
+      animation="none"
+      {...{ [SHEET_PANEL_ATTRIBUTE]: "" }}
+      {...props}
+    />
   );
 }
 
@@ -138,9 +173,8 @@ export function SheetOverlayContent({
       fullHeight={fullHeight}
     >
       {header}
-      <Content
-        animation="none"
-        data-overlay-sheet-content=""
+      <SheetPanel
+        Content={Content}
         {...contentProps}
       />
     </SheetFrame>

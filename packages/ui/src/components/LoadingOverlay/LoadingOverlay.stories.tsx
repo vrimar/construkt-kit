@@ -28,7 +28,7 @@ type Story = StoryObj<typeof LoadingOverlay>;
 
 export const Active: Story = {
   args: {
-    isActive: true,
+    loading: true,
     relative: true,
   },
 };
@@ -48,7 +48,7 @@ export const Sizes: Story = {
           overflow="hidden"
         >
           <LoadingOverlay
-            isActive
+            loading
             relative
             minHeight="80px"
             size={size}
@@ -62,7 +62,7 @@ export const Sizes: Story = {
 
 export const WithCustomTip: Story = {
   args: {
-    isActive: true,
+    loading: true,
     relative: true,
     tip: "Fetching data...",
   },
@@ -70,7 +70,7 @@ export const WithCustomTip: Story = {
 
 export const Inactive: Story = {
   args: {
-    isActive: false,
+    loading: false,
     relative: true,
   },
 };

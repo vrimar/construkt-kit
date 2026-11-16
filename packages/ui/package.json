@@ -87,19 +87,7 @@
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/react-virtual": "^3.14.26",
     "lucide-react": "^1.67.0",
-    "react-resizable-panels": "^4.18.0",
-    "react-use": "^17.6.1"
-  },
-  "peerDependencies": {
-    "@fontsource-variable/inter": "^5.3.0",
-    "@pandacss/dev": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@fontsource-variable/inter": {
-      "optional": true
-    }
+    "react-resizable-panels": "^4.18.0"
   },
   "devDependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
@@ -122,5 +110,16 @@
     "storybook": "^10.6.5",
     "tsdown": "^0.23.5",
     "vitest": "^5.1.0"
+  },
+  "peerDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@pandacss/dev": "^2.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@fontsource-variable/inter": {
+      "optional": true
+    }
   }
 }

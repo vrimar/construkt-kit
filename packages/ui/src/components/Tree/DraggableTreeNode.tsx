@@ -1,7 +1,7 @@
 import { type TreeCollection, type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
 import type { ReactNode } from "react";
 
-import { TreeDndRow, TreeNodeLabel, type TreeNodeRenderDetails } from "./TreeRow";
+import { TreeDndRow, TreeNodeContent, type TreeNodeRenderDetails } from "./TreeRow";
 import { TreeView } from "./TreeView";
 
 export interface DraggableTreeNodeProps<T extends TreeNode> {
@@ -26,8 +26,11 @@ export function DraggableTreeNode<T extends TreeNode>({
   const children = collection.getNodeChildren(node);
   const isBranch = collection.isBranchNode(node);
 
-  const content = renderNode?.({ node, indexPath, isBranch }) ?? (
-    <TreeNodeLabel isBranch={isBranch}>{collection.stringifyNode(node)}</TreeNodeLabel>
+  const content = (
+    <TreeNodeContent
+      details={{ node, indexPath, isBranch }}
+      renderNode={renderNode}
+    />
   );
 
   return (

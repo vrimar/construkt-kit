@@ -1,4 +1,3 @@
-import { usePopoverContext } from "@ark-ui/react/popover";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { Box, type BoxProps } from "#styled-system/jsx";
@@ -26,10 +25,12 @@ interface TagSelectTriggerProps<T> extends BoxProps {
 }
 
 function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTriggerProps<T>) {
-  const { managed, hasValue, triggerValue } = useSelectContext();
-  const popover = usePopoverContext();
-  const { controller } = managed;
-  const selectedItems = controller.selectedItems as T[];
+  const { managed, appliedItems, hasValue, triggerValue } = useSelectContext();
+  const { collection } = managed.controller;
+  const tags = (appliedItems as T[]).map((item) => ({
+    item,
+    value: collection.getItemValue(item) ?? "",
+  }));
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
@@ -37,9 +38,6 @@ function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTrigge
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       event.currentTarget.click();
-    } else if (event.key === "ArrowDown") {
-      event.preventDefault();
-      popover.setOpen(true);
     }
   };
 
@@ -56,31 +54,25 @@ function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTrigge
       <TagsInput.Root
         cursor="pointer"
         readOnly
-        value={controller.encodedValue}
+        value={tags.map((tag) => tag.value)}
       >
         <TagsInput.Control
           outline="none"
           tabIndex={-1}
         >
-          {selectedItems.map((item) => {
-            const encodedValue = controller.collection.getItemValue(item) ?? "";
-
-            return (
-              <TagsInput.Item
-                key={encodedValue}
-                index={controller.encodedValue.indexOf(encodedValue)}
-                value={encodedValue}
-              >
-                <TagsInput.ItemPreview>
-                  {renderTag?.(item)}
-                  <TagsInput.ItemText>
-                    {controller.collection.stringifyItem(item)}
-                  </TagsInput.ItemText>
-                </TagsInput.ItemPreview>
-              </TagsInput.Item>
-            );
-          })}
-          {selectedItems.length === 0 && (
+          {tags.map(({ item, value }, index) => (
+            <TagsInput.Item
+              key={value}
+              index={index}
+              value={value}
+            >
+              <TagsInput.ItemPreview>
+                {renderTag?.(item)}
+                <TagsInput.ItemText>{collection.stringifyItem(item)}</TagsInput.ItemText>
+              </TagsInput.ItemPreview>
+            </TagsInput.Item>
+          ))}
+          {tags.length === 0 && (
             <Text
               ml="1"
               color={hasValue ? undefined : "fg.subtle"}

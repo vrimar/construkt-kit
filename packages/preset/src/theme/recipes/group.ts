@@ -43,16 +43,12 @@ export const group = defineRecipe({
       orientation: "horizontal",
       attached: true,
       css: {
-        "& > *:first-child": {
+        "& > *:not(:last-child)": {
           borderEndRadius: "0",
           marginEnd: "-1px",
         },
-        "& > *:last-child": {
+        "& > *:not(:first-child)": {
           borderStartRadius: "0",
-        },
-        "& > *:not(:first-child):not(:last-child)": {
-          borderRadius: "0",
-          marginEnd: "-1px",
         },
       },
     },
@@ -60,16 +56,12 @@ export const group = defineRecipe({
       orientation: "vertical",
       attached: true,
       css: {
-        "& > *:first-child": {
+        "& > *:not(:last-child)": {
           borderBottomRadius: "0",
           marginBottom: "-1px",
         },
-        "& > *:last-child": {
+        "& > *:not(:first-child)": {
           borderTopRadius: "0",
-        },
-        "& > *:not(:first-child):not(:last-child)": {
-          borderRadius: "0",
-          marginBottom: "-1px",
         },
       },
     },

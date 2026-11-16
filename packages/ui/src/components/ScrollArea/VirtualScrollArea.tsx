@@ -6,25 +6,14 @@ import {
   observeElementOffset,
   useVirtualizer,
 } from "@tanstack/react-virtual";
-import {
-  type Ref,
-  type RefObject,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { Box } from "#styled-system/jsx";
-
-import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
-import { VirtualRows } from "./VirtualRows";
+import { type ScrollToIndexRef, VirtualRows, useScrollToIndexRef } from "./VirtualRows";
 
-export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "children" | "ref"> {
+export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "children"> {
   /** The list of items to virtualize. */
   items: T[];
   /** Estimated height in pixels for each item, or a function returning the height for a given index. */
@@ -40,8 +29,6 @@ export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "childr
    * needs a `zIndex`, since the rows come after it.
    */
   header?: React.ReactNode;
-  /** Ref to the scroll viewport element (e.g. for drag auto-scroll). */
-  viewportRef?: Ref<HTMLDivElement>;
   /** When true, items are measured after render to support variable heights. @default false */
   measure?: boolean;
   /**
@@ -53,11 +40,11 @@ export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "childr
    * Receives a function that scrolls an item into view by index (e.g. for keyboard navigation
    * past the rendered window); cleared on unmount.
    */
-  scrollToIndexRef?: RefObject<((index: number) => void) | undefined>;
+  scrollToIndexRef?: ScrollToIndexRef;
   /**
-   * Called as the list scrolls with `firstVisible`, the first item at least partly in view below
-   * `scrollPaddingStart`, and `firstUncut`, the first item whose top edge is in view; each is -1
-   * when there is none.
+   * Called as the list scrolls with `firstVisible`, the first item at least partly in view below a
+   * sticky `header` and `scrollPaddingStart`, and `firstUncut`, the first item whose top edge is in
+   * view; each is -1 when there is none.
    */
   onVisibleItemsChange?: (items: VisibleItems) => void;
   /**
@@ -86,14 +73,14 @@ const findVisibleItems = (
 };
 
 export const VirtualScrollArea = <T,>({
+  ref,
   items,
   itemHeight,
   overscan = 10,
   children,
   getItemKey,
-  measure,
+  measure = false,
   header,
-  viewportRef,
   keepMountedIndex,
   scrollToIndexRef,
   onVisibleItemsChange,
@@ -101,14 +88,7 @@ export const VirtualScrollArea = <T,>({
   ...scrollAreaProps
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
-  const { style, ...sizedScrollAreaProps } = scrollAreaProps;
-  const [sizeStyle, resolvedScrollAreaProps] = splitInlineSizes(sizedScrollAreaProps, [
-    "height",
-    "maxHeight",
-  ]);
-  const resolvedStyle = { ...style, ...sizeStyle };
-
-  const setViewport = useComposedRefs(parentRef, viewportRef);
+  const setViewport = useComposedRefs(parentRef, ref);
 
   const [listElement, setListElement] = useState<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -158,7 +138,8 @@ export const VirtualScrollArea = <T,>({
     [keepMountedIndex],
   );
 
-  const visibleItemsRef = useLatestRef({ onVisibleItemsChange, scrollPaddingStart });
+  const coveredStart = stickyHeaderHeight + scrollPaddingStart;
+  const visibleItemsRef = useLatestRef({ onVisibleItemsChange, coveredStart });
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -168,26 +149,25 @@ export const VirtualScrollArea = <T,>({
     getItemKey,
     rangeExtractor,
     scrollMargin,
-    scrollPaddingStart: stickyHeaderHeight + scrollPaddingStart,
+    scrollPaddingStart: coveredStart,
     // onChange only fires when the rendered range changes; firstVisible moves with every offset.
     observeElementOffset: (instance, onOffset) =>
       observeElementOffset(instance, (offset, isScrolling) => {
         onOffset(offset, isScrolling);
         const latest = visibleItemsRef.current;
-        latest.onVisibleItemsChange?.(findVisibleItems(instance, latest.scrollPaddingStart));
+        latest.onVisibleItemsChange?.(findVisibleItems(instance, latest.coveredStart));
       }),
-    onChange: (instance) => onVisibleItemsChange?.(findVisibleItems(instance, scrollPaddingStart)),
+    onChange: (instance) => onVisibleItemsChange?.(findVisibleItems(instance, coveredStart)),
   });
 
   useLayoutEffect(() => {
-    onVisibleItemsChange?.(findVisibleItems(virtualizer, scrollPaddingStart));
-  }, [onVisibleItemsChange, scrollPaddingStart, virtualizer]);
+    onVisibleItemsChange?.(findVisibleItems(virtualizer, coveredStart));
+  }, [onVisibleItemsChange, coveredStart, virtualizer]);
 
   useLayoutEffect(() => {
     const viewport = parentRef.current;
-    if (viewport)
-      viewport.style.scrollPaddingTop = scrollPaddingStart ? `${scrollPaddingStart}px` : "";
-  }, [scrollPaddingStart]);
+    if (viewport) viewport.style.scrollPaddingTop = coveredStart ? `${coveredStart}px` : "";
+  }, [coveredStart]);
 
   const fixedItemHeight = typeof itemHeight === "number" ? itemHeight : undefined;
   const measuredItemHeightRef = useRef(fixedItemHeight);
@@ -201,55 +181,21 @@ export const VirtualScrollArea = <T,>({
     virtualizer.elementsCache.forEach((element) => virtualizer.measureElement(element));
   }, [virtualizer, fixedItemHeight]);
 
-  useEffect(() => {
-    if (!scrollToIndexRef) return;
-    scrollToIndexRef.current = (index) => virtualizer.scrollToIndex(index);
-    return () => {
-      scrollToIndexRef.current = undefined;
-    };
-  }, [virtualizer, scrollToIndexRef]);
-
-  const renderItem = (virtualItem: VirtualItem) =>
-    children(items[virtualItem.index], virtualItem.index, virtualItem);
+  useScrollToIndexRef(virtualizer, scrollToIndexRef);
 
   return (
     <ScrollArea
       ref={setViewport}
-      {...resolvedScrollAreaProps}
-      style={resolvedStyle}
+      {...scrollAreaProps}
     >
       {header}
-      {measure ? (
-        <VirtualRows
-          ref={setListElement}
-          virtualizer={virtualizer}
-        >
-          {renderItem}
-        </VirtualRows>
-      ) : (
-        <Box
-          ref={setListElement}
-          width="100%"
-          style={{ height: virtualizer.getTotalSize(), position: "relative" }}
-        >
-          {virtualizer.getVirtualItems().map((virtualItem) => (
-            <Box
-              key={virtualItem.key}
-              overflow="hidden"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: `${virtualItem.size}px`,
-                transform: `translateY(${virtualItem.start - scrollMargin}px)`,
-              }}
-            >
-              {renderItem(virtualItem)}
-            </Box>
-          ))}
-        </Box>
-      )}
+      <VirtualRows
+        ref={setListElement}
+        virtualizer={virtualizer}
+        measure={measure}
+      >
+        {(virtualItem) => children(items[virtualItem.index], virtualItem.index, virtualItem)}
+      </VirtualRows>
     </ScrollArea>
   );
 };

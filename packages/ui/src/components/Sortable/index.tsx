@@ -1,4 +1,4 @@
-export { DragPreview } from "./DragPreview";
+export { DragPreview } from "../dnd";
 export {
   Sortable,
   type SortableHandleProps,

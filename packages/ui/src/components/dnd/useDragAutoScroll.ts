@@ -13,17 +13,15 @@ interface DragAutoScrollOptions {
   /** Scroll container to auto-scroll near its edges during a drag. */
   element: Element | null | undefined;
   axis: Axis;
-  enabled: boolean;
+  disabled: boolean;
   maxScrollSpeed?: MaxScrollSpeed;
-  /** Whether a drag scrolls `element`. Defaults to every element drag. */
-  canScroll?: CanScroll;
+  /** Whether a drag scrolls `element`. The first claim that accepts a drag sets its axis and speed. */
+  canScroll: CanScroll;
 }
 
 interface Claim {
   axis: Axis;
-  options: Readonly<
-    RefObject<{ maxScrollSpeed: MaxScrollSpeed; canScroll: CanScroll | undefined }>
-  >;
+  options: Readonly<RefObject<{ maxScrollSpeed: MaxScrollSpeed; canScroll: CanScroll }>>;
 }
 
 interface SharedRegistration {
@@ -36,7 +34,7 @@ const registrations = new WeakMap<Element, SharedRegistration>();
 
 const claimFor = (claims: Set<Claim>, args: FeedbackArgs) => {
   for (const claim of claims) {
-    if (claim.options.current.canScroll?.(args) ?? true) return claim;
+    if (claim.options.current.canScroll(args)) return claim;
   }
   return undefined;
 };
@@ -72,14 +70,14 @@ function claimAutoScroll(element: Element, claim: Claim) {
 export function useDragAutoScroll({
   element,
   axis,
-  enabled,
+  disabled,
   maxScrollSpeed = "standard",
   canScroll,
 }: DragAutoScrollOptions) {
   const options = useLatestRef({ maxScrollSpeed, canScroll });
 
   useEffect(() => {
-    if (!enabled || !element) return;
+    if (disabled || !element) return;
     return claimAutoScroll(element, { axis, options });
-  }, [enabled, element, axis, options]);
+  }, [disabled, element, axis, options]);
 }

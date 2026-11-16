@@ -3,7 +3,7 @@ import { EllipsisIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { type TreeViewLoadChildrenDetails, TreeSelectList, createTreeCollection } from ".";
-import { useDebounceQuery } from "../../hooks";
+import { useDebounce } from "../../hooks/useDebounce";
 import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
 import { Menu } from "../Menu";
@@ -360,7 +360,9 @@ const searchServer = async (query: string, signal: AbortSignal) => {
 };
 
 function ExternalSearchDemo() {
-  const { query, debouncedQuery, setQuery } = useDebounceQuery("", 300);
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  useDebounce(() => setDebouncedQuery(query), 300, [query]);
   const [results, setResults] = useState(collection);
   const [selected, setSelected] = useState<string[]>([]);
 

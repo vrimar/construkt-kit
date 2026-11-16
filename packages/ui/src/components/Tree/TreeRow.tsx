@@ -1,4 +1,4 @@
-import type { TreeNode } from "@ark-ui/react/tree-view";
+import { type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
 import type { ComponentProps, ReactNode } from "react";
 
 import { useTreeDndContext } from "./dnd/TreeDndContext";
@@ -52,5 +52,23 @@ export function TreeNodeLabel({ isBranch, children }: { isBranch: boolean; child
     <TreeView.BranchText>{children}</TreeView.BranchText>
   ) : (
     <TreeView.ItemText>{children}</TreeView.ItemText>
+  );
+}
+
+export function TreeNodeContent<T extends TreeNode>({
+  details,
+  renderNode,
+}: {
+  details: TreeNodeRenderDetails<T>;
+  renderNode: ((details: TreeNodeRenderDetails<T>) => ReactNode) | undefined;
+}) {
+  const { collection } = useTreeViewContext();
+
+  return (
+    renderNode?.(details) ?? (
+      <TreeNodeLabel isBranch={details.isBranch}>
+        {collection.stringifyNode(details.node)}
+      </TreeNodeLabel>
+    )
   );
 }

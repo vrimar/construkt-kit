@@ -1,56 +1,30 @@
-import { parseDateRangeFilter, parseNumberFilter } from "@construkt-kit/utils";
-import {
-  ArrowDownIcon,
-  ArrowUpDownIcon,
-  ArrowUpIcon,
-  CheckIcon,
-  SlidersHorizontalIcon,
-  XIcon,
-} from "lucide-react";
+import { CheckIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { Box, HStack, Stack, styled } from "#styled-system/jsx";
 
 import { Badge } from "../Badge";
 import { Button, IconButton } from "../Buttons";
-import { operatorSymbols } from "../NumberFilter/operators";
 import { SegmentGroup } from "../SegmentGroup";
 import { Sheet } from "../Sheet";
 import { Text } from "../Text";
+import { columnMeta, getFilterValues } from "./columns";
 import { useDataTableContext } from "./context";
 import { getColumnLabel, renderColumnLabel } from "./Header/columnLabel";
+import { SortIcon } from "./Header/ColumnSorter";
 import { ColumnFilter } from "./Header/Filters/ColumnFilter";
+import { filterKinds } from "./Header/Filters/filterKinds";
 import type { DataTableHeader, DataTableInstance } from "./types";
 
 const columnName = <TData extends object>(header: DataTableHeader<TData>) =>
   renderColumnLabel(header) ?? getColumnLabel(header);
 
-const getActiveValues = <TData extends object>(header: DataTableHeader<TData>) => {
-  const value = header.column.getFilterValue();
-  return Array.isArray(value) && value.length > 0 ? (value as string[]) : undefined;
-};
-
 const describeFilter = <TData extends object>(
   header: DataTableHeader<TData>,
   values: string[],
 ): string => {
-  const { meta } = header.column.columnDef;
-  const [first] = values;
-  switch (meta?.type) {
-    case "select":
-      return values.map(meta.selectProps?.getItemLabel ?? ((item: string) => item)).join(", ");
-    case "date":
-      return parseDateRangeFilter(first)?.join(" – ") ?? first;
-    case "number": {
-      const filter = parseNumberFilter(first);
-      if (!filter) return first;
-      return filter.operator === "between"
-        ? `${filter.value} – ${filter.to}`
-        : `${operatorSymbols[filter.operator]} ${filter.value}`;
-    }
-    default:
-      return first;
-  }
+  const meta = columnMeta(header.column);
+  return filterKinds[meta.type].describe(values, meta);
 };
 
 interface SheetOptionProps {
@@ -95,6 +69,73 @@ const SheetOption = ({ active, onSelect, children }: SheetOptionProps) => (
   </styled.button>
 );
 
+interface DraftSheetProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  clearLabel: string;
+  onClear: (() => void) | undefined;
+  onDone: () => void;
+  children: ReactNode;
+}
+
+const DraftSheet = ({
+  open,
+  onClose,
+  title,
+  clearLabel,
+  onClear,
+  onDone,
+  children,
+}: DraftSheetProps) => {
+  const { labels } = useDataTableContext();
+
+  return (
+    <Sheet.Root
+      open={open}
+      onOpenChange={({ open: next }) => {
+        if (!next) onClose();
+      }}
+    >
+      <Sheet.Content>
+        <Sheet.Header
+          endElement={
+            onClear && (
+              <Button
+                variant="plain"
+                onClick={onClear}
+              >
+                {clearLabel}
+              </Button>
+            )
+          }
+        >
+          <Sheet.Title>{title}</Sheet.Title>
+        </Sheet.Header>
+        <Sheet.Body
+          p="0"
+          pb="4"
+        >
+          {children}
+        </Sheet.Body>
+        <Sheet.Footer
+          borderTopWidth="1px"
+          borderTopColor="border"
+        >
+          <Button
+            width="full"
+            size="lg"
+            colorPalette="brand"
+            onClick={onDone}
+          >
+            {labels.done}
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet.Root>
+  );
+};
+
 interface DataTableCardsToolbarProps<TData extends object> {
   table: DataTableInstance<TData>;
   headers: DataTableHeader<TData>[];
@@ -120,31 +161,25 @@ export const DataTableCardsToolbar = <TData extends object>({
   const closeSheet = () => setSheet(null);
 
   const filterable = showFilters ? headers.filter((header) => header.column.getCanFilter()) : [];
-  const searchHeader = filterable.find(({ column: { columnDef } }) => {
-    const meta = columnDef.meta;
-    return meta?.card === "title" && (meta.type ?? "input") === "input";
+  const searchHeader = filterable.find(({ column }) => {
+    const meta = columnMeta(column);
+    return meta.card === "title" && meta.type === "input";
   });
   const drawerHeaders = filterable.filter((header) => header !== searchHeader);
   const activeFilters = drawerHeaders.flatMap((header) => {
-    const values = getActiveValues(header);
-    return values ? [{ header, values }] : [];
+    const values = getFilterValues(header.column);
+    return values.length > 0 ? [{ header, values }] : [];
   });
   const sortHeaders = headers.filter((header) => header.column.getCanSort());
   const [currentSort] = table.state.sorting;
-  const sortedColumn = currentSort ? table.getColumn(currentSort.id) : undefined;
-  const sortDirection = sortedColumn?.getIsSorted() || null;
+  const sortedColumn =
+    currentSort && table.getAllLeafColumns().find((column) => column.id === currentSort.id);
+  const sortDirection = sortedColumn?.getIsSorted() ?? false;
   const appliedSort: SortDraft | null = sortedColumn
     ? { id: sortedColumn.id, desc: sortDirection === "desc" }
     : null;
 
   if (!searchHeader && drawerHeaders.length === 0 && sortHeaders.length === 0) return null;
-
-  const SortIcon =
-    sortDirection === "asc"
-      ? ArrowUpIcon
-      : sortDirection === "desc"
-        ? ArrowDownIcon
-        : ArrowUpDownIcon;
 
   const openSort = () => {
     setSortDraft(appliedSort);
@@ -152,16 +187,14 @@ export const DataTableCardsToolbar = <TData extends object>({
   };
 
   const applySort = () => {
-    if (sortDraft?.id !== appliedSort?.id || sortDraft?.desc !== appliedSort?.desc) {
-      table.setSorting(sortDraft ? [sortDraft] : []);
-    }
+    table.setSorting(sortDraft ? [sortDraft] : []);
     closeSheet();
   };
 
   const openFilters = () => {
     setFilterDraft(
       Object.fromEntries(
-        drawerHeaders.map((header) => [header.column.id, getActiveValues(header)]),
+        drawerHeaders.map((header) => [header.column.id, getFilterValues(header.column)]),
       ),
     );
     setSheet("filters");
@@ -179,17 +212,6 @@ export const DataTableCardsToolbar = <TData extends object>({
   };
 
   const hasFilterDraft = Object.values(filterDraft).some((value) => value && value.length > 0);
-
-  const doneButton = (onClick: () => void) => (
-    <Button
-      width="full"
-      size="lg"
-      colorPalette="brand"
-      onClick={onClick}
-    >
-      {labels.done}
-    </Button>
-  );
 
   return (
     <Stack
@@ -223,7 +245,7 @@ export const DataTableCardsToolbar = <TData extends object>({
             }
             onClick={openSort}
           >
-            <SortIcon />
+            <SortIcon sort={sortDirection} />
           </IconButton>
         )}
         {drawerHeaders.length > 0 && (
@@ -285,165 +307,115 @@ export const DataTableCardsToolbar = <TData extends object>({
       )}
 
       {sortHeaders.length > 0 && (
-        <Sheet.Root
+        <DraftSheet
           open={sheet === "sort"}
-          onOpenChange={({ open }) => {
-            if (!open) closeSheet();
-          }}
+          onClose={closeSheet}
+          title={labels.sortBy}
+          clearLabel={labels.clearSort}
+          onClear={sortDraft ? () => setSortDraft(null) : undefined}
+          onDone={applySort}
         >
-          <Sheet.Content>
-            <Sheet.Header
-              endElement={
-                sortDraft && (
-                  <Button
-                    variant="plain"
-                    onClick={() => setSortDraft(null)}
-                  >
-                    {labels.clearSort}
-                  </Button>
-                )
+          <Stack
+            role="radiogroup"
+            aria-label={labels.sortBy}
+            gap="0"
+          >
+            {sortHeaders.map((header) => (
+              <SheetOption
+                key={header.id}
+                active={sortDraft?.id === header.column.id}
+                onSelect={() =>
+                  setSortDraft((draft) => ({
+                    id: header.column.id,
+                    desc: draft?.desc ?? false,
+                  }))
+                }
+              >
+                {getColumnLabel(header)}
+              </SheetOption>
+            ))}
+          </Stack>
+          <Box
+            px="4"
+            pt="4"
+          >
+            <SegmentGroup.Root
+              width="full"
+              value={sortDraft ? (sortDraft.desc ? "desc" : "asc") : null}
+              disabled={!sortDraft}
+              onValueChange={(details) =>
+                setSortDraft((draft) => draft && { ...draft, desc: details.value === "desc" })
               }
             >
-              <Sheet.Title>{labels.sortBy}</Sheet.Title>
-            </Sheet.Header>
-            <Sheet.Body
-              p="0"
-              pb="4"
-            >
-              <Stack
-                role="radiogroup"
-                aria-label={labels.sortBy}
-                gap="0"
+              <SegmentGroup.Indicator />
+              <SegmentGroup.Item
+                value="asc"
+                flex="1"
               >
-                {sortHeaders.map((header) => (
-                  <SheetOption
-                    key={header.id}
-                    active={sortDraft?.id === header.column.id}
-                    onSelect={() =>
-                      setSortDraft((draft) => ({
-                        id: header.column.id,
-                        desc: draft?.desc ?? false,
-                      }))
-                    }
-                  >
-                    {getColumnLabel(header)}
-                  </SheetOption>
-                ))}
-              </Stack>
-              <Box
-                px="4"
-                pt="4"
+                <SegmentGroup.ItemText>
+                  <HStack gap="1.5">
+                    <SortIcon sort="asc" />
+                    {labels.ascending}
+                  </HStack>
+                </SegmentGroup.ItemText>
+                <SegmentGroup.ItemHiddenInput />
+              </SegmentGroup.Item>
+              <SegmentGroup.Item
+                value="desc"
+                flex="1"
               >
-                <SegmentGroup.Root
-                  width="full"
-                  value={sortDraft ? (sortDraft.desc ? "desc" : "asc") : null}
-                  disabled={!sortDraft}
-                  onValueChange={(details) =>
-                    setSortDraft((draft) => draft && { ...draft, desc: details.value === "desc" })
-                  }
-                >
-                  <SegmentGroup.Indicator />
-                  <SegmentGroup.Item
-                    value="asc"
-                    flex="1"
-                  >
-                    <SegmentGroup.ItemText>
-                      <HStack gap="1.5">
-                        <ArrowUpIcon />
-                        {labels.ascending}
-                      </HStack>
-                    </SegmentGroup.ItemText>
-                    <SegmentGroup.ItemHiddenInput />
-                  </SegmentGroup.Item>
-                  <SegmentGroup.Item
-                    value="desc"
-                    flex="1"
-                  >
-                    <SegmentGroup.ItemText>
-                      <HStack gap="1.5">
-                        <ArrowDownIcon />
-                        {labels.descending}
-                      </HStack>
-                    </SegmentGroup.ItemText>
-                    <SegmentGroup.ItemHiddenInput />
-                  </SegmentGroup.Item>
-                </SegmentGroup.Root>
-              </Box>
-            </Sheet.Body>
-            <Sheet.Footer
-              borderTopWidth="1px"
-              borderTopColor="border"
-            >
-              {doneButton(applySort)}
-            </Sheet.Footer>
-          </Sheet.Content>
-        </Sheet.Root>
+                <SegmentGroup.ItemText>
+                  <HStack gap="1.5">
+                    <SortIcon sort="desc" />
+                    {labels.descending}
+                  </HStack>
+                </SegmentGroup.ItemText>
+                <SegmentGroup.ItemHiddenInput />
+              </SegmentGroup.Item>
+            </SegmentGroup.Root>
+          </Box>
+        </DraftSheet>
       )}
 
       {drawerHeaders.length > 0 && (
-        <Sheet.Root
+        <DraftSheet
           open={sheet === "filters"}
-          onOpenChange={({ open }) => {
-            if (!open) closeSheet();
-          }}
+          onClose={closeSheet}
+          title={labels.filters}
+          clearLabel={labels.resetFilters}
+          onClear={hasFilterDraft ? () => setFilterDraft({}) : undefined}
+          onDone={applyFilters}
         >
-          <Sheet.Content>
-            <Sheet.Header
-              endElement={
-                hasFilterDraft && (
-                  <Button
-                    variant="plain"
-                    onClick={() => setFilterDraft({})}
-                  >
-                    {labels.resetFilters}
-                  </Button>
-                )
-              }
-            >
-              <Sheet.Title>{labels.filters}</Sheet.Title>
-            </Sheet.Header>
-            <Sheet.Body
-              p="0"
-              pb="4"
-            >
+          <Stack
+            gap="4"
+            px="4"
+            pt="2"
+          >
+            {drawerHeaders.map((header) => (
               <Stack
-                gap="4"
-                px="4"
-                pt="2"
+                key={header.id}
+                gap="1.5"
               >
-                {drawerHeaders.map((header) => (
-                  <Stack
-                    key={header.id}
-                    gap="1.5"
-                  >
-                    <Text
-                      textStyle="sm"
-                      fontWeight="medium"
-                      color="fg.muted"
-                    >
-                      {columnName(header)}
-                    </Text>
-                    <ColumnFilter
-                      header={header}
-                      layout="field"
-                      draft={{
-                        value: filterDraft[header.column.id],
-                        onChange: (value) =>
-                          setFilterDraft((draft) => ({ ...draft, [header.column.id]: value })),
-                      }}
-                    />
-                  </Stack>
-                ))}
+                <Text
+                  textStyle="sm"
+                  fontWeight="medium"
+                  color="fg.muted"
+                >
+                  {columnName(header)}
+                </Text>
+                <ColumnFilter
+                  header={header}
+                  layout="field"
+                  draft={{
+                    value: filterDraft[header.column.id],
+                    onChange: (value) =>
+                      setFilterDraft((draft) => ({ ...draft, [header.column.id]: value })),
+                  }}
+                />
               </Stack>
-            </Sheet.Body>
-            <Sheet.Footer
-              borderTopWidth="1px"
-              borderTopColor="border"
-            >
-              {doneButton(applyFilters)}
-            </Sheet.Footer>
-          </Sheet.Content>
-        </Sheet.Root>
+            ))}
+          </Stack>
+        </DraftSheet>
       )}
     </Stack>
   );

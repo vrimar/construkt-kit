@@ -2,7 +2,7 @@ import { ark } from "@ark-ui/react/factory";
 import { useLocaleContext } from "@ark-ui/react/locale";
 import type { ComponentProps, ReactNode } from "react";
 
-import { createSlotRecipeContext, styled } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { stat } from "#styled-system/recipes";
 
 import { Badge, type BadgeProps } from "../Badge";
@@ -55,17 +55,7 @@ function StatValueText({ ref, value, formatOptions, children, ...rest }: StatVal
   );
 }
 
-const TrendIndicator = styled(ark.span, {
-  base: {
-    fontSize: "xs",
-  },
-  variants: {
-    direction: {
-      up: { _before: { content: '"▲"' } },
-      down: { _before: { content: '"▼"' } },
-    },
-  },
-});
+const TrendIndicator = withContext(ark.span, "trendIndicator");
 
 function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" | "down") {
   return function StatTrend({ ref, children, ...props }: BadgeProps) {
@@ -76,7 +66,7 @@ function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" |
         {...props}
         ref={ref}
       >
-        <TrendIndicator direction={direction} />
+        <TrendIndicator data-direction={direction} />
         {children}
       </Badge>
     );

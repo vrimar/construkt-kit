@@ -11,7 +11,7 @@ export interface ColorModeScriptOptions {
 }
 
 // Serialized into the pre-paint script, so it must not reference module scope.
-export function applyColorMode(stored: string | null, fallback: ColorMode) {
+function applyColorMode(stored: string | null, fallback: ColorMode) {
   const mode = stored === "light" || stored === "dark" || stored === "system" ? stored : fallback;
   const dark =
     mode === "dark" ||

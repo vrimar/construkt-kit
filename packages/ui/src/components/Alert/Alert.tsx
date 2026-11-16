@@ -1,11 +1,10 @@
 import { ark } from "@ark-ui/react/factory";
-import { InfoIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { alert } from "#styled-system/recipes";
 
-import { CloseButton } from "../Buttons";
+import { createCloseTrigger } from "../closeTrigger";
 import { statusIcons } from "../statusIcons";
 
 const { withProvider, withContext } = createSlotRecipeContext(alert);
@@ -15,25 +14,18 @@ const Root = withProvider(ark.div, "root");
 const Title = withContext(ark.h3, "title");
 const Description = withContext(ark.div, "description");
 const Content = withContext(ark.div, "content");
-
-type IndicatorProps = ComponentProps<typeof StyledIndicator>;
-const StyledIndicator = withContext(ark.span, "indicator");
-
-function Indicator({ ref, children, ...props }: IndicatorProps) {
-  return (
-    <StyledIndicator
-      ref={ref}
-      {...props}
-    >
-      {children || <InfoIcon />}
-    </StyledIndicator>
-  );
-}
+const Indicator = withContext(ark.span, "indicator", {
+  defaultProps: { children: <statusIcons.info /> },
+});
+const CloseTrigger = createCloseTrigger(
+  withContext(ark.button, "closeTrigger", { defaultProps: { type: "button" } }),
+);
 
 export interface AlertProps extends Omit<AlertRootProps, "title"> {
   title?: React.ReactNode;
-  icon?: React.ReactElement;
-  closable?: boolean;
+  /** The status icon by default; `null` leaves the indicator out. */
+  indicator?: React.ReactNode;
+  /** Shows a close button that calls it. */
   onClose?: () => void;
   startElement?: React.ReactNode;
   endElement?: React.ReactNode;
@@ -43,8 +35,7 @@ function AlertComponent({
   ref,
   title,
   children,
-  icon,
-  closable,
+  indicator,
   onClose,
   startElement,
   endElement,
@@ -57,7 +48,10 @@ function AlertComponent({
       ref={ref}
       {...rest}
     >
-      {startElement || <Indicator>{icon ?? (StatusIcon && <StatusIcon />)}</Indicator>}
+      {startElement ||
+        (indicator !== null && (
+          <Indicator>{indicator ?? (StatusIcon && <StatusIcon />)}</Indicator>
+        ))}
       {title && !children ? (
         <Title flex="1">{title}</Title>
       ) : (
@@ -67,16 +61,7 @@ function AlertComponent({
         </Content>
       )}
       {endElement}
-      {closable && (
-        <CloseButton
-          size="sm"
-          pos="relative"
-          top="-2"
-          insetEnd="-2"
-          alignSelf="flex-start"
-          onClick={onClose}
-        />
-      )}
+      {onClose && <CloseTrigger onClick={onClose} />}
     </Root>
   );
 }
@@ -87,4 +72,5 @@ export const Alert = Object.assign(AlertComponent, {
   Description,
   Content,
   Indicator,
+  CloseTrigger,
 });

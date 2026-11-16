@@ -21,7 +21,7 @@ export {
   TreeViewDndProvider,
   type TreeViewDndProviderProps,
 } from "./dnd/TreeDndContext";
-export { DragPreview as TreeDragPreview } from "../Sortable/DragPreview";
+export { DragPreview as TreeDragPreview } from "../dnd";
 export { TreeDropIndicator } from "./dnd/TreeDropIndicator";
 export {
   applyTreeDrop,
@@ -29,6 +29,7 @@ export {
   type TreeDropArgs,
   type TreeDropInstruction,
   type TreeKeyboardMove,
+  type TreeKeyboardMoveResult,
 } from "./dnd/treeDropLogic";
 export { useTreeNodeDnd, type UseTreeNodeDndReturn } from "./dnd/useTreeNodeDnd";
 export { DraggableTreeNode, type DraggableTreeNodeProps } from "./DraggableTreeNode";

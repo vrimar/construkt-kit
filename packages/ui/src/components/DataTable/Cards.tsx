@@ -1,9 +1,10 @@
 import { flexRender } from "@tanstack/react-table";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { Box, HStack, Stack } from "#styled-system/jsx";
 
 import { DataTableCardsToolbar } from "./CardsToolbar";
+import { getLeafHeaders } from "./columns";
 import { useDataTableContext } from "./context";
 import { DataTableStatus } from "./EmptyState";
 import { renderColumnLabel } from "./Header/columnLabel";
@@ -15,6 +16,7 @@ import type {
   DataTableRow,
   DataTableRowProps,
 } from "./types";
+import { useScrollTopOnPage } from "./useScrollTopOnPage";
 
 const cardRole = <TData extends object>(cell: DataTableCell<TData>): DataTableCardRole =>
   cell.column.columnDef.meta?.card ?? "detail";
@@ -167,16 +169,10 @@ export const DataTableCards = <TData extends object>({
   renderSubRow,
 }: DataTableCardsProps<TData>) => {
   const { getRowInteractionProps } = useDataTableContext<TData>();
-  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollRef = useScrollTopOnPage(table);
   const rows = table.getRowModel().rows;
-  const page = table.state.pagination.pageIndex;
-  // `table.getLeafHeaders()` also returns the placeholder and group headers above each leaf.
-  const leafHeaders = table.getHeaderGroups().at(-1)?.headers ?? [];
+  const leafHeaders = getLeafHeaders(table);
   const headers = new Map(leafHeaders.map((header) => [header.column.id, header]));
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo(0, 0);
-  }, [page]);
 
   return (
     <Box

@@ -6,6 +6,7 @@ import {
   useRef,
 } from "react";
 
+import { type EdgeAutoScrollOptions, createEdgeAutoScroll } from "./edgeAutoScroll";
 import { useLatestRef } from "./useLatestRef";
 
 export interface PointerDragPoint {
@@ -18,31 +19,13 @@ export interface PointerDragPoint {
   pointerType: string;
 }
 
-export interface PointerDragInset {
-  top?: number;
-  right?: number;
-  bottom?: number;
-  left?: number;
-}
-
-export interface PointerDragAutoScroll {
-  /** Scroll container that scrolls while the pointer is near or past its edges. */
-  element: HTMLElement | null | undefined;
-  /** Moves each edge zone inward, past sticky bands such as a header or pinned columns. A function is read every frame. */
-  inset?: PointerDragInset | (() => PointerDragInset);
-  /** Axes it scrolls. Defaults to `"both"`. */
-  axis?: "x" | "y" | "both";
-  /** Depth of each edge zone in px. Defaults to `40`. */
-  edge?: number;
-  /** Speed at the edge and beyond, in px per 60Hz frame. Defaults to `20`. */
-  maxSpeed?: number;
-}
-
 export interface UsePointerDragOptions<T extends Element> {
-  /** Tracks presses only while `true`. Defaults to `true`. */
-  enabled?: boolean;
+  /** Ignores presses while `true`. */
+  disabled?: boolean;
   /** Distance in px the pointer must travel before the drag starts. Defaults to `0`, any movement. */
   threshold?: number;
+  /** Calls `preventDefault()` and `stopPropagation()` on a primary-button press, before `onPress`. */
+  claimPress?: boolean;
   /** Runs on a primary-button press; returning `false` ignores it. */
   onPress?: (event: ReactPointerEvent<T>) => boolean | void;
   onStart?: (point: PointerDragPoint) => void;
@@ -50,21 +33,10 @@ export interface UsePointerDragOptions<T extends Element> {
   onMove: (point: PointerDragPoint) => void;
   /** Runs once per started drag; `cancelled` after Escape, a `pointercancel`, or an unmount mid-drag. */
   onEnd?: (point: PointerDragPoint, details: { cancelled: boolean }) => void;
-  autoScroll?: PointerDragAutoScroll;
+  /** Attribute set on the pressed element while a drag runs, such as `"data-resizing"`. */
+  activeAttribute?: string;
+  autoScroll?: EdgeAutoScrollOptions;
 }
-
-const FRAME_MS = 1000 / 60;
-const DEFAULT_EDGE = 40;
-const DEFAULT_MAX_SPEED = 20;
-
-const edgeVelocity = (position: number, start: number, end: number, edge: number, max: number) => {
-  if (position < start + edge) return -max * Math.min(1, (start + edge - position) / edge);
-  if (position > end - edge) return max * Math.min(1, (position - end + edge) / edge);
-  return 0;
-};
-
-const wholePixels = (value: number) =>
-  value === 0 ? 0 : Math.sign(value) * Math.max(1, Math.round(Math.abs(value)));
 
 /**
  * Tracks a pointer drag that starts on the element given `onPointerDown`. Moves are followed on the
@@ -83,8 +55,12 @@ export function usePointerDrag<T extends Element = Element>(
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<T>) => {
-      const { enabled = true, onPress } = latestRef.current;
-      if (!enabled || cancelRef.current || !event.isPrimary || event.button !== 0) return;
+      const { disabled, claimPress, onPress } = latestRef.current;
+      if (disabled || cancelRef.current || !event.isPrimary || event.button !== 0) return;
+      if (claimPress) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (onPress?.(event) === false) return;
 
       const target = event.currentTarget;
@@ -99,8 +75,7 @@ export function usePointerDrag<T extends Element = Element>(
       let clientX = startX;
       let clientY = startY;
       let phase: "pressed" | "dragging" | "cancelled" = "pressed";
-      let frame = 0;
-      let lastTime = 0;
+      let activeAttribute: string | undefined;
 
       const point = (): PointerDragPoint => ({
         clientX,
@@ -110,49 +85,17 @@ export function usePointerDrag<T extends Element = Element>(
         pointerType,
       });
 
-      const velocity = () => {
-        const auto = latestRef.current.autoScroll;
-        if (!scroller || !auto) return { x: 0, y: 0 };
-        const rect = scroller.getBoundingClientRect();
-        const inset = (typeof auto.inset === "function" ? auto.inset() : auto.inset) ?? {};
-        const edge = auto.edge ?? DEFAULT_EDGE;
-        const max = auto.maxSpeed ?? DEFAULT_MAX_SPEED;
-        const axis = auto.axis ?? "both";
-        const left = rect.left + (inset.left ?? 0);
-        const right = rect.right - (inset.right ?? 0);
-        const top = rect.top + (inset.top ?? 0);
-        const bottom = rect.bottom - (inset.bottom ?? 0);
-        return {
-          x: axis === "y" ? 0 : edgeVelocity(clientX, left, right, edge, max),
-          y: axis === "x" ? 0 : edgeVelocity(clientY, top, bottom, edge, max),
-        };
-      };
+      const edgeScroll = createEdgeAutoScroll(
+        () => {
+          const autoScroll = latestRef.current.autoScroll;
+          return autoScroll && { ...autoScroll, element: scroller };
+        },
+        () => latestRef.current.onMove(point()),
+      );
 
-      const tick = (time: number) => {
-        frame = 0;
-        const { x, y } = velocity();
-        if (!scroller || (x === 0 && y === 0)) {
-          lastTime = 0;
-          return;
-        }
-        const scale = lastTime ? Math.min(4, (time - lastTime) / FRAME_MS) : 1;
-        lastTime = time;
-        const { scrollLeft, scrollTop } = scroller;
-        scroller.scrollBy({
-          left: wholePixels(x * scale),
-          top: wholePixels(y * scale),
-          behavior: "instant",
-        });
-        if (scroller.scrollLeft !== scrollLeft || scroller.scrollTop !== scrollTop) {
-          latestRef.current.onMove(point());
-        }
-        frame = view.requestAnimationFrame(tick);
-      };
-
-      const stopScrolling = () => {
-        if (frame) view.cancelAnimationFrame(frame);
-        frame = 0;
-        lastTime = 0;
+      const end = (cancelled: boolean) => {
+        if (activeAttribute) target.toggleAttribute(activeAttribute, false);
+        latestRef.current.onEnd?.(point(), { cancelled });
       };
 
       const swallowClick = () => {
@@ -173,22 +116,24 @@ export function usePointerDrag<T extends Element = Element>(
           if (Math.hypot(clientX - startX, clientY - startY) <= threshold) return;
           phase = "dragging";
           if (target.isConnected) target.setPointerCapture(pointerId);
+          activeAttribute = latestRef.current.activeAttribute;
+          if (activeAttribute) target.toggleAttribute(activeAttribute, true);
           latestRef.current.onStart?.(point());
         }
         latestRef.current.onMove(point());
-        if (!frame) frame = view.requestAnimationFrame(tick);
+        edgeScroll.update(clientX, clientY);
       };
 
       const onUp = (up: PointerEvent) => {
         if (up.pointerId !== pointerId) return;
         const dragged = phase !== "pressed";
-        if (phase === "dragging") latestRef.current.onEnd?.(point(), { cancelled: false });
+        if (phase === "dragging") end(false);
         stop();
         if (dragged) swallowClick();
       };
 
       const abort = () => {
-        if (phase === "dragging") latestRef.current.onEnd?.(point(), { cancelled: true });
+        if (phase === "dragging") end(true);
         stop();
       };
 
@@ -201,12 +146,12 @@ export function usePointerDrag<T extends Element = Element>(
         key.preventDefault();
         key.stopPropagation();
         phase = "cancelled";
-        stopScrolling();
-        latestRef.current.onEnd?.(point(), { cancelled: true });
+        edgeScroll.stop();
+        end(true);
       };
 
       const stop = () => {
-        stopScrolling();
+        edgeScroll.stop();
         doc.removeEventListener("pointermove", onMove);
         doc.removeEventListener("pointerup", onUp);
         doc.removeEventListener("pointercancel", onCancel);

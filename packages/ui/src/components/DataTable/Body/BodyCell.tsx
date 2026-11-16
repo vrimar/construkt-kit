@@ -2,6 +2,7 @@ import { flexRender } from "@tanstack/react-table";
 
 import { Box } from "#styled-system/jsx";
 
+import { GridCell } from "../parts";
 import type { DataTableCell } from "../types";
 
 interface BodyCellProps<TData extends object> {
@@ -13,18 +14,14 @@ export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) =
   const titleValue = cell.getValue();
 
   return (
-    <Box
-      role="cell"
+    <GridCell
       display="flex"
-      alignItems="center"
-      p="2"
-      fontSize="sm"
+      color="fg"
       style={{ justifyContent: align }}
-      overflow="hidden"
       title={typeof titleValue === "string" ? titleValue : undefined}
       position="relative"
     >
       <Box truncate>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Box>
-    </Box>
+    </GridCell>
   );
 };

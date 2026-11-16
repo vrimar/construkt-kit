@@ -33,3 +33,9 @@ export const Clipboard = {
   CopyText,
   Context: ClipboardContext,
 };
+
+export {
+  type UseClipboardProps,
+  type UseClipboardReturn,
+  useClipboard,
+} from "@ark-ui/react/clipboard";

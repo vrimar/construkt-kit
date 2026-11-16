@@ -4,12 +4,13 @@ import {
   type NumberFilterValue,
   isValidNumber,
 } from "@construkt-kit/utils";
-import { useId, useState } from "react";
-import { useDebounce } from "react-use";
+import { useId, useRef, useState } from "react";
 
 import { HStack } from "#styled-system/jsx";
 
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControlledMirror } from "../../hooks/useControlledMirror";
+import { useDebounce } from "../../hooks/useDebounce";
 import type { Unstyled } from "../../types";
 import { IconButton } from "../Buttons";
 import {
@@ -41,7 +42,7 @@ export interface NumberFilterProps {
   operatorLabels?: Partial<Record<NumberFilterOperator, string>>;
   /** Accessible name for the clear button. */
   clearLabel?: string;
-  /** Forwarded to the operand input(s); `id` and `name` go to the first input only. */
+  /** Forwarded to the operand input(s); `id`, `name` and `ref` go to the first input only. */
   inputProps?: Unstyled<InputProps>;
   disabled?: boolean;
 }
@@ -97,19 +98,20 @@ export const NumberFilter = ({
 }: NumberFilterProps) => {
   const offered = operators?.length ? operators : ALL_OPERATORS;
   const toInputId = useId();
+  const fromInputRef = useRef<HTMLInputElement>(null);
+  const { id, name, ref, ...sharedInputProps } = inputProps ?? {};
+  const fromRef = useComposedRefs(ref, fromInputRef);
   const [operator, setOperator] = useState<NumberFilterOperator>(
     value?.operator ?? defaultOperator ?? offered[0],
   );
   const [fromText, setFromText] = useState(value ? String(value.value) : "");
   const [toText, setToText] = useState(value?.operator === "between" ? String(value.to) : "");
-  const [appliedValue, setAppliedValue] = useState(value);
 
-  const emitToParent = useControlledMirror({
+  const { applied: appliedValue, emit } = useControlledMirror({
     value,
     onValueChange,
     isSame: isSameValue,
     onExternalChange: (next) => {
-      setAppliedValue(next);
       if (!next) {
         setFromText("");
         setToText("");
@@ -122,11 +124,6 @@ export const NumberFilter = ({
       } else if (toText !== "") setToText("");
     },
   });
-
-  const emit = (next: NumberFilterValue | undefined) => {
-    setAppliedValue(next);
-    emitToParent(next);
-  };
 
   const applyText = () => {
     const candidate = deriveValue(operator, fromText, toText);
@@ -163,6 +160,7 @@ export const NumberFilter = ({
     <InputGroupClearButton
       size={size}
       aria-label={clearLabel}
+      field={() => fromInputRef.current}
       onClick={handleClear}
     />
   );
@@ -197,7 +195,6 @@ export const NumberFilter = ({
     </Menu.Root>
   );
 
-  const { id, name, ...sharedInputProps } = inputProps ?? {};
   const managedInputProps: InputProps = {
     size,
     variant,
@@ -221,6 +218,7 @@ export const NumberFilter = ({
       <Input
         {...sharedInputProps}
         {...managedInputProps}
+        ref={fromRef}
         id={id}
         name={name}
         placeholder={isBetween ? fromPlaceholder : placeholder}

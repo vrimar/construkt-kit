@@ -1,4 +1,10 @@
-import { SegmentGroup as ArkSegmentGroup, SegmentGroupContext } from "@ark-ui/react/segment-group";
+import {
+  SegmentGroup as ArkSegmentGroup,
+  SegmentGroupContext,
+  type UseSegmentGroupProps,
+  type UseSegmentGroupReturn,
+  useSegmentGroup as useArkSegmentGroup,
+} from "@ark-ui/react/segment-group";
 import { type ComponentProps, type ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
@@ -36,7 +42,6 @@ function Items(props: SegmentGroupItemsProps) {
       disabled={item.disabled}
       {...rest}
     >
-      <ItemControl />
       <ItemText>{item.label}</ItemText>
       <ItemHiddenInput />
     </Item>
@@ -44,6 +49,16 @@ function Items(props: SegmentGroupItemsProps) {
 }
 
 export type SegmentGroupRootProps = ComponentProps<typeof Root>;
+
+/** `useSegmentGroup` for `SegmentGroup.RootProvider`, horizontal by default like `SegmentGroup.Root`. */
+export function useSegmentGroup({
+  orientation = "horizontal",
+  ...props
+}: UseSegmentGroupProps = {}): UseSegmentGroupReturn {
+  return useArkSegmentGroup({ ...props, orientation });
+}
+
+export type { UseSegmentGroupProps, UseSegmentGroupReturn };
 
 export const SegmentGroup = {
   Root,

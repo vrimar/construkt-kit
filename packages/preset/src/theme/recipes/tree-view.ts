@@ -17,7 +17,7 @@ const clampedText = {
 
 export const treeView = defineSlotRecipe({
   className: "tree-view",
-  slots: [...treeViewAnatomy.keys(), "dropIndicator", "nodeActions", "branchCount"],
+  slots: [...treeViewAnatomy.keys(), "dropIndicator", "nodeActions", "nodeContent", "branchCount"],
   staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
@@ -235,6 +235,13 @@ export const treeView = defineSlotRecipe({
     },
     nodeActions: {
       flexShrink: "0",
+    },
+    nodeContent: {
+      display: "flex",
+      alignItems: "center",
+      flex: "1",
+      minWidth: "0",
+      "& > *": { minWidth: "0" },
     },
     nodeRenameInput: {
       flex: "1",

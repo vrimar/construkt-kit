@@ -1,10 +1,11 @@
 import { ark } from "@ark-ui/react/factory";
 import { ArrowUpIcon, MicIcon } from "lucide-react";
-import { type ComponentProps, type ReactNode, type Ref, useState } from "react";
+import type { ComponentProps, ReactNode, Ref } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { chat } from "#styled-system/recipes";
 
+import { useControllableState } from "../../hooks/useControllableState";
 import { IconButton } from "../Buttons";
 import { Textarea } from "../Input";
 
@@ -61,14 +62,8 @@ export function Composer({
   disabled = false,
   ...props
 }: ChatComposerProps) {
-  const [ownValue, setOwnValue] = useState(defaultValue);
-  const text = value ?? ownValue;
+  const [text, change] = useControllableState({ value, defaultValue, onChange: onValueChange });
   const canSend = !disabled && text.trim() !== "";
-
-  const change = (next: string) => {
-    if (value === undefined) setOwnValue(next);
-    onValueChange?.(next);
-  };
 
   const send = () => {
     if (!canSend) return;

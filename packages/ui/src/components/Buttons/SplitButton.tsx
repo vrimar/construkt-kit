@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 import { cx } from "#styled-system/css";
 import { splitButton } from "#styled-system/recipes";
 
+import { isAriaExpanded } from "../../foundations/dom";
 import type { WithRef } from "../../types";
 import { wrapAsChildContent } from "../asChildContent";
-import { Span } from "../Span";
-import { Tooltip } from "../Tooltip";
 import { Button, ButtonGroup, type ButtonGroupProps, type ButtonProps } from "./Button";
 import { useButtonPropsContext } from "./buttonPropsContext";
+import { TruncatedLabel } from "./TruncatedLabel";
 
 export type SplitButtonRootProps = Omit<ButtonGroupProps, "attached" | "orientation" | "grow">;
 
@@ -31,15 +31,9 @@ function SplitButtonAction({
   children,
   ...props
 }: WithRef<SplitButtonActionProps, HTMLButtonElement>) {
-  const expanded = props["aria-expanded"] === true || props["aria-expanded"] === "true";
+  const expanded = isAriaExpanded(props["aria-expanded"]);
   const label = (content: ReactNode) => (
-    <Tooltip
-      label={content}
-      showWhenTruncated
-      disabled={expanded}
-    >
-      <Span truncate>{content}</Span>
-    </Tooltip>
+    <TruncatedLabel expanded={expanded}>{content}</TruncatedLabel>
   );
 
   return (

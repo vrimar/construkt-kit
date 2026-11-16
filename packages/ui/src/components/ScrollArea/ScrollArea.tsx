@@ -8,6 +8,7 @@ import {
   scrollArea,
 } from "#styled-system/recipes";
 
+import { splitInlineSizes } from "../../foundations/cssSize";
 import type { CssProp } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
@@ -47,13 +48,17 @@ export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
     contentCss?: CssProp;
   };
 
-const ScrollAreaSimple = ({ ref, children, contentCss, ...props }: ScrollAreaProps) => {
+const ScrollAreaSimple = ({ ref, children, contentCss, style, ...props }: ScrollAreaProps) => {
+  const [sizeStyle, rootProps] = splitInlineSizes(props, ["height", "maxHeight"]);
   const { scrollbars } = scrollArea.getVariantProps({ scrollbars: props.scrollbars });
   const showVertical = scrollbars === "vertical" || scrollbars === "both";
   const showHorizontal = scrollbars === "horizontal" || scrollbars === "both";
 
   return (
-    <Root {...props}>
+    <Root
+      {...rootProps}
+      style={{ ...sizeStyle, ...style }}
+    >
       <Viewport ref={ref}>
         <Content css={contentCss}>{children}</Content>
       </Viewport>

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { fn } from "storybook/test";
 
 import { alert } from "#styled-system/recipes";
 
@@ -70,6 +71,6 @@ export const Closable: Story = {
   args: {
     status: "success",
     title: "Upload complete",
-    closable: true,
+    onClose: fn(),
   },
 };

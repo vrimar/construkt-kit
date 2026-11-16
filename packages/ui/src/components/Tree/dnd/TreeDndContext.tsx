@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useId, useMemo } from "react";
 
 import { useAnnouncer } from "../../../hooks/useAnnouncer";
 import { useLatestRef } from "../../../hooks/useLatestRef";
-import { useDragAutoScroll } from "../../Sortable/useDragAutoScroll";
+import { useDragAutoScroll } from "../../dnd";
 import {
   applyTreeDrop,
   getKeyboardDropTarget,
@@ -52,8 +52,8 @@ export interface TreeDropDetails<T extends TreeNode = TreeNode> {
 
 export interface TreeDndContextValue<T extends TreeNode = TreeNode> {
   instanceId: string;
-  /** Whether drag-and-drop is currently active. */
-  enabled: boolean;
+  /** Whether drag-and-drop is currently off. */
+  disabled: boolean;
   /** Latest collection, read at drag time so registration needn't re-run on every change. */
   collectionRef: Readonly<RefObject<TreeCollection<T>>>;
   blockReparent: boolean;
@@ -63,6 +63,7 @@ export interface TreeDndContextValue<T extends TreeNode = TreeNode> {
   canDrag: (value: string) => boolean;
   /** Stable predicate vetoing a specific drop (target + relationship rules). */
   canDrop: (details: TreeCanDropDetails) => boolean;
+  isBranchLoaded: (value: string) => boolean;
   /** Values moved when dragging `value` (multi-drag selection). Defaults to `[value]`. */
   getDragValues: (value: string) => string[];
   /** Extra data merged into the drag payload (e.g. for cross-surface drops). */
@@ -110,12 +111,17 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
   /** Build the screen-reader announcement for a completed reorder. */
   getDropAnnouncement?: (details: TreeDropDetails<T>) => string;
   /**
-   * Whether drag-and-drop is active. Kept mounted while disabled (rather than unmounting the
-   * provider) so toggling it never remounts the tree. @default true
+   * Turns drag-and-drop off. Toggle this rather than unmounting the provider, which would
+   * remount the tree. @default false
    */
-  enabled?: boolean;
+  disabled?: boolean;
   /** Disable outdent (reparent) drops and keyboard outdent. @default false */
   blockReparent?: boolean;
+  /**
+   * Whether a branch with a non-zero `childrenCount` but no `children` has loaded them, so drops
+   * may nest into it. @default whether the branch is expanded
+   */
+  isBranchLoaded?: (value: string) => boolean;
   /**
    * ms a drag must hover a collapsed branch before it auto-expands, or `false` to disable
    * hover auto-expand. @default 500
@@ -157,8 +163,9 @@ export function TreeViewDndProvider<T extends TreeNode>({
   getExtraDragData,
   renderDragPreview,
   getDropAnnouncement,
-  enabled = true,
+  disabled = false,
   blockReparent = false,
+  isBranchLoaded,
   autoExpandDelay = DEFAULT_AUTO_EXPAND_DELAY_MS,
   isNodeDraggable,
   scrollElement,
@@ -182,6 +189,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
     renderDragPreview,
     getDropAnnouncement,
     isNodeDraggable,
+    isBranchLoaded,
   });
 
   const [contextValue, commitDrop] = useMemo(() => {
@@ -195,6 +203,9 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
     const allowsDrop = (details: TreeCanDropDetails) => handlers.current.canDrop?.(details) ?? true;
 
+    const branchLoaded = (value: string) =>
+      handlers.current.isBranchLoaded?.(value) ?? treeRef.current.expandedValue.includes(value);
+
     const dragValuesOf = (value: string) =>
       (handlers.current.getDragValues?.(value) ?? [value]).filter(canDrag);
 
@@ -207,13 +218,14 @@ export function TreeViewDndProvider<T extends TreeNode>({
         sourceValues,
         targetValue,
         instruction,
-        isBranchLoaded: (value) => treeRef.current.expandedValue.includes(value),
+        isBranchLoaded: branchLoaded,
       });
       if (!nextCollection) return null;
 
       const drop = { sourceValues, targetValue, instruction, nextCollection, previousCollection };
       const h = handlers.current;
       h.onCollectionChange(nextCollection);
+      if (instruction.type === "make-child") treeRef.current.expand([targetValue]);
       announce((h.getDropAnnouncement ?? defaultDropAnnouncement)(drop));
       Promise.resolve()
         .then(() => h.onDrop?.(drop))
@@ -228,12 +240,13 @@ export function TreeViewDndProvider<T extends TreeNode>({
 
     const context: TreeDndContextValue<T> = {
       instanceId,
-      enabled,
+      disabled,
       collectionRef,
       blockReparent,
       autoExpandDelay,
       canDrag,
       canDrop: allowsDrop,
+      isBranchLoaded: branchLoaded,
       getDragValues: dragValuesOf,
       getExtraDragData: (value) => handlers.current.getExtraDragData?.(value) ?? {},
       renderDragPreview: (value) => handlers.current.renderDragPreview?.(value) ?? null,
@@ -248,7 +261,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
     return [context, commit] as const;
   }, [
     instanceId,
-    enabled,
+    disabled,
     collectionRef,
     treeRef,
     blockReparent,
@@ -258,7 +271,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
   ]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (disabled) return;
     return monitorForElements({
       canMonitor: ({ source }) => readTreeDragSource(source.data, instanceId) !== null,
       onDragStart: ({ source }) => {
@@ -276,23 +289,17 @@ export function TreeViewDndProvider<T extends TreeNode>({
         const sourceValue = readTreeDragSource(source.data, instanceId);
         const instruction = readTreeDropInstruction(target.data);
         if (sourceValue === null || !instruction) return;
-        const drop = commitDrop({
-          sourceValue,
-          targetValue: String(target.data.value),
-          instruction,
-        });
-        if (drop?.instruction.type === "make-child") {
-          treeRef.current.expand([drop.targetValue]);
-        }
+        commitDrop({ sourceValue, targetValue: String(target.data.value), instruction });
       },
     });
-  }, [instanceId, enabled, contextValue, commitDrop, handlers, treeRef]);
+  }, [instanceId, disabled, contextValue, commitDrop, handlers]);
 
   useDragAutoScroll({
     element: scrollElement,
     axis: "vertical",
-    enabled,
+    disabled,
     maxScrollSpeed: autoScrollSpeed,
+    canScroll: ({ source }) => readTreeDragSource(source.data, instanceId) !== null,
   });
 
   return (

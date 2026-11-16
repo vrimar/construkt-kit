@@ -39,7 +39,7 @@ export const dialog = defineSlotRecipe({
       position: "fixed",
       top: "0",
       width: "100dvw",
-      zIndex: "var(--z-index, {zIndex.modal})",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       _open: {
         animationName: "fade-in",
         animationTimingFunction: "emphasized-in",
@@ -52,7 +52,6 @@ export const dialog = defineSlotRecipe({
       },
     },
     positioner: {
-      "--dialog-z-index": "zIndex.modal",
       display: "flex",
       height: "100dvh",
       justifyContent: "center",
@@ -62,7 +61,7 @@ export const dialog = defineSlotRecipe({
       top: 0,
       width: "100dvw",
       px: { base: "4", sm: "0" },
-      zIndex: "calc(var(--dialog-z-index) + var(--layer-index, 0))",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
     },
 
     title: {
@@ -88,7 +87,7 @@ export const dialog = defineSlotRecipe({
       position: "relative",
       textStyle: "sm",
       width: "100%",
-      zIndex: "calc(var(--dialog-z-index) + var(--layer-index, 0))",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       maxH: "var(--dialog-full-max-h, var(--dialog-scroll-max-h, none))",
       "--dialog-full-max-h": "initial",
       "--dialog-scroll-max-h": "initial",

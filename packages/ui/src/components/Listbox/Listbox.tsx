@@ -11,7 +11,6 @@ import {
   type Ref,
   type RefObject,
   type SyntheticEvent,
-  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -28,12 +27,13 @@ import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import type { CssProp, StyledRootProps, Unstyled, WithRef } from "../../types";
+import type { CssProp, Unstyled, WithRef } from "../../types";
 import { EmptyState } from "../EmptyState";
 import { SearchInput, type SearchInputProps } from "../Input";
 import { useItemSlotIds } from "../itemSlots";
+import type { StyledRootProps } from "../rootProps";
 import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
-import { VirtualRows } from "../ScrollArea/VirtualRows";
+import { type ScrollToIndexRef, VirtualRows, useScrollToIndexRef } from "../ScrollArea/VirtualRows";
 import type {
   ManagedListOptions,
   ManagedSelectionProps,
@@ -43,8 +43,9 @@ import type {
   SelectionValue,
   SingleSelectionProps,
 } from "./types";
-import { type ManagedListbox, type ScrollToIndexRef, useManagedListbox } from "./useManagedListbox";
-import { type SelectionSearchState, splitManagedListOptions } from "./useSelectionController";
+import { type ManagedListbox, useManagedListbox } from "./useManagedListbox";
+import { splitManagedListOptions } from "./useSelectionController";
+import type { SelectionSearch } from "./useSelectionSearch";
 
 export { createListCollection, useListCollection } from "@ark-ui/react/collection";
 export type { CollectionItem, ListCollection } from "@ark-ui/react/collection";
@@ -214,18 +215,17 @@ function ListboxEmptyState({ children = DEFAULT_EMPTY_MESSAGE }: { children?: Re
   );
 }
 
-export interface SelectionSearchFieldProps extends Omit<SearchInputProps, "value" | "onClear"> {
-  query: string;
-  onQueryChange: (query: string) => void;
+interface SelectionSearchFieldProps extends Omit<SearchInputProps, "value" | "onClear"> {
+  search: SelectionSearch;
   endElement?: ReactNode;
 }
 
 export function SelectionSearchField({
-  query,
-  onQueryChange,
-  endElement,
+  search,
+  endElement = search.endElement,
+  placeholder = search.placeholder,
+  autoFocus = search.autoFocus,
   onChange,
-  placeholder,
   size = "sm",
   variant = "plain",
   ...props
@@ -239,13 +239,14 @@ export function SelectionSearchField({
       <SearchInput
         aria-label={placeholder}
         {...props}
+        autoFocus={autoFocus}
         placeholder={placeholder}
-        value={query}
+        value={search.query}
         onChange={(event) => {
-          onQueryChange(event.target.value);
+          search.setQuery(event.target.value);
           onChange?.(event);
         }}
-        onClear={() => onQueryChange("")}
+        onClear={() => search.setQuery("")}
         size={size}
         variant={variant}
       />
@@ -254,23 +255,12 @@ export function SelectionSearchField({
   );
 }
 
-interface ListboxSearchFieldProps extends Omit<
-  SelectionSearchFieldProps,
-  "query" | "onQueryChange"
-> {
-  search: SelectionSearchState;
+interface ListboxSearchFieldProps extends SelectionSearchFieldProps {
   inputRef: Ref<HTMLInputElement>;
 }
 
-export function ListboxSearchField({
-  search,
-  inputRef,
-  autoFocus,
-  placeholder,
-  endElement,
-  ...props
-}: ListboxSearchFieldProps) {
-  if (!search.showInput) return null;
+export function ListboxSearchField({ inputRef, ...props }: ListboxSearchFieldProps) {
+  if (!props.search.showInput) return null;
 
   return (
     <ArkListbox.Input
@@ -278,14 +268,7 @@ export function ListboxSearchField({
       asChild
       autoHighlight
     >
-      <SelectionSearchField
-        {...props}
-        autoFocus={autoFocus ?? search.autoFocus}
-        placeholder={placeholder ?? search.placeholder}
-        endElement={endElement ?? search.endElement}
-        query={search.query}
-        onQueryChange={search.setQuery}
-      />
+      <SelectionSearchField {...props} />
     </ArkListbox.Input>
   );
 }
@@ -358,12 +341,7 @@ function VirtualListRows<T>({
   });
 
   // Expose scrollToIndex to the parent's Ark `scrollToIndexFn` (keyboard nav past the rendered window).
-  useEffect(() => {
-    scrollToIndexRef.current = (index) => virtualizer.scrollToIndex(index);
-    return () => {
-      scrollToIndexRef.current = undefined;
-    };
-  }, [virtualizer, scrollToIndexRef]);
+  useScrollToIndexRef(virtualizer, scrollToIndexRef);
 
   return (
     <VirtualRows virtualizer={virtualizer}>
@@ -472,8 +450,9 @@ export function ManagedList<T, V extends SelectionValue>({
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "a") return;
     event.preventDefault();
     const selectAll = controller.getSelectAllState();
-    const next = selectAll.allSelected ? [] : selectAll.toggle();
-    if (next.length > controller.encodedValue.length) controller.handleValueChange({ value: next });
+    if (selectAll.allSelected) return;
+    const next = selectAll.toggle();
+    if (next.length > controller.selectedValues.length) controller.setValue(next);
   };
 
   const renderRows = () => {
@@ -535,45 +514,16 @@ function ListboxSimple<T, V extends SelectionValue>(
 function ListboxSimple<T, V extends SelectionValue>(
   props: ListboxProps<T, V, SelectionMode> & { ref?: Ref<HTMLDivElement> },
 ) {
-  const {
-    ref,
-    items,
-    getItemValue,
-    getItemLabel,
-    isItemDisabled,
-    groupBy,
-    groupSort,
-    selectionMode = "single",
-    value,
-    onValueChange,
-    label,
-    search = true,
-    contentCss,
-    scrollToIndexFn,
-    typeahead,
-    ...listboxProps
-  } = props;
-  const [listOptions, rest] = splitManagedListOptions<T, V, typeof listboxProps>(listboxProps);
-  const { managed, rootProps } = useManagedListbox<T, V>({
-    items,
-    getItemValue,
-    getItemLabel,
-    isItemDisabled,
-    groupBy,
-    groupSort,
-    selectionMode,
-    value,
-    onValueChange: onValueChange as (value: V | V[]) => unknown,
-    search,
-    virtual: listOptions.virtual,
-    scrollToIndexFn,
-  });
+  const listboxProps = { ...props, search: props.search ?? true };
+  const { managed, rootProps, rest } = useManagedListbox<T, V, typeof listboxProps>(listboxProps);
+  const { ref, label, contentCss, typeahead, ...restProps } = rest;
+  const [listOptions, rootRest] = splitManagedListOptions<T, V, typeof restProps>(restProps);
 
   return (
     <Root
       ref={ref}
       indicatorPosition={listOptions.indicatorPosition}
-      {...rest}
+      {...rootRest}
       {...rootProps}
     >
       {label && <Label>{label}</Label>}

@@ -1,5 +1,11 @@
 import { Portal } from "@ark-ui/react/portal";
-import { Toaster as ArkToaster, Toast, createToaster, useToastContext } from "@ark-ui/react/toast";
+import {
+  Toaster as ArkToaster,
+  Toast,
+  createToaster,
+  type CreateToasterReturn,
+  useToastContext,
+} from "@ark-ui/react/toast";
 
 import { Stack, createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { toast } from "#styled-system/recipes";
@@ -39,7 +45,7 @@ function Indicator({ ref, ...props }: WithRef<IconProps, SVGSVGElement>) {
 const APP_HEADER_HEIGHT = "80px";
 const VIEWPORT_INSET = "40px";
 
-export const toaster: ReturnType<typeof createToaster> = createToaster({
+export const toaster: CreateToasterReturn = createToaster({
   placement: "top-end",
   pauseOnPageIdle: true,
   overlap: true,

@@ -34,25 +34,39 @@ function ItemCount({ totalItems, compact }: { totalItems: number; compact: boole
   );
 }
 
+const steps = {
+  first: { Icon: ChevronsLeftIcon, label: "firstPage", forward: false },
+  previous: { Icon: ChevronLeftIcon, label: "previousPage", forward: false },
+  next: { Icon: ChevronRightIcon, label: "nextPage", forward: true },
+  last: { Icon: ChevronsRightIcon, label: "lastPage", forward: true },
+} as const;
+
 interface StepButtonProps<TData extends object> {
   table: DataTableInstance<TData>;
   size: NonNullable<IconButtonProps["size"]>;
-  step: "previous" | "next";
+  step: keyof typeof steps;
 }
 
 function StepButton<TData extends object>({ table, size, step }: StepButtonProps<TData>) {
   const { labels } = useDataTableContext();
-  const previous = step === "previous";
+  const { Icon, label, forward } = steps[step];
+  const page = table.state.pagination.pageIndex;
+  const target = {
+    first: 0,
+    previous: page - 1,
+    next: page + 1,
+    last: table.getPageCount() - 1,
+  }[step];
 
   return (
     <IconButton
       variant="outline"
-      aria-label={previous ? labels.previousPage : labels.nextPage}
-      onClick={previous ? table.previousPage : table.nextPage}
-      disabled={previous ? !table.getCanPreviousPage() : !table.getCanNextPage()}
+      aria-label={labels[label]}
+      onClick={() => table.setPageIndex(target)}
+      disabled={forward ? !table.getCanNextPage() : !table.getCanPreviousPage()}
       size={size}
     >
-      {previous ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+      <Icon />
     </IconButton>
   );
 }
@@ -143,34 +157,14 @@ export const DataTablePagination = <TData extends object>({
           <Text>-</Text>
         )}
         <HStack alignSelf="flex-end">
-          <IconButton
-            variant="outline"
-            aria-label={labels.firstPage}
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-            size={size}
-          >
-            <ChevronsLeftIcon />
-          </IconButton>
-          <StepButton
-            table={table}
-            size={size}
-            step="previous"
-          />
-          <StepButton
-            table={table}
-            size={size}
-            step="next"
-          />
-          <IconButton
-            variant="outline"
-            aria-label={labels.lastPage}
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-            size={size}
-          >
-            <ChevronsRightIcon />
-          </IconButton>
+          {(["first", "previous", "next", "last"] as const).map((step) => (
+            <StepButton
+              key={step}
+              table={table}
+              size={size}
+              step={step}
+            />
+          ))}
         </HStack>
       </HStack>
     </HStack>

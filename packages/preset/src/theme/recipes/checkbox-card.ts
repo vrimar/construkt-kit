@@ -1,5 +1,6 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { cardAddon, cardBody, cardContent, cardDescription } from "./card-body";
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 import { controlBox, controlGap, controlPx, controlText } from "./control-size";
 
@@ -33,10 +34,8 @@ export const checkboxCard = defineSlotRecipe({
       },
     },
     control: {
-      display: "flex",
-      alignItems: "center",
+      ...cardBody,
       gap: controlGap("2xl"),
-      flex: "1",
     },
     checkbox: {
       ...checkboxControlBase,
@@ -55,22 +54,12 @@ export const checkboxCard = defineSlotRecipe({
         boxSize: "full",
       },
     },
-    content: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "1",
-      flex: "1",
-    },
+    content: cardContent,
     label: {
       fontWeight: "medium",
     },
-    description: {
-      color: "fg.muted",
-    },
-    addon: {
-      borderTopWidth: "1px",
-      borderColor: "border",
-    },
+    description: cardDescription,
+    addon: cardAddon,
   },
   defaultVariants: {
     size: "md",

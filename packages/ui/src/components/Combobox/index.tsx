@@ -6,20 +6,17 @@ import {
   type UseComboboxReturn,
   useCombobox as useArkCombobox,
   useComboboxContext,
-  useComboboxItemContext,
 } from "@ark-ui/react/combobox";
 import { ark } from "@ark-ui/react/factory";
-import { ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
 import {
   type ComponentProps,
   type ElementType,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
-  type RefObject,
   createContext,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -29,23 +26,32 @@ import { Box, createSlotRecipeContext, splitCssProps } from "#styled-system/jsx"
 import { type ComboboxVariantProps, combobox } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import type { PortalledProps, StyledRootProps, WithRef } from "../../types";
-import { isComposingEvent } from "../imeComposition";
-import { createItemIndicator } from "../itemIndicator";
 import {
+  scrollIntoViewWithin,
+  useHighlightIntoView,
+  useHighlightSource,
+} from "../../hooks/useHighlightIntoView";
+import type { PortalledProps, WithRef } from "../../types";
+import { lazyOverlayDefaults } from "../overlayDefaults";
+import {
+  bindSheetDismiss,
   type MobileLayoutProps,
   useOverlayMode,
   withMobileLayout,
   withMobileLayoutProvider,
 } from "../overlayPresentation";
 import { createPortalledContent } from "../portalledContent";
+import type { StyledRootProps } from "../rootProps";
 import { SheetOverlayContent } from "../sheetFrame";
+import { clickHighlightedLinkOnEnter, moveCaretOnHomeEnd } from "./inputKeys";
 
 const { withProvider, withContext } = createSlotRecipeContext(combobox);
 
 type RootProps = StyledRootProps<ArkCombobox.RootBaseProps<CollectionItem>> & ComboboxVariantProps;
 
-const StyledRoot = withProvider(ArkCombobox.Root, "root") as ArkCombobox.RootComponent<RootProps>;
+const StyledRoot = withProvider(ArkCombobox.Root, "root", {
+  defaultProps: lazyOverlayDefaults,
+}) as ArkCombobox.RootComponent<RootProps>;
 
 type InputProps = ComponentProps<typeof Input>;
 
@@ -84,20 +90,25 @@ function Root<T extends CollectionItem>({ positioning, children, ...props }: Com
   );
 }
 
-/** `useCombobox` for `Combobox.RootProvider`, sizing the content to its items like `Combobox.Root`. */
+/**
+ * `useCombobox` for `Combobox.RootProvider`, sizing the content to its items like `Combobox.Root`;
+ * its phone sheet applies the outside handlers given here.
+ */
 export function useCombobox<T extends CollectionItem>({
   positioning,
   ...props
 }: UseComboboxProps<T>): UseComboboxReturn<T> {
-  return useArkCombobox({ ...props, positioning: { sameWidth: false, ...positioning } });
+  return bindSheetDismiss(
+    useArkCombobox({ ...props, positioning: { sameWidth: false, ...positioning } }),
+    props,
+  );
 }
 
 export type { UseComboboxProps, UseComboboxReturn };
 
-const StyledRootProvider = withProvider(
-  ArkCombobox.RootProvider,
-  "root",
-) as ArkCombobox.RootProviderComponent<RootProps>;
+const StyledRootProvider = withProvider(ArkCombobox.RootProvider, "root", {
+  defaultProps: lazyOverlayDefaults,
+}) as ArkCombobox.RootProviderComponent<RootProps>;
 
 type RootProviderProps<T extends CollectionItem> = ComponentProps<typeof StyledRootProvider<T>> &
   MobileLayoutProps;
@@ -221,25 +232,13 @@ function SheetInputProxy(props: InputProps) {
   );
 }
 
-// zag's Enter selects and then clicks the link, selecting twice in a combobox that stays open.
-function clickHighlightedLinkOnEnter(event: KeyboardEvent<HTMLInputElement>) {
-  if (event.key !== "Enter" || event.defaultPrevented) return;
-  if (event.ctrlKey || event.shiftKey || isComposingEvent(event)) return;
-  const input = event.currentTarget;
-  if (input.getAttribute("aria-expanded") !== "true") return;
-  const id = input.getAttribute("aria-activedescendant");
-  const item = id ? input.ownerDocument.getElementById(id) : null;
-  if (!item?.matches("a[href]")) return;
-  event.preventDefault();
-  queueMicrotask(() => item.click());
-}
-
 function ComboboxInput({ ref, onKeyDown, ...props }: WithRef<InputProps, HTMLInputElement>) {
   const sheetInput = useContext(SheetInputHostContext);
   const [, inputProps] = splitCssProps(props);
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(event);
     clickHighlightedLinkOnEnter(event);
+    moveCaretOnHomeEnd(event);
   };
 
   if (useOverlayMode() !== "sheet" || sheetInput == null) {
@@ -272,26 +271,23 @@ function ComboboxInput({ ref, onKeyDown, ...props }: WithRef<InputProps, HTMLInp
 
 const StyledItemIndicator = withContext(ArkCombobox.ItemIndicator, "itemIndicator");
 
-const AnchoredContent = createPortalledContent(Positioner, StyledContent);
-
-function useHighlightedItemIntoView(
-  contentRef: RefObject<HTMLDivElement | null>,
-  keyboardRef: RefObject<boolean>,
-) {
-  const { highlightedValue } = useComboboxContext();
-
-  useEffect(() => {
-    const content = contentRef.current;
-    if (highlightedValue == null || content == null || !keyboardRef.current) return;
-    if (content.scrollHeight <= content.clientHeight) return;
-    content
-      .querySelector('[data-part="item"][data-highlighted]')
-      ?.scrollIntoView({ block: "nearest" });
-  }, [contentRef, highlightedValue, keyboardRef]);
+function ItemIndicator({ ref, ...props }: WithRef<ComponentProps<typeof StyledItemIndicator>>) {
+  return (
+    <StyledItemIndicator
+      ref={ref}
+      hidden={false}
+      {...props}
+    >
+      <CheckIcon />
+    </StyledItemIndicator>
+  );
 }
+
+const AnchoredContent = createPortalledContent(Positioner, StyledContent);
 
 function SheetContent({
   ref,
+  onPointerDownCapture,
   onPointerMoveCapture,
   ...rest
 }: WithRef<ComponentProps<typeof StyledContent> & PortalledProps>) {
@@ -299,9 +295,11 @@ function SheetContent({
   const sheetInput = useContext(SheetInputHostContext);
   const contentRef = useRef<HTMLDivElement>(null);
   const composedRef = useComposedRefs(contentRef, ref);
-  // Only keyboard highlights scroll the list; a pointer highlight is already under the pointer.
-  const keyboardRef = useRef(false);
-  useHighlightedItemIntoView(contentRef, keyboardRef);
+  const { pointerRef, handlers: highlightSource } = useHighlightSource();
+  useHighlightIntoView(api.highlightedValue, pointerRef, () => {
+    const content = contentRef.current;
+    scrollIntoViewWithin(content, content?.querySelector('[data-part="item"][data-highlighted]'));
+  });
 
   return (
     <SheetOverlayContent
@@ -315,13 +313,15 @@ function SheetContent({
           ref={sheetInput?.setHost}
           px="4"
           pb="2"
-          onKeyDownCapture={() => {
-            keyboardRef.current = true;
-          }}
+          onKeyDownCapture={highlightSource.onKeyDownCapture}
         />
       }
+      onPointerDownCapture={(event: PointerEvent<HTMLDivElement>) => {
+        highlightSource.onPointerDownCapture();
+        onPointerDownCapture?.(event);
+      }}
       onPointerMoveCapture={(event: PointerEvent<HTMLDivElement>) => {
-        keyboardRef.current = false;
+        highlightSource.onPointerMoveCapture();
         onPointerMoveCapture?.(event);
       }}
     />
@@ -332,11 +332,6 @@ function Content(props: WithRef<ComponentProps<typeof StyledContent> & Portalled
   if (useOverlayMode() === "sheet") return <SheetContent {...props} />;
   return <AnchoredContent {...props} />;
 }
-
-const ItemIndicator = createItemIndicator(
-  StyledItemIndicator,
-  () => useComboboxItemContext().selected,
-);
 
 export interface ComboboxContentProps
   extends ComponentProps<typeof StyledContent>, PortalledProps {}

@@ -1,48 +1,34 @@
 import { type ListCollection, createListCollection } from "@ark-ui/react/collection";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+
+import type { DistributiveOmit } from "#styled-system/types";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type {
   ManagedListOptions,
   ManagedSelectionProps,
   SelectionItemState,
-  SelectionSearchOptions,
+  SelectionMode,
+  SelectionProps,
   SelectionValue,
 } from "./types";
+import { type SelectionSearch, matchesQuery, useSelectionSearch } from "./useSelectionSearch";
 
 export type SelectionValueChangeDetails = { value: string[] };
-
-export const normalizeQuery = (query: string) => query.trim().toLowerCase();
-
-export const matchesQuery = (text: string, normalizedQuery: string) =>
-  text.toLowerCase().includes(normalizedQuery);
 
 export const encodeSelectionValue = (value: SelectionValue): string =>
   typeof value === "number" ? `n:${value}` : `s:${value}`;
 
-export function getSelectionLabel<T>(
-  selectedCount: number,
-  selectedItems: readonly T[],
-  getItemLabel: (item: T) => string,
-  placeholder: ReactNode,
-): ReactNode {
-  if (selectedCount === 0) return placeholder;
-  if (selectedCount === 1) {
-    return selectedItems[0] == null ? "1 selected" : getItemLabel(selectedItems[0]);
-  }
-  return `${selectedCount} selected`;
-}
-
-export interface SelectAllState {
+export interface SelectAllState<V> {
   allSelected: boolean;
   someSelected: boolean;
-  toggle: () => string[];
+  toggle: () => V[];
 }
 
-export function getSelectAllState(
-  value: readonly string[],
-  selectableValues: readonly string[],
-): SelectAllState {
+export function getSelectAllState<V>(
+  value: readonly V[],
+  selectableValues: readonly V[],
+): SelectAllState<V> {
   const selectedSet = new Set(value);
   const allSelected =
     selectableValues.length > 0 && selectableValues.every((entry) => selectedSet.has(entry));
@@ -61,6 +47,19 @@ export function getSelectAllState(
   };
 }
 
+export function splitKeys<P extends object, K extends string>(
+  props: P,
+  keys: Record<K, true>,
+): [Partial<Record<K, unknown>>, DistributiveOmit<P, K>] {
+  const picked: Partial<Record<K, unknown>> = {};
+  const rest = { ...props } as Record<string, unknown>;
+  for (const key of Object.keys(keys) as K[]) {
+    picked[key] = rest[key];
+    delete rest[key];
+  }
+  return [picked, rest as DistributiveOmit<P, K>];
+}
+
 const MANAGED_LIST_OPTIONS = {
   loading: true,
   emptyMessage: true,
@@ -76,70 +75,39 @@ const MANAGED_LIST_OPTIONS = {
 
 type ManagedListOptionKey = keyof typeof MANAGED_LIST_OPTIONS;
 
-const MANAGED_LIST_OPTION_KEYS = Object.keys(MANAGED_LIST_OPTIONS) as ManagedListOptionKey[];
-
 export function splitManagedListOptions<
   T,
   V extends SelectionValue,
   P extends Partial<Record<ManagedListOptionKey, unknown>>,
->(props: P): [ManagedListOptions<T, V>, Omit<P, ManagedListOptionKey>] {
-  const options: Record<string, unknown> = {};
-  const rest: Partial<P> = { ...props };
-  for (const key of MANAGED_LIST_OPTION_KEYS) {
-    options[key] = props[key];
-    delete rest[key];
-  }
-  return [options, rest as Omit<P, ManagedListOptionKey>];
+>(props: P): [ManagedListOptions<T, V>, DistributiveOmit<P, ManagedListOptionKey>] {
+  const [options, rest] = splitKeys(props, MANAGED_LIST_OPTIONS);
+  return [options as ManagedListOptions<T, V>, rest];
 }
 
-export interface SelectionControllerOptions<
-  T,
-  V extends SelectionValue,
-> extends ManagedSelectionProps<T, V> {
-  selectionMode: "single" | "multiple";
-  value: V | readonly V[] | null;
-  onValueChange: (value: V | V[]) => unknown;
-}
-
-export interface SelectionSearchState {
-  showInput: boolean;
-  query: string;
-  placeholder: string;
-  autoFocus: boolean;
-  endElement?: ReactNode;
-  setQuery: (query: string) => void;
-  reset: () => void;
-}
+export type SelectionControllerOptions<T, V extends SelectionValue> = ManagedSelectionProps<T, V> &
+  SelectionProps<V, SelectionMode>;
 
 export interface SelectionController<T, V extends SelectionValue> {
   collection: ListCollection<T>;
   groups: [string, T[]][];
   grouped: boolean;
-  encodedValue: string[];
   selectedValues: V[];
-  selectedItems: T[];
   getItemsByValue: (values: readonly SelectionValue[]) => T[];
-  handleValueChange: (details: SelectionValueChangeDetails) => void;
+  setValue(this: void, values: readonly V[]): void;
   getItemState: (item: T) => SelectionItemState<V>;
-  getSelectAllState: () => SelectAllState;
-  search: SelectionSearchState;
+  getSelectAllState: () => SelectAllState<V>;
+  search: SelectionSearch;
+  listboxValue: string[];
+  onListboxValueChange: (details: SelectionValueChangeDetails) => void;
 }
 
-export function useSelectionController<T, V extends SelectionValue>({
-  items,
-  getItemValue,
-  getItemLabel,
-  isItemDisabled,
-  groupBy,
-  groupSort,
-  selectionMode,
-  value,
-  onValueChange,
-  search,
-}: SelectionControllerOptions<T, V>): SelectionController<T, V> {
-  const searchOptions: SelectionSearchOptions<T> | undefined =
-    typeof search === "object" ? search : search === true ? {} : undefined;
-  const searchOptionsRef = useLatestRef(searchOptions);
+export function useSelectionController<T, V extends SelectionValue>(
+  options: SelectionControllerOptions<T, V>,
+): SelectionController<T, V> {
+  const { items, getItemValue, getItemLabel, isItemDisabled, groupBy, groupSort, value } = options;
+  const optionsRef = useLatestRef(options);
+  const search = useSelectionSearch(options.search);
+  const filter = typeof options.search === "object" ? options.search.filter : undefined;
 
   const selectedValues = useMemo<V[]>(
     () => (value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V]),
@@ -169,13 +137,7 @@ export function useSelectionController<T, V extends SelectionValue>({
     return { values, itemByValue };
   }, [getItemValue, items, selectedValues]);
 
-  const defaultQuery = searchOptions?.defaultQuery ?? "";
-  const [internalQuery, setInternalQuery] = useState(defaultQuery);
-  const query = searchOptions?.query ?? internalQuery;
-  const normalizedQuery = normalizeQuery(query);
-
-  const filter = searchOptions?.filter;
-  const filterQuery = searchOptions?.mode === "external" ? "" : normalizedQuery;
+  const { filterQuery } = search;
   const collection = useMemo(() => {
     const created = createListCollection<T>({
       items: items as T[],
@@ -195,7 +157,6 @@ export function useSelectionController<T, V extends SelectionValue>({
   const groups = useMemo(() => collection.group(), [collection]);
   const grouped = !(groups.length === 1 && groups[0][0] === "");
 
-  const encodedValue = useMemo(() => selectedValues.map(encodeSelectionValue), [selectedValues]);
   const getItemsByValue = useCallback(
     (values: readonly SelectionValue[]) =>
       values
@@ -203,22 +164,26 @@ export function useSelectionController<T, V extends SelectionValue>({
         .filter((item): item is T => item !== undefined),
     [encodedMaps.itemByValue],
   );
-  const selectedItems = useMemo(
-    () => getItemsByValue(selectedValues),
-    [getItemsByValue, selectedValues],
-  );
-  const selectedSet = useMemo(() => new Set(encodedValue), [encodedValue]);
+  const selectedSet = useMemo(() => new Set<SelectionValue>(selectedValues), [selectedValues]);
 
-  const handleValueChange = useCallback(
-    ({ value: nextEncoded }: SelectionValueChangeDetails) => {
-      const next = nextEncoded
-        .map((encoded) => encodedMaps.values.get(encoded))
-        .filter((entry): entry is V => entry !== undefined);
-
-      if (selectionMode === "multiple") onValueChange(next);
-      else if (next.length > 0) onValueChange(next[0]);
+  const setValue = useCallback(
+    (next: readonly V[]) => {
+      const latest = optionsRef.current;
+      if (latest.selectionMode === "multiple") latest.onValueChange([...next]);
+      else if (next.length > 0) latest.onValueChange(next[0]);
     },
-    [encodedMaps.values, onValueChange, selectionMode],
+    [optionsRef],
+  );
+
+  const listboxValue = useMemo(() => selectedValues.map(encodeSelectionValue), [selectedValues]);
+  const onListboxValueChange = useCallback(
+    ({ value: encoded }: SelectionValueChangeDetails) =>
+      setValue(
+        encoded
+          .map((entry) => encodedMaps.values.get(entry))
+          .filter((entry): entry is V => entry !== undefined),
+      ),
+    [encodedMaps.values, setValue],
   );
 
   const getItemState = useCallback(
@@ -226,7 +191,7 @@ export function useSelectionController<T, V extends SelectionValue>({
       const nativeValue = getItemValue(item);
       return {
         value: nativeValue,
-        selected: selectedSet.has(encodeSelectionValue(nativeValue)),
+        selected: selectedSet.has(nativeValue),
         disabled: isItemDisabled?.(item) ?? false,
       };
     },
@@ -236,45 +201,23 @@ export function useSelectionController<T, V extends SelectionValue>({
   const getShownSelectAllState = useCallback(
     () =>
       getSelectAllState(
-        encodedValue,
-        collection.getValues(collection.items.filter((item) => !collection.getItemDisabled(item))),
+        selectedValues,
+        collection.items.filter((item) => !collection.getItemDisabled(item)).map(getItemValue),
       ),
-    [collection, encodedValue],
+    [collection, getItemValue, selectedValues],
   );
-
-  const setQuery = useCallback(
-    (nextQuery: string) => {
-      if (searchOptionsRef.current?.query == null) setInternalQuery(nextQuery);
-      searchOptionsRef.current?.onQueryChange?.(nextQuery);
-    },
-    [searchOptionsRef],
-  );
-
-  const reset = useCallback(() => {
-    if (searchOptionsRef.current?.query != null) return;
-    setInternalQuery(defaultQuery);
-    searchOptionsRef.current?.onQueryChange?.(defaultQuery);
-  }, [defaultQuery, searchOptionsRef]);
 
   return {
     collection,
     groups,
     grouped,
-    encodedValue,
     selectedValues,
-    selectedItems,
     getItemsByValue,
-    handleValueChange,
+    setValue,
     getItemState,
     getSelectAllState: getShownSelectAllState,
-    search: {
-      showInput: searchOptions != null && searchOptions.showInput !== false,
-      query,
-      placeholder: searchOptions?.placeholder ?? "Search...",
-      autoFocus: searchOptions?.autoFocus ?? false,
-      endElement: searchOptions?.endElement,
-      setQuery,
-      reset,
-    },
+    search,
+    listboxValue,
+    onListboxValueChange,
   };
 }

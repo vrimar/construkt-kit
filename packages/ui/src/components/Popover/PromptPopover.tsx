@@ -1,13 +1,13 @@
 import { usePopoverContext } from "@ark-ui/react/popover";
-import { type ReactNode, isValidElement, useRef } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import { styled } from "#styled-system/jsx";
 
 import type { PortalledProps, WithRef } from "../../types";
-import { Button } from "../Buttons";
+import { formSubmitProps, renderFormActions } from "../formActions";
 import { Input } from "../Input";
+import { type ActionPopover, ActionPopoverRoot } from "./ActionPopoverRoot";
 import { Popover, type PopoverRootProps } from "./Popover";
-import { type ActionPopover, useActionPopover } from "./useActionPopover";
 
 export interface PromptPopoverProps
   extends Omit<PopoverRootProps, "children" | "lazyMount" | "unmountOnExit">, PortalledProps {
@@ -35,7 +35,6 @@ export interface PromptPopoverProps
 
 interface PromptFormProps {
   title: ReactNode;
-  titleId: string | undefined;
   defaultValue: string;
   placeholder: string | undefined;
   submitLabel: string;
@@ -46,7 +45,6 @@ interface PromptFormProps {
 
 function PromptForm({
   title,
-  titleId,
   defaultValue,
   placeholder,
   submitLabel,
@@ -54,30 +52,34 @@ function PromptForm({
   onSubmit,
   action,
 }: PromptFormProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = usePopoverContext().getTitleProps().id;
+  const [value, setValue] = useState(defaultValue);
   const selectedRef = useRef(false);
+  const { cancelButton, submitButton } = renderFormActions({
+    size: "sm",
+    onCancel: action.cancel,
+    cancelLabel,
+    submitLabel,
+    loading: action.busy,
+  });
 
   return (
     <styled.form
       display="contents"
-      noValidate
-      onSubmit={(e) => {
-        e.preventDefault();
-        // Portalled: React still bubbles submit to any form that renders this popover.
-        e.stopPropagation();
-        const value = inputRef.current?.value.trim() ?? "";
-        if (value) action.run(() => onSubmit(value));
+      {...formSubmitProps(() => {
+        const trimmed = value.trim();
+        if (trimmed) action.run(() => onSubmit(trimmed));
         else action.cancel();
-      }}
+      })}
     >
       <Popover.Header>
         <Popover.Title>{title}</Popover.Title>
       </Popover.Header>
       <Popover.Body>
         <Input
-          ref={inputRef}
           size="sm"
-          defaultValue={defaultValue}
+          value={value}
+          onChange={(e) => setValue(e.currentTarget.value)}
           placeholder={placeholder}
           aria-labelledby={titleId}
           data-autofocus
@@ -89,43 +91,10 @@ function PromptForm({
         />
       </Popover.Body>
       <Popover.Footer>
-        <Button
-          size="sm"
-          variant="plain"
-          disabled={action.busy}
-          onClick={action.cancel}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          colorPalette="brand"
-          loading={action.busy}
-        >
-          {submitLabel}
-        </Button>
+        {cancelButton}
+        {submitButton}
       </Popover.Footer>
     </styled.form>
-  );
-}
-
-type PromptContentProps = Omit<PromptFormProps, "titleId"> & PortalledProps;
-
-function PromptContent({ ref, portalled, portalRef, ...formProps }: WithRef<PromptContentProps>) {
-  const titleId = usePopoverContext().getTitleProps().id;
-
-  return (
-    <Popover.Content
-      ref={ref}
-      portalled={portalled}
-      portalRef={portalRef}
-    >
-      <PromptForm
-        {...formProps}
-        titleId={titleId}
-      />
-    </Popover.Content>
   );
 }
 
@@ -139,35 +108,33 @@ export const PromptPopover = ({
   submitLabel = "Save",
   cancelLabel = "Cancel",
   loading,
-  open,
-  defaultOpen,
-  onOpenChange,
   portalled,
   portalRef,
   ...rest
-}: WithRef<PromptPopoverProps>) => {
-  const action = useActionPopover({ open, defaultOpen, onOpenChange }, loading);
-
-  return (
-    <Popover.Root
-      {...rest}
-      {...action.rootProps}
-      lazyMount
-      unmountOnExit
-    >
-      <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>
-      <PromptContent
+}: WithRef<PromptPopoverProps>) => (
+  <ActionPopoverRoot
+    {...rest}
+    lazyMount
+    unmountOnExit
+    trigger={children}
+    loading={loading}
+  >
+    {(action) => (
+      <Popover.Content
         ref={ref}
-        title={title}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        submitLabel={submitLabel}
-        cancelLabel={cancelLabel}
-        onSubmit={onSubmit}
-        action={action}
         portalled={portalled}
         portalRef={portalRef}
-      />
-    </Popover.Root>
-  );
-};
+      >
+        <PromptForm
+          title={title}
+          defaultValue={defaultValue}
+          placeholder={placeholder}
+          submitLabel={submitLabel}
+          cancelLabel={cancelLabel}
+          onSubmit={onSubmit}
+          action={action}
+        />
+      </Popover.Content>
+    )}
+  </ActionPopoverRoot>
+);

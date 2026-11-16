@@ -3,21 +3,17 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { HStack } from "#styled-system/jsx";
 
 import { Button } from "../Buttons";
-import { encodeSelectionValue } from "../Listbox/managed";
 import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
 import { useOverlayMode } from "../overlayPresentation";
 import { Select } from "./Select";
-import {
-  type SelectRootOverrides,
-  SelectRootOverridesContext,
-  useSelectContext,
-} from "./Select.context";
-import { SelectSimpleBody, selectListParts } from "./Select.parts";
+import { useSelectContext } from "./Select.context";
+import { SelectSimpleBody, selectListParts, splitSelectBodyProps } from "./Select.parts";
 import type {
   SelectMultipleValueProps,
   SelectRootBaseProps,
   SelectSimpleProps,
 } from "./Select.types";
+import { SelectRootImpl } from "./SelectRoot";
 
 interface ApplySelectContextValue {
   apply: () => void;
@@ -37,8 +33,8 @@ const useApplySelectContext = () => {
 
 function sameValueSet<V extends SelectionValue>(left: readonly V[], right: readonly V[]) {
   if (left.length !== right.length) return false;
-  const rightSet = new Set(right.map(encodeSelectionValue));
-  return left.every((value) => rightSet.has(encodeSelectionValue(value)));
+  const rightSet = new Set(right);
+  return left.every((value) => rightSet.has(value));
 }
 
 export interface ApplySelectActionOptions {
@@ -65,7 +61,7 @@ function ApplySelectActions({
 }: ApplySelectActionOptions) {
   const { apply, reset: handleReset, isDirty } = useApplySelectContext();
   const { close, managed } = useSelectContext();
-  const { getSelectAllState, handleValueChange } = managed.controller;
+  const { getSelectAllState, setValue } = managed.controller;
   const selectAll = useMemo(() => getSelectAllState(), [getSelectAllState]);
   const sheet = useOverlayMode() === "sheet";
 
@@ -81,7 +77,7 @@ function ApplySelectActions({
           <Button
             size="xs"
             variant="outline"
-            onClick={() => handleValueChange({ value: selectAll.toggle() })}
+            onClick={() => setValue(selectAll.toggle())}
           >
             {selectAll.allSelected ? clearAllLabel : selectAllLabel}
           </Button>
@@ -153,26 +149,22 @@ function ApplySelectRoot<T, V extends SelectionValue>({
     () => ({ apply, reset, isDirty }),
     [apply, isDirty, reset],
   );
-  const overrides = useMemo<SelectRootOverrides<V>>(
-    () => ({ appliedValue: value, wideContent: true }),
-    [value],
-  );
 
   return (
     <ApplySelectContext.Provider value={contextValue}>
-      <SelectRootOverridesContext.Provider value={overrides}>
-        <Select.Root
-          {...rootProps}
-          value={draft}
-          onValueChange={setDraft}
-          selectionMode="multiple"
-          search={resolvedSearch}
-          open={open}
-          onOpenChange={handleOpenChange}
-        >
-          {children}
-        </Select.Root>
-      </SelectRootOverridesContext.Provider>
+      <SelectRootImpl
+        {...rootProps}
+        value={draft}
+        onValueChange={setDraft}
+        selectionMode="multiple"
+        search={resolvedSearch}
+        open={open}
+        onOpenChange={handleOpenChange}
+        appliedValue={value}
+        wideContent
+      >
+        {children}
+      </SelectRootImpl>
     </ApplySelectContext.Provider>
   );
 }
@@ -184,20 +176,13 @@ export interface ApplySelectProps<T, V extends SelectionValue = SelectionValue>
 
 function ApplySelectSimple<T, V extends SelectionValue>({
   actions,
-  contentCss,
-  footer,
-  listCss,
-  triggerProps,
-  ...rootProps
+  ...props
 }: ApplySelectProps<T, V>) {
+  const [bodyProps, rootProps] = splitSelectBodyProps(props);
+
   return (
     <ApplySelectRoot {...rootProps}>
-      <SelectSimpleBody
-        triggerProps={triggerProps}
-        contentCss={contentCss}
-        listCss={listCss}
-        footer={footer}
-      >
+      <SelectSimpleBody {...bodyProps}>
         <ApplySelectActions {...actions} />
       </SelectSimpleBody>
     </ApplySelectRoot>

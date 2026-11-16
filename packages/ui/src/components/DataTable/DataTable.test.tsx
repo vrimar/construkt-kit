@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
 import { advance, setupUser, useFakeTime } from "../../_shared/fakeTime";
-import { createMatchMedia } from "../../_shared/matchMedia";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { FILTER_DEBOUNCE_MS } from "./Header/Filters/constants";
 import type { DataTableParams, DataTableRow } from "./types";
 
@@ -731,7 +731,7 @@ describe("DataTable", () => {
   });
 
   it("expands a sub-row in the mobile card layout", async () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    mockMatchMedia(viewportWidth(375));
     renderTable({ columnDefs: expandableColumns, mobileLayout: "cards", renderSubRow });
 
     await user.click(screen.getAllByRole("button", { name: "Details" })[1]);
@@ -739,7 +739,7 @@ describe("DataTable", () => {
   });
 
   it("scrolls the mobile cards back to the top on a page change", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    mockMatchMedia(viewportWidth(375));
     const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
     const cardsTable = (page: number) => (
       <DataTable
@@ -839,7 +839,7 @@ describe("DataTable", () => {
   });
 
   it("labels mobile cards with a rendered header", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+    mockMatchMedia(viewportWidth(375));
     const rendered = [
       columnHelper.accessor("name", { header: () => <em>Full name</em> }),
       columnHelper.accessor("role", { header: "Role" }),
@@ -864,7 +864,7 @@ describe("DataTable", () => {
     ];
 
     const renderCards = (overrides: Parameters<typeof renderTable>[0] = {}) => {
-      vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+      mockMatchMedia(viewportWidth(375));
       return renderTable({
         columnDefs: cardColumns,
         mobileLayout: "cards",
@@ -1125,7 +1125,7 @@ describe("DataTable", () => {
     });
 
     it("filters mobile cards from the drawer's listed values", async () => {
-      vi.spyOn(window, "matchMedia").mockImplementation(createMatchMedia(true));
+      mockMatchMedia(viewportWidth(375));
       const StatefulTable = () => {
         const [current, setCurrent] = useState(params);
         return (

@@ -100,12 +100,7 @@ function PopoverContent(props: WithRef<PopoverContentProps>) {
 export interface PopoverTriggerProps
   extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-const usePopoverTriggerState = (value: string | undefined) => {
-  const props = usePopoverContext().getTriggerProps({ value });
-  return { id: props.id ?? "", open: props["aria-expanded"] === true };
-};
-
-const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverTriggerState);
+const PopoverTrigger = withTriggerTooltip(StyledTrigger, usePopoverContext);
 
 export const Popover = {
   Root: PopoverRoot,

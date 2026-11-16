@@ -5,20 +5,24 @@ import type {
   Updater,
 } from "@tanstack/react-table";
 import { functionalUpdate, useTable } from "@tanstack/react-table";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { Stack } from "#styled-system/jsx";
 import type { JsxStyleProps } from "#styled-system/types";
 
 import { useIsMobile } from "../../hooks";
+import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { DataTableBody } from "./Body";
 import { DataTableCards } from "./Cards";
+import { columnMeta, filterValues, listedColumns } from "./columns";
 import { DataTableProvider, type DataTableContextValue } from "./context";
+import { filterKinds } from "./Header/Filters/filterKinds";
 import { resolveLabels } from "./labels";
 import { DataTablePagination } from "./Pagination";
 import { withColumnDefaults } from "./rowModelFns";
 import type {
+  DataTableColumn,
   DataTableColumnDef,
   DataTableColumnSizing,
   DataTableColumnVisibility,
@@ -126,6 +130,7 @@ const INTERACTIVE_SELECTOR = [
 ].join(", ");
 
 const NO_HIDDEN_COLUMNS: DataTableColumnVisibility = {};
+const NO_COLUMN_SIZING: DataTableColumnSizing = {};
 
 const withoutKey = <V,>(record: Record<string, V>, key: string) =>
   Object.fromEntries(Object.entries(record).filter(([entryKey]) => entryKey !== key));
@@ -135,6 +140,17 @@ const isSameFilterValue = (a: string[] = [], b: string[] = []) =>
 
 const isSameFilters = (a: DataTableFilters, b: DataTableFilters) =>
   [...Object.keys(a), ...Object.keys(b)].every((key) => isSameFilterValue(a[key], b[key]));
+
+const withoutMalformedFilters = <TData extends object>(
+  filters: DataTableFilters,
+  columns: DataTableColumn<TData, any>[],
+) =>
+  columns
+    .filter((column) => {
+      const { parse } = filterKinds[columnMeta(column).type];
+      return filterValues(filters[column.id]).some((raw) => parse(raw) === undefined);
+    })
+    .reduce((rest, column) => withoutKey(rest, column.id), filters);
 
 // Portalled overlays re-dispatch React events through the row without being inside it.
 const isNestedControl = ({ currentTarget, target }: React.SyntheticEvent<HTMLDivElement>) => {
@@ -169,32 +185,27 @@ export const DataTable = <TData extends object>({
 }: DataTableProps<TData>) => {
   const isMobile = useIsMobile();
   const showCards = mobileLayout === "cards" && isMobile;
+  const gridRef = useRef<HTMLDivElement>(null);
 
-  const [ownColumnSizing, setOwnColumnSizing] = useState<DataTableColumnSizing>({});
-  const resolvedColumnSizing = columnSizing ?? ownColumnSizing;
-  const sizingRef = useLatestRef({
-    columnSizing: resolvedColumnSizing,
-    controlled: columnSizing !== undefined,
-    onColumnSizingChange,
+  const [resolvedColumnSizing, setColumnSizing] = useControllableState({
+    value: columnSizing,
+    defaultValue: NO_COLUMN_SIZING,
+    onChange: onColumnSizingChange,
   });
+  const sizingRef = useLatestRef(resolvedColumnSizing);
 
   const resizeColumn = useCallback(
     (columnId: string, width: number | undefined) => {
-      const latest = sizingRef.current;
-      const current = latest.columnSizing;
+      const current = sizingRef.current;
       if (width === undefined ? !(columnId in current) : current[columnId] === width) return;
-      const next =
-        width === undefined ? withoutKey(current, columnId) : { ...current, [columnId]: width };
-      if (!latest.controlled) setOwnColumnSizing(next);
-      latest.onColumnSizingChange?.(next);
+      setColumnSizing(
+        width === undefined ? withoutKey(current, columnId) : { ...current, [columnId]: width },
+      );
     },
-    [sizingRef],
+    [sizingRef, setColumnSizing],
   );
 
-  const visibleColumns = useMemo(
-    () => withColumnDefaults(columnDefs.filter((column) => column.meta?.isVisible !== false)),
-    [columnDefs],
-  );
+  const columns = useMemo(() => withColumnDefaults(listedColumns(columnDefs)), [columnDefs]);
 
   const sortingState = useMemo(
     () =>
@@ -226,61 +237,70 @@ export const DataTable = <TData extends object>({
     [params.filters],
   );
 
-  const latestRef = useLatestRef({ params, onParamChange });
+  const latestRef = useLatestRef({
+    params,
+    onParamChange,
+    sortingState,
+    paginationState,
+    filtersState,
+  });
 
   const handlePagination = useCallback(
     (updateFn: Updater<PaginationState>) => {
-      const state = functionalUpdate(updateFn, paginationState);
-      onParamChange({
-        ...params,
+      const latest = latestRef.current;
+      const state = functionalUpdate(updateFn, latest.paginationState);
+      latest.onParamChange({
+        ...latest.params,
         page: state.pageIndex + 1,
         pageSize: state.pageSize,
       });
     },
-    [onParamChange, paginationState, params],
+    [latestRef],
   );
 
   const handleSort = useCallback(
     (updateFn: Updater<SortingState>) => {
-      const columnSorts = functionalUpdate(updateFn, sortingState);
+      const latest = latestRef.current;
+      const columnSorts = functionalUpdate(updateFn, latest.sortingState);
       const hasSort = columnSorts.length > 0;
 
       const orderBy = hasSort ? columnSorts[0].id : "";
       const orderType = hasSort ? (columnSorts[0].desc ? "desc" : "asc") : "";
-      if (orderBy === params.orderBy && orderType === params.orderType) return;
+      if (orderBy === latest.params.orderBy && orderType === latest.params.orderType) return;
 
-      onParamChange({
-        ...params,
+      latest.onParamChange({
+        ...latest.params,
         page: 1,
         orderBy,
         orderType,
       });
     },
-    [onParamChange, params, sortingState],
+    [latestRef],
   );
 
   const handleFilterChange = useCallback(
     (updateFn: Updater<ColumnFiltersState>) => {
+      const latest = latestRef.current;
       const filters: DataTableFilters = Object.fromEntries(
-        functionalUpdate(updateFn, filtersState).map((filter) => [
+        functionalUpdate(updateFn, latest.filtersState).map((filter) => [
           filter.id,
           filter.value as string[] | undefined,
         ]),
       );
-      if (isSameFilters(filters, params.filters)) return;
+      if (isSameFilters(filters, latest.params.filters)) return;
 
-      onParamChange({
-        ...params,
+      latest.onParamChange({
+        ...latest.params,
         page: 1,
         filters,
       });
     },
-    [filtersState, onParamChange, params],
+    [latestRef],
   );
 
   const table = useTable({
     features: dataTableFeatures,
-    columns: visibleColumns,
+    columns,
     data,
     getRowCanExpand: renderSubRow ? () => true : undefined,
     rowCount: clientSide ? undefined : totalItems,
@@ -300,15 +320,20 @@ export const DataTable = <TData extends object>({
   });
 
   const pageCount = table.getPageCount();
+  const leafColumns = table.getAllLeafColumns();
+  // By value, so a parent passing equal but fresh filters doesn't re-run the effect.
+  const filtersKey = JSON.stringify(params.filters);
 
   useEffect(() => {
-    let page = params.page;
+    const latest = latestRef.current;
+    const filters = withoutMalformedFilters(latest.params.filters, leafColumns);
+    let page = filters === latest.params.filters ? latest.params.page : 1;
     if (!(page >= 1)) page = 1;
     else if (!loading && pageCount > 0 && page > pageCount) page = pageCount;
-    if (page !== params.page) {
-      latestRef.current.onParamChange({ ...latestRef.current.params, page });
+    if (page !== latest.params.page || filters !== latest.params.filters) {
+      latest.onParamChange({ ...latest.params, page, filters });
     }
-  }, [latestRef, loading, pageCount, params.page]);
+  }, [latestRef, leafColumns, loading, pageCount, params.page, filtersKey]);
 
   const getRowInteractionProps = useCallback(
     (row: DataTableRow<TData>): DataTableRowProps => ({
@@ -339,6 +364,7 @@ export const DataTable = <TData extends object>({
       clientSide,
       columnSizing: resolvedColumnSizing,
       resizeColumn: enableColumnResizing ? resizeColumn : undefined,
+      gridRef,
     }),
     [
       clientSide,

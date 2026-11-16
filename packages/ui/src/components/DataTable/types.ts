@@ -78,6 +78,8 @@ export type DataTableColumnMeta = {
   resizable?: boolean;
 };
 
+export type ResolvedColumnMeta = DataTableColumnMeta & { type: ColumnFilterType };
+
 /** Column widths in px by column id, as resizing a column's header sets them. */
 export type DataTableColumnSizing = Record<string, number>;
 
@@ -126,14 +128,13 @@ export type DataTableLabels = {
 export type ColumnFilterLayout = "cell" | "field";
 
 export interface ColumnFilterProps {
-  columnId: string;
   placeholder: string;
-  meta: DataTableColumnMeta | undefined;
+  meta: ResolvedColumnMeta;
   value: string[];
   onChange: (value: string[] | undefined) => void;
   layout: ColumnFilterLayout;
   debounceMs: number;
-  facetedValues?: Map<unknown, number>;
+  options?: string[];
 }
 
 /**

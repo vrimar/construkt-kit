@@ -4,6 +4,11 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import { surface } from "./control-size";
 import { overlayMotion } from "./overlay-motion";
 
+const contentMaxH = "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))";
+const contentPt = "var(--drawer-full-pt, var(--drawer-placement-pt, 0px))";
+const contentPb = "var(--drawer-full-pb, var(--drawer-placement-pb, 0px))";
+const contentPe = "var(--drawer-full-pe, var(--drawer-placement-pe, 0px))";
+
 export const drawer = defineSlotRecipe({
   className: "drawer",
   slots: drawerAnatomy.extendWith("header", "body", "footer").keys(),
@@ -15,7 +20,7 @@ export const drawer = defineSlotRecipe({
       top: "0",
       width: "100vw",
       height: "100dvh",
-      zIndex: "var(--z-index, {zIndex.modal})",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       opacity: "calc(1 - var(--drawer-swipe-progress, 0))",
       _open: {
         animationName: "fade-in",
@@ -29,14 +34,13 @@ export const drawer = defineSlotRecipe({
       },
     },
     positioner: {
-      "--drawer-z-index": "zIndex.modal",
       display: "flex",
       width: "100vw",
       height: "100dvh",
       position: "fixed",
       insetInlineStart: "0",
       top: "0",
-      zIndex: "calc(var(--drawer-z-index) + var(--layer-index, 0))",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       overscrollBehaviorY: "none",
     },
     content: {
@@ -46,13 +50,13 @@ export const drawer = defineSlotRecipe({
       position: "relative",
       width: "100%",
       outline: 0,
-      zIndex: "calc(var(--drawer-z-index) + var(--layer-index, 0))",
-      maxH: "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
+      maxH: contentMaxH,
       borderTopRadius: "var(--drawer-full-radius, var(--drawer-placement-radius, 0))",
-      pt: "var(--drawer-full-pt, var(--drawer-placement-pt, 0px))",
-      pb: "var(--drawer-full-pb, var(--drawer-placement-pb, 0px))",
+      pt: contentPt,
+      pb: contentPb,
       ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
-      pe: "var(--drawer-full-pe, var(--drawer-placement-pe, 0px))",
+      pe: contentPe,
       "--drawer-safe-start": {
         base: "env(safe-area-inset-left)",
         _rtl: "env(safe-area-inset-right)",
@@ -79,7 +83,7 @@ export const drawer = defineSlotRecipe({
       transitionDuration: "normal",
       transitionTimingFunction: "emphasized-out",
       "&[data-overlay-sheet]": {
-        "--available-height": "calc(90dvh - {sizes.4} - env(safe-area-inset-bottom))",
+        "--available-height": `calc(${contentMaxH} - ${contentPt} - ${contentPb} - {sizes.4})`,
         "--reference-width": "100%",
         "& [data-part=arrow]": { display: "none" },
         "& > [data-overlay-sheet-content]": {
@@ -147,8 +151,8 @@ export const drawer = defineSlotRecipe({
     },
     closeTrigger: {
       pos: "absolute",
-      top: "calc({spacing.3} + var(--drawer-full-pt, var(--drawer-placement-pt, 0px)))",
-      insetEnd: "calc({spacing.3} + var(--drawer-full-pe, var(--drawer-placement-pe, 0px)))",
+      top: `calc({spacing.3} + ${contentPt})`,
+      insetEnd: `calc({spacing.3} + ${contentPe})`,
     },
     grabber: {
       display: "flex",
@@ -167,7 +171,7 @@ export const drawer = defineSlotRecipe({
     },
     swipeArea: {
       position: "fixed",
-      zIndex: "var(--drawer-z-index, {zIndex.modal})",
+      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
     },
   },
   defaultVariants: {

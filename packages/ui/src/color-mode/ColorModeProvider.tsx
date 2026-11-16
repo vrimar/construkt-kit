@@ -14,7 +14,6 @@ import {
   type ColorMode,
   type ColorModeScriptOptions,
   DEFAULT_COLOR_MODE,
-  applyColorMode,
 } from "./colorModeScript";
 
 export type ResolvedColorMode = "light" | "dark";
@@ -62,6 +61,10 @@ function readStoredMode(storageKey: string, fallback: ColorMode): ColorMode {
 
 const subscribeToNothing = () => () => {};
 
+function setDarkClass(dark: boolean) {
+  document.documentElement.classList.toggle("dark", dark);
+}
+
 export const ColorModeProvider = ({
   children,
   defaultMode = DEFAULT_COLOR_MODE,
@@ -80,12 +83,11 @@ export const ColorModeProvider = ({
     mode === "system" ? (systemPrefersDark ? "dark" : "light") : mode;
 
   useEffect(() => {
-    // Hydrating: keep the pre-paint script's class until storage has been read.
+    // Hydrating: keep the pre-paint script's class until storage and matchMedia have been read.
     if (storedMode === null) return;
-    // Reads matchMedia fresh: the hydration snapshot in resolvedMode could strip the script's class.
-    applyColorMode(mode, mode);
-    return () => applyColorMode("light", "light");
-  }, [mode, resolvedMode, storedMode]);
+    setDarkClass(resolvedMode === "dark");
+    return () => setDarkClass(false);
+  }, [resolvedMode, storedMode]);
 
   const setMode = useCallback(
     (next: ColorMode) => {

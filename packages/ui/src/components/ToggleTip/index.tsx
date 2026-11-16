@@ -3,6 +3,7 @@ import { type ReactNode, isValidElement } from "react";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { IconButton } from "../Buttons";
+import { isRenderable } from "../itemSlots";
 import { Popover, type PopoverRootProps } from "../Popover";
 
 const TRIGGER_GUTTER = 4;
@@ -23,6 +24,8 @@ export const ToggleTip = ({
   portalRef,
   ...rest
 }: WithRef<ToggleTipProps>) => {
+  if (!isRenderable(label)) return <>{children}</>;
+
   return (
     <Popover.Root
       {...rest}
@@ -49,6 +52,8 @@ export const ToggleTip = ({
 
 export const InfoTip = (props: InfoTipProps) => {
   const { children, ...rest } = props;
+  if (!isRenderable(children)) return null;
+
   return (
     <ToggleTip
       label={children}

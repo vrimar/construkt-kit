@@ -1,8 +1,10 @@
 import { parseDate } from "@ark-ui/react/date-picker";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { Calendar } from "./Calendar";
 import { DatePicker } from "./DatePicker";
 import { DatePickerSelect } from "./DatePickerSelect";
@@ -98,6 +100,30 @@ describe("DatePicker", () => {
     expect(dayTrigger("2024-01-11").hasAttribute("data-selected")).toBe(false);
   });
 
+  it("moves focus to a day once Clear hides itself", async () => {
+    const user = userEvent.setup();
+    render(
+      <Calendar
+        clearable
+        defaultValue={parseDate("2024-01-15")}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Clear" }));
+
+    await waitFor(() =>
+      expect(document.activeElement?.getAttribute("data-part")).toBe("table-cell-trigger"),
+    );
+  });
+
+  it("names its trigger by the date it shows, not by its open state", () => {
+    render(<DatePicker defaultValue={parseDate("2024-01-15")} />);
+
+    expect(screen.getByRole("button", { name: "2024-01-15" }).getAttribute("data-part")).toBe(
+      "trigger",
+    );
+  });
+
   it("shows the placeholder once a controlled single value is cleared", () => {
     const { container, rerender } = render(<DatePicker value={parseDate("2024-01-15")} />);
     expect(triggerOf(container).textContent).toBe("2024-01-15");
@@ -119,5 +145,24 @@ describe("DatePicker", () => {
     await user.click(day);
 
     expect(triggerOf(container).textContent).toBe(iso);
+  });
+
+  describe("on phones", () => {
+    useFakeTime();
+
+    it("stays open on a tap on its sheet's grabber", async () => {
+      // jsdom loads no stylesheet, so the sheet's pointer-events override on its content is absent.
+      const user = setupUser({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      mockMatchMedia(viewportWidth(375));
+      render(<DatePicker defaultOpen />);
+      await settle();
+
+      await user.click(
+        document.querySelector('[data-scope="drawer"][data-part="grabber"]') as Element,
+      );
+
+      await settle();
+      expect(screen.queryByRole("grid")).not.toBeNull();
+    });
   });
 });

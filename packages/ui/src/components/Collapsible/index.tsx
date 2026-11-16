@@ -22,3 +22,9 @@ export const Collapsible = {
   Trigger,
   Context: CollapsibleContext,
 };
+
+export {
+  type UseCollapsibleProps,
+  type UseCollapsibleReturn,
+  useCollapsible,
+} from "@ark-ui/react/collapsible";

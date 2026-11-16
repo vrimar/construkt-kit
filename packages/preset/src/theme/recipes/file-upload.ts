@@ -5,7 +5,7 @@ import { controlGap, controlIcon, controlPx, controlText, surface } from "./cont
 
 export const fileUpload = defineSlotRecipe({
   className: "file-upload",
-  slots: fileUploadAnatomy.keys(),
+  slots: [...fileUploadAnatomy.keys(), "fileText"],
   base: {
     root: {
       alignItems: "flex-start",
@@ -68,6 +68,9 @@ export const fileUpload = defineSlotRecipe({
       objectFit: "cover",
       maxW: "20",
       borderRadius: "md",
+    },
+    fileText: {
+      _placeholder: { color: "fg.subtle" },
     },
   },
   defaultVariants: {

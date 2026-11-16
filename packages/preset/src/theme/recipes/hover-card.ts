@@ -18,7 +18,7 @@ export const hoverCard = defineSlotRecipe({
       position: "relative",
       ...controlText("sm"),
       transformOrigin: "var(--transform-origin)",
-      zIndex: "popover",
+      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
     },
     arrow: floatingArrow.arrow,
     arrowTip: floatingArrow.arrowTip,

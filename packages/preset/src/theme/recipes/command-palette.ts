@@ -140,6 +140,7 @@ export const commandPalette = defineSlotRecipe({
       display: "flex",
       flexShrink: "0",
       color: "colorPalette.plain.fg",
+      "&[data-state=unchecked]": { visibility: "hidden" },
     },
     empty: {
       px: controlPxCompact("md"),

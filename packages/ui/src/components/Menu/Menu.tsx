@@ -1,19 +1,14 @@
-import {
-  Menu as ArkMenu,
-  MenuContext,
-  useMenuContext,
-  useMenuItemContext,
-} from "@ark-ui/react/menu";
+import { Menu as ArkMenu, MenuContext, useMenuContext } from "@ark-ui/react/menu";
 import { Portal } from "@ark-ui/react/portal";
 import { PresenceProvider, usePresence, usePresenceContext } from "@ark-ui/react/presence";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import {
   Children,
   type ComponentProps,
   createContext,
+  type ElementType,
   isValidElement,
   type ReactNode,
-  type RefObject,
   useContext,
   useEffect,
   useRef,
@@ -25,18 +20,16 @@ import { menu } from "#styled-system/recipes";
 
 import type { PortalledProps, WithRef } from "../../types";
 import { wrapAsChildContent } from "../asChildContent";
-import { createItemIndicator } from "../itemIndicator";
-import { useItemSlotIds } from "../itemSlots";
+import { isRenderable, useItemSlotIds } from "../itemSlots";
 import { lazyOverlayDefaults } from "../overlayDefaults";
 import {
   type MobileLayoutProps,
-  guardSheetFrame,
   useOverlayMode,
-  useSheetFrameRef,
+  useSheetPresentation,
   withMobileLayout,
 } from "../overlayPresentation";
 import { createPlacementRoot } from "../placementRoot";
-import { SheetOverlayContent } from "../sheetFrame";
+import { SheetOverlayContent, SheetPanel } from "../sheetFrame";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(menu);
@@ -112,20 +105,16 @@ function ContextTrigger({
 
 export type { MenuSelectionDetails } from "@ark-ui/react/menu";
 
-const StyledItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator");
-
-const ItemIndicator = createItemIndicator(
-  StyledItemIndicator,
-  () => useMenuItemContext().checked === true,
-);
+// zag hides an unchecked indicator; the recipe keeps it in the layout so the check column stays.
+const ItemIndicator = withContext(ArkMenu.ItemIndicator, "itemIndicator", {
+  defaultProps: { hidden: false, children: <CheckIcon /> },
+});
 
 export interface MenuRootProps extends RootProps, MobileLayoutProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
-type ParentMenu =
-  | { mode: "popover" }
-  | { mode: "sheet"; frameRef: RefObject<HTMLDivElement | null>; closing: boolean };
+type ParentMenu = { mode: "popover" } | { mode: "sheet"; closing: boolean };
 
 const ParentMenuContext = createContext<ParentMenu | null>(null);
 
@@ -150,7 +139,6 @@ function MenuRootBase({ mobileLayout, ...props }: MenuRootProps) {
   return (
     <Root
       {...props}
-      onInteractOutside={guardSheetFrame(parent.frameRef, props.onInteractOutside)}
       onSelect={(details) => {
         if (details.value !== BACK_ITEM_VALUE) props.onSelect?.(details);
       }}
@@ -162,12 +150,7 @@ const MenuRoot = createPlacementRoot<MenuRootProps>(MenuRootBase);
 
 export interface MenuTriggerProps extends ComponentProps<typeof StyledTrigger>, WithTooltipProps {}
 
-const useMenuTriggerState = (value: string | undefined) => {
-  const props = useMenuContext().getTriggerProps({ value });
-  return { id: props.id ?? "", open: props["aria-expanded"] === true };
-};
-
-const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuTriggerState);
+const MenuTrigger = withTriggerTooltip(StyledTrigger, useMenuContext);
 
 export interface MenuContentProps extends ComponentProps<typeof Content>, PortalledProps {
   /** Label of the row that leads back out of a submenu shown inside a phone sheet. */
@@ -178,7 +161,6 @@ const isArrow = (child: ReactNode) => isValidElement(child) && child.type === Ar
 
 function SheetMenuContent({ children, ...rest }: WithRef<MenuContentProps>) {
   const api = useMenuContext();
-  const frameRef = useSheetFrameRef();
 
   return (
     <SheetOverlayContent
@@ -186,9 +168,7 @@ function SheetMenuContent({ children, ...rest }: WithRef<MenuContentProps>) {
       api={api}
       Content={Content}
     >
-      <ParentMenuContext.Provider
-        value={frameRef == null ? null : { mode: "sheet", frameRef, closing: !api.open }}
-      >
+      <ParentMenuContext.Provider value={{ mode: "sheet", closing: !api.open }}>
         {children}
       </ParentMenuContext.Provider>
     </SheetOverlayContent>
@@ -211,22 +191,21 @@ function useHeldThroughSheetExit(closing: boolean) {
 
 function DrillDownMenuContent({
   ref,
-  frameRef,
   closing,
   backLabel = "Back",
   children,
   ...rest
-}: WithRef<MenuContentProps> & { frameRef: RefObject<HTMLDivElement | null>; closing: boolean }) {
+}: WithRef<MenuContentProps> & { closing: boolean }) {
   const api = useMenuContext();
+  const frameRef = useSheetPresentation()?.frameRef;
   const presence = useHeldThroughSheetExit(closing);
 
   return (
     <Portal container={frameRef}>
       <PresenceProvider value={presence}>
-        <Content
-          animation="none"
+        <SheetPanel
+          Content={Content}
           ref={ref}
-          data-overlay-sheet-content=""
           {...rest}
         >
           <Item
@@ -238,7 +217,7 @@ function DrillDownMenuContent({
             {backLabel}
           </Item>
           {children}
-        </Content>
+        </SheetPanel>
       </PresenceProvider>
     </Portal>
   );
@@ -261,7 +240,6 @@ function MenuContent({
     return (
       <DrillDownMenuContent
         ref={ref}
-        frameRef={parent.frameRef}
         closing={parent.closing}
         backLabel={backLabel}
         {...rest}
@@ -341,55 +319,39 @@ type MenuOptionItemProps<T extends typeof CheckboxItem | typeof RadioItem> = Wit
   Omit<ComponentProps<T>, "asChild"> & MenuItemSlotProps
 >;
 
-function MenuCheckboxItem({
-  ref,
-  hint,
-  description,
-  children,
-  ...props
-}: MenuOptionItemProps<typeof CheckboxItem>) {
-  const slots = useItemSlots({ hint, description }, props["aria-describedby"]);
-
-  return (
-    <CheckboxItem
-      ref={ref}
-      {...props}
-      aria-describedby={slots.describedBy}
-    >
-      <ItemText>
-        {children}
-        {slots.description}
-      </ItemText>
-      {slots.hint}
-      <ItemIndicator />
-    </CheckboxItem>
-  );
+interface OptionItemSlots extends MenuItemSlotProps {
+  children?: ReactNode;
+  "aria-describedby"?: string | undefined;
 }
 
-function MenuRadioItem({
-  ref,
-  hint,
-  description,
-  children,
-  ...rest
-}: MenuOptionItemProps<typeof RadioItem>) {
-  const slots = useItemSlots({ hint, description }, rest["aria-describedby"]);
+function createOptionItem<P extends OptionItemSlots>(Part: ElementType) {
+  return function MenuOptionItem({
+    hint,
+    description,
+    children,
+    "aria-describedby": describedBy,
+    ...rest
+  }: P) {
+    const slots = useItemSlots({ hint, description }, describedBy);
 
-  return (
-    <RadioItem
-      ref={ref}
-      {...rest}
-      aria-describedby={slots.describedBy}
-    >
-      <ItemText>
-        {children}
-        {slots.description}
-      </ItemText>
-      {slots.hint}
-      <ItemIndicator />
-    </RadioItem>
-  );
+    return (
+      <Part
+        {...rest}
+        aria-describedby={slots.describedBy}
+      >
+        <ItemText>
+          {children}
+          {slots.description}
+        </ItemText>
+        {slots.hint}
+        <ItemIndicator />
+      </Part>
+    );
+  };
 }
+
+const MenuCheckboxItem = createOptionItem<MenuOptionItemProps<typeof CheckboxItem>>(CheckboxItem);
+const MenuRadioItem = createOptionItem<MenuOptionItemProps<typeof RadioItem>>(RadioItem);
 
 function ItemLabel({
   icon,
@@ -463,9 +425,7 @@ function MenuItemGroup({ ref, label, children, ...rest }: WithRef<MenuItemGroupP
       ref={ref}
       {...rest}
     >
-      {label != null && label !== false && label !== "" && (
-        <ItemGroupLabel userSelect="none">{label}</ItemGroupLabel>
-      )}
+      {isRenderable(label) && <ItemGroupLabel userSelect="none">{label}</ItemGroupLabel>}
       {children}
     </ItemGroup>
   );

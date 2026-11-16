@@ -5,15 +5,22 @@ import {
 } from "@ark-ui/react/presence";
 import type { ComponentProps, ElementType, ReactElement, ReactNode } from "react";
 
-import { Tooltip, type TooltipProps } from ".";
 import type { WithRef } from "../../types";
+import { TooltipBase, type TooltipProps } from "./Tooltip";
 
 export type WithTooltipProps = {
   tooltip?: ReactNode;
   tooltipProps?: Omit<TooltipProps, "children" | "label" | "ids">;
 };
 
-const TOOLTIP_PART_ATTRIBUTES = ["data-scope", "data-part"];
+const SURFACE_PART_ATTRIBUTES = ["data-scope", "data-part"];
+
+interface SurfaceApi {
+  getTriggerProps: (props: { value: string | undefined }) => {
+    id?: string | undefined;
+    "aria-expanded"?: unknown;
+  };
+}
 
 export type TooltipTriggerComponent<T extends ElementType> = (
   props: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>,
@@ -22,7 +29,7 @@ export type TooltipTriggerComponent<T extends ElementType> = (
 /** Wraps a floating-surface trigger so `tooltip` renders against the trigger's own Ark id. */
 export function withTriggerTooltip<T extends ElementType>(
   StyledTrigger: T,
-  useTriggerState: (value: string | undefined) => { id: string; open: boolean },
+  useSurfaceContext: () => SurfaceApi,
 ): TooltipTriggerComponent<T> {
   const TriggerElement: ElementType = StyledTrigger;
 
@@ -31,11 +38,9 @@ export function withTriggerTooltip<T extends ElementType>(
     surfacePresence,
     ...props
   }: Record<string, unknown> & { surfacePresence: UsePresenceContext }) {
-    const triggerProps: Record<string, unknown> = { ...props };
-    for (const key of TOOLTIP_PART_ATTRIBUTES) delete triggerProps[key];
     return (
       <PresenceProvider value={surfacePresence}>
-        <TriggerElement {...triggerProps} />
+        <TriggerElement {...props} />
       </PresenceProvider>
     );
   }
@@ -46,15 +51,18 @@ export function withTriggerTooltip<T extends ElementType>(
     children,
     ...rest
   }: WithRef<ComponentProps<T> & WithTooltipProps, HTMLButtonElement>): ReactElement {
-    const { id: triggerId, open } = useTriggerState((rest as { value?: string }).value);
+    const triggerProps = useSurfaceContext().getTriggerProps({
+      value: (rest as { value?: string }).value,
+    });
     const surfacePresence = usePresenceContext();
 
     return (
-      <Tooltip
-        ids={{ trigger: triggerId }}
+      <TooltipBase
+        ids={{ trigger: triggerProps.id ?? "" }}
         label={tooltip}
+        stripTriggerAttributes={SURFACE_PART_ATTRIBUTES}
         {...tooltipProps}
-        disabled={open || tooltipProps?.disabled}
+        disabled={triggerProps["aria-expanded"] === true || tooltipProps?.disabled}
       >
         <TooltipTarget
           surfacePresence={surfacePresence}
@@ -62,7 +70,7 @@ export function withTriggerTooltip<T extends ElementType>(
         >
           {children}
         </TooltipTarget>
-      </Tooltip>
+      </TooltipBase>
     );
   };
 }

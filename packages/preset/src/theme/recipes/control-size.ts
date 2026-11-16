@@ -201,3 +201,11 @@ export const surface = (rem: string): string => `calc(${rem} * var(--surface-sca
 
 /** Graphical element size — proportional multiplier knob. Pass a rem literal (e.g. "1.25rem"). */
 export const visual = (rem: string): string => `calc(${rem} * var(--visual-scale, 1))`;
+
+export const inlineCodeSize = {
+  xs: { fontSize: "2xs", height: "4", minWidth: "4", px: "0.5" },
+  sm: { ...controlText("xs"), height: "4.5", minWidth: "4.5", px: "1" },
+  md: { ...controlText("sm"), height: "5", minWidth: "5", px: "1" },
+  lg: { ...controlText("sm"), height: "5.5", minWidth: "5.5", px: "1" },
+  xl: { ...controlText("lg"), height: "6", minWidth: "6", px: "1" },
+};

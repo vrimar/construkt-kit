@@ -4,13 +4,13 @@ import {
   useCheckboxContext,
 } from "@ark-ui/react/checkbox";
 import { CheckIcon, MinusIcon } from "lucide-react";
-import type { ComponentProps, ReactNode, Ref } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { checkbox } from "#styled-system/recipes";
 import type { HTMLStyledProps } from "#styled-system/types";
 
-import type { HiddenInputProps, WithRef } from "../../types";
+import type { HiddenInputControlProps, WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(checkbox);
 
@@ -22,7 +22,12 @@ const Group = withProvider(ArkCheckbox.Group, "group");
 const Label = withContext(ArkCheckbox.Label, "label");
 const HiddenInput = ArkCheckbox.HiddenInput;
 
-export type { CheckboxCheckedState } from "@ark-ui/react/checkbox";
+export {
+  type CheckboxCheckedState,
+  type UseCheckboxProps,
+  type UseCheckboxReturn,
+  useCheckbox,
+} from "@ark-ui/react/checkbox";
 
 const CheckGlyph = styled(CheckIcon);
 const MinusGlyph = styled(MinusIcon);
@@ -45,15 +50,14 @@ const Indicator = ({ ref, ...props }: WithRef<HTMLStyledProps<"svg">, SVGSVGElem
   );
 };
 
-export interface CheckboxProps extends Omit<RootProps, "ref"> {
-  icon?: ReactNode;
-  inputProps?: HiddenInputProps;
-  rootRef?: Ref<HTMLLabelElement>;
+export interface CheckboxProps extends Omit<RootProps, "ref">, HiddenInputControlProps {
+  /** Drawn inside the box. `null` leaves the tick out but keeps the box. */
+  indicator?: ReactNode;
 }
 
 function CheckboxSimple({
   ref,
-  icon,
+  indicator = <Indicator />,
   children,
   inputProps,
   rootRef,
@@ -68,7 +72,7 @@ function CheckboxSimple({
         ref={ref}
         {...inputProps}
       />
-      <Control>{icon || <Indicator />}</Control>
+      <Control>{indicator}</Control>
       {children != null && <Label>{children}</Label>}
     </Root>
   );

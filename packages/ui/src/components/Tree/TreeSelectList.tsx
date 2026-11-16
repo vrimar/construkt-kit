@@ -7,7 +7,7 @@ import type {
   TreeViewNodeState,
   TreeViewRenameCompleteDetails,
 } from "@ark-ui/react/tree-view";
-import { useTreeView } from "@ark-ui/react/tree-view";
+import { useTreeView, useTreeViewContext, useTreeViewNodeContext } from "@ark-ui/react/tree-view";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -20,21 +20,24 @@ import type { ReactNode } from "react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Box, Flex } from "#styled-system/jsx";
-import { type TreeViewVariant, treeView } from "#styled-system/recipes";
+import type { TreeViewVariant } from "#styled-system/recipes";
 
 import { TooltipIconButton, type TooltipIconButtonProps } from "../Buttons";
-import { SelectionSearchField, getSelectAllState, normalizeQuery } from "../Listbox/managed";
+import { SelectionSearchField, useSelectionSearch } from "../Listbox/managed";
 import type { SelectionSearchOptions } from "../Listbox/types";
 import { VirtualScrollArea, type VisibleItems } from "../ScrollArea";
-import {
-  type TreeCanDropDetails,
-  TreeViewDndProvider,
-  type TreeViewDndProviderProps,
-} from "./dnd/TreeDndContext";
-import { collectCheckableBranches, filterTreeCollection } from "./treeCollectionUtils";
-import { TreeDndRow, TreeNodeLabel, type TreeNodeRenderDetails } from "./TreeRow";
+import { TreeViewDndProvider, type TreeViewDndProviderProps } from "./dnd/TreeDndContext";
+import { filterTreeCollection } from "./treeCollectionUtils";
+import { TreeDndRow, TreeNodeContent, type TreeNodeRenderDetails } from "./TreeRow";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
-import { TreeView } from "./TreeView";
+import {
+  FlatBranchControl,
+  FlatBranchIndicator,
+  FlatNodeCheckbox,
+  TreeRowContent,
+  TreeView,
+} from "./TreeView";
+import { useTreeCheckSelection } from "./useTreeCheckSelection";
 import { useTreeLazyLoad } from "./useTreeLazyLoad";
 import { useTreeSearchExpansion } from "./useTreeSearchExpansion";
 
@@ -154,28 +157,12 @@ type TreeSelectListLoadProps<TNode extends TreeNode> =
 export type TreeSelectListProps<TNode extends TreeNode> = TreeSelectListBaseProps<TNode> &
   TreeSelectListLoadProps<TNode>;
 
-const TreeIndicatorSpacer = () => (
-  <Box
-    aria-hidden="true"
-    data-tree-indicator-spacer="true"
-    flexShrink={0}
-    boxSize="var(--tree-icon-size)"
-  />
-);
-
-interface TreeRowProps {
-  isBranch: boolean;
-  expanded: boolean;
-  renaming: boolean;
+interface TreeSelectRowProps {
   loading: boolean;
-  disabled: boolean;
   checkable: boolean;
   checked: TreeViewNodeState["checked"];
-  indexPath: number[];
-  setSize: number;
+  actions: ReactNode;
   children: ReactNode;
-  actions: ReactNode | undefined;
-  onPointerDown: (e: React.PointerEvent) => void;
   onToggleChecked: () => void;
 }
 
@@ -185,78 +172,70 @@ const depthStyleFor = (indexPath: number[]): React.CSSProperties & { "--depth": 
 });
 
 const TreeSelectRow = ({
-  isBranch,
-  expanded,
-  renaming,
   loading,
-  disabled,
   checkable,
   checked,
-  indexPath,
-  setSize,
-  children,
   actions,
-  onPointerDown,
+  children,
   onToggleChecked,
-}: TreeRowProps) => (
-  <TreeDndRow
-    isBranch={isBranch}
-    loading={loading}
-    role={isBranch ? "treeitem" : undefined}
-    aria-expanded={isBranch ? expanded : undefined}
-    aria-level={isBranch ? indexPath.length : undefined}
-    aria-setsize={setSize}
-    aria-posinset={indexPath[indexPath.length - 1] + 1}
-    aria-disabled={disabled || undefined}
-    aria-checked={checkable ? (checked === "indeterminate" ? "mixed" : checked) : undefined}
-    onPointerDown={onPointerDown}
-    onKeyDown={(e) => {
-      if (!checkable || e.target !== e.currentTarget) return;
-      if (e.key === " " || (e.key === "Enter" && !isBranch)) {
-        e.preventDefault();
-        onToggleChecked();
-      }
-    }}
-    style={depthStyleFor(indexPath)}
-  >
-    <TreeRowIndentGuides indexPath={indexPath} />
-    {isBranch ? <TreeView.BranchIndicator /> : <TreeIndicatorSpacer />}
-    {checkable && (
-      <TreeView.NodeCheckbox
-        aria-hidden
-        data-state={
-          checked === "indeterminate" ? "indeterminate" : checked ? "checked" : "unchecked"
-        }
-        onClick={(e) => {
-          // Bails out zag's own toggle, which would also check unselectable leaves.
+}: TreeSelectRowProps) => {
+  const tree = useTreeViewContext();
+  const { value, isBranch, expanded, renaming, disabled, indexPath } = useTreeViewNodeContext();
+
+  return (
+    <TreeDndRow
+      isBranch={isBranch}
+      loading={loading}
+      role={isBranch ? "treeitem" : undefined}
+      aria-expanded={isBranch ? expanded : undefined}
+      aria-level={isBranch ? indexPath.length : undefined}
+      aria-setsize={tree.collection.getSiblingNodes(indexPath).length}
+      aria-posinset={indexPath[indexPath.length - 1] + 1}
+      aria-disabled={disabled || undefined}
+      aria-checked={checkable ? (checked === "indeterminate" ? "mixed" : checked) : undefined}
+      onPointerDown={(e) => {
+        if (e.button !== 0 || renaming) return;
+        tree.focus(value);
+      }}
+      onKeyDown={(e) => {
+        if (!checkable || e.target !== e.currentTarget) return;
+        if (e.key === " " || (e.key === "Enter" && !isBranch)) {
           e.preventDefault();
-          e.stopPropagation();
-          e.currentTarget.closest<HTMLElement>("[role=treeitem]")?.focus({ preventScroll: true });
           onToggleChecked();
-        }}
-      >
-        {checked === "indeterminate" ? <MinusIcon /> : checked && <CheckIcon />}
-      </TreeView.NodeCheckbox>
-    )}
-    <Box
-      display="flex"
-      alignItems="center"
-      flex="1"
-      minWidth="0"
-      css={{ "& > *": { minWidth: "0" } }}
+        }
+      }}
+      style={depthStyleFor(indexPath)}
     >
-      {renaming ? <TreeView.NodeRenameInput /> : children}
-    </Box>
-    {actions && !renaming && <TreeView.NodeActions>{actions}</TreeView.NodeActions>}
-  </TreeDndRow>
-);
+      <TreeRowIndentGuides indexPath={indexPath} />
+      {isBranch ? <TreeView.BranchIndicator /> : <FlatBranchIndicator aria-hidden="true" />}
+      {checkable && (
+        <TreeView.NodeCheckbox
+          aria-hidden
+          data-state={
+            checked === "indeterminate" ? "indeterminate" : checked ? "checked" : "unchecked"
+          }
+          onClick={(e) => {
+            // Bails out zag's own toggle, which would also check unselectable leaves.
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.closest<HTMLElement>("[role=treeitem]")?.focus({ preventScroll: true });
+            onToggleChecked();
+          }}
+        >
+          {checked === "indeterminate" ? <MinusIcon /> : checked && <CheckIcon />}
+        </TreeView.NodeCheckbox>
+      )}
+      <TreeRowContent>{renaming ? <TreeView.NodeRenameInput /> : children}</TreeRowContent>
+      {actions && !renaming && <TreeView.NodeActions>{actions}</TreeView.NodeActions>}
+    </TreeDndRow>
+  );
+};
 
 const samePath = (a: number[], b: number[]) =>
   a.length === b.length && a.every((step, index) => step === b[index]);
 
 interface StickyBranchProps {
   indexPath: number[];
-  size: TreeSize;
   checkable: boolean;
   children: ReactNode;
   onActivate: () => void;
@@ -265,13 +244,11 @@ interface StickyBranchProps {
 
 const StickyBranch = ({
   indexPath,
-  size,
   checkable,
   children,
   onActivate,
   onHeightChange,
 }: StickyBranchProps) => {
-  const classes = treeView({ size });
   const rowRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -290,39 +267,22 @@ const StickyBranch = ({
       height="0"
       zIndex="2"
     >
-      <Box
+      <FlatBranchControl
         ref={rowRef}
         aria-hidden="true"
         data-state="open"
-        className={classes.branchControl}
         borderBottomWidth="1px"
         borderColor="border"
         css={{ "--tree-row-bg": "var(--surface-bg, {colors.bg})" }}
         style={depthStyleFor(indexPath)}
         onClick={onActivate}
       >
-        <span
-          className={classes.branchIndicator}
-          data-state="open"
-        >
+        <FlatBranchIndicator data-state="open">
           <ChevronRightIcon />
-        </span>
-        {checkable && (
-          <span
-            className={classes.nodeCheckbox}
-            style={{ visibility: "hidden" }}
-          />
-        )}
-        <Box
-          display="flex"
-          alignItems="center"
-          flex="1"
-          minWidth="0"
-          css={{ "& > *": { minWidth: "0" } }}
-        >
-          {children}
-        </Box>
-      </Box>
+        </FlatBranchIndicator>
+        {checkable && <FlatNodeCheckbox style={{ visibility: "hidden" }} />}
+        <TreeRowContent>{children}</TreeRowContent>
+      </FlatBranchControl>
     </Box>
   );
 };
@@ -339,7 +299,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
   canRename,
   onRenameComplete,
   isNodeCheckable,
-  search,
+  search: searchOptions,
   showSelectAll = true,
   selectAllLabel = "Select all",
   clearAllLabel = "Deselect all",
@@ -349,40 +309,28 @@ export const TreeSelectList = <TNode extends TreeNode>({
   listHeight = "320px",
   size = "md",
   onCollectionChange,
-  canDrop,
   expandOnSearch = true,
   loadChildren,
   onLoadChildrenComplete,
   onLoadChildrenError,
   ...dndProps
 }: TreeSelectListProps<TNode>) => {
-  const [internalQuery, setInternalQuery] = useState(search?.defaultQuery ?? "");
-  const resolvedQuery = search?.query ?? internalQuery;
-  const normalizedQuery = normalizeQuery(resolvedQuery);
+  const search = useSelectionSearch(searchOptions ?? true);
+  const { normalizedQuery, filterQuery } = search;
   const queryActive = normalizedQuery !== "";
-  const externalSearch = search?.mode === "external";
-  const searchFilter = search?.filter;
-
-  const setQuery = (nextQuery: string) => {
-    if (search?.query === undefined) setInternalQuery(nextQuery);
-    search?.onQueryChange?.(nextQuery);
-  };
-
-  // --- Filtering ---
+  const searchFilter = searchOptions?.filter;
 
   const displayedCollection = useMemo(
-    () => filterTreeCollection(collection, externalSearch ? "" : normalizedQuery, searchFilter),
-    [collection, externalSearch, normalizedQuery, searchFilter],
+    () => filterTreeCollection(collection, filterQuery, searchFilter),
+    [collection, filterQuery, searchFilter],
   );
-
-  // --- Expansion state ---
 
   const lazyLoad = useTreeLazyLoad({
     collection,
     loadChildren,
     onLoadChildrenComplete,
     onLoadChildrenError,
-    abortKey: externalSearch ? normalizedQuery : "",
+    abortKey: search.external ? normalizedQuery : "",
   });
 
   const expansion = useTreeSearchExpansion({
@@ -418,78 +366,15 @@ export const TreeSelectList = <TNode extends TreeNode>({
     isBranch,
   });
 
-  // Filtering keeps a matching branch with no children, which then reads as a leaf.
-  const leafValueSet = useMemo(() => new Set(collection.getDescendantValues([])), [collection]);
-
-  const isLeafCheckable = useCallback(
-    (node: TNode, indexPath: number[]) =>
-      leafValueSet.has(displayedCollection.getNodeValue(node)) &&
-      (isNodeCheckable?.({ node, indexPath: toSourceIndexPath(indexPath), isBranch: false }) ??
-        true),
-    [displayedCollection, isNodeCheckable, leafValueSet, toSourceIndexPath],
-  );
-
-  const selectableLeafValues = useMemo(() => {
-    const values: string[] = [];
-    displayedCollection.visit({
-      onEnter: (node, indexPath) => {
-        if (
-          !displayedCollection.isBranchNode(node) &&
-          !displayedCollection.getNodeDisabled(node) &&
-          isLeafCheckable(node, indexPath)
-        ) {
-          values.push(displayedCollection.getNodeValue(node));
-        }
-      },
-    });
-    return values;
-  }, [displayedCollection, isLeafCheckable]);
-
-  const selectableLeafSet = useMemo(() => new Set(selectableLeafValues), [selectableLeafValues]);
-
-  const checkableBranches = useMemo(
-    () => collectCheckableBranches(displayedCollection, leafValueSet, selectableLeafSet),
-    [displayedCollection, leafValueSet, selectableLeafSet],
-  );
-
-  const resolvedIsNodeCheckable = ({ node, indexPath, isBranch }: TreeNodeRenderDetails<TNode>) => {
-    if (!isBranch) return isLeafCheckable(node, indexPath);
-    if (!checkableBranches.has(displayedCollection.getNodeValue(node))) return false;
-    return isNodeCheckable?.(nodeDetails(node, indexPath, isBranch)) ?? true;
-  };
-
-  const selectAll = useMemo(
-    () => getSelectAllState(value, selectableLeafValues),
-    [selectableLeafValues, value],
-  );
-
-  const selectableLeavesOf = (node: TNode, isBranch: boolean) => {
-    const nodeValue = displayedCollection.getNodeValue(node);
-    const leafValues = isBranch ? displayedCollection.getDescendantValues(nodeValue) : [nodeValue];
-    return leafValues.filter((leafValue) => selectableLeafSet.has(leafValue));
-  };
-
-  const branchCheckedState = (node: TNode): TreeViewNodeState["checked"] => {
-    const { allSelected, someSelected } = getSelectAllState(value, selectableLeavesOf(node, true));
-    return allSelected ? true : someSelected ? "indeterminate" : false;
-  };
-
-  const toggleChecked = (node: TNode, isBranch: boolean) => {
-    if (displayedCollection.getNodeDisabled(node)) return;
-    const selectable = selectableLeavesOf(node, isBranch);
-    if (selectable.length) onValueChange(getSelectAllState(value, selectable).toggle());
-  };
-
-  const handleCheckedChange = (checkedValue: string[]) => {
-    const nextSet = new Set(checkedValue);
-    const valueSet = new Set(value);
-    onValueChange([
-      ...value.filter((entry) => nextSet.has(entry) || !selectableLeafSet.has(entry)),
-      ...checkedValue.filter((entry) => !valueSet.has(entry) && selectableLeafSet.has(entry)),
-    ]);
-  };
-
-  // --- Tree view hook ---
+  const checks = useTreeCheckSelection({
+    collection,
+    displayedCollection,
+    value,
+    onValueChange,
+    isNodeCheckable,
+    toSourceIndexPath,
+  });
+  const { selectAll } = checks;
 
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
@@ -497,7 +382,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
   const tree = useTreeView({
     collection: displayedCollection,
     checkedValue: value,
-    onCheckedChange: (details) => handleCheckedChange(details.checkedValue),
+    onCheckedChange: (details) => checks.setCheckedValue(details.checkedValue),
     expandedValue: expansion.visibleExpandedValue,
     onExpandedChange: (details) => handleExpandedChange(details.expandedValue),
     focusedValue,
@@ -546,24 +431,14 @@ export const TreeSelectList = <TNode extends TreeNode>({
   const stickyEntry =
     stickyIndex >= 0 && branchScrolledAway ? visibleNodes[stickyIndex] : undefined;
 
-  // --- Drag and drop ---
   // Disabled during a query so rendered indexPaths match the source collection DnD mutates.
   const dndActive = onCollectionChange != null && !queryActive;
   const [scrollViewport, setScrollViewport] = useState<HTMLDivElement | null>(null);
-
-  const resolvedCanDrop = (details: TreeCanDropDetails) => {
-    if (details.instruction.type === "make-child" && lazyLoad.needsLoad(details.targetValue)) {
-      return false;
-    }
-    return canDrop?.(details) ?? true;
-  };
 
   const handleCollectionChange = (nextCollection: TreeCollection<TNode>) => {
     lazyLoad.carry(collection, nextCollection);
     onCollectionChange?.(nextCollection);
   };
-
-  // --- Render ---
 
   const selectAllButton = showSelectAll && (
     <TooltipIconButton
@@ -593,7 +468,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
         getItemKey={(index) => displayedCollection.getNodeValue(visibleNodes[index].node)}
         height={listHeight}
         maxHeight={listHeight}
-        viewportRef={setScrollViewport}
+        ref={setScrollViewport}
         scrollToIndexRef={scrollToIndexRef}
         keepMountedIndex={tabStopIndex >= 0 ? tabStopIndex : undefined}
         scrollbars="vertical"
@@ -611,8 +486,7 @@ export const TreeSelectList = <TNode extends TreeNode>({
             >
               <StickyBranch
                 indexPath={stickyEntry.indexPath}
-                size={size}
-                checkable={resolvedIsNodeCheckable({
+                checkable={checks.isCheckable({
                   node: stickyEntry.node,
                   indexPath: stickyEntry.indexPath,
                   isBranch: true,
@@ -624,23 +498,20 @@ export const TreeSelectList = <TNode extends TreeNode>({
                   requestAnimationFrame(() => tree.focus(stickyValue));
                 }}
               >
-                {renderNode?.(nodeDetails(stickyEntry.node, stickyEntry.indexPath, true)) ?? (
-                  <TreeNodeLabel isBranch>
-                    {displayedCollection.stringifyNode(stickyEntry.node)}
-                  </TreeNodeLabel>
-                )}
+                <TreeNodeContent
+                  details={nodeDetails(stickyEntry.node, stickyEntry.indexPath, true)}
+                  renderNode={renderNode}
+                />
               </StickyBranch>
             </TreeView.NodeProvider>
           )
         }
       >
         {({ node, indexPath }) => {
-          const nodeState = tree.getNodeState({ node, indexPath });
           const nodeValue = displayedCollection.getNodeValue(node);
-          const isBranch = nodeState.isBranch;
-          const checkable = resolvedIsNodeCheckable({ node, indexPath, isBranch });
-          const renderedNode = renderNode?.(nodeDetails(node, indexPath, isBranch));
-          const renderedActions = renderActions?.(nodeDetails(node, indexPath, isBranch));
+          const isBranch = displayedCollection.isBranchNode(node);
+          const details = nodeDetails(node, indexPath, isBranch);
+          const checkable = checks.isCheckable({ node, indexPath, isBranch });
 
           return (
             <TreeView.NodeProvider
@@ -649,27 +520,16 @@ export const TreeSelectList = <TNode extends TreeNode>({
               indexPath={indexPath}
             >
               <TreeSelectRow
-                isBranch={isBranch}
-                expanded={nodeState.expanded}
-                renaming={nodeState.renaming}
                 loading={lazyLoad.loadingValues.has(nodeValue)}
-                disabled={nodeState.disabled}
                 checkable={checkable}
-                checked={checkable && (isBranch ? branchCheckedState(node) : nodeState.checked)}
-                indexPath={indexPath}
-                setSize={displayedCollection.getSiblingNodes(indexPath).length}
-                actions={renderedActions}
-                onPointerDown={(e) => {
-                  if (e.button !== 0 || nodeState.renaming) return;
-                  tree.focus(nodeValue);
-                }}
-                onToggleChecked={() => toggleChecked(node, isBranch)}
+                checked={checkable && checks.checkedState(node, isBranch)}
+                actions={renderActions?.(details)}
+                onToggleChecked={() => checks.toggle(node, isBranch)}
               >
-                {renderedNode ?? (
-                  <TreeNodeLabel isBranch={isBranch}>
-                    {displayedCollection.stringifyNode(node)}
-                  </TreeNodeLabel>
-                )}
+                <TreeNodeContent
+                  details={details}
+                  renderNode={renderNode}
+                />
               </TreeSelectRow>
             </TreeView.NodeProvider>
           );
@@ -680,16 +540,13 @@ export const TreeSelectList = <TNode extends TreeNode>({
 
   return (
     <Flex direction="column">
-      {search?.showInput !== false ? (
+      {search.showInput ? (
         <Box mb="2">
           <SelectionSearchField
-            query={resolvedQuery}
-            onQueryChange={setQuery}
-            placeholder={search?.placeholder ?? "Search..."}
-            autoFocus={search?.autoFocus}
+            search={search}
             endElement={
               <>
-                {search?.endElement}
+                {search.endElement}
                 {selectAllButton}
               </>
             }
@@ -714,12 +571,12 @@ export const TreeSelectList = <TNode extends TreeNode>({
         clampText={clampText}
       >
         {onCollectionChange ? (
-          // Keep the provider mounted: toggling `enabled` must not remount the tree.
+          // Keep the provider mounted: toggling `disabled` must not remount the tree.
           <TreeViewDndProvider
             {...dndProps}
             onCollectionChange={handleCollectionChange}
-            canDrop={resolvedCanDrop}
-            enabled={dndActive}
+            isBranchLoaded={(treeValue) => !lazyLoad.needsLoad(treeValue)}
+            disabled={!dndActive}
             scrollElement={scrollViewport}
           >
             {treeBody}

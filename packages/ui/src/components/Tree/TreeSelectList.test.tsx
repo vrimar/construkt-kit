@@ -7,7 +7,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useState } from "react";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { createTestTree, type TestNode } from "./tree.fixtures";
+import { childIdsOf, createTestTree, type TestNode } from "./tree.fixtures";
 import { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
 
 const virtualScrollAreaProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
@@ -115,9 +115,9 @@ describe("TreeSelectList", () => {
       .getByText("Button.tsx")
       .closest('[data-scope="tree-view"][data-part="item"]');
 
-    expect(srcRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(0);
-    expect(componentsRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(1);
-    expect(buttonRow?.querySelectorAll('[data-virtualized="true"]')).toHaveLength(2);
+    expect(srcRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(0);
+    expect(componentsRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(1);
+    expect(buttonRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(2);
   });
 
   it("renders a leaf indicator spacer so item content aligns with branch rows", () => {
@@ -131,7 +131,7 @@ describe("TreeSelectList", () => {
     expect(
       branchRow?.querySelector('[data-scope="tree-view"][data-part="branch-indicator"]'),
     ).not.toBeNull();
-    expect(leafRow?.querySelector('[data-tree-indicator-spacer="true"]')).not.toBeNull();
+    expect(leafRow?.querySelector(".tree-view__branchIndicator")).not.toBeNull();
   });
 
   it("renders a single check icon for a fully checked branch", () => {
@@ -234,10 +234,7 @@ describe("TreeSelectList", () => {
 
     expect(onCollectionChange).toHaveBeenCalledTimes(1);
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    expect(next.getNodeChildren(next.findNode("fruits") as TestNode).map((n) => n.id)).toEqual([
-      "banana",
-      "apple",
-    ]);
+    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
   });
 
   it.each([
@@ -290,10 +287,8 @@ describe("TreeSelectList", () => {
 
     expect(onCollectionChange).toHaveBeenCalledTimes(1);
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    const childIds = (value: string) =>
-      next.getNodeChildren(next.findNode(value) as TestNode).map((n) => n.id);
-    expect(childIds("fruits")).toEqual(["banana", "apple", "carrot"]);
-    expect(childIds("vegetables")).toEqual([]);
+    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple", "carrot"]);
+    expect(childIdsOf(next, "vegetables")).toEqual([]);
   });
 
   it("expands a collapsed branch on keyboard indent and keeps focus on the moved node", async () => {
@@ -764,10 +759,8 @@ describe("TreeSelectList checking and keyboard", () => {
     fireEvent.keyDown(rowOf("Apple"), { key: "ArrowDown", ctrlKey: true });
 
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    const childIds = (value: string) =>
-      next.getNodeChildren(next.findNode(value) as TestNode).map((n) => n.id);
-    expect(childIds("fruits")).toEqual(["banana", "apple"]);
-    expect(childIds("vegetables")).toEqual(["carrot"]);
+    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
+    expect(childIdsOf(next, "vegetables")).toEqual(["carrot"]);
   });
 });
 
@@ -842,10 +835,7 @@ describe("TreeSelectList lazy loading", () => {
     };
     expect(next.findNode("apple")).toBeDefined();
     expect(next.findNode("cloud")).toBeDefined();
-    expect(next.getNodeChildren(next.findNode("remote") as TestNode).map((n) => n.id)).toEqual([
-      "remote/alpha",
-      "remote/beta",
-    ]);
+    expect(childIdsOf(next, "remote")).toEqual(["remote/alpha", "remote/beta"]);
     expect(rowOf("Remote").hasAttribute("data-loading")).toBe(false);
 
     rerender({ collection: next, ...props });
@@ -1056,11 +1046,7 @@ describe("TreeSelectList lazy loading", () => {
 
     expect(onCollectionChange).toHaveBeenCalledTimes(1);
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    expect(next.getNodeChildren(next.findNode("remote") as TestNode).map((n) => n.id)).toEqual([
-      "carrot",
-      "remote/alpha",
-      "remote/beta",
-    ]);
+    expect(childIdsOf(next, "remote")).toEqual(["carrot", "remote/alpha", "remote/beta"]);
   });
 
   it("keeps a branch that loaded empty loaded after a reorder", async () => {
@@ -1169,11 +1155,7 @@ describe("TreeSelectList pointer drops", () => {
     await flush();
 
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    expect(next.getNodeChildren(next.findNode("fruits") as TestNode).map((n) => n.id)).toEqual([
-      "pear",
-      "apple",
-      "banana",
-    ]);
+    expect(childIdsOf(next, "fruits")).toEqual(["pear", "apple", "banana"]);
     expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]);
   });
 
@@ -1206,10 +1188,6 @@ describe("TreeSelectList pointer drops", () => {
     pointerDrag(rowOf("Apple"), rowOf("Banana"), 195, 15);
 
     const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
-    expect(next.getNodeChildren(next.rootNode).map((n) => n.id)).toEqual([
-      "fruits",
-      "apple",
-      "pear",
-    ]);
+    expect(childIdsOf(next)).toEqual(["fruits", "apple", "pear"]);
   });
 });

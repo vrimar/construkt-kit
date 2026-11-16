@@ -98,6 +98,30 @@ describe("CommandPalette", () => {
     expect(input.selectionStart).toBe(2);
   });
 
+  it("names an item by its label and describes it by the rest of its row", () => {
+    render(
+      <CommandPalette.Root open>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="undo"
+            label="Undo"
+            description="Revert the last change"
+            meta="3 left"
+            shortcut="Ctrl+Z"
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+
+    expect(
+      screen.getByRole("option", {
+        name: "Undo",
+        description: "Revert the last change 3 left Ctrl+Z",
+      }),
+    ).not.toBeNull();
+  });
+
   it("goes back to the parent page on Backspace in an empty search", async () => {
     const user = userEvent.setup();
     render(<PaletteWithSubPage />);

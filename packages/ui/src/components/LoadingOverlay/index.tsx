@@ -20,7 +20,7 @@ const tipFontSizeClass: Record<SpinnerSize, string | undefined> = {
 };
 
 export interface LoadingOverlayProps extends FlexProps {
-  isActive: boolean;
+  loading: boolean;
   backdrop?: boolean;
   tip?: string;
   relative?: boolean;
@@ -28,7 +28,7 @@ export interface LoadingOverlayProps extends FlexProps {
 }
 
 export const LoadingOverlay = ({
-  isActive,
+  loading,
   backdrop = true,
   tip = "Loading...",
   relative,
@@ -38,7 +38,7 @@ export const LoadingOverlay = ({
   return (
     <Flex
       role="status"
-      aria-busy={isActive}
+      aria-busy={loading}
       aria-live="polite"
       position={relative ? "relative" : "absolute"}
       inset="0"
@@ -49,11 +49,11 @@ export const LoadingOverlay = ({
       alignItems="center"
       background={backdrop ? "bg/75" : undefined}
       justifyContent="center"
-      opacity={isActive ? "1" : "0"}
-      visibility={isActive ? "visible" : "hidden"}
-      pointerEvents={isActive ? "auto" : "none"}
+      opacity={loading ? "1" : "0"}
+      visibility={loading ? "visible" : "hidden"}
+      pointerEvents={loading ? "auto" : "none"}
       style={{
-        transition: isActive
+        transition: loading
           ? "opacity .3s ease-in-out, background .3s ease-in-out"
           : "opacity .3s ease-in-out, visibility 0s ease-in-out .3s, background .3s ease-in-out",
       }}

@@ -30,27 +30,33 @@
 
 **Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `NavRail`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`, `Toolbar`, `formatShortcut`, `matchesShortcut`
+**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `formatNumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`, `Toolbar`, `formatShortcut`, `matchesShortcut`, `isComposingEvent`, `isEditableTarget`
 
 **Chat:** `Chat` — `Message`, `Citation`, `ActionLine`, `TypingIndicator`, `Suggestions`, `Suggestion`, `Composer`; callback-driven, no data fetching. Render `TypingIndicator` inside the message list's `role="log"`: screen readers don't reliably announce a live region that mounts with its text, and the log announces it as new content
 
 ### Hooks
 
-| Hook                                    | Description                                                     |
-| --------------------------------------- | --------------------------------------------------------------- |
+| Hook                                    | Description                                                      |
+| --------------------------------------- | ---------------------------------------------------------------- |
 | `useAnnouncer`                          | Live region + `announce(message)`; `politeness` polite/assertive |
-| `useAutoFocus`                          | Auto-focus + optional select on mount                           |
-| `useComposedRefs`                       | One ref callback that feeds two refs                            |
-| `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes |
-| `useDebounceQuery`                      | Immediate + debounced search query state                        |
-| `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files  |
-| `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed        |
-| `useHotkeyHandler`                      | `useHotkeys` scoped to an element: returns its `onKeyDown`      |
-| `useLatestRef`                          | Ref to the last committed value, for stable callbacks           |
-| `useMediaQuery`                         | Subscribe to a CSS media query                                  |
-| `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll    |
-| `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint          |
-| `useIsMobile`                           | Whether the viewport is below the `md` breakpoint               |
+| `useAutoFocus`                          | Auto-focus + optional select on mount                            |
+| `useComposedRefs`                       | One ref callback that feeds two refs                             |
+| `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes  |
+| `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files   |
+| `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed         |
+| `useHotkeyHandler`                      | `useHotkeys` scoped to an element: returns its `onKeyDown`       |
+| `useLatestRef`                          | Ref to the last committed value, for stable callbacks            |
+| `useMediaQuery`                         | Subscribe to a CSS media query                                   |
+| `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll     |
+| `createEdgeAutoScroll`                  | Scroll a container while the pointer is near or past its edges   |
+| `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint           |
+| `useIsMobile`                           | Whether the viewport is below the `md` breakpoint                |
+
+Each `RootProvider` takes its `value` from its component's hook: `useAccordion`, `useAvatar`, `useCarousel`,
+`useCheckbox`, `useClipboard`, `useCollapsible`, `useColorPicker`, `useCombobox`, `useDialog`, `useDrawer`,
+`useEditable`, `useFieldset`, `useFileUpload`, `useHoverCard`, `useListbox`, `usePagination`, `usePinInput`,
+`useProgress`, `useRadioGroup` (`RadioCard`), `useRatingGroup`, `useSegmentGroup`, `useSheet`, `useTabs`,
+`useTagsInput`, `useToggleGroup`, `useTreeView`.
 
 ### Panda CSS Utilities
 
@@ -169,7 +175,7 @@ Key utilities:
 - `../preset/src/theme/tokens/` — primitive tokens (colors, spacing, fonts, radii, etc.)
 - `../preset/src/theme/semantic-tokens/` — light/dark mode tokens (`colors.ts`, `shadows.ts`)
   - `colorPalette(color)` generates `solid`, `surface`, `subtle`, `outline`, `plain` sub-tokens
-  - Available palettes: `brand`, `slate`, `gray`, `blue`, `red`, `green`, `orange`, `yellow`
+  - Available palettes: `brand`, `slate`, `gray`, `blue`, `red`, `green`, `orange`, `yellow`, `purple`, `teal`, `cyan`, `pink`
   - `neutral` is an alias palette (defaults to slate) used for default chrome
 - `../preset/src/theme/recipes/` — component recipes (variants, sizes, defaults)
 - `../preset/src/theme/conditions.ts` — custom Panda CSS conditions
@@ -218,11 +224,11 @@ Semantic token layers: `bg.*`, `fg.*`, `border.*`, `neutral.*`, `colorPalette.*`
 
 The theme redefines standard pseudo-selectors:
 
-| Condition           | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Condition           | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `_hover`, `_active` | Also match `[data-hover]`/`[data-active]`, and skip `:disabled` and `[data-disabled]`. `_hover` applies only where the device can hover and ranks below every other condition except `_light` (which it overrides, as it does the base style), states (`_active`, `_checked`, `_selected`, `_focusVisible`…) as well as `_dark`, `_odd`/`_even` and the like, so a state keeps its look under the pointer; nest `_hover` inside the other condition (`_dark: { _hover: … }`) to style hovering there, or use a semantic token |
-| `_checked`          | Matches 5 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]`, `[data-state=indeterminate]`                                                                                                                                                                                                                                                                                                                                |
-| `_light`            | `:where(:root, .light) &` — explicit light mode, which `_dark` overrides, except inside a `.light` scope nested in `.dark`                                                                                                                                                                                                                                                                                                                                    |
+| `_checked`          | Matches 5 selectors: `:checked`, `[data-checked]`, `[data-state=checked]`, `[aria-checked=true]`, `[data-state=indeterminate]`                                                                                                                                                                                                                                                                                                                                                                                                |
+| `_light`            | `:where(:root, .light) &` — explicit light mode, which `_dark` overrides, except inside a `.light` scope nested in `.dark`                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### Hover-revealed controls
 
@@ -235,7 +241,10 @@ screens:
 ```tsx
 <HStack data-reveal-group>
   <Text flex="1">{name}</Text>
-  <IconButton aria-label="More" _unrevealed={{ opacity: "0" }}>
+  <IconButton
+    aria-label="More"
+    _unrevealed={{ opacity: "0" }}
+  >
     <EllipsisIcon />
   </IconButton>
 </HStack>
@@ -323,19 +332,19 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 
 ## File Map
 
-| Path                                   | Purpose                                           |
-| -------------------------------------- | ------------------------------------------------- |
-| `src/index.ts`                         | Public barrel export                              |
-| `src/types.ts`                         | Shared types (`WithRef`, etc.)                    |
-| `src/components/index.tsx`             | Component barrel export                           |
-| `src/components/<Name>/`               | Individual component folders                      |
-| `src/hooks/`                           | Shared hooks                                      |
-| `../preset/src/theme/recipes/`         | All component recipes                             |
-| `../preset/src/theme/tokens/`          | Primitive design tokens                           |
-| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                      |
-| `styled-system/`                       | Generated Panda runtime (shipped, gitignored)     |
-| `panda.config.ts`                      | Panda CSS design-system config                    |
-| `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`       |
+| Path                                   | Purpose                                       |
+| -------------------------------------- | --------------------------------------------- |
+| `src/index.ts`                         | Public barrel export                          |
+| `src/types.ts`                         | Shared types (`WithRef`, etc.)                |
+| `src/components/index.tsx`             | Component barrel export                       |
+| `src/components/<Name>/`               | Individual component folders                  |
+| `src/hooks/`                           | Shared hooks                                  |
+| `../preset/src/theme/recipes/`         | All component recipes                         |
+| `../preset/src/theme/tokens/`          | Primitive design tokens                       |
+| `../preset/src/theme/semantic-tokens/` | Semantic tokens (light/dark)                  |
+| `styled-system/`                       | Generated Panda runtime (shipped, gitignored) |
+| `panda.config.ts`                      | Panda CSS design-system config                |
+| `oxlint-panda.mjs`                     | Panda lint rules bound to `panda.config.ts`   |
 
 ## Common Patterns
 
@@ -449,6 +458,79 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `TooltipIconButton`'s `ref` reaches its button (`HTMLButtonElement`) instead of the tooltip content
 - `Stat.ValueText` formats `value` in the `LocaleProvider` locale, `en-US` without one, instead of the runtime's, so
   server and client render the same text. New: `LocaleProvider` is exported
+- `LoadingOverlay` takes `loading` in place of `isActive`
+- `NumberInput` is a plain compound like `PinInput`: render `NumberInput.Root`. `NumberInput.Field` is
+  `NumberInput.Input` and `NumberInputProps` is `NumberInputRootProps`
+- `Checkbox` and `Alert` take `indicator` in place of `icon`, like `CheckboxCard`; `indicator={null}` leaves
+  `Alert`'s out and a `Checkbox`'s box empty
+- `Alert` drops `closable`: `onClose` alone shows the close button
+- `Pagination.Items` takes only `render` and `ellipsis`. Each gap is a `Pagination.Ellipsis` that `ellipsis` fills,
+  no longer a focusable button
+- `VirtualScrollArea` takes `ref` in place of `viewportRef`, like `ScrollArea`
+- `TreeViewDndProvider` takes `disabled` in place of `enabled`, like `Sortable`
+- `SimpleGrid` `columns` wins over `minChildWidth`, as in `Grid`
+- `RadioCard.Item` takes `label`, `description`, `icon`, `addon`, `indicator`, `indicatorPlacement`, `inputProps` and
+  `rootRef` like `CheckboxCard` and renders its own hidden input, text and control; drop those children. Its
+  `indicator` is drawn inside the radio in place of the `RadioCard.ItemIndicator` dot, and `null` leaves the radio out.
+  `RadioCard.ItemText`, `RadioCard.ItemHiddenInput` and `RadioCard.ItemControl` are gone
+- The `radioCardGroup` recipe draws the dot in an `itemIndicator` slot instead of `itemControl`'s `::after`
+- `ActionBar` drops `mobileLayout`, which never had an effect, and `DatePicker` drops `triggerEndElement`
+- `CloseButton`, `DeleteButton` and `EditButton` take no `children`; pass `icon`
+- `Stat.UpTrend` and `Stat.DownTrend` must sit inside `Stat.Root`
+- `StyledRootProps`, `CreateToasterProps` and `useDebounceQuery` are gone, and ui no longer depends on `react-use`.
+  `toaster` is typed `CreateToasterReturn`
+- `PointerDragInset` and `PointerDragAutoScroll` are `EdgeAutoScrollInset` and `EdgeAutoScrollOptions`
+- `useControlledMirror` returns `{ applied, emit }`
+- A label, hint, description or shortcut of `true` renders nothing. A `List` `icon` or `description` of `0` renders,
+  and a `value` of `""` doesn't
+- `DatePicker`'s default trigger is a `SelectButton`: neutral palette, dimmed placeholder, tooltip when truncated
+- `Calendar`'s Clear hides while empty. A read-only `Calendar` hides Clear and presets and a disabled one disables
+  them; a read-only `DatePickerSelect` shows no clear button
+- `DatePicker` and `DatePickerSelect` triggers are named by their value or placeholder, not "Open calendar"
+- Clearing `SearchInput`, `NumberFilter` or `DatePickerSelect` returns focus to the field (a `between` `NumberFilter`'s
+  first), and clearing a `Calendar` moves it to the focused day
+- `ScrollArea` `height` and `maxHeight` apply as inline styles
+- Unmeasured `VirtualScrollArea` rows sit in normal flow, and scroll padding and `firstVisible` count a sticky header
+  in the flow
+- Info toasts show an info icon
+- `SelectButton`'s `active` look overrides `variant`, which sets the inactive look
+- `indicatorPlacement="inside"` on a `CheckboxCard` or `RadioCard.Item` with no label, description or icon still
+  renders the control
+- `FileUpload.FileText` shows its fallback in the placeholder colour
+- `ColorModeProvider` resolves `"system"` to light where `matchMedia` is missing, such as jsdom, instead of throwing
+- `ToggleGroup.RootProvider` joins a `Toolbar`'s arrow keys and tab stop like `ToggleGroup.Root`
+- `DataTable` takes the `table` recipe's look: a 12px semibold muted header, cell padding from the density knobs and
+  `neutral.surface.bg.hover` row hover. `stickyHeader` sticks the head element
+- The `table` recipe styles `Table.Row` and `Table.Cell` by `data-slot`, so raw `tr` and `td` lose striping, hover
+  and the last-row border
+- `DataTable` clears a malformed date or number filter param even when no filter control is mounted, and a column's
+  `meta` always has `type`
+- `TreeSelectList` never offers make-child into an unloaded lazy branch, an empty loaded one accepts it, and sticky
+  branch rows follow `clampText`
+- `CommandPalette.Item` keeps the check column for `checked={false}` and shows none when `checked` is left out
+- `Combobox` content unmounts while closed, and a highlight moved by the pointer no longer scrolls a `Select` or
+  `Combobox` list
+- Home and End in `Combobox.Input` move the text cursor, like `CommandPalette.Input`
+- A `CommandPalette.Item` is named by its label alone; `meta` and `shortcut` are read as its description
+- `Select`'s `search.onQueryChange` no longer fires on close when the query is already the default
+- Close triggers are named "Close", `Toast`'s included, unless they have an `aria-label` or content
+- A phone sheet opened through `RootProvider` applies the outside handlers given to `useColorPicker` or
+  `useCombobox`
+- `--menu-z-index`, `--dialog-z-index` and `--drawer-z-index` are gone; overlays stack on `--z-index-*` plus
+  `--layer-index`
+- A lone child of an attached `ButtonGroup` keeps its corner radius and margin
+- Items in a `Menu.ItemGroup` sit as far apart as ungrouped items
+- `SegmentGroup.Items` renders no empty item control, so each item is narrower and its label centred
+- `useFileSelect`'s options type is `UseFileSelectOptions`, and `UseFileUploadProps`/`UseFileUploadReturn` are exported
+  beside `useFileUpload`
+- New: `createEdgeAutoScroll`, `isComposingEvent`, `isEditableTarget`, `formatNumberFilter`, `useColorPicker`, `usePointerDrag`
+  `claimPress` and `activeAttribute`, `Alert.CloseTrigger`, `Progress.Context`, `HiddenInputControlProps`,
+  `CheckboxCard` `rootRef`, `TreeViewDndProvider` `isBranchLoaded` and `TreeKeyboardMoveResult`, `InputGroupClearButton`
+  `field`
+- New: a hook for each `RootProvider` that lacked one: `useAccordion`, `useAvatar`, `useCarousel`, `useCheckbox`,
+  `useClipboard`, `useCollapsible`, `useDialog`, `useEditable`, `useFieldset`, `useHoverCard`, `useListbox`,
+  `usePagination`, `usePinInput`, `useProgress`, `useRadioGroup`, `useRatingGroup`, `useSegmentGroup`, `useTabs`,
+  `useTagsInput`, `useToggleGroup`
 
 #### Upgrading from 0.11
 
@@ -513,7 +595,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `NumberFilter` reads a single comma as the decimal separator (`2,5`) unless exactly three digits follow it (`1,000`
   stays invalid)
 - `VirtualScrollArea` counts the content above the list, such as `header`, in each `virtualItem`'s `start` and `end`
-- Invalid `Checkbox`, `CheckboxCard`, `RadioGroup` and `RadioCardGroup` controls show a red ring in every variant
+- Invalid `Checkbox`, `CheckboxCard`, `RadioGroup` and `RadioCard.Root` controls show a red ring in every variant
   instead of a red fill on solid only
 - `Fieldset.Root` stacks its children at every width, with the root's gap below the legend
 - Pinned and sticky `Table` cells take their background from `--table-row-bg`: set it instead of `bg` on a row so its
@@ -664,8 +746,12 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 ## Testing
 
 - **Runner:** Vitest with jsdom environment
-- **Setup:** `vitest.setup.ts` polyfills `ResizeObserver`, `IntersectionObserver`, `scrollTo` and `matchMedia` (not in jsdom) and registers Testing Library's `cleanup` after each test
-- **Aliases:** `@` → `src` in `vitest.config.ts`; `#styled-system/*` resolves through `package.json` `imports`
+- **Setup:** `vitest.setup.ts` calls `installDomPolyfills()` from `@construkt-kit/config/vitest`, installs a
+  `matchMedia` that matches nothing, and registers Testing Library's `cleanup` after each test
+- **Media queries:** `mockMatchMedia(matches)` from `src/_shared/matchMedia.ts` replaces `matchMedia` for one test;
+  pass a boolean, a `(query) => boolean`, or `viewportWidth(px)` to match the breakpoint queries a viewport that wide
+  would. Its `setMatches(next)` changes the answer and notifies listeners
+- **Aliases:** `#styled-system/*` resolves through `package.json` `imports`
 - **Libraries:** `@testing-library/react` + `userEvent` for component interaction tests
 - **Pattern:** Tests verify non-obvious UX (e.g., interactive descendants in Select items don't trigger selection)
 

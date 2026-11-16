@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 
 import { radioCardGroup } from "#styled-system/recipes";
 
@@ -28,11 +29,54 @@ export const Default: Story = {
         <RadioCard.Item
           key={item.value}
           value={item.value}
-        >
-          <RadioCard.ItemHiddenInput />
-          <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
-          <RadioCard.ItemControl />
-        </RadioCard.Item>
+          label={item.title}
+          description={item.description}
+        />
+      ))}
+    </RadioCard.Root>
+  ),
+};
+
+export const WithAddon: Story = {
+  render: () => (
+    <RadioCard.Root
+      defaultValue="monthly"
+      maxW="400px"
+    >
+      <RadioCard.Label>Billing</RadioCard.Label>
+      <RadioCard.Item
+        value="monthly"
+        label="Monthly"
+        description="Billed every month"
+      />
+      <RadioCard.Item
+        value="yearly"
+        label="Yearly"
+        description="Billed once a year"
+        addon="Two months free"
+      />
+    </RadioCard.Root>
+  ),
+};
+
+export const CustomIndicator: Story = {
+  render: () => (
+    <RadioCard.Root
+      defaultValue="light"
+      maxW="400px"
+    >
+      <RadioCard.Label>Theme</RadioCard.Label>
+      {[
+        { value: "light", title: "Light", indicator: <SunIcon /> },
+        { value: "dark", title: "Dark", indicator: <MoonIcon /> },
+        { value: "system", title: "System", indicator: <MonitorIcon /> },
+      ].map((item) => (
+        <RadioCard.Item
+          key={item.value}
+          value={item.value}
+          label={item.title}
+          indicator={item.indicator}
+        />
       ))}
     </RadioCard.Root>
   ),
@@ -56,11 +100,8 @@ export const Sizes: Story = {
             <RadioCard.Item
               key={item.value}
               value={item.value}
-            >
-              <RadioCard.ItemHiddenInput />
-              <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
-              <RadioCard.ItemControl />
-            </RadioCard.Item>
+              label={item.title}
+            />
           ))}
         </RadioCard.Root>
       )}

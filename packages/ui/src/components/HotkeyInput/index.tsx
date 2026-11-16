@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore }
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import { hotkeyInput } from "#styled-system/recipes";
 
+import { isComposingEvent } from "../../foundations/dom";
 import {
   MODIFIER_KEYS,
   formatShortcut,
@@ -13,7 +14,6 @@ import {
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type { WithRef } from "../../types";
-import { isComposingEvent } from "../imeComposition";
 
 const { withProvider, withContext } = createSlotRecipeContext(hotkeyInput);
 

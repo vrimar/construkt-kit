@@ -16,21 +16,19 @@ export interface SpinnerProps extends Omit<BaseSpinnerProps, "variant"> {
   variant?: "ring" | "dots" | undefined;
 }
 
-export const Spinner = ({ variant, children, ...props }: SpinnerProps) =>
-  variant === "dots" ? (
-    <BaseSpinner
-      variant="dots"
-      {...props}
-    >
-      <span />
-      <span />
-      <span />
-    </BaseSpinner>
-  ) : (
-    <BaseSpinner
-      variant={variant}
-      {...props}
-    >
-      {children}
-    </BaseSpinner>
-  );
+export const Spinner = ({ variant, children, ...props }: SpinnerProps) => (
+  <BaseSpinner
+    variant={variant}
+    {...props}
+  >
+    {variant === "dots" ? (
+      <>
+        <span />
+        <span />
+        <span />
+      </>
+    ) : (
+      children
+    )}
+  </BaseSpinner>
+);

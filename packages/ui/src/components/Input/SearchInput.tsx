@@ -1,9 +1,8 @@
 import { SearchIcon } from "lucide-react";
 
-import { splitCssProps } from "#styled-system/jsx";
-
-import { Input, type InputProps } from "./Input";
-import { InputGroup, InputGroupClearButton } from "./InputGroup";
+import type { InputProps } from "./Input";
+import { InputGroupClearButton } from "./InputGroup";
+import { InputGroupField } from "./InputGroupField";
 
 export interface SearchInputProps extends InputProps {
   onClear?: () => unknown;
@@ -17,18 +16,14 @@ export const SearchInput = ({
   onClear,
   clearLabel = "Clear search",
   size = "md",
-  className,
-  style,
   ...props
 }: SearchInputProps) => {
-  const [styleProps, inputProps] = splitCssProps(props);
-  const hasValue = String(inputProps.value ?? "") !== "";
+  const hasValue = String(props.value ?? "") !== "";
 
   return (
-    <InputGroup
-      className={className}
-      style={style}
-      {...styleProps}
+    <InputGroupField
+      size={size}
+      {...props}
       startElement={hasIcon && <SearchIcon />}
       endElement={
         hasValue &&
@@ -40,12 +35,6 @@ export const SearchInput = ({
           />
         )
       }
-      size={size}
-    >
-      <Input
-        size={size}
-        {...inputProps}
-      />
-    </InputGroup>
+    />
   );
 };

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 
+import { useControllableState } from "../hooks/useControllableState";
 import { useIsMobile } from "../hooks/useMediaQuery";
 import type { DrawerRootProps } from "./Drawer";
 
@@ -17,7 +18,7 @@ export interface MobileLayoutProps {
   mobileLayout?: MobileLayout;
 }
 
-export type SheetDismissProps = Pick<
+type SheetDismissProps = Pick<
   DrawerRootProps,
   | "closeOnEscape"
   | "closeOnInteractOutside"
@@ -37,16 +38,12 @@ interface OverlayPresentation {
 
 const OverlayPresentationContext = createContext<OverlayPresentation | null>(null);
 
-export const OverlayPresentationProvider = OverlayPresentationContext.Provider;
-
 export const useOverlayMode = (): MobileLayout =>
   useContext(OverlayPresentationContext)?.mode ?? "popover";
 
-export const useSheetFrameRef = () => useContext(OverlayPresentationContext)?.frameRef ?? null;
-
 export const useSheetPresentation = () => useContext(OverlayPresentationContext);
 
-export function useOverlayPresentation(
+function useOverlayPresentation(
   mobileLayout: MobileLayout = "sheet",
   open: boolean,
 ): OverlayPresentation {
@@ -75,21 +72,28 @@ export function useOverlayPresentation(
   };
 }
 
-interface InteractOutsideEvent {
-  detail: { target: EventTarget };
-  preventDefault: () => void;
-}
+const pickDismissProps = ({
+  closeOnEscape,
+  closeOnInteractOutside,
+  onEscapeKeyDown,
+  onFocusOutside,
+  onInteractOutside,
+  onPointerDownOutside,
+}: SheetDismissProps): SheetDismissProps => ({
+  closeOnEscape,
+  closeOnInteractOutside,
+  onEscapeKeyDown,
+  onFocusOutside,
+  onInteractOutside,
+  onPointerDownOutside,
+});
 
-// Taps on the sheet's own chrome (grabber, padding) are not outside the overlay.
-export function guardSheetFrame<E extends InteractOutsideEvent>(
-  frameRef: RefObject<HTMLElement | null>,
-  onInteractOutside?: (event: E) => void,
-) {
-  return (event: E) => {
-    onInteractOutside?.(event);
-    const { target } = event.detail;
-    if (target instanceof Node && frameRef.current?.contains(target)) event.preventDefault();
-  };
+const providerDismissProps = new WeakMap<object, SheetDismissProps>();
+
+/** Has the phone sheet of the `RootProvider` given `api` apply the dismiss options its machine got. */
+export function bindSheetDismiss<A extends object>(api: A, props: SheetDismissProps): A {
+  providerDismissProps.set(api, pickDismissProps(props));
+  return api;
 }
 
 interface PresentationRootProps extends MobileLayoutProps, SheetDismissProps {
@@ -105,35 +109,17 @@ export function withMobileLayout<P extends PresentationRootProps>(
   sheetProps?: Partial<P>,
 ) {
   return function MobileLayoutRoot({ mobileLayout, ...props }: P) {
-    const [trackedOpen, setTrackedOpen] = useState(props.defaultOpen ?? false);
+    const [open, setTrackedOpen] = useControllableState<boolean>({
+      value: props.open,
+      defaultValue: props.defaultOpen ?? false,
+    });
     // An overlay that won't take focus accompanies a focused field, and an inline one never floats.
     const anchored = props.autoFocus === false || props.inline === true;
-    const presentation = useOverlayPresentation(
-      anchored ? "popover" : mobileLayout,
-      props.open ?? trackedOpen,
-    );
-    const {
-      closeOnEscape,
-      closeOnInteractOutside,
-      onEscapeKeyDown,
-      onFocusOutside,
-      onInteractOutside,
-      onPointerDownOutside,
-    } = props;
+    const presentation = useOverlayPresentation(anchored ? "popover" : mobileLayout, open);
 
     return (
-      <OverlayPresentationProvider
-        value={{
-          ...presentation,
-          dismissProps: {
-            closeOnEscape,
-            closeOnInteractOutside,
-            onEscapeKeyDown,
-            onFocusOutside,
-            onInteractOutside,
-            onPointerDownOutside,
-          },
-        }}
+      <OverlayPresentationContext.Provider
+        value={{ ...presentation, dismissProps: pickDismissProps(props) }}
       >
         <Root
           {...props}
@@ -142,9 +128,8 @@ export function withMobileLayout<P extends PresentationRootProps>(
             setTrackedOpen(details.open);
             props.onOpenChange?.(details as never);
           }}
-          onInteractOutside={guardSheetFrame(presentation.frameRef, props.onInteractOutside)}
         />
-      </OverlayPresentationProvider>
+      </OverlayPresentationContext.Provider>
     );
   };
 }
@@ -159,9 +144,11 @@ export function withMobileLayoutProvider<
     );
 
     return (
-      <OverlayPresentationProvider value={presentation}>
+      <OverlayPresentationContext.Provider
+        value={{ ...presentation, dismissProps: providerDismissProps.get(props.value) }}
+      >
         <RootProvider {...props} />
-      </OverlayPresentationProvider>
+      </OverlayPresentationContext.Provider>
     );
   };
 }

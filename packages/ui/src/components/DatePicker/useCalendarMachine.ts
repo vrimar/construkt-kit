@@ -75,7 +75,6 @@ export function useCalendarMachine(
   return {
     api,
     contentProps: {
-      isMobile,
       presets: "presets" in props ? props.presets : undefined,
       showPresets: "showPresets" in props ? props.showPresets : undefined,
       clearable,

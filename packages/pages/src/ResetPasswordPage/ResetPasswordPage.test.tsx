@@ -1,3 +1,4 @@
+import { breakpointDownQuery, breakpoints } from "@construkt-kit/ui";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
@@ -29,7 +30,7 @@ describe("ResetPasswordPage", () => {
 
   it("keeps the password field focused while the rules show on a phone", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: query.includes("width <"),
+      matches: breakpoints.some((bp) => query === breakpointDownQuery(bp)),
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},

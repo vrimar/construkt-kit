@@ -3,10 +3,10 @@ import { runInThisContext } from "node:vm";
 import { act, renderHook } from "@testing-library/react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { COLOR_MODE_STORAGE_KEY, ColorModeProvider, createColorModeScript, useColorMode } from ".";
-import { createMatchMedia } from "../_shared/matchMedia";
+import { mockMatchMedia } from "../_shared/matchMedia";
 
 function installLocalStorageMock() {
   let store: Record<string, string> = {};
@@ -50,7 +50,7 @@ beforeEach(() => {
 
 describe("useColorMode", () => {
   it("defaults to system and resolves to light when the OS prefers light", () => {
-    window.matchMedia = createMatchMedia(false);
+    mockMatchMedia(false);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     expect(result.current.mode).toBe("system");
@@ -59,7 +59,7 @@ describe("useColorMode", () => {
   });
 
   it("resolves system to dark and applies the dark class", () => {
-    window.matchMedia = createMatchMedia(true);
+    mockMatchMedia(true);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     expect(result.current.resolvedMode).toBe("dark");
@@ -67,7 +67,7 @@ describe("useColorMode", () => {
   });
 
   it("toggles between light and dark and persists the choice", () => {
-    window.matchMedia = createMatchMedia(false);
+    mockMatchMedia(false);
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
     act(() => result.current.toggle());
@@ -79,7 +79,7 @@ describe("useColorMode", () => {
   });
 
   it("reads the persisted mode on mount", () => {
-    window.matchMedia = createMatchMedia(false);
+    mockMatchMedia(false);
     window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
     const { result } = renderHook(() => useColorMode(), { wrapper });
 
@@ -88,8 +88,18 @@ describe("useColorMode", () => {
     expect(root.classList.contains("dark")).toBe(true);
   });
 
+  it("resolves system to light where matchMedia is missing", () => {
+    vi.stubGlobal("matchMedia", undefined);
+    onTestFinished(() => {
+      vi.unstubAllGlobals();
+    });
+    const { result } = renderHook(() => useColorMode(), { wrapper });
+
+    expect(result.current.resolvedMode).toBe("light");
+  });
+
   it("removes the dark class on unmount", () => {
-    window.matchMedia = createMatchMedia(false);
+    mockMatchMedia(false);
     window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
     const { unmount } = renderHook(() => useColorMode(), { wrapper });
 
@@ -99,7 +109,7 @@ describe("useColorMode", () => {
   });
 
   it("hydrates server markup when a mode is stored", async () => {
-    window.matchMedia = createMatchMedia(false);
+    mockMatchMedia(false);
     const ThemeToggle = () => {
       const { resolvedMode } = useColorMode();
       return <button type="button">{`Switch from ${resolvedMode}`}</button>;
@@ -128,7 +138,6 @@ describe("useColorMode", () => {
 
 describe("createColorModeScript", () => {
   it("applies the default mode when storage throws", () => {
-    window.matchMedia = createMatchMedia(false);
     Object.defineProperty(window, "localStorage", {
       get() {
         throw new DOMException("Storage disabled", "SecurityError");
@@ -142,7 +151,6 @@ describe("createColorModeScript", () => {
   });
 
   it("applies the stored mode over the default", () => {
-    window.matchMedia = createMatchMedia(false);
     window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, "dark");
 
     runInThisContext(createColorModeScript({ defaultMode: "light" }));

@@ -84,7 +84,12 @@ export const combobox = defineSlotRecipe({
       },
     },
     itemIndicator: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: "0",
       color: "colorPalette.plain.fg",
+      "&[data-state=unchecked]": { visibility: "hidden" },
     },
     indicatorGroup: {
       display: "flex",

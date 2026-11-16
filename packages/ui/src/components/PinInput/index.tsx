@@ -27,3 +27,9 @@ export const PinInput = {
   Label,
   Context: PinInputContext,
 };
+
+export {
+  type UsePinInputProps,
+  type UsePinInputReturn,
+  usePinInput,
+} from "@ark-ui/react/pin-input";

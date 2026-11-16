@@ -5,7 +5,7 @@ import { paletteVariant } from "./palette";
 
 export const alert = defineSlotRecipe({
   className: "alert",
-  slots: ["root", "content", "description", "indicator", "title"],
+  slots: ["root", "content", "description", "indicator", "title", "closeTrigger"],
   base: {
     root: {
       alignItems: "flex-start",
@@ -31,6 +31,12 @@ export const alert = defineSlotRecipe({
     },
     title: {
       fontWeight: "semibold",
+    },
+    closeTrigger: {
+      position: "relative",
+      top: "-2",
+      insetEnd: "-2",
+      alignSelf: "flex-start",
     },
   },
   defaultVariants: {

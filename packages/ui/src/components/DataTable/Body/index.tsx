@@ -1,14 +1,13 @@
-import React, { type CSSProperties, useEffect } from "react";
-
-import { Box } from "#styled-system/jsx";
+import React, { type CSSProperties } from "react";
 
 import { ScrollArea } from "../../ScrollArea";
 import { columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
 import { DataTableStatus } from "../EmptyState";
-import { DataTableGridRow } from "../GridRow";
 import { DataTableHeader } from "../Header";
+import { GridBody, GridRoot, GridRow } from "../parts";
 import type { DataTableInstance, DataTableRow } from "../types";
+import { useScrollTopOnPage } from "../useScrollTopOnPage";
 import { BodyCell } from "./BodyCell";
 
 interface DataTableBodyProps<TData extends object> {
@@ -22,58 +21,54 @@ export const DataTableBody = <TData extends object>({
   showFiltersRow,
   renderSubRow,
 }: DataTableBodyProps<TData>) => {
-  const { getRowInteractionProps, columnSizing } = useDataTableContext<TData>();
-  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const { getRowInteractionProps, columnSizing, gridRef } = useDataTableContext<TData>();
+  const scrollRef = useScrollTopOnPage(table);
   const rows = table.getRowModel().rows;
-  const page = table.state.pagination.pageIndex;
   const columnTemplate = getColumnTemplate(table.getVisibleLeafColumns(), columnSizing);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo(0, 0);
-  }, [page]);
-
   return (
-    <ScrollArea
+    <GridRoot
+      ref={gridRef}
+      size="sm"
+      interactive
+      stickyHeader
+      display="flex"
+      flexDirection="column"
       flex="1"
       minHeight="0"
-      ref={scrollRef}
-      role="table"
       style={{ [columnTemplateVar]: columnTemplate } as CSSProperties}
-      // flexShrink 0: the sticky header's containing block must span the whole scroll extent.
-      contentCss={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100%",
-        flexShrink: "0",
-      }}
     >
-      <DataTableHeader
-        table={table}
-        showFiltersRow={showFiltersRow}
-      />
-      <Box
-        role="rowgroup"
-        position="relative"
-        display="flex"
-        flexDirection="column"
+      <ScrollArea
         flex="1"
-        minWidth="min-content"
-        py="2"
+        minHeight="0"
+        ref={scrollRef}
+        // flexShrink 0: the sticky header's containing block must span the whole scroll extent.
+        contentCss={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100%",
+          flexShrink: "0",
+        }}
       >
-        <DataTableStatus
-          layout="fill"
-          isEmpty={rows.length === 0}
+        <DataTableHeader
+          table={table}
+          showFiltersRow={showFiltersRow}
         />
-        {rows.map((row) => {
-          return (
+        <GridBody
+          position="relative"
+          display="flex"
+          flexDirection="column"
+          flex="1"
+          minWidth="min-content"
+          py="2"
+        >
+          <DataTableStatus
+            layout="fill"
+            isEmpty={rows.length === 0}
+          />
+          {rows.map((row) => (
             <React.Fragment key={row.id}>
-              <DataTableGridRow
-                _last={{
-                  borderBottom: "none",
-                }}
-                _hover={{
-                  bg: "bg.subtle",
-                }}
+              <GridRow
                 css={{ "&[data-clickable]": { cursor: "pointer" } }}
                 {...getRowInteractionProps(row)}
               >
@@ -83,13 +78,13 @@ export const DataTableBody = <TData extends object>({
                     cell={cell}
                   />
                 ))}
-              </DataTableGridRow>
+              </GridRow>
 
               {row.getIsExpanded() && renderSubRow && renderSubRow(row)}
             </React.Fragment>
-          );
-        })}
-      </Box>
-    </ScrollArea>
+          ))}
+        </GridBody>
+      </ScrollArea>
+    </GridRoot>
   );
 };

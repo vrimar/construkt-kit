@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
-import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { Popover, type PopoverRootProps } from "./Popover";
 
 const renderOpen = async (props: Omit<PopoverRootProps, "children">) => {
@@ -80,11 +80,7 @@ describe("Popover", () => {
     const sheetOf = (element: Element) => element.closest("[data-overlay-sheet]");
 
     const renderOnPhone = (props: Omit<PopoverRootProps, "children">) => {
-      const media = createMatchMediaController(isBelowBreakpointQuery);
-      vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
-      onTestFinished(() => {
-        vi.restoreAllMocks();
-      });
+      mockMatchMedia(viewportWidth(375));
       render(
         <Popover.Root {...props}>
           <Popover.Trigger>Open</Popover.Trigger>

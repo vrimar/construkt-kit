@@ -9,31 +9,48 @@ import { useToolbarContext } from "../Toolbar/toolbarContext";
 const { withProvider, withContext } = createSlotRecipeContext(toggleGroup);
 
 const StyledRoot = withProvider(ArkToggleGroup.Root, "root");
-const RootProvider = withProvider(ArkToggleGroup.RootProvider, "root");
+const StyledRootProvider = withProvider(ArkToggleGroup.RootProvider, "root");
 const StyledItem = withContext(ArkToggleGroup.Item, "item");
 
 export type ToggleGroupRootProps = ComponentProps<typeof StyledRoot>;
+export type ToggleGroupRootProviderProps = ComponentProps<typeof StyledRootProvider>;
+
+const ROVING_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
 function Item({ onKeyDownCapture, ...props }: ComponentProps<typeof StyledItem>) {
   const toolbar = useToolbarContext();
   return (
     <StyledItem
+      tabIndex={toolbar ? 0 : undefined}
       {...props}
       onKeyDownCapture={(event) => {
         onKeyDownCapture?.(event);
-        // zag cancels arrow keys even with rovingFocus off, so the toolbar has to move first.
-        toolbar?.navigate(event);
+        if (!toolbar) return;
+        toolbar.navigate(event);
+        // zag cancels these keys and, with rovingFocus on, moves focus too: the toolbar moves first.
+        if (ROVING_KEYS.has(event.key)) event.preventDefault();
       }}
     />
   );
 }
 
+const useToolbarRootProps = () => (useToolbarContext() === null ? undefined : { tabIndex: -1 });
+
 /** Inside a `Toolbar`, its items join the toolbar's arrow keys and single tab stop. */
 function Root(props: ToggleGroupRootProps) {
-  const inToolbar = useToolbarContext() !== null;
   return (
     <StyledRoot
-      {...(inToolbar && { rovingFocus: false, tabIndex: -1 })}
+      {...useToolbarRootProps()}
+      {...props}
+    />
+  );
+}
+
+/** Inside a `Toolbar`, its items join the toolbar's arrow keys and single tab stop. */
+function RootProvider(props: ToggleGroupRootProviderProps) {
+  return (
+    <StyledRootProvider
+      {...useToolbarRootProps()}
       {...props}
     />
   );
@@ -45,3 +62,9 @@ export const ToggleGroup = {
   Item,
   Context: ToggleGroupContext,
 };
+
+export {
+  type UseToggleGroupProps,
+  type UseToggleGroupReturn,
+  useToggleGroup,
+} from "@ark-ui/react/toggle-group";

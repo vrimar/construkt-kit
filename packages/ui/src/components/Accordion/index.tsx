@@ -30,3 +30,9 @@ export const Accordion = {
   ItemBody,
   Context: AccordionContext,
 };
+
+export {
+  type UseAccordionProps,
+  type UseAccordionReturn,
+  useAccordion,
+} from "@ark-ui/react/accordion";

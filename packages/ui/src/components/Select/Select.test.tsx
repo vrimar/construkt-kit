@@ -4,10 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { createMatchMediaController, isBelowBreakpointQuery } from "../../_shared/matchMedia";
+import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
-import { encodeSelectionValue } from "../Listbox/managed";
 import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
+import { encodeSelectionValue } from "../Listbox/useSelectionController";
 import { Select, type SelectProps } from "./Select";
 
 type ListboxApi = UseListboxContext<unknown>;
@@ -216,6 +216,22 @@ describe("Select", () => {
     expect(screen.getByPlaceholderText<HTMLInputElement>("Search...").value).toBe("");
   });
 
+  it("reports the query reset on close only when the query changed", async () => {
+    const onQueryChange = vi.fn();
+    renderSelect({ search: { mode: "external", onQueryChange } });
+    const trigger = screen.getByRole("button", { name: "Select item" });
+
+    await userEvent.click(trigger);
+    await userEvent.click(trigger);
+    expect(onQueryChange).not.toHaveBeenCalled();
+
+    await userEvent.click(trigger);
+    await userEvent.type(screen.getByPlaceholderText("Search..."), "be");
+    onQueryChange.mockClear();
+    await userEvent.click(trigger);
+    expect(onQueryChange).toHaveBeenCalledExactlyOnceWith("");
+  });
+
   it("stays open after an item action unless the action closes it", async () => {
     const onOpenChange = vi.fn();
     renderSelect({
@@ -386,13 +402,12 @@ describe("Select", () => {
     const scrollIntoView = vi.fn();
 
     beforeEach(() => {
-      Element.prototype.scrollIntoView = scrollIntoView;
+      vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(scrollIntoView);
       vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(400);
       vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(100);
     });
 
     afterEach(() => {
-      Reflect.deleteProperty(Element.prototype, "scrollIntoView");
       scrollIntoView.mockReset();
       vi.restoreAllMocks();
     });
@@ -450,11 +465,7 @@ describe("Select", () => {
     const sheetOf = (element: Element) => element.closest("[data-overlay-sheet]");
 
     const renderOnPhone = (props?: SelectOverrides) => {
-      const media = createMatchMediaController(isBelowBreakpointQuery);
-      vi.spyOn(window, "matchMedia").mockImplementation(media.matchMedia);
-      onTestFinished(() => {
-        vi.restoreAllMocks();
-      });
+      const media = mockMatchMedia(viewportWidth(375));
       renderSelect(props);
       return { media, trigger: screen.getByRole("button") };
     };
@@ -467,7 +478,7 @@ describe("Select", () => {
 
       await userEvent.keyboard("{Escape}");
       await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
-      act(() => media.setMatches(() => false));
+      act(() => media.setMatches(viewportWidth(1024)));
 
       await userEvent.click(trigger);
       expect(sheetOf(screen.getByRole("listbox"))).toBeNull();
@@ -485,7 +496,7 @@ describe("Select", () => {
       const { media, trigger } = renderOnPhone();
 
       await userEvent.click(trigger);
-      act(() => media.setMatches(() => false));
+      act(() => media.setMatches(viewportWidth(1024)));
 
       expect(sheetOf(screen.getByRole("listbox"))).not.toBeNull();
     });

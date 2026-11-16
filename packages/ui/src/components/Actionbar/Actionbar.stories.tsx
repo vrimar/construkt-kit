@@ -1,12 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import {
-  EyeOffIcon,
-  LayersIcon,
-  ListPlusIcon,
-  MoreHorizontalIcon,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
+import { EyeOffIcon, LayersIcon, ListPlusIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
 import { ActionBar } from ".";
@@ -52,9 +45,7 @@ function ControlledActionBarStory() {
           >
             Move
           </Button>
-          <ActionBar.CloseTrigger>
-            <XIcon />
-          </ActionBar.CloseTrigger>
+          <ActionBar.CloseTrigger />
         </ActionBar.Content>
       </ActionBar.Root>
     </>
