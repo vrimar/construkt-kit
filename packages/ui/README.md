@@ -499,7 +499,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - Info toasts show an info icon
 - `SelectButton`'s `active` look overrides `variant`, which sets the inactive look
 - `indicatorPlacement="inside"` on a `CheckboxCard` or `RadioCard.Item` with no label, description or icon still
-  renders the control
+  renders the control, and `"end"` puts it at the end
 - `FileUpload.FileText` shows its fallback in the placeholder colour
 - `ColorModeProvider` resolves `"system"` to light where `matchMedia` is missing, such as jsdom, instead of throwing
 - `ToggleGroup.RootProvider` joins a `Toolbar`'s arrow keys and tab stop like `ToggleGroup.Root`
@@ -528,6 +528,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - A lone child of an attached `ButtonGroup` keeps its corner radius and margin
 - Items in a `Menu.ItemGroup` sit as far apart as ungrouped items
 - `SegmentGroup.Items` renders no empty item control, so each item is narrower and its label centred
+- A disabled `RadioCard.Root` or `RadioCard.Item` dims like a disabled `CheckboxCard`
+- `RadioCard.Root` `orientation="horizontal"` lays the cards out in a row below the label
 - `useFileSelect`'s options type is `UseFileSelectOptions`, and `UseFileUploadProps`/`UseFileUploadReturn` are exported
   beside `useFileUpload`
 - New: `createEdgeAutoScroll`, `isComposingEvent`, `isEditableTarget`, `formatNumberFilter`, `useColorPicker`, `usePointerDrag`

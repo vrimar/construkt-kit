@@ -21,6 +21,10 @@ export const radioCardGroup = defineSlotRecipe({
       flexDirection: "column",
       gap: "1.5",
       width: "full",
+      _horizontal: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+      },
     },
     item: {
       borderRadius: "md",
@@ -29,10 +33,19 @@ export const radioCardGroup = defineSlotRecipe({
       flexDirection: "column",
       userSelect: "none",
       width: "full",
+      _horizontal: {
+        flex: "1",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
     },
     itemBody: cardBody,
     label: {
       textStyle: "label",
+      _horizontal: {
+        width: "full",
+      },
     },
     itemControl: {
       alignItems: "center",

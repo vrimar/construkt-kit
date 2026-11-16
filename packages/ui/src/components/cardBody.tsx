@@ -49,7 +49,7 @@ export function createCardBody({
 
     return (
       <>
-        <Body>
+        <Body data-indicator-placement={indicatorPlacement}>
           {indicatorPlacement === "start" && control}
           {hasContent && (
             <Content>

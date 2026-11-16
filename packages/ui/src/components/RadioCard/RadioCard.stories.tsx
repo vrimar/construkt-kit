@@ -59,6 +59,28 @@ export const WithAddon: Story = {
   ),
 };
 
+export const Horizontal: Story = {
+  render: () => (
+    <RadioCard.Root
+      defaultValue="monthly"
+      orientation="horizontal"
+      maxW="480px"
+    >
+      <RadioCard.Label>Billing</RadioCard.Label>
+      <RadioCard.Item
+        value="monthly"
+        label="Monthly"
+        description="Billed every month"
+      />
+      <RadioCard.Item
+        value="yearly"
+        label="Yearly"
+        description="Billed once a year"
+      />
+    </RadioCard.Root>
+  ),
+};
+
 export const CustomIndicator: Story = {
   render: () => (
     <RadioCard.Root

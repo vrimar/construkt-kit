@@ -2,6 +2,9 @@ export const cardBody = {
   display: "flex",
   alignItems: "center",
   flex: "1",
+  "&[data-indicator-placement=end]": {
+    justifyContent: "flex-end",
+  },
 };
 
 export const cardContent = {
