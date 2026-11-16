@@ -1,3 +1,4 @@
+import type { NumberFilterOperator } from "@construkt-kit/utils";
 import type {
   Cell,
   Column,
@@ -100,6 +101,12 @@ export type DataTableLabels = {
   sortBy?: string;
   clearSearch?: string;
   clearNumber?: string;
+  /** A `between` number filter's first input. */
+  numberFrom?: string;
+  /** A `between` number filter's second input. */
+  numberTo?: string;
+  /** Number filter operator names; an operator left out keeps `NumberFilter`'s name. */
+  numberOperators?: Partial<Record<NumberFilterOperator, string>>;
   clearDate?: string;
   firstPage?: string;
   previousPage?: string;

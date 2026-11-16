@@ -21,7 +21,16 @@ export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) =
       title={typeof titleValue === "string" ? titleValue : undefined}
       position="relative"
     >
-      <Box truncate>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Box>
+      {/* Bleeds into the cell padding so the truncation clip spares focus rings. */}
+      <Box
+        truncate
+        px="var(--table-cell-px)"
+        py="var(--table-cell-py)"
+        mx="calc(var(--table-cell-px) * -1)"
+        my="calc(var(--table-cell-py) * -1)"
+      >
+        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      </Box>
     </GridCell>
   );
 };

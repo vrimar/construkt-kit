@@ -489,6 +489,10 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `DatePicker` and `DatePickerSelect` triggers are named by their value or placeholder, not "Open calendar"
 - Clearing `SearchInput`, `NumberFilter` or `DatePickerSelect` returns focus to the field (a `between` `NumberFilter`'s
   first), and clearing a `Calendar` moves it to the focused day
+- Switching `NumberFilter` to or from `between` keeps focus on its operator trigger
+- `NumberFilter` takes `fromLabel` and `toLabel` in place of `fromPlaceholder` and `toPlaceholder`; in `between` mode
+  they also name the two inputs, which sit in a `role="group"` named by `inputProps` `aria-label`/`aria-labelledby` or
+  the enclosing `Field`'s label. An `inputProps` `ref` reaches the first input only
 - `ScrollArea` `height` and `maxHeight` apply as inline styles
 - Unmeasured `VirtualScrollArea` rows sit in normal flow, and scroll padding and `firstVisible` count a sticky header
   in the flow
@@ -502,7 +506,10 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `DataTable` takes the `table` recipe's look: a 12px semibold muted header, cell padding from the density knobs and
   `neutral.surface.bg.hover` row hover. `stickyHeader` sticks the head element
 - The `table` recipe styles `Table.Row` and `Table.Cell` by `data-slot`, so raw `tr` and `td` lose striping, hover
-  and the last-row border
+  and the last-row border. Cells take their padding from `--table-cell-px` and `--table-cell-py`
+- `DataTable` cell content may paint into the cell padding, so focus rings show; text still truncates at the content
+  edge. The loading overlay sits in the body, below the sticky header, and it and the empty state centre on the
+  visible width while the table scrolls sideways
 - `DataTable` clears a malformed date or number filter param even when no filter control is mounted, and a column's
   `meta` always has `type`
 - `TreeSelectList` never offers make-child into an unloaded lazy branch, an empty loaded one accepts it, and sticky
@@ -526,7 +533,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - New: `createEdgeAutoScroll`, `isComposingEvent`, `isEditableTarget`, `formatNumberFilter`, `useColorPicker`, `usePointerDrag`
   `claimPress` and `activeAttribute`, `Alert.CloseTrigger`, `Progress.Context`, `HiddenInputControlProps`,
   `CheckboxCard` `rootRef`, `TreeViewDndProvider` `isBranchLoaded` and `TreeKeyboardMoveResult`, `InputGroupClearButton`
-  `field`
+  `field`, and `DataTableLabels` `numberFrom`, `numberTo` and `numberOperators` for the number filter
 - New: a hook for each `RootProvider` that lacked one: `useAccordion`, `useAvatar`, `useCarousel`, `useCheckbox`,
   `useClipboard`, `useCollapsible`, `useDialog`, `useEditable`, `useFieldset`, `useHoverCard`, `useListbox`,
   `usePagination`, `usePinInput`, `useProgress`, `useRadioGroup`, `useRatingGroup`, `useSegmentGroup`, `useTabs`,

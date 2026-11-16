@@ -1,5 +1,5 @@
 import type { NumberFilterValue } from "@construkt-kit/utils";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -203,6 +203,15 @@ describe("NumberFilter", () => {
     );
   });
 
+  it("keeps focus on the operator trigger after switching to between", async () => {
+    renderFilter();
+
+    await pickOperator("Equals", "Between");
+    await settle();
+
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Between" }));
+  });
+
   it("resyncs when the parent restores a value it previously emitted", async () => {
     const onValueChange = vi.fn();
     const Harness = ({ forced }: { forced: NumberFilterValue | undefined }) => {
@@ -303,6 +312,21 @@ describe("NumberFilter", () => {
     const [from, to] = screen.getAllByRole("textbox");
     expect(from.id).not.toBe(to.id);
     expect(screen.getByText("Amount").closest("label")?.htmlFor).toBe(from.id);
+  });
+
+  it("names each between input and groups them under the Field's label", () => {
+    render(
+      <Field label="Amount">
+        <NumberFilter
+          value={{ operator: "between", value: 1, to: 2 }}
+          onValueChange={vi.fn()}
+        />
+      </Field>,
+    );
+
+    const group = screen.getByRole("group", { name: "Amount" });
+    expect(within(group).getByRole("textbox", { name: "From" })).toBeTruthy();
+    expect(within(group).getByRole("textbox", { name: "To" })).toBeTruthy();
   });
 
   it("focuses the first input once clearing a between filter removes the button", async () => {

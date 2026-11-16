@@ -30,6 +30,9 @@ export const ColumnNumberFilter = ({
       debounceMs={debounceMs}
       placeholder={placeholder}
       clearLabel={labels.clearNumber}
+      fromLabel={labels.numberFrom}
+      toLabel={labels.numberTo}
+      operatorLabels={labels.numberOperators}
       value={parsed}
       onValueChange={handleValueChange}
     />

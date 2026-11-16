@@ -11,6 +11,9 @@ const defaultLabels: Required<DataTableLabels> = {
   sortBy: "Sort by",
   clearSearch: "Clear search",
   clearNumber: "Clear filter",
+  numberFrom: "From",
+  numberTo: "To",
+  numberOperators: {},
   clearDate: "Clear date",
   firstPage: "First page",
   previousPage: "Previous page",
@@ -29,10 +32,10 @@ const defaultLabels: Required<DataTableLabels> = {
 };
 
 export const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableLabels> => {
-  const resolved = { ...defaultLabels };
-  for (const key of Object.keys(defaultLabels) as (keyof DataTableLabels)[]) {
-    resolved[key] = labels?.[key] ?? defaultLabels[key];
-  }
+  const given = Object.fromEntries(
+    Object.entries(labels ?? {}).filter(([, value]) => value !== undefined),
+  ) as DataTableLabels;
+  const resolved = { ...defaultLabels, ...given };
   if (labels?.items !== undefined && labels.item === undefined) resolved.item = labels.items;
   return resolved;
 };

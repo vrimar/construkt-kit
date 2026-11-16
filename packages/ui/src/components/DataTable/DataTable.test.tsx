@@ -586,6 +586,17 @@ describe("DataTable", () => {
       expect(screen.getByRole("button", { name })).toBeTruthy();
   });
 
+  it("names a between number filter's operator and inputs from labels", () => {
+    renderTable({
+      columnDefs: [columnHelper.accessor("id", { header: "ID", meta: { type: "number" } })],
+      params: { ...params, filters: { id: ["between:3<>7"] } },
+      labels: { numberFrom: "Von", numberTo: "Bis", numberOperators: { between: "Zwischen" } },
+    });
+
+    for (const name of ["Von", "Bis"]) expect(screen.getByRole("textbox", { name })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Zwischen" })).toBeTruthy();
+  });
+
   it("renders the empty message when there are no rows", () => {
     renderTable({ data: [], totalItems: 0 });
 

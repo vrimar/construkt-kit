@@ -21,6 +21,8 @@ export const table = defineSlotRecipe({
       ...controlText("sm"),
       whiteSpace: "nowrap",
       overflow: "hidden",
+      px: "var(--table-cell-px)",
+      py: "var(--table-cell-py)",
       boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
       shadowColor: "border",
       _pinned: {
@@ -114,12 +116,12 @@ export const table = defineSlotRecipe({
       sm: {
         root: { ...controlText("xs") },
         header: { px: controlPx("xs"), py: controlGap("md") },
-        cell: { px: controlPx("xs"), py: controlGap("md") },
+        cell: { "--table-cell-px": controlPx("xs"), "--table-cell-py": controlGap("md") },
       },
       md: {
         root: { ...controlText("sm") },
         header: { px: controlPx("md"), py: controlGap("2xl") },
-        cell: { px: controlPx("md"), py: controlGap("2xl") },
+        cell: { "--table-cell-px": controlPx("md"), "--table-cell-py": controlGap("2xl") },
       },
     },
   },

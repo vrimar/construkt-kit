@@ -1,9 +1,9 @@
-import React, { type CSSProperties } from "react";
+import React, { type CSSProperties, useLayoutEffect, useRef } from "react";
 
 import { ScrollArea } from "../../ScrollArea";
 import { columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
-import { DataTableStatus } from "../EmptyState";
+import { DataTableStatus, viewportWidthVar } from "../EmptyState";
 import { DataTableHeader } from "../Header";
 import { GridBody, GridRoot, GridRow } from "../parts";
 import type { DataTableInstance, DataTableRow } from "../types";
@@ -23,8 +23,20 @@ export const DataTableBody = <TData extends object>({
 }: DataTableBodyProps<TData>) => {
   const { getRowInteractionProps, columnSizing, gridRef } = useDataTableContext<TData>();
   const scrollRef = useScrollTopOnPage(table);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const columnTemplate = getColumnTemplate(table.getVisibleLeafColumns(), columnSizing);
+
+  useLayoutEffect(() => {
+    const viewport = scrollRef.current;
+    const body = bodyRef.current;
+    if (!viewport || !body) return;
+    const observer = new ResizeObserver(() =>
+      body.style.setProperty(viewportWidthVar, `${viewport.clientWidth}px`),
+    );
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [scrollRef]);
 
   return (
     <GridRoot
@@ -54,8 +66,11 @@ export const DataTableBody = <TData extends object>({
           table={table}
           showFiltersRow={showFiltersRow}
         />
+        {/* Isolated so the loading overlay's z-index can't lift it over the sticky head. */}
         <GridBody
+          ref={bodyRef}
           position="relative"
+          isolation="isolate"
           display="flex"
           flexDirection="column"
           flex="1"

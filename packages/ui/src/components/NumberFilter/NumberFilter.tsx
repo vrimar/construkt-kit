@@ -1,3 +1,4 @@
+import { useFieldContext } from "@ark-ui/react/field";
 import {
   NUMBER_FILTER_OPERATORS,
   type NumberFilterOperator,
@@ -36,13 +37,19 @@ export interface NumberFilterProps {
   size?: InputProps["size"];
   variant?: InputProps["variant"];
   placeholder?: string;
-  fromPlaceholder?: string;
-  toPlaceholder?: string;
+  /** Placeholder and accessible name of the first input in `between` mode. */
+  fromLabel?: string;
+  /** Placeholder and accessible name of the second input in `between` mode. */
+  toLabel?: string;
   /** Overrides for the operator menu labels. */
   operatorLabels?: Partial<Record<NumberFilterOperator, string>>;
   /** Accessible name for the clear button. */
   clearLabel?: string;
-  /** Forwarded to the operand input(s); `id`, `name` and `ref` go to the first input only. */
+  /**
+   * Forwarded to the operand input(s); `id`, `name` and `ref` go to the first input only. In
+   * `between` mode, `aria-label` and `aria-labelledby` name the group around both inputs, as an
+   * enclosing `Field`'s label does.
+   */
   inputProps?: Unstyled<InputProps>;
   disabled?: boolean;
 }
@@ -89,17 +96,25 @@ export const NumberFilter = ({
   size = "md",
   variant,
   placeholder,
-  fromPlaceholder = "From",
-  toPlaceholder = "To",
+  fromLabel = "From",
+  toLabel = "To",
   operatorLabels: labelOverrides,
   clearLabel = "Clear filter",
   inputProps,
   disabled,
 }: NumberFilterProps) => {
   const offered = operators?.length ? operators : ALL_OPERATORS;
+  const field = useFieldContext();
   const toInputId = useId();
   const fromInputRef = useRef<HTMLInputElement>(null);
-  const { id, name, ref, ...sharedInputProps } = inputProps ?? {};
+  const {
+    id,
+    name,
+    ref,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledby,
+    ...sharedInputProps
+  } = inputProps ?? {};
   const fromRef = useComposedRefs(ref, fromInputRef);
   const [operator, setOperator] = useState<NumberFilterOperator>(
     value?.operator ?? defaultOperator ?? offered[0],
@@ -221,34 +236,43 @@ export const NumberFilter = ({
         ref={fromRef}
         id={id}
         name={name}
-        placeholder={isBetween ? fromPlaceholder : placeholder}
+        aria-label={isBetween ? fromLabel : ariaLabel}
+        aria-labelledby={isBetween ? undefined : ariaLabelledby}
+        placeholder={isBetween ? fromLabel : placeholder}
         value={fromText}
         onChange={(e) => handleTextChange(setFromText, e.target.value)}
       />
     </InputGroup>
   );
 
-  if (!isBetween) return fromInput;
-
   return (
     <HStack
+      {...(isBetween && {
+        role: "group",
+        "aria-label": ariaLabel,
+        "aria-labelledby":
+          ariaLabelledby ?? (ariaLabel === undefined ? field?.ids.label : undefined),
+      })}
       gap="1"
       width="100%"
     >
       {fromInput}
-      <InputGroup
-        size={size}
-        endElement={clearButton}
-      >
-        <Input
-          {...sharedInputProps}
-          {...managedInputProps}
-          id={toInputId}
-          placeholder={toPlaceholder}
-          value={toText}
-          onChange={(e) => handleTextChange(setToText, e.target.value)}
-        />
-      </InputGroup>
+      {isBetween && (
+        <InputGroup
+          size={size}
+          endElement={clearButton}
+        >
+          <Input
+            {...sharedInputProps}
+            {...managedInputProps}
+            id={toInputId}
+            aria-label={toLabel}
+            placeholder={toLabel}
+            value={toText}
+            onChange={(e) => handleTextChange(setToText, e.target.value)}
+          />
+        </InputGroup>
+      )}
     </HStack>
   );
 };
