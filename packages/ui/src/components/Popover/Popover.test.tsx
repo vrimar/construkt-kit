@@ -2,8 +2,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
+import { advance, setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
+import { ConfirmPopover } from "./ConfirmPopover";
 import { Popover, type PopoverRootProps } from "./Popover";
 
 const renderOpen = async (props: Omit<PopoverRootProps, "children">) => {
@@ -113,5 +114,27 @@ describe("Popover", () => {
       await settle();
       expect(screen.queryByText("Body")).not.toBeNull();
     });
+  });
+});
+
+describe("ConfirmPopover", () => {
+  useFakeTime();
+
+  it("shows its tooltip on the trigger", async () => {
+    const user = setupUser();
+    render(
+      <ConfirmPopover
+        title="Remove this?"
+        tooltip="Remove"
+        onConfirm={() => {}}
+      >
+        <button type="button">Trash</button>
+      </ConfirmPopover>,
+    );
+
+    await user.hover(screen.getByRole("button", { name: "Trash" }));
+    await advance(1000);
+
+    expect(screen.getByRole("tooltip").textContent).toBe("Remove");
   });
 });

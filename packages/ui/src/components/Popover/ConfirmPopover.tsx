@@ -9,6 +9,8 @@ import { Popover, type PopoverRootProps } from "./Popover";
 export interface ConfirmPopoverProps extends Omit<PopoverRootProps, "children">, PortalledProps {
   /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
   children: ReactNode;
+  /** Shown on hover over the trigger, and hidden while the popover is open. */
+  tooltip?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   /**

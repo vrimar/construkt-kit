@@ -14,12 +14,14 @@ export interface ActionPopover {
 
 interface ActionPopoverRootProps extends Omit<PopoverRootProps, "children"> {
   trigger: ReactNode;
+  tooltip?: ReactNode;
   loading: boolean | undefined;
   children: (action: ActionPopover) => ReactNode;
 }
 
 export function ActionPopoverRoot({
   trigger,
+  tooltip,
   loading,
   open,
   defaultOpen = false,
@@ -66,7 +68,12 @@ export function ActionPopoverRoot({
         if (details.open || !busy) setOpen(details.open);
       }}
     >
-      <Popover.Trigger asChild={isValidElement(trigger)}>{trigger}</Popover.Trigger>
+      <Popover.Trigger
+        asChild={isValidElement(trigger)}
+        tooltip={tooltip}
+      >
+        {trigger}
+      </Popover.Trigger>
       {children(action)}
     </Popover.Root>
   );
