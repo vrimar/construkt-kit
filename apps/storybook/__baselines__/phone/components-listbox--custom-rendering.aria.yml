@@ -1,15 +1,20 @@
+- text: Fruit
 - textbox "Search..."
-- listbox:
-  - option "Apple (selected)" [selected]:
-    - text: ""
-    - button "Edit Apple"
-  - option "Banana":
-    - text: ""
-    - button "Edit Banana"
-  - option "Cherry":
-    - text: ""
-    - button "Edit Cherry"
-  - option "Dragon fruit":
-    - text: ""
-    - button "Edit Dragon fruit"
+- grid "Fruit":
+  - row "Apple (selected)" [selected]:
+    - gridcell "Apple (selected)"
+    - gridcell "Edit Apple":
+      - button "Edit Apple"
+  - row "Banana":
+    - gridcell "Banana"
+    - gridcell "Edit Banana":
+      - button "Edit Banana"
+  - row "Cherry":
+    - gridcell "Cherry"
+    - gridcell "Edit Cherry":
+      - button "Edit Cherry"
+  - row "Dragon fruit":
+    - gridcell "Dragon fruit"
+    - gridcell "Edit Dragon fruit":
+      - button "Edit Dragon fruit"
 - status

@@ -26,7 +26,7 @@ import { SelectContext, type SelectContextValue } from "./Select.context";
 import type { SelectRootProps } from "./Select.types";
 
 const ITEM_SELECTOR = '[data-scope="listbox"][data-part="item"]';
-const LIST_SELECTOR = '[role="listbox"]';
+const LIST_SELECTOR = '[data-scope="listbox"][data-part="content"]';
 const CONTENT_SELECTOR = '[data-scope="popover"][data-part="content"]';
 
 function findItem(target: EventTarget, highlighted: boolean) {

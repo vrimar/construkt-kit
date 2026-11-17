@@ -561,6 +561,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - The `DataTable` empty and loading status sits in a row and cell while it shows
 - `TreeView.NodeCheckbox` is decorative. Set `checkable` on `TreeView.Root` so each row is announced as checked and
   Space toggles it instead of selecting the row
+- A `Listbox` or `Select` with `renderItemActions` is a `grid` of rows rather than a `listbox` of options; query
+  `getByRole("grid")` and `getByRole("row")` in tests
 - Unchecked `surface`, `subtle` and `outline` checkboxes and radios draw a `colorPalette.control` edge, the subtle
   `Slider` range uses it too, and an outline circular `Progress` track is `subtle.bg`
 

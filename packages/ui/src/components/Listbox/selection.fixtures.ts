@@ -23,7 +23,9 @@ export const groupLabels = () =>
     .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
 
 export const highlightedValue = () =>
-  document.querySelector("[role='option'][data-highlighted]")?.getAttribute("data-value");
+  document
+    .querySelector("[data-scope='listbox'][data-part='item'][data-highlighted]")
+    ?.getAttribute("data-value");
 
 export const optionValues = () =>
   screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));

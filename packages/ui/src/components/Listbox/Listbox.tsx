@@ -11,6 +11,8 @@ import {
   type Ref,
   type RefObject,
   type SyntheticEvent,
+  createContext,
+  useContext,
   useId,
   useLayoutEffect,
   useRef,
@@ -61,18 +63,59 @@ const RootProvider = withProvider(
   "root",
 ) as ArkListbox.RootProviderComponent<RootProps>;
 
+const GridContext = createContext(false);
+
 const StyledContent = withContext(ArkListbox.Content, "content");
 const Empty = withContext(ArkListbox.Empty, "empty");
 const Input = withContext(ArkListbox.Input, "input");
-const Item = withContext(ArkListbox.Item, "item", {
+const StyledItem = withContext(ArkListbox.Item, "item", {
   defaultProps: { "data-reveal-group": "" },
 });
-const ItemGroup = withContext(ArkListbox.ItemGroup, "itemGroup");
-const ItemGroupLabel = withContext(ArkListbox.ItemGroupLabel, "itemGroupLabel");
+const StyledItemGroup = withContext(ArkListbox.ItemGroup, "itemGroup");
+const StyledItemGroupLabel = withContext(ArkListbox.ItemGroupLabel, "itemGroupLabel");
 const ItemHint = withContext("span", "itemHint", {
   defaultProps: { "data-scope": "listbox", "data-part": "item-hint" },
 });
-const ItemText = withContext(ArkListbox.ItemText, "itemText");
+const StyledItemText = withContext(ArkListbox.ItemText, "itemText");
+
+function Item(props: ComponentProps<typeof StyledItem>) {
+  return (
+    <StyledItem
+      role={useContext(GridContext) ? "row" : undefined}
+      {...props}
+    />
+  );
+}
+
+function ItemText(props: ComponentProps<typeof StyledItemText>) {
+  return (
+    <StyledItemText
+      role={useContext(GridContext) ? "gridcell" : undefined}
+      {...props}
+    />
+  );
+}
+
+function ItemGroup(props: ComponentProps<typeof StyledItemGroup>) {
+  return (
+    <StyledItemGroup
+      role={useContext(GridContext) ? "rowgroup" : undefined}
+      {...props}
+    />
+  );
+}
+
+function ItemGroupLabel({ children, ...props }: ComponentProps<typeof StyledItemGroupLabel>) {
+  const grid = useContext(GridContext);
+  return (
+    <StyledItemGroupLabel
+      role={grid ? "row" : undefined}
+      {...props}
+    >
+      {grid ? <span role="rowheader">{children}</span> : children}
+    </StyledItemGroupLabel>
+  );
+}
 const Label = withContext(ArkListbox.Label, "label");
 const ValueText = withContext(ArkListbox.ValueText, "valueText");
 
@@ -91,7 +134,9 @@ function ItemIndicator({ ref, ...props }: WithRef<HTMLStyledProps<"div">>) {
   );
 }
 
-type ContentProps = ComponentProps<typeof StyledContent> & {
+type ContentProps = Omit<ComponentProps<typeof StyledContent>, "role"> & {
+  /** `grid` when items hold interactive actions: items become rows and their text and actions cells. */
+  role?: "listbox" | "grid";
   scrollAreaProps?: Unstyled<
     Omit<ScrollAreaProps, "children" | "scrollbars">,
     "colorPalette" | "scrollbar"
@@ -101,6 +146,7 @@ type ContentProps = ComponentProps<typeof StyledContent> & {
 function Content({
   ref,
   children,
+  role = "listbox",
   scrollAreaProps,
   style,
   ...props
@@ -117,14 +163,16 @@ function Content({
     >
       <ScrollArea.Viewport
         asChild
-        role="listbox"
+        role={role}
       >
         <StyledContent
           ref={ref}
           {...sizedProps}
           style={{ ...sizeStyle, ...style }}
         >
-          <ScrollArea.Content>{children}</ScrollArea.Content>
+          <GridContext value={role === "grid"}>
+            <ScrollArea.Content>{children}</ScrollArea.Content>
+          </GridContext>
         </StyledContent>
       </ScrollArea.Viewport>
       <ScrollArea.Scrollbar orientation="vertical">
@@ -148,7 +196,7 @@ function ItemActions({
 
   return (
     <StyledItemActions
-      role="presentation"
+      role="gridcell"
       {...props}
       onPointerDown={(event) => {
         stopPropagation(event);
@@ -487,6 +535,7 @@ export function ManagedList<T, V extends SelectionValue>({
     <>
       <Content
         {...listContentProps}
+        role={renderItemActions ? "grid" : "listbox"}
         ref={listRef}
         onKeyDownCapture={handleKeyDownCapture}
         onKeyDown={handleKeyDown}

@@ -104,6 +104,7 @@ export interface ManagedListOptions<T, V extends SelectionValue> {
   emptyMessage?: ReactNode;
   indicatorPosition?: SelectionIndicatorPosition;
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
+  /** Controls at the end of each row. A list with actions is a `grid` of rows rather than a `listbox`. */
   renderItemActions?: (item: T, state: SelectionItemState<V>) => ReactNode;
   /** Faint text at the end of the row, such as a count or why the item is disabled. */
   renderItemHint?: (item: T, state: SelectionItemState<V>) => ReactNode;

@@ -182,7 +182,7 @@ describe.each(wrappers)("$name selection contract", (wrapper) => {
         ),
       });
 
-      screen.getByRole("listbox").focus();
+      screen.getByRole("grid").focus();
       await userEvent.keyboard("{ArrowDown}");
       expect(highlightedValue()).toBe(encodeSelectionValue(2));
       screen.getByRole("button", { name: "Edit Banana" }).focus();
