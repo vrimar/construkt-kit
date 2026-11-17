@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createListCollection, Listbox, type ListboxProps, type SingleSelectionProps } from ".";
 import {
@@ -375,5 +375,64 @@ describe("Listbox", () => {
     render(<Example />);
     await userEvent.click(screen.getByText("Apple"));
     expect(screen.getByText("Apple").closest("[aria-selected='true']")).not.toBeNull();
+  });
+
+  describe("revealing the selection", () => {
+    const ROW = 36;
+    const many = Array.from({ length: 50 }, (_, index) => ({ id: index, name: `Item ${index}` }));
+    type Row = (typeof many)[number];
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const renderLoading = () => {
+      const element = (items: Row[]) => (
+        <Listbox
+          items={items}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.name}
+          value={40}
+          onValueChange={vi.fn()}
+          search={{ placeholder: "Find", autoFocus: true }}
+        />
+      );
+      const view = render(element([]));
+      return { loaded: () => view.rerender(element(many)) };
+    };
+
+    beforeEach(() => {
+      vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(100);
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
+        this: Element,
+      ) {
+        const index = Number(this.getAttribute("data-value")?.replace(/\D/g, "") || 0);
+        const listbox = this.matches("[data-part='content']");
+        const top = listbox
+          ? 0
+          : index * ROW - (this.closest("[data-part='content']")?.scrollTop ?? 0);
+        return DOMRect.fromRect({ y: top, height: listbox ? 100 : ROW });
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("scrolls to and highlights a selection that arrives after mount", async () => {
+      const { loaded } = renderLoading();
+
+      loaded();
+      await nextFrame();
+      expect(screen.getByRole("listbox").scrollTop).toBeGreaterThan(0);
+      expect(highlightedValue()).toBe(encodeSelectionValue(40));
+    });
+
+    it("leaves the selection alone once the user has searched", async () => {
+      const { loaded } = renderLoading();
+
+      await userEvent.type(screen.getByPlaceholderText("Find"), "Item 4");
+      loaded();
+      await nextFrame();
+      expect(screen.getByRole("listbox").scrollTop).toBe(0);
+      expect(highlightedValue()).toBe(encodeSelectionValue(4));
+    });
   });
 });

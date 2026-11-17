@@ -20,6 +20,7 @@ import {
   useManagedListbox,
 } from "../Listbox/managed";
 import type { ManagedListOptions, SelectionMode, SelectionValue } from "../Listbox/types";
+import { useRevealSelection } from "../Listbox/useRevealSelection";
 import { Popover } from "../Popover";
 import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
 import { SelectContext, type SelectContextValue } from "./Select.context";
@@ -54,6 +55,7 @@ function getSelectionLabel<T>(
 
 interface SelectHighlightSyncProps {
   open: boolean;
+  query: string;
   pointerRef: RefObject<boolean>;
   scrollToIndexRef: ScrollToIndexRef;
   virtual: boolean;
@@ -62,6 +64,7 @@ interface SelectHighlightSyncProps {
 // The listbox machine outlives the lazily mounted content, so it never resets per open.
 function SelectHighlightSync({
   open,
+  query,
   pointerRef,
   scrollToIndexRef,
   virtual,
@@ -73,18 +76,13 @@ function SelectHighlightSync({
   const shown = open && present;
 
   useEffect(() => {
-    if (!shown) return;
-    const { clearHighlightedValue, collection, value } = listboxRef.current;
-    clearHighlightedValue();
-    const [selected] = collection.sort(value.filter((item) => collection.has(item)));
-    if (selected == null) return;
-    // A frame lets the popover place itself before the highlight scrolls the selection into view.
-    const frame = requestAnimationFrame(() => {
-      pointerRef.current = false;
-      listboxRef.current.highlightValue(selected);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [listboxRef, pointerRef, shown]);
+    if (shown) listboxRef.current.clearHighlightedValue();
+  }, [listboxRef, shown]);
+
+  useRevealSelection(shown, query, (selected) => {
+    pointerRef.current = false;
+    listbox.highlightValue(selected);
+  });
 
   useHighlightIntoView(listbox.highlightedValue, pointerRef, (highlightedValue) => {
     const { collection, getContentProps } = listbox;
@@ -202,6 +200,7 @@ export function SelectRootImpl<T, V extends SelectionValue>(props: SelectRootImp
         >
           <SelectHighlightSync
             open={resolvedOpen}
+            query={controller.search.query}
             pointerRef={pointerRef}
             scrollToIndexRef={managed.scrollToIndexRef}
             virtual={managed.virtual}

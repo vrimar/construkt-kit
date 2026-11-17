@@ -1,4 +1,5 @@
 import type { CollectionItem } from "@ark-ui/react/collection";
+import { useEnvironmentContext } from "@ark-ui/react/environment";
 import { ark } from "@ark-ui/react/factory";
 import { Listbox as ArkListbox, ListboxContext, useListboxContext } from "@ark-ui/react/listbox";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -46,6 +47,7 @@ import type {
   SingleSelectionProps,
 } from "./types";
 import { type ManagedListbox, useManagedListbox } from "./useManagedListbox";
+import { scrollWithinContainer, useRevealSelection } from "./useRevealSelection";
 import { splitManagedListOptions } from "./useSelectionController";
 import type { SelectionSearch } from "./useSelectionSearch";
 
@@ -554,6 +556,34 @@ export function ManagedList<T, V extends SelectionValue>({
   );
 }
 
+function RevealSelection<T, V extends SelectionValue>({
+  managed,
+}: {
+  managed: ManagedListbox<T, V>;
+}) {
+  const api = useListboxContext();
+  const environment = useEnvironmentContext();
+  const { controller, virtual, scrollToIndexRef } = managed;
+
+  useRevealSelection(true, controller.search.query, (value) => {
+    const { collection, getContentProps, getItemProps, getRootProps } = api;
+    const root = environment.getRootNode() as Document | ShadowRoot;
+    const byId = (id: string | undefined) => (id == null ? null : root.getElementById(id));
+    if (virtual) {
+      scrollToIndexRef.current?.(collection.indexOf(value));
+    } else {
+      const container = byId(getContentProps().id);
+      const item = collection.find(value);
+      const itemEl = item == null ? null : byId(getItemProps({ item }).id);
+      if (container && itemEl) scrollWithinContainer(container, itemEl);
+    }
+    // Unfocused, a highlight would read as a second selection.
+    if (byId(getRootProps().id)?.contains(root.activeElement)) api.highlightValue(value);
+  });
+
+  return null;
+}
+
 function ListboxSimple<T, V extends SelectionValue>(
   props: ListboxBaseProps<T, V> & SingleSelectionProps<V> & { ref?: Ref<HTMLDivElement> },
 ): JSX.Element;
@@ -586,6 +616,7 @@ function ListboxSimple<T, V extends SelectionValue>(
       {...rootRest}
       {...rootProps}
     >
+      <RevealSelection managed={managed} />
       {label && <Label>{label}</Label>}
       <ListboxSearchField
         search={managed.controller.search}
