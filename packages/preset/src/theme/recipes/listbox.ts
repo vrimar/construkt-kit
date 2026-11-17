@@ -128,8 +128,21 @@ export const listbox = defineSlotRecipe({
     size: "md",
     actionsVisibility: "hover",
     indicatorPosition: "end",
+    selection: "check",
   },
   variants: {
+    selection: {
+      check: {},
+      tint: {
+        item: {
+          "&[data-state=checked]": { bg: "colorPalette.subtle.bg" },
+          "&[data-state=checked]:is(:hover, [data-highlighted])": {
+            bg: "colorPalette.subtle.bg.hover",
+          },
+        },
+        itemIndicator: { display: "none" },
+      },
+    },
     // Selected-item indicator placement. `start` reserves a constant logical-start gutter and
     // pins the indicator into it (absolute → out of flow), so rows stay aligned and text never
     // shifts when Ark toggles the indicator's `hidden` attribute on selection change.

@@ -1,0 +1,14 @@
+- text: check
+- listbox "check":
+  - option "Apple"
+  - option "Banana" [selected]
+  - option "Cherry"
+  - option "Dragon fruit"
+- status
+- text: tint
+- listbox "tint":
+  - option "Apple"
+  - option "Banana" [selected]
+  - option "Cherry"
+  - option "Dragon fruit"
+- status

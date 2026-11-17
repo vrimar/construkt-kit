@@ -133,6 +133,27 @@ export const IndicatorPositions = meta.story({
   ),
 });
 
+export const Selections = meta.story({
+  render: () => (
+    <HStack alignItems="flex-start">
+      {(["check", "tint"] as const).map((selection) => (
+        <Listbox
+          key={selection}
+          items={items}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.name}
+          value={2}
+          onValueChange={() => {}}
+          label={selection}
+          selection={selection}
+          search={false}
+          maxW="56"
+        />
+      ))}
+    </HStack>
+  ),
+});
+
 export const Grouped = meta.story({
   render: function GroupedStory() {
     const [value, setValue] = useState<number | null>(null);

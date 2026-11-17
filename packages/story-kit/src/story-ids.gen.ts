@@ -1235,6 +1235,12 @@ export const stories = {
     title: "Components/Listbox",
     tags: [],
   },
+  "components-listbox--selections": {
+    file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
+    exportName: "Selections",
+    title: "Components/Listbox",
+    tags: [],
+  },
   "components-listbox--virtualized": {
     file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
     exportName: "Virtualized",
