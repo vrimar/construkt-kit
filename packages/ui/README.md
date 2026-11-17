@@ -706,6 +706,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   and pass `portalled={false}` to render in place
 - `placement` on `Popover`, `Menu`, `HoverCard`, `ToggleTip` and `Tooltip` survives a `positioning` prop, which used to
   replace it
+- A `Menu` with both a `ContextTrigger` and a `Trigger` opens at the button when the button opens it; it used to open
+  off-screen
 - Virtual lists cap at the listbox's `maxH` (24rem) like other lists, and `ApplySelect` honours a `contentWidth` below
   its 256px minimum
 - `ApplySelect.Root` autofocuses its search like `ApplySelect`

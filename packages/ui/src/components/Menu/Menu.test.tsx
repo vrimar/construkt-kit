@@ -56,6 +56,35 @@ describe("Menu", () => {
     });
   });
 
+  describe("placement", () => {
+    const positionerOf = (menu: HTMLElement) => menu.parentElement as HTMLElement;
+    const placedAt = (menu: HTMLElement) =>
+      waitFor(() => {
+        const { style } = positionerOf(menu);
+        expect(style.getPropertyValue("--y")).not.toBe("");
+        return {
+          x: parseFloat(style.getPropertyValue("--x")),
+          y: parseFloat(style.getPropertyValue("--y")),
+        };
+      });
+
+    it("opens at its button when it also has a context trigger", async () => {
+      render(
+        <Menu.Root>
+          <Menu.ContextTrigger>Row</Menu.ContextTrigger>
+          <Menu.Trigger>Open</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Item value="rename">Rename</Menu.Item>
+          </Menu.Content>
+        </Menu.Root>,
+      );
+
+      const { x, y } = await placedAt(await openMenu());
+      expect(x).toBe(0);
+      expect(Math.abs(y)).toBeLessThanOrEqual(8);
+    });
+  });
+
   it("renders an asChild link as the menu item itself", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     render(

@@ -9,8 +9,11 @@ import {
   type ElementType,
   isValidElement,
   type ReactNode,
+  type RefObject,
+  useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -18,6 +21,7 @@ import {
 import { Box, createSlotRecipeContext } from "#styled-system/jsx";
 import { menu } from "#styled-system/recipes";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
 import type { PortalledProps, WithRef } from "../../types";
 import { wrapAsChildContent } from "../asChildContent";
 import { isRenderable, useItemSlotIds } from "../itemSlots";
@@ -66,6 +70,8 @@ const ItemDescription = withContext("div", "itemDescription", {
   defaultProps: { "data-scope": "menu", "data-part": "item-description" },
 });
 
+const CountContextTriggerContext = createContext<((delta: 1 | -1) => void) | null>(null);
+
 // zag skips returning focus for menus anchored at a point, so a keyboard-opened context menu would drop it.
 function ContextTrigger({
   ref,
@@ -76,6 +82,12 @@ function ContextTrigger({
   const { open } = api;
   const contentId = api.getContentProps().id;
   const returnFocusTo = useRef<HTMLElement | null>(null);
+  const countContextTrigger = useContext(CountContextTriggerContext);
+
+  useLayoutEffect(() => {
+    countContextTrigger?.(1);
+    return () => countContextTrigger?.(-1);
+  }, [countContextTrigger]);
 
   useEffect(() => {
     const target = returnFocusTo.current;
@@ -114,6 +126,19 @@ export interface MenuRootProps extends RootProps, MobileLayoutProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];
 }
 
+// zag stops placing a menu that has a context trigger, so one opened from its button would stay off-screen.
+function PlaceOnOpen({ contextTriggers }: { contextTriggers: RefObject<number> }) {
+  const api = useMenuContext();
+  const latest = useLatestRef(api);
+  const { open } = api;
+
+  useEffect(() => {
+    if (open && contextTriggers.current > 0) latest.current.reposition();
+  }, [open, contextTriggers, latest]);
+
+  return null;
+}
+
 type ParentMenu = { mode: "popover" } | { mode: "sheet"; closing: boolean };
 
 const ParentMenuContext = createContext<ParentMenu | null>(null);
@@ -124,21 +149,34 @@ const BACK_ITEM_VALUE = "construkt-menu-back";
 
 const SheetCapableRoot = withMobileLayout<MenuRootProps>(Root);
 
-function MenuRootBase({ mobileLayout, ...props }: MenuRootProps) {
+function MenuRootBase({ mobileLayout, children, ...props }: MenuRootProps) {
   const parent = useContext(ParentMenuContext);
+  const contextTriggers = useRef(0);
+  const countContextTrigger = useCallback((delta: 1 | -1) => {
+    contextTriggers.current += delta;
+  }, []);
+  const rootProps = {
+    ...props,
+    children: (
+      <CountContextTriggerContext.Provider value={countContextTrigger}>
+        {children}
+        <PlaceOnOpen contextTriggers={contextTriggers} />
+      </CountContextTriggerContext.Provider>
+    ),
+  };
 
   if (parent?.mode !== "sheet") {
     return (
       <SheetCapableRoot
         mobileLayout={parent == null ? mobileLayout : "popover"}
-        {...props}
+        {...rootProps}
       />
     );
   }
 
   return (
     <Root
-      {...props}
+      {...rootProps}
       onSelect={(details) => {
         if (details.value !== BACK_ITEM_VALUE) props.onSelect?.(details);
       }}

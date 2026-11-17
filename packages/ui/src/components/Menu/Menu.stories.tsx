@@ -421,6 +421,46 @@ export const ContextMenu = meta.story({
   ),
 });
 
+export const ContextAndButtonTriggers = meta.story({
+  render: () => (
+    <Menu.Root>
+      <Menu.ContextTrigger asChild>
+        <Flex
+          align="center"
+          justify="space-between"
+          gap="4"
+          p="4"
+          border="1px solid"
+          borderColor="border"
+          borderRadius="md"
+          userSelect="none"
+        >
+          Right-click this row, or open its menu from the button
+          <Menu.Trigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+            >
+              More
+            </Button>
+          </Menu.Trigger>
+        </Flex>
+      </Menu.ContextTrigger>
+      <Menu.Content>
+        <Menu.Item value="rename">Rename</Menu.Item>
+        <Menu.Item value="duplicate">Duplicate</Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          value="delete"
+          destructive
+        >
+          Delete
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+  ),
+});
+
 export const Phone = meta.story({
   tags: ["phone-only"],
   globals: { viewport: { value: "mobile1", isRotated: false } },

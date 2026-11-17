@@ -1259,6 +1259,12 @@ export const stories = {
     title: "Components/LoadingOverlay",
     tags: [],
   },
+  "components-menu--context-and-button-triggers": {
+    file: "packages/ui/src/components/Menu/Menu.stories.tsx",
+    exportName: "ContextAndButtonTriggers",
+    title: "Components/Menu",
+    tags: [],
+  },
   "components-menu--context-menu": {
     file: "packages/ui/src/components/Menu/Menu.stories.tsx",
     exportName: "ContextMenu",
