@@ -1,4 +1,12 @@
-import { contrast, hexToOklch, luminance, maxChroma, oklchToHex } from "./oklch";
+import {
+  composite,
+  contrast,
+  hexToOklch,
+  luminance,
+  maxChroma,
+  oklchToHex,
+  withAlpha,
+} from "./oklch";
 
 export type Theme = "light" | "dark";
 export const THEMES: readonly Theme[] = ["light", "dark"];
@@ -18,19 +26,27 @@ export interface PaletteKey {
 export type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export const STEPS: readonly Step[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-const SCALE: Record<Step, { ratio: Record<Theme, number>; chroma: Record<Theme, number> }> = {
-  1: { ratio: { light: 1.04, dark: 1.05 }, chroma: { light: 0.9, dark: 0.3 } },
-  2: { ratio: { light: 1.07, dark: 1.1 }, chroma: { light: 0.9, dark: 0.35 } },
-  3: { ratio: { light: 1.1, dark: 1.18 }, chroma: { light: 0.9, dark: 0.4 } },
-  4: { ratio: { light: 1.16, dark: 1.28 }, chroma: { light: 0.9, dark: 0.45 } },
-  5: { ratio: { light: 1.23, dark: 1.4 }, chroma: { light: 0.9, dark: 0.5 } },
-  6: { ratio: { light: 1.3, dark: 1.6 }, chroma: { light: 0.9, dark: 0.6 } },
-  7: { ratio: { light: 1.7, dark: 2 }, chroma: { light: 0.9, dark: 0.7 } },
-  8: { ratio: { light: 3.4, dark: 3.6 }, chroma: { light: 0.95, dark: 0.9 } },
-  9: { ratio: { light: 6.5, dark: 6.5 }, chroma: { light: 0.9, dark: 0.85 } },
-  10: { ratio: { light: 12, dark: 12 }, chroma: { light: 0.75, dark: 0.6 } },
+interface ScaleStep {
+  ratio: Record<Theme, number>;
+  chroma: number;
+  darkHueChroma: number;
+}
+
+const SCALE: Record<Step, ScaleStep> = {
+  1: { ratio: { light: 1.04, dark: 1.05 }, chroma: 0.9, darkHueChroma: 0.3 },
+  2: { ratio: { light: 1.07, dark: 1.1 }, chroma: 0.9, darkHueChroma: 0.35 },
+  3: { ratio: { light: 1.1, dark: 1.18 }, chroma: 0.9, darkHueChroma: 0.4 },
+  4: { ratio: { light: 1.16, dark: 1.28 }, chroma: 0.9, darkHueChroma: 0.45 },
+  5: { ratio: { light: 1.23, dark: 1.4 }, chroma: 0.9, darkHueChroma: 0.5 },
+  6: { ratio: { light: 1.3, dark: 1.6 }, chroma: 0.9, darkHueChroma: 0.6 },
+  7: { ratio: { light: 1.7, dark: 2 }, chroma: 0.9, darkHueChroma: 0.7 },
+  8: { ratio: { light: 3.4, dark: 3.6 }, chroma: 0.95, darkHueChroma: 0.9 },
+  9: { ratio: { light: 6.5, dark: 6.5 }, chroma: 0.9, darkHueChroma: 0.85 },
+  10: { ratio: { light: 12, dark: 12 }, chroma: 0.75, darkHueChroma: 0.6 },
 };
 const LAST_TINT_STEP = 7;
+const STATE_TINT_STEP: Step = 3;
+const OVERLAY_INK_STEP: Step = 9;
 
 type TextRole = "DEFAULT" | "muted" | "subtle";
 
@@ -38,7 +54,7 @@ const TEXT: Record<Theme, Record<TextRole, number>> = {
   light: { DEFAULT: 13, muted: 8.5, subtle: 5 },
   dark: { DEFAULT: 15.5, muted: 8.5, subtle: 5.8 },
 };
-const TEXT_CHROMA: Record<Theme, number> = { light: 0.9, dark: 0.3 };
+const TEXT_CHROMA = 0.9;
 
 const SOLID = {
   hoverFactor: 1.2,
@@ -48,10 +64,7 @@ const SOLID = {
   track: 3 as Step,
 };
 
-const CANVAS: Record<Theme, { l: number; chroma: number }> = {
-  light: { l: 1, chroma: 0 },
-  dark: { l: 0.18, chroma: 0.12 },
-};
+const CANVAS_L: Record<Theme, number> = { light: 1, dark: 0.18 };
 
 interface HuePath {
   l: number;
@@ -112,10 +125,9 @@ const luminanceFor = (ratio: number, againstY: number, darker: boolean) =>
   darker ? (againstY + 0.05) / ratio - 0.05 : ratio * (againstY + 0.05) - 0.05;
 
 export function canvas(neutral: PaletteKey, theme: Theme): string {
-  const { l, chroma } = CANVAS[theme];
+  const l = CANVAS_L[theme];
   if (l >= 1) return "#ffffff";
-  const path = huePath(neutral);
-  return oklchToHex([l, path.c * chroma, path.h]);
+  return colourAt(huePath(neutral), l, SCALE[1].chroma);
 }
 
 export function solveContrast(
@@ -203,6 +215,19 @@ export interface GeneratedPalette {
   solid: string;
   solidHover: string;
   solidFg: string;
+  tint(rest: string, ratio: number): string;
+  overlay(ratio: number): string;
+}
+
+function solveOverlay(ink: string, bg: string, ratio: number): string {
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (contrast(composite(withAlpha(ink, mid), bg), bg) < ratio) lo = mid;
+    else hi = mid;
+  }
+  return withAlpha(ink, hi);
 }
 
 export function generatePalette(
@@ -210,23 +235,41 @@ export function generatePalette(
   neutral: PaletteKey,
   theme: Theme,
 ): GeneratedPalette {
+  return ramp(key, neutral, theme, true);
+}
+
+export function generateNeutral(neutral: PaletteKey, theme: Theme): GeneratedPalette {
+  return ramp(neutral, neutral, theme, false);
+}
+
+function ramp(key: PaletteKey, neutral: PaletteKey, theme: Theme, hue: boolean): GeneratedPalette {
   const bg = canvas(neutral, theme);
   const bgY = luminance(bg);
   const darker = theme === "light";
   const path = huePath(key);
+  const weightAt = (step: Step) => {
+    const { chroma, darkHueChroma } = SCALE[step];
+    const c = hue && theme === "dark" ? darkHueChroma : chroma;
+    return step <= LAST_TINT_STEP ? c * path.tints : c;
+  };
   const steps = {} as Record<Step, string>;
   for (const step of STEPS) {
     const ratio = SCALE[step].ratio[theme];
-    const { chroma } = SCALE[step];
-    const weight = step <= LAST_TINT_STEP ? chroma[theme] * path.tints : chroma[theme];
-    steps[step] = solveLuminance(path, luminanceFor(ratio, bgY, darker), weight, {
+    steps[step] = solveLuminance(path, luminanceFor(ratio, bgY, darker), weightAt(step), {
       ok: (hex) => contrast(hex, bg) >= ratio,
       dir: darker ? -1 : 1,
     });
   }
   const ink = solveLuminance(path, SOLID.inkY, 0.3);
   const solid = solveSolid(key, path, bg, theme, ink, steps[SOLID.track]);
-  return { steps, solid: solid.rest, solidHover: solid.hover, solidFg: solid.fg };
+  return {
+    steps,
+    solid: solid.rest,
+    solidHover: solid.hover,
+    solidFg: solid.fg,
+    tint: (rest, ratio) => solveContrast(key, rest, theme, ratio, weightAt(STATE_TINT_STEP)),
+    overlay: (ratio) => solveOverlay(steps[OVERLAY_INK_STEP], bg, ratio),
+  };
 }
 
 export function generateText(neutral: PaletteKey, theme: Theme): Record<TextRole, string> {
@@ -234,7 +277,7 @@ export function generateText(neutral: PaletteKey, theme: Theme): Record<TextRole
   const path = huePath(neutral);
   const darker = theme === "light";
   const solve = (ratio: number) =>
-    solveLuminance(path, luminanceFor(ratio, luminance(bg), darker), TEXT_CHROMA[theme], {
+    solveLuminance(path, luminanceFor(ratio, luminance(bg), darker), TEXT_CHROMA, {
       ok: (hex) => contrast(hex, bg) >= ratio,
       dir: darker ? -1 : 1,
     });

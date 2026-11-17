@@ -1,16 +1,18 @@
 import type { SemanticTokens } from "@pandacss/types";
 
-import { contrastFailures } from "../color/contract";
+import { SURFACES, TEXT_MIN, contrastFailures } from "../color/contract";
 import {
   type GeneratedPalette,
   type PaletteKey,
   type Step,
   type Theme,
   canvas,
+  generateNeutral,
   generatePalette,
   generateText,
   solveContrast,
 } from "../color/generate";
+import { composite, contrast } from "../color/oklch";
 import { NEUTRAL, PALETTES, STATUS } from "../color/palettes";
 
 export interface ColorOptions {
@@ -31,23 +33,15 @@ const ROLES: Record<string, Source> = {
   "solid.bg.hover": "solidHover",
   "solid.fg": "solidFg",
   "surface.bg": 1,
-  "surface.bg.hover": 3,
-  "surface.bg.active": 4,
   "surface.border": 6,
   "surface.border.hover": 7,
   "surface.fg": 9,
   "subtle.bg": 3,
-  "subtle.bg.hover": 4,
-  "subtle.bg.active": 5,
   "subtle.border": 6,
   "subtle.fg": 9,
   "outline.border": 7,
   "outline.fg": 9,
-  "outline.bg.hover": 2,
-  "outline.bg.active": 3,
   "plain.fg": 9,
-  "plain.bg.hover": 2,
-  "plain.bg.active": 3,
   focusRing: 9,
   control: 8,
   fg: 9,
@@ -57,19 +51,60 @@ const NEUTRAL_TEXT_ROLES = new Set(["surface.fg", "subtle.fg", "outline.fg", "pl
 const NEUTRAL_TEXT_STEP: Step = 10;
 const CONTROL_BORDER: Record<Theme, number> = { light: 2.2, dark: 3.05 };
 const HIGHLIGHT_BG = 1.35;
+const STATE = { hover: 1.1, active: 1.2 };
+const OVERLAY_STATE: Record<Theme, typeof STATE> = {
+  light: STATE,
+  dark: { hover: 1.25, active: 1.35 },
+};
+const OVERLAY_BACKOFF = 0.005;
 
-function roles(name: string, palette: GeneratedPalette, neutral: boolean): Record<string, string> {
+function roles(
+  name: string,
+  palette: GeneratedPalette,
+  neutral: boolean,
+  bg: string,
+  theme: Theme,
+): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [role, source] of Object.entries(ROLES)) {
     const s = neutral && NEUTRAL_TEXT_ROLES.has(role) ? NEUTRAL_TEXT_STEP : source;
     out[`${name}.${role}`] = typeof s === "number" ? palette.steps[s] : palette[s];
+  }
+  if (neutral && theme === "light") out[`${name}.surface.bg`] = bg;
+  for (const variant of ["surface", "subtle"]) {
+    const rest = out[`${name}.${variant}.bg`];
+    out[`${name}.${variant}.bg.hover`] = palette.tint(rest, STATE.hover);
+    out[`${name}.${variant}.bg.active`] = palette.tint(rest, STATE.active);
+  }
+  return out;
+}
+
+function overlayRoles(
+  name: string,
+  palette: GeneratedPalette,
+  colors: Record<string, string>,
+  theme: Theme,
+): Record<string, string> {
+  const surfaces = SURFACES.map((s) => colors[s]);
+  const labels = [colors[`${name}.outline.fg`], colors[`${name}.plain.fg`]];
+  const readable = (overlay: string) =>
+    surfaces.every((s) => labels.every((fg) => contrast(fg, composite(overlay, s)) >= TEXT_MIN));
+  const solve = (ratio: number): string => {
+    const overlay = palette.overlay(ratio);
+    return ratio <= 1 || readable(overlay) ? overlay : solve(ratio - OVERLAY_BACKOFF);
+  };
+  const out: Record<string, string> = {};
+  for (const [state, ratio] of Object.entries(OVERLAY_STATE[theme])) {
+    const overlay = solve(ratio);
+    out[`${name}.outline.bg.${state}`] = overlay;
+    out[`${name}.plain.bg.${state}`] = overlay;
   }
   return out;
 }
 
 function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, PaletteKey>) {
   const bg = canvas(neutralKey, theme);
-  const neutral = generatePalette(neutralKey, neutralKey, theme);
+  const neutral = generateNeutral(neutralKey, theme);
   const generated = Object.fromEntries(
     Object.entries(keys).map(([name, key]) => [name, generatePalette(key, neutralKey, theme)]),
   );
@@ -79,20 +114,25 @@ function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, 
   const status = (name: keyof typeof STATUS) => generated[STATUS[name]];
   const light = theme === "light";
 
-  const colors: Record<string, string> = {
-    ...roles("neutral", neutral, true),
-    "neutral.surface.bg": light ? bg : n[1],
-  };
-  for (const [name, palette] of Object.entries(generated))
-    Object.assign(colors, roles(name, palette, false));
-  for (const name of Object.keys(STATUS) as (keyof typeof STATUS)[]) {
-    Object.assign(colors, roles(name, status(name), false), { [name]: status(name).steps[8] });
-  }
+  const palettes: [name: string, palette: GeneratedPalette][] = [
+    ["neutral", neutral],
+    ...Object.entries(generated),
+    ...(Object.keys(STATUS) as (keyof typeof STATUS)[]).map((name): [string, GeneratedPalette] => [
+      name,
+      status(name),
+    ]),
+  ];
+  const colors: Record<string, string> = {};
+  for (const [name, palette] of palettes)
+    Object.assign(colors, roles(name, palette, name === "neutral", bg, theme));
+  for (const name of Object.keys(STATUS) as (keyof typeof STATUS)[])
+    colors[name] = status(name).steps[8];
 
-  return Object.assign(colors, {
+  Object.assign(colors, {
     bg,
     "bg.subtle": n[1],
     "bg.muted": n[3],
+    "bg.hover": n[3],
     "bg.emphasized": n[5],
     "bg.control": control,
     "bg.inverted": text.DEFAULT,
@@ -119,6 +159,9 @@ function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, 
       : generated.yellow.solid,
     "highlight.fg": light ? text.DEFAULT : generated.yellow.solidFg,
   });
+  for (const [name, palette] of palettes)
+    Object.assign(colors, overlayRoles(name, palette, colors, theme));
+  return colors;
 }
 
 function nest(colors: Record<Theme, Record<string, string>>) {

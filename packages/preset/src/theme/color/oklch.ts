@@ -81,3 +81,16 @@ export function contrast(a: string, b: string): number {
   const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
 }
+
+const alphaOf = (hex: string) => (hex.length === 9 ? Number.parseInt(hex.slice(7), 16) / 255 : 1);
+
+export function composite(overlay: string, under: string): string {
+  const alpha = alphaOf(overlay);
+  const below = hexToRgb(under);
+  return rgbToHex(hexToRgb(overlay).map((v, i) => v * alpha + below[i] * (1 - alpha)) as Rgb);
+}
+
+export function withAlpha(hex: string, alpha: number): string {
+  const a8 = Math.ceil(Math.min(1, Math.max(0, alpha)) * 255);
+  return `${hex.slice(0, 7)}${a8.toString(16).padStart(2, "0")}`;
+}

@@ -1,16 +1,18 @@
 import type { Theme } from "./generate";
-import { contrast } from "./oklch";
+import { composite, contrast } from "./oklch";
 
-const TEXT_MIN = 4.5;
+export const TEXT_MIN = 4.5;
 const NON_TEXT_MIN = 3;
 // Below WCAG 1.4.11's 3:1 on purpose: input edges trade contrast for a lighter look.
 const CONTROL_EDGE_MIN = 2.2;
 
-type Pair = [fg: string, bg: string, min: number];
+type Pair = [fg: string, bg: string, min: number, under?: string];
 
 function palettePairs(p: string): Pair[] {
   const text = (fg: string, ...bgs: string[]) => bgs.map((bg): Pair => [fg, bg, TEXT_MIN]);
   const nonText = (fg: string, ...bgs: string[]) => bgs.map((bg): Pair => [fg, bg, NON_TEXT_MIN]);
+  const overlaid = (fg: string, ...overlays: string[]) =>
+    overlays.flatMap((o) => SURFACES.map((s): Pair => [fg, o, TEXT_MIN, s]));
   return [
     ...text(`${p}.solid.fg`, `${p}.solid.bg`, `${p}.solid.bg.hover`),
     ...text(`${p}.subtle.fg`, `${p}.subtle.bg`, `${p}.subtle.bg.hover`, `${p}.subtle.bg.active`),
@@ -20,8 +22,10 @@ function palettePairs(p: string): Pair[] {
       `${p}.surface.bg.hover`,
       `${p}.surface.bg.active`,
     ),
-    ...text(`${p}.outline.fg`, "bg", `${p}.outline.bg.hover`, `${p}.outline.bg.active`),
-    ...text(`${p}.plain.fg`, "bg", `${p}.plain.bg.hover`, `${p}.plain.bg.active`),
+    ...text(`${p}.outline.fg`, "bg"),
+    ...text(`${p}.plain.fg`, "bg"),
+    ...overlaid(`${p}.outline.fg`, `${p}.outline.bg.hover`, `${p}.outline.bg.active`),
+    ...overlaid(`${p}.plain.fg`, `${p}.plain.bg.hover`, `${p}.plain.bg.active`),
     ...text(`${p}.fg`, "bg", "bg.muted"),
     ...text("fg", `${p}.subtle.bg.active`, `${p}.surface.bg.active`),
     ...text("fg.muted", `${p}.subtle.bg.active`, `${p}.surface.bg.active`),
@@ -32,10 +36,11 @@ function palettePairs(p: string): Pair[] {
   ];
 }
 
-const SURFACES = [
+export const SURFACES = [
   "bg",
   "bg.subtle",
   "bg.muted",
+  "bg.hover",
   "bg.control",
   "neutral.surface.bg",
   "neutral.surface.bg.hover",
@@ -75,12 +80,15 @@ export function contrastFailures(
   const failures: string[] = [];
   for (const theme of Object.keys(colors) as Theme[]) {
     const c = colors[theme];
-    for (const [fg, bg, min] of pairs) {
-      if (!(fg in c) || !(bg in c))
-        throw new Error(`Contrast contract names an unknown colour: ${fg} or ${bg}`);
-      const ratio = contrast(c[fg], c[bg]);
+    for (const [fg, bg, min, under] of pairs) {
+      if (!(fg in c) || !(bg in c) || (under !== undefined && !(under in c)))
+        throw new Error(`Contrast contract names an unknown colour: ${fg}, ${bg} or ${under}`);
+      const back = under === undefined ? c[bg] : composite(c[bg], c[under]);
+      if (back.length !== 7) throw new Error(`Contrast contract needs a surface under ${bg}`);
+      const ratio = contrast(c[fg], back);
+      const where = under === undefined ? bg : `${bg} over ${under}`;
       if (ratio < min)
-        failures.push(`${theme}: ${fg} on ${bg} is ${ratio.toFixed(2)}:1, needs ${min}:1`);
+        failures.push(`${theme}: ${fg} on ${where} is ${ratio.toFixed(2)}:1, needs ${min}:1`);
     }
   }
   return failures;
