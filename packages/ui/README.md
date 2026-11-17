@@ -174,9 +174,9 @@ Key utilities:
 
 - `../preset/src/theme/tokens/` — primitive tokens (colors, spacing, fonts, radii, etc.)
 - `../preset/src/theme/semantic-tokens/` — light/dark mode tokens (`colors.ts`, `shadows.ts`)
-  - `colorPalette(color)` generates `solid`, `surface`, `subtle`, `outline`, `plain` sub-tokens
-  - Available palettes: `brand`, `slate`, `gray`, `blue`, `red`, `green`, `orange`, `yellow`, `purple`, `teal`, `cyan`, `pink`
-  - `neutral` is an alias palette (defaults to slate) used for default chrome
+  - every palette is generated from one key colour (`../preset/src/theme/color/`) into `solid`, `surface`, `subtle`, `outline`, `plain` roles
+  - Available palettes: `neutral`, `brand`, `red`, `orange`, `yellow`, `green`, `teal`, `cyan`, `blue`, `purple`, `pink`, plus the status palettes `danger`, `warning`, `success`, `info`
+  - `neutral` is the default chrome (slate); `createConstruktKitPreset({ palettes, neutral })` swaps or adds palettes
 - `../preset/src/theme/recipes/` — component recipes (variants, sizes, defaults)
 - `../preset/src/theme/conditions.ts` — custom Panda CSS conditions
 - `../preset/src/theme/keyframes.ts`, `animation-styles.ts`, `text-styles.ts`, `layer-styles.ts`
@@ -211,12 +211,12 @@ form labels — and keep recipe merges for real restyles, accepting the warning.
 
 ### Token Path Syntax
 
-| Context               | Syntax             | Example                       |
-| --------------------- | ------------------ | ----------------------------- |
-| In recipe definitions | Bare token paths   | `bg: "colorPalette.solid.bg"` |
-| Token references      | Curly braces       | `{colors.brand.500}`          |
-| In components (JS)    | `token()` function | `token('colors.brand.500')`   |
-| In components (CSS)   | Short paths        | `css({ bg: 'brand.500' })`    |
+| Context               | Syntax             | Example                          |
+| --------------------- | ------------------ | -------------------------------- |
+| In recipe definitions | Bare token paths   | `bg: "colorPalette.solid.bg"`    |
+| Token references      | Curly braces       | `{colors.brand.solid.bg}`        |
+| In components (JS)    | `token()` function | `token('colors.brand.fg')`       |
+| In components (CSS)   | Short paths        | `css({ bg: 'brand.subtle.bg' })` |
 
 Semantic token layers: `bg.*`, `fg.*`, `border.*`, `neutral.*`, `colorPalette.*`
 
@@ -259,7 +259,7 @@ to `bg`. Popovers, menus, dialogs and drawers set it; set it on any other surfac
 
 ### Dark mode
 
-Every semantic token carries a light and a dark value, so dark mode is a token flip — no per-component work. Activation is a `dark` class on an ancestor (the `_dark` condition); light is the `:root` default (no class needed). The neutral chrome (`bg`/`fg`/`border`/`neutral.*`) uses the **Radix "slate" dark ramp** (`colors.slateDark.1–12`) on the dark side while light stays Tailwind slate. `html { color-scheme }` also flips so native scrollbars, form controls, and autofill match.
+Every semantic token carries a light and a dark value, so dark mode is a token flip — no per-component work. Activation is a `dark` class on an ancestor (the `_dark` condition); light is the `:root` default (no class needed). Both themes are generated from the same key colours and solved to the same contrast ratios, so a role that passes WCAG AA in light passes in dark. `html { color-scheme }` also flips so native scrollbars, form controls, and autofill match.
 
 The runtime lives in `@construkt-kit/ui`:
 
@@ -360,7 +360,7 @@ Both are registered in `../preset/src/theme/recipes/index.ts`:
 ### Styling
 
 - Use `css()` for one-off styles, `styled()` for styled components, recipes for variants
-- Colors: `token('colors.brand.500')` or `colorPalette` prop + recipe variants
+- Colors: semantic roles (`fg.muted`, `border.control`, `brand.fg`) or the `colorPalette` prop + recipe variants; there are no raw ramp steps
 - Never use hardcoded colors (`#fff`, `rgb(...)`) — the Panda linter will reject them
 
 ### Consuming @construkt-kit/ui in apps

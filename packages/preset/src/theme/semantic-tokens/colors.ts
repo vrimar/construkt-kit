@@ -1,241 +1,163 @@
-import { defineSemanticTokens } from "@pandacss/dev";
+import type { SemanticTokens } from "@pandacss/types";
 
-type TokenValue = { value: { _light: string; _dark: string } };
+import { contrastFailures } from "../color/contract";
+import {
+  type GeneratedPalette,
+  type PaletteKey,
+  type Step,
+  type Theme,
+  canvas,
+  generatePalette,
+  generateText,
+  solveContrast,
+} from "../color/generate";
+import { NEUTRAL, PALETTES, STATUS } from "../color/palettes";
 
-function tv(light: string, dark: string): TokenValue {
-  return { value: { _light: light, _dark: dark } };
-}
-
-// Light shade per palette role — Tailwind 50–950 numbering, shared by every palette.
-const LIGHT = {
-  solidBg: 600,
-  solidBgHover: 700,
-  surfaceBg: 50,
-  surfaceBgHover: 100,
-  surfaceBgActive: 200,
-  surfaceBorder: 200,
-  surfaceBorderHover: 300,
-  surfaceFg: 700,
-  subtleBg: 100,
-  subtleBgHover: 200,
-  subtleBgActive: 300,
-  subtleFg: 700,
-  subtleBorder: 200,
-  outlineBorder: 300,
-  outlineFg: 700,
-  outlineBgHover: 50,
-  outlineBgActive: 100,
-  plainFg: 700,
-  plainBgHover: 50,
-  plainBgActive: 100,
-  focusRing: 500,
-  fg: 700,
-} as const;
-
-type Role = keyof typeof LIGHT;
-type DarkSteps = Record<Role, number>;
-
-// Dark shade per role for accent palettes — Tailwind numbering (default).
-const TAILWIND_DARK: DarkSteps = {
-  solidBg: 400,
-  solidBgHover: 300,
-  surfaceBg: 800,
-  surfaceBgHover: 700,
-  surfaceBgActive: 600,
-  surfaceBorder: 700,
-  surfaceBorderHover: 600,
-  surfaceFg: 200,
-  subtleBg: 800,
-  subtleBgHover: 700,
-  subtleBgActive: 600,
-  subtleFg: 200,
-  subtleBorder: 700,
-  outlineBorder: 600,
-  outlineFg: 200,
-  outlineBgHover: 800,
-  outlineBgActive: 700,
-  plainFg: 200,
-  plainBgHover: 700,
-  plainBgActive: 600,
-  focusRing: 500,
-  fg: 300,
-};
-
-// Dark shade per role for the neutral chrome — Radix "slateDark" 1–12 (1–2 bg, 3–5 component, 6–8 border, 9–10 solid, 11–12 text).
-const RADIX_DARK: DarkSteps = {
-  solidBg: 9,
-  solidBgHover: 10,
-  surfaceBg: 3,
-  surfaceBgHover: 4,
-  surfaceBgActive: 5,
-  surfaceBorder: 6,
-  surfaceBorderHover: 7,
-  surfaceFg: 11,
-  subtleBg: 3,
-  subtleBgHover: 4,
-  subtleBgActive: 5,
-  subtleFg: 11,
-  subtleBorder: 6,
-  // Step 8 (not 7) so resting control outlines clear WCAG 3:1 on the app bg; decorative borders stay at 6.
-  outlineBorder: 8,
-  outlineFg: 11,
-  outlineBgHover: 3,
-  outlineBgActive: 4,
-  plainFg: 11,
-  plainBgHover: 3,
-  plainBgActive: 4,
-  focusRing: 8,
-  fg: 11,
-};
-
-// White text on these ramps' 600 falls below WCAG AA, so their solid role takes dark text and hovers lighter.
-const DARK_TEXT_RAMPS = new Set(["green", "orange", "yellow", "teal", "cyan"]);
-
-/**
- * Compound semantic tokens for a color palette. Light and dark are sourced
- * independently: light always uses the Tailwind ramp; dark uses `darkSteps`
- * against the `dark` ramp (defaults reproduce the original Tailwind dark).
- */
-function colorPalette(light: string, dark: string = light, darkSteps: DarkSteps = TAILWIND_DARK) {
-  const p = (role: Role) =>
-    tv(`{colors.${light}.${LIGHT[role]}}`, `{colors.${dark}.${darkSteps[role]}}`);
-  const darkText = DARK_TEXT_RAMPS.has(light);
-  const solidFg = tv(darkText ? "{colors.slate.950}" : "white", "{colors.slate.950}");
-
-  return {
-    solid: {
-      bg: {
-        DEFAULT: p("solidBg"),
-        hover: darkText
-          ? tv(`{colors.${light}.500}`, `{colors.${dark}.${darkSteps.solidBgHover}}`)
-          : p("solidBgHover"),
-      },
-      fg: solidFg,
-    },
-    contrast: solidFg,
-    surface: {
-      bg: {
-        DEFAULT: p("surfaceBg"),
-        hover: p("surfaceBgHover"),
-        active: p("surfaceBgActive"),
-      },
-      border: {
-        DEFAULT: p("surfaceBorder"),
-        hover: p("surfaceBorderHover"),
-      },
-      fg: p("surfaceFg"),
-    },
-    subtle: {
-      bg: {
-        DEFAULT: p("subtleBg"),
-        hover: p("subtleBgHover"),
-        active: p("subtleBgActive"),
-      },
-      fg: p("subtleFg"),
-      border: p("subtleBorder"),
-    },
-    outline: {
-      border: p("outlineBorder"),
-      fg: p("outlineFg"),
-      bg: {
-        hover: p("outlineBgHover"),
-        active: p("outlineBgActive"),
-      },
-    },
-    plain: {
-      fg: p("plainFg"),
-      bg: {
-        hover: p("plainBgHover"),
-        active: p("plainBgActive"),
-      },
-    },
-    focusRing: p("focusRing"),
-    fg: p("fg"),
-  };
-}
-
-/**
- * Status/action palette: a full color palette plus a flat DEFAULT so the name
- * resolves both as a bare color (`color: "success"`) and as a `colorPalette`
- * (`colorPalette="success"`, used by recipes like button/badge).
- */
-function statusPalette(color: string) {
-  return { DEFAULT: tv(`{colors.${color}.500}`, `{colors.${color}.400}`), ...colorPalette(color) };
-}
-
-// Neutral chrome uses the Radix "slateDark" ramp on the dark side; light stays Tailwind slate.
-const neutral = colorPalette("slate", "slateDark", RADIX_DARK);
-neutral.surface.bg.DEFAULT = tv("white", "{colors.slateDark.2}");
-// Neutral solid.bg is a mid-gray, not a bright accent, so its label needs white text for AA contrast.
-neutral.solid.fg = tv("white", "white");
-neutral.contrast = tv("white", "white");
-
-export const colors = defineSemanticTokens.colors({
-  // Global background tokens (dark → Radix slateDark: 1 app, 2 subtle, 3 muted, 4 control/hover, 5 emphasized)
-  bg: {
-    DEFAULT: tv("white", "{colors.slateDark.1}"),
-    subtle: tv("{colors.slate.50}", "{colors.slateDark.2}"),
-    muted: tv("{colors.slate.100}", "{colors.slateDark.3}"),
-    emphasized: tv("{colors.slate.200}", "{colors.slateDark.5}"),
-    inverted: tv("{colors.slate.900}", "{colors.slate.50}"),
-    control: tv("white", "{colors.slateDark.4}"),
-    hover: tv("{colors.slate.50}", "{colors.slateDark.4}"),
-    success: {
-      DEFAULT: tv("{colors.green.50}", "{colors.green.900}"),
-      hover: tv("{colors.green.100}", "{colors.green.800}"),
-    },
-  },
-  // Global foreground tokens (dark → Radix slateDark: 12 text, 11 muted, 10 subtle)
-  fg: {
-    DEFAULT: tv("{colors.slate.900}", "{colors.slateDark.12}"),
-    muted: tv("{colors.slate.600}", "{colors.slateDark.11}"),
-    subtle: tv("{colors.slate.400}", "{colors.slateDark.10}"),
-    inverted: tv("{colors.slate.50}", "black"),
-    error: tv("{colors.red.500}", "{colors.red.400}"),
-    warning: tv("{colors.orange.600}", "{colors.orange.300}"),
-    success: tv("{colors.green.600}", "{colors.green.300}"),
-    info: tv("{colors.blue.600}", "{colors.blue.300}"),
-  },
-  // Global border tokens (dark → Radix slateDark: 3 subtle, 4 muted, 6 default, 8 emphasized)
-  border: {
-    DEFAULT: tv("{colors.slate.300}", "{colors.slateDark.6}"),
-    muted: tv("{colors.slate.100}", "{colors.slateDark.4}"),
-    subtle: tv("{colors.slate.50}", "{colors.slateDark.3}"),
-    emphasized: tv("{colors.slate.500}", "{colors.slateDark.8}"),
-    inverted: tv("{colors.slate.800}", "{colors.slate.200}"),
-    error: tv("{colors.red.500}", "{colors.red.400}"),
-    warning: tv("{colors.orange.500}", "{colors.orange.400}"),
-    success: tv("{colors.green.500}", "{colors.green.400}"),
-    info: tv("{colors.blue.500}", "{colors.blue.400}"),
-  },
-  // Search/text-match highlight — dark-text-on-amber in both modes for legibility.
-  highlight: {
-    bg: tv("{colors.yellow.200}", "{colors.yellow.400}"),
-    fg: tv("{colors.slate.900}", "{colors.slate.950}"),
-  },
-  // Status/action color aliases — full palettes usable both as a bare color
-  // (`color: "success"`) and as a `colorPalette` (`colorPalette="danger"`).
-  error: statusPalette("red"),
-  warning: statusPalette("orange"),
-  success: statusPalette("green"),
-  info: statusPalette("blue"),
-  danger: statusPalette("red"),
+export interface ColorOptions {
   /**
-   * Neutral palette — the default "chrome" color for controls, surfaces, and
-   * containers.  Recipes reference `neutral.*` so the neutral hue can be
-   * swapped in a single place (e.g. change `"gray"` to `"slate"`).
+   * Palettes to add, or to replace by name (`brand`, `red`, `orange`, `yellow`, `green`, `teal`,
+   * `cyan`, `blue`, `purple`, `pink`). Each becomes a `colorPalette` whose every shade is generated
+   * from its key colour; codegen fails when a palette cannot meet WCAG AA contrast.
    */
-  neutral,
-  brand: colorPalette("brand"),
-  red: colorPalette("red"),
-  green: colorPalette("green"),
-  orange: colorPalette("orange"),
-  blue: colorPalette("blue"),
-  gray: colorPalette("gray"),
-  slate: colorPalette("slate"),
-  yellow: colorPalette("yellow"),
-  purple: colorPalette("purple"),
-  teal: colorPalette("teal"),
-  cyan: colorPalette("cyan"),
-  pink: colorPalette("pink"),
-});
+  palettes?: Record<string, PaletteKey>;
+  /** The grey that surfaces, borders and text are generated from. Defaults to slate. */
+  neutral?: PaletteKey;
+}
+
+type Source = Step | "solid" | "solidHover" | "solidFg";
+
+const ROLES: Record<string, Source> = {
+  "solid.bg": "solid",
+  "solid.bg.hover": "solidHover",
+  "solid.fg": "solidFg",
+  "surface.bg": 1,
+  "surface.bg.hover": 3,
+  "surface.bg.active": 4,
+  "surface.border": 6,
+  "surface.border.hover": 7,
+  "surface.fg": 9,
+  "subtle.bg": 3,
+  "subtle.bg.hover": 4,
+  "subtle.bg.active": 5,
+  "subtle.border": 6,
+  "subtle.fg": 9,
+  "outline.border": 7,
+  "outline.fg": 9,
+  "outline.bg.hover": 2,
+  "outline.bg.active": 3,
+  "plain.fg": 9,
+  "plain.bg.hover": 2,
+  "plain.bg.active": 3,
+  focusRing: 9,
+  fg: 9,
+};
+
+const NEUTRAL_TEXT_ROLES = new Set(["surface.fg", "subtle.fg", "outline.fg", "plain.fg", "fg"]);
+const NEUTRAL_TEXT_STEP: Step = 10;
+const CONTROL_BORDER = 3.05;
+const HIGHLIGHT_BG = 1.35;
+
+function roles(name: string, palette: GeneratedPalette, neutral: boolean): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [role, source] of Object.entries(ROLES)) {
+    const s = neutral && NEUTRAL_TEXT_ROLES.has(role) ? NEUTRAL_TEXT_STEP : source;
+    out[`${name}.${role}`] = typeof s === "number" ? palette.steps[s] : palette[s];
+  }
+  return out;
+}
+
+function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, PaletteKey>) {
+  const bg = canvas(neutralKey, theme);
+  const neutral = generatePalette(neutralKey, neutralKey, theme);
+  const generated = Object.fromEntries(
+    Object.entries(keys).map(([name, key]) => [name, generatePalette(key, neutralKey, theme)]),
+  );
+  const n = neutral.steps;
+  const text = generateText(neutralKey, theme);
+  const control = theme === "light" ? bg : n[3];
+  const status = (name: keyof typeof STATUS) => generated[STATUS[name]];
+  const light = theme === "light";
+
+  const colors: Record<string, string> = {
+    ...roles("neutral", neutral, true),
+    "neutral.surface.bg": light ? bg : n[1],
+  };
+  for (const [name, palette] of Object.entries(generated))
+    Object.assign(colors, roles(name, palette, false));
+  for (const name of Object.keys(STATUS) as (keyof typeof STATUS)[]) {
+    Object.assign(colors, roles(name, status(name), false), { [name]: status(name).steps[8] });
+  }
+
+  return Object.assign(colors, {
+    bg,
+    "bg.subtle": n[1],
+    "bg.muted": n[3],
+    "bg.emphasized": n[5],
+    "bg.control": control,
+    "bg.inverted": text.DEFAULT,
+    fg: text.DEFAULT,
+    "fg.muted": text.muted,
+    "fg.subtle": text.subtle,
+    "fg.inverted": bg,
+    "fg.error": status("danger").steps[9],
+    "fg.warning": status("warning").steps[9],
+    "fg.success": status("success").steps[9],
+    "fg.info": status("info").steps[9],
+    border: n[6],
+    "border.subtle": n[1],
+    "border.muted": n[3],
+    "border.emphasized": n[8],
+    "border.control": solveContrast(neutralKey, control, theme, CONTROL_BORDER, 0.9),
+    "border.inverted": n[10],
+    "border.error": status("danger").steps[8],
+    "border.warning": status("warning").steps[8],
+    "border.success": status("success").steps[8],
+    "border.info": status("info").steps[8],
+    "highlight.bg": light
+      ? solveContrast(keys.yellow, bg, theme, HIGHLIGHT_BG, 1)
+      : generated.yellow.solid,
+    "highlight.fg": light ? text.DEFAULT : generated.yellow.solidFg,
+  });
+}
+
+function nest(colors: Record<Theme, Record<string, string>>) {
+  const tree: Record<string, Record<string, unknown>> = {};
+  for (const path of Object.keys(colors.light)) {
+    let node = tree as Record<string, unknown>;
+    for (const segment of path.split(".")) node = (node[segment] ??= {}) as Record<string, unknown>;
+    node.DEFAULT = { value: { _light: colors.light[path], _dark: colors.dark[path] } };
+  }
+  return tree;
+}
+
+export function createSemanticColors({
+  palettes,
+  neutral = NEUTRAL,
+}: ColorOptions = {}): SemanticTokens["colors"] {
+  const reserved = ["neutral", ...Object.keys(STATUS)].filter(
+    (name) => palettes && name in palettes,
+  );
+  if (reserved.length > 0) {
+    throw new Error(
+      `${reserved.join(", ")} cannot be set through palettes: use the neutral option, or replace the palette a status maps to (${Object.entries(
+        STATUS,
+      )
+        .map(([status, base]) => `${status} → ${base}`)
+        .join(", ")}).`,
+    );
+  }
+  const keys = { ...PALETTES, ...palettes };
+  const colors = {
+    light: themeColors("light", neutral, keys),
+    dark: themeColors("dark", neutral, keys),
+  };
+  const failures = contrastFailures(colors, [
+    "neutral",
+    ...Object.keys(keys),
+    ...Object.keys(STATUS),
+  ]);
+  if (failures.length > 0) {
+    throw new Error(`Colour palettes fail WCAG AA contrast:\n${failures.join("\n")}`);
+  }
+  return nest(colors) as SemanticTokens["colors"];
+}

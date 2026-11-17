@@ -29,7 +29,7 @@ export const tagsInput = defineSlotRecipe({
     },
     control: {
       "--focus-color": "colors.colorPalette.solid.bg",
-      "--error-color": "colors.error",
+      "--error-color": "colors.border.error",
       "--input-height": "var(--tags-input-height)",
 
       minH: "var(--tags-input-height)",

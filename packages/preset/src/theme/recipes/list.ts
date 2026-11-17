@@ -30,7 +30,7 @@ export const list = defineSlotRecipe({
       outline: "0",
       transition: "colors",
       _hover: {
-        bg: "bg.hover",
+        bg: "neutral.plain.bg.hover",
       },
       _focusVisible: {
         focusVisibleRing: "inside",

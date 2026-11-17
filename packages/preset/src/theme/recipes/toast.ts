@@ -43,7 +43,7 @@ export const toast = defineSlotRecipe({
         color: "warning",
       },
       "& > svg[data-type=error]": {
-        color: "error",
+        color: "danger",
       },
     },
     title: {
