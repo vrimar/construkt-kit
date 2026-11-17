@@ -7,7 +7,7 @@ import { createFixture } from "../../test/fixture";
 import { frames, settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
 import { cellSelector } from "./dom";
-import type { CellRange } from "./types";
+import type { CellRange, EntitySelection } from "./types";
 
 test("Mod+C on a focused cell writes its text to the clipboard as TSV", async () => {
   render(
@@ -95,6 +95,31 @@ test("Shift-clicks extend the range from the active cell, which keeps focus", as
     { start: { rowId: 1, columnId: "c0" }, end: { rowId: 3, columnId: "c3" } },
   ]);
   expect(document.activeElement).toBe(cellOf(container, 1, 0));
+});
+
+test("Shift-clicking a selectsRow cell extends the row selection without a cell range", async () => {
+  const fixture = createFixture(20, 3);
+  const onSelectionChange = vi.fn<(selection: EntitySelection | null) => void>();
+  const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
+  const { container } = render(
+    <DataGrid
+      {...fixture}
+      columnDefs={[{ ...fixture.columnDefs[0], selectsRow: true }, ...fixture.columnDefs.slice(1)]}
+      onSelectionChange={onSelectionChange}
+      onCellSelectionChange={onCellSelectionChange}
+      aria-label="Row selector"
+      style={{ width: 600, height: 400 }}
+    />,
+  );
+  await settle();
+  await userEvent.click(cellOf(container, 1, 0));
+
+  await userEvent.click(cellOf(container, 4, 0), { modifiers: ["Shift"] });
+
+  expect(onSelectionChange).toHaveBeenLastCalledWith({ kind: "rows", ids: [1, 2, 3, 4] });
+  expect(onCellSelectionChange).not.toHaveBeenCalledWith([
+    { start: { rowId: 1, columnId: "c0" }, end: { rowId: 4, columnId: "c0" } },
+  ]);
 });
 
 test("a drag-select held below the grid keeps extending the range as the grid scrolls", async () => {

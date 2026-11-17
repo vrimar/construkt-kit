@@ -93,6 +93,7 @@ mounted row, and a new `getRowHeight` re-reads every row's height. Define them o
 | `resizable`                         | Defaults to `true`. Drag a header's right edge; double-click to fit                                                                                                   |
 | `rowHeader`                         | Its cells are row headers for screen readers; a top-level leaf's header spans every level                                                                             |
 | `selectable`                        | Defaults to `true`. Clicking the header selects the column, or the group                                                                                              |
+| `selectsRow`                        | Clicking its cells selects their row, as the gutter does, instead of starting a cell range                                                                            |
 | `menu(ctx)`                         | Context-menu items for the header, leaf or group                                                                                                                      |
 | `children`                          | Makes a group. Groups nest; resizing one shares the change across its columns                                                                                         |
 | `colSpan(row, ctx)`                 | Columns a cell spans right, clipped at its pinned region's edge and before a cell an earlier merge covers                                                             |

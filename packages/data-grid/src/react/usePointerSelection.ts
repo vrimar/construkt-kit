@@ -3,6 +3,7 @@ import { type MouseEvent, type PointerEvent, type ReactNode, useRef } from "reac
 
 import type { GridCore } from "../core/grid";
 import type { SelectMode } from "../core/selection/entities";
+import type { CellPosition } from "../core/selection/navigation";
 import type { EntitySelection } from "../core/selection/types";
 import { cellAt, localPoint } from "./dom";
 import type { DataGridOwnProps } from "./types";
@@ -58,10 +59,24 @@ export function usePointerSelection<TRow>({
     autoScroll: { element: scroller, inset: () => core.scrollInset },
   });
 
+  const selectsRowAt = ({ row, column }: CellPosition) =>
+    core.columns.leaves[column]?.def.selectsRow === true &&
+    core.selection.isRowSelectable(core.nodeAt(row));
+
+  const selectRow = (row: number, column: number, event: Modifiers) => {
+    core.setActiveCell({ row, column }, { reveal: false });
+    const node = core.nodeAt(row);
+    if (core.selection.isRowSelectable(node)) {
+      core.selection.select("rows", node.id, modeOf(event));
+      core.selection.end();
+    }
+  };
+
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse" || event.button !== 0) return;
     const cell = cellAt(event.target);
     if (!cell || cell.fullWidth || interactiveWithin(event.target, cell.element)) return;
+    if (selectsRowAt(cell)) return;
     core.selection.pressCell(cell, { extend: event.shiftKey, add: modKey(event) });
     const release = (up: globalThis.PointerEvent) => {
       document.removeEventListener("pointerup", release);
@@ -99,22 +114,15 @@ export function usePointerSelection<TRow>({
     }
     const row = target.closest<HTMLElement>("[data-row-index]");
     if (row && target.closest("[data-gutter]") && !target.closest(HANDLES)) {
-      const index = Number(row.dataset.rowIndex);
-      core.setActiveCell(
-        { row: index, column: core.activePosition()?.column ?? 0 },
-        { reveal: false },
-      );
-      const node = core.nodeAt(index);
-      if (core.selection.isRowSelectable(node)) {
-        core.selection.select("rows", node.id, modeOf(event));
-        core.selection.end();
-      }
+      selectRow(Number(row.dataset.rowIndex), core.activePosition()?.column ?? 0, event);
       return true;
     }
     const cell = cellAt(target);
     if (!cell || cell.fullWidth || interactiveWithin(target, cell.element)) return false;
+    const selectsRow = selectsRowAt(cell);
+    if (selectsRow) selectRow(cell.row, cell.column, event);
     onCellClick?.(core.resolveCell(cell.row, cell.column).ctx, event);
-    return cell.sticky;
+    return selectsRow || cell.sticky;
   };
 
   const onDoubleClick = (event: MouseEvent<HTMLDivElement>) => {

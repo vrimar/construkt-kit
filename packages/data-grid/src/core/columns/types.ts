@@ -115,6 +115,8 @@ export interface ColumnDef<TRow, TNode = unknown> {
   rowHeader?: boolean;
   /** Whether clicking the header selects the column or group. Defaults to `true`. */
   selectable?: boolean;
+  /** Clicking its cells selects their row, as the row-number gutter does, instead of starting a cell range. */
+  selectsRow?: boolean;
   /** Whether it can be dragged or moved, and be a drop's target, while `onColumnsDrop` is given. Defaults to `true`. */
   reorderable?: boolean;
   /** Items for the header's context menu, for a leaf or a group. */
