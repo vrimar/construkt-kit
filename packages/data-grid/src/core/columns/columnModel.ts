@@ -1,6 +1,6 @@
 import type { AxisMetrics } from "../layout/axisWindow";
 import { columnLetter } from "./letters";
-import { distribute } from "./sizing";
+import { distribute, resizeTogether } from "./sizing";
 import type { ColumnDef, ColumnPinning, ColumnSizing, ColumnVisibility, PinnedSide } from "./types";
 
 const DEFAULT_COLUMN_WIDTH = 150;
@@ -133,8 +133,7 @@ export class ColumnModel<TRow, TNode> implements AxisMetrics {
     }
     this.leaves = leaves;
     this.widths = { left: regionX.left, center: regionX.center, right: regionX.right };
-    const firstCenter = leaves.findIndex((leaf) => leaf.region === "center");
-    this.centerStart = firstCenter < 0 ? leaves.length : firstCenter;
+    this.centerStart = leaves.filter((leaf) => leaf.region === "left").length;
     this.centerEnd = this.centerStart + leaves.filter((leaf) => leaf.region === "center").length;
     this.headerRows = this.buildHeaderRows();
   }
@@ -194,10 +193,18 @@ export class ColumnModel<TRow, TNode> implements AxisMetrics {
   }
 
   visibleLeavesUnder(id: string): Leaf<TRow, TNode>[] {
-    const node = this.nodes.get(id);
-    if (!node) return [];
-    const ids = new Set(this.leafNodes(node).map((leaf) => leaf.def.id));
-    return this.leaves.filter((leaf) => ids.has(leaf.id));
+    const cell = this.cellsById.get(id);
+    return cell ? this.leaves.slice(cell.first, cell.last + 1) : [];
+  }
+
+  resizedWidths(columnId: string, delta: number): Record<string, number> {
+    const leaves = this.visibleLeavesUnder(columnId);
+    const widths = resizeTogether(
+      leaves.map((leaf) => leaf.width),
+      leaves.map((leaf) => ({ min: leaf.minWidth, max: leaf.maxWidth })),
+      delta,
+    );
+    return Object.fromEntries(leaves.map((leaf, index) => [leaf.id, widths[index]]));
   }
 
   leafIdsUnder(id: string): string[] {
@@ -295,26 +302,35 @@ export class ColumnModel<TRow, TNode> implements AxisMetrics {
   private buildHeaderRows(): HeaderCell<TRow, TNode>[][] {
     const levelCount = this.leaves.reduce((max, leaf) => Math.max(max, leaf.depth + 1), 0);
     const rows: HeaderCell<TRow, TNode>[][] = Array.from({ length: levelCount }, () => []);
-    const visit = (node: ColumnNode<TRow, TNode>) => {
-      const leaves = this.visibleLeavesUnder(node.def.id);
-      if (leaves.length === 0) return;
-      const first = leaves[0];
+    const visit = (node: ColumnNode<TRow, TNode>): HeaderCell<TRow, TNode> | undefined => {
       const isGroup = node.children.length > 0;
+      let first = isGroup ? -1 : this.indexOf(node.def.id);
+      let last = first;
+      let resizable = !isGroup && node.def.resizable !== false;
+      for (const child of node.children) {
+        const span = visit(child);
+        if (!span) continue;
+        if (first < 0) first = span.first;
+        last = span.last;
+        resizable ||= span.resizable;
+      }
+      if (first < 0) return undefined;
+      const leaf = this.leaves[first];
       const cell: HeaderCell<TRow, TNode> = {
         id: node.def.id,
         def: node.def,
         level: node.depth,
         rowSpan: isGroup ? 1 : levelCount - node.depth,
         isGroup,
-        first: first.index,
-        last: leaves[leaves.length - 1].index,
-        region: first.region,
-        groupStart: first.groupStart,
-        resizable: leaves.some((leaf) => leaf.def.resizable !== false),
+        first,
+        last,
+        region: leaf.region,
+        groupStart: leaf.groupStart,
+        resizable,
       };
       rows[node.depth].push(cell);
       this.cellsById.set(cell.id, cell);
-      for (const child of node.children) visit(child);
+      return cell;
     };
     for (const top of this.tops) visit(top);
     for (const row of rows) row.sort((a, b) => a.first - b.first);

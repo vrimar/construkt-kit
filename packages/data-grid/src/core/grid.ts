@@ -1,7 +1,6 @@
 import { encodeHtml, encodeTsv } from "./clipboard/encode";
 import { formatCellValue, mergeCellSpecs } from "./columns/cellSpec";
 import { type ColumnState, ColumnModel, type HeaderCell, type Region } from "./columns/columnModel";
-import { resizeTogether } from "./columns/sizing";
 import type {
   CellContext,
   CellRenderContext,
@@ -262,6 +261,7 @@ export class GridCore<TRow, TNode = unknown> {
   private columnInputs: readonly unknown[] = [];
   private expandedSet: ReadonlySet<RowId> = new Set();
   private readonly transientHeights = new Map<RowId, number>();
+  private transientWidths: ColumnSizing | null = null;
   private rowInputs: readonly unknown[] = [];
   private readonly clientModel: ClientRowModel<TRow>;
   private spanIndex: SpanIndex<TRow, TNode> | null = null;
@@ -1105,33 +1105,25 @@ export class GridCore<TRow, TNode = unknown> {
     STATE_CALLBACKS[key](this.options)?.(value);
   }
 
-  previewColumns(widths: Readonly<Record<string, number>>): ColumnModel<TRow, TNode> {
-    const state = this.columnState();
-    return new ColumnModel(
-      this.columns.defs,
-      { ...state, columnSizing: { ...state.columnSizing, ...widths } },
-      this.viewportWidth,
-      this.gutterWidth,
-    );
+  previewColumnWidths(widths: ColumnSizing | null): void {
+    if (widths === this.transientWidths) return;
+    this.transientWidths = widths;
+    this.channels.batch(() => {
+      this.refreshColumns();
+      this.updateWindow();
+    });
   }
 
-  resizedWidths(columnId: string, delta: number): Record<string, number> {
-    const leaves = this.columns.visibleLeavesUnder(columnId);
-    const widths = resizeTogether(
-      leaves.map((leaf) => leaf.width),
-      leaves.map((leaf) => ({ min: leaf.minWidth, max: leaf.maxWidth })),
-      delta,
-    );
-    return Object.fromEntries(leaves.map((leaf, index) => [leaf.id, widths[index]]));
-  }
-
-  setColumnWidths(widths: Readonly<Record<string, number>>): void {
+  setColumnWidths(widths: ColumnSizing): void {
     const clamped = Object.entries(widths).map(([id, width]) => [
       id,
       this.columns.clampWidth(id, width),
     ]);
-    this.commit({
-      columnSizing: { ...this.state.columnSizing.value, ...Object.fromEntries(clamped) },
+    this.channels.batch(() => {
+      this.previewColumnWidths(null);
+      this.commit({
+        columnSizing: { ...this.state.columnSizing.value, ...Object.fromEntries(clamped) },
+      });
     });
   }
 
@@ -1161,8 +1153,9 @@ export class GridCore<TRow, TNode = unknown> {
   }
 
   private columnState(): ColumnState {
+    const sizing = this.state.columnSizing.value;
     return {
-      columnSizing: this.state.columnSizing.value,
+      columnSizing: this.transientWidths ? { ...sizing, ...this.transientWidths } : sizing,
       columnPinning: this.state.columnPinning.value,
       columnVisibility: this.state.columnVisibility.value,
     };
@@ -1170,20 +1163,19 @@ export class GridCore<TRow, TNode = unknown> {
 
   private refreshColumns() {
     const defs = this.options.columnDefs;
-    const state = this.columnState();
     const inputs = [
       defs,
-      state.columnSizing,
-      state.columnPinning,
-      state.columnVisibility,
+      this.state.columnSizing.value,
+      this.transientWidths,
+      this.state.columnPinning.value,
+      this.state.columnVisibility.value,
       this.viewportWidth,
       this.gutterWidth,
     ];
     if (inputs.every((input, index) => Object.is(input, this.columnInputs[index]))) return;
     this.columnInputs = inputs;
     const previous = this.columns;
-    this.columns = new ColumnModel(defs, state, this.viewportWidth, this.gutterWidth);
-    this.spanIndex = null;
+    this.columns = new ColumnModel(defs, this.columnState(), this.viewportWidth, this.gutterWidth);
     this.columnWindow.invalidate();
     this.channels.notify(GRID_CHANNELS.geometry);
     const sameLeaves =
@@ -1195,6 +1187,7 @@ export class GridCore<TRow, TNode = unknown> {
           leaf.region === this.columns.leaves[index].region,
       );
     if (!sameLeaves) {
+      this.spanIndex = null;
       this.channels.notify(GRID_CHANNELS.cells);
       if (previous.leaves.length > 0) this.selection.collapseRanges();
     }

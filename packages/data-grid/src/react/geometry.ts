@@ -38,11 +38,6 @@ export function geometryVars<TRow, TNode>(columns: ColumnModel<TRow, TNode>, gut
   return vars;
 }
 
-export function writeGeometry(element: HTMLElement | null, vars: Record<string, string>) {
-  if (!element) return;
-  for (const [name, value] of Object.entries(vars)) element.style.setProperty(name, value);
-}
-
 export function ariaRows(core: AnyGridCore) {
   const top = core.columns.headerRows.length + 1;
   const body = top + core.pinnedTop.nodes.length;

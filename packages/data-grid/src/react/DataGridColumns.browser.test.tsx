@@ -108,6 +108,32 @@ test("a resize drag moves later header and body cells live and commits once on r
   expect(onColumnSizingChange).toHaveBeenCalledWith({ c1: 120 + Math.round(moved) });
 });
 
+test("a shrinking resize drag renders the columns it pulls into view", async () => {
+  const fixture = createFixture(20, 16);
+  const { container } = render(
+    <DataGrid
+      {...fixture}
+      columnDefs={[
+        { id: "group", header: "Group", children: fixture.columnDefs.slice(0, 6) },
+        ...fixture.columnDefs.slice(6),
+      ]}
+      aria-label="Shrinking"
+      style={{ width: 900, height: 400 }}
+    />,
+  );
+  await settle();
+  const scroller = scrollerOf(container).getBoundingClientRect();
+
+  await commands.pressOn('[data-resize-handle="group"]');
+  await commands.moveBy(-480, 0);
+  await nextFrame();
+  const row = cellOf(container, 0, 6).getBoundingClientRect();
+  const hit = document.elementFromPoint(scroller.right - 40, row.top + row.height / 2);
+  await commands.release();
+
+  expect(hit?.closest("[data-col-index]")).not.toBeNull();
+});
+
 test("a group's label stays in view while its columns are scrolled partly out", async () => {
   const fixture = createFixture(20, 12);
   const { container } = render(

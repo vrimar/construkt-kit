@@ -295,7 +295,6 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
                 core={core}
                 classes={classes}
                 renderedColumns={renderedColumns}
-                rootRef={rootRef}
                 gutter={rowNumbers}
                 onAutosize={(columnId) => autosize([columnId])}
                 resizeLabel={labels.resizeColumn}

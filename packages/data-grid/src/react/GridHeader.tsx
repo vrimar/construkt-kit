@@ -3,21 +3,13 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
-  type RefObject,
   useId,
   useRef,
   useState,
 } from "react";
 
 import type { HeaderCell } from "../core/columns/columnModel";
-import {
-  REGIONS,
-  columnGeometry,
-  geometryVars,
-  regionProps,
-  spanGeometry,
-  writeGeometry,
-} from "./geometry";
+import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { AnyGridCore } from "./useGridCore";
@@ -26,7 +18,6 @@ interface HeaderCellViewProps {
   core: AnyGridCore;
   classes: DataGridClasses;
   cell: HeaderCell<any, ReactNode>;
-  rootRef: RefObject<HTMLElement | null>;
   onAutosize: (columnId: string) => void;
   resizeLabel: string;
   renameLabel: string;
@@ -131,7 +122,6 @@ function HeaderCellView({
   core,
   classes,
   cell,
-  rootRef,
   onAutosize,
   resizeLabel,
   renameLabel,
@@ -140,25 +130,21 @@ function HeaderCellView({
 }: HeaderCellViewProps) {
   const headerId = useId();
   const resizeLabelId = useId();
-  const widths = useRef<Record<string, number> | null>(null);
+  const start = useRef(core.columns);
   const [keyboardResizing, setKeyboardResizing] = useState(false);
-  const restore = () => writeGeometry(rootRef.current, geometryVars(core.columns, core.gutter));
 
   const { onPointerDown } = usePointerDrag<HTMLSpanElement>({
     claimPress: true,
     activeAttribute: "data-resizing",
-    onMove: ({ deltaX }) => {
-      widths.current = core.resizedWidths(cell.id, deltaX);
-      writeGeometry(
-        rootRef.current,
-        geometryVars(core.previewColumns(widths.current), core.gutter),
-      );
+    onPress: () => {
+      start.current = core.columns;
     },
-    onEnd: (_, { cancelled }) => {
-      const next = widths.current;
-      widths.current = null;
-      restore();
-      if (!cancelled && next) core.setColumnWidths(next);
+    onMove: ({ deltaX }) => {
+      core.previewColumnWidths(start.current.resizedWidths(cell.id, deltaX));
+    },
+    onEnd: ({ deltaX }, { cancelled }) => {
+      if (cancelled) core.previewColumnWidths(null);
+      else core.setColumnWidths(start.current.resizedWidths(cell.id, deltaX));
     },
   });
 
@@ -166,7 +152,9 @@ function HeaderCellView({
     const step = event.shiftKey ? KEY_STEP_LARGE : KEY_STEP;
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
-      core.setColumnWidths(core.resizedWidths(cell.id, event.key === "ArrowRight" ? step : -step));
+      core.setColumnWidths(
+        core.columns.resizedWidths(cell.id, event.key === "ArrowRight" ? step : -step),
+      );
     } else if (event.key === "Enter" || event.key === "Escape" || event.key === "Tab") {
       event.preventDefault();
       onResizeExit();

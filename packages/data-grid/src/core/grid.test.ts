@@ -51,7 +51,7 @@ const groupedColumns: ColumnDef<Row>[] = [
 test("resizing a group shares the delta across its columns and stops each at its min", () => {
   const grid = new GridCore<Row>({ rows, getRowId: (row) => row.id, columnDefs: groupedColumns });
 
-  expect(grid.resizedWidths("group", -150)).toEqual({ wide: 170, narrow: 80 });
+  expect(grid.columns.resizedWidths("group", -150)).toEqual({ wide: 170, narrow: 80 });
 });
 
 test("pinning one column pins its whole top-level group", () => {

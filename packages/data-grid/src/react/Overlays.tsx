@@ -1,6 +1,7 @@
 import { usePointerDrag } from "@construkt-kit/ui";
 import { type PointerEventHandler, useEffect, useRef } from "react";
 
+import type { Region } from "../core/columns/columnModel";
 import type { CellTone } from "../core/columns/types";
 import { type Flash, GRID_CHANNELS } from "../core/grid";
 import type { CellPosition } from "../core/selection/navigation";
@@ -157,14 +158,16 @@ function OverlayBox({ core, classes, rect, kind, tone, onHandleDown }: OverlayBo
   const top = Math.max(rect.top, start - WINDOW_MARGIN);
   const bottom = Math.min(rect.bottom, end + WINDOW_MARGIN);
   if (bottom < top) return null;
-  const { leaves } = core.columns;
+  const { leaves, centerStart, centerEnd } = core.columns;
+  const bounds: Record<Region, readonly [number, number]> = {
+    left: [0, centerStart],
+    center: [centerStart, centerEnd],
+    right: [centerEnd, leaves.length],
+  };
   const parts = REGIONS.map((region) => {
-    const inRegion = leaves.filter(
-      (leaf) => leaf.region === region && leaf.index >= rect.left && leaf.index <= rect.right,
-    );
-    return inRegion.length > 0
-      ? { region, first: inRegion[0].index, last: inRegion[inRegion.length - 1].index }
-      : null;
+    const first = Math.max(rect.left, bounds[region][0]);
+    const last = Math.min(rect.right, bounds[region][1] - 1);
+    return first <= last ? { region, first, last } : null;
   });
   const present = parts.filter((part) => part !== null);
   const firstRegion = present[0]?.region;
