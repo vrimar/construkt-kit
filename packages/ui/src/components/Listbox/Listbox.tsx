@@ -565,8 +565,19 @@ function ListboxSimple<T, V extends SelectionValue>(
 ) {
   const listboxProps = { ...props, search: props.search ?? true };
   const { managed, rootProps, rest } = useManagedListbox<T, V, typeof listboxProps>(listboxProps);
-  const { ref, label, contentCss, typeahead, ...restProps } = rest;
+  const {
+    ref,
+    label,
+    contentCss,
+    typeahead,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledBy,
+    ...restProps
+  } = rest;
   const [listOptions, rootRest] = splitManagedListOptions<T, V, typeof restProps>(restProps);
+  const contentProps: HTMLStyledProps<"div"> = { css: contentCss };
+  if (ariaLabel !== undefined) contentProps["aria-label"] = ariaLabel;
+  if (ariaLabelledBy !== undefined) contentProps["aria-labelledby"] = ariaLabelledBy;
 
   return (
     <Root
@@ -584,7 +595,7 @@ function ListboxSimple<T, V extends SelectionValue>(
         managed={managed}
         typeahead={typeahead}
         {...listOptions}
-        contentProps={{ css: contentCss }}
+        contentProps={contentProps}
       />
     </Root>
   );
