@@ -193,10 +193,14 @@ export const dropdownItem = (size: ControlSize) => ({
   _icon: { boxSize: controlIcon(size) },
 });
 
-/** Group-label box for the dropdown family; callers add their own text style. */
+/** Space above every item group after the first, for dropdown lists without separators. */
+export const dropdownItemGroupSpacing = { "& + &": { mt: "1.5" } };
+
+/** Group-label box for the dropdown family, two steps shorter than an item row but never shorter than its text; callers add their own text style. */
 export const dropdownItemGroupLabel = (size: ControlSize) => ({
   px: controlPxCompact(size),
-  height: controlHCompact(size),
+  height: `calc(${controlHCompact(size)} - 2 * ${STEP})`,
+  minHeight: "min-content",
 });
 
 /** Container/overlay padding — proportional multiplier knob. Pass a rem literal (e.g. "1rem"). */

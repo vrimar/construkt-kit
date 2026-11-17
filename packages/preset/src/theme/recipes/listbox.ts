@@ -1,7 +1,20 @@
 import { listboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlGap, controlText, dropdownItem, dropdownItemGroupLabel } from "./control-size";
+import {
+  type ControlSize,
+  controlGap,
+  controlPxCompact,
+  controlText,
+  dropdownItem,
+  dropdownItemGroupLabel,
+  dropdownItemGroupSpacing,
+} from "./control-size";
+
+// Must equal content `p` plus item `px`.
+const textInset = (size: ControlSize) => ({
+  "--listbox-text-inset": `calc({spacing.1} + ${controlPxCompact(size)})`,
+});
 
 export const listbox = defineSlotRecipe({
   className: "listbox",
@@ -87,17 +100,18 @@ export const listbox = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       minWidth: "0",
+      ...dropdownItemGroupSpacing,
     },
     itemGroupLabel: {
       alignItems: "flex-start",
       color: "fg.subtle",
       display: "flex",
       flexDirection: "column",
-      fontWeight: "medium",
+      fontWeight: "semibold",
       gap: "1px",
       justifyContent: "center",
       textTransform: "uppercase",
-      letterSpacing: "wide",
+      letterSpacing: "wider",
       _after: {
         content: '""',
         width: "100%",
@@ -143,6 +157,7 @@ export const listbox = defineSlotRecipe({
     },
     size: {
       xs: {
+        root: textInset("xs"),
         content: { p: "1", gap: "0.5", ...controlText("2xs") },
         item: dropdownItem("xs"),
         itemHint: { ...controlText("2xs"), ps: controlGap("xs") },
@@ -151,6 +166,7 @@ export const listbox = defineSlotRecipe({
         label: controlText("xs"),
       },
       sm: {
+        root: textInset("sm"),
         content: { p: "1", gap: "0.5", ...controlText("xs") },
         item: dropdownItem("sm"),
         itemHint: { ...controlText("2xs"), ps: controlGap("sm") },
@@ -159,6 +175,7 @@ export const listbox = defineSlotRecipe({
         label: controlText("sm"),
       },
       md: {
+        root: textInset("md"),
         content: { p: "1", gap: "0.5", ...controlText("sm") },
         item: dropdownItem("md"),
         itemHint: { ...controlText("xs"), ps: controlGap("md") },
@@ -167,6 +184,7 @@ export const listbox = defineSlotRecipe({
         label: controlText("sm"),
       },
       lg: {
+        root: textInset("lg"),
         content: { p: "1", gap: "0.5", ...controlText("md") },
         item: dropdownItem("lg"),
         itemHint: { ...controlText("xs"), ps: controlGap("lg") },

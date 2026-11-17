@@ -39,7 +39,21 @@ const StyledTrigger = withContext(ArkPopover.Trigger, "trigger");
 
 const Body = withContext(ark.div, "body");
 const Header = withContext(ark.div, "header");
-const Footer = withContext(ark.div, "footer");
+const StyledFooter = withContext(ark.div, "footer");
+
+export interface PopoverFooterProps extends ComponentProps<typeof StyledFooter> {
+  /** Actions share the footer's width, start-aligned, edge to edge with a list body's rows. */
+  stretch?: boolean;
+}
+
+function Footer({ stretch, ...props }: PopoverFooterProps) {
+  return (
+    <StyledFooter
+      data-stretch={stretch ? "" : undefined}
+      {...props}
+    />
+  );
+}
 
 export interface PopoverRootProps extends RootProps, MobileLayoutProps {
   placement?: NonNullable<RootProps["positioning"]>["placement"];

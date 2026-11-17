@@ -1,7 +1,7 @@
 import { popoverAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlText, surface } from "./control-size";
+import { controlPxCompact, controlText, surface } from "./control-size";
 import { floatingArrow } from "./floating-arrow";
 
 export const popover = defineSlotRecipe({
@@ -25,8 +25,8 @@ export const popover = defineSlotRecipe({
     },
     title: {
       color: "fg",
-      fontWeight: "medium",
-      ...controlText("lg"),
+      fontWeight: "semibold",
+      ...controlText("md"),
     },
     description: {
       color: "fg.muted",
@@ -43,7 +43,16 @@ export const popover = defineSlotRecipe({
       pt: "var(--popover-padding)",
       px: "var(--popover-padding)",
     },
-    body: { p: "var(--popover-padding)", display: "flex", flex: "1", flexDirection: "column" },
+    body: {
+      p: "var(--popover-padding)",
+      display: "flex",
+      flex: "1",
+      flexDirection: "column",
+      "& > [data-scope=listbox][data-part=root]": {
+        m: "calc(-1 * var(--listbox-text-inset))",
+        width: "auto",
+      },
+    },
     footer: {
       display: "flex",
       alignItems: "center",
@@ -51,6 +60,13 @@ export const popover = defineSlotRecipe({
       gap: surface("0.75rem"),
       paddingInline: "var(--popover-padding)",
       paddingBottom: "var(--popover-padding)",
+      "&[data-stretch]": {
+        justifyContent: "stretch",
+        gap: "1",
+        paddingInline: `calc(var(--popover-padding) - ${controlPxCompact("md")})`,
+        paddingBottom: `calc(var(--popover-padding) - ${controlPxCompact("md")})`,
+        "& > *": { flex: "1 1 0", minWidth: "0", justifyContent: "flex-start" },
+      },
     },
     arrow: floatingArrow.arrow,
     arrowTip: floatingArrow.arrowTip,

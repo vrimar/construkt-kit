@@ -275,14 +275,14 @@ export function SelectionSearchField({
   autoFocus = search.autoFocus,
   onChange,
   size = "sm",
-  variant = "plain",
+  variant = "outline",
   ...props
 }: SelectionSearchFieldProps) {
   return (
     <HStack
-      gap="0"
-      borderBottomWidth="1px"
-      borderColor="border"
+      gap="1"
+      px="1"
+      _first={{ pt: "1" }}
     >
       <SearchInput
         aria-label={placeholder}

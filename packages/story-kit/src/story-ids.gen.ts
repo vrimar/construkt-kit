@@ -1217,6 +1217,12 @@ export const stories = {
     title: "Components/Listbox",
     tags: [],
   },
+  "components-listbox--in-popover": {
+    file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
+    exportName: "InPopover",
+    title: "Components/Listbox",
+    tags: ["open-state"],
+  },
   "components-listbox--indicator-positions": {
     file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
     exportName: "IndicatorPositions",

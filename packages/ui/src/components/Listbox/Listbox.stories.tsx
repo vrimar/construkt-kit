@@ -2,7 +2,9 @@ import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Listbox } from ".";
+import { Button } from "../Buttons";
 import { HStack } from "../Layout";
+import { Popover } from "../Popover";
 
 const items = [
   { id: 1, name: "Apple" },
@@ -169,6 +171,47 @@ export const Virtualized = meta.story({
         label="Item"
         maxW="64"
       />
+    );
+  },
+});
+
+export const InPopover = meta.story({
+  tags: ["open-state"],
+  render: function InPopoverStory() {
+    const [value, setValue] = useState<number | null>(1);
+    return (
+      <Popover.Root defaultOpen>
+        <Popover.Trigger asChild>
+          <Button variant="outline">Produce</Button>
+        </Popover.Trigger>
+        <Popover.Content>
+          <Popover.Header>
+            <Popover.Title>Produce</Popover.Title>
+          </Popover.Header>
+          <Popover.Body>
+            <Listbox
+              items={produce}
+              getItemValue={(item) => item.id}
+              getItemLabel={(item) => item.name}
+              groupBy={(item) => item.kind}
+              groupSort="asc"
+              value={value}
+              onValueChange={setValue}
+              search={{ placeholder: "Search produce" }}
+              aria-label="Produce"
+            />
+          </Popover.Body>
+          <Popover.Footer stretch>
+            <Button
+              size="sm"
+              variant="plain"
+              colorPalette="brand"
+            >
+              New item…
+            </Button>
+          </Popover.Footer>
+        </Popover.Content>
+      </Popover.Root>
     );
   },
 });

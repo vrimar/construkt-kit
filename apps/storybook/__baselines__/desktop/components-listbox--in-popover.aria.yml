@@ -1,0 +1,15 @@
+- button "Produce" [expanded]
+- dialog "Produce":
+  - heading "Produce" [level=2]
+  - textbox "Search produce"
+  - listbox "Produce":
+    - group "Fruit":
+      - text: ""
+      - option "Apple" [selected]
+      - option "Banana"
+    - group "Vegetable":
+      - text: ""
+      - option "Carrot"
+      - option "Spinach"
+  - status
+  - button "New item…"

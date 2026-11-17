@@ -9,6 +9,7 @@ import {
   controlText,
   dropdownItem,
   dropdownItemGroupLabel,
+  dropdownItemGroupSpacing,
 } from "./control-size";
 import { input } from "./input";
 
@@ -67,6 +68,7 @@ export const combobox = defineSlotRecipe({
     itemGroup: {
       display: "flex",
       flexDirection: "column",
+      ...dropdownItemGroupSpacing,
     },
     itemGroupLabel: {
       alignItems: "flex-start",
