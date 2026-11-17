@@ -3,6 +3,8 @@ import { contrast } from "./oklch";
 
 const TEXT_MIN = 4.5;
 const NON_TEXT_MIN = 3;
+// Below WCAG 1.4.11's 3:1 on purpose: input edges trade contrast for a lighter look.
+const CONTROL_EDGE_MIN = 2.2;
 
 type Pair = [fg: string, bg: string, min: number];
 
@@ -53,8 +55,8 @@ const GLOBAL_PAIRS: Pair[] = [
   ),
   ["fg.inverted", "bg.inverted", TEXT_MIN],
   ["highlight.fg", "highlight.bg", TEXT_MIN],
-  ["border.control", "bg", NON_TEXT_MIN],
-  ["border.control", "bg.control", NON_TEXT_MIN],
+  ["border.control", "bg", CONTROL_EDGE_MIN],
+  ["border.control", "bg.control", CONTROL_EDGE_MIN],
   ...["border.error", "border.warning", "border.success", "border.info"].map((b): Pair => [
     b,
     "bg",

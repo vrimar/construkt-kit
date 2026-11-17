@@ -35,7 +35,7 @@ export const preset = createConstruktKitPreset({
 | `fg`, `fg.muted`                                      | Body text, secondary text — pass on every surface                                  |
 | `fg.subtle`                                           | Placeholders, hints, captions — never on `bg.emphasized` or a pressed/checked tint |
 | `border`                                              | Dividers and card edges                                                            |
-| `border.control`                                      | Edges of inputs, checkboxes, radios and switches (3:1)                             |
+| `border.control`                                      | Edges of inputs, checkboxes, radios and switches (2.2:1 light, 3:1 dark)           |
 | `colorPalette.{solid,surface,subtle,outline,plain}.*` | Component variants                                                                 |
 | `colorPalette.fg`                                     | Accent text and marks                                                              |
 | `colorPalette.control`                                | Tinted control edges and soft ranges; 3:1 on the page and on `subtle.bg` tracks    |

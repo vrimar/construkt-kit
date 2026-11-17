@@ -18,22 +18,27 @@ export interface PaletteKey {
 export type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export const STEPS: readonly Step[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-const SCALE: Record<Step, { ratio: number; chroma: Record<Theme, number> }> = {
-  1: { ratio: 1.05, chroma: { light: 0.9, dark: 0.3 } },
-  2: { ratio: 1.1, chroma: { light: 0.9, dark: 0.35 } },
-  3: { ratio: 1.18, chroma: { light: 0.9, dark: 0.4 } },
-  4: { ratio: 1.28, chroma: { light: 0.9, dark: 0.45 } },
-  5: { ratio: 1.4, chroma: { light: 0.9, dark: 0.5 } },
-  6: { ratio: 1.6, chroma: { light: 0.9, dark: 0.6 } },
-  7: { ratio: 2, chroma: { light: 0.9, dark: 0.7 } },
-  8: { ratio: 3.6, chroma: { light: 0.95, dark: 0.9 } },
-  9: { ratio: 6.5, chroma: { light: 0.9, dark: 0.85 } },
-  10: { ratio: 12, chroma: { light: 0.75, dark: 0.6 } },
+const SCALE: Record<Step, { ratio: Record<Theme, number>; chroma: Record<Theme, number> }> = {
+  1: { ratio: { light: 1.04, dark: 1.05 }, chroma: { light: 0.9, dark: 0.3 } },
+  2: { ratio: { light: 1.07, dark: 1.1 }, chroma: { light: 0.9, dark: 0.35 } },
+  3: { ratio: { light: 1.1, dark: 1.18 }, chroma: { light: 0.9, dark: 0.4 } },
+  4: { ratio: { light: 1.16, dark: 1.28 }, chroma: { light: 0.9, dark: 0.45 } },
+  5: { ratio: { light: 1.23, dark: 1.4 }, chroma: { light: 0.9, dark: 0.5 } },
+  6: { ratio: { light: 1.3, dark: 1.6 }, chroma: { light: 0.9, dark: 0.6 } },
+  7: { ratio: { light: 1.7, dark: 2 }, chroma: { light: 0.9, dark: 0.7 } },
+  8: { ratio: { light: 3.4, dark: 3.6 }, chroma: { light: 0.95, dark: 0.9 } },
+  9: { ratio: { light: 6.5, dark: 6.5 }, chroma: { light: 0.9, dark: 0.85 } },
+  10: { ratio: { light: 12, dark: 12 }, chroma: { light: 0.75, dark: 0.6 } },
 };
 const LAST_TINT_STEP = 7;
 
-export const TEXT = { DEFAULT: 15.5, muted: 8.5, subtle: 5.8 } as const;
-const TEXT_CHROMA = 0.3;
+type TextRole = "DEFAULT" | "muted" | "subtle";
+
+const TEXT: Record<Theme, Record<TextRole, number>> = {
+  light: { DEFAULT: 13, muted: 8.5, subtle: 5 },
+  dark: { DEFAULT: 15.5, muted: 8.5, subtle: 5.8 },
+};
+const TEXT_CHROMA: Record<Theme, number> = { light: 0.9, dark: 0.3 };
 
 const SOLID = {
   hoverFactor: 1.2,
@@ -146,7 +151,7 @@ function solveSolid(
   const fgY = luminance(fg);
   const f = SOLID.hoverFactor;
   const k = bgY + 0.05;
-  const restVsBg = SOLID.minNonText * SCALE[SOLID.track].ratio;
+  const restVsBg = SOLID.minNonText * SCALE[SOLID.track].ratio[theme];
   let yMin: number;
   let yMax: number;
   if (kind === "white") {
@@ -211,7 +216,8 @@ export function generatePalette(
   const path = huePath(key);
   const steps = {} as Record<Step, string>;
   for (const step of STEPS) {
-    const { ratio, chroma } = SCALE[step];
+    const ratio = SCALE[step].ratio[theme];
+    const { chroma } = SCALE[step];
     const weight = step <= LAST_TINT_STEP ? chroma[theme] * path.tints : chroma[theme];
     steps[step] = solveLuminance(path, luminanceFor(ratio, bgY, darker), weight, {
       ok: (hex) => contrast(hex, bg) >= ratio,
@@ -223,14 +229,15 @@ export function generatePalette(
   return { steps, solid: solid.rest, solidHover: solid.hover, solidFg: solid.fg };
 }
 
-export function generateText(neutral: PaletteKey, theme: Theme): Record<keyof typeof TEXT, string> {
+export function generateText(neutral: PaletteKey, theme: Theme): Record<TextRole, string> {
   const bg = canvas(neutral, theme);
   const path = huePath(neutral);
   const darker = theme === "light";
   const solve = (ratio: number) =>
-    solveLuminance(path, luminanceFor(ratio, luminance(bg), darker), TEXT_CHROMA, {
+    solveLuminance(path, luminanceFor(ratio, luminance(bg), darker), TEXT_CHROMA[theme], {
       ok: (hex) => contrast(hex, bg) >= ratio,
       dir: darker ? -1 : 1,
     });
-  return { DEFAULT: solve(TEXT.DEFAULT), muted: solve(TEXT.muted), subtle: solve(TEXT.subtle) };
+  const text = TEXT[theme];
+  return { DEFAULT: solve(text.DEFAULT), muted: solve(text.muted), subtle: solve(text.subtle) };
 }
