@@ -545,7 +545,7 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
         root: {
           "--data-grid-row-h": rowHeight(0),
           "--data-grid-header-h": rowHeight(0),
-          "--data-grid-cell-px": "{spacing.2.5}",
+          "--data-grid-cell-px": "{spacing.2}",
           "--data-grid-font-size": "{fontSizes.sm}",
           "--data-grid-line-height": "{lineHeights.normal}",
         },
