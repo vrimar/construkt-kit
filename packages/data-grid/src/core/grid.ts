@@ -107,6 +107,7 @@ export const GRID_OPTION_KEYS: Readonly<Record<keyof GridOptions<unknown, unknow
   onRowsDrop: true,
   onColumnsDrop: true,
   canDropOnto: true,
+  canDropBetween: true,
   isRowReorderable: true,
   indicator: true,
   dragHandles: true,

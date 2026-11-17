@@ -69,6 +69,34 @@ test("where canDropOnto refuses, the middle third of a row is the nearest gap", 
   expect(core.dnd.indicator).toEqual({ kind: "rows", id: "5", position: "after" });
 });
 
+test("where canDropBetween refuses, a row's top third drops onto it and a refused onto drops nothing", () => {
+  const onRowsDrop = vi.fn();
+  const core = grid({
+    onRowsDrop,
+    canDropOnto: (_, targetId) => targetId !== "6",
+    canDropBetween: (source) => source.kind !== "rows",
+  });
+
+  core.dnd.begin({ kind: "rows", id: "0" });
+  core.dnd.hover(10, rowY(5, 0.1));
+  expect(core.dnd.indicator).toEqual({ kind: "rows", id: "5", position: "onto" });
+
+  core.dnd.hover(10, rowY(6, 0.1));
+  expect(core.dnd.indicator).toBeNull();
+  core.dnd.end(false);
+  expect(onRowsDrop).not.toHaveBeenCalled();
+});
+
+test("where canDropBetween refuses, Alt+Shift moves report no drop", () => {
+  const onRowsDrop = vi.fn();
+  const core = grid({ onRowsDrop, canDropBetween: () => false });
+  core.setActiveCell({ row: 3, column: 0 });
+
+  core.runCommand("moveRowsDown");
+
+  expect(onRowsDrop).not.toHaveBeenCalled();
+});
+
 test("a hit test over a pinned top row reports the top region, not body row 0", () => {
   const core = grid({ pinnedTopRows: [{ id: "total" }] });
 

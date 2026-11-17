@@ -169,6 +169,9 @@ cell: {
 - The target's top and bottom thirds are the gaps before and after it. The middle third drops onto it when
   `canDropOnto(source, targetId)` says so, and is otherwise the nearer gap. A drop that would change nothing is not
   reported.
+- `canDropBetween(source)` returning `false` closes every gap to that drag: a whole target drops onto it where
+  `canDropOnto` allows, and nothing does otherwise. Return `source.kind !== "rows"` for rows that merge but keep their
+  order; Alt+Shift row moves then do nothing.
 - `isRowReorderable(row)` and `column.reorderable` keep an item from being dragged, moved or targeted. Pinned rows
   never take part.
 - Alt+Shift+↑ / ↓ moves the active row, or the selected rows it is in, past its neighbour; Alt+Shift+← / → does the

@@ -11,7 +11,12 @@ export interface SiblingAxis<Id> {
   next(id: Id): Id | undefined;
 }
 
-export function dropSlot(fraction: number, canDropOnto: boolean): DropPosition {
+export function dropSlot(
+  fraction: number,
+  canDropOnto: boolean,
+  canDropBetween: boolean,
+): DropPosition | null {
+  if (!canDropBetween) return canDropOnto ? "onto" : null;
   if (fraction < 1 / 3) return "before";
   if (fraction > 2 / 3) return "after";
   if (canDropOnto) return "onto";
