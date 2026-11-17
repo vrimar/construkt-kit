@@ -36,3 +36,13 @@ export { DraggableTreeNode, type DraggableTreeNodeProps } from "./DraggableTreeN
 export type { TreeNodeRenderDetails } from "./TreeRow";
 export { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
 export { TreeView, type TreeViewRootProps, type TreeViewVariantProps } from "./TreeView";
+export {
+  VirtualTree,
+  type VirtualTreeEntry,
+  type VirtualTreeProps,
+  VirtualTreeRow,
+  type VirtualTreeRowProps,
+  type VirtualTreeView,
+  type VirtualTreeViewProps,
+  useVirtualTreeView,
+} from "./VirtualTree";

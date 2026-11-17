@@ -2273,6 +2273,12 @@ export const stories = {
     title: "Components/VirtualScrollArea",
     tags: [],
   },
+  "components-virtualtree--navigation-tree": {
+    file: "packages/ui/src/components/Tree/VirtualTree.stories.tsx",
+    exportName: "NavigationTree",
+    title: "Components/VirtualTree",
+    tags: [],
+  },
   "data-datagrid--basic": {
     file: "packages/data-grid/src/react/DataGrid.stories.tsx",
     exportName: "Basic",

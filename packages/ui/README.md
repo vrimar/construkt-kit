@@ -22,7 +22,7 @@
 
 **Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
-**Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`
+**Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`; `useVirtualTreeView` + `VirtualTree` + `VirtualTreeRow` render a tree whose rows mount only in view, with keyboard navigation, tab stop and sticky branch headings intact
 
 **Sortable:** `Sortable`, `applySortableReorder`, `DragPreview` (the drag pill, also exported as `TreeDragPreview`)
 

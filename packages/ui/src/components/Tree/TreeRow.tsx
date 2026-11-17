@@ -12,7 +12,7 @@ export interface TreeNodeRenderDetails<T extends TreeNode> {
   isBranch: boolean;
 }
 
-type TreeRowPartProps = ComponentProps<typeof TreeView.Item> & {
+export type TreeRowPartProps = ComponentProps<typeof TreeView.Item> & {
   isBranch: boolean;
   loading?: boolean;
 };
