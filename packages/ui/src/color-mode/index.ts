@@ -6,3 +6,4 @@ export {
   colorModeScript,
   createColorModeScript,
 } from "./colorModeScript";
+export { resolveColor } from "./resolveColor";

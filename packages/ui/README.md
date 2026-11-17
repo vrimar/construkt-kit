@@ -294,6 +294,9 @@ inside a dark app. Semantic tokens, `color-scheme` and text colour follow the ne
 styles on the scope element itself follow the scheme around it, and an overlay portalled out of the scope follows the
 app's mode.
 
+`resolveColor(color, colorScheme)` resolves a colour, such as a token's `var(--colors-brand-solid-bg)`, through such a
+scope and returns `#rrggbb`, for exported images and documents that can't read CSS variables.
+
 ### Density
 
 Control and surface sizing runs on CSS-variable knobs that `html` sets. Override one on `:root` or any container to
