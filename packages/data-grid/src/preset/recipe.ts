@@ -15,6 +15,14 @@ const LINE = "var(--data-grid-line-color, {colors.border})";
 const GROUP_LINE = "var(--data-grid-group-line-color, {colors.border.emphasized})";
 const SELECTION = "var(--data-grid-selection-color, {colors.colorPalette.solid.bg})";
 const DROP = `var(--data-grid-drop-color, ${SELECTION})`;
+
+const layer = (color: string) => `linear-gradient(${color}, ${color})`;
+const SELECTED_LAYER = layer(
+  `var(--data-grid-selected-tint, color-mix(in srgb, ${SELECTION} 16%, transparent))`,
+);
+const HOVER_LAYER = layer(
+  "var(--data-grid-hover-tint, color-mix(in srgb, {colors.fg} 5%, transparent))",
+);
 const HEADER_BG = "var(--data-grid-header-bg, {colors.bg.subtle})";
 const HEADER_FG = "var(--data-grid-header-fg, {colors.fg.muted})";
 const INDENT = "var(--data-grid-indent, {spacing.5})";
@@ -193,7 +201,10 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       width: CANVAS_W,
       pointerEvents: "none",
       "&[data-parity=odd]": { "--data-grid-row-bg": "var(--data-grid-stripe-bg)" },
-      "&[aria-selected=true]": { "--data-grid-row-bg": "{colors.colorPalette.subtle.bg}" },
+      "&[aria-selected=true]": { "--data-grid-row-layer": SELECTED_LAYER },
+      "@media (hover: hover)": {
+        "&:hover:not([aria-selected=true])": { "--data-grid-row-layer": HOVER_LAYER },
+      },
       "&[data-dragging]": { opacity: "0.5" },
     },
     region: {
@@ -217,16 +228,16 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       ...cellBox,
       overflow: "hidden",
       textOverflow: "ellipsis",
-      bg: "var(--data-grid-cell-bg, var(--data-grid-row-bg, {colors.bg}))",
+      bgColor: "var(--data-grid-cell-bg, var(--data-grid-row-bg, {colors.bg}))",
+      bgImage: "var(--data-grid-cell-layer, var(--data-grid-row-layer, none))",
       color: "var(--data-grid-cell-fg, inherit)",
       borderRight: `var(--data-grid-column-line) solid ${LINE}`,
       borderBottom: `var(--data-grid-row-line) solid ${LINE}`,
       ...focusInset,
       ...toneStyles,
       "&[data-merged]": { overflow: "clip" },
-      "&[data-selected]": {
-        "--data-grid-cell-bg": "{colors.colorPalette.subtle.bg}",
-      },
+      "&[data-selected]": { "--data-grid-cell-layer": SELECTED_LAYER },
+      "[aria-selected=true] &[role=rowheader]": { boxShadow: `inset 3px 0 0 0 ${SELECTION}` },
       "&[data-editing]": {
         overflow: "visible",
         zIndex: "1",
@@ -454,7 +465,8 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       alignItems: "center",
       px: "var(--data-grid-cell-px)",
       overflow: "hidden",
-      bg: "var(--data-grid-row-bg, {colors.bg.subtle})",
+      bgColor: "var(--data-grid-row-bg, {colors.bg.subtle})",
+      bgImage: "var(--data-grid-row-layer, none)",
       borderBottom: `var(--data-grid-row-line) solid ${LINE}`,
       ...focusInset,
     },
