@@ -106,6 +106,8 @@ export const Conversation = meta.story({
           inputLabel="Ask or tell the assistant"
           listening={listening}
           onListeningChange={setListening}
+          busy={asked.length > 0}
+          onStop={() => setAsked([])}
           onSend={(text) => setAsked((current) => [...current, text])}
         />
       </Stack>

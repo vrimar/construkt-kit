@@ -1,5 +1,5 @@
 import { ark } from "@ark-ui/react/factory";
-import { ArrowUpIcon, MicIcon } from "lucide-react";
+import { ArrowUpIcon, MicIcon, SquareIcon } from "lucide-react";
 import type { ComponentProps, ReactNode, Ref } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
@@ -37,12 +37,25 @@ export interface ChatComposerProps extends Omit<
   context?: ReactNode;
   /** Shows the mic button, and is called with the toggled state when it is pressed. */
   onListeningChange?: ((listening: boolean) => void) | undefined;
-  /** Shows the mic button pressed and blinking. */
+  /** Shows the mic button pressed and blinking. Enter then stops listening instead of sending. */
   listening?: boolean | undefined;
+  /** Spins the mic button and disables it, such as while the last words are transcribed. */
+  micLoading?: boolean | undefined;
   /** @default "Dictate" */
   micLabel?: string | undefined;
   /** @default "Send" */
   sendLabel?: string | undefined;
+  /**
+   * A reply is being written: nothing is sent, and with `onStop` the send button becomes a stop
+   * button.
+   */
+  busy?: boolean | undefined;
+  /** Called by the stop button shown while `busy`. */
+  onStop?: (() => void) | undefined;
+  /** @default "Stop" */
+  stopLabel?: string | undefined;
+  /** Locks the text, such as while dictation writes it; the mic button stays usable. */
+  readOnly?: boolean | undefined;
   disabled?: boolean | undefined;
 }
 
@@ -57,18 +70,29 @@ export function Composer({
   context,
   onListeningChange,
   listening = false,
+  micLoading = false,
   micLabel = "Dictate",
   sendLabel = "Send",
+  busy = false,
+  onStop,
+  stopLabel = "Stop",
+  readOnly = false,
   disabled = false,
   ...props
 }: ChatComposerProps) {
   const [text, change] = useControllableState({ value, defaultValue, onChange: onValueChange });
-  const canSend = !disabled && text.trim() !== "";
+  const canSend = !disabled && !busy && !readOnly && text.trim() !== "";
+  const stoppable = busy && onStop !== undefined;
 
   const send = () => {
     if (!canSend) return;
     onSend(text);
     change("");
+  };
+
+  const enter = () => {
+    if (listening && onListeningChange) onListeningChange(false);
+    else send();
   };
 
   return (
@@ -95,8 +119,9 @@ export function Composer({
           placeholder={placeholder}
           aria-label={inputLabel ?? placeholder ?? "Message"}
           disabled={disabled}
+          readOnly={readOnly}
           onChange={(e) => change(e.currentTarget.value)}
-          onEnter={send}
+          onEnter={enter}
         />
         {onListeningChange ? (
           <MicButton
@@ -106,19 +131,21 @@ export function Composer({
             aria-label={micLabel}
             aria-pressed={listening}
             disabled={disabled}
+            loading={micLoading}
             icon={<MicIcon />}
             onClick={() => onListeningChange(!listening)}
           />
         ) : null}
         <IconButton
-          type="submit"
+          type={stoppable ? "button" : "submit"}
           size="sm"
           colorPalette="brand"
-          aria-label={sendLabel}
-          disabled={!canSend}
+          aria-label={stoppable ? stopLabel : sendLabel}
+          disabled={stoppable ? disabled : !canSend}
           focusableWhenDisabled
-          icon={<ArrowUpIcon />}
+          icon={stoppable ? <SquareIcon /> : <ArrowUpIcon />}
           onMouseDown={(event) => event.preventDefault()}
+          onClick={stoppable ? onStop : undefined}
         />
       </Box>
     </Root>
