@@ -4,6 +4,8 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import {
   type ControlSize,
   controlGap,
+  controlH,
+  controlPx,
   controlPy,
   controlText,
   dropdownItem,
@@ -16,9 +18,37 @@ const menuItem = (size: ControlSize) => ({
   "&:has([data-part=item-description])": { py: controlPy(size) },
 });
 
+const groupLabel = (size: ControlSize, captionSize: ControlSize) => ({
+  ...dropdownItemGroupLabel(size),
+  "&[data-variant=caps]": controlText(captionSize),
+});
+
+const LADDER: readonly ControlSize[] = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+
+const stepDown = (size: ControlSize, steps: number): ControlSize =>
+  LADDER[Math.max(0, LADDER.indexOf(size) - steps)] ?? "2xs";
+
+const segments = (size: ControlSize, captionSize: ControlSize) => ({
+  segmentGroup: { minH: controlH(size), gap: controlGap(size) },
+  segmentLabel: dropdownItemGroupLabel(size),
+  segmentTrack: { h: controlH(stepDown(size, 2)) },
+  segmentItem: {
+    ...controlText(captionSize),
+    px: controlPx(stepDown(size, 1)),
+  },
+});
+
 export const menu = defineSlotRecipe({
   className: "menu",
-  slots: [...menuAnatomy.keys(), "itemHint", "itemDescription"],
+  slots: [
+    ...menuAnatomy.keys(),
+    "itemHint",
+    "itemDescription",
+    "segmentGroup",
+    "segmentLabel",
+    "segmentTrack",
+    "segmentItem",
+  ],
   base: {
     content: {
       layerStyle: "dropdown.surface",
@@ -72,6 +102,60 @@ export const menu = defineSlotRecipe({
       fontWeight: "medium",
       gap: "1px",
       justifyContent: "center",
+      "&[data-variant=caps]": {
+        fontWeight: "semibold",
+        letterSpacing: "wider",
+        textTransform: "uppercase",
+      },
+    },
+    segmentGroup: {
+      alignItems: "center",
+      display: "flex",
+      justifyContent: "space-between",
+      pe: "1",
+    },
+    segmentLabel: {
+      alignItems: "center",
+      display: "flex",
+      userSelect: "none",
+    },
+    segmentTrack: {
+      alignItems: "stretch",
+      bg: "neutral.subtle.bg",
+      borderColor: "border",
+      borderRadius: "lg",
+      borderWidth: "1px",
+      display: "inline-flex",
+      flexShrink: "0",
+      p: "0.5",
+    },
+    segmentItem: {
+      alignItems: "center",
+      borderRadius: "md",
+      color: "fg.muted",
+      cursor: "pointer",
+      display: "inline-flex",
+      fontWeight: "medium",
+      justifyContent: "center",
+      outline: "0",
+      userSelect: "none",
+      whiteSpace: "nowrap",
+      "&[data-highlighted]": {
+        bg: "neutral.subtle.bg.hover",
+        color: "fg",
+      },
+      "&[data-state=checked]": {
+        bg: "bg.control",
+        boxShadow: "xs",
+        color: "fg",
+      },
+      "&[data-state=checked][data-highlighted]": {
+        bg: "bg.control",
+        boxShadow: "sm",
+      },
+      _disabled: {
+        layerStyle: "disabled",
+      },
     },
     itemIndicator: {
       justifyContent: "flex-end",
@@ -104,8 +188,19 @@ export const menu = defineSlotRecipe({
   },
   defaultVariants: {
     size: "md",
+    selection: "check",
   },
   variants: {
+    selection: {
+      check: {},
+      tint: {
+        item: {
+          "&[data-state=checked]": { bg: "colorPalette.subtle.bg" },
+          "&[data-state=checked][data-highlighted]": { bg: "colorPalette.subtle.bg.hover" },
+        },
+        itemIndicator: { display: "none" },
+      },
+    },
     size: {
       xs: {
         content: {
@@ -116,10 +211,11 @@ export const menu = defineSlotRecipe({
         },
         item: menuItem("xs"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("xs"),
+        itemGroupLabel: groupLabel("xs", "xs"),
         itemHint: { ...controlText("xs"), ps: controlGap("xs") },
         itemDescription: controlText("xs"),
         separator: { mx: "-1", my: "0.5" },
+        ...segments("xs", "xs"),
       },
       sm: {
         content: {
@@ -130,10 +226,11 @@ export const menu = defineSlotRecipe({
         },
         item: menuItem("sm"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("sm"),
+        itemGroupLabel: groupLabel("sm", "xs"),
         itemHint: { ...controlText("xs"), ps: controlGap("sm") },
         itemDescription: controlText("xs"),
         separator: { mx: "-1.5", my: "0.5" },
+        ...segments("sm", "xs"),
       },
       md: {
         content: {
@@ -144,10 +241,11 @@ export const menu = defineSlotRecipe({
         },
         item: menuItem("md"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("md"),
+        itemGroupLabel: groupLabel("md", "xs"),
         itemHint: { ...controlText("xs"), ps: controlGap("md") },
         itemDescription: controlText("xs"),
         separator: { mx: "-2", my: "0.5" },
+        ...segments("md", "xs"),
       },
       lg: {
         content: {
@@ -158,10 +256,11 @@ export const menu = defineSlotRecipe({
         },
         item: menuItem("lg"),
         itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("lg"),
+        itemGroupLabel: groupLabel("lg", "sm"),
         itemHint: { ...controlText("sm"), ps: controlGap("lg") },
         itemDescription: controlText("sm"),
         separator: { mx: "-2.5", my: "0.5" },
+        ...segments("lg", "sm"),
       },
       xl: {
         content: {
@@ -172,10 +271,11 @@ export const menu = defineSlotRecipe({
         },
         item: menuItem("xl"),
         itemGroup: { gap: "1" },
-        itemGroupLabel: dropdownItemGroupLabel("xl"),
+        itemGroupLabel: groupLabel("xl", "sm"),
         itemHint: { ...controlText("sm"), ps: controlGap("xl") },
         itemDescription: controlText("sm"),
         separator: { mx: "-3", my: "0" },
+        ...segments("xl", "sm"),
       },
     },
   },

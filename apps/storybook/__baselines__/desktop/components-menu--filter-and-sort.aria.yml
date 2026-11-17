@@ -1,0 +1,13 @@
+- button "Filter" [expanded]
+- menu "Filter":
+  - group "File type":
+    - text: ""
+    - group:
+      - menuitemradio "All files" [checked]
+      - menuitemradio "Documents"
+      - menuitemradio "Images"
+  - separator
+  - group "Sort":
+    - text: ""
+    - menuitemradio "Recent" [checked]
+    - menuitemradio "Name"

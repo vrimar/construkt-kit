@@ -1295,6 +1295,12 @@ export const stories = {
     title: "Components/Menu",
     tags: [],
   },
+  "components-menu--filter-and-sort": {
+    file: "packages/ui/src/components/Menu/Menu.stories.tsx",
+    exportName: "FilterAndSort",
+    title: "Components/Menu",
+    tags: ["desktop-only"],
+  },
   "components-menu--hints": {
     file: "packages/ui/src/components/Menu/Menu.stories.tsx",
     exportName: "Hints",

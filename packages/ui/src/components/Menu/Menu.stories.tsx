@@ -22,7 +22,7 @@ import { Menu } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Button } from "../Buttons";
 import { Kbd } from "../Kbd";
-import { Flex } from "../Layout";
+import { Box, Flex } from "../Layout";
 
 const meta = preview.meta({
   title: "Components/Menu",
@@ -395,6 +395,74 @@ function TypesDemo() {
 export const Types = meta.story({
   tags: ["desktop-only"],
   render: () => <TypesDemo />,
+});
+
+function FilterDemo() {
+  const [kind, setKind] = useState("");
+  const [sort, setSort] = useState("recent");
+
+  return (
+    <Box p="4">
+      <Menu.Root
+        open
+        onOpenChange={() => {}}
+        closeOnSelect={false}
+        selection="tint"
+      >
+        <Menu.Trigger asChild>
+          <Button variant="outline">Filter</Button>
+        </Menu.Trigger>
+        <Menu.Content
+          portalled={false}
+          width="64"
+        >
+          <Menu.ItemGroup
+            label="File type"
+            labelVariant="caps"
+          >
+            <Menu.RadioItemGroup
+              value={kind}
+              onValueChange={({ value }) => setKind(value)}
+            >
+              <Menu.RadioItem
+                value=""
+                hint={42}
+              >
+                All files
+              </Menu.RadioItem>
+              <Menu.RadioItem
+                value="docs"
+                hint={30}
+              >
+                Documents
+              </Menu.RadioItem>
+              <Menu.RadioItem
+                value="images"
+                hint={12}
+              >
+                Images
+              </Menu.RadioItem>
+            </Menu.RadioItemGroup>
+          </Menu.ItemGroup>
+          <Menu.Separator />
+          <Menu.SegmentGroup
+            label="Sort"
+            value={sort}
+            onValueChange={({ value }) => setSort(value)}
+            segments={[
+              { value: "recent", label: "Recent" },
+              { value: "name", label: "Name" },
+            ]}
+          />
+        </Menu.Content>
+      </Menu.Root>
+    </Box>
+  );
+}
+
+export const FilterAndSort = meta.story({
+  tags: ["desktop-only"],
+  render: () => <FilterDemo />,
 });
 
 export const ContextMenu = meta.story({

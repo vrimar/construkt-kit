@@ -69,6 +69,18 @@ const ItemHint = withContext("span", "itemHint", {
 const ItemDescription = withContext("div", "itemDescription", {
   defaultProps: { "data-scope": "menu", "data-part": "item-description" },
 });
+const SegmentGroupRoot = withContext(ArkMenu.RadioItemGroup, "segmentGroup", {
+  defaultProps: { "data-part": "segment-group" },
+});
+const SegmentLabel = withContext(ArkMenu.ItemGroupLabel, "segmentLabel", {
+  defaultProps: { "data-part": "segment-label" },
+});
+const SegmentTrack = withContext("div", "segmentTrack", {
+  defaultProps: { "data-scope": "menu", "data-part": "segment-track" },
+});
+const SegmentItem = withContext(ArkMenu.RadioItem, "segmentItem", {
+  defaultProps: { "data-part": "segment-item" },
+});
 
 const CountContextTriggerContext = createContext<((delta: 1 | -1) => void) | null>(null);
 
@@ -455,17 +467,70 @@ function MenuItem({
 export interface MenuItemGroupProps extends ComponentProps<typeof ItemGroup> {
   /** Heading shown above the group's items. */
   label?: ReactNode;
+  /** `caps` sets the heading as a small uppercase caption. */
+  labelVariant?: "default" | "caps";
 }
 
-function MenuItemGroup({ ref, label, children, ...rest }: WithRef<MenuItemGroupProps>) {
+function MenuItemGroup({
+  ref,
+  label,
+  labelVariant = "default",
+  children,
+  ...rest
+}: WithRef<MenuItemGroupProps>) {
   return (
     <ItemGroup
       ref={ref}
       {...rest}
     >
-      {isRenderable(label) && <ItemGroupLabel userSelect="none">{label}</ItemGroupLabel>}
+      {isRenderable(label) && (
+        <ItemGroupLabel
+          userSelect="none"
+          data-variant={labelVariant}
+        >
+          {label}
+        </ItemGroupLabel>
+      )}
       {children}
     </ItemGroup>
+  );
+}
+
+export interface MenuSegment {
+  value: string;
+  label: ReactNode;
+  disabled?: boolean | undefined;
+}
+
+export interface MenuSegmentGroupProps extends Omit<
+  ComponentProps<typeof SegmentGroupRoot>,
+  "children"
+> {
+  /** Names the choice; shown at the start of the row. */
+  label: ReactNode;
+  segments: readonly MenuSegment[];
+}
+
+/** One choice of a few, as a labelled row of segments; each segment stays a menu radio item. */
+function MenuSegmentGroup({ ref, label, segments, ...rest }: WithRef<MenuSegmentGroupProps>) {
+  return (
+    <SegmentGroupRoot
+      ref={ref}
+      {...rest}
+    >
+      <SegmentLabel>{label}</SegmentLabel>
+      <SegmentTrack>
+        {segments.map((segment) => (
+          <SegmentItem
+            key={segment.value}
+            value={segment.value}
+            disabled={segment.disabled}
+          >
+            {segment.label}
+          </SegmentItem>
+        ))}
+      </SegmentTrack>
+    </SegmentGroupRoot>
   );
 }
 
@@ -521,6 +586,7 @@ export const Menu = {
   ItemGroup: MenuItemGroup,
   TriggerItem: MenuTriggerItem,
   RadioItemGroup,
+  SegmentGroup: MenuSegmentGroup,
   ContextTrigger,
   Separator,
   ItemText,
