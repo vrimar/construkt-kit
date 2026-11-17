@@ -20,8 +20,10 @@ export const segmentGroup = defineSlotRecipe({
     root: {
       bg: "neutral.subtle.bg",
       borderRadius: "lg",
-      boxShadow: "inset 0 0 0px 1px var(--shadow-color)",
-      boxShadowColor: "border",
+      // Painted over the indicator, whose integer-rounded rect can overshoot the scroll clip.
+      outline: "1px solid",
+      outlineColor: "border",
+      outlineOffset: "-1px",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
