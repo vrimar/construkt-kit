@@ -55,9 +55,8 @@ export const treeView = defineSlotRecipe({
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
       bg: "var(--tree-row-bg)",
-      transition: "colors",
       _hover: {
-        "--tree-row-bg": "colors.bg.subtle",
+        "--tree-row-bg": "colors.bg.hover",
       },
       _selected: {
         "--tree-row-bg": "colors.bg.emphasized",
@@ -142,9 +141,8 @@ export const treeView = defineSlotRecipe({
       userSelect: "none",
       ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
       bg: "var(--tree-row-bg)",
-      transition: "colors",
       _hover: {
-        "--tree-row-bg": "colors.bg.subtle",
+        "--tree-row-bg": "colors.bg.hover",
       },
       _selected: {
         "--tree-row-bg": "colors.bg.emphasized",

@@ -28,9 +28,8 @@ export const list = defineSlotRecipe({
       textDecoration: "none",
       cursor: "pointer",
       outline: "0",
-      transition: "colors",
       _hover: {
-        bg: "neutral.plain.bg.hover",
+        bg: "bg.hover",
       },
       _focusVisible: {
         focusVisibleRing: "inside",

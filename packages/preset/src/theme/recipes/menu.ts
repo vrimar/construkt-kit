@@ -72,7 +72,7 @@ export const menu = defineSlotRecipe({
       userSelect: "none",
       width: "100%",
       _highlighted: {
-        bg: "neutral.surface.bg.hover",
+        bg: "bg.hover",
       },
       "&[data-destructive]": {
         color: "danger.plain.fg",

@@ -107,7 +107,7 @@ export const commandPalette = defineSlotRecipe({
       cursor: "pointer",
       outline: "0",
       userSelect: "none",
-      _highlighted: { bg: "neutral.surface.bg.hover" },
+      _highlighted: { bg: "bg.hover" },
       _disabled: { layerStyle: "disabled" },
     },
     itemIcon: {

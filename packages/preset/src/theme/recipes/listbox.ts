@@ -41,10 +41,10 @@ export const listbox = defineSlotRecipe({
       userSelect: "none",
       outline: "0",
       _hover: {
-        background: "neutral.surface.bg.hover",
+        background: "bg.hover",
       },
       _highlighted: {
-        background: "neutral.surface.bg.hover",
+        background: "bg.hover",
       },
       _checked: {
         color: "colorPalette.plain.fg",
