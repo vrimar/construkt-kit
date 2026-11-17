@@ -49,7 +49,6 @@ const ROLES: Record<string, Source> = {
 
 const NEUTRAL_TEXT_ROLES = new Set(["surface.fg", "subtle.fg", "outline.fg", "plain.fg", "fg"]);
 const NEUTRAL_TEXT_STEP: Step = 10;
-const CONTROL_BORDER: Record<Theme, number> = { light: 2.2, dark: 3.05 };
 const HIGHLIGHT_BG = 1.35;
 const STATE = { hover: 1.1, active: 1.2 };
 const OVERLAY_STATE: Record<Theme, typeof STATE> = {
@@ -148,7 +147,7 @@ function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, 
     "border.subtle": n[1],
     "border.muted": n[3],
     "border.emphasized": n[8],
-    "border.control": solveContrast(neutralKey, control, theme, CONTROL_BORDER[theme], 0.9),
+    "border.control": colors["neutral.outline.border"],
     "border.inverted": n[10],
     "border.error": status("danger").steps[8],
     "border.warning": status("warning").steps[8],

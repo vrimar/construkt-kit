@@ -573,7 +573,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - Unchecked `surface`, `subtle` and `outline` checkboxes and radios draw a `colorPalette.control` edge, the subtle
   `Slider` range uses it too, and an outline circular `Progress` track is `subtle.bg`
 - Light theme: greys are lighter, text greys are slate-tinted, `fg` is softer (13:1) and `fg.subtle` 5:1. Input,
-  checkbox, radio and switch edges (`border.control`) are 2.2:1, below WCAG 1.4.11's 3:1, for a lighter look
+  checkbox, radio and switch edges (`border.control`) match outline buttons (`neutral.outline.border`), 1.7:1 light
+  and 2:1 dark, below WCAG 1.4.11's 3:1, for a lighter look
 
 #### Upgrading from 0.11
 

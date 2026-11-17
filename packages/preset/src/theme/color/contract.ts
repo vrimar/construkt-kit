@@ -4,7 +4,7 @@ import { composite, contrast } from "./oklch";
 export const TEXT_MIN = 4.5;
 const NON_TEXT_MIN = 3;
 // Below WCAG 1.4.11's 3:1 on purpose: input edges trade contrast for a lighter look.
-const CONTROL_EDGE_MIN = 2.2;
+const CONTROL_EDGE_MIN = 1.6;
 
 type Pair = [fg: string, bg: string, min: number, under?: string];
 
