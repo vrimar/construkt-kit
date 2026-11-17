@@ -140,13 +140,16 @@ export const controlIcon = (size: ControlSize): string => off(BASE_ICON, ICON[si
 /** Inline checkbox/radio box size, driven by --control-base-box. */
 export const controlBox = (size: ControlSize): string => off(BASE_BOX, BOX[size]);
 
-/** Inline font-size, driven by --control-base-font. */
-export const controlFont = (size: ControlSize): string => off(BASE_FONT, FONT[size]);
+/** Inline font-size, driven by --control-base-font; sizes below md never drop under fontSizes.xs. */
+export const controlFont = (size: ControlSize): string => {
+  const font = off(BASE_FONT, FONT[size]);
+  return FONT[size] < 0 ? `max({fontSizes.xs}, ${font})` : font;
+};
 
-/** Recentred control text: paired font-size + line-height, both driven by --control-base-font. */
+/** Recentred control text: paired font-size + line-height, both driven by --control-base-font; line-height snaps up to an even pixel. */
 export const controlText = (size: ControlSize) => ({
   fontSize: controlFont(size),
-  lineHeight: off(BASE_FONT, LH[size]),
+  lineHeight: `round(up, ${off(BASE_FONT, LH[size])}, 2px)`,
 });
 
 /** Input font-size floored at --control-input-font-min, so iOS doesn't zoom on focus. */
