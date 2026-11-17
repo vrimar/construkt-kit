@@ -151,6 +151,8 @@ function SplitterPanel({
         minSize={minSize}
         onResize={onResize}
         panelRef={panelRef}
+        // Unset the library's inline overflow so the recipe and style props own it.
+        style={{ overflow: undefined }}
       >
         {children}
       </Panel>
