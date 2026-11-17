@@ -261,6 +261,13 @@ export class GridSelection<TRow, TNode> {
     return cache.columns.has(column);
   }
 
+  isSpanSelected(first: number, last: number): boolean {
+    for (let column = first; column <= last; column++) {
+      if (!this.isColumnSelected(column)) return false;
+    }
+    return true;
+  }
+
   isHeaderSelectable(def: ColumnDef<TRow, TNode>): boolean {
     return this.mode !== "none" && def.selectable !== false;
   }

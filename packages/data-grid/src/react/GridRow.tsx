@@ -10,9 +10,9 @@ import {
 
 import { headerText } from "../core/columns/columnModel";
 import { GRID_CHANNELS } from "../core/grid";
-import type { RowNode } from "../core/rows/rowNode";
+import type { RowId, RowNode } from "../core/rows/rowNode";
 import type { RowSelectionState } from "../core/selection/controller";
-import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
+import { REGIONS, columnGeometry, frameSides, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { FullWidthRowContext } from "./types";
@@ -31,6 +31,7 @@ export interface RowShared {
   expandLabel: string;
   collapseLabel: string;
   renderFullWidthRow?: (ctx: FullWidthRowContext<any>) => ReactNode;
+  frameEnd: RowId | undefined;
 }
 
 interface GridRowProps extends RowShared {
@@ -69,6 +70,7 @@ const GridRow = memo(function GridRow({
   expandLabel,
   collapseLabel,
   renderFullWidthRow,
+  frameEnd,
   selectable,
   selected,
   dragging = false,
@@ -173,7 +175,8 @@ const GridRow = memo(function GridRow({
               } as CSSProperties;
               const merged = rows > 1 || columns > 1;
               const editing = body && columnIndex === editingColumn;
-              const columnSelected = body && core.selection.isColumnSelected(columnIndex);
+              const columnSelected = core.selection.isColumnSelected(columnIndex);
+              const lastNode = rows > 1 ? core.nodeAt(rowIndex + rows - 1) : node;
               const inRange = body && core.selection.inCommittedRange(rowIndex, columnIndex);
               const content = (
                 <>
@@ -215,8 +218,11 @@ const GridRow = memo(function GridRow({
                   data-group-start={leaf.groupStart || undefined}
                   data-merged={merged || undefined}
                   data-editing={editing || undefined}
-                  aria-selected={columnSelected || inRange || undefined}
+                  aria-selected={(body && columnSelected) || inRange || undefined}
                   data-selected={columnSelected || undefined}
+                  data-frame={frameSides(core, columnIndex, columnIndex + columns - 1, {
+                    bottom: lastNode.id === frameEnd,
+                  })}
                   tabIndex={body ? (columnIndex === activeColumn ? 0 : -1) : undefined}
                   style={style}
                 >
@@ -302,6 +308,7 @@ export function PinnedBand({
 }: RowShared & { side: "top" | "bottom"; firstAriaRowIndex: number }) {
   const { core } = shared;
   const rows = core.pinnedLayout(side);
+  const selectedColumns = core.selection.selectedColumns().join(",");
   const last = rows.at(-1);
   if (!last) return null;
   return (
@@ -321,6 +328,7 @@ export function PinnedBand({
           {...nodeProps(core, node)}
           variant="pinned"
           ariaRowIndex={firstAriaRowIndex + index}
+          selectedColumns={selectedColumns}
           rowTop={top}
           rowHeight={height}
         />
@@ -338,6 +346,7 @@ export function StickyParents({
   const { core } = shared;
   useChannels(core, STICKY_CHANNELS);
   const stuck = core.stickyRows;
+  const selectedColumns = core.selection.selectedColumns().join(",");
   const last = stuck.at(-1);
   const stackHeight = last ? Math.max(0, last.top + core.rowHeight(last.index)) : 0;
   useLayoutEffect(() => {
@@ -361,6 +370,7 @@ export function StickyParents({
             {...nodeProps(core, node)}
             variant="sticky"
             rowIndex={index}
+            selectedColumns={selectedColumns}
             treeState={treeState(core, index)}
             rowTop={top}
             rowHeight={core.rowHeight(index)}

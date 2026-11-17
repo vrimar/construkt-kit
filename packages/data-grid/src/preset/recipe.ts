@@ -20,6 +20,9 @@ const layer = (color: string) => `linear-gradient(${color}, ${color})`;
 const SELECTED_LAYER = layer(
   `var(--data-grid-selected-tint, color-mix(in srgb, ${SELECTION} 16%, transparent))`,
 );
+const COLUMN_LAYER = layer(
+  `var(--data-grid-column-selected-tint, color-mix(in srgb, ${SELECTION} 6%, transparent))`,
+);
 const HOVER_LAYER = layer(
   "var(--data-grid-hover-tint, color-mix(in srgb, {colors.fg} 5%, transparent))",
 );
@@ -38,6 +41,19 @@ const cellBox: SystemStyleObject = {
   px: "var(--data-grid-cell-px)",
   whiteSpace: "nowrap",
   "&[data-group-start]": { borderLeft: `1px solid ${GROUP_LINE}` },
+};
+
+const NO_EDGE = "0 0 transparent";
+const selectionFrame: SystemStyleObject = {
+  "&[data-frame]": {
+    boxShadow: ["start", "end", "top", "bottom"]
+      .map((side) => `var(--data-grid-frame-${side}, ${NO_EDGE})`)
+      .join(", "),
+  },
+  "&[data-frame~=start]": { "--data-grid-frame-start": `inset 2px 0 0 0 ${SELECTION}` },
+  "&[data-frame~=end]": { "--data-grid-frame-end": `inset -2px 0 0 0 ${SELECTION}` },
+  "&[data-frame~=top]": { "--data-grid-frame-top": `inset 0 2px 0 0 ${SELECTION}` },
+  "&[data-frame~=bottom]": { "--data-grid-frame-bottom": `inset 0 -2px 0 0 ${SELECTION}` },
 };
 
 const focusInset: SystemStyleObject = {
@@ -173,10 +189,8 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
         left: "calc(var(--data-grid-left-w) + var(--data-grid-cell-px))",
         flex: "0 1 auto",
       },
-      "&[aria-selected=true]": {
-        bg: "{colors.colorPalette.subtle.bg}",
-        color: "{colors.colorPalette.subtle.fg}",
-      },
+      "&[data-selected]": { bgImage: COLUMN_LAYER },
+      ...selectionFrame,
       "&[data-dragging]": { opacity: "0.5" },
       "&[data-editing]": { overflow: "visible", zIndex: "1" },
     },
@@ -236,7 +250,8 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       ...focusInset,
       ...toneStyles,
       "&[data-merged]": { overflow: "clip" },
-      "&[data-selected]": { "--data-grid-cell-layer": SELECTED_LAYER },
+      "&[data-selected]": { "--data-grid-cell-layer": COLUMN_LAYER },
+      ...selectionFrame,
       "[aria-selected=true] &[role=rowheader]": { boxShadow: `inset 3px 0 0 0 ${SELECTION}` },
       "&[data-editing]": {
         overflow: "visible",

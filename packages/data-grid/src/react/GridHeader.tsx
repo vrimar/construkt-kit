@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import type { HeaderCell } from "../core/columns/columnModel";
-import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
+import { REGIONS, columnGeometry, frameSides, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { AnyGridCore } from "./useGridCore";
@@ -73,6 +73,8 @@ export function GridHeader({ renderedColumns, gutter, ...cellProps }: GridHeader
                   <div
                     key={leaves[index].id}
                     className={classes.headerCell}
+                    data-selected={core.selection.isColumnSelected(index) || undefined}
+                    data-frame={frameSides(core, index, index, { top: true })}
                     style={columnGeometry(index)}
                   >
                     <span className={classes.cellText}>{leaves[index].letter}</span>
@@ -179,6 +181,11 @@ function HeaderCellView({
   ) : (
     <span className={classes.cellText}>{def.header ?? def.id}</span>
   );
+  const parentId = core.columns.parentIdOf(cell.id);
+  const parent = parentId === undefined ? undefined : core.columns.headerCell(parentId);
+  const opensFrame =
+    core.lettersHeight === 0 &&
+    !(parent && core.selection.isSpanSelected(parent.first, parent.last));
 
   return (
     <div
@@ -194,6 +201,8 @@ function HeaderCellView({
           : undefined
       }
       data-header-id={cell.id}
+      data-selected={core.selection.isSpanSelected(cell.first, cell.last) || undefined}
+      data-frame={frameSides(core, cell.first, cell.last, { top: opensFrame })}
       data-reveal-group=""
       data-dragging={core.dnd.isDragged("columns", cell.id) || undefined}
       data-editing={renaming || undefined}
