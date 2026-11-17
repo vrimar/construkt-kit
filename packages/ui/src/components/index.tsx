@@ -21,6 +21,16 @@ export * from "./DataTable";
 export * from "./DatePicker";
 export * from "./Dialog";
 export * from "./DisplayValue";
+export {
+  type DragType,
+  type UseDraggableOptions,
+  type UseDraggableReturn,
+  type UseDropTargetOptions,
+  type UseDropTargetReturn,
+  defineDragType,
+  useDraggable,
+  useDropTarget,
+} from "./dnd";
 export * from "./Drawer";
 export * from "./Editable";
 export * from "./EmptyState";

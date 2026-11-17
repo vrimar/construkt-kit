@@ -26,6 +26,9 @@
 
 **Sortable:** `Sortable`, `applySortableReorder`, `DragPreview` (the drag pill, also exported as `TreeDragPreview`)
 
+**Drag and drop:** `defineDragType`, `useDraggable`, `useDropTarget` — typed drags between any elements, such as
+cards moved across lists; `getExternalData` also hands native data to `dataTransfer` readers like DataGrid's external drop
+
 **Date Pickers:** `Calendar`, `DatePicker`, `DatePickerSelect`
 
 **Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `NavRail`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`

@@ -743,6 +743,12 @@ export const stories = {
     title: "Components/DisplayValue",
     tags: [],
   },
+  "components-draganddrop--across-lists": {
+    file: "packages/ui/src/components/dnd/DragAndDrop.stories.tsx",
+    exportName: "AcrossLists",
+    title: "Components/DragAndDrop",
+    tags: [],
+  },
   "components-drawer--default": {
     file: "packages/ui/src/components/Drawer/Drawer.stories.tsx",
     exportName: "Default",
