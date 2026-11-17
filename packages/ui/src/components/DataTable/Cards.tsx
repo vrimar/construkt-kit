@@ -156,6 +156,7 @@ interface DataTableCardsProps<TData extends object> {
   table: DataTableInstance<TData>;
   showFilters: boolean;
   renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
+  emptyState?: React.ReactNode;
 }
 
 /**
@@ -167,6 +168,7 @@ export const DataTableCards = <TData extends object>({
   table,
   showFilters,
   renderSubRow,
+  emptyState,
 }: DataTableCardsProps<TData>) => {
   const { getRowInteractionProps } = useDataTableContext<TData>();
   const scrollRef = useScrollTopOnPage(table);
@@ -198,6 +200,7 @@ export const DataTableCards = <TData extends object>({
         <DataTableStatus
           layout="flow"
           isEmpty={rows.length === 0}
+          emptyState={emptyState}
         />
         <Stack gap="2">
           {rows.map((row) => (

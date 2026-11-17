@@ -63,6 +63,7 @@ export function splitKeys<P extends object, K extends string>(
 const MANAGED_LIST_OPTIONS = {
   loading: true,
   emptyMessage: true,
+  emptyState: true,
   indicatorPosition: true,
   renderItem: true,
   renderItemActions: true,

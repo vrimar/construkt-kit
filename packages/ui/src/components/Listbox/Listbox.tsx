@@ -436,6 +436,7 @@ export function ManagedList<T, V extends SelectionValue>({
   typeahead = true,
   loading,
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
+  emptyState,
   renderItem,
   renderItemActions,
   renderItemHint,
@@ -543,8 +544,9 @@ export function ManagedList<T, V extends SelectionValue>({
         onKeyDown={handleKeyDown}
       >
         {renderRows()}
-        {showEmpty && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>}
+        {showEmpty && emptyState == null && <ListboxEmptyState>{emptyMessage}</ListboxEmptyState>}
       </Content>
+      {showEmpty && emptyState}
       <VisuallyHidden
         role="status"
         aria-live="polite"

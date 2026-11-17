@@ -1,5 +1,5 @@
 import { RefreshCwIcon } from "lucide-react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { Box } from "#styled-system/jsx";
 
@@ -20,9 +20,10 @@ interface DataTableStatusProps {
   /** `fill` grows to fill the table body; `flow` takes only its own height. */
   layout: "fill" | "flow";
   isEmpty: boolean;
+  emptyState?: ReactNode;
 }
 
-export const DataTableStatus = ({ layout, isEmpty }: DataTableStatusProps) => {
+export const DataTableStatus = ({ layout, isEmpty, emptyState }: DataTableStatusProps) => {
   const { loading, labels, onReset } = useDataTableContext();
   const fill = layout === "fill";
   const overlay = <LoadingOverlay loading={loading} />;
@@ -45,7 +46,18 @@ export const DataTableStatus = ({ layout, isEmpty }: DataTableStatusProps) => {
       ) : (
         overlay
       )}
-      {isEmpty && (
+      {isEmpty && emptyState != null && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          flex={fill ? "1" : undefined}
+          visibility={loading ? "hidden" : undefined}
+          style={fill ? pinnedToViewport : undefined}
+        >
+          {emptyState}
+        </Box>
+      )}
+      {isEmpty && emptyState == null && (
         // Hidden, not unmounted, while loading: it gives the overlay an empty body's height.
         <EmptyState.Root
           flex={fill ? "1" : undefined}

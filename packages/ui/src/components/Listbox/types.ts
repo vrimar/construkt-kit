@@ -102,6 +102,8 @@ export type ManagedItemProps = Partial<
 export interface ManagedListOptions<T, V extends SelectionValue> {
   loading?: boolean;
   emptyMessage?: ReactNode;
+  /** Replaces the empty message's block, for an empty state with its own icon or actions. `emptyMessage` is still announced. */
+  emptyState?: ReactNode;
   indicatorPosition?: SelectionIndicatorPosition;
   renderItem?: (item: T, state: SelectionItemState<V>) => ReactNode;
   /** Controls at the end of each row. A list with actions is a `grid` of rows rather than a `listbox`. */

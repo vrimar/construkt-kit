@@ -16,12 +16,14 @@ interface DataTableBodyProps<TData extends object> {
   table: DataTableInstance<TData>;
   showFiltersRow?: boolean;
   renderSubRow?: (row: DataTableRow<TData>) => React.ReactNode;
+  emptyState?: React.ReactNode;
 }
 
 export const DataTableBody = <TData extends object>({
   table,
   showFiltersRow,
   renderSubRow,
+  emptyState,
 }: DataTableBodyProps<TData>) => {
   const { getRowInteractionProps, columnSizing, gridRef, loading } = useDataTableContext<TData>();
   const scrollRef = useScrollTopOnPage(table);
@@ -91,6 +93,7 @@ export const DataTableBody = <TData extends object>({
               <DataTableStatus
                 layout="fill"
                 isEmpty={rows.length === 0}
+                emptyState={emptyState}
               />
             </Box>
           </Box>

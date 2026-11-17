@@ -71,6 +71,8 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
   showFiltersRow?: boolean;
   variant?: "default" | "basic";
   labels?: DataTableLabels;
+  /** Replaces the "no results" block, for an empty state with its own icon or actions. */
+  emptyState?: React.ReactNode;
   /**
    * How the table adapts below the `md` breakpoint.
    * - `"scroll"` (default): keep the grid layout.
@@ -176,6 +178,7 @@ export const DataTable = <TData extends object>({
   getRowProps,
   variant,
   labels,
+  emptyState,
   mobileLayout = "scroll",
   enableColumnResizing = false,
   columnSizing,
@@ -397,12 +400,14 @@ export const DataTable = <TData extends object>({
             table={table}
             showFilters={showFiltersRow}
             renderSubRow={renderSubRow}
+            emptyState={emptyState}
           />
         ) : (
           <DataTableBody
             table={table}
             showFiltersRow={showFiltersRow}
             renderSubRow={renderSubRow}
+            emptyState={emptyState}
           />
         )}
 
