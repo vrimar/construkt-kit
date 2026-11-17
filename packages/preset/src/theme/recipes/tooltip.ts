@@ -9,9 +9,9 @@ export const tooltip = defineSlotRecipe({
   base: {
     content: {
       zIndex: "calc(var(--z-index-tooltip) + var(--layer-index, 0))",
-      "--tooltip-bg": "colors.neutral.solid.bg",
+      "--tooltip-bg": "colors.bg.inverted",
       bg: "var(--tooltip-bg)",
-      color: "neutral.solid.fg",
+      color: "fg.inverted",
       borderRadius: "md",
       boxShadow: "sm",
       fontWeight: "semibold",

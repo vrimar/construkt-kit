@@ -35,14 +35,14 @@ export const input = {
     variant: {
       outline: {
         borderWidth: "1px",
-        borderColor: "neutral.outline.border",
+        borderColor: "border.control",
         focusVisibleRing: "inside",
         _invalid: invalidRing,
       },
       surface: {
         bg: "neutral.surface.bg",
         borderWidth: "1px",
-        borderColor: "neutral.surface.border",
+        borderColor: "border.control",
         focusVisibleRing: "inside",
 
         _invalid: invalidRing,
@@ -58,7 +58,7 @@ export const input = {
       },
       flushed: {
         borderBottomWidth: "1px",
-        borderBottomColor: "neutral.outline.border",
+        borderBottomColor: "border.control",
         borderRadius: "0",
         color: "fg",
         "--input-flushed-px": "0",

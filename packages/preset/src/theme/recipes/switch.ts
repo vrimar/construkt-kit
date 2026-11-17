@@ -89,9 +89,12 @@ export const switchRecipe = defineSlotRecipe({
         control: {
           borderRadius: "full",
           bg: "neutral.subtle.bg",
+          boxShadow: "inset 0 0 0 1px var(--shadow-color)",
+          boxShadowColor: "border.control",
           focusVisibleRing: "outside",
           _checked: {
             bg: "colorPalette.solid.bg",
+            boxShadowColor: "colorPalette.solid.bg",
           },
         },
         thumb: {
@@ -109,7 +112,7 @@ export const switchRecipe = defineSlotRecipe({
         control: {
           borderRadius: "full",
           borderWidth: "1px",
-          borderColor: "neutral.outline.border",
+          borderColor: "border.control",
           focusVisibleRing: "outside",
           _checked: {
             borderColor: "colorPalette.outline.border",

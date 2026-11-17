@@ -70,7 +70,7 @@ export const checkbox = defineSlotRecipe({
     variant: {
       solid: {
         control: {
-          borderColor: "border",
+          borderColor: "border.control",
           _checked: checkboxControlCheckedState,
           _indeterminate: checkboxControlCheckedState,
         },
@@ -85,7 +85,7 @@ export const checkbox = defineSlotRecipe({
           },
         },
       },
-      plain: { control: { ...paletteVariant.plain, borderColor: "border" } },
+      plain: { control: { ...paletteVariant.plain, borderColor: "border.control" } },
     },
   },
 });

@@ -60,7 +60,7 @@ export const datePicker = defineSlotRecipe({
       _today: {
         _before: {
           content: "'−'",
-          color: "colorPalette.solid.bg",
+          color: "colorPalette.fg",
           position: "absolute",
           marginTop: "6",
         },

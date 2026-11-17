@@ -102,7 +102,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "neutral.subtle.border",
+          borderColor: "border.control",
           _checked: {
             borderColor: "colorPalette.solid.bg",
             color: "colorPalette.solid.bg",
@@ -121,7 +121,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "neutral.outline.border",
+          borderColor: "border.control",
           _checked: {
             bg: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
@@ -143,7 +143,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "neutral.outline.border",
+          borderColor: "border.control",
           _checked: {
             background: "colorPalette.solid.bg",
             borderColor: "colorPalette.solid.bg",
@@ -162,7 +162,7 @@ export const radioCardGroup = defineSlotRecipe({
         },
         itemControl: {
           borderWidth: "1px",
-          borderColor: "neutral.outline.border",
+          borderColor: "border.control",
           _checked: {
             background: "colorPalette.solid.fg",
             borderColor: "colorPalette.solid.fg",

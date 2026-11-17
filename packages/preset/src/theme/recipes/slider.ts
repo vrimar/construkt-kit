@@ -117,7 +117,7 @@ export const slider = defineSlotRecipe({
           bg: "colorPalette.solid.bg",
         },
         track: {
-          bg: "border",
+          bg: "neutral.subtle.bg",
         },
       },
       solid: {

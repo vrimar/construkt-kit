@@ -63,7 +63,6 @@ export const treeView = defineSlotRecipe({
         "--tree-row-bg": "colors.bg.emphasized",
       },
       focusVisibleRing: "inside",
-      focusRingColor: "border.emphasized",
       _disabled: {
         layerStyle: "disabled",
       },
@@ -151,7 +150,6 @@ export const treeView = defineSlotRecipe({
         "--tree-row-bg": "colors.bg.emphasized",
       },
       focusVisibleRing: "inside",
-      focusRingColor: "border.emphasized",
       _disabled: {
         layerStyle: "disabled",
       },

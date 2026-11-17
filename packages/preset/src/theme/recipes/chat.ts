@@ -109,7 +109,7 @@ export const chat = defineSlotRecipe({
       borderRadius: "xl",
       color: "colorPalette.surface.fg",
       textStyle: "xs",
-      "&[data-undone]": { opacity: "0.6" },
+      "&[data-undone]": { colorPalette: "neutral" },
     },
     actionLineIndicator: {
       display: "inline-flex",
@@ -198,7 +198,7 @@ export const chat = defineSlotRecipe({
       py: "1.5",
       bg: "neutral.surface.bg",
       borderWidth: "1px",
-      borderColor: "neutral.outline.border",
+      borderColor: "border.control",
       borderRadius: "lg",
       boxShadow: "xs",
       transitionDuration: "normal",

@@ -40,7 +40,7 @@ export const checkboxCard = defineSlotRecipe({
     checkbox: {
       ...checkboxControlBase,
       cursor: "inherit",
-      borderColor: "border",
+      borderColor: "border.control",
       borderRadius: "sm",
       _checked: checkboxControlCheckedState,
       _indeterminate: checkboxControlCheckedState,

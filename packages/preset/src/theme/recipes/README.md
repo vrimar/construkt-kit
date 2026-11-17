@@ -53,13 +53,15 @@ Form controls (Input, Textarea) default to `neutral.*` tokens; use the `colored`
 ## neutral tokens
 
 Recipes use `neutral.*` (not `gray.*`) for default chrome — control surfaces, borders, backgrounds.
-`neutral` is defined in `semantic-tokens/colors.ts` as an alias for a color palette (slate by default).
-To change the neutral hue globally, point the single `colorPalette("slate", "slateDark", …)` call in that file at another palette.
+`neutral` is generated from the neutral key colour (slate by default); `createConstruktKitPreset({ neutral: { key } })` swaps it.
 
-| I'm styling…           | Use              |
-| ---------------------- | ---------------- |
-| Page background/layout | `bg.*`           |
-| Body text, headings    | `fg.*`           |
-| Section dividers       | `border.*`       |
-| Component defaults     | `neutral.*`      |
-| Active/branded state   | `colorPalette.*` |
+| I'm styling…           | Use                                                 |
+| ---------------------- | --------------------------------------------------- |
+| Page background/layout | `bg.*`                                              |
+| Body text, headings    | `fg.*`                                              |
+| Section dividers       | `border.*`                                          |
+| Control edges          | `border.control`                                    |
+| Placeholders, hints    | `fg.subtle`, never on a selected or pressed surface |
+| Slider/progress track  | `subtle.bg`                                         |
+| Component defaults     | `neutral.*`                                         |
+| Active/branded state   | `colorPalette.*`                                    |

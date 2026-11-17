@@ -18,7 +18,7 @@ export const hotkeyInput = defineSlotRecipe({
       height: "6",
       px: "2",
       borderWidth: "1px",
-      borderColor: "border",
+      borderColor: "border.control",
       borderRadius: "md",
       bg: "bg",
       color: "fg",

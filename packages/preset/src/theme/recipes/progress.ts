@@ -101,13 +101,13 @@ export const progress = defineSlotRecipe({
       },
       subtle: {
         track: {
-          bgColor: "colorPalette.subtle.bg.active",
+          bgColor: "colorPalette.subtle.bg",
         },
         circleTrack: {
-          stroke: "colorPalette.subtle.bg.active",
+          stroke: "colorPalette.subtle.bg",
         },
         segment: {
-          "--progress-segment-bg": "colors.colorPalette.subtle.bg.active",
+          "--progress-segment-bg": "colors.colorPalette.subtle.bg",
         },
         range: {
           color: "colorPalette.solid.fg",
