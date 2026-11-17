@@ -156,7 +156,8 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       ...cellBox,
       gap: "1",
       overflow: "clip",
-      bg: HEADER_BG,
+      bg: `var(--data-grid-header-cell-bg, ${HEADER_BG})`,
+      color: "var(--data-grid-header-cell-fg, inherit)",
       borderRight: `var(--data-grid-column-line) solid ${LINE}`,
       borderBottom: `1px solid ${LINE}`,
       "&[data-sticky-label] > :first-child": {

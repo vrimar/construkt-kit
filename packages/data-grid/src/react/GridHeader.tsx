@@ -1,5 +1,13 @@
 import { usePointerDrag } from "@construkt-kit/ui";
-import { type KeyboardEvent, type ReactNode, type RefObject, useId, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import type { HeaderCell } from "../core/columns/columnModel";
 import {
@@ -203,7 +211,14 @@ function HeaderCellView({
       data-editing={renaming || undefined}
       data-sticky-label={(cell.isGroup && cell.region === "center") || undefined}
       data-group-start={cell.groupStart || undefined}
-      style={{ ...spanGeometry(cell.first, cell.last), height: core.headerBox(cell).height }}
+      style={
+        {
+          ...spanGeometry(cell.first, cell.last),
+          height: core.headerBox(cell).height,
+          "--data-grid-header-cell-bg": def.headerStyle?.background,
+          "--data-grid-header-cell-fg": def.headerStyle?.color,
+        } as CSSProperties
+      }
     >
       {content}
       {cell.resizable && (

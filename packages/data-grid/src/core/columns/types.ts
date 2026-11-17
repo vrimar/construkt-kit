@@ -93,6 +93,8 @@ export interface ColumnDef<TRow, TNode = unknown> {
   headerText?: string;
   /** Double-click renames the header in place; Enter commits through `onHeaderRename`. */
   headerEditable?: boolean;
+  /** Runtime `background` / `color` for this column's or group's header cell; selection still shows over it. */
+  headerStyle?: CellColors;
   /** Row key holding the value; `getValue` takes precedence. */
   field?: Extract<keyof TRow, string>;
   getValue?: (row: TRow) => unknown;

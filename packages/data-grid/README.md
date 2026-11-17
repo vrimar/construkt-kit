@@ -83,6 +83,7 @@ mounted row, and a new `getRowHeight` re-reads every row's height. Define them o
 | `ColumnDef` key                     | Does                                                                                                                                                                  |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`, `header`                      | Header is a label or `(ctx) => node`                                                                                                                                  |
+| `headerStyle`                       | Runtime `background` / `color` for the header cell, such as a group's own colour; a selected header still shows as selected                                           |
 | `field` / `getValue`                | Where the value comes from                                                                                                                                            |
 | `width`, `minWidth`, `maxWidth`     | px; width defaults to 150                                                                                                                                             |
 | `flex`                              | Share of the centre region's free width; a clamped column gives its excess to the others                                                                              |

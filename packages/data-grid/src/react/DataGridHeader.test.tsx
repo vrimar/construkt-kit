@@ -24,6 +24,30 @@ test("a pinned label column's header spans every header level", () => {
   );
 });
 
+test("a column's headerStyle colours its own header cell", () => {
+  render(
+    <DataGrid
+      rows={[{ id: 1 }]}
+      getRowId={(row) => row.id}
+      columnDefs={[
+        {
+          id: "group",
+          header: "Group",
+          headerStyle: { background: "navy", color: "white" },
+          children: [{ id: "a", header: "A" }],
+        },
+      ]}
+      aria-label="Coloured header"
+    />,
+  );
+
+  const group = screen.getByRole("columnheader", { name: "Group" });
+  expect(group.style.getPropertyValue("--data-grid-header-cell-bg")).toBe("navy");
+  expect(group.style.getPropertyValue("--data-grid-header-cell-fg")).toBe("white");
+  const leaf = screen.getByRole("columnheader", { name: "A" });
+  expect(leaf.style.getPropertyValue("--data-grid-header-cell-bg")).toBe("");
+});
+
 test("startColumnResize focuses the column's edge, and ArrowRight widens the column", async () => {
   const user = userEvent.setup();
   const apiRef = createRef<DataGridApi>();
