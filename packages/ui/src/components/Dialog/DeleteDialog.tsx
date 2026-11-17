@@ -24,6 +24,7 @@ export const DeleteDialog = ({
       onClose={onClose}
       onSubmit={onSubmit}
       loading={loading}
+      submitLabel="Delete"
       submitButtonProps={{ colorPalette: "danger" }}
       size="sm"
       autoFocusButton

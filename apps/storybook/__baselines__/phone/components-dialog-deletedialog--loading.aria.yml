@@ -2,5 +2,5 @@
   - heading "Delete project" [level=2]
   - paragraph: Are you sure you want to delete Q3 planning?
   - button "Cancel" [disabled]
-  - button "Submit" [disabled]
+  - button "Delete" [disabled]
   - button "Close" [disabled]

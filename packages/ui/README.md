@@ -481,6 +481,7 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - The `radioCardGroup` recipe draws the dot in an `itemIndicator` slot instead of `itemControl`'s `::after`
 - `ActionBar` drops `mobileLayout`, which never had an effect, and `DatePicker` drops `triggerEndElement`
 - `CloseButton`, `DeleteButton` and `EditButton` take no `children`; pass `icon`
+- `DeleteDialog`'s confirm button reads "Delete" instead of "Submit"
 - `Stat.UpTrend` and `Stat.DownTrend` must sit inside `Stat.Root`
 - `StyledRootProps`, `CreateToasterProps` and `useDebounceQuery` are gone, and ui no longer depends on `react-use`.
   `toaster` is typed `CreateToasterReturn`
