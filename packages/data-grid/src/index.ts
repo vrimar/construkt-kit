@@ -33,6 +33,7 @@ export type {
   FlashTargets,
   FullWidthRowContext,
   GridHit,
+  GridOutline,
   HeaderContext,
   HeaderMenuContext,
   HeaderRename,

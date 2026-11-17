@@ -115,6 +115,7 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
     "editor",
     "dropLayer",
     "dropIndicator",
+    "outline",
     "dragGhost",
   ],
   base: {
@@ -389,6 +390,15 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
           bg: DROP,
         },
       },
+    },
+    outline: {
+      position: "absolute",
+      pointerEvents: "none",
+      borderWidth: "1.5px",
+      borderStyle: "dashed",
+      borderColor: SELECTION,
+      borderRadius: "sm",
+      "&[data-axis=rows]": { left: "0", zIndex: "2", width: CANVAS_W },
     },
     dragGhost: {
       position: "fixed",

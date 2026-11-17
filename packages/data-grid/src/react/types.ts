@@ -101,6 +101,19 @@ export interface ColumnsDrop extends CoreColumnsDrop {
   point: { x: number; y: number } | null;
 }
 
+/** A dashed box around rows or columns, such as where something is about to land. */
+export type GridOutline =
+  | {
+      kind: "rows";
+      /** Body rows; the box runs from the first of them to the last, over every column. */
+      ids: readonly RowId[];
+    }
+  | {
+      kind: "columns";
+      /** Leaf or group ids in one pinned region; the box runs from their header to the last row. */
+      ids: readonly string[];
+    };
+
 /** A drag from outside the grid, such as a list item or a file. */
 export interface ExternalDragEvent {
   /** `null` when the point is over none of the grid's cells. */
@@ -218,6 +231,8 @@ export interface DataGridOwnProps<TRow>
   /** `false` takes away the gutter and row-header handles that drag a row's height. Default `true`. */
   resizableRows?: boolean;
   renderFullWidthRow?: (ctx: FullWidthRowContext<TRow>) => ReactNode;
+  /** Dashed boxes drawn over the grid, around rows or columns. */
+  outlines?: readonly GridOutline[];
   /** The rows in view, from the parent stuck at the top edge, if any, to the last row showing. */
   onVisibleRangeChange?: (range: VisibleRange) => void;
   onCellClick?: (ctx: CellRenderContext<TRow>, event: MouseEvent<HTMLElement>) => void;

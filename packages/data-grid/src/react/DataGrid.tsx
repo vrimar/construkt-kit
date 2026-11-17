@@ -25,6 +25,7 @@ import { ColumnDropLayer, DragGhost, RowDropMarker } from "./DropIndicators";
 import { ariaRows, geometryVars } from "./geometry";
 import { GridHeader } from "./GridHeader";
 import { BodyRows, PinnedBand, type RowShared, StickyParents } from "./GridRow";
+import { ColumnOutlines, RowOutlines } from "./Outlines";
 import { Overlays } from "./Overlays";
 import { dataGrid } from "./recipe";
 import { selectionColumn } from "./selectionColumn";
@@ -97,6 +98,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       rowNumbers = false,
       resizableRows = true,
       renderFullWidthRow,
+      outlines,
       onVisibleRangeChange,
       onCellClick,
       onHeaderClick,
@@ -298,6 +300,13 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
                 core={core}
                 classes={classes}
               />
+              {outlines && (
+                <ColumnOutlines
+                  core={core}
+                  classes={classes}
+                  outlines={outlines}
+                />
+              )}
               <GridHeader
                 core={core}
                 classes={classes}
@@ -347,6 +356,13 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
                     core={core}
                     classes={classes}
                   />
+                  {outlines && (
+                    <RowOutlines
+                      core={core}
+                      classes={classes}
+                      outlines={outlines}
+                    />
+                  )}
                 </div>
               </div>
               {isEmpty && (

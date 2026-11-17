@@ -112,6 +112,34 @@ test("an indicator after a column runs through header and body and follows a liv
   await commands.release();
 });
 
+test("outlines frame their rows across the grid, and their columns from header to the last row", async () => {
+  const { container } = render(
+    <DataGrid
+      {...createFixture(3, 4)}
+      outlines={[
+        { kind: "rows", ids: [1, 2] },
+        { kind: "columns", ids: ["c1", "c2"] },
+      ]}
+      aria-label="Outlines"
+      style={{ width: 900, height: 400 }}
+    />,
+  );
+  await settle();
+  const box = (axis: string) =>
+    container.querySelector(`[data-axis="${axis}"]`)?.getBoundingClientRect() as DOMRect;
+  const header = (id: string) =>
+    container.querySelector(`[data-header-id="${id}"]`)?.getBoundingClientRect() as DOMRect;
+  const second = rowOf(container, 1)?.getBoundingClientRect() as DOMRect;
+  const last = rowOf(container, 2)?.getBoundingClientRect() as DOMRect;
+
+  expect(box("rows").top).toBeCloseTo(second.top, 0);
+  expect(box("rows").bottom).toBeCloseTo(last.bottom, 0);
+  expect(box("columns").left).toBeCloseTo(header("c1").left, 0);
+  expect(box("columns").right).toBeCloseTo(header("c2").right, 0);
+  expect(box("columns").top).toBeCloseTo(header("c1").top, 0);
+  expect(box("columns").bottom).toBeCloseTo(last.bottom, 0);
+});
+
 test("typing keeps going after the editing row scrolls out of view, and Enter commits it", async () => {
   const apiRef = createRef<DataGridApi>();
   const onCellsChange = vi.fn();
