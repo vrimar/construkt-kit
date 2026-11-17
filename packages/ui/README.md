@@ -575,6 +575,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - Light theme: greys are lighter, text greys are slate-tinted, `fg` is softer (13:1) and `fg.subtle` 5:1. Input,
   checkbox, radio and switch edges (`border.control`) match outline buttons (`neutral.outline.border`), 1.7:1 light
   and 2:1 dark, below WCAG 1.4.11's 3:1, for a lighter look
+- `SelectButton` defaults to `variant="outline"`, so `Select`, `ApplySelect` and the DataTable select and date
+  filters share the input edge. Pass `variant="surface"` for the previous look
 
 #### Upgrading from 0.11
 

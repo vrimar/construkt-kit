@@ -41,7 +41,7 @@ export const ColumnDateFilter = ({ placeholder, value, onChange, layout }: Colum
     <DatePickerSelect
       width="100%"
       size={layout === "field" ? "md" : "sm"}
-      variant={layout === "field" ? "surface" : "plain"}
+      variant={layout === "field" ? "outline" : "plain"}
       selectionMode="range"
       placeholder={placeholder}
       clearLabel={labels.clearDate}

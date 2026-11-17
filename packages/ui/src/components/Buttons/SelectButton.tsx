@@ -67,7 +67,7 @@ export const SelectButton = ({
   // One tree whether or not `onClear` is set, so adding the clear button never remounts the focused one.
   const [
     { colorPalette = palette, ...wrapperProps },
-    { variant: inactiveVariant = "surface", ...buttonProps },
+    { variant: inactiveVariant = "outline", ...buttonProps },
   ] = splitCssProps(props);
   const variant = active ? "subtle" : inactiveVariant;
 

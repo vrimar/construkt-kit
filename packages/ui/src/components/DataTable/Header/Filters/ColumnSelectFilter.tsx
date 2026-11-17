@@ -34,7 +34,7 @@ export const ColumnSelectFilter = ({
         ...triggerProps,
         buttonProps: {
           size: layout === "field" ? "md" : "sm",
-          variant: layout === "field" ? "surface" : "plain",
+          variant: layout === "field" ? "outline" : "plain",
           ...triggerProps?.buttonProps,
         },
       }}
