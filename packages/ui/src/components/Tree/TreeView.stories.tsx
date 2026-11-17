@@ -164,6 +164,7 @@ export const WithCheckboxes = meta.story({
       <TreeView.Root
         collection={collection}
         defaultExpandedValue={["src", "components"]}
+        checkable
       >
         <TreeView.Tree>
           {collection.rootNode.children?.map((node, index) => (

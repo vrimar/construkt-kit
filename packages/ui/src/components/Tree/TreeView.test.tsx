@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { createTestTree } from "./tree.fixtures";
@@ -8,10 +8,11 @@ const collection = createTestTree([
   { id: "src", label: "src", children: [{ id: "src/index.ts", label: "index.ts" }] },
 ]);
 
-function renderTree() {
+function renderTree({ checkable }: { checkable?: boolean } = {}) {
   return render(
     <TreeView.Root
       collection={collection}
+      checkable={checkable}
       defaultExpandedValue={["src"]}
       data-testid="root"
     >
@@ -23,7 +24,7 @@ function renderTree() {
             node={node}
             indexPath={[index]}
           >
-            <TreeView.Branch>
+            <TreeView.Branch data-testid="branch">
               <TreeView.BranchControl data-testid="branch-control">
                 <TreeView.BranchIndicator data-testid="chevron" />
                 <TreeView.BranchText>{node.label}</TreeView.BranchText>
@@ -74,6 +75,21 @@ describe("TreeView", () => {
       </TreeView.Root>,
     );
     expect(screen.getByTestId("drop").className).toContain("tree-view__dropIndicator");
+  });
+
+  it("checks a checkable row with Space and exposes the state on its tree item", async () => {
+    renderTree({ checkable: true });
+    const branch = screen.getByTestId("branch");
+    const item = screen.getByTestId("item");
+    expect(item.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.keyDown(item, { key: " " });
+    await waitFor(() => expect(item.getAttribute("aria-checked")).toBe("true"));
+    expect(branch.getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.keyDown(screen.getByTestId("branch-control"), { key: " " });
+    await waitFor(() => expect(branch.getAttribute("aria-checked")).toBe("false"));
+    expect(item.getAttribute("aria-checked")).toBe("false");
   });
 
   it("throws when a styled part renders without a Root provider", () => {

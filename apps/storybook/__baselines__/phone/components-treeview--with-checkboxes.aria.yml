@@ -1,35 +1,17 @@
 - tree "Tree View":
   - treeitem "src" [expanded] [level=1]:
-    - button "src":
-      - checkbox
-      - text: ""
+    - button "src"
     - group:
       - treeitem "components" [expanded] [level=2]:
-        - button "components":
-          - checkbox
-          - text: ""
+        - button "components"
         - group:
-          - treeitem "Button.tsx" [level=3]:
-            - checkbox
-            - text: ""
-          - treeitem "Input.tsx" [level=3]:
-            - checkbox
-            - text: ""
-          - treeitem "Dialog.tsx" [level=3]:
-            - checkbox
-            - text: ""
+          - treeitem "Button.tsx" [level=3]
+          - treeitem "Input.tsx" [level=3]
+          - treeitem "Dialog.tsx" [level=3]
       - treeitem "utils" [level=2]:
-        - button "utils":
-          - checkbox
-          - text: ""
-      - treeitem "index.ts" [level=2]:
-        - checkbox
-        - text: ""
+        - button "utils"
+      - treeitem "index.ts" [level=2]
   - treeitem "docs" [level=1]:
-    - button "docs":
-      - checkbox
-      - text: ""
+    - button "docs"
   - treeitem "config" [level=1]:
-    - button "config":
-      - checkbox
-      - text: ""
+    - button "config"
