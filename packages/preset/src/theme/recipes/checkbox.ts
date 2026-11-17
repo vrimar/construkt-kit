@@ -75,11 +75,12 @@ export const checkbox = defineSlotRecipe({
           _indeterminate: checkboxControlCheckedState,
         },
       },
-      surface: { control: paletteVariant.surface },
-      subtle: { control: paletteVariant.subtle },
+      surface: { control: { ...paletteVariant.surface, borderColor: "colorPalette.control" } },
+      subtle: { control: { ...paletteVariant.subtle, borderColor: "colorPalette.control" } },
       outline: {
         control: {
           ...paletteVariant.outline,
+          borderColor: "colorPalette.control",
           _checked: {
             borderColor: "colorPalette.solid.bg",
           },

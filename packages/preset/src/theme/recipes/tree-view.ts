@@ -179,7 +179,7 @@ export const treeView = defineSlotRecipe({
     nodeCheckbox: {
       ...checkboxControlBase,
       bg: "bg",
-      borderColor: "border.emphasized",
+      borderColor: "border.control",
       borderRadius: "xs",
       transition: "backgrounds, border-color, colors",
       _checked: checkboxControlCheckedState,

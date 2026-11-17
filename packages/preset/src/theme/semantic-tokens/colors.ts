@@ -49,6 +49,7 @@ const ROLES: Record<string, Source> = {
   "plain.bg.hover": 2,
   "plain.bg.active": 3,
   focusRing: 9,
+  control: 8,
   fg: 9,
 };
 

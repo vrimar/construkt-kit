@@ -559,6 +559,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - A `DataTable` column with an empty header names itself with visually hidden text instead of `aria-label`, and a
   grouped header's placeholder above an ungrouped column is a cell, not a column header
 - The `DataTable` empty and loading status sits in a row and cell while it shows
+- Unchecked `surface`, `subtle` and `outline` checkboxes and radios draw a `colorPalette.control` edge, the subtle
+  `Slider` range uses it too, and an outline circular `Progress` track is `subtle.bg`
 
 #### Upgrading from 0.11
 

@@ -119,7 +119,7 @@ export const progress = defineSlotRecipe({
           borderColor: "colorPalette.outline.border",
         },
         circleTrack: {
-          stroke: "colorPalette.outline.border",
+          stroke: "colorPalette.subtle.bg",
         },
         segment: {
           "--progress-segment-bg": "transparent",

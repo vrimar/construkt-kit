@@ -38,6 +38,7 @@ export const preset = createConstruktKitPreset({
 | `border.control`                                      | Edges of inputs, checkboxes, radios and switches (3:1)                             |
 | `colorPalette.{solid,surface,subtle,outline,plain}.*` | Component variants                                                                 |
 | `colorPalette.fg`                                     | Accent text and marks                                                              |
+| `colorPalette.control`                                | Tinted control edges and soft ranges; 3:1 on the page and on `subtle.bg` tracks    |
 | `colorPalette.focusRing`                              | Focus rings, set globally                                                          |
 | `danger`, `warning`, `success`, `info`                | Status palettes; `fg.error`/`border.error` etc. for form states                    |
 

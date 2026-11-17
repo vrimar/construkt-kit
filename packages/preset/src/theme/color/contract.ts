@@ -25,6 +25,7 @@ function palettePairs(p: string): Pair[] {
     ...text("fg.muted", `${p}.subtle.bg.active`, `${p}.surface.bg.active`),
     ...nonText(`${p}.solid.bg`, "bg", `${p}.subtle.bg`),
     ...nonText(`${p}.solid.bg.hover`, "bg"),
+    ...nonText(`${p}.control`, "bg", `${p}.subtle.bg`, "neutral.subtle.bg"),
     ...nonText(`${p}.focusRing`, "bg", "bg.emphasized", `${p}.subtle.bg.active`),
   ];
 }
