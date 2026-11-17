@@ -215,6 +215,8 @@ export interface DataGridOwnProps<TRow>
   apiRef?: Ref<DataGridApi>;
   /** Shows a row-number gutter, pinned left. */
   rowNumbers?: boolean;
+  /** `false` takes away the gutter and row-header handles that drag a row's height. Default `true`. */
+  resizableRows?: boolean;
   renderFullWidthRow?: (ctx: FullWidthRowContext<TRow>) => ReactNode;
   /** The rows in view, from the parent stuck at the top edge, if any, to the last row showing. */
   onVisibleRangeChange?: (range: VisibleRange) => void;

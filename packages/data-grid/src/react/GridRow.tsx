@@ -26,6 +26,7 @@ export interface RowShared {
   cellsVersion: number;
   renderedColumns: readonly number[];
   gutter: boolean;
+  resizableRows: boolean;
   tree: boolean;
   expandLabel: string;
   collapseLabel: string;
@@ -63,6 +64,7 @@ const GridRow = memo(function GridRow({
   renderedColumns,
   activeColumn = -1,
   gutter,
+  resizableRows,
   tree,
   expandLabel,
   collapseLabel,
@@ -141,7 +143,7 @@ const GridRow = memo(function GridRow({
               data-gutter=""
             >
               {rowIndex >= 0 ? rowIndex + 1 : null}
-              {body && (
+              {body && resizableRows && (
                 <RowResizeHandle
                   core={core}
                   classes={classes}
@@ -219,7 +221,7 @@ const GridRow = memo(function GridRow({
                   style={style}
                 >
                   {merged ? <span className={classes.mergedLabel}>{content}</span> : content}
-                  {body && leaf.def.rowHeader && (
+                  {body && resizableRows && leaf.def.rowHeader && (
                     <RowResizeHandle
                       core={core}
                       classes={classes}

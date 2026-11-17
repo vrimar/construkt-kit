@@ -100,6 +100,26 @@ test("a row that can be selected reports aria-selected false; one isRowSelectabl
   expect([selected("Paid"), selected("Open"), selected("Picked")]).toEqual([null, "false", "true"]);
 });
 
+test("resizableRows false takes away the gutter and row-header height handles", () => {
+  const fixture = createFixture(3, 2);
+  const grid = (resizableRows?: boolean) => (
+    <DataGrid
+      {...fixture}
+      columnDefs={[{ ...fixture.columnDefs[0], rowHeader: true }, fixture.columnDefs[1]]}
+      rowNumbers
+      resizableRows={resizableRows}
+      aria-label="Grid"
+    />
+  );
+  const handles = (container: HTMLElement) =>
+    container.querySelectorAll("[data-row-resize-handle]").length;
+
+  const { container, rerender } = render(grid());
+  expect(handles(container)).toBeGreaterThan(0);
+  rerender(grid(false));
+  expect(handles(container)).toBe(0);
+});
+
 const announced = (container: HTMLElement) =>
   container.querySelector("[aria-live][aria-atomic=true]")?.textContent?.replace("\u200b", "");
 
