@@ -224,6 +224,8 @@ export interface DataGridOwnProps<TRow>
   onHeaderClick?: (ctx: HeaderContext<TRow>, event: MouseEvent<HTMLElement>) => void;
   /** Bindings over the built-in keymap, from a shortcut such as `"Mod+D"` to a command name; `null` unbinds. */
   keymap?: Readonly<Record<string, string | null>>;
+  /** `false` swallows the keys that select or extend ranges, rows and columns; Escape still clears. Default `true`. */
+  keyboardSelection?: boolean;
   /** App commands by name, run from `keymap`, `apiRef.runCommand` or before a built-in of the same name. */
   commands?: Readonly<Record<string, DataGridCommand>>;
   /**

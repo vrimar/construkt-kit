@@ -1,13 +1,21 @@
 import { useHotkeyHandler } from "@construkt-kit/ui";
 import { type KeyboardEvent, type RefObject, useLayoutEffect, useMemo, useRef } from "react";
 
-import { SELECTION_COMMANDS, commandsFor, resolveKeymap } from "../core/commands/keymap";
+import {
+  SELECTING_COMMANDS,
+  SELECTION_COMMANDS,
+  commandsFor,
+  resolveKeymap,
+} from "../core/commands/keymap";
 import type { CellRange, EntitySelection } from "../core/selection/types";
 import { cellAt, tabStopsIn } from "./dom";
 import type { DataGridLabels, DataGridOwnProps } from "./types";
 import type { AnyGridCore } from "./useGridCore";
 
-interface GridKeyboardOptions extends Pick<DataGridOwnProps<unknown>, "keymap"> {
+interface GridKeyboardOptions extends Pick<
+  DataGridOwnProps<unknown>,
+  "keymap" | "keyboardSelection"
+> {
   startGuard: RefObject<HTMLElement | null>;
   endGuard: RefObject<HTMLElement | null>;
   runNamed: (name: string) => boolean;
@@ -25,6 +33,7 @@ export function useGridKeyboard(
   core: AnyGridCore,
   {
     keymap: overrides,
+    keyboardSelection = true,
     startGuard,
     endGuard,
     runNamed,
@@ -50,11 +59,16 @@ export function useGridKeyboard(
     (event, shortcut) => {
       const cell = cellAt(event.target);
       if (!cell) return;
-      const names = commandsFor(keymap, shortcut);
+      const bound = commandsFor(keymap, shortcut);
+      const names = keyboardSelection
+        ? bound
+        : bound.filter((name) => !SELECTING_COMMANDS.has(name));
       const before = { selection: core.selection.selection, ranges: core.selection.ranges };
       if (names.some((name) => runNamed(name))) {
         event.preventDefault();
         if (names.some((name) => SELECTION_COMMANDS.has(name))) selectionBefore.current = before;
+      } else if (names.length < bound.length) {
+        event.preventDefault();
       } else if (event.key === "Tab") {
         passOut(event.shiftKey ? startGuard.current : endGuard.current);
       } else if (event.key === " ") {

@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState } from "react";
 import { expect, test, vi } from "vitest";
@@ -137,6 +137,34 @@ test("Shift+Arrow announces what the range now covers", async () => {
   await user.keyboard("{Shift>}{ArrowRight}{/Shift}");
 
   expect(announced(container)).toBe("2 cells");
+});
+
+test("keyboardSelection false swallows Shift+Arrow without a range, and Escape still clears", async () => {
+  const user = userEvent.setup();
+  const onCellSelectionChange = vi.fn();
+  const onSelectionChange = vi.fn();
+  render(
+    <>
+      <button>before</button>
+      <DataGrid
+        {...createFixture(5, 3)}
+        keyboardSelection={false}
+        selection={{ kind: "rows", ids: [2] }}
+        onSelectionChange={onSelectionChange}
+        onCellSelectionChange={onCellSelectionChange}
+        aria-label="Ranges"
+      />
+    </>,
+  );
+  screen.getByRole("button", { name: "before" }).focus();
+  await user.tab();
+
+  const cell = document.activeElement as Element;
+  expect(fireEvent.keyDown(cell, { key: "ArrowDown", shiftKey: true })).toBe(false);
+  expect(onCellSelectionChange).not.toHaveBeenCalled();
+
+  await user.keyboard("{Escape}");
+  expect(onSelectionChange).toHaveBeenCalledWith(null);
 });
 
 function MovableRows() {

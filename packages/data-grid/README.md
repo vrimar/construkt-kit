@@ -76,6 +76,7 @@ mounted row, and a new `getRowHeight` re-reads every row's height. Define them o
 | `onSelectionEnd`                                    | Once a click, drag or key that selects has finished, with both selections                                                                                                   |
 | `onCellClick`, `onHeaderClick`                      | `(ctx, event)`; a click that ends a range drag, or lands on a button or other control inside, doesn't count                                                                 |
 | `keymap`, `commands`                                | App bindings and commands; see Keyboard                                                                                                                                     |
+| `keyboardSelection`                                 | `false` swallows the keys that select or extend (Shift+Arrows, Mod+A, Shift/Mod+Space, Space); Escape still clears. Default `true`                                          |
 | `apiRef`                                            | See below                                                                                                                                                                   |
 
 ### Columns

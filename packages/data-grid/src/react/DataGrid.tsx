@@ -101,6 +101,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       onCellClick,
       onHeaderClick,
       keymap,
+      keyboardSelection,
       commands,
       onExternalDragOver,
       onExternalDrop,
@@ -183,6 +184,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   const { runNamed, autosize } = useGridApi(core, { scroller, rootRef, commands, apiRef });
   const keyboard = useGridKeyboard(core, {
     keymap,
+    keyboardSelection,
     startGuard,
     endGuard,
     runNamed,

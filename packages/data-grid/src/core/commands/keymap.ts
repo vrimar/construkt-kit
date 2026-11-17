@@ -68,12 +68,16 @@ export const DEFAULT_KEYMAP: Readonly<Record<string, BuiltInCommand>> = {
   "Shift+Tab": "movePrevious",
 };
 
-export const SELECTION_COMMANDS: ReadonlySet<string> = new Set<BuiltInCommand>([
+export const SELECTING_COMMANDS: ReadonlySet<string> = new Set<BuiltInCommand>([
   ...EXTEND_COMMANDS,
   "selectAll",
   "selectRow",
   "selectColumn",
   "toggleRowSelected",
+]);
+
+export const SELECTION_COMMANDS: ReadonlySet<string> = new Set([
+  ...SELECTING_COMMANDS,
   "clearSelection",
 ]);
 
