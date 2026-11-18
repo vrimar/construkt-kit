@@ -267,9 +267,9 @@ export type VirtualTreeRowProps = Omit<TreeRowPartProps, "isBranch">;
  * a tree item at its level and indented with guides as if nested. Children are its content, such
  * as `TreeView.BranchIndicator` and `TreeView.BranchText` for a branch.
  */
-export function VirtualTreeRow({ style, onPointerDown, children, ...props }: VirtualTreeRowProps) {
+export function VirtualTreeRow({ style, children, ...props }: VirtualTreeRowProps) {
   const tree = useTreeViewContext();
-  const { value, isBranch, expanded, renaming, disabled, indexPath } = useTreeViewNodeContext();
+  const { isBranch, expanded, disabled, indexPath } = useTreeViewNodeContext();
 
   return (
     <TreeDndRow
@@ -281,11 +281,6 @@ export function VirtualTreeRow({ style, onPointerDown, children, ...props }: Vir
       aria-posinset={indexPath[indexPath.length - 1] + 1}
       aria-disabled={disabled || undefined}
       {...props}
-      onPointerDown={(event) => {
-        onPointerDown?.(event);
-        if (event.defaultPrevented || event.button !== 0 || renaming) return;
-        tree.focus(value);
-      }}
       style={{ ...depthStyleFor(indexPath), ...style }}
     >
       <TreeRowIndentGuides indexPath={indexPath} />
