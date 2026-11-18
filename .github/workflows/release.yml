@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: write
   id-token: write
 
@@ -17,6 +18,17 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Require a green CI run on the tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" \
+            --json status,conclusion --jq '[.[] | select(.status == "completed")][0].conclusion // "none"')
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::CI has not passed on $GITHUB_SHA (latest finished run: $conclusion). Push the commit, wait for CI to go green, then tag it."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
@@ -33,17 +45,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Chromium
-        run: pnpm --filter @construkt-kit/data-grid exec playwright install --with-deps chromium
-
-      - name: Lint, typecheck, test
-        run: pnpm turbo run //#lint typecheck test test:browser
-
-      - name: Story tests
-        env:
-          STORIES_PIXELS: required
-        run: pnpm test:stories
 
       # The publish script creates an annotated tag per package.
       - name: Configure git identity
