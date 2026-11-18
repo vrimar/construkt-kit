@@ -1,7 +1,7 @@
 import { toastAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlText, surface } from "./control-size";
+import { anchoredHitArea, controlText, surface } from "./control-size";
 
 export const toast = defineSlotRecipe({
   className: "toast",
@@ -65,6 +65,7 @@ export const toast = defineSlotRecipe({
       position: "absolute",
       top: "2",
       insetEnd: "2",
+      ...anchoredHitArea,
     },
   },
 });

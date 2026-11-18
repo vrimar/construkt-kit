@@ -1,7 +1,7 @@
 import { drawerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { surface } from "./control-size";
+import { anchoredHitArea, surface } from "./control-size";
 import { overlayMotion } from "./overlay-motion";
 
 const contentMaxH = "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))";
@@ -156,6 +156,7 @@ export const drawer = defineSlotRecipe({
       pos: "absolute",
       top: `calc({spacing.3} + ${contentPt})`,
       insetEnd: `calc({spacing.3} + ${contentPe})`,
+      ...anchoredHitArea,
     },
     grabber: {
       display: "flex",

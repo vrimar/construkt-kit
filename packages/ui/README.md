@@ -410,8 +410,9 @@ Two things adapt, each on its own signal:
 
 - **Touch density** follows the primary pointer, `(pointer: coarse)`, at any width, so a tablet in landscape gets it
   too. Controls keep their desktop height; menu rows and checkbox, radio and switch rows grow to 44px, text inputs to
-  16px text (iOS zooms into anything smaller), and buttons get a 44px hit area without changing their layout, narrowed
-  beside a neighbouring button. `_hover` styles apply only where the device can hover. It is all CSS on the
+  16px text (iOS zooms into anything smaller), and buttons and links get a 44px hit area without changing their
+  layout, narrowed beside a neighbouring button or link. A `Dialog`, `Drawer`, `Popover` or toast close trigger keeps
+  its hit area when `position="static"` puts it in the flow, such as a header row. `_hover` styles apply only where the device can hover. It is all CSS on the
   `--control-*` knobs, so the first server render is already right.
 - **Presentation** follows the viewport. Below `md`, `Select`, `ApplySelect`, `TagSelect`, `Menu`, `Popover`,
   `DatePicker`, `DatePickerSelect`, `ColorPicker` and `Combobox` open as a bottom sheet that swipes away; from `md` up

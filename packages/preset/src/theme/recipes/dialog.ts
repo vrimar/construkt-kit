@@ -1,7 +1,7 @@
 import { dialogAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { surface } from "./control-size";
+import { anchoredHitArea, surface } from "./control-size";
 import { overlayMotion } from "./overlay-motion";
 
 const phoneFullScreen = {
@@ -76,6 +76,7 @@ export const dialog = defineSlotRecipe({
       pos: "absolute",
       top: "3",
       insetEnd: "3",
+      ...anchoredHitArea,
     },
     content: {
       layerStyle: "modal.surface",

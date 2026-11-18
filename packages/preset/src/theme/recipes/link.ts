@@ -1,5 +1,7 @@
 import { defineRecipe } from "@pandacss/dev";
 
+import { touchHitArea } from "./control-size";
+
 export const link = defineRecipe({
   className: "link",
   base: {
@@ -19,6 +21,7 @@ export const link = defineRecipe({
     _icon: {
       boxSize: "1em",
     },
+    ...touchHitArea(),
   },
   defaultVariants: {
     variant: "underline",

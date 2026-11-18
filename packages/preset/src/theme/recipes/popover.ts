@@ -1,7 +1,7 @@
 import { popoverAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlPxCompact, controlText, surface } from "./control-size";
+import { anchoredHitArea, controlPxCompact, controlText, surface } from "./control-size";
 import { floatingArrow } from "./floating-arrow";
 
 export const popover = defineSlotRecipe({
@@ -36,6 +36,7 @@ export const popover = defineSlotRecipe({
       position: "absolute",
       top: "1",
       insetEnd: "1",
+      ...anchoredHitArea,
     },
     header: {
       display: "flex",

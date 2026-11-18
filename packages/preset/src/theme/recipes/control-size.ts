@@ -180,6 +180,9 @@ export const touchHitArea = () => ({
   },
 });
 
+// Keeps the hit area on its host under a consumer's `position="static"`; it drops the host's baseline.
+export const anchoredHitArea = { contain: "layout" } as const;
+
 // A real 44px row instead of an invisible one, so rows stacked in a list never share taps.
 export const touchRow = () => ({
   _pointerCoarse: { ...touchHitArea()._pointerCoarse, minH: "2.75rem" },
