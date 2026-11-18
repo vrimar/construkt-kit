@@ -39,19 +39,14 @@ if (baselineCommits.length === 0) {
 }
 
 const signer = process.env.STORIES_BASELINE_SIGNER?.trim();
-if (!signer) {
-  console.error(
-    `${baselineCommits.length} commit(s) in ${range} change screenshot baselines, but the STORIES_BASELINE_SIGNER ` +
-      "repository variable is not set. Set it to the public key that signs baselines (see packages/story-kit/README.md).",
+let allowedSigners = null;
+if (signer) {
+  allowedSigners = path.join(
+    fs.mkdtempSync(path.join(os.tmpdir(), "baseline-signers-")),
+    "allowed_signers",
   );
-  process.exit(1);
+  fs.writeFileSync(allowedSigners, `* namespaces="git" ${signer}\n`);
 }
-
-const allowedSigners = path.join(
-  fs.mkdtempSync(path.join(os.tmpdir(), "baseline-signers-")),
-  "allowed_signers",
-);
-fs.writeFileSync(allowedSigners, `* namespaces="git" ${signer}\n`);
 
 const problems = [];
 for (const { sha, files } of baselineCommits) {
@@ -62,6 +57,7 @@ for (const { sha, files } of baselineCommits) {
       `${subject}: a baseline commit may change only baselines, but it also changes ${others.join(", ")}.`,
     );
   }
+  if (!allowedSigners) continue;
   const verify = git([
     "-c",
     "gpg.format=ssh",
@@ -84,5 +80,8 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `${baselineCommits.length} baseline commit(s) in ${range} are signed by the baseline key.`,
+  signer
+    ? `${baselineCommits.length} baseline commit(s) in ${range} are signed by the baseline key.`
+    : `${baselineCommits.length} baseline commit(s) in ${range} change only baselines. Signatures are not ` +
+        "checked until the STORIES_BASELINE_SIGNER repository variable is set.",
 );

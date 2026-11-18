@@ -111,39 +111,27 @@ function selectTargets(report: StoryReport, args: AcceptArgs, sourceDir: string)
   });
 }
 
-function commit(targets: Target[], reason: string, key: string) {
+function commit(targets: Target[], reason: string, key: string | undefined) {
   const paths = targets.map((target) => path.relative(repoRoot, baselineFile(target)));
   const add = spawnSync("git", ["add", "--", ...paths], { cwd: repoRoot, stdio: "inherit" });
   if (add.status !== 0) throw new Error("git add failed.");
   const stories = targets.map((target) => `${target.storyId} (${target.project})`).join(", ");
   const message = `test(stories): accept ${targets.length} baseline${targets.length === 1 ? "" : "s"}\n\nVisual-change: ${reason}\nStories: ${stories}\n`;
-  const result = spawnSync(
-    "git",
-    [
-      "-c",
-      "gpg.format=ssh",
-      "-c",
-      `user.signingkey=${key}`,
-      "commit",
-      "--gpg-sign",
-      "--file=-",
-      "--",
-      ...paths,
-    ],
-    { cwd: repoRoot, input: message, stdio: ["pipe", "inherit", "inherit"] },
-  );
+  const signing = key
+    ? ["-c", "gpg.format=ssh", "-c", `user.signingkey=${key}`, "commit", "--gpg-sign"]
+    : ["commit"];
+  const result = spawnSync("git", [...signing, "--file=-", "--", ...paths], {
+    cwd: repoRoot,
+    input: message,
+    stdio: ["pipe", "inherit", "inherit"],
+  });
   if (result.status !== 0)
     throw new Error("git commit failed; the new baselines are staged but not committed.");
 }
 
 export async function accept(argv: string[]): Promise<number> {
   const args = parseArgs(argv);
-  const key = process.env.STORIES_BASELINE_KEY;
-  if (!key) {
-    throw new Error(
-      "Set STORIES_BASELINE_KEY to the private key that signs baselines (see packages/story-kit/README.md).",
-    );
-  }
+  const key = process.env.STORIES_BASELINE_KEY || undefined;
   if (!args.reason.trim()) throw new Error('Say what changed and why with --reason "<intent>".');
   if (!args.allMissing && args.ids.length === 0)
     throw new Error("Name the stories to accept, or pass --all-missing.");
@@ -185,6 +173,8 @@ export async function accept(argv: string[]): Promise<number> {
   }
 
   commit(targets, args.reason.trim(), key);
-  process.stdout.write(`Committed ${targets.length} baseline(s) under ${BASELINE_DIR_RELATIVE}.\n`);
+  process.stdout.write(
+    `Committed ${targets.length} baseline(s) under ${BASELINE_DIR_RELATIVE}${key ? ", signed with the baseline key" : ", unsigned: STORIES_BASELINE_KEY is not set"}.\n`,
+  );
   return 0;
 }

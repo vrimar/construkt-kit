@@ -79,8 +79,9 @@ whose last run failed with nothing but a visual, size or missing-baseline differ
 commits the PNGs alone, signed with the baseline key, with a `Visual-change:` trailer. `--from-ci <run id>` accepts
 the actual images a CI run uploaded, for changes made where Docker is unavailable.
 
-CI fails any commit that changes a baseline PNG unless it changes only baselines and is signed by the key in the
-`STORIES_BASELINE_SIGNER` repository variable. One-time setup:
+CI fails any commit that changes a baseline PNG unless it changes only baselines. Once the `STORIES_BASELINE_SIGNER`
+repository variable is set, it must also be signed by that key; until then `stories:accept` commits unsigned and CI
+does not check signatures. One-time setup to require them:
 
 1. `ssh-keygen -t ed25519-sk -f ~/.ssh/construkt-baselines` (hardware key; `-t ed25519` with a passphrase works,
    but don't load it into `ssh-agent`, where any process could sign with it)
