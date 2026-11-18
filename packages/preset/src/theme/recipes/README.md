@@ -18,6 +18,9 @@ Standard variant names across all recipes, from most visual weight to least:
   and their `plain` drops the focus ring. Default variants use `neutral.*` tokens (swappable neutral palette, defaults to slate).
 - **Skeleton** uses `animation` (not `variant`) with values `pulse`, `shine`, `none`.
 - **Spinner** uses `variant` for its shape: `ring` (default) and `dots`.
+- **Tabs, ToggleGroup and SegmentGroup** have `enclosed`: a `neutral.subtle.bg` track whose selected item is a
+  raised `bg.control` thumb (SegmentGroup's default). ToggleGroup and SegmentGroup share their `enclosed` and
+  `outline` track and thumb through `segmented.ts`, so the two look the same in each.
 
 ## Size Tiers
 

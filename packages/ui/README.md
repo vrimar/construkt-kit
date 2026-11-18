@@ -514,6 +514,9 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   clear buttons and keeps the file list
 - `ColorModeProvider` resolves `"system"` to light where `matchMedia` is missing, such as jsdom, instead of throwing
 - `ToggleGroup.RootProvider` joins a `Toolbar`'s arrow keys and tab stop like `ToggleGroup.Root`
+- New: `ToggleGroup` `variant="enclosed"`, SegmentGroup's track and thumb, and `SegmentGroup` `variant="outline"`,
+  ToggleGroup's default look. `SegmentGroup` defaults to `enclosed`, its look so far
+- A `SegmentGroup` item's focus ring sits inside the item, where the track no longer clips its top and bottom
 - `DataTable` takes the `table` recipe's look: a 12px semibold muted header, cell padding from the density knobs and
   `neutral.surface.bg.hover` row hover. `stickyHeader` sticks the head element
 - The `table` recipe styles `Table.Row` and `Table.Cell` by `data-slot`, so raw `tr` and `td` lose striping, hover

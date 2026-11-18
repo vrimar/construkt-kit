@@ -1,0 +1,18 @@
+- radiogroup:
+  - text: React
+  - radio "React"
+  - text: Vue
+  - radio "Vue" [checked]
+  - text: Angular
+  - radio "Angular"
+  - text: Svelte
+  - radio "Svelte"
+- radiogroup:
+  - text: React
+  - radio "React"
+  - text: Vue
+  - radio "Vue" [checked]
+  - text: Angular
+  - radio "Angular"
+  - text: Svelte
+  - radio "Svelte"

@@ -1643,6 +1643,12 @@ export const stories = {
     title: "Components/SegmentGroup",
     tags: [],
   },
+  "components-segmentgroup--variants": {
+    file: "packages/ui/src/components/SegmentGroup/SegmentGroup.stories.tsx",
+    exportName: "Variants",
+    title: "Components/SegmentGroup",
+    tags: [],
+  },
   "components-select--compound": {
     file: "packages/ui/src/components/Select/Select.stories.tsx",
     exportName: "Compound",
@@ -2066,6 +2072,12 @@ export const stories = {
   "components-togglegroup--sizes": {
     file: "packages/ui/src/components/ToggleGroup/ToggleGroup.stories.tsx",
     exportName: "Sizes",
+    title: "Components/ToggleGroup",
+    tags: [],
+  },
+  "components-togglegroup--variants": {
+    file: "packages/ui/src/components/ToggleGroup/ToggleGroup.stories.tsx",
+    exportName: "Variants",
     title: "Components/ToggleGroup",
     tags: [],
   },

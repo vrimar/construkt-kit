@@ -56,6 +56,10 @@ function RootProvider(props: ToggleGroupRootProviderProps) {
   );
 }
 
+/**
+ * Buttons that each turn something on or off, such as formatting or filters. To pick exactly one value, use
+ * `SegmentGroup`.
+ */
 export const ToggleGroup = {
   Root,
   RootProvider,

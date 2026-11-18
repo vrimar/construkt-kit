@@ -1,0 +1,28 @@
+- group:
+  - button "Bold" [pressed]:
+    - strong: B
+  - button "Italic" [pressed]:
+    - emphasis: I
+  - button "Underline"
+  - button "Strikethrough"
+- group:
+  - button "Bold" [pressed]:
+    - strong: B
+  - button "Italic" [pressed]:
+    - emphasis: I
+  - button "Underline"
+  - button "Strikethrough"
+- group:
+  - button "Bold" [pressed]:
+    - strong: B
+  - button "Italic" [pressed]:
+    - emphasis: I
+  - button "Underline"
+  - button "Strikethrough"
+- group:
+  - button "Bold" [pressed]:
+    - strong: B
+  - button "Italic" [pressed]:
+    - emphasis: I
+  - button "Underline"
+  - button "Strikethrough"

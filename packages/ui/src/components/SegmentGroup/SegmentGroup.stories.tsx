@@ -4,6 +4,7 @@ import { segmentGroup } from "#styled-system/recipes";
 
 import { SegmentGroup } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Stack } from "../Layout";
 
 const meta = preview.meta({
   title: "Components/SegmentGroup",
@@ -24,6 +25,33 @@ export const Default = meta.story({
         </SegmentGroup.Item>
       ))}
     </SegmentGroup.Root>
+  ),
+});
+
+export const Variants = meta.story({
+  render: () => (
+    <Stack
+      gap="4"
+      alignItems="flex-start"
+    >
+      {segmentGroup.variantMap.variant.map((variant) => (
+        <SegmentGroup.Root
+          key={variant}
+          defaultValue="vue"
+          variant={variant}
+        >
+          <SegmentGroup.Indicator />
+          <SegmentGroup.Items
+            items={[
+              { value: "react", label: "React" },
+              { value: "vue", label: "Vue" },
+              { value: "angular", label: "Angular" },
+              { value: "svelte", label: "Svelte" },
+            ]}
+          />
+        </SegmentGroup.Root>
+      ))}
+    </Stack>
   ),
 });
 

@@ -1,17 +1,14 @@
 import { toggleGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { type ControlSize, controlH, controlPx, controlIcon, controlText } from "./control-size";
-
-const tier = (size: ControlSize) => ({
-  item: {
-    h: controlH(size),
-    minW: controlH(size),
-    ...controlText(size),
-    px: controlPx(size),
-    _icon: { boxSize: controlIcon(size) },
-  },
-});
+import {
+  enclosedItem,
+  enclosedThumb,
+  enclosedTrack,
+  itemTier,
+  outlineThumb,
+  outlineTrack,
+} from "./segmented";
 
 export const toggleGroup = defineSlotRecipe({
   className: "toggle-group",
@@ -66,13 +63,7 @@ export const toggleGroup = defineSlotRecipe({
   variants: {
     variant: {
       outline: {
-        root: {
-          borderRadius: "lg",
-          borderWidth: "1px",
-          borderColor: "neutral.surface.border",
-          gap: "1",
-          p: "1",
-        },
+        root: outlineTrack,
         item: {
           borderWidth: "1px",
           borderColor: "transparent",
@@ -83,10 +74,21 @@ export const toggleGroup = defineSlotRecipe({
           _active: {
             bg: "colorPalette.outline.bg.active",
           },
-          _on: {
-            bg: "colorPalette.outline.bg.active",
-            borderColor: "colorPalette.outline.border",
+          _on: outlineThumb,
+        },
+      },
+      enclosed: {
+        root: enclosedTrack,
+        item: {
+          ...enclosedItem("-1px"),
+          borderWidth: "1px",
+          borderColor: "transparent",
+          "&[data-state=off]": {
+            _hover: {
+              bg: "neutral.subtle.bg.hover",
+            },
           },
+          _on: enclosedThumb,
         },
       },
       solid: {
@@ -141,11 +143,11 @@ export const toggleGroup = defineSlotRecipe({
       },
     },
     size: {
-      xs: tier("xs"),
-      sm: tier("sm"),
-      md: tier("md"),
-      lg: tier("lg"),
-      xl: tier("xl"),
+      xs: itemTier("xs"),
+      sm: itemTier("sm"),
+      md: itemTier("md"),
+      lg: itemTier("lg"),
+      xl: itemTier("xl"),
     },
     fitted: {
       true: {

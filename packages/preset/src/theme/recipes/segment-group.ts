@@ -1,29 +1,20 @@
 import { segmentGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { type ControlSize, controlH, controlPx, controlIcon, controlText } from "./control-size";
-
-const tier = (size: ControlSize) => ({
-  item: {
-    h: controlH(size),
-    minW: controlH(size),
-    ...controlText(size),
-    px: controlPx(size),
-    _icon: { boxSize: controlIcon(size) },
-  },
-});
+import {
+  enclosedItem,
+  enclosedThumb,
+  enclosedTrack,
+  itemTier,
+  outlineThumb,
+  outlineTrack,
+} from "./segmented";
 
 export const segmentGroup = defineSlotRecipe({
   className: "segment-group",
   slots: segmentGroupAnatomy.keys(),
   base: {
     root: {
-      bg: "neutral.subtle.bg",
-      borderRadius: "lg",
-      // Painted over the indicator, whose integer-rounded rect can overshoot the scroll clip.
-      outline: "1px solid",
-      outlineColor: "border",
-      outlineOffset: "-1px",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
@@ -55,41 +46,10 @@ export const segmentGroup = defineSlotRecipe({
       "&:has(input:focus-visible)": {
         focusVisibleRing: "outside",
       },
-
-      _before: {
-        content: '""',
-        position: "absolute",
-        bg: "neutral.surface.border",
-        transition: "opacity 0.2s",
-      },
-
-      _horizontal: {
-        _before: {
-          insetInlineStart: "0",
-          insetBlock: "1.5",
-          width: "1px",
-        },
-      },
-
-      _vertical: {
-        _before: {
-          insetBlockStart: "0",
-          insetInline: "1.5",
-          height: "1px",
-        },
-      },
-
-      "& + &[data-state=checked], &[data-state=checked] + &, &:first-of-type": {
-        _before: {
-          opacity: "0",
-        },
-      },
     },
 
     indicator: {
-      bg: "bg.control",
       borderWidth: "1px",
-      borderColor: "neutral.surface.border",
       borderRadius: "lg",
       height: "var(--height)",
       pos: "absolute",
@@ -99,16 +59,39 @@ export const segmentGroup = defineSlotRecipe({
   },
 
   defaultVariants: {
+    variant: "enclosed",
     size: "md",
   },
 
   variants: {
+    variant: {
+      enclosed: {
+        root: enclosedTrack,
+        item: enclosedItem("0"),
+        indicator: enclosedThumb,
+      },
+      outline: {
+        root: {
+          ...outlineTrack,
+          colorPalette: "neutral",
+        },
+        item: {
+          color: "colorPalette.outline.fg",
+          "&[data-state=unchecked]": {
+            _hover: {
+              bg: "colorPalette.outline.bg.hover",
+            },
+          },
+        },
+        indicator: outlineThumb,
+      },
+    },
     size: {
-      xs: tier("xs"),
-      sm: tier("sm"),
-      md: tier("md"),
-      lg: tier("lg"),
-      xl: tier("xl"),
+      xs: itemTier("xs"),
+      sm: itemTier("sm"),
+      md: itemTier("md"),
+      lg: itemTier("lg"),
+      xl: itemTier("xl"),
     },
     fitted: {
       true: {

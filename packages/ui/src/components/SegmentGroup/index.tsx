@@ -60,6 +60,10 @@ export function useSegmentGroup({
 
 export type { UseSegmentGroupProps, UseSegmentGroupReturn };
 
+/**
+ * Picks exactly one of a few values: arrow keys select, and its radios submit with a form. For buttons that each
+ * turn something on or off, use `ToggleGroup`.
+ */
 export const SegmentGroup = {
   Root,
   RootProvider,
