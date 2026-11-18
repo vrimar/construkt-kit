@@ -62,8 +62,9 @@ const RootProvider: ArkTreeView.RootProviderComponent<RootProps & CheckableProps
 
 function useAriaChecked(): "true" | "false" | "mixed" | undefined {
   const checkable = useContext(CheckableContext);
-  const { checked } = useTreeViewNodeContext();
+  const node = useTreeViewNodeContext();
   if (!checkable) return undefined;
+  const { checked } = node;
   return checked === "indeterminate" ? "mixed" : checked ? "true" : "false";
 }
 
@@ -149,12 +150,11 @@ const StyledNodeCheckbox = withContext(ark.span, "nodeCheckbox", {
 function NodeCheckbox({ onClick, ...props }: ComponentProps<typeof StyledNodeCheckbox>) {
   const tree = useTreeViewContext();
   const node = useTreeViewNodeContext();
+  const { checked } = node;
 
   return (
     <StyledNodeCheckbox
-      data-state={
-        node.checked === "indeterminate" ? "indeterminate" : node.checked ? "checked" : "unchecked"
-      }
+      data-state={checked === "indeterminate" ? "indeterminate" : checked ? "checked" : "unchecked"}
       data-disabled={node.disabled || undefined}
       {...props}
       onClick={(event: MouseEvent<HTMLSpanElement>) => {
