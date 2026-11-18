@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { formatDateDefault } from "./date";
+import { formatDateDefault, formatDateValue } from "./date";
 
 beforeEach(() => {
   vi.stubEnv("TZ", "America/Los_Angeles");
@@ -31,5 +31,15 @@ describe("formatDateDefault", () => {
 
   it("formats a Date in local time", () => {
     expect(formatDateDefault(new Date("2024-01-15T10:00:00Z"))).toBe("Jan 15, 2024 2:00 AM");
+  });
+});
+
+describe("formatDateValue", () => {
+  it("leaves the time off a date-only string", () => {
+    expect(formatDateValue("2024-01-15")).toBe("Jan 15, 2024");
+  });
+
+  it("returns undefined for a value that isn't a date", () => {
+    expect(formatDateValue("not a date")).toBeUndefined();
   });
 });

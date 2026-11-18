@@ -13,8 +13,24 @@ const asUtc = (date: string | Date) => {
   return date + "Z";
 };
 
+const DAY_FORMAT = "MMM D, YYYY";
+const DATE_TIME_FORMAT = `${DAY_FORMAT} h:mm A`;
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
 export const formatDateDefault = (date: string | Date) =>
-  dayjs(asUtc(date)).format("MMM D, YYYY h:mm A");
+  dayjs(asUtc(date)).format(DATE_TIME_FORMAT);
+
+/**
+ * A date as {@link formatDateDefault} writes it, or only its day for a date-only string such as
+ * `"2024-01-15"`; `undefined` when it isn't a valid date.
+ */
+export const formatDateValue = (date: string | Date): string | undefined => {
+  const parsed = dayjs(asUtc(date));
+  if (!parsed.isValid()) return undefined;
+  return parsed.format(
+    typeof date === "string" && DATE_ONLY.test(date) ? DAY_FORMAT : DATE_TIME_FORMAT,
+  );
+};
 
 export const formatDateRelative = (date: string | Date) => {
   return dayjs(asUtc(date)).calendar(undefined, {

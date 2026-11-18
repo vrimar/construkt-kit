@@ -1,3 +1,4 @@
+import { formatDateDefault } from "@construkt-kit/utils";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
 import { useState } from "react";
@@ -453,6 +454,15 @@ describe("DataTable", () => {
     expect(bodyCell("Admin")).toBe("end");
 
     for (const header of ["Name", "Score", "Role"]) expect(headerCell(header)).toBe("");
+  });
+
+  it("titles a date cell with the formatted date instead of the raw timestamp", () => {
+    const stamped = "2026-11-03T14:22:05.123Z";
+    renderTable({ columnDefs: datedColumns, data: [{ id: 1, name: stamped, role: "Admin" }] });
+
+    expect(screen.getByText(stamped).closest("[title]")?.getAttribute("title")).toBe(
+      formatDateDefault(stamped),
+    );
   });
 
   it("keeps the sorter out of flow so it never indents the header label", () => {

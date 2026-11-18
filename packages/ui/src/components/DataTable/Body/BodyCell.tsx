@@ -2,6 +2,7 @@ import { flexRender } from "@tanstack/react-table";
 
 import { Box } from "#styled-system/jsx";
 
+import { cellTitle } from "../columns";
 import { GridCell } from "../parts";
 import type { DataTableCell } from "../types";
 
@@ -10,15 +11,15 @@ interface BodyCellProps<TData extends object> {
 }
 
 export const BodyCell = <TData extends object>({ cell }: BodyCellProps<TData>) => {
-  const align = cell.column.columnDef?.meta?.align ?? "start";
-  const titleValue = cell.getValue();
+  const meta = cell.column.columnDef?.meta;
+  const align = meta?.align ?? "start";
 
   return (
     <GridCell
       display="flex"
       color="fg"
       style={{ justifyContent: align }}
-      title={typeof titleValue === "string" ? titleValue : undefined}
+      title={cellTitle(meta, cell.getValue())}
       position="relative"
     >
       {/* Bleeds into the cell padding so the truncation clip spares focus rings. */}

@@ -7,7 +7,7 @@ Stateless, framework-agnostic utilities shared across Construkt Kit frontend app
 | Module         | Exports                                                                                                                                                                               |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **array**      | `transformArray`, `addOrRemove`, `addOrRemoveByKey`, `getFirstItemId`, `getLastItemId`, `findInTree`                                                                                  |
-| **date**       | `formatDateDefault`, `formatDateRelative`                                                                                                                                             |
+| **date**       | `formatDateDefault`, `formatDateValue`, `formatDateRelative`                                                                                                                          |
 | **enum**       | `isEnumKey`, `enumToKeys`, `enumToValues`, `enumToEntries`, `enumToOptions`, `enumValueToKey`, `fromEnum`, `mapEnumToFlags`, `toListItems`, `toNumericListItems`, `getEnumKeyByValue` |
 | **number**     | `isValidNumber`, `toInt`, `isStrictlyNumeric`                                                                                                                                         |
 | **object**     | `ObjectKeys` (type), `objectKeys`, `toKeyValue`, `isPlainObject`                                                                                                                      |

@@ -1,3 +1,5 @@
+import { formatDateValue } from "@construkt-kit/utils";
+
 import type {
   DataTableColumn,
   DataTableColumnDef,
@@ -17,6 +19,13 @@ export const columnMeta = <TData extends object>(column: DataTableColumn<TData, 
 
 export const selectItemLabel = (meta: DataTableColumnMeta | undefined) =>
   meta?.selectProps?.getItemLabel ?? identity;
+
+export const cellTitle = (meta: DataTableColumnMeta | undefined, value: unknown) => {
+  if (meta?.type === "date" && (typeof value === "string" || value instanceof Date)) {
+    return formatDateValue(value);
+  }
+  return typeof value === "string" ? value : undefined;
+};
 
 export const filterValues = (value: unknown): string[] => {
   const items: unknown[] = Array.isArray(value) ? value : [value];
