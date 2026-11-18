@@ -141,18 +141,39 @@ export function usePointerSelection<TRow>({
     if (cell && !interactiveWithin(target, cell.element)) core.editing.startCell(cell);
   };
 
+  const selectHeaderForMenu = (columnId: string) => {
+    const ctx = core.headerContext(columnId);
+    if (!ctx || !core.selection.isHeaderSelectable(ctx.def)) return;
+    if (core.selection.isHeaderSelected(columnId, ctx.isGroup)) return;
+    core.selection.select(ctx.isGroup ? "groups" : "columns", columnId, "replace");
+    core.selection.end();
+  };
+
+  const selectRowForMenu = (cell: CellPosition) => {
+    if (!selectsRowAt(cell)) return;
+    const { id } = core.nodeAt(cell.row);
+    const { selection } = core.selection;
+    if (selection?.kind === "rows" && selection.ids.includes(id)) return;
+    core.selection.select("rows", id, "replace");
+    core.selection.end();
+  };
+
   const onContextMenu = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
     const point = { x: event.clientX, y: event.clientY };
     const header = target.closest<HTMLElement>("[data-header-id]");
-    const opened = header
-      ? core.openMenu({ kind: "header", columnId: header.dataset.headerId ?? "" }, header, point)
-      : (() => {
-          const cell = cellAt(target);
-          return cell !== null && !cell.fullWidth && core.openCellMenuAt(cell, cell.element, point);
-        })();
-    if (opened) event.preventDefault();
+    if (header) {
+      const columnId = header.dataset.headerId ?? "";
+      if (!core.openMenu({ kind: "header", columnId }, header, point)) return;
+      event.preventDefault();
+      selectHeaderForMenu(columnId);
+      return;
+    }
+    const cell = cellAt(target);
+    if (!cell || cell.fullWidth || !core.openCellMenuAt(cell, cell.element, point)) return;
+    event.preventDefault();
+    selectRowForMenu(cell);
   };
 
   return { onPointerDown, onClick, onDoubleClick, onContextMenu };

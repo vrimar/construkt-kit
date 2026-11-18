@@ -36,6 +36,52 @@ test("a header menu on a selected column gets the whole selection; on another co
   expect(seen).toEqual([["a", "b"], ["c"]]);
 });
 
+test("right-clicking a header selects its column, but one already in the selection keeps it", () => {
+  const onSelectionChange = vi.fn();
+  const menu = () => [{ id: "hide", label: "Hide" }];
+  const { container } = render(
+    <DataGrid
+      rows={rows}
+      getRowId={(row) => row.id}
+      columnDefs={["a", "b", "c"].map((id) => ({ id, width: 30, menu }))}
+      selection={{ kind: "columns", ids: ["a", "b"] }}
+      onSelectionChange={onSelectionChange}
+      aria-label="Menus"
+    />,
+  );
+  const header = (id: string) => container.querySelector(`[data-header-id="${id}"]`) as Element;
+
+  fireEvent.contextMenu(header("b"));
+  expect(onSelectionChange).not.toHaveBeenCalled();
+
+  fireEvent.contextMenu(header("c"));
+  expect(onSelectionChange).toHaveBeenCalledWith({ kind: "columns", ids: ["c"] });
+});
+
+test("right-clicking a selectsRow cell selects its row", () => {
+  const onSelectionChange = vi.fn();
+  render(
+    <DataGrid
+      rows={rows}
+      getRowId={(row) => row.id}
+      columnDefs={[
+        {
+          id: "label",
+          selectsRow: true,
+          getValue: (row) => `Row ${row.id}`,
+          cell: { menu: () => [{ id: "remove", label: "Remove" }] },
+        },
+      ]}
+      onSelectionChange={onSelectionChange}
+      aria-label="Menus"
+    />,
+  );
+
+  fireEvent.contextMenu(screen.getByRole("gridcell", { name: "Row 2" }));
+
+  expect(onSelectionChange).toHaveBeenCalledWith({ kind: "rows", ids: ["2"] });
+});
+
 test("openMenu from a cell button opens the shared menu without a cell click, and Escape returns focus to the button", async () => {
   const user = userEvent.setup();
   const onCellClick = vi.fn();
