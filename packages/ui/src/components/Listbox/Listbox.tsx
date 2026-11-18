@@ -158,6 +158,7 @@ function Content({
 
   return (
     <ScrollArea.Root
+      scrollbar="thumb"
       {...scrollAreaProps}
       scrollbars="vertical"
       // The viewport and the listbox content are one element, which both machines look up by id.

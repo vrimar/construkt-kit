@@ -307,9 +307,12 @@ describe("Listbox", () => {
     expect(optionValues()).toEqual(["north", "south"]);
   });
 
-  it("renders content inside a scroll area", () => {
+  it("renders content inside a scroll area that shows its thumb at rest", () => {
     renderListbox();
-    expect(screen.getByRole("listbox").closest("[data-scope='scroll-area']")).not.toBeNull();
+    const scrollArea = screen
+      .getByRole("listbox")
+      .closest("[data-scope='scroll-area'][data-part='root']");
+    expect(scrollArea?.className).toContain("scroll-area__root--scrollbar_thumb");
   });
 
   it("points the search input at the listbox it controls", () => {

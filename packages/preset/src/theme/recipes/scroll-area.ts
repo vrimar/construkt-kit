@@ -166,6 +166,14 @@ export const scrollArea = defineSlotRecipe({
           },
         },
       },
+      thumb: {
+        scrollbar: {
+          "--thumb-bg": "{colors.neutral.subtle.bg.active}",
+          "&[data-scrolling], &[data-hover]": {
+            "--thumb-bg": "{colors.border.control}",
+          },
+        },
+      },
       visible: {
         content: {
           "&[data-overflow-y]": {
