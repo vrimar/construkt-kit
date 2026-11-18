@@ -117,6 +117,7 @@ export class GridSelection<TRow, TNode> {
     rows: ReadonlySet<RowId>;
   } | null = null;
   private cached: Cached = { key: "", stats: null, allRows: null, columns: null };
+  private optionsVersion = 0;
   private readonly resolved = new WeakMap<
     readonly CellRange[],
     { key: string; rects: IndexRect[] }
@@ -130,7 +131,13 @@ export class GridSelection<TRow, TNode> {
     this.entities = new ControlledValue<EntitySelection | null>(initial);
   }
 
-  sync(options: SelectionOptions<TRow>): void {
+  sync(options: SelectionOptions<TRow>, previous: SelectionOptions<TRow>): void {
+    if (
+      options.selectionMode !== previous.selectionMode ||
+      options.isRowSelectable !== previous.isRowSelectable
+    ) {
+      this.optionsVersion++;
+    }
     const before = this.entities.value;
     const beforeRanges = this.committed.value;
     this.entities.controlled = options.selection;
@@ -140,6 +147,15 @@ export class GridSelection<TRow, TNode> {
       this.host.channels.notify(SELECTION_CHANNELS.selection);
       this.notifyRanges();
     }
+  }
+
+  get rowStateVersion(): number {
+    const { channels } = this.host;
+    return (
+      channels.version(SELECTION_CHANNELS.selection) +
+      channels.version(SHARED_CHANNELS.rows) +
+      this.optionsVersion
+    );
   }
 
   get mode(): SelectionMode {

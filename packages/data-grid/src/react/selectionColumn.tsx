@@ -3,7 +3,7 @@ import type { MouseEvent } from "react";
 
 import type { RowId } from "../core/rows/rowNode";
 import type { RowSelectionState } from "../core/selection/controller";
-import { useGridCoreContext } from "./context";
+import { useRowStateCore } from "./context";
 import type { ColumnDef } from "./types";
 
 export const SELECTION_COLUMN_ID = "data-grid:select";
@@ -36,7 +36,7 @@ export function selectionColumn<TRow>(labels: {
 }
 
 function SelectAllCheckbox({ label }: { label: string }) {
-  const core = useGridCoreContext();
+  const core = useRowStateCore();
   if (core.selection.mode !== "multiple") return null;
   const state = core.selection.allRowsState();
   return (
@@ -55,7 +55,7 @@ function SelectAllCheckbox({ label }: { label: string }) {
 }
 
 function RowCheckbox({ rowId, label }: { rowId: RowId; label: string }) {
-  const core = useGridCoreContext();
+  const core = useRowStateCore();
   const node = core.sourceNode(rowId);
   if (!node || core.selection.mode === "none") return null;
   return (

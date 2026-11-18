@@ -219,6 +219,7 @@ const FALLBACK_ROW_HEIGHT = 36;
 const MIN_OVERSCAN = 100;
 const ROW_OVERSCAN = 0.5;
 const COLUMN_OVERSCAN = 0.25;
+const ORIGIN_STEP = 1_000_000;
 
 export class GridCore<TRow, TNode = unknown> {
   readonly channels = new Channels();
@@ -270,6 +271,7 @@ export class GridCore<TRow, TNode = unknown> {
   private menu: MenuRequest<TNode> | null = null;
   private flashList: readonly Flash[] = [];
   private flashId = 0;
+  private readonly headerContexts = new Map<string, HeaderContext<TRow, TNode>>();
   readonly selection: GridSelection<TRow, TNode>;
   readonly dnd: GridDnd<TRow, TNode>;
   readonly editing: GridEditing<TRow, TNode>;
@@ -294,8 +296,14 @@ export class GridCore<TRow, TNode = unknown> {
     const previous = this.options;
     this.options = options;
     for (const key of STATE_KEYS) this.control(key, options);
+    if (
+      options.dragHandles !== previous.dragHandles ||
+      (options.onColumnsDrop === undefined) !== (previous.onColumnsDrop === undefined)
+    ) {
+      this.headerContexts.clear();
+    }
     this.channels.batch(() => {
-      this.selection.sync(options);
+      this.selection.sync(options, previous);
       this.dnd.sync(options, previous);
       this.refreshColumns();
       if (
@@ -708,7 +716,15 @@ export class GridCore<TRow, TNode = unknown> {
   headerContext(columnId: string): HeaderContext<TRow, TNode> | null {
     const cell = this.columns.headerCell(columnId);
     if (!cell) return null;
-    return {
+    const cached = this.headerContexts.get(columnId);
+    if (
+      cached?.def === cell.def &&
+      cached.level === cell.level &&
+      cached.isGroup === cell.isGroup
+    ) {
+      return cached;
+    }
+    const ctx: HeaderContext<TRow, TNode> = {
       columnId,
       def: cell.def,
       level: cell.level,
@@ -718,6 +734,8 @@ export class GridCore<TRow, TNode = unknown> {
       },
       dragHandleProps: this.dnd.handleProps({ kind: "columns", id: columnId }),
     };
+    this.headerContexts.set(columnId, ctx);
+    return ctx;
   }
 
   private menuEntries(target: GridTarget): readonly MenuEntry<TNode>[] | undefined {
@@ -1175,6 +1193,7 @@ export class GridCore<TRow, TNode = unknown> {
     if (inputs.every((input, index) => Object.is(input, this.columnInputs[index]))) return;
     this.columnInputs = inputs;
     const previous = this.columns;
+    if (previous.defs !== defs) this.headerContexts.clear();
     this.columns = new ColumnModel(defs, this.columnState(), this.viewportWidth, this.gutterWidth);
     this.columnWindow.invalidate();
     this.channels.notify(GRID_CHANNELS.geometry);
@@ -1322,7 +1341,10 @@ export class GridCore<TRow, TNode = unknown> {
     );
     if (rowsChanged || columnsChanged) this.channels.notify(GRID_CHANNELS.window);
 
-    this.origin = this.offsets.offsetOf(this.rowWindow.start);
+    // A coarse origin keeps kept rows' tops fixed and stretched offsets within browser layout limits.
+    this.origin = mapping.stretched
+      ? Math.floor(this.offsets.offsetOf(this.rowWindow.start) / ORIGIN_STEP) * ORIGIN_STEP
+      : 0;
     const bandOffset = this.origin + Math.min(this.scrollTop, maxScroll) - this.contentTop;
     if (bandOffset !== this.bandOffset) {
       this.bandOffset = bandOffset;

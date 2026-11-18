@@ -3,21 +3,22 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  memo,
   useId,
   useRef,
   useState,
 } from "react";
 
-import type { HeaderCell } from "../core/columns/columnModel";
+import type { HeaderCell, Region } from "../core/columns/columnModel";
+import type { ColumnDef, HeaderContext } from "../core/columns/types";
 import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { AnyGridCore } from "./useGridCore";
 
-interface HeaderCellViewProps {
+interface HeaderShared {
   core: AnyGridCore;
   classes: DataGridClasses;
-  cell: HeaderCell<any, ReactNode>;
   onAutosize: (columnId: string) => void;
   resizeLabel: string;
   renameLabel: string;
@@ -25,7 +26,29 @@ interface HeaderCellViewProps {
   onResizeExit: () => void;
 }
 
-interface GridHeaderProps extends Omit<HeaderCellViewProps, "cell"> {
+interface HeaderCellViewProps extends HeaderShared {
+  id: string;
+  def: ColumnDef<any, ReactNode>;
+  ctx: HeaderContext<any, ReactNode> | null;
+  isGroup: boolean;
+  first: number;
+  last: number;
+  rowSpan: number;
+  region: Region;
+  groupStart: boolean;
+  resizable: boolean;
+  resizeWidth: number;
+  resizeMin: number;
+  resizeMax: number;
+  boxHeight: number;
+  selected: boolean;
+  selectionTop: boolean;
+  ariaSelected: boolean | undefined;
+  dragging: boolean;
+  renaming: boolean;
+}
+
+interface GridHeaderProps extends HeaderShared {
   renderedColumns: readonly number[];
   gutter: boolean;
 }
@@ -104,7 +127,7 @@ export function GridHeader({ renderedColumns, gutter, ...cellProps }: GridHeader
                   <HeaderCellView
                     key={cell.id}
                     {...cellProps}
-                    cell={cell}
+                    {...headerCellState(core, cell)}
                   />
                 ))}
             </div>
@@ -120,10 +143,62 @@ const spansRendered = (cell: HeaderCell<unknown, unknown>, rendered: ReadonlySet
   return false;
 };
 
-function HeaderCellView({
+function headerCellState(core: AnyGridCore, cell: HeaderCell<any, ReactNode>) {
+  const { columns, selection } = core;
+  const leaves = columns.visibleLeavesUnder(cell.id);
+  const parentId = columns.parentIdOf(cell.id);
+  const parent = parentId === undefined ? undefined : columns.headerCell(parentId);
+  const selected = selection.isSpanSelected(cell.first, cell.last);
+  return {
+    id: cell.id,
+    def: cell.def,
+    ctx: core.headerContext(cell.id),
+    isGroup: cell.isGroup,
+    first: cell.first,
+    last: cell.last,
+    rowSpan: cell.rowSpan,
+    region: cell.region,
+    groupStart: cell.groupStart,
+    resizable: cell.resizable,
+    resizeWidth: leaves.reduce((sum, leaf) => sum + leaf.width, 0),
+    resizeMin: leaves.reduce((sum, leaf) => sum + leaf.minWidth, 0),
+    resizeMax: leaves.reduce((sum, leaf) => sum + leaf.maxWidth, 0),
+    boxHeight: core.headerBox(cell).height,
+    selected,
+    selectionTop:
+      selected &&
+      core.lettersHeight === 0 &&
+      !(parent && selection.isSpanSelected(parent.first, parent.last)),
+    ariaSelected: selection.isHeaderSelectable(cell.def)
+      ? selection.isHeaderSelected(cell.id, cell.isGroup)
+      : undefined,
+    dragging: core.dnd.isDragged("columns", cell.id),
+    renaming: core.editing.isRenaming(cell.id),
+  };
+}
+
+const HeaderCellView = memo(function HeaderCellView({
   core,
   classes,
-  cell,
+  id,
+  def,
+  ctx,
+  isGroup,
+  first,
+  last,
+  rowSpan,
+  region,
+  groupStart,
+  resizable,
+  resizeWidth,
+  resizeMin,
+  resizeMax,
+  boxHeight,
+  selected,
+  selectionTop,
+  ariaSelected,
+  dragging,
+  renaming,
   onAutosize,
   resizeLabel,
   renameLabel,
@@ -142,11 +217,11 @@ function HeaderCellView({
       start.current = core.columns;
     },
     onMove: ({ deltaX }) => {
-      core.previewColumnWidths(start.current.resizedWidths(cell.id, deltaX));
+      core.previewColumnWidths(start.current.resizedWidths(id, deltaX));
     },
     onEnd: ({ deltaX }, { cancelled }) => {
       if (cancelled) core.previewColumnWidths(null);
-      else core.setColumnWidths(start.current.resizedWidths(cell.id, deltaX));
+      else core.setColumnWidths(start.current.resizedWidths(id, deltaX));
     },
   });
 
@@ -155,21 +230,14 @@ function HeaderCellView({
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
       core.setColumnWidths(
-        core.columns.resizedWidths(cell.id, event.key === "ArrowRight" ? step : -step),
+        core.columns.resizedWidths(id, event.key === "ArrowRight" ? step : -step),
       );
     } else if (event.key === "Enter" || event.key === "Escape" || event.key === "Tab") {
       event.preventDefault();
       onResizeExit();
     }
   };
-  const leaves = core.columns.visibleLeavesUnder(cell.id);
-  const width = leaves.reduce((sum, leaf) => sum + leaf.width, 0);
-  const minWidth = leaves.reduce((sum, leaf) => sum + leaf.minWidth, 0);
-  const maxWidth = leaves.reduce((sum, leaf) => sum + leaf.maxWidth, 0);
 
-  const { def } = cell;
-  const ctx = core.headerContext(cell.id);
-  const renaming = core.editing.isRenaming(cell.id);
   const content = renaming ? (
     <InlineEditor
       core={core}
@@ -181,62 +249,51 @@ function HeaderCellView({
   ) : (
     <span className={classes.cellText}>{def.header ?? def.id}</span>
   );
-  const parentId = core.columns.parentIdOf(cell.id);
-  const parent = parentId === undefined ? undefined : core.columns.headerCell(parentId);
-  const selected = core.selection.isSpanSelected(cell.first, cell.last);
-  const selectionTop =
-    selected &&
-    core.lettersHeight === 0 &&
-    !(parent && core.selection.isSpanSelected(parent.first, parent.last));
 
   return (
     <div
       id={headerId}
       role="columnheader"
       className={classes.headerCell}
-      aria-colindex={cell.first + 1}
-      aria-colspan={cell.isGroup ? cell.last - cell.first + 1 : undefined}
-      aria-rowspan={cell.rowSpan > 1 ? cell.rowSpan : undefined}
-      aria-selected={
-        core.selection.isHeaderSelectable(def)
-          ? core.selection.isHeaderSelected(cell.id, cell.isGroup)
-          : undefined
-      }
-      data-header-id={cell.id}
+      aria-colindex={first + 1}
+      aria-colspan={isGroup ? last - first + 1 : undefined}
+      aria-rowspan={rowSpan > 1 ? rowSpan : undefined}
+      aria-selected={ariaSelected}
+      data-header-id={id}
       data-selected={selected || undefined}
       data-selection-top={selectionTop || undefined}
       data-reveal-group=""
-      data-dragging={core.dnd.isDragged("columns", cell.id) || undefined}
+      data-dragging={dragging || undefined}
       data-editing={renaming || undefined}
-      data-sticky-label={(cell.isGroup && cell.region === "center") || undefined}
-      data-group-start={cell.groupStart || undefined}
+      data-sticky-label={(isGroup && region === "center") || undefined}
+      data-group-start={groupStart || undefined}
       style={
         {
-          ...spanGeometry(cell.first, cell.last),
-          height: core.headerBox(cell).height,
+          ...spanGeometry(first, last),
+          height: boxHeight,
           "--data-grid-header-cell-bg": def.headerStyle?.background,
           "--data-grid-header-cell-fg": def.headerStyle?.color,
         } as CSSProperties
       }
     >
       {content}
-      {cell.resizable && (
+      {resizable && (
         <span
           className={classes.resizeHandle}
           role="separator"
           aria-hidden={!keyboardResizing || undefined}
           aria-orientation="vertical"
           aria-labelledby={keyboardResizing ? `${resizeLabelId} ${headerId}` : undefined}
-          aria-valuenow={width}
-          aria-valuetext={widthText(width)}
-          aria-valuemin={minWidth}
-          aria-valuemax={Number.isFinite(maxWidth) ? maxWidth : Number.MAX_SAFE_INTEGER}
+          aria-valuenow={resizeWidth}
+          aria-valuetext={widthText(resizeWidth)}
+          aria-valuemin={resizeMin}
+          aria-valuemax={Number.isFinite(resizeMax) ? resizeMax : Number.MAX_SAFE_INTEGER}
           tabIndex={-1}
           onFocus={() => setKeyboardResizing(true)}
           onBlur={() => setKeyboardResizing(false)}
-          data-resize-handle={cell.id}
+          data-resize-handle={id}
           onPointerDown={onPointerDown}
-          onDoubleClick={() => onAutosize(cell.id)}
+          onDoubleClick={() => onAutosize(id)}
           onKeyDown={onResizeKeyDown}
         >
           {keyboardResizing && (
@@ -251,4 +308,4 @@ function HeaderCellView({
       )}
     </div>
   );
-}
+});

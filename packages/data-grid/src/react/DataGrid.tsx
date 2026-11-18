@@ -9,6 +9,7 @@ import {
 } from "@construkt-kit/ui";
 import {
   type CSSProperties,
+  type ReactNode,
   type UIEvent,
   useCallback,
   useEffect,
@@ -20,7 +21,7 @@ import {
 
 import { GRID_CHANNELS } from "../core/grid";
 import { useCellTooltip } from "./CellTooltip";
-import { GridCoreContext } from "./context";
+import { GridCoreContext, RowStateVersionContext } from "./context";
 import { ColumnDropLayer, DragGhost, RowDropMarker } from "./DropIndicators";
 import { ariaRows, geometryVars } from "./geometry";
 import { GridHeader } from "./GridHeader";
@@ -184,6 +185,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   useGridScroll(core, scroller, bandRef, onVisibleRangeChange);
   const focus = useGridFocus(core, scroller, rootRef);
   const { runNamed, autosize } = useGridApi(core, { scroller, rootRef, commands, apiRef });
+  const onAutosize = useCallback((columnId: string) => autosize([columnId]), [autosize]);
   const keyboard = useGridKeyboard(core, {
     keymap,
     keyboardSelection,
@@ -242,7 +244,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   const guardIndex = core.activePosition() ? 0 : -1;
 
   return (
-    <GridCoreContext value={core}>
+    <GridContexts core={core}>
       <Box
         {...rootProps}
         ref={composedRootRef}
@@ -309,7 +311,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
                 classes={classes}
                 renderedColumns={renderedColumns}
                 gutter={rowNumbers}
-                onAutosize={(columnId) => autosize([columnId])}
+                onAutosize={onAutosize}
                 resizeLabel={labels.resizeColumn}
                 widthText={labels.columnWidth}
                 renameLabel={labels.renameHeader}
@@ -446,6 +448,16 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
           ghostRef={grip.ghostRef}
         />
       </Box>
+    </GridContexts>
+  );
+}
+
+function GridContexts({ core, children }: { core: AnyGridCore; children: ReactNode }) {
+  return (
+    <GridCoreContext value={core}>
+      <RowStateVersionContext value={core.selection.rowStateVersion}>
+        {children}
+      </RowStateVersionContext>
     </GridCoreContext>
   );
 }

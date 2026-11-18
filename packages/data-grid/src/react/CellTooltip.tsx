@@ -1,5 +1,12 @@
 import { Tooltip, useLatestRef } from "@construkt-kit/ui";
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { resolveTooltip } from "../core/columns/cellSpec";
 import { GRID_CHANNELS } from "../core/grid";
@@ -16,16 +23,37 @@ interface TooltipState {
 
 const CLOSED: TooltipState = { open: false, rect: null, content: null };
 
+class TooltipStore {
+  private state = CLOSED;
+  private readonly listeners = new Set<() => void>();
+
+  readonly get = (): TooltipState => this.state;
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  update(next: (current: TooltipState) => TooltipState): void {
+    const state = next(this.state);
+    if (state === this.state) return;
+    this.state = state;
+    for (const listener of [...this.listeners]) listener();
+  }
+}
+
 export function useCellTooltip(core: AnyGridCore) {
-  const [state, setState] = useState<TooltipState>(CLOSED);
+  const [store] = useState(() => new TooltipStore());
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const target = useRef<HTMLElement | null>(null);
 
   const close = useCallback(() => {
     clearTimeout(timer.current);
     target.current = null;
-    setState((current) => (current.open ? { ...current, open: false } : current));
-  }, []);
+    store.update((current) => (current.open ? { ...current, open: false } : current));
+  }, [store]);
 
   useEffect(() => core.channels.subscribe(GRID_CHANNELS.scroll, close), [core, close]);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -42,10 +70,11 @@ export function useCellTooltip(core: AnyGridCore) {
       target.current = cell.element;
       timer.current = setTimeout(() => {
         if (target.current !== cell.element || !cell.element.isConnected) return;
-        setState({ open: true, rect: cell.element.getBoundingClientRect(), content });
+        const rect = cell.element.getBoundingClientRect();
+        store.update(() => ({ open: true, rect, content }));
       }, delay);
     },
-    [core, close],
+    [core, close, store],
   );
 
   return {
@@ -55,14 +84,15 @@ export function useCellTooltip(core: AnyGridCore) {
     onBlur: close,
     tooltip: (
       <SharedTooltip
-        state={state}
+        store={store}
         onClose={close}
       />
     ),
   };
 }
 
-function SharedTooltip({ state, onClose }: { state: TooltipState; onClose: () => void }) {
+function SharedTooltip({ store, onClose }: { store: TooltipStore; onClose: () => void }) {
+  const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const rectRef = useLatestRef(state.rect);
 
   return (

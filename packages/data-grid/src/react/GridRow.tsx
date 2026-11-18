@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { headerText } from "../core/columns/columnModel";
+import type { ColumnDef } from "../core/columns/types";
 import { GRID_CHANNELS } from "../core/grid";
 import type { RowNode } from "../core/rows/rowNode";
 import type { RowSelectionState } from "../core/selection/controller";
@@ -56,6 +57,8 @@ const GridRow = memo(function GridRow({
   core,
   classes,
   node,
+  version,
+  cellsVersion,
   variant,
   rowIndex = -1,
   ariaRowIndex,
@@ -159,80 +162,162 @@ const GridRow = memo(function GridRow({
               const leaf = leaves[columnIndex];
               const span = spans?.get(columnIndex);
               const rows = span?.rows ?? 1;
-              const columns = span?.columns ?? 1;
-              const { spec, ctx } = core.resolveNodeCell(node, rowIndex, columnIndex);
-              const geometry =
-                columns > 1
-                  ? spanGeometry(columnIndex, columnIndex + columns - 1)
-                  : columnGeometry(columnIndex);
-              const style = {
-                ...geometry,
-                ...(rows > 1 && { height: core.rowsHeight(rowIndex, rows), bottom: "auto" }),
-                "--data-grid-cell-bg": spec.style?.background,
-                "--data-grid-cell-fg": spec.style?.color,
-              } as CSSProperties;
-              const merged = rows > 1 || columns > 1;
-              const editing = body && columnIndex === editingColumn;
-              const columnSelected = core.selection.isColumnSelected(columnIndex);
-              const inRange = body && core.selection.inCommittedRange(rowIndex, columnIndex);
-              const content = (
-                <>
-                  {inTree && leaf.def.rowHeader && (
-                    <span
-                      role={hasChildren ? "button" : undefined}
-                      className={classes.toggle}
-                      aria-expanded={hasChildren ? expanded : undefined}
-                      aria-label={
-                        hasChildren ? (expanded ? collapseLabel : expandLabel) : undefined
-                      }
-                      style={{ "--data-grid-depth": depth } as CSSProperties}
-                      onClick={hasChildren ? toggle : undefined}
-                    />
-                  )}
-                  {editing ? (
-                    <InlineEditor
-                      core={core}
-                      className={classes.editor}
-                      label={headerText(leaf.def)}
-                    />
-                  ) : spec.render ? (
-                    spec.render(ctx)
-                  ) : (
-                    <span className={classes.cellText}>{ctx.formattedValue}</span>
-                  )}
-                </>
-              );
+              const resizeNode =
+                body && resizableRows && leaf.def.rowHeader
+                  ? rows > 1
+                    ? core.nodeAt(rowIndex + rows - 1)
+                    : node
+                  : undefined;
               return (
-                <div
+                <GridCell
                   key={leaf.id}
-                  role={leaf.def.rowHeader ? "rowheader" : "gridcell"}
-                  className={classes.cell}
-                  aria-colindex={columnIndex + 1}
-                  aria-colspan={columns > 1 ? columns : undefined}
-                  aria-rowspan={rows > 1 ? rows : undefined}
-                  data-col-index={columnIndex}
-                  data-tone={spec.tone}
-                  data-group-start={leaf.groupStart || undefined}
-                  data-merged={merged || undefined}
-                  data-editing={editing || undefined}
-                  aria-selected={(body && columnSelected) || inRange || undefined}
-                  data-selected={columnSelected || undefined}
-                  tabIndex={body ? (columnIndex === activeColumn ? 0 : -1) : undefined}
-                  style={style}
-                >
-                  {merged ? <span className={classes.mergedLabel}>{content}</span> : content}
-                  {body && resizableRows && leaf.def.rowHeader && (
-                    <RowResizeHandle
-                      core={core}
-                      classes={classes}
-                      node={rows > 1 ? core.nodeAt(rowIndex + rows - 1) : node}
-                    />
-                  )}
-                </div>
+                  core={core}
+                  classes={classes}
+                  node={node}
+                  version={version}
+                  cellsVersion={cellsVersion}
+                  rowIndex={rowIndex}
+                  columnIndex={columnIndex}
+                  def={leaf.def}
+                  groupStart={leaf.groupStart}
+                  body={body}
+                  tree={inTree}
+                  depth={depth}
+                  hasChildren={hasChildren}
+                  expanded={expanded}
+                  spanRows={rows}
+                  spanColumns={span?.columns ?? 1}
+                  spanHeight={rows > 1 ? core.rowsHeight(rowIndex, rows) : undefined}
+                  resizeNode={resizeNode}
+                  active={body && columnIndex === activeColumn}
+                  editing={body && columnIndex === editingColumn}
+                  columnSelected={core.selection.isColumnSelected(columnIndex)}
+                  inRange={body && core.selection.inCommittedRange(rowIndex, columnIndex)}
+                  expandLabel={expandLabel}
+                  collapseLabel={collapseLabel}
+                />
               );
             })}
         </div>
       ))}
+    </div>
+  );
+});
+
+interface GridCellProps {
+  core: AnyGridCore;
+  classes: DataGridClasses;
+  node: RowNode<any>;
+  version: number;
+  cellsVersion: number;
+  rowIndex: number;
+  columnIndex: number;
+  def: ColumnDef<any, ReactNode>;
+  groupStart: boolean;
+  body: boolean;
+  tree: boolean;
+  depth: number;
+  hasChildren: boolean;
+  expanded: boolean;
+  spanRows: number;
+  spanColumns: number;
+  spanHeight: number | undefined;
+  resizeNode: RowNode<any> | undefined;
+  active: boolean;
+  editing: boolean;
+  columnSelected: boolean;
+  inRange: boolean;
+  expandLabel: string;
+  collapseLabel: string;
+}
+
+const GridCell = memo(function GridCell({
+  core,
+  classes,
+  node,
+  rowIndex,
+  columnIndex,
+  def,
+  groupStart,
+  body,
+  tree,
+  depth,
+  hasChildren,
+  expanded,
+  spanRows,
+  spanColumns,
+  spanHeight,
+  resizeNode,
+  active,
+  editing,
+  columnSelected,
+  inRange,
+  expandLabel,
+  collapseLabel,
+}: GridCellProps) {
+  const { spec, ctx } = core.resolveNodeCell(node, rowIndex, columnIndex);
+  const geometry =
+    spanColumns > 1
+      ? spanGeometry(columnIndex, columnIndex + spanColumns - 1)
+      : columnGeometry(columnIndex);
+  const style = {
+    ...geometry,
+    ...(spanRows > 1 && { height: spanHeight, bottom: "auto" }),
+    "--data-grid-cell-bg": spec.style?.background,
+    "--data-grid-cell-fg": spec.style?.color,
+  } as CSSProperties;
+  const merged = spanRows > 1 || spanColumns > 1;
+  const toggle = () => core.setRowExpanded(node.id, !expanded);
+  const content = (
+    <>
+      {tree && def.rowHeader && (
+        <span
+          role={hasChildren ? "button" : undefined}
+          className={classes.toggle}
+          aria-expanded={hasChildren ? expanded : undefined}
+          aria-label={hasChildren ? (expanded ? collapseLabel : expandLabel) : undefined}
+          style={{ "--data-grid-depth": depth } as CSSProperties}
+          onClick={hasChildren ? toggle : undefined}
+        />
+      )}
+      {editing ? (
+        <InlineEditor
+          core={core}
+          className={classes.editor}
+          label={headerText(def)}
+        />
+      ) : spec.render ? (
+        spec.render(ctx)
+      ) : (
+        <span className={classes.cellText}>{ctx.formattedValue}</span>
+      )}
+    </>
+  );
+  return (
+    <div
+      role={def.rowHeader ? "rowheader" : "gridcell"}
+      className={classes.cell}
+      aria-colindex={columnIndex + 1}
+      aria-colspan={spanColumns > 1 ? spanColumns : undefined}
+      aria-rowspan={spanRows > 1 ? spanRows : undefined}
+      data-col-index={columnIndex}
+      data-tone={spec.tone}
+      data-group-start={groupStart || undefined}
+      data-merged={merged || undefined}
+      data-editing={editing || undefined}
+      aria-selected={(body && columnSelected) || inRange || undefined}
+      data-selected={columnSelected || undefined}
+      tabIndex={body ? (active ? 0 : -1) : undefined}
+      style={style}
+    >
+      {merged ? <span className={classes.mergedLabel}>{content}</span> : content}
+      {resizeNode && (
+        <RowResizeHandle
+          core={core}
+          classes={classes}
+          node={resizeNode}
+        />
+      )}
     </div>
   );
 });
