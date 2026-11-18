@@ -74,7 +74,14 @@ const DEPENDENCY_FIELDS = {
   peerDependencies: "peer ",
   optionalDependencies: "optional ",
 };
+const COUNTED = {
+  breaking: ["breaking", "breaking"],
+  feat: ["feature", "features"],
+  fix: ["fix", "fixes"],
+  other: ["other", "other"],
+};
 const PUBLISHED_FIELDS = [
+  "license",
   "peerDependenciesMeta",
   "exports",
   "bin",
@@ -221,7 +228,7 @@ for (const release of releases) {
     const [major, minor] = parseVersion(release.base);
     const from = major === 0 ? `${major}.${minor}` : `${major}`;
     const readme = path.join(root, release.dir, "README.md");
-    const notes = new RegExp(`^## Upgrading from ${from.replace(".", "\\.")}\\s*$`, "m");
+    const notes = new RegExp(`^#{2,6} Upgrading from ${from.replace(".", "\\.")}\\s*$`, "m");
     if (!fs.existsSync(readme) || !notes.test(fs.readFileSync(readme, "utf8"))) {
       problems.push(
         `${release.name} ${release.next} breaks ${release.base}: add "## Upgrading from ${from}" to ${release.dir}/README.md.`,
@@ -236,7 +243,7 @@ for (const release of releases) {
   const counts = Object.keys(SECTIONS)
     .map((key) => [key, release.commits.filter((commit) => commit.section === key).length])
     .filter(([, count]) => count > 0)
-    .map(([key, count]) => `${count} ${SECTIONS[key].toLowerCase()}`);
+    .map(([key, count]) => `${count} ${count === 1 ? COUNTED[key][0] : COUNTED[key][1]}`);
   if (release.manifestChanges.length > 0) {
     const count = release.manifestChanges.length;
     counts.push(`${count} package.json change${count === 1 ? "" : "s"}`);
@@ -288,6 +295,7 @@ const today = new Date().toLocaleDateString("sv-SE");
 
 function changelogSection(release) {
   const lines = [`## ${release.next} — ${today}`, ""];
+  if (!release.base) return [...lines, "First release.", ""].join("\n");
   for (const [key, title] of Object.entries(SECTIONS)) {
     const commits = release.commits.filter((commit) => commit.section === key);
     if (commits.length === 0) continue;
