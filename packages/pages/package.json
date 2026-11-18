@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "private": false,
   "description": "Shared full-page components (login, register, forgot password) for Construkt Kit apps",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",

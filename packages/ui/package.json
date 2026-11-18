@@ -3,6 +3,7 @@
   "version": "0.12.1",
   "private": false,
   "description": "Shared component library for Construkt Kit frontend apps",
+  "license": "MIT",
   "author": "Vasil Rimar",
   "repository": {
     "type": "git",

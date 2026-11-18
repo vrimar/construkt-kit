@@ -2,6 +2,7 @@
   "name": "@construkt-kit/config",
   "version": "0.6.0",
   "description": "Shared tool configuration for all Construkt Kit frontend projects",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",

@@ -3,6 +3,7 @@
   "version": "0.10.0",
   "private": false,
   "description": "Shared Panda CSS preset for Construkt Kit frontend apps",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",

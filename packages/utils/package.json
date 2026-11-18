@@ -3,6 +3,7 @@
   "version": "0.6.0",
   "private": false,
   "description": "Stateless, framework-agnostic utilities for Construkt Kit frontend apps",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
