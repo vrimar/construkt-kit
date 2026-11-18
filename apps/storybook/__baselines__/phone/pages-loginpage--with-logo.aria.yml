@@ -8,4 +8,4 @@
   - text: Password
   - textbox "Password"
   - button "Forgot password?"
-- button "Login"
+- button "Sign in"

@@ -51,7 +51,7 @@ export function ForgotPasswordPage({
           loading={isLoading}
           error={error}
           submitDisabled={!email}
-          footer={onBack && <AuthLinkButton onClick={onBack}>Back to login</AuthLinkButton>}
+          footer={onBack && <AuthLinkButton onClick={onBack}>Back to sign in</AuthLinkButton>}
         >
           <Field
             label="Email"

@@ -58,6 +58,12 @@ use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages
 `"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
 design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
+## Upgrading from 0.8
+
+- `LoginPage`'s submit button reads "Sign in" instead of "Login", and the back links of `ForgotPasswordPage`,
+  `ResetPasswordPage` and `AuthSuccess` read "Back to sign in" instead of "Back to login"; tests that find them by the
+  old text need the new text
+
 ## Upgrading from 0.7
 
 - Apps need `@construkt-kit/preset` 0.10 or later: the auth card uses its `raised` shadow token

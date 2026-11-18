@@ -90,7 +90,7 @@ export interface AuthSuccessProps {
   backLabel?: string;
 }
 
-export function AuthSuccess({ title, onBack, backLabel = "Back to login" }: AuthSuccessProps) {
+export function AuthSuccess({ title, onBack, backLabel = "Back to sign in" }: AuthSuccessProps) {
   return (
     <Stack gap="4">
       <Alert

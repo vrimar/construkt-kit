@@ -42,7 +42,7 @@ export function LoginPage({
     >
       <AuthForm
         onSubmit={handleSubmit}
-        submitLabel="Login"
+        submitLabel="Sign in"
         loading={isLoading}
         error={error}
       >
