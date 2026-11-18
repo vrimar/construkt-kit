@@ -360,6 +360,33 @@ export const MobileCards = meta.story({
   ),
 });
 
+const longTitleCardColumns = [
+  cardColumns[0],
+  columnHelper.accessor("name", {
+    header: "Organization name",
+    meta: { type: "input", card: "title" },
+  }),
+  ...cardColumns.slice(2),
+];
+
+export const MobileCardsLongSearch = meta.story({
+  parameters: { layout: "fullscreen" },
+  tags: ["phone-only"],
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  render: () => (
+    <Box
+      display="flex"
+      height="100dvh"
+    >
+      <DataTableStory
+        data={data}
+        columnDefs={longTitleCardColumns}
+        mobileLayout="cards"
+      />
+    </Box>
+  ),
+});
+
 const resizableColumns = [
   columnHelper.accessor("id", { header: "ID", meta: { type: "number", width: 96 } }),
   columnHelper.accessor("name", { header: "Name", meta: { type: "input" } }),

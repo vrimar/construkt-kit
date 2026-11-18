@@ -424,14 +424,16 @@ Two things adapt, each on its own signal:
   `closeOnInteractOutside` and outside/Escape handlers. A submenu opens inside its parent's sheet
   behind a back row (`Menu.Content`'s `backLabel`). A phone `Combobox` field is a button that opens a full-height sheet
   with the search input on top. `Dialog` sizes `md`, `lg`, `xl` and `cover` fill the screen below `md`; `xs` and `sm`
-  stay centred.
+  stay centred. A `DataTable` with `mobileLayout="cards"` also shows cards on a touch screen shorter than 32rem, a
+  phone on its side, where the table would leave room for a few rows.
 
 `Sheet` is the bottom `Drawer` with a grabber, `snapPoints`, safe-area padding and a `Header` that takes
 `startElement`/`endElement`. Every `Drawer` placement swipes to dismiss on touch, and a mouse drags it by the grabber
 (`draggable` on `Drawer.Content` lets the mouse drag the content too); for `Drawer.RootProvider`, pass the placement
 to `useDrawer`, which sets the swipe direction and the provider's styling, and give `Sheet.RootProvider` `useSheet()`.
 On a coarse pointer a `Drawer` or `Sheet` opens with focus on itself rather than its first field, so the on-screen
-keyboard stays down; mark a field `data-autofocus` or pass `initialFocusEl` to focus it. A `DataTable` in
+keyboard stays down; mark a field `data-autofocus` or pass `initialFocusEl` to focus it. Initial focus skips a close
+trigger: a `Dialog`, `Drawer` or `Popover` with nothing else to focus opens with focus on its content. A `DataTable` in
 `mobileLayout="cards"` applies its Sort and Filters sheets on Done; dismissing a sheet discards its edits.
 
 Tooltips and hover cards never open from touch. Keep tooltip text a label for something already labelled (an icon

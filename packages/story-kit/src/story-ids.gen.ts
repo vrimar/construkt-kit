@@ -617,6 +617,12 @@ export const stories = {
     title: "Components/DataTable",
     tags: ["phone-only"],
   },
+  "components-datatable--mobile-cards-long-search": {
+    file: "packages/ui/src/components/DataTable/DataTable.stories.tsx",
+    exportName: "MobileCardsLongSearch",
+    title: "Components/DataTable",
+    tags: ["phone-only"],
+  },
   "components-datepicker--custom-trigger": {
     file: "packages/ui/src/components/DatePicker/DatePicker.stories.tsx",
     exportName: "CustomTrigger",

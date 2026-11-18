@@ -1,0 +1,28 @@
+- textbox "Filter by Organization name"
+- button "Sort"
+- button "Filters"
+- text: Alice Johnson alice@example.com
+- button "Actions"
+- text: /Role Admin Created At \d+-\d+-\d+ Bob Smith bob@example\.com/
+- button "Actions"
+- text: /Role User Created At \d+-\d+-\d+ Charlie Brown charlie@example\.com/
+- button "Actions"
+- text: /Role Editor Created At \d+-\d+-\d+ Diana Prince diana@example\.com/
+- button "Actions"
+- text: /Role Admin Created At \d+-\d+-\d+ Eve Williams eve@example\.com/
+- button "Actions"
+- text: /Role User Created At \d+-\d+-\d+ Frank Castle frank@example\.com/
+- button "Actions"
+- text: /Role Admin Created At \d+-\d+-\d+ Grace Hopper grace@example\.com/
+- button "Actions"
+- text: /Role Editor Created At \d+-\d+-\d+ Hank Pym hank@example\.com/
+- button "Actions"
+- text: /Role User Created At \d+-\d+-\d+ Irene Adler irene@example\.com/
+- button "Actions"
+- text: /Role Editor Created At \d+-\d+-\d+ Jack Reacher jack@example\.com/
+- button "Actions"
+- text: /Role User Created At \d+-\d+-\d+/
+- paragraph: /\d+ Items/
+- button "Previous page" [disabled]
+- paragraph: 1 / 3
+- button "Next page"

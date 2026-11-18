@@ -12,9 +12,12 @@ import { columnMeta, getFilterValues } from "./columns";
 import { useDataTableContext } from "./context";
 import { getColumnLabel, renderColumnLabel } from "./Header/columnLabel";
 import { SortIcon } from "./Header/ColumnSorter";
-import { ColumnFilter } from "./Header/Filters/ColumnFilter";
+import { ColumnFilter, filterPlaceholder } from "./Header/Filters/ColumnFilter";
 import { filterKinds } from "./Header/Filters/filterKinds";
 import type { DataTableHeader, DataTableInstance } from "./types";
+
+// The search icon's column, the input's end padding and its border.
+const SEARCH_INPUT_INSET = "3.25rem";
 
 const columnName = <TData extends object>(header: DataTableHeader<TData>) =>
   renderColumnLabel(header) ?? getColumnLabel(header);
@@ -221,10 +224,19 @@ export const DataTableCardsToolbar = <TData extends object>({
       pb="2"
       flexShrink="0"
     >
-      <HStack gap="2">
+      <HStack
+        gap="2"
+        flexWrap="wrap"
+        justifyContent="flex-end"
+      >
         <Box
           flex="1"
           minWidth="0"
+          style={
+            searchHeader && {
+              minWidth: `min(100%, ${filterPlaceholder(labels.filterBy, searchHeader).length}ch + ${SEARCH_INPUT_INSET})`,
+            }
+          }
         >
           {searchHeader && (
             <ColumnFilter
@@ -233,54 +245,59 @@ export const DataTableCardsToolbar = <TData extends object>({
             />
           )}
         </Box>
-        {sortHeaders.length > 0 && (
-          <IconButton
-            variant="outline"
-            colorPalette={sortedColumn ? "brand" : "neutral"}
-            flexShrink="0"
-            aria-label={
-              sortedColumn
-                ? `${labels.sortBy} ${getColumnLabel({ column: sortedColumn })}`
-                : labels.sort
-            }
-            onClick={openSort}
-          >
-            <SortIcon sort={sortDirection} />
-          </IconButton>
-        )}
-        {drawerHeaders.length > 0 && (
-          <IconButton
-            variant="outline"
-            colorPalette={activeFilters.length > 0 ? "brand" : "neutral"}
-            position="relative"
-            overflow="visible"
-            flexShrink="0"
-            aria-label={
-              activeFilters.length > 0
-                ? `${labels.filters} (${activeFilters.length})`
-                : labels.filters
-            }
-            onClick={openFilters}
-          >
-            <SlidersHorizontalIcon />
-            {activeFilters.length > 0 && (
-              <Badge
-                aria-hidden
-                size="sm"
-                variant="solid"
-                colorPalette="brand"
-                position="absolute"
-                top="-1.5"
-                right="-1.5"
-                minWidth="4.5"
-                justifyContent="center"
-                borderRadius="full"
-              >
-                {activeFilters.length}
-              </Badge>
-            )}
-          </IconButton>
-        )}
+        <HStack
+          gap="2"
+          flexShrink="0"
+        >
+          {sortHeaders.length > 0 && (
+            <IconButton
+              variant="outline"
+              colorPalette={sortedColumn ? "brand" : "neutral"}
+              flexShrink="0"
+              aria-label={
+                sortedColumn
+                  ? `${labels.sortBy} ${getColumnLabel({ column: sortedColumn })}`
+                  : labels.sort
+              }
+              onClick={openSort}
+            >
+              <SortIcon sort={sortDirection} />
+            </IconButton>
+          )}
+          {drawerHeaders.length > 0 && (
+            <IconButton
+              variant="outline"
+              colorPalette={activeFilters.length > 0 ? "brand" : "neutral"}
+              position="relative"
+              overflow="visible"
+              flexShrink="0"
+              aria-label={
+                activeFilters.length > 0
+                  ? `${labels.filters} (${activeFilters.length})`
+                  : labels.filters
+              }
+              onClick={openFilters}
+            >
+              <SlidersHorizontalIcon />
+              {activeFilters.length > 0 && (
+                <Badge
+                  aria-hidden
+                  size="sm"
+                  variant="solid"
+                  colorPalette="brand"
+                  position="absolute"
+                  top="-1.5"
+                  right="-1.5"
+                  minWidth="4.5"
+                  justifyContent="center"
+                  borderRadius="full"
+                >
+                  {activeFilters.length}
+                </Badge>
+              )}
+            </IconButton>
+          )}
+        </HStack>
       </HStack>
 
       {activeFilters.length > 0 && (

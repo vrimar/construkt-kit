@@ -10,7 +10,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Stack } from "#styled-system/jsx";
 import type { JsxStyleProps } from "#styled-system/types";
 
-import { useIsMobile } from "../../hooks";
+import { useIsMobile, useMediaQuery } from "../../hooks";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { DataTableBody } from "./Body";
@@ -74,7 +74,8 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
   /** Replaces the "no results" block, for an empty state with its own icon or actions. */
   emptyState?: React.ReactNode;
   /**
-   * How the table adapts below the `md` breakpoint.
+   * How the table adapts on a phone: below the `md` breakpoint, or on a touch screen shorter than
+   * 32rem, such as a phone on its side.
    * - `"scroll"` (default): keep the grid layout.
    * - `"cards"`: render each row as a card laid out by the columns' `meta.card` roles, with a
    *   search box, sort chip and filters drawer in place of the header rows.
@@ -130,6 +131,8 @@ const INTERACTIVE_SELECTOR = [
   "[role=tab]",
   "[role=textbox]",
 ].join(", ");
+
+const SHORT_TOUCH_SCREEN_QUERY = "(pointer: coarse) and (height < 32rem)";
 
 const NO_HIDDEN_COLUMNS: DataTableColumnVisibility = {};
 const NO_COLUMN_SIZING: DataTableColumnSizing = {};
@@ -187,7 +190,8 @@ export const DataTable = <TData extends object>({
   ...styleProps
 }: DataTableProps<TData>) => {
   const isMobile = useIsMobile();
-  const showCards = mobileLayout === "cards" && isMobile;
+  const isShortTouchScreen = useMediaQuery(SHORT_TOUCH_SCREEN_QUERY);
+  const showCards = mobileLayout === "cards" && (isMobile || isShortTouchScreen);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const [resolvedColumnSizing, setColumnSizing] = useControllableState({

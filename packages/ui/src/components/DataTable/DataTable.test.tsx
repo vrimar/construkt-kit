@@ -894,6 +894,13 @@ describe("DataTable", () => {
       });
     };
 
+    it("lays out cards on a phone on its side", () => {
+      mockMatchMedia((query) => query.includes("(pointer: coarse)"));
+      renderTable({ columnDefs: cardColumns, mobileLayout: "cards" });
+
+      expect(screen.queryByRole("table")).toBeNull();
+    });
+
     it("lays cards out by column role", () => {
       renderCards();
 

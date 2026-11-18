@@ -7,6 +7,11 @@ import { getColumnLabel } from "../columnLabel";
 import { FILTER_DEBOUNCE_MS } from "./constants";
 import { filterKinds } from "./filterKinds";
 
+export const filterPlaceholder = <TData extends object>(
+  filterBy: string,
+  header: DataTableHeader<TData>,
+) => `${filterBy} ${getColumnLabel(header)}`;
+
 interface ColumnFilterDraft {
   value: string[] | undefined;
   onChange: (value: string[] | undefined) => void;
@@ -37,7 +42,7 @@ export const ColumnFilter = <TData extends object>({
 
   return (
     <Control
-      placeholder={`${labels.filterBy} ${getColumnLabel(header)}`}
+      placeholder={filterPlaceholder(labels.filterBy, header)}
       meta={meta}
       value={filterValues(draft ? draft.value : column.getFilterValue())}
       onChange={draft?.onChange ?? ((value) => column.setFilterValue(value))}
