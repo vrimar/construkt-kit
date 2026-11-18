@@ -13,6 +13,7 @@ export interface LoginPageProps extends AuthPageProps {
 export function LoginPage({
   onSubmit,
   isLoading,
+  error,
   logo,
   onForgotPassword,
   title = "Welcome back",
@@ -43,6 +44,7 @@ export function LoginPage({
         onSubmit={handleSubmit}
         submitLabel="Login"
         loading={isLoading}
+        error={error}
       >
         <Field
           label="Email"

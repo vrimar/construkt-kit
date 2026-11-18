@@ -14,6 +14,7 @@ export interface ForgotPasswordPageProps extends AuthPageProps {
 export function ForgotPasswordPage({
   onSubmit,
   isLoading,
+  error,
   logo,
   onBack,
   isSuccess,
@@ -48,6 +49,7 @@ export function ForgotPasswordPage({
           onSubmit={handleSubmit}
           submitLabel="Send reset link"
           loading={isLoading}
+          error={error}
           submitDisabled={!email}
           footer={onBack && <AuthLinkButton onClick={onBack}>Back to login</AuthLinkButton>}
         >

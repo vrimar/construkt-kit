@@ -4,11 +4,14 @@ Shared auth page components for Construkt Kit apps. Pages own layout — consumi
 
 ## Exports
 
-| Export               | Props                                                  |
-| -------------------- | ------------------------------------------------------ |
-| `LoginPage`          | `onSubmit`, `isLoading?`, `logo?`, `onForgotPassword?` |
-| `ForgotPasswordPage` | `ForgotPasswordPageProps`                              |
-| `ResetPasswordPage`  | `ResetPasswordPageProps`                               |
+| Export               | Props                                                            |
+| -------------------- | ---------------------------------------------------------------- |
+| `LoginPage`          | `onSubmit`, `isLoading?`, `error?`, `logo?`, `onForgotPassword?` |
+| `ForgotPasswordPage` | `ForgotPasswordPageProps`                                        |
+| `ResetPasswordPage`  | `ResetPasswordPageProps`                                         |
+
+Every page takes `error`: a failed submit, such as a rejected sign-in, shown in an error `Alert` above the fields
+with `role="alert"`, so screen readers announce it.
 
 **Types:** `AuthProvider`, `User`, `LoginOptions`, `LoginPageProps`, `ForgotPasswordPageProps`, `ResetPasswordPageProps`
 
@@ -37,6 +40,7 @@ import { LoginPage } from "@construkt-kit/pages";
 <LoginPage
   onSubmit={(email, password) => mutate({ email, password })}
   isLoading={isPending}
+  error={isError && "Incorrect email or password."}
   onForgotPassword={() => navigate("/forgot-password")}
   logo={
     <img

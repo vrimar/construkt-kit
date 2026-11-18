@@ -26,6 +26,8 @@ export interface AuthProvider {
 /** Fields every auth page accepts. */
 export interface AuthPageProps {
   isLoading?: boolean;
+  /** A failed submit, such as a rejected sign-in; shown above the fields and announced. */
+  error?: ReactNode;
   logo?: ReactNode;
   title?: string;
   description?: string;

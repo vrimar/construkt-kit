@@ -30,6 +30,12 @@ export const WithLogo = meta.story({
   },
 });
 
+export const WithError = meta.story({
+  args: {
+    error: "Incorrect email or password.",
+  },
+});
+
 export const NoForgotPassword = meta.story({
   args: {
     onForgotPassword: undefined,

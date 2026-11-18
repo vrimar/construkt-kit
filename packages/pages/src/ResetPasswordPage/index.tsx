@@ -17,6 +17,7 @@ export interface ResetPasswordPageProps extends AuthPageProps {
 export function ResetPasswordPage({
   onSubmit,
   isLoading,
+  error,
   logo,
   email = "",
   token = "",
@@ -51,6 +52,7 @@ export function ResetPasswordPage({
           onSubmit={() => onSubmit(email, token, password, confirmPassword)}
           submitLabel="Reset password"
           loading={isLoading}
+          error={error}
           submitDisabled={!password || !passwordValid || !confirmPassword || !confirmValid}
         >
           <Field label="New password">

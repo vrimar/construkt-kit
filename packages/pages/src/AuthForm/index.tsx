@@ -13,6 +13,8 @@ export interface AuthFormProps {
   submitLabel: string;
   loading?: boolean;
   submitDisabled?: boolean;
+  /** Shown above the fields in an error alert that screen readers announce. */
+  error?: ReactNode;
   children: ReactNode;
   /** Rendered below the submit button. */
   footer?: ReactNode;
@@ -23,6 +25,7 @@ export function AuthForm({
   submitLabel,
   loading,
   submitDisabled,
+  error,
   children,
   footer,
 }: AuthFormProps) {
@@ -37,6 +40,14 @@ export function AuthForm({
       onSubmit={handleSubmit}
     >
       <Stack gap="4">
+        {error ? (
+          <Alert
+            status="error"
+            role="alert"
+            title={error}
+          />
+        ) : null}
+
         {children}
 
         <Button

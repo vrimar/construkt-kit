@@ -2471,6 +2471,12 @@ export const stories = {
     title: "Pages/LoginPage",
     tags: [],
   },
+  "pages-loginpage--with-error": {
+    file: "packages/pages/src/LoginPage/LoginPage.stories.tsx",
+    exportName: "WithError",
+    title: "Pages/LoginPage",
+    tags: [],
+  },
   "pages-loginpage--with-logo": {
     file: "packages/pages/src/LoginPage/LoginPage.stories.tsx",
     exportName: "WithLogo",
