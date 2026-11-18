@@ -23,23 +23,6 @@ export const spanGeometry = (first: number, last: number) => ({
   width: `calc(${columnX(last)} + ${columnW(last)} - ${columnX(first)})`,
 });
 
-export function frameSides(
-  core: AnyGridCore,
-  first: number,
-  last: number,
-  { top = false, bottom = false } = {},
-) {
-  const { selection } = core;
-  if (!selection.isSpanSelected(first, last)) return undefined;
-  const sides = [
-    !selection.isColumnSelected(first - 1) && "start",
-    !selection.isColumnSelected(last + 1) && "end",
-    top && "top",
-    bottom && "bottom",
-  ].filter(Boolean);
-  return sides.length > 0 ? sides.join(" ") : undefined;
-}
-
 export function geometryVars<TRow, TNode>(columns: ColumnModel<TRow, TNode>, gutter: number) {
   const vars: Record<string, string> = {
     "--data-grid-gutter-w": `${gutter}px`,

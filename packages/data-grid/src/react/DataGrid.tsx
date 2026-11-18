@@ -238,9 +238,6 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
     expandLabel: labels.expandRow,
     collapseLabel: labels.collapseRow,
     renderFullWidthRow,
-    frameEnd:
-      core.pinnedBottom.nodes.at(-1)?.id ??
-      (core.rowCount > 0 ? core.nodeAt(core.rowCount - 1).id : core.pinnedTop.nodes.at(-1)?.id),
   };
   const guardIndex = core.activePosition() ? 0 : -1;
 

@@ -125,8 +125,9 @@ room for the centre region are suspended until the grid is wide enough, and kept
 Two selections live side by side. Entity selection is rows, columns or column groups, one kind at a time: the
 gutter, checkboxes and headers select; Shift selects a range over visible, selectable items; Mod toggles one;
 clicking the only selected item clears it. In a tree, selecting a parent selects its descendants, and a parent is
-selected exactly when all its selectable children are; one that is partly selected shows as mixed. Selected
-columns are tinted and framed from their topmost wholly selected header down through the pinned and body rows.
+selected exactly when all its selectable children are; one that is partly selected shows as mixed. Selected rows
+and columns share one tint and mark their header's outer edge with a bar: a row's left edge, a column's topmost
+wholly selected header's top edge. Only cell ranges are framed.
 
 Cell ranges are separate: drag across cells, Shift+click to extend from the active cell, Mod+click to add a range. A
 range widens to cover every merge it cuts. Changing the entity selection, moving with the keys, reordering or
@@ -259,7 +260,7 @@ recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is 
   variant ui's own code doesn't use. ui's setting already emits every variant of this recipe.
 - Variants are grid-level only (`size`, `variant`, `striped`, `gridLines`), each setting its own CSS variable.
   Per-element state is data and ARIA attributes (`data-tone`, `data-pinned`, `data-parity`, `data-group-start`,
-  `data-selected`, `data-frame`, `data-editing`, `aria-selected`), never `data-active`. Range outlines, flashes and
+  `data-selected`, `data-selection-top`, `data-editing`, `aria-selected`), never `data-active`. Range outlines, flashes and
   touch handles are overlay geometry over the rows, not cell state.
 - `src/core/**` is framework-free: no `react`, `react-dom`, `@construkt-kit/ui` or Panda imports.
 - Component props must pass `construkt/no-style-prop-name`: `columnDefs`, not `columns`; no `width`, `filter`,
