@@ -10,7 +10,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
-- **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid (private, pre-0.1). Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
+- **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid. Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/vitest`, `/tsdown`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
 - **`@construkt-kit/story-kit`** — Private. The Storybook preview every story imports, the typed story-id list, and the Playwright story-test harness. See `packages/story-kit/README.md`.
 

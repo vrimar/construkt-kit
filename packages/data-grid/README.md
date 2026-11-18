@@ -1,7 +1,7 @@
 # @construkt-kit/data-grid
 
 Virtualized, Excel-like data grid for Construkt Kit apps: ~100k rows × ~200 columns, keyboard and screen-reader
-first. Private and pre-0.1. Sort, filter, quick search and pagination are not the grid's job: pass rows already in
+first. Sort, filter, quick search and pagination are not the grid's job: pass rows already in
 display order.
 
 ## Usage

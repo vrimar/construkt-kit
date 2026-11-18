@@ -1,8 +1,8 @@
 {
   "name": "@construkt-kit/data-grid",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "description": "Virtualized, Excel-like data grid for Construkt Kit apps",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vrimar/construkt-kit.git",
