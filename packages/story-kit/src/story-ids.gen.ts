@@ -623,6 +623,12 @@ export const stories = {
     title: "Components/DatePicker",
     tags: [],
   },
+  "components-datepicker--invalid-field": {
+    file: "packages/ui/src/components/DatePicker/DatePicker.stories.tsx",
+    exportName: "InvalidField",
+    title: "Components/DatePicker",
+    tags: [],
+  },
   "components-datepicker--not-portalled": {
     file: "packages/ui/src/components/DatePicker/DatePicker.stories.tsx",
     exportName: "NotPortalled",
@@ -1664,6 +1670,12 @@ export const stories = {
   "components-select--grouped": {
     file: "packages/ui/src/components/Select/Select.stories.tsx",
     exportName: "Grouped",
+    title: "Components/Select",
+    tags: [],
+  },
+  "components-select--invalid-field": {
+    file: "packages/ui/src/components/Select/Select.stories.tsx",
+    exportName: "InvalidField",
     title: "Components/Select",
     tags: [],
   },

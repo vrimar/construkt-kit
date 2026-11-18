@@ -2,6 +2,7 @@ import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Select } from ".";
+import { Field } from "../Form";
 import { Box } from "../Layout";
 
 const fruits = [
@@ -44,6 +45,28 @@ export const Default = meta.story({
         onValueChange={setValue}
         placeholder="Select fruit"
       />
+    );
+  },
+});
+
+export const InvalidField = meta.story({
+  render: function InvalidFieldStory() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <Field
+        label="Fruit"
+        invalid
+        errorText="Pick a fruit."
+      >
+        <Select
+          items={fruits}
+          getItemValue={(item) => item.id}
+          getItemLabel={(item) => item.name}
+          value={value}
+          onValueChange={setValue}
+          placeholder="Select fruit"
+        />
+      </Field>
     );
   },
 });

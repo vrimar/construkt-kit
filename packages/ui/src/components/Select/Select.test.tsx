@@ -5,6 +5,7 @@ import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
+import { Field } from "../Form";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
 import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
 import { encodeSelectionValue } from "../Listbox/useSelectionController";
@@ -75,6 +76,28 @@ describe("Select", () => {
     await userEvent.keyboard("{ArrowDown}");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getAllByRole("option")).toHaveLength(3);
+  });
+
+  it("names the trigger after its Field's label, invalid and described by its error", () => {
+    render(
+      <Field
+        label="Fruit"
+        invalid
+        errorText="Pick a fruit."
+      >
+        <Select
+          {...optionProps}
+          value={null}
+          onValueChange={vi.fn()}
+        />
+      </Field>,
+    );
+
+    const trigger = screen.getByRole("button", { name: "Fruit Select item" });
+    expect(trigger.getAttribute("aria-invalid")).toBe("true");
+    expect(
+      document.getElementById(trigger.getAttribute("aria-describedby") ?? "")?.textContent,
+    ).toBe("Pick a fruit.");
   });
 
   it("uses trigger width by default", () => {

@@ -3,7 +3,8 @@ import { fn } from "storybook/test";
 
 import { DatePicker, DatePickerSelect, defaultRangePresets, parseDate } from ".";
 import { Button } from "../Buttons";
-import { Box } from "../Layout";
+import { Field } from "../Form";
+import { Box, Stack } from "../Layout";
 
 const meta = preview.meta({
   title: "Components/DatePicker",
@@ -52,6 +53,35 @@ export const NotPortalled = meta.story({
         onValueChange={fn()}
       />
     </Box>
+  ),
+});
+
+export const InvalidField = meta.story({
+  render: () => (
+    <Stack
+      maxW="320px"
+      gap="4"
+    >
+      <Field
+        label="Due date"
+        invalid
+        errorText="Pick a due date."
+      >
+        <DatePicker onValueChange={fn()} />
+      </Field>
+      <Field
+        label="Period"
+        invalid
+        errorText="Pick a period."
+      >
+        <DatePickerSelect
+          selectionMode="range"
+          variant="outline"
+          value={[]}
+          onValueChange={fn()}
+        />
+      </Field>
+    </Stack>
   ),
 });
 

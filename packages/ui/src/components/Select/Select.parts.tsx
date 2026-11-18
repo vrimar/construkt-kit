@@ -5,6 +5,7 @@ import { Box } from "#styled-system/jsx";
 
 import { toCssSize } from "../../foundations/cssSize";
 import { SelectButton } from "../Buttons";
+import { useFieldTriggerProps } from "../fieldTrigger";
 import { Listbox } from "../Listbox/Listbox";
 import { ListboxSearchField, ManagedList, splitKeys } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
@@ -30,6 +31,7 @@ export function SelectTrigger({
 }: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
   const popover = usePopoverContext();
+  const fieldProps = useFieldTriggerProps(popover.getTriggerProps().id);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     onKeyDown?.(event);
@@ -40,6 +42,7 @@ export function SelectTrigger({
 
   return (
     <Popover.Trigger
+      {...fieldProps}
       {...triggerProps}
       onKeyDown={handleKeyDown}
       asChild

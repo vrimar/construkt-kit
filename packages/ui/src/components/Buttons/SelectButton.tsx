@@ -70,6 +70,7 @@ export const SelectButton = ({
     { variant: inactiveVariant = "outline", ...buttonProps },
   ] = splitCssProps(props);
   const variant = active ? "subtle" : inactiveVariant;
+  const invalid = buttonProps["aria-invalid"] === true || buttonProps["aria-invalid"] === "true";
 
   return (
     <SplitButton.Root
@@ -93,6 +94,7 @@ export const SelectButton = ({
         <ClearButton
           variant={variant}
           colorPalette={colorPalette}
+          data-invalid={invalid ? "" : undefined}
           borderWidth={active ? "1px" : undefined}
           borderColor={active ? "colorPalette.subtle.border" : undefined}
           size={buttonProps.size}

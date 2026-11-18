@@ -10,6 +10,11 @@ import {
   touchHitArea,
 } from "./control-size";
 
+const fieldInvalid = {
+  borderColor: "border.error",
+  focusRingColor: "border.error",
+} as const;
+
 const tier = (size: ControlSize) => ({
   h: controlH(size),
   minW: controlH(size),
@@ -84,6 +89,7 @@ export const button = defineRecipe({
         _hover: {
           borderColor: "colorPalette.surface.border.hover",
         },
+        _invalid: fieldInvalid,
         _active: {
           bg: "colorPalette.surface.bg.active",
         },
@@ -123,6 +129,7 @@ export const button = defineRecipe({
         borderWidth: "1px",
         borderColor: "colorPalette.outline.border",
         color: "colorPalette.outline.fg",
+        _invalid: fieldInvalid,
         _hover: {
           bg: "colorPalette.outline.bg.hover",
         },

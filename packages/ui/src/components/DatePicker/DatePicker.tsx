@@ -4,6 +4,7 @@ import type { ComponentProps, JSX } from "react";
 import { splitCssProps } from "#styled-system/jsx";
 
 import { SelectButton } from "../Buttons";
+import { useFieldTriggerProps } from "../fieldTrigger";
 import { type MobileLayoutProps, withMobileLayoutProvider } from "../overlayPresentation";
 import { createSheetCapableContent } from "../sheetFrame";
 import { CalendarContent } from "./CalendarContent";
@@ -45,6 +46,7 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
       onOpenChange?.(details.open);
     },
   });
+  const fieldProps = useFieldTriggerProps(api.getTriggerProps().id);
 
   return (
     <RootProvider
@@ -53,7 +55,10 @@ export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
       {...styleProps}
     >
       <Parts.Control>
-        <Parts.Trigger asChild>
+        <Parts.Trigger
+          asChild
+          {...fieldProps}
+        >
           {trigger ?? (
             <SelectButton
               variant="outline"

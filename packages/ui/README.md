@@ -20,6 +20,9 @@
 
 **Form:** `Field`, `SubmitForm`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `FormFileUpload`, `PinInput`, `ColorPicker`, `HotkeyInput`
 
+Inside a `Field`, the trigger of `Select`, `ApplySelect`, `TagSelect`, `DatePicker` and `DatePickerSelect` is named by
+the field's label followed by its value, described by its helper and error text, and invalid with it.
+
 **Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
 **Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`; `useVirtualTreeView` + `VirtualTree` + `VirtualTreeRow` render a tree whose rows mount only in view, with keyboard navigation, tab stop and sticky branch headings intact
