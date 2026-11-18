@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/data-grid",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Virtualized, Excel-like data grid for Construkt Kit apps",
   "license": "MIT",
   "repository": {

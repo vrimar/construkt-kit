@@ -1,5 +1,29 @@
 # @construkt-kit/ui
 
+## 0.14.0 — 2026-11-18
+
+### Breaking
+
+- Re-render only the rows that enter a virtual list (`1bf8acb`)
+
+### Features
+
+- Add TooltipGroup to run one tooltip for a whole list (`c3dde32`)
+
+### Fixes
+
+- Show DataTable cards on a phone on its side and wrap a crowded cards toolbar (`1428534`)
+- Title DataTable date cells with a readable date, not the raw timestamp (`34a3b35`)
+- Name, describe and invalidate Select and DatePicker triggers from their Field (`0393d4e`)
+- Show a faint scrollbar thumb on Listbox so long lists look scrollable (`8baa83c`)
+- Never give a close trigger initial focus (`6e1f315`)
+- Open a destructive ConfirmPopover with focus on Cancel (`7e263ac`)
+- Open DeleteDialog with focus on Cancel, not Delete (`78ee97c`)
+
+### Other
+
+- Read tree check state only in checkable trees (`03dd458`)
+
 ## 0.13.0 — 2026-11-18
 
 ### Breaking

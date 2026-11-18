@@ -1,5 +1,18 @@
 # @construkt-kit/preset
 
+## 0.11.1 — 2026-11-18
+
+### Fixes
+
+- Name, describe and invalidate Select and DatePicker triggers from their Field (`0393d4e`)
+- Show a faint scrollbar thumb on Listbox so long lists look scrollable (`8baa83c`)
+- Space the chat composer's buttons so each keeps a 44px touch target (`4f222aa`)
+- Give links and in-flow close triggers their own touch hit area (`f6b7d8b`)
+
+### Other
+
+- Stop scroll areas restyling their rows on every scroll (`fb9bd16`)
+
 ## 0.11.0 — 2026-11-18
 
 ### Breaking

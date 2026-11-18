@@ -1,6 +1,6 @@
 {
   "name": "@construkt-kit/pages",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": false,
   "description": "Shared full-page components (login, register, forgot password) for Construkt Kit apps",
   "license": "MIT",
