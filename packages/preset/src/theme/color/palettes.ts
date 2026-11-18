@@ -7,7 +7,7 @@ export const PALETTES = {
   red: { key: "#ef4444", hueShift: { tint: -8, shade: 2 } },
   orange: { key: "#f97316", hueShift: { tint: 27, shade: -12 } },
   yellow: { key: "#eab308", hueShift: { tint: 17, shade: -32 } },
-  green: { key: "#22c55e", hueShift: { tint: 6, shade: 3 }, tints: 0.7 },
+  green: { key: "#22c55e", hueShift: { tint: 6, shade: 3 }, tints: 0.7, onSolid: "white" },
   teal: { key: "#14b8a6", hueShift: { tint: -2, shade: 8 }, tints: 0.7 },
   cyan: { key: "#06b6d4", hueShift: { tint: -14, shade: 12 } },
   blue: { key: "#3b82f6", hueShift: { tint: -5, shade: 6 } },
