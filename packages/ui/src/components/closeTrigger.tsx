@@ -13,12 +13,22 @@ export function createCloseTrigger<C extends ElementType>(
   const TriggerElement: ElementType = namedByContent(CloseTrigger);
 
   return function CloseTriggerWithDefault({ children, ...props }) {
-    if (children) return <TriggerElement {...props}>{children}</TriggerElement>;
+    if (children) {
+      return (
+        <TriggerElement
+          data-no-autofocus=""
+          {...props}
+        >
+          {children}
+        </TriggerElement>
+      );
+    }
 
     // The trigger's label replaces the CloseButton's own, so the default name is set here.
     return (
       <TriggerElement
         aria-label="Close"
+        data-no-autofocus=""
         {...props}
         asChild
       >
