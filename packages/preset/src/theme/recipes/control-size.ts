@@ -176,8 +176,13 @@ export const touchHitArea = () => ({
       translate: "-50% -50%",
     },
     // Side by side, a wider hit area would take taps meant for the neighbouring target.
-    "&:has(+ &), & + &": { _after: { width: "100%" } },
+    "&:has(+ &), & + &": { _after: { width: "var(--touch-hit-sibling-width, 100%)" } },
   },
+});
+
+// Puts 32px targets 12px apart, so each keeps its full 44px hit area beside the next.
+export const spacedTouchTargets = () => ({
+  _pointerCoarse: { gap: "3", "--touch-hit-sibling-width": "max(100%, 2.75rem)" },
 });
 
 // Keeps the hit area on its host under a consumer's `position="static"`; it drops the host's baseline.

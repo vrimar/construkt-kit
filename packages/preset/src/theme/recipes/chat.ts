@@ -1,6 +1,6 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { touchHitArea } from "./control-size";
+import { spacedTouchTargets, touchHitArea } from "./control-size";
 
 const blockChildren = ":where(p, ul, ol, div)";
 
@@ -214,6 +214,7 @@ export const chat = defineSlotRecipe({
         // The box dims once for everything in it.
         "& :disabled": { opacity: "1", filter: "none" },
       },
+      ...spacedTouchTargets(),
     },
     composerMic: {
       "&[aria-pressed=true]": {
