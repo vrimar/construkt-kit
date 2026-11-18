@@ -1,6 +1,5 @@
 import {
   type Range,
-  type VirtualItem,
   type Virtualizer,
   defaultRangeExtractor,
   observeElementOffset,
@@ -11,7 +10,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
-import { type ScrollToIndexRef, VirtualRows, useScrollToIndexRef } from "./VirtualRows";
+import {
+  type RenderVirtualItem,
+  type ScrollToIndexRef,
+  VirtualRows,
+  useScrollToIndexRef,
+} from "./VirtualRows";
 
 export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "children"> {
   /** The list of items to virtualize. */
@@ -20,8 +24,11 @@ export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "childr
   itemHeight: number | ((index: number) => number);
   /** Number of items to render outside the visible area. @default 10 */
   overscan?: number;
-  /** Render function for each virtual item. */
-  children: (item: T, index: number, virtualItem: VirtualItem) => React.ReactNode;
+  /**
+   * Renders one item. A rendered item re-renders only when its item, its index or this function
+   * changes, so pass a new function whenever what it renders depends on something else.
+   */
+  children: RenderVirtualItem<T>;
   /** Key extractor. Defaults to the index. */
   getItemKey?: (index: number) => React.Key;
   /**
@@ -192,9 +199,10 @@ export const VirtualScrollArea = <T,>({
       <VirtualRows
         ref={setListElement}
         virtualizer={virtualizer}
+        items={items}
         measure={measure}
       >
-        {(virtualItem) => children(items[virtualItem.index], virtualItem.index, virtualItem)}
+        {children}
       </VirtualRows>
     </ScrollArea>
   );

@@ -1,5 +1,5 @@
-import type { VirtualItem, Virtualizer } from "@tanstack/react-virtual";
-import { type ReactNode, type Ref, useEffect } from "react";
+import type { Virtualizer } from "@tanstack/react-virtual";
+import { type ReactNode, type Ref, memo, useEffect } from "react";
 
 import { Box } from "#styled-system/jsx";
 
@@ -19,14 +19,34 @@ export function useScrollToIndexRef(
   }, [virtualizer, ref]);
 }
 
-interface VirtualRowsProps {
-  virtualizer: Virtualizer<HTMLDivElement, Element>;
-  ref?: Ref<HTMLDivElement>;
-  measure?: boolean;
-  children: (virtualItem: VirtualItem) => ReactNode;
+export type RenderVirtualItem<T> = (item: T, index: number) => ReactNode;
+
+interface RowContentProps<T> {
+  item: T;
+  index: number;
+  render: RenderVirtualItem<T>;
 }
 
-export function VirtualRows({ virtualizer, ref, measure = true, children }: VirtualRowsProps) {
+const RowContent = memo(function RowContent<T>({ item, index, render }: RowContentProps<T>) {
+  return render(item, index);
+}) as <T>(props: RowContentProps<T>) => ReactNode;
+
+interface VirtualRowsProps<T> {
+  virtualizer: Virtualizer<HTMLDivElement, Element>;
+  items: readonly T[];
+  ref?: Ref<HTMLDivElement>;
+  measure?: boolean;
+  /** Re-runs for a kept row only when its item, its index or this function changes. */
+  children: RenderVirtualItem<T>;
+}
+
+export function VirtualRows<T>({
+  virtualizer,
+  items,
+  ref,
+  measure = true,
+  children,
+}: VirtualRowsProps<T>) {
   const { scrollMargin } = virtualizer.options;
   const virtualItems = virtualizer.getVirtualItems();
   const paddingTop = virtualItems.length > 0 ? virtualItems[0].start - scrollMargin : 0;
@@ -54,7 +74,11 @@ export function VirtualRows({ virtualizer, ref, measure = true, children }: Virt
               height: measure ? undefined : `${virtualItem.size}px`,
             }}
           >
-            {children(virtualItem)}
+            <RowContent
+              item={items[virtualItem.index]}
+              index={virtualItem.index}
+              render={children}
+            />
           </Box>
         );
       })}

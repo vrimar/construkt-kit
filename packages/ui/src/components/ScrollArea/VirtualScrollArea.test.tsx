@@ -244,4 +244,46 @@ describe("VirtualScrollArea", () => {
 
     expect(rowBox("Row 5").style.height).toBe("40px");
   });
+
+  it("renders only the rows that enter the window as it scrolls", () => {
+    mockLayout();
+    const renders = new Map<string, number>();
+    const viewportRef = createRef<HTMLDivElement>();
+    render(
+      <VirtualScrollArea
+        ref={viewportRef}
+        items={rows}
+        itemHeight={20}
+      >
+        {(row) => {
+          renders.set(row, (renders.get(row) ?? 0) + 1);
+          return <div>{row}</div>;
+        }}
+      </VirtualScrollArea>,
+    );
+
+    const scrollTop = vi.spyOn(Element.prototype, "scrollTop", "get").mockReturnValue(400);
+    onTestFinished(() => scrollTop.mockRestore());
+    fireEvent.scroll(viewportRef.current as HTMLDivElement);
+
+    expect(screen.getByText("Row 35")).toBeTruthy();
+    expect(renders.get("Row 15")).toBe(1);
+  });
+
+  it("re-renders kept rows when the render function changes", () => {
+    mockLayout();
+    const view = (prefix: string) => (
+      <VirtualScrollArea
+        items={rows}
+        itemHeight={20}
+      >
+        {(row) => <div>{`${prefix} ${row}`}</div>}
+      </VirtualScrollArea>
+    );
+    const { rerender } = render(view("a"));
+
+    rerender(view("b"));
+
+    expect(screen.getByText("b Row 5")).toBeTruthy();
+  });
 });

@@ -394,8 +394,11 @@ function VirtualListRows<T>({
   useScrollToIndexRef(virtualizer, scrollToIndexRef);
 
   return (
-    <VirtualRows virtualizer={virtualizer}>
-      {(virtualItem) => renderRow(items[virtualItem.index], virtualItem.index)}
+    <VirtualRows
+      virtualizer={virtualizer}
+      items={items}
+    >
+      {renderRow}
     </VirtualRows>
   );
 }

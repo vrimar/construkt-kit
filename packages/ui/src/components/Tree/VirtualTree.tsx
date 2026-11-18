@@ -18,6 +18,7 @@ import {
 
 import { Box } from "#styled-system/jsx";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
 import { type ScrollAreaProps, VirtualScrollArea, type VisibleItems } from "../ScrollArea";
 import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
 import { TreeDndRow, type TreeRowPartProps } from "./TreeRow";
@@ -109,8 +110,16 @@ const depthStyleFor = (indexPath: number[]): CSSProperties & { "--depth": number
   "--depth": indexPath.length,
 });
 
-const samePath = (a: number[], b: number[]) =>
-  a.length === b.length && a.every((step, index) => step === b[index]);
+const stickyIndexOf = (
+  nodes: readonly VirtualTreeEntry<TreeNode>[],
+  { firstVisible, firstUncut }: VisibleItems,
+) => {
+  const depth = nodes[firstVisible]?.indexPath.length ?? 0;
+  if (depth < 2) return -1;
+  let index = firstVisible - 1;
+  while (index >= 0 && nodes[index].indexPath.length !== depth - 1) index--;
+  return index >= 0 && (firstUncut < 0 || index < firstUncut) ? index : -1;
+};
 
 interface StickyBranchProps {
   indexPath: number[];
@@ -190,29 +199,58 @@ export const VirtualTree = <T extends TreeNode>({
   const { api, visibleNodes, tabStopIndex, scrollToIndexRef } = tree;
   const { collection } = api;
 
-  const [firstVisibleIndex, setFirstVisibleIndex] = useState(-1);
-  const [firstUncutIndex, setFirstUncutIndex] = useState(-1);
+  const [stickyValue, setStickyValue] = useState<string | null>(null);
   const [stickyHeight, setStickyHeight] = useState<number>();
-  const handleVisibleItems = useCallback(({ firstVisible, firstUncut }: VisibleItems) => {
-    setFirstVisibleIndex(firstVisible);
-    setFirstUncutIndex(firstUncut);
-  }, []);
+  const visibleItemsRef = useRef<VisibleItems | null>(null);
+  const latest = useLatestRef({ visibleNodes, collection });
 
-  const firstVisible = stickyBranches ? visibleNodes[firstVisibleIndex] : undefined;
-  const stickyPath =
-    firstVisible && firstVisible.indexPath.length > 1 ? firstVisible.indexPath.slice(0, -1) : null;
-  const stickyIndex = stickyPath
-    ? visibleNodes.findIndex(({ indexPath }) => samePath(indexPath, stickyPath))
-    : -1;
-  const branchScrolledAway = firstUncutIndex < 0 || stickyIndex < firstUncutIndex;
-  const stickyEntry =
-    stickyIndex >= 0 && branchScrolledAway ? visibleNodes[stickyIndex] : undefined;
+  // State holds only the pinned branch, so scrolling between its rows doesn't re-render the tree.
+  const syncSticky = useCallback(() => {
+    const { visibleNodes: nodes, collection: nodeCollection } = latest.current;
+    const index = visibleItemsRef.current ? stickyIndexOf(nodes, visibleItemsRef.current) : -1;
+    setStickyValue(index < 0 ? null : nodeCollection.getNodeValue(nodes[index].node));
+  }, [latest]);
+
+  const handleVisibleItems = useCallback(
+    (items: VisibleItems) => {
+      visibleItemsRef.current = items;
+      syncSticky();
+    },
+    [syncSticky],
+  );
+
+  useLayoutEffect(() => {
+    if (stickyBranches) syncSticky();
+  }, [stickyBranches, visibleNodes, syncSticky]);
+
+  const stickyIndex =
+    stickyBranches && stickyValue !== null
+      ? visibleNodes.findIndex(({ node }) => collection.getNodeValue(node) === stickyValue)
+      : -1;
+  const stickyEntry = stickyIndex >= 0 ? visibleNodes[stickyIndex] : undefined;
+
+  const getItemKey = useCallback(
+    (index: number) => collection.getNodeValue(visibleNodes[index].node),
+    [collection, visibleNodes],
+  );
+
+  const renderRow = useCallback(
+    (entry: VirtualTreeEntry<T>) => (
+      <TreeView.NodeProvider
+        node={entry.node}
+        indexPath={entry.indexPath}
+      >
+        {children(entry)}
+      </TreeView.NodeProvider>
+    ),
+    [children],
+  );
 
   return (
     <VirtualScrollArea
       items={visibleNodes}
       itemHeight={rowHeight}
-      getItemKey={(index) => collection.getNodeValue(visibleNodes[index].node)}
+      getItemKey={getItemKey}
       scrollToIndexRef={scrollToIndexRef}
       keepMountedIndex={tabStopIndex >= 0 ? tabStopIndex : undefined}
       scrollbars="vertical"
@@ -230,9 +268,9 @@ export const VirtualTree = <T extends TreeNode>({
               indexPath={stickyEntry.indexPath}
               onHeightChange={setStickyHeight}
               onActivate={() => {
-                const stickyValue = collection.getNodeValue(stickyEntry.node);
+                const value = collection.getNodeValue(stickyEntry.node);
                 scrollToIndexRef.current?.(stickyIndex);
-                requestAnimationFrame(() => api.focus(stickyValue));
+                requestAnimationFrame(() => api.focus(value));
               }}
             >
               {renderStickyBranch?.(stickyEntry) ?? (
@@ -247,15 +285,7 @@ export const VirtualTree = <T extends TreeNode>({
         )
       }
     >
-      {({ node, indexPath }) => (
-        <TreeView.NodeProvider
-          key={collection.getNodeValue(node)}
-          node={node}
-          indexPath={indexPath}
-        >
-          {children({ node, indexPath })}
-        </TreeView.NodeProvider>
-      )}
+      {renderRow}
     </VirtualScrollArea>
   );
 };

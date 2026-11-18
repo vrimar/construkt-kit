@@ -438,6 +438,12 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
 
+#### Upgrading from 0.13
+
+- `VirtualScrollArea`'s render function takes `(item, index)`; it no longer gets the `VirtualItem`. A rendered row
+  re-runs it only when its item, its index or the function itself changes, so pass a new function whenever what a row
+  shows depends on other state
+
 #### Upgrading from 0.12
 
 - ui depends on Ark UI `~5.40.0`. A partly filled `PinInput` now blocks form submission, Escape closes an overlay
