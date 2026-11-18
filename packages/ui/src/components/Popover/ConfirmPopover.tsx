@@ -20,7 +20,7 @@ export interface ConfirmPopoverProps extends Omit<PopoverRootProps, "children">,
   onConfirm: () => unknown;
   confirmLabel?: string;
   cancelLabel?: string;
-  /** Paints the confirm button in the `danger` palette. */
+  /** Paints the confirm button in the `danger` palette and opens with focus on Cancel instead of it. */
   destructive?: boolean;
   /**
    * Spins the confirm button and keeps the popover open: Cancel, Esc and outside clicks do nothing.
@@ -58,7 +58,7 @@ export const ConfirmPopover = ({
         submitButtonProps: {
           type: "button",
           colorPalette: destructive ? "danger" : "brand",
-          "data-autofocus": true,
+          "data-autofocus": destructive ? undefined : true,
           onClick: () => action.run(onConfirm),
         },
       });
