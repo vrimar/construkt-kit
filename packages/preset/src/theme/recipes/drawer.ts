@@ -57,6 +57,9 @@ export const drawer = defineSlotRecipe({
       pb: contentPb,
       ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
       pe: contentPe,
+      // zag keeps will-change on, which freezes text rasterised mid-slide at a sub-pixel offset.
+      willChange: "auto !important",
+      "&[data-swiping]": { willChange: "transform !important" },
       "--drawer-safe-start": {
         base: "env(safe-area-inset-left)",
         _rtl: "env(safe-area-inset-right)",
@@ -252,7 +255,7 @@ export const drawer = defineSlotRecipe({
         swipeArea: { insetInline: "0", bottom: "0", height: "6" },
         content: {
           "--drawer-max-w": "100%",
-          "--drawer-placement-max-h": "90dvh",
+          "--drawer-placement-max-h": "round(down, 90dvh, 1px)",
           "--drawer-placement-radius": "radii.2xl",
           "--drawer-placement-pb": "env(safe-area-inset-bottom)",
           "--drawer-placement-ps": "var(--drawer-safe-start)",
