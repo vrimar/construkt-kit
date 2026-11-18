@@ -44,3 +44,16 @@ export const preset = createConstruktKitPreset({
 | `danger`, `warning`, `success`, `info`                | Status palettes; `fg.error`/`border.error` etc. for form states                    |
 
 Tracks (slider, progress) sit on `subtle.bg`, the step every solid fill is guaranteed 3:1 against.
+
+## Upgrading from 0.10
+
+- Raw colour ramps are gone: `blue.500`, `brand.600`, `gray.200` and every other step. Use the roles above, or a
+  `colorPalette` with a recipe variant
+- `error.*` is `danger.*`, `gray.*` and `slate.*` are `neutral.*`, `<palette>.contrast` is `<palette>.solid.fg`, and
+  `bg.success` is `success.subtle.bg` (`bg.success.hover` is `success.subtle.bg.hover`)
+- With Panda's `strictTokens`, each removed token is a type error; without it, it is an unresolved CSS variable, so
+  search the app for these names
+- Every palette is regenerated from its key colour: light greys are lighter, `fg` is 13:1 and `fg.subtle` 5:1, and
+  green solids are darker with white labels, so screenshot tests change
+- Pass your own colours as `createConstruktKitPreset({ palettes, neutral })` key colours instead of overriding ramps
+- Recipe changes that show in components are listed under ui's "Upgrading from 0.12"
