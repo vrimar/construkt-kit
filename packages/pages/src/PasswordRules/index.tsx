@@ -1,9 +1,14 @@
-import { HStack, Popover, Stack, Text } from "@construkt-kit/ui";
+import { HStack, Popover, type PopoverRootProps, Stack, Text } from "@construkt-kit/ui";
 import { passwordRules, passwordSchema } from "@construkt-kit/utils";
 import { CheckIcon, XIcon } from "lucide-react";
 import { type ReactElement, useMemo } from "react";
 
 export const isPasswordValid = (password: string) => passwordSchema.safeParse(password).success;
+
+export const besideFieldPositioning = {
+  placement: "right",
+  flip: ["top", "bottom"],
+} satisfies PopoverRootProps["positioning"];
 
 export interface PasswordRulesPopoverProps {
   open: boolean;
@@ -24,7 +29,7 @@ export const PasswordRulesPopover = ({ open, password, children }: PasswordRules
       unmountOnExit
       modal={false}
       open={open}
-      placement="right"
+      positioning={besideFieldPositioning}
     >
       <Popover.Anchor>{children}</Popover.Anchor>
       <Popover.Content p="4">
