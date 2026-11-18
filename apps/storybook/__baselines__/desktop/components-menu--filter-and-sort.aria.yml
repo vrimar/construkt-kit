@@ -11,3 +11,5 @@
     - text: ""
     - menuitemradio "Recent" [checked]
     - menuitemradio "Name"
+  - separator
+  - menuitemcheckbox "Group by type" [checked]

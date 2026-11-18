@@ -69,6 +69,12 @@ const ItemHint = withContext("span", "itemHint", {
 const ItemDescription = withContext("div", "itemDescription", {
   defaultProps: { "data-scope": "menu", "data-part": "item-description" },
 });
+const ItemSwitch = withContext("span", "itemSwitch", {
+  defaultProps: { "data-scope": "menu", "data-part": "item-switch", "aria-hidden": true },
+});
+const ItemSwitchThumb = withContext("span", "itemSwitchThumb", {
+  defaultProps: { "data-scope": "menu", "data-part": "item-switch-thumb" },
+});
 const SegmentGroupRoot = withContext(ArkMenu.RadioItemGroup, "segmentGroup", {
   defaultProps: { "data-part": "segment-group" },
 });
@@ -374,7 +380,11 @@ interface OptionItemSlots extends MenuItemSlotProps {
   "aria-describedby"?: string | undefined;
 }
 
-function createOptionItem<P extends OptionItemSlots>(Part: ElementType) {
+function createOptionItem<P extends OptionItemSlots>(
+  Part: ElementType,
+  indicator: ReactNode = <ItemIndicator />,
+  partProps?: Record<string, string>,
+) {
   return function MenuOptionItem({
     hint,
     description,
@@ -386,6 +396,7 @@ function createOptionItem<P extends OptionItemSlots>(Part: ElementType) {
 
     return (
       <Part
+        {...partProps}
         {...rest}
         aria-describedby={slots.describedBy}
       >
@@ -394,7 +405,7 @@ function createOptionItem<P extends OptionItemSlots>(Part: ElementType) {
           {slots.description}
         </ItemText>
         {slots.hint}
-        <ItemIndicator />
+        {indicator}
       </Part>
     );
   };
@@ -402,6 +413,15 @@ function createOptionItem<P extends OptionItemSlots>(Part: ElementType) {
 
 const MenuCheckboxItem = createOptionItem<MenuOptionItemProps<typeof CheckboxItem>>(CheckboxItem);
 const MenuRadioItem = createOptionItem<MenuOptionItemProps<typeof RadioItem>>(RadioItem);
+
+/** A checkbox item drawn as a switch, for a setting that turns on and off; never tinted by `selection="tint"`. */
+const MenuSwitchItem = createOptionItem<MenuOptionItemProps<typeof CheckboxItem>>(
+  CheckboxItem,
+  <ItemSwitch>
+    <ItemSwitchThumb />
+  </ItemSwitch>,
+  { "data-switch": "" },
+);
 
 function ItemLabel({
   icon,
@@ -581,6 +601,7 @@ export const Menu = {
   Content: MenuContent,
   Arrow,
   CheckboxItem: MenuCheckboxItem,
+  SwitchItem: MenuSwitchItem,
   RadioItem: MenuRadioItem,
   Item: MenuItem,
   ItemGroup: MenuItemGroup,

@@ -400,6 +400,7 @@ export const Types = meta.story({
 function FilterDemo() {
   const [kind, setKind] = useState("");
   const [sort, setSort] = useState("recent");
+  const [grouped, setGrouped] = useState(true);
 
   return (
     <Box p="4">
@@ -454,6 +455,14 @@ function FilterDemo() {
               { value: "name", label: "Name" },
             ]}
           />
+          <Menu.Separator />
+          <Menu.SwitchItem
+            value="group"
+            checked={grouped}
+            onCheckedChange={(checked) => setGrouped(!!checked)}
+          >
+            Group by type
+          </Menu.SwitchItem>
         </Menu.Content>
       </Menu.Root>
     </Box>
