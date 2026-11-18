@@ -1,47 +1,64 @@
 - treegrid "Invoices by region":
   - rowgroup:
-    - row "Region / customer Region":
+    - row "Region / customer Region Amount":
       - columnheader "Region / customer"
       - columnheader "Region"
+      - columnheader "Amount"
   - rowgroup:
-    - row "Total":
+    - row /Total \$\d+,\d+\.\d+/:
       - rowheader "Total"
       - gridcell
+      - gridcell /\$\d+,\d+\.\d+/
   - rowgroup:
-    - row "Collapse row North North" [expanded] [level=1]:
+    - row /Collapse row North North \$\d+,\d+\.\d+/ [expanded] [level=1]:
       - rowheader "Collapse row North":
         - button "Collapse row" [expanded]
         - text: ""
       - gridcell "North"
-    - row "Acme Corporation North" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation North \$\d+\.\d+/ [level=2]:
       - rowheader "Acme Corporation"
       - gridcell "North"
-    - row "Hooli" [level=2]:
+      - gridcell /\$\d+\.\d+/
+    - row /Hooli -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Hooli"
-    - row "Initech" [level=2]:
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Initech"
-    - row "Acme Corporation" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Acme Corporation"
-    - row "Hooli" [level=2]:
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Hooli"
-    - row "Initech" [level=2]:
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Initech"
-    - row "Acme Corporation" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Acme Corporation"
-    - row "Hooli" [level=2]:
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli \$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Hooli"
-    - row "Initech" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Initech \$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Initech"
-    - row "Acme Corporation" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Acme Corporation"
-    - row "Hooli" [level=2]:
+      - gridcell /-\$\d+,\d+\.\d+/
+    - row /Hooli \$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Hooli"
-    - row "Initech" [level=2]:
+      - gridcell /\$\d+,\d+\.\d+/
+    - row /Initech \$\d+\.\d+/ [level=2]:
       - rowheader "Initech"
-    - row "Acme Corporation" [level=2]:
+      - gridcell /\$\d+\.\d+/
+    - row /Acme Corporation -\$\d+,\d+\.\d+/ [level=2]:
       - rowheader "Acme Corporation"
+      - gridcell /-\$\d+,\d+\.\d+/
   - rowgroup:
-    - row "Grand total":
+    - row /Grand total \$\d+,\d+\.\d+/:
       - rowheader "Grand total"
       - gridcell
+      - gridcell /\$\d+,\d+\.\d+/
 - status
