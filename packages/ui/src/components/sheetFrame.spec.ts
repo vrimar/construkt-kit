@@ -62,6 +62,13 @@ for (const overlay of sheetOverlayCases) {
         await gallery.press(trigger);
         const panel = page.locator("[data-overlay-sheet-content]");
         await expect(panel).toBeVisible();
+        await panel.evaluate((element) =>
+          Promise.all(
+            (element.closest("[data-overlay-sheet]")?.getAnimations({ subtree: true }) ?? []).map(
+              (animation) => animation.finished,
+            ),
+          ),
+        );
         const top = (await panel.boundingBox())?.y ?? 0;
         expect(top, "the sheet leaves room above it to tap").toBeGreaterThan(8);
         await page.touchscreen.tap(8, top / 2);
