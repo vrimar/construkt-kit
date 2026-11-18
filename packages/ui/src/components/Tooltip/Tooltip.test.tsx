@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Tooltip, type TooltipProps } from ".";
+import { Tooltip, TooltipGroup, type TooltipProps } from ".";
 import { advance, setupUser, useFakeTime } from "../../_shared/fakeTime";
 
 const renderOpen = async (props: Omit<TooltipProps, "children" | "label">) => {
@@ -101,5 +101,36 @@ describe("Tooltip showWhenTruncated", () => {
     await advance(1000);
 
     expect(screen.queryByRole("tooltip") != null).toBe(opens);
+  });
+});
+
+describe("TooltipGroup", () => {
+  useFakeTime();
+
+  it("moves the one shared tooltip to the hovered trigger, label and description", async () => {
+    const user = setupUser();
+    render(
+      <TooltipGroup>
+        <Tooltip label="First tip">
+          <button type="button">First</button>
+        </Tooltip>
+        <Tooltip label="Second tip">
+          <button type="button">Second</button>
+        </Tooltip>
+      </TooltipGroup>,
+    );
+
+    await user.hover(screen.getByRole("button", { name: "First" }));
+    await advance(1000);
+    await user.hover(screen.getByRole("button", { name: "Second" }));
+    await advance(1000);
+
+    expect(screen.getByRole("tooltip").textContent).toBe("Second tip");
+    expect(screen.getByRole("button", { name: "Second" }).getAttribute("aria-describedby")).toBe(
+      screen.getByRole("tooltip").id,
+    );
+    expect(screen.getByRole("button", { name: "First" }).hasAttribute("aria-describedby")).toBe(
+      false,
+    );
   });
 });

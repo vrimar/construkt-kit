@@ -1,7 +1,7 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { CircleHelpIcon, XIcon } from "lucide-react";
 
-import { Tooltip } from ".";
+import { Tooltip, TooltipGroup } from ".";
 import { Button, IconButton } from "../Buttons";
 import { VStack, Wrap } from "../Layout";
 import { Span } from "../Span";
@@ -121,5 +121,37 @@ export const Open = meta.story({
         </IconButton>
       </Tooltip>
     </Wrap>
+  ),
+});
+
+export const Group = meta.story({
+  render: () => (
+    <TooltipGroup placement="right">
+      <VStack
+        alignItems="start"
+        gap="1"
+        p="16"
+        maxW="48"
+      >
+        {[
+          "Revenue",
+          "Quarterly revenue by region and product line",
+          "Customer satisfaction score by store",
+        ].map((text) => (
+          <Tooltip
+            key={text}
+            label={text}
+            showWhenTruncated
+          >
+            <Span
+              truncate
+              maxW="full"
+            >
+              {text}
+            </Span>
+          </Tooltip>
+        ))}
+      </VStack>
+    </TooltipGroup>
   ),
 });

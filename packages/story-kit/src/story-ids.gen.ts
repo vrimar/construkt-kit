@@ -2129,6 +2129,12 @@ export const stories = {
     title: "Components/Tooltip",
     tags: [],
   },
+  "components-tooltip--group": {
+    file: "packages/ui/src/components/Tooltip/Tooltip.stories.tsx",
+    exportName: "Group",
+    title: "Components/Tooltip",
+    tags: [],
+  },
   "components-tooltip--open": {
     file: "packages/ui/src/components/Tooltip/Tooltip.stories.tsx",
     exportName: "Open",

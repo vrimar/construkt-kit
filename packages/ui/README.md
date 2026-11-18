@@ -443,6 +443,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `VirtualScrollArea`'s render function takes `(item, index)`; it no longer gets the `VirtualItem`. A rendered row
   re-runs it only when its item, its index or the function itself changes, so pass a new function whenever what a row
   shows depends on other state
+- New: `TooltipGroup` runs one tooltip for every plain `Tooltip` inside it. Wrap long lists and grids in it so rows
+  don't each mount a tooltip; a `Tooltip` with root props, `ref`, `portalled` or `portalRef` keeps its own
 
 #### Upgrading from 0.12
 
