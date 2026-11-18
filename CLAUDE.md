@@ -1,6 +1,6 @@
 # Construkt Kit Frontend Shared — AI Instructions
 
-Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases publish from CI on a `release-*` tag — see `.github/workflows/release.yml`.
+Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases publish from CI on a `release-*` tag — see `.github/workflows/release.yml`. `pnpm release:prepare` gets one ready and prints the commit, push and tag commands; accepting screenshot baselines, pushing and tagging stay with the owner.
 
 > For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
 
@@ -16,21 +16,22 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 
 ## Build & Dev Commands
 
-| Command                     | Purpose                                        |
-| --------------------------- | ---------------------------------------------- |
-| `pnpm install`              | Install all workspace dependencies             |
-| `pnpm dev`                  | Dev mode (watch + rebuild all pkgs)            |
-| `pnpm build`                | Build all packages (`dist/`)                   |
-| `pnpm test`                 | Run all tests                                  |
-| `pnpm test:browser`         | Run Vitest browser-mode tests (Chromium)       |
-| `pnpm test:stories`         | Test every story and behaviour spec            |
-| `pnpm test:stories:changed` | Only what a change since `origin/main` affects |
-| `pnpm check:stories`        | Every export has a story; overlays covered     |
-| `pnpm typecheck`            | Type-check all packages                        |
-| `pnpm lint`                 | Lint the repo in one type-aware pass           |
-| `pnpm format`               | Format the repo in one pass (oxfmt)            |
-| `pnpm storybook`            | Start Storybook dev server                     |
-| `pnpm release`              | Build, gate exports, publish to npm            |
+| Command                     | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `pnpm install`              | Install all workspace dependencies                    |
+| `pnpm dev`                  | Dev mode (watch + rebuild all pkgs)                   |
+| `pnpm build`                | Build all packages (`dist/`)                          |
+| `pnpm test`                 | Run all tests                                         |
+| `pnpm test:browser`         | Run Vitest browser-mode tests (Chromium)              |
+| `pnpm test:stories`         | Test every story and behaviour spec                   |
+| `pnpm test:stories:changed` | Only what a change since `origin/main` affects        |
+| `pnpm check:stories`        | Every export has a story; overlays covered            |
+| `pnpm typecheck`            | Type-check all packages                               |
+| `pnpm lint`                 | Lint the repo in one type-aware pass                  |
+| `pnpm format`               | Format the repo in one pass (oxfmt)                   |
+| `pnpm storybook`            | Start Storybook dev server                            |
+| `pnpm release:prepare`      | Bump, changelog and gate a release; lists what's left |
+| `pnpm release`              | Build, gate exports, publish to npm                   |
 
 Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
 Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint
