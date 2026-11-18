@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { FullResult, Reporter, TestCase, TestResult } from "@playwright/test/reporter";
 import { PNG } from "pngjs";
 
+import { renderHtml } from "./report-html";
 import { stories } from "./story-ids.gen";
 
 export type FailureKind =
@@ -43,6 +44,7 @@ export interface StoryReport {
 
 const repoRoot = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
 const reportDir = path.join(repoRoot, "apps/storybook/.stories-report");
+const baselineDir = path.join(repoRoot, "apps/storybook/__baselines__");
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 const SEPARATOR = 6;
 const PADDING = 24;
@@ -217,8 +219,14 @@ export default class StoryReporter implements Reporter {
     fs.mkdirSync(reportDir, { recursive: true });
     fs.writeFileSync(path.join(reportDir, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
     fs.writeFileSync(path.join(reportDir, "report.md"), renderMarkdown(report));
+    fs.writeFileSync(
+      path.join(reportDir, "report.html"),
+      renderHtml(report, { advice: KIND_ADVICE, reportDir, baselineDir }),
+    );
     if (this.failures.length > 0) {
-      process.stdout.write(`\nStory report: ${relative(path.join(reportDir, "report.md"))}\n`);
+      process.stdout.write(
+        `\nStory report: ${relative(path.join(reportDir, "report.md"))}, or report.html beside it to review in a browser\n`,
+      );
     }
   }
 

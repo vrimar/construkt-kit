@@ -57,6 +57,11 @@ export, the project, its kind, and the command to rerun it. A visual failure als
 `.stories-report/images/<project>/<story id>.png`: reference, actual and diff side by side, cropped to the changed
 region and enlarged.
 
+`report.html` beside them is for reviewing in a browser, from disk: one failed story at a time, desktop and phone side
+by side at actual size. `j`/`k` move, `a` accepts and `x` marks for fixing, each moving on, and `c` copies the `stories:accept`
+command for every story accepted, split by device where only one can be. Decisions survive a reload of the same run.
+`?` lists every key.
+
 | Kind               | Meaning and fix                                                                 |
 | ------------------ | ------------------------------------------------------------------------------- |
 | `visual`           | Pixels changed. Fix the code, or hand the story id and intent to the owner      |

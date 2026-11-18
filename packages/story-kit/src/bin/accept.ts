@@ -3,11 +3,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import type { FailureKind, StoryFailure, StoryReport } from "../reporter.ts";
+import { ACCEPTABLE } from "../report-html.ts";
+import type { StoryFailure, StoryReport } from "../reporter.ts";
 import { BASELINE_DIR_RELATIVE, PROJECTS, baselineDir, reportDir, repoRoot } from "./paths.ts";
 import { runStories } from "./run.ts";
-
-const ACCEPTABLE: ReadonlySet<FailureKind> = new Set(["visual", "dimension", "missing-baseline"]);
 
 interface Target {
   storyId: string;
