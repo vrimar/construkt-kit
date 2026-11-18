@@ -9,6 +9,7 @@ import { globalFontface } from "./theme/global-fontface";
 import { keyframes } from "./theme/keyframes";
 import { layerStyles } from "./theme/layer-styles";
 import { recipes, slotRecipes } from "./theme/recipes";
+import { scrollAreaGlobalVars } from "./theme/recipes/scroll-area";
 import { createSemanticTokens } from "./theme/semantic-tokens";
 import type { ColorOptions } from "./theme/semantic-tokens/colors";
 import { textStyles } from "./theme/text-styles";
@@ -46,6 +47,7 @@ export function createConstruktKitPreset(options: ConstruktKitPresetOptions = {}
       },
     },
     globalCss,
+    globalVars: scrollAreaGlobalVars,
     staticCss: {
       css: [
         {

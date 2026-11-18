@@ -1,6 +1,17 @@
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { visual } from "./control-size";
+
+const overflowVar = { syntax: "<length>", inherits: false, initialValue: "0px" } as const;
+
+// zag rewrites these on the viewport every scroll; inheriting them would restyle every row inside.
+export const scrollAreaGlobalVars: GlobalVarsDefinition = {
+  "--scroll-area-overflow-x-start": overflowVar,
+  "--scroll-area-overflow-x-end": overflowVar,
+  "--scroll-area-overflow-y-start": overflowVar,
+  "--scroll-area-overflow-y-end": overflowVar,
+};
 
 export const scrollArea = defineSlotRecipe({
   className: "scroll-area",
@@ -25,6 +36,11 @@ export const scrollArea = defineSlotRecipe({
       overflow: "auto",
       WebkitOverflowScrolling: "touch",
       scrollbarWidth: "none",
+      // Panda drops an @property registration the stylesheet never writes; zag writes these from JS.
+      "--scroll-area-overflow-x-start": "0px",
+      "--scroll-area-overflow-x-end": "0px",
+      "--scroll-area-overflow-y-start": "0px",
+      "--scroll-area-overflow-y-end": "0px",
       "&::-webkit-scrollbar": {
         display: "none",
       },
