@@ -46,7 +46,7 @@ export const SelectButton = ({
       {sublabel && (
         <Text
           as="span"
-          color={active ? undefined : "fg.muted"}
+          color={active ? undefined : "fg.subtle"}
           fontWeight={active ? "normal" : undefined}
         >
           {sublabel}
