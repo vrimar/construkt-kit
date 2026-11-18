@@ -27,7 +27,6 @@ export const DeleteDialog = ({
       submitLabel="Delete"
       submitButtonProps={{ colorPalette: "danger" }}
       size="sm"
-      autoFocusButton
     >
       <Text>
         {confirmMessage ?? (
