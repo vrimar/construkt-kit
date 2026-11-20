@@ -249,6 +249,10 @@ colour), `--data-grid-header-bg`, `--data-grid-header-fg` and `--data-grid-inden
 The recipe's class-name function comes from the grid's own `panda codegen` and is bundled into `dist`; it runs on ui's
 recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is published.
 
+## Upgrading from 0.2
+
+- Apps need `@construkt-kit/ui` 0.15 or later and React 19.3 or later; follow ui's "Upgrading from 0.14"
+
 ## Rules for grid code
 
 - No Panda build extracts this package's source. Inside `src/`: no `css()`, `styled` or patterns, no `*Css` props and

@@ -18,6 +18,7 @@ export function useGridFocus(
 ) {
   const focusWithin = useRef(false);
   const wasEditing = useRef(false);
+  const keyboardInput = useRef(false);
 
   const activeCellElement = useCallback(() => {
     const active = core.activePosition();
@@ -28,10 +29,17 @@ export function useGridFocus(
     );
   }, [core, scroller]);
 
-  const focusActiveCell = useCallback(() => {
-    const cell = activeCellElement();
-    if (cell && !cell.contains(document.activeElement)) cell.focus({ preventScroll: true });
-  }, [activeCellElement]);
+  const focusActiveCell = useCallback(
+    (options?: { focusVisible: boolean }) => {
+      const cell = activeCellElement();
+      if (cell && !cell.contains(document.activeElement)) {
+        // Firefox keeps script focus invisible after a click, even once keys move it.
+        const visible = keyboardInput.current ? { focusVisible: true } : {};
+        cell.focus({ preventScroll: true, ...visible, ...options });
+      }
+    },
+    [activeCellElement],
+  );
 
   const activeVersion = core.channels.version(GRID_CHANNELS.active);
   useLayoutEffect(() => {
@@ -64,10 +72,17 @@ export function useGridFocus(
   const onBlur = (event: FocusEvent<HTMLElement>) => {
     const next = event.relatedTarget;
     if (next instanceof Node && event.currentTarget.contains(next)) return;
-    if (event.target.isConnected) focusWithin.current = false;
+    if (!event.target.isConnected) return;
+    focusWithin.current = false;
+    keyboardInput.current = false;
+  };
+
+  const onKeyDown = () => {
+    keyboardInput.current = true;
   };
 
   const onMouseDown = (event: MouseEvent<HTMLElement>) => {
+    keyboardInput.current = false;
     const { target, currentTarget } = event;
     // React bubbles presses in portalled content (a cell's popover) through the grid.
     if (event.button === 1 || !(target instanceof Element) || !currentTarget.contains(target)) {
@@ -90,5 +105,5 @@ export function useGridFocus(
     }
   };
 
-  return { focusActiveCell, onFocus, onBlur, onMouseDown };
+  return { focusActiveCell, onFocus, onBlur, onKeyDown, onMouseDown };
 }

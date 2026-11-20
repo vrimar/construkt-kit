@@ -274,12 +274,15 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
             onPointerDown={pointer.onPointerDown}
             onMouseDown={focus.onMouseDown}
             onClick={(event) => {
-              if (pointer.onClick(event)) focus.focusActiveCell();
+              if (pointer.onClick(event)) focus.focusActiveCell({ focusVisible: false });
             }}
             onDoubleClick={pointer.onDoubleClick}
             onContextMenu={pointer.onContextMenu}
             {...externalDrop}
-            onKeyDown={keyboard.onKeyDown}
+            onKeyDown={(event) => {
+              focus.onKeyDown();
+              keyboard.onKeyDown(event);
+            }}
             onFocus={(event) => {
               tooltip.onFocus(event);
               focus.onFocus(event);

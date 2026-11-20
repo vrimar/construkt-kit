@@ -1,8 +1,9 @@
-import { Tooltip, useLatestRef } from "@construkt-kit/ui";
+import { Tooltip } from "@construkt-kit/ui";
 import {
   type ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -17,11 +18,12 @@ const OPEN_DELAY = 500;
 
 interface TooltipState {
   open: boolean;
+  cell: HTMLElement | null;
   rect: DOMRect | null;
   content: ReactNode;
 }
 
-const CLOSED: TooltipState = { open: false, rect: null, content: null };
+const CLOSED: TooltipState = { open: false, cell: null, rect: null, content: null };
 
 class TooltipStore {
   private state = CLOSED;
@@ -63,7 +65,13 @@ export function useCellTooltip(core: AnyGridCore) {
       const cell = cellAt(eventTarget);
       if (cell && cell.element === target.current) return;
       close();
-      if (!cell || cell.row >= core.rowCount || cell.column >= core.columns.leaves.length) return;
+      if (
+        !cell ||
+        cell.element.hasAttribute("data-editing") ||
+        cell.row >= core.rowCount ||
+        cell.column >= core.columns.leaves.length
+      )
+        return;
       const { spec, ctx } = core.resolveCell(cell.row, cell.column);
       const content = resolveTooltip(spec, ctx);
       if (content == null || content === false || content === "") return;
@@ -71,7 +79,7 @@ export function useCellTooltip(core: AnyGridCore) {
       timer.current = setTimeout(() => {
         if (target.current !== cell.element || !cell.element.isConnected) return;
         const rect = cell.element.getBoundingClientRect();
-        store.update(() => ({ open: true, rect, content }));
+        store.update(() => ({ open: true, cell: cell.element, rect, content }));
       }, delay);
     },
     [core, close, store],
@@ -80,7 +88,11 @@ export function useCellTooltip(core: AnyGridCore) {
   return {
     onPointerOver: (event: { target: EventTarget | null }) => show(event.target, OPEN_DELAY),
     onPointerLeave: close,
-    onFocus: (event: { target: EventTarget | null }) => show(event.target, 0),
+    onFocus: (event: { target: EventTarget | null }) => {
+      const cell = cellAt(event.target);
+      if (cell?.element === event.target && cell.element.matches(":focus-visible"))
+        show(cell.element, 0);
+    },
     onBlur: close,
     tooltip: (
       <SharedTooltip
@@ -93,33 +105,29 @@ export function useCellTooltip(core: AnyGridCore) {
 
 function SharedTooltip({ store, onClose }: { store: TooltipStore; onClose: () => void }) {
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
-  const rectRef = useLatestRef(state.rect);
+  const { open, cell, rect } = state;
+  const anchor = useMemo(() => (rect ? { getBoundingClientRect: () => rect } : null), [rect]);
+
+  useEffect(() => {
+    if (!open || !cell) return;
+    const onScroll = ({ target }: Event) => {
+      if (target instanceof Document || (target instanceof Node && target.contains(cell)))
+        onClose();
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [open, cell, onClose]);
 
   return (
-    <Tooltip.Root
-      open={state.open}
-      onOpenChange={({ open }) => {
-        if (!open) onClose();
+    <Tooltip
+      open={open}
+      label={state.content}
+      anchor={anchor}
+      onOpenChange={(next) => {
+        if (!next) onClose();
       }}
-      positioning={{ placement: "top", getAnchorRect: () => rectRef.current }}
     >
-      <Tooltip.Context>
-        {(api) => (
-          <Reposition
-            rect={state.rect}
-            reposition={api.reposition}
-          />
-        )}
-      </Tooltip.Context>
-      <Tooltip.Content>{state.content}</Tooltip.Content>
-    </Tooltip.Root>
+      {null}
+    </Tooltip>
   );
-}
-
-function Reposition({ rect, reposition }: { rect: DOMRect | null; reposition: () => void }) {
-  const repositionRef = useLatestRef(reposition);
-  useEffect(() => {
-    if (rect) repositionRef.current();
-  }, [rect, repositionRef]);
-  return null;
 }

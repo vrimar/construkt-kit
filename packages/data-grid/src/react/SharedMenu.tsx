@@ -1,9 +1,10 @@
-import { Menu, useLatestRef } from "@construkt-kit/ui";
+import { Menu, type MenuRootProps, useLatestRef } from "@construkt-kit/ui";
 import {
   type ReactNode,
   type RefCallback,
   useCallback,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -80,12 +81,21 @@ export function SharedMenu({ core, scroller }: SharedMenuProps) {
       : null;
   };
 
-  const getAnchorRect = () => {
+  const lastRect = useRef<DOMRect | null>(null);
+  const measureAnchor = (): DOMRect => {
     const current = shownRef.current;
-    if (!current) return null;
-    if (current.point) return { x: current.point.x, y: current.point.y, width: 0, height: 0 };
-    return anchorElement(current)?.getBoundingClientRect() ?? null;
+    const rect = current?.point
+      ? new DOMRect(current.point.x, current.point.y, 0, 0)
+      : current && anchorElement(current)?.getBoundingClientRect();
+    if (rect) lastRect.current = rect;
+    return lastRect.current ?? new DOMRect();
   };
+  const measureAnchorRef = useLatestRef(measureAnchor);
+  // A new request, even one that keeps the menu open, must move the menu to its anchor.
+  const anchor = useMemo<MenuRootProps["anchor"]>(
+    () => shown && { getBoundingClientRect: () => measureAnchorRef.current() },
+    [shown, measureAnchorRef],
+  );
 
   const onClose = () => {
     const current = shownRef.current;
@@ -102,12 +112,12 @@ export function SharedMenu({ core, scroller }: SharedMenuProps) {
   return (
     <Menu.Root
       open={request !== null}
-      onOpenChange={({ open }) => {
+      onOpenChange={(open) => {
         if (!open) onClose();
       }}
       highlightedValue={highlighted}
-      onHighlightChange={({ highlightedValue }) => setHighlighted(highlightedValue)}
-      positioning={{ placement: "bottom-start", getAnchorRect }}
+      onHighlightChange={(highlightedValue) => setHighlighted(highlightedValue)}
+      anchor={anchor}
     >
       <Menu.Content ref={trackContent}>
         {renderEntries(shown?.entries ?? [], trackContent)}
