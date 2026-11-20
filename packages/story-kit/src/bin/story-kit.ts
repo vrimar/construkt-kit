@@ -2,6 +2,7 @@
 import { accept } from "./accept.ts";
 import { browserStatus, startBrowser, stopBrowser } from "./browser.ts";
 import { writeStoryIds } from "./ids.ts";
+import { PROJECTS, SWEEP_SPEC } from "./paths.ts";
 import { runStories } from "./run.ts";
 
 const USAGE = `Usage:
@@ -31,7 +32,11 @@ async function main(argv: string[]): Promise<number> {
         );
         return 2;
       }
-      return runStories({ playwrightArgs: [], only: all ? undefined : ids, update: "aria" });
+      return runStories({
+        playwrightArgs: [SWEEP_SPEC, ...PROJECTS.map((project) => `--project=${project}`)],
+        only: all ? undefined : ids,
+        update: "aria",
+      });
     }
     case "accept":
       return accept(rest);

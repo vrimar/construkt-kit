@@ -80,8 +80,9 @@ export async function runStories(options: RunOptions): Promise<number> {
       if (!(error instanceof DockerUnavailableError) || process.env.STORIES_PIXELS === "required")
         throw error;
       process.stdout.write(
-        "\n  Functional run only: Docker is unavailable, so screenshots were not compared.\n" +
-          "  Behaviour specs, accessibility checks and accessibility snapshots still ran.\n\n",
+        "\n  Functional run only: Docker is unavailable, so screenshots were not compared and the\n" +
+          "  WebKit and Firefox specs were skipped. Chromium behaviour specs, accessibility checks and\n" +
+          "  accessibility snapshots still ran.\n\n",
       );
     }
   }

@@ -67,7 +67,7 @@ export default defineConfig<{ storyTheme: StoryTheme }>({
       grepInvert: /@phone-only/,
       testMatch: ["apps/storybook/tests/sweep.spec.ts"],
     },
-    ...(["webkit", "firefox"] as const).map((browserName) => ({
+    ...(wsEndpoint ? (["webkit", "firefox"] as const) : []).map((browserName) => ({
       name: browserName,
       use: { browserName, viewport: { width: 1280, height: 900 } },
       grepInvert: /@phone-only/,

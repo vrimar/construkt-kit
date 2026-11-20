@@ -12,4 +12,5 @@ export const storyIdsFile = path.join(storyKitDir, "src/story-ids.gen.ts");
 export const browserImageFile = path.join(storyKitDir, "browser-image.json");
 
 export const PROJECTS = ["desktop", "phone"] as const;
+export const SWEEP_SPEC = "apps/storybook/tests/sweep.spec.ts";
 export const BASELINE_DIR_RELATIVE = "apps/storybook/__baselines__";

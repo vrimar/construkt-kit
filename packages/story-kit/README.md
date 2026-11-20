@@ -20,6 +20,8 @@ It also runs every behaviour spec (`packages/*/src/**/*.spec.ts`).
 | `desktop`      | 1280×900       | mouse | everything; skips stories tagged `phone-only`   |
 | `phone`        | 390×844, touch | touch | everything; skips stories tagged `desktop-only` |
 | `desktop-dark` | 1280×900, dark | mouse | axe only, on every story                        |
+| `webkit`       | 1280×900       | mouse | behaviour specs only, in the pinned browser     |
+| `firefox`      | 1280×900       | mouse | behaviour specs only, in the pinned browser     |
 
 Every page renders at 11 March 2026 09:00 UTC, in `en-US`, at a device pixel ratio of 1, with Inter loaded. A
 fingerprint check fails the test if any of that is not true.
