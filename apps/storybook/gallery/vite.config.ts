@@ -11,7 +11,7 @@ const kit = kitResolution();
 
 export default defineConfig({
   root: here,
-  plugins: [react(), ...kit.plugins],
+  plugins: [react()],
   resolve: { alias: kit.alias, dedupe: kit.dedupe },
   optimizeDeps: {
     include: kit.optimizeDepsInclude,

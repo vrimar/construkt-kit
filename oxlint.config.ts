@@ -19,8 +19,18 @@ const PANDA_RUNTIME_IMPORTS = {
     "No Panda build extracts data-grid's source, so css(), styled and patterns ship classes with no CSS. Use the dataGrid recipe, inline geometry or CSS variables.",
 };
 
+const ARK_IMPORTS = {
+  group: ["@ark-ui/*", "@ark-ui/*/**", "@zag-js/*", "@zag-js/*/**"],
+  message: "The kit builds on its own primitives in packages/ui/src/primitives; use those.",
+};
+
 export default createOxlintConfig({
   ignorePatterns: ["**/dist/**", "**/storybook-static/**", "**/styled-system/**", "**/test/gen/**"],
+  jsPlugins: ["./packages/story-kit/oxlint-stories.mjs"],
+  settings: { construkt: { styledSystem: "packages/ui/styled-system" } },
+  rules: {
+    "no-restricted-imports": ["error", { patterns: [ARK_IMPORTS] }],
+  },
   overrides: [
     {
       files: ["**/bin/**", "**/scripts/**"],
@@ -28,9 +38,8 @@ export default createOxlintConfig({
     },
     {
       files: ["packages/ui/src/**", "packages/pages/src/**", "packages/data-grid/src/**"],
-      jsPlugins: ["./packages/ui/oxlint-panda.mjs", "./packages/ui/oxlint-construkt.mjs"],
+      jsPlugins: ["./packages/ui/oxlint-panda.mjs"],
       rules: {
-        "construkt/no-style-prop-name": "error",
         "@pandacss/no-debug": "error",
         "@pandacss/no-deprecated": "error",
         "@pandacss/no-invalid-nesting": "error",
@@ -42,7 +51,7 @@ export default createOxlintConfig({
       files: ["packages/data-grid/src/**"],
       rules: {
         "construkt/no-literal-style-props": "error",
-        "no-restricted-imports": ["error", { patterns: [PANDA_RUNTIME_IMPORTS] }],
+        "no-restricted-imports": ["error", { patterns: [PANDA_RUNTIME_IMPORTS, ARK_IMPORTS] }],
       },
     },
     {
@@ -64,6 +73,7 @@ export default createOxlintConfig({
                 ],
                 message: "The grid core is framework-free: no React, ui or Panda imports.",
               },
+              ARK_IMPORTS,
             ],
           },
         ],
@@ -74,16 +84,16 @@ export default createOxlintConfig({
       rules: {
         "construkt/no-style-prop-name": "off",
         "construkt/no-literal-style-props": "off",
-        "construkt/story-a11y-opt-out": "error",
-        "construkt/story-no-play": "error",
-        "construkt/story-viewport-tag": "error",
+        "stories/a11y-opt-out": "error",
+        "stories/no-play": "error",
+        "stories/viewport-tag": "error",
       },
     },
     {
       files: ["packages/*/src/**/*.spec.ts"],
       rules: {
-        "construkt/spec-asserts": "error",
-        "construkt/spec-screenshot-via-gallery": "error",
+        "stories/spec-asserts": "error",
+        "stories/spec-screenshot-via-gallery": "error",
       },
     },
   ],

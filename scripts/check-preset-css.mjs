@@ -2,9 +2,10 @@
 // Unresolved Panda values emit literally rather than erroring, so nothing else catches them.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import knownCssProperties from "known-css-properties";
 
@@ -81,7 +82,7 @@ css.split("\n").forEach((line, i) => {
   }
 });
 
-// Ark sets data-focus-visible on only some parts, so _focusVisible must also match :focus-visible.
+// Only a control whose hidden input takes focus sets data-focus-visible, so _focusVisible must also match :focus-visible.
 const NARROWED_FOCUS_VISIBLE = /(?<!:focus-visible,\s*)\[data-focus-visible\]/;
 const TABS_FOCUS_VISIBLE =
   /^\s*\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)\s*\{/m;
@@ -165,6 +166,39 @@ const parseStates = (selector) => {
   return states.length ? { base, combo: states.sort().join("+") } : null;
 };
 
+const RAW_ZAG_SELECTOR = /\[data-(scope|part|state)\b/;
+const VAR_READ = /var\(\s*(--[\w\\.-]+)/g;
+
+const { construktKitPreset } = await import(
+  pathToFileURL(createRequire(path.join(pandaCwd, "package.json")).resolve("@construkt-kit/preset"))
+    .href
+);
+const kitRecipes = Object.values({
+  ...construktKitPreset.theme.recipes,
+  ...construktKitPreset.theme.slotRecipes,
+});
+const RECIPE_CLASS = new RegExp(
+  `\\.(${kitRecipes.map((recipe) => recipe.className).join("|")})(?=__|--|[^\\w-]|$)`,
+);
+const sharedVars = new Set(Object.keys(construktKitPreset.globalVars ?? {}));
+const inspectRecipe = (node, found) => {
+  for (const [key, value] of Object.entries(node)) {
+    if (RAW_ZAG_SELECTOR.test(key)) found.rawSelectors.add(key);
+    if (typeof value === "string") {
+      for (const [, name] of value.matchAll(VAR_READ)) found.read.add(name);
+    } else if (value && typeof value === "object") {
+      inspectRecipe(value, found);
+    }
+  }
+  return found;
+};
+const recipeContract = new Map(
+  kitRecipes.map((recipe) => [
+    recipe.className,
+    inspectRecipe(recipe, { rawSelectors: new Set(), read: new Set(), declared: new Set() }),
+  ]),
+);
+
 const blocks = [];
 let buffer = "";
 for (const ch of css) {
@@ -173,6 +207,7 @@ for (const ch of css) {
     buffer = "";
   } else if (ch === "}") {
     const head = blocks.pop() ?? "";
+    if (head.startsWith("@property ")) sharedVars.add(head.split(/\s+/)[1]);
     if (!head.startsWith("@")) {
       const declarations = buffer
         .split(";")
@@ -192,6 +227,17 @@ for (const ch of css) {
           !value.split(/\s+/).some((v) => LINE_STYLES.has(v))
         ) {
           invalidDeclarations.push(`shorthand without a line style\n    ${where}`);
+        }
+      }
+      const layer = blocks[0];
+      if (layer === "@layer tokens" || layer === "@layer base") {
+        for (const { property } of declarations) {
+          if (property.startsWith("--")) sharedVars.add(property);
+        }
+      } else if (layer?.startsWith("@layer recipes")) {
+        const recipe = recipeContract.get(head.match(RECIPE_CLASS)?.[1]);
+        for (const { property } of recipe ? declarations : []) {
+          if (property.startsWith("--")) recipe.declared.add(property);
         }
       }
       const context = blocks.filter((b) => b.startsWith("@") && !b.startsWith("@layer")).join(" ");
@@ -242,12 +288,23 @@ const stateConflicts = [...stateValues].flatMap(([id, byCombo]) =>
   }).map(([a, b]) => `${id} differs for ${a} and ${b}`),
 );
 
+const contractBreaks = [...recipeContract].flatMap(
+  ([className, { rawSelectors, read, declared }]) =>
+    [
+      ...[...rawSelectors].map((selector) => `raw selector ${selector}`),
+      ...[...read]
+        .filter((name) => !declared.has(name) && !sharedVars.has(name))
+        .map((name) => `unregistered variable ${name}`),
+    ].map((why) => `${className}: ${why}`),
+);
+
 if (
   failures.length ||
   invalidDeclarations.length ||
   overlaps.length ||
   focusRings.length ||
-  stateConflicts.length
+  stateConflicts.length ||
+  contractBreaks.length
 ) {
   if (failures.length) {
     console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
@@ -286,9 +343,16 @@ if (
       "\nNest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.\n",
     );
   }
+  if (contractBreaks.length) {
+    console.error(`\n${contractBreaks.length} Panda contract break(s) in recipes:\n`);
+    for (const c of contractBreaks) console.error(`  ${c}`);
+    console.error(
+      "\nMatch state with Panda conditions (_open, _checked, …) and parts with data-slot, and register every variable a recipe reads but doesn't set in globalVars.\n",
+    );
+  }
   process.exit(1);
 }
 
 console.log(
-  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps, narrowed focus rings or order-dependent state pairs.`,
+  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps, narrowed focus rings, order-dependent state pairs or Panda contract breaks.`,
 );

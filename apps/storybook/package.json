@@ -15,7 +15,6 @@
     "@construkt-kit/ui": "workspace:*"
   },
   "devDependencies": {
-    "@ark-ui/react": "~5.40.0",
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/story-kit": "workspace:*",
