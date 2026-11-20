@@ -693,6 +693,18 @@ describe("TreeSelectList checking and keyboard", () => {
     expect(onValueChange).toHaveBeenLastCalledWith([]);
   });
 
+  it("checks a leaf when its row is clicked and expands a branch instead", async () => {
+    const onValueChange = vi.fn();
+    renderList({ ...listOnly, onValueChange, defaultExpandedValue: [] });
+
+    await clickRow("Fruits");
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
+
+    await clickRow("Apple");
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(["apple"]);
+  });
+
   it("checks a branch with Space and leaves Enter to toggle its expansion", async () => {
     const onValueChange = vi.fn();
     renderList({ ...listOnly, onValueChange });

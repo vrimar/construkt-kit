@@ -228,6 +228,9 @@ const TreeSelectRow = ({
     <VirtualTreeRow
       loading={loading}
       aria-checked={checkable ? (checked === "indeterminate" ? "mixed" : checked) : undefined}
+      onClick={(e) => {
+        if (checkable && !isBranch && !renaming && e.button === 0) onToggleChecked();
+      }}
       onKeyDown={(e) => {
         if (!checkable || e.target !== e.currentTarget) return;
         if (e.key === " " || (e.key === "Enter" && !isBranch)) {
@@ -398,6 +401,12 @@ function TreeSelectListRoot<TNode>(props: TreeSelectListProps<TNode>) {
   );
 }
 
+/**
+ * A searchable tree whose leaves check on and off, with a select-all toggle. Clicking a leaf row
+ * checks it; clicking a branch row expands it, and its checkbox checks every leaf under it. For
+ * controls of your own around the list, call `useTreeSelectList` and render `RootProvider`,
+ * `Search` and `Tree`.
+ */
 export const TreeSelectList = Object.assign(TreeSelectListRoot, {
   RootProvider,
   Search,
