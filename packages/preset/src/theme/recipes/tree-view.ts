@@ -159,7 +159,7 @@ export const treeView = defineSlotRecipe({
       start:
         "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)) + (var(--tree-icon-size) * 0.5))",
       width: "1px",
-      bg: "border",
+      bg: "border.muted",
       pointerEvents: "none",
     },
     item: {
