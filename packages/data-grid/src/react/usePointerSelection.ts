@@ -26,14 +26,14 @@ interface Modifiers {
 
 const modKey = (event: Modifiers) => event.metaKey || event.ctrlKey;
 
-const modeOf = (event: Modifiers): SelectMode => {
+const modeOf = (event: Modifiers, adds: boolean): SelectMode => {
   if (event.shiftKey) return "range";
-  return modKey(event) ? "toggle" : "replace";
+  return adds || modKey(event) ? "toggle" : "replace";
 };
 
 interface PointerSelectionOptions<TRow> extends Pick<
   DataGridOwnProps<TRow>,
-  "onCellClick" | "onHeaderClick"
+  "onCellClick" | "onHeaderClick" | "pointerSelection"
 > {
   core: GridCore<TRow, ReactNode>;
   scroller: HTMLElement | null;
@@ -44,7 +44,9 @@ export function usePointerSelection<TRow>({
   scroller,
   onCellClick,
   onHeaderClick,
+  pointerSelection,
 }: PointerSelectionOptions<TRow>) {
+  const adds = pointerSelection === "add";
   const beforeRename = useRef<{ id: string; selection: EntitySelection | null } | null>(null);
   const { onPointerDown: startDrag } = usePointerDrag<HTMLDivElement>({
     threshold: 4,
@@ -67,7 +69,7 @@ export function usePointerSelection<TRow>({
     core.setActiveCell({ row, column }, { reveal: false });
     const node = core.nodeAt(row);
     if (core.selection.isRowSelectable(node)) {
-      core.selection.select("rows", node.id, modeOf(event));
+      core.selection.select("rows", node.id, modeOf(event, adds));
       core.selection.end();
     }
   };
@@ -106,7 +108,11 @@ export function usePointerSelection<TRow>({
         if (ctx.def.headerEditable) {
           beforeRename.current = { id: ctx.columnId, selection: core.selection.selection };
         }
-        core.selection.select(ctx.isGroup ? "groups" : "columns", ctx.columnId, modeOf(event));
+        core.selection.select(
+          ctx.isGroup ? "groups" : "columns",
+          ctx.columnId,
+          modeOf(event, adds),
+        );
         core.selection.end();
       }
       onHeaderClick?.(ctx, event);

@@ -237,6 +237,12 @@ export interface DataGridOwnProps<TRow>
   onVisibleRangeChange?: (range: VisibleRange) => void;
   onCellClick?: (ctx: CellRenderContext<TRow>, event: MouseEvent<HTMLElement>) => void;
   onHeaderClick?: (ctx: HeaderContext<TRow>, event: MouseEvent<HTMLElement>) => void;
+  /**
+   * `"add"`: a plain click on a column or group header, the row-number gutter or a `selectsRow` cell toggles it in
+   * the selection, as Mod-click does; a click on another kind starts over. Shift and cell clicks are unchanged.
+   * @default "replace"
+   */
+  pointerSelection?: "replace" | "add";
   /** Bindings over the built-in keymap, from a shortcut such as `"Mod+D"` to a command name; `null` unbinds. */
   keymap?: Readonly<Record<string, string | null>>;
   /** `false` swallows the keys that select or extend ranges, rows and columns; Escape still clears. Default `true`. */

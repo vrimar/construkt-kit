@@ -103,6 +103,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       onVisibleRangeChange,
       onCellClick,
       onHeaderClick,
+      pointerSelection,
       keymap,
       keyboardSelection,
       commands,
@@ -175,7 +176,13 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
     [announce, latestLabels],
   );
   useCopyHandler(core, scroller, onCopyRefused, onCopied);
-  const pointer = usePointerSelection({ core, scroller, onCellClick, onHeaderClick });
+  const pointer = usePointerSelection({
+    core,
+    scroller,
+    onCellClick,
+    onHeaderClick,
+    pointerSelection,
+  });
   const externalDrop = useExternalDrop(core, scroller, {
     onExternalDragOver,
     onExternalDrop,

@@ -122,6 +122,33 @@ test("Shift-clicking a selectsRow cell extends the row selection without a cell 
   ]);
 });
 
+test('pointerSelection="add" adds headers and gutter rows on a plain click, starting over on another kind', async () => {
+  const onSelectionChange = vi.fn<(selection: EntitySelection | null) => void>();
+  const { container } = render(
+    <DataGrid
+      {...createFixture(20, 3)}
+      rowNumbers
+      pointerSelection="add"
+      onSelectionChange={onSelectionChange}
+      aria-label="Add"
+      style={{ width: 600, height: 400 }}
+    />,
+  );
+  await settle();
+  const header = (id: string) =>
+    container.querySelector<HTMLElement>(`[data-header-id="${id}"]`) as HTMLElement;
+  const gutter = (row: number) =>
+    container.querySelector<HTMLElement>(`[data-row-index="${row}"] [data-gutter]`) as HTMLElement;
+
+  await userEvent.click(header("c0"));
+  await userEvent.click(header("c1"));
+  expect(onSelectionChange).toHaveBeenLastCalledWith({ kind: "columns", ids: ["c0", "c1"] });
+
+  await userEvent.click(gutter(1));
+  await userEvent.click(gutter(3));
+  expect(onSelectionChange).toHaveBeenLastCalledWith({ kind: "rows", ids: [1, 3] });
+});
+
 test("a drag-select held below the grid keeps extending the range as the grid scrolls", async () => {
   const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
   const { container } = render(
