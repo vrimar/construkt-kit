@@ -33,9 +33,11 @@ const ASSUMED_USED = new Set([
   "postcss",
 ]);
 
-// Storybook discovers these through glob patterns in .storybook/main.ts, never an import.
 const IGNORE_UNIMPORTED = {
+  // Storybook discovers these through glob patterns in .storybook/main.ts, never an import.
   "apps/storybook": ["@construkt-kit/pages", "@construkt-kit/ui"],
+  // Vite resolves the preset's @font-face url("inter-ui/…") from story-kit's storybook.css.
+  "packages/story-kit": ["inter-ui"],
 };
 
 function walk(dir, out = []) {
