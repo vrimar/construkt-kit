@@ -41,31 +41,63 @@ function bump(version, level) {
   return version;
 }
 
-function satisfies(version, range) {
-  const [major, minor, patch] = parseVersion(version);
-  const value = major * 1e6 + minor * 1e3 + patch;
-  const at = (text) => {
-    const [a = 0, b = 0, c = 0] = text.split(".").map(Number);
-    return a * 1e6 + b * 1e3 + c;
-  };
+const versionValue = (text) => {
+  const [a = 0, b = 0, c = 0] = text.split(".").map(Number);
+  return a * 1e6 + b * 1e3 + c;
+};
+
+function comparators(range) {
   return range
     .trim()
     .split(/\s+/)
-    .every((comparator) => {
+    .map((comparator) => {
       const match = /^(>=|<=|>|<|=|\^|~)?(\d+(?:\.\d+){0,2})$/.exec(comparator);
       if (!match) throw new Error(`Unsupported range ${range}`);
       const [, op = "=", base] = match;
-      const [a = 0, b = 0, c = 0] = base.split(".").map(Number);
-      const low = at(base);
-      if (op === ">=") return value >= low;
-      if (op === ">") return value > low;
-      if (op === "<=") return value <= low;
-      if (op === "<") return value < low;
-      if (op === "=") return value === low;
-      if (op === "~") return value >= low && value < at(`${a}.${b + 1}.0`);
-      const high = a > 0 ? at(`${a + 1}.0.0`) : b > 0 ? at(`0.${b + 1}.0`) : at(`0.0.${c + 1}`);
-      return value >= low && value < high;
+      return { op, base };
     });
+}
+
+function satisfies(version, range) {
+  const [major, minor, patch] = parseVersion(version);
+  const value = major * 1e6 + minor * 1e3 + patch;
+  return comparators(range).every(({ op, base }) => {
+    const [a = 0, b = 0, c = 0] = base.split(".").map(Number);
+    const low = versionValue(base);
+    if (op === ">=") return value >= low;
+    if (op === ">") return value > low;
+    if (op === "<=") return value <= low;
+    if (op === "<") return value < low;
+    if (op === "=") return value === low;
+    if (op === "~") return value >= low && value < versionValue(`${a}.${b + 1}.0`);
+    const high =
+      a > 0
+        ? versionValue(`${a + 1}.0.0`)
+        : b > 0
+          ? versionValue(`0.${b + 1}.0`)
+          : versionValue(`0.0.${c + 1}`);
+    return value >= low && value < high;
+  });
+}
+
+function floorOf(range) {
+  const lows = comparators(range).filter(({ op }) => op !== "<" && op !== "<=");
+  return lows.reduce(
+    (floor, { base }) => (versionValue(base) > versionValue(floor) ? base : floor),
+    "0",
+  );
+}
+
+function raisedPeerFloors(before, after) {
+  return Object.entries(after.peerDependencies ?? {})
+    .filter(
+      ([name, range]) => name.startsWith("@construkt-kit/") && !range.startsWith("workspace:"),
+    )
+    .map(([name, range]) => ({ name, from: before.peerDependencies?.[name], to: range }))
+    .filter(
+      ({ from, to }) =>
+        from === undefined || versionValue(floorOf(to)) > versionValue(floorOf(from)),
+    );
 }
 
 const SUBJECT = /^(\w+)(?:\(([^)]*)\))?(!)?: (.+)$/;
@@ -180,12 +212,9 @@ for (const project of projects.filter((p) => !p.manifest.private)) {
   const base = tag ? tag.slice(project.name.length + 1) : null;
   const commits = commitsSince(tag, shippedPaths(project.dir, project.manifest));
   let level = levelFor(commits, base ?? project.version);
-  const manifestChanges = tag
-    ? publishedChanges(
-        JSON.parse(git("show", `${tag}:${project.dir}/package.json`)),
-        project.manifest,
-      )
-    : [];
+  const released = tag ? JSON.parse(git("show", `${tag}:${project.dir}/package.json`)) : null;
+  const manifestChanges = released ? publishedChanges(released, project.manifest) : [];
+  const raisedPeers = released ? raisedPeerFloors(released, project.manifest) : [];
   if (level === "none" && manifestChanges.length > 0) level = "patch";
   let next = null;
   if (!base) {
@@ -204,7 +233,7 @@ for (const project of projects.filter((p) => !p.manifest.private)) {
   } else if (level !== "none") {
     next = bump(base, level);
   }
-  releases.push({ ...project, tag, base, commits, level, manifestChanges, next });
+  releases.push({ ...project, tag, base, commits, level, manifestChanges, raisedPeers, next });
 }
 
 const planned = releases.filter((release) => release.next);
@@ -226,16 +255,24 @@ for (const release of releases) {
       problems.push(`${release.name} needs ${dep} ${range}, which excludes ${dep} ${version}.`);
     }
   }
-  if (release.next && release.base && release.commits.some((commit) => commit.breaking)) {
-    const [major, minor] = parseVersion(release.base);
-    const from = major === 0 ? `${major}.${minor}` : `${major}`;
-    const readme = path.join(root, release.dir, "README.md");
-    const notes = new RegExp(`^#{2,6} Upgrading from ${from.replace(".", "\\.")}\\s*$`, "m");
-    if (!fs.existsSync(readme) || !notes.test(fs.readFileSync(readme, "utf8"))) {
-      problems.push(
-        `${release.name} ${release.next} breaks ${release.base}: add "## Upgrading from ${from}" to ${release.dir}/README.md.`,
-      );
-    }
+  const breaking = release.commits.some((commit) => commit.breaking);
+  if (!release.next || !release.base || (!breaking && release.raisedPeers.length === 0)) continue;
+  if (!breaking) {
+    const raised = release.raisedPeers
+      .map(({ name, from, to }) => `${name} ${from ?? "(none)"} → ${to}`)
+      .join(", ");
+    problems.push(
+      `${release.name} raises its peer floor (${raised}) without a breaking commit: mark the commit that raises it breaking ("!" after its type, or a "BREAKING CHANGE:" footer).`,
+    );
+  }
+  const [major, minor] = parseVersion(release.base);
+  const from = major === 0 ? `${major}.${minor}` : `${major}`;
+  const readme = path.join(root, release.dir, "README.md");
+  const notes = new RegExp(`^#{2,6} Upgrading from ${from.replace(".", "\\.")}\\s*$`, "m");
+  if (!fs.existsSync(readme) || !notes.test(fs.readFileSync(readme, "utf8"))) {
+    problems.push(
+      `${release.name} ${release.next} breaks ${release.base}: add "## Upgrading from ${from}" to ${release.dir}/README.md.`,
+    );
   }
 }
 
