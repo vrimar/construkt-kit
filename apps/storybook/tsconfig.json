@@ -8,6 +8,7 @@
     "noEmit": true
   },
   "include": [
+    "stories/**/*.tsx",
     ".storybook/**/*.d.ts",
     ".storybook/**/*.ts",
     ".storybook/**/*.tsx",

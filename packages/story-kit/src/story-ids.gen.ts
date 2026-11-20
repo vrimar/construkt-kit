@@ -95,6 +95,12 @@ export const stories = {
     title: "Components/ApplySelect",
     tags: ["phone-only"],
   },
+  "components-avatar--lazy-image-in-closed-section": {
+    file: "packages/ui/src/components/Avatar/Avatar.stories.tsx",
+    exportName: "LazyImageInClosedSection",
+    title: "Components/Avatar",
+    tags: [],
+  },
   "components-avatar--sizes": {
     file: "packages/ui/src/components/Avatar/Avatar.stories.tsx",
     exportName: "Sizes",
@@ -323,15 +329,33 @@ export const stories = {
     title: "Components/Buttons/SplitButton",
     tags: [],
   },
+  "components-calendar--controlled": {
+    file: "packages/ui/src/components/DatePicker/Calendar.stories.tsx",
+    exportName: "Controlled",
+    title: "Components/Calendar",
+    tags: [],
+  },
   "components-calendar--disabled": {
     file: "packages/ui/src/components/DatePicker/Calendar.stories.tsx",
     exportName: "Disabled",
     title: "Components/Calendar",
     tags: [],
   },
+  "components-calendar--month-view": {
+    file: "packages/ui/src/components/DatePicker/Calendar.stories.tsx",
+    exportName: "MonthView",
+    title: "Components/Calendar",
+    tags: [],
+  },
   "components-calendar--range": {
     file: "packages/ui/src/components/DatePicker/Calendar.stories.tsx",
     exportName: "Range",
+    title: "Components/Calendar",
+    tags: [],
+  },
+  "components-calendar--range-across-new-year": {
+    file: "packages/ui/src/components/DatePicker/Calendar.stories.tsx",
+    exportName: "RangeAcrossNewYear",
     title: "Components/Calendar",
     tags: [],
   },
@@ -359,6 +383,12 @@ export const stories = {
     title: "Components/Card",
     tags: [],
   },
+  "components-carousel--autoplay": {
+    file: "packages/ui/src/components/Carousel/Carousel.stories.tsx",
+    exportName: "Autoplay",
+    title: "Components/Carousel",
+    tags: [],
+  },
   "components-carousel--default": {
     file: "packages/ui/src/components/Carousel/Carousel.stories.tsx",
     exportName: "Default",
@@ -368,6 +398,12 @@ export const stories = {
   "components-carousel--sizes": {
     file: "packages/ui/src/components/Carousel/Carousel.stories.tsx",
     exportName: "Sizes",
+    title: "Components/Carousel",
+    tags: [],
+  },
+  "components-carousel--vertical": {
+    file: "packages/ui/src/components/Carousel/Carousel.stories.tsx",
+    exportName: "Vertical",
     title: "Components/Carousel",
     tags: [],
   },
@@ -521,6 +557,12 @@ export const stories = {
     title: "Components/Combobox",
     tags: [],
   },
+  "components-combobox--in-dialog": {
+    file: "packages/ui/src/components/Combobox/Combobox.stories.tsx",
+    exportName: "InDialog",
+    title: "Components/Combobox",
+    tags: ["open-state"],
+  },
   "components-combobox--open": {
     file: "packages/ui/src/components/Combobox/Combobox.stories.tsx",
     exportName: "Open",
@@ -635,12 +677,6 @@ export const stories = {
     title: "Components/DatePicker",
     tags: [],
   },
-  "components-datepicker--not-portalled": {
-    file: "packages/ui/src/components/DatePicker/DatePicker.stories.tsx",
-    exportName: "NotPortalled",
-    title: "Components/DatePicker",
-    tags: [],
-  },
   "components-datepicker--open": {
     file: "packages/ui/src/components/DatePicker/DatePicker.stories.tsx",
     exportName: "Open",
@@ -677,6 +713,18 @@ export const stories = {
     title: "Components/Dialog",
     tags: [],
   },
+  "components-dialog--escape-disabled": {
+    file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
+    exportName: "EscapeDisabled",
+    title: "Components/Dialog",
+    tags: ["open-state"],
+  },
+  "components-dialog--held-open": {
+    file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
+    exportName: "HeldOpen",
+    title: "Components/Dialog",
+    tags: ["open-state"],
+  },
   "components-dialog--no-backdrop": {
     file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
     exportName: "NoBackdrop",
@@ -689,17 +737,35 @@ export const stories = {
     title: "Components/Dialog",
     tags: ["open-state"],
   },
+  "components-dialog--opened-from-menu": {
+    file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
+    exportName: "OpenedFromMenu",
+    title: "Components/Dialog",
+    tags: [],
+  },
   "components-dialog--phone": {
     file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
     exportName: "Phone",
     title: "Components/Dialog",
     tags: ["phone-only"],
   },
+  "components-dialog--sibling-dialogs": {
+    file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
+    exportName: "SiblingDialogs",
+    title: "Components/Dialog",
+    tags: ["open-state"],
+  },
   "components-dialog--sizes": {
     file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
     exportName: "Sizes",
     title: "Components/Dialog",
     tags: [],
+  },
+  "components-dialog--with-page-dialog": {
+    file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
+    exportName: "WithPageDialog",
+    title: "Components/Dialog",
+    tags: ["open-state"],
   },
   "components-dialog--with-pickers": {
     file: "packages/ui/src/components/Dialog/Dialog.stories.tsx",
@@ -779,6 +845,12 @@ export const stories = {
     title: "Components/Drawer",
     tags: ["open-state"],
   },
+  "components-drawer--right-to-left-with-scroller": {
+    file: "packages/ui/src/components/Drawer/Drawer.stories.tsx",
+    exportName: "RightToLeftWithScroller",
+    title: "Components/Drawer",
+    tags: ["open-state"],
+  },
   "components-drawer--sizes": {
     file: "packages/ui/src/components/Drawer/Drawer.stories.tsx",
     exportName: "Sizes",
@@ -794,6 +866,12 @@ export const stories = {
   "components-editable--double-click-rename": {
     file: "packages/ui/src/components/Editable/Editable.stories.tsx",
     exportName: "DoubleClickRename",
+    title: "Components/Editable",
+    tags: [],
+  },
+  "components-editable--multiline": {
+    file: "packages/ui/src/components/Editable/Editable.stories.tsx",
+    exportName: "Multiline",
     title: "Components/Editable",
     tags: [],
   },
@@ -1247,6 +1325,12 @@ export const stories = {
     title: "Components/Listbox",
     tags: [],
   },
+  "components-listbox--overlay-actions": {
+    file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
+    exportName: "OverlayActions",
+    title: "Components/Listbox",
+    tags: [],
+  },
   "components-listbox--selections": {
     file: "packages/ui/src/components/Listbox/Listbox.stories.tsx",
     exportName: "Selections",
@@ -1457,6 +1541,24 @@ export const stories = {
     title: "Components/Popover",
     tags: [],
   },
+  "components-popover--exit-animation": {
+    file: "packages/ui/src/components/Popover/Popover.stories.tsx",
+    exportName: "ExitAnimation",
+    title: "Components/Popover",
+    tags: [],
+  },
+  "components-popover--kept-open-on-focus-out": {
+    file: "packages/ui/src/components/Popover/Popover.stories.tsx",
+    exportName: "KeptOpenOnFocusOut",
+    title: "Components/Popover",
+    tags: [],
+  },
+  "components-popover--nested": {
+    file: "packages/ui/src/components/Popover/Popover.stories.tsx",
+    exportName: "Nested",
+    title: "Components/Popover",
+    tags: [],
+  },
   "components-popover--open": {
     file: "packages/ui/src/components/Popover/Popover.stories.tsx",
     exportName: "Open",
@@ -1510,6 +1612,12 @@ export const stories = {
     exportName: "Phone",
     title: "Components/Popover/ConfirmPopover",
     tags: ["phone-only"],
+  },
+  "components-popover-inheritedtext--inside-small-unselectable-text": {
+    file: "packages/ui/src/components/Popover/PopoverInheritedText.stories.tsx",
+    exportName: "InsideSmallUnselectableText",
+    title: "Components/Popover/InheritedText",
+    tags: [],
   },
   "components-popover-promptpopover--default": {
     file: "packages/ui/src/components/Popover/PromptPopover.stories.tsx",
@@ -1721,6 +1829,12 @@ export const stories = {
     title: "Components/Sheet",
     tags: ["phone-only"],
   },
+  "components-sheet--held-open": {
+    file: "packages/ui/src/components/Sheet/Sheet.stories.tsx",
+    exportName: "HeldOpen",
+    title: "Components/Sheet",
+    tags: ["phone-only", "open-state"],
+  },
   "components-sheet--nested": {
     file: "packages/ui/src/components/Sheet/Sheet.stories.tsx",
     exportName: "Nested",
@@ -1772,6 +1886,12 @@ export const stories = {
   "components-slider--default": {
     file: "packages/ui/src/components/Slider/Slider.stories.tsx",
     exportName: "Default",
+    title: "Components/Slider",
+    tags: [],
+  },
+  "components-slider--disabled": {
+    file: "packages/ui/src/components/Slider/Slider.stories.tsx",
+    exportName: "Disabled",
     title: "Components/Slider",
     tags: [],
   },
@@ -1961,6 +2081,12 @@ export const stories = {
     title: "Components/Tabs",
     tags: [],
   },
+  "components-tabs--manual-activation": {
+    file: "packages/ui/src/components/Tabs/Tabs.stories.tsx",
+    exportName: "ManualActivation",
+    title: "Components/Tabs",
+    tags: [],
+  },
   "components-tabs--sizes": {
     file: "packages/ui/src/components/Tabs/Tabs.stories.tsx",
     exportName: "Sizes",
@@ -2033,6 +2159,12 @@ export const stories = {
     title: "Components/TagsInput",
     tags: [],
   },
+  "components-tagsinput--in-dialog": {
+    file: "packages/ui/src/components/TagsInput/TagsInput.stories.tsx",
+    exportName: "InDialog",
+    title: "Components/TagsInput",
+    tags: ["open-state"],
+  },
   "components-tagsinput--sizes": {
     file: "packages/ui/src/components/TagsInput/TagsInput.stories.tsx",
     exportName: "Sizes",
@@ -2074,6 +2206,24 @@ export const stories = {
     exportName: "Default",
     title: "Components/Toast",
     tags: [],
+  },
+  "components-toast--expanded": {
+    file: "packages/ui/src/components/Toast/Toast.stories.tsx",
+    exportName: "Expanded",
+    title: "Components/Toast",
+    tags: ["open-state"],
+  },
+  "components-toast--replaced-by-id": {
+    file: "packages/ui/src/components/Toast/Toast.stories.tsx",
+    exportName: "ReplacedById",
+    title: "Components/Toast",
+    tags: [],
+  },
+  "components-toast--stacked": {
+    file: "packages/ui/src/components/Toast/Toast.stories.tsx",
+    exportName: "Stacked",
+    title: "Components/Toast",
+    tags: ["open-state"],
   },
   "components-togglegroup--default": {
     file: "packages/ui/src/components/ToggleGroup/ToggleGroup.stories.tsx",
@@ -2146,6 +2296,12 @@ export const stories = {
     exportName: "Default",
     title: "Components/Tooltip",
     tags: [],
+  },
+  "components-tooltip--default-open": {
+    file: "packages/ui/src/components/Tooltip/Tooltip.stories.tsx",
+    exportName: "DefaultOpen",
+    title: "Components/Tooltip",
+    tags: ["open-state"],
   },
   "components-tooltip--group": {
     file: "packages/ui/src/components/Tooltip/Tooltip.stories.tsx",
@@ -2321,6 +2477,24 @@ export const stories = {
     title: "Data/DataGrid",
     tags: [],
   },
+  "data-datagrid--cell-tooltips": {
+    file: "packages/data-grid/src/react/DataGrid.stories.tsx",
+    exportName: "CellTooltips",
+    title: "Data/DataGrid",
+    tags: [],
+  },
+  "data-datagrid--column-groups": {
+    file: "packages/data-grid/src/react/DataGrid.stories.tsx",
+    exportName: "ColumnGroups",
+    title: "Data/DataGrid",
+    tags: [],
+  },
+  "data-datagrid--column-groups-drop-onto": {
+    file: "packages/data-grid/src/react/DataGrid.stories.tsx",
+    exportName: "ColumnGroupsDropOnto",
+    title: "Data/DataGrid",
+    tags: [],
+  },
   "data-datagrid--column-state": {
     file: "packages/data-grid/src/react/DataGrid.stories.tsx",
     exportName: "ColumnState",
@@ -2403,6 +2577,12 @@ export const stories = {
     file: "packages/data-grid/src/react/DataGrid.stories.tsx",
     exportName: "Variants",
     title: "Data/DataGrid",
+    tags: [],
+  },
+  "demos-kitchen-sink--default": {
+    file: "apps/storybook/stories/KitchenSink.stories.tsx",
+    exportName: "Default",
+    title: "Demos/Kitchen Sink",
     tags: [],
   },
   "foundations-color-scheme--nested-scopes": {

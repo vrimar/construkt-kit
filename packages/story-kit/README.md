@@ -9,7 +9,8 @@ Playwright harness that tests every story at a desktop and a phone viewport.
 renders one story per URL through the same preview Storybook uses. For every story it:
 
 - runs axe on the page, with Storybook's defaults (`region` off) plus any rule the story disables
-- compares the accessibility tree with `apps/storybook/__baselines__/<project>/<story id>.aria.yml`
+- compares the accessibility tree with `apps/storybook/__baselines__/<project>/<story id>.aria.yml`; while a modal
+  `<dialog>` is open, the tree is the topmost one's, since `showModal()` leaves the rest of the page inert
 - compares a full-page screenshot with `apps/storybook/__baselines__/<project>/<story id>.png`
 
 It also runs every behaviour spec (`packages/*/src/**/*.spec.ts`).
@@ -36,15 +37,15 @@ so. CI sets `STORIES_PIXELS=required`, which fails the run instead.
 
 ## Commands
 
-| Command                                        | Does                                                                |
-| ---------------------------------------------- | ------------------------------------------------------------------- |
-| `pnpm test:stories`                            | Every story and spec                                                |
-| `pnpm test:stories:changed`                    | Stories and specs a change since `origin/main` can affect           |
-| `pnpm test:stories --project phone -g X`       | Playwright filters pass through                                     |
-| `pnpm stories:aria <story id>…`                | Rewrites accessibility snapshots after an intended change           |
-| `pnpm stories:accept <story id>… --reason "…"` | Owner only: replaces screenshot baselines and commits them signed   |
-| `pnpm stories:ids`                             | Regenerates `src/story-ids.gen.ts` after adding or renaming stories |
-| `pnpm check:stories`                           | Every export has a story; every sheet overlay is covered            |
+| Command                                        | Does                                                                  |
+| ---------------------------------------------- | --------------------------------------------------------------------- |
+| `pnpm test:stories`                            | Every story and spec                                                  |
+| `pnpm test:stories:changed`                    | Stories and specs a change since `origin/main` can affect             |
+| `pnpm test:stories --project phone -g X`       | Playwright filters pass through                                       |
+| `pnpm stories:aria <story id>…`                | Rewrites accessibility snapshots after an intended change             |
+| `pnpm stories:accept <story id>… --reason "…"` | On the owner's say-so: replaces screenshot baselines and commits them |
+| `pnpm stories:ids`                             | Regenerates `src/story-ids.gen.ts` after adding or renaming stories   |
+| `pnpm check:stories`                           | Every export has a story; every sheet overlay is covered              |
 
 `test:stories:changed` follows each story's imports. A change to the preset, the preview, the gallery, this package
 or a manifest runs everything; a change to `packages/ui/src` reruns every pages and data-grid story, because those
@@ -74,25 +75,16 @@ command for every story accepted, split by device where only one can be. Decisio
 
 ## Baselines are the owner's
 
-Snapshot update flags are refused. Only `pnpm stories:accept` replaces a screenshot baseline: it accepts only a story
-whose last run failed with nothing but a visual, size or missing-baseline difference, recaptures it twice, and
-commits the PNGs alone, signed with the baseline key, with a `Visual-change:` trailer. `--from-ci <run id>` accepts
-the actual images a CI run uploaded, for changes made where Docker is unavailable.
+Snapshot update flags are refused. Only `pnpm stories:accept` replaces a screenshot baseline, run once the owner says
+to accept: it accepts only a story whose last run failed with nothing but a visual, size or missing-baseline
+difference, recaptures it twice, and commits the PNGs alone with a `Visual-change:` trailer. `--from-ci <run id>`
+accepts the actual images a CI run uploaded, for changes made where Docker is unavailable.
 
-CI fails any commit that changes a baseline PNG unless it changes only baselines. Once the `STORIES_BASELINE_SIGNER`
-repository variable is set, it must also be signed by that key; until then `stories:accept` commits unsigned and CI
-does not check signatures. One-time setup to require them:
-
-1. `ssh-keygen -t ed25519-sk -f ~/.ssh/construkt-baselines` (hardware key; `-t ed25519` with a passphrase works,
-   but don't load it into `ssh-agent`, where any process could sign with it)
-2. Set the `STORIES_BASELINE_SIGNER` repository variable to the contents of `~/.ssh/construkt-baselines.pub`
-3. `export STORIES_BASELINE_KEY=~/.ssh/construkt-baselines` before running `pnpm stories:accept`
-
-Rebasing or squashing a baseline commit re-signs it with your usual key and CI then rejects it: keep baseline
-commits as `stories:accept` made them.
+CI fails any commit that changes a baseline PNG unless it changes only baselines.
 
 ## Writing stories
 
+- Cross-package demos live in `apps/storybook/stories/`; Storybook, Panda, and the test gallery include them.
 - Stories hold states. No `play` functions: interaction belongs in a behaviour spec
 - A story that sets `globals.viewport` to a phone is tagged `phone-only`; one that only works at desktop width is
   tagged `desktop-only`
@@ -139,4 +131,5 @@ Lint requires every spec test to act on the page and then assert.
 Shared behaviour is registered once and runs against every component that shares it:
 `packages/ui/src/components/sheetFrame.cases.ts` lists each overlay that opens as a phone sheet, and
 `sheetFrame.spec.ts` checks Escape right after opening, focus returning on close, and tapping outside the sheet for
-all of them. `check:stories` fails when a component starts using `withMobileLayout` without a case there.
+all of them. `check:stories` fails when a component starts importing `overlayPresentation` or `pickerPopup`
+without a case there.

@@ -1,0 +1,310 @@
+- main:
+  - navigation "breadcrumb":
+    - list:
+      - listitem:
+        - link "Construkt Kit":
+          - /url: "#kitchen-sink"
+      - listitem: Component demos
+  - heading "Kitchen sink" [level=1]
+  - navigation "Jump to component section":
+    - link "Data table":
+      - /url: "#data-table"
+    - link "Data grid":
+      - /url: "#data-grid"
+    - link "Selection":
+      - /url: "#selection"
+    - link "Dates":
+      - /url: "#dates-calendar"
+    - link "Tree":
+      - /url: "#project-tree"
+    - link "Files":
+      - /url: "#files"
+    - link "Overlays":
+      - /url: "#overlays-actions"
+    - link "Chat":
+      - /url: "#chat"
+  - heading "Buttons & labels" [level=2]
+  - button "Primary"
+  - button "Outline"
+  - button "Subtle"
+  - button "Plain"
+  - button "Small"
+  - button "Large"
+  - button "Disabled" [disabled]
+  - text: Active Pending Error Draft Design system Components
+  - paragraph: Keyboard hints
+  - text: ⌘ K
+  - heading "Form controls" [level=2]
+  - text: Project name
+  - textbox "Project name": Website refresh
+  - text: Team
+  - button "Team Design"
+  - text: Notes
+  - textbox "Notes":
+    - /placeholder: Notes…
+  - text: Email
+  - textbox "Email" [invalid]: alex@
+  - text: Enter a valid email address.
+  - checkbox "Include archived projects" [checked]
+  - text: Include archived projects
+  - checkbox "Email notifications" [checked]
+  - text: Email notifications
+  - heading "Feedback & progress" [level=2]
+  - heading "All changes saved" [level=3]
+  - heading "Review required" [level=3]
+  - text: /Completed tasks \d+\/ \d+ Completion/
+  - slider "Completion"
+  - text: Project progress
+  - progressbar /\d+%/
+  - text: /\d+%/
+  - heading "Navigation & disclosure" [level=2]
+  - tablist:
+    - tab "Overview" [selected]
+    - tab "Activity"
+    - tab "Settings"
+  - tabpanel "Overview":
+    - paragraph: 3 active projects
+  - button "Project details" [expanded]
+  - region "Project details": Website refresh · In progress
+  - button "Team members"
+  - heading "People & data" [level=2]
+  - text: AM
+  - paragraph: Alex Morgan
+  - paragraph: Workspace owner
+  - textbox "Search members":
+    - /placeholder: Search members…
+  - table "Workspace members":
+    - caption: Workspace members
+    - rowgroup:
+      - row "Name Role Status":
+        - columnheader "Name"
+        - columnheader "Role"
+        - columnheader "Status"
+    - rowgroup:
+      - row "Alex Morgan Designer Active":
+        - cell "Alex Morgan"
+        - cell "Designer"
+        - cell "Active"
+      - row "Sam Rivera Engineer Active":
+        - cell "Sam Rivera"
+        - cell "Engineer"
+        - cell "Active"
+      - row "Jamie Chen Manager Invited":
+        - cell "Jamie Chen"
+        - cell "Manager"
+        - cell "Invited"
+  - heading "Overlays & actions" [level=2]
+  - button "Open command palette"
+  - button "Open drawer"
+  - button "Open dialog"
+  - button "Open popover"
+  - button "Open menu"
+  - button "Show toast"
+  - heading "Selection" [level=2]
+  - text: Find a team
+  - button "Find a team Type to filter…"
+  - text: Contributors
+  - button "Contributors Design"
+  - text: Apply team filter
+  - button "Apply team filter Engineering"
+  - paragraph: "Applied: Engineering"
+  - text: Custom labels Design
+  - button "Delete tag Design"
+  - text: Review
+  - button "Delete tag Review"
+  - textbox "Custom labels":
+    - /placeholder: Type and press Enter…
+  - alert
+  - heading "Dates & calendar" [level=2]
+  - text: Due date
+  - button "Due date Select date"
+  - alert
+  - text: Project period
+  - button "Project period Select date"
+  - alert
+  - application "calendar":
+    - button "Switch to previous month"
+    - button /March \d+/
+    - button "Switch to next month"
+    - grid /March \d+/:
+      - rowgroup:
+        - row /Choose Monday, February \d+, \d+ Choose Tuesday, February \d+, \d+ Choose Wednesday, February \d+, \d+ Choose Thursday, February \d+, \d+ Choose Friday, February \d+, \d+ Choose Saturday, February \d+, \d+ Choose Sunday, March 1, \d+/:
+          - gridcell /Choose Monday, February \d+, \d+/ [disabled]:
+            - button /Choose Monday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Tuesday, February \d+, \d+/ [disabled]:
+            - button /Choose Tuesday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Wednesday, February \d+, \d+/ [disabled]:
+            - button /Choose Wednesday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Thursday, February \d+, \d+/ [disabled]:
+            - button /Choose Thursday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Friday, February \d+, \d+/ [disabled]:
+            - button /Choose Friday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Saturday, February \d+, \d+/ [disabled]:
+            - button /Choose Saturday, February \d+, \d+/ [disabled]
+          - gridcell /Choose Sunday, March 1, \d+/:
+            - button /Choose Sunday, March 1, \d+/
+        - row /Choose Monday, March 2, \d+ Choose Tuesday, March 3, \d+ Choose Wednesday, March 4, \d+ Choose Thursday, March 5, \d+ Choose Friday, March 6, \d+ Choose Saturday, March 7, \d+ Choose Sunday, March 8, \d+/:
+          - gridcell /Choose Monday, March 2, \d+/:
+            - button /Choose Monday, March 2, \d+/
+          - gridcell /Choose Tuesday, March 3, \d+/:
+            - button /Choose Tuesday, March 3, \d+/
+          - gridcell /Choose Wednesday, March 4, \d+/:
+            - button /Choose Wednesday, March 4, \d+/
+          - gridcell /Choose Thursday, March 5, \d+/:
+            - button /Choose Thursday, March 5, \d+/
+          - gridcell /Choose Friday, March 6, \d+/:
+            - button /Choose Friday, March 6, \d+/
+          - gridcell /Choose Saturday, March 7, \d+/:
+            - button /Choose Saturday, March 7, \d+/
+          - gridcell /Choose Sunday, March 8, \d+/:
+            - button /Choose Sunday, March 8, \d+/
+        - row /Choose Monday, March 9, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+          - gridcell /Choose Monday, March 9, \d+/:
+            - button /Choose Monday, March 9, \d+/
+          - gridcell /Choose Tuesday, March \d+, \d+/:
+            - button /Choose Tuesday, March \d+, \d+/
+          - gridcell /Choose Wednesday, March \d+, \d+/:
+            - button /Choose Wednesday, March \d+, \d+/: /− \d+/
+          - gridcell /Choose Thursday, March \d+, \d+/:
+            - button /Choose Thursday, March \d+, \d+/
+          - gridcell /Choose Friday, March \d+, \d+/:
+            - button /Choose Friday, March \d+, \d+/
+          - gridcell /Choose Saturday, March \d+, \d+/:
+            - button /Choose Saturday, March \d+, \d+/
+          - gridcell /Choose Sunday, March \d+, \d+/:
+            - button /Choose Sunday, March \d+, \d+/
+        - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+          - gridcell /Choose Monday, March \d+, \d+/:
+            - button /Choose Monday, March \d+, \d+/
+          - gridcell /Choose Tuesday, March \d+, \d+/:
+            - button /Choose Tuesday, March \d+, \d+/
+          - gridcell /Choose Wednesday, March \d+, \d+/:
+            - button /Choose Wednesday, March \d+, \d+/
+          - gridcell /Choose Thursday, March \d+, \d+/:
+            - button /Choose Thursday, March \d+, \d+/
+          - gridcell /Choose Friday, March \d+, \d+/:
+            - button /Choose Friday, March \d+, \d+/
+          - gridcell /Choose Saturday, March \d+, \d+/:
+            - button /Choose Saturday, March \d+, \d+/
+          - gridcell /Choose Sunday, March \d+, \d+/:
+            - button /Choose Sunday, March \d+, \d+/
+        - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, March \d+, \d+ Choose Thursday, March \d+, \d+ Choose Friday, March \d+, \d+ Choose Saturday, March \d+, \d+ Choose Sunday, March \d+, \d+/:
+          - gridcell /Choose Monday, March \d+, \d+/:
+            - button /Choose Monday, March \d+, \d+/
+          - gridcell /Choose Tuesday, March \d+, \d+/:
+            - button /Choose Tuesday, March \d+, \d+/
+          - gridcell /Choose Wednesday, March \d+, \d+/:
+            - button /Choose Wednesday, March \d+, \d+/
+          - gridcell /Choose Thursday, March \d+, \d+/:
+            - button /Choose Thursday, March \d+, \d+/
+          - gridcell /Choose Friday, March \d+, \d+/:
+            - button /Choose Friday, March \d+, \d+/
+          - gridcell /Choose Saturday, March \d+, \d+/:
+            - button /Choose Saturday, March \d+, \d+/
+          - gridcell /Choose Sunday, March \d+, \d+/:
+            - button /Choose Sunday, March \d+, \d+/
+        - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, April 1, \d+ Choose Thursday, April 2, \d+ Choose Friday, April 3, \d+ Choose Saturday, April 4, \d+ Choose Sunday, April 5, \d+/:
+          - gridcell /Choose Monday, March \d+, \d+/:
+            - button /Choose Monday, March \d+, \d+/
+          - gridcell /Choose Tuesday, March \d+, \d+/:
+            - button /Choose Tuesday, March \d+, \d+/
+          - gridcell /Choose Wednesday, April 1, \d+/ [disabled]:
+            - button /Choose Wednesday, April 1, \d+/ [disabled]
+          - gridcell /Choose Thursday, April 2, \d+/ [disabled]:
+            - button /Choose Thursday, April 2, \d+/ [disabled]
+          - gridcell /Choose Friday, April 3, \d+/ [disabled]:
+            - button /Choose Friday, April 3, \d+/ [disabled]
+          - gridcell /Choose Saturday, April 4, \d+/ [disabled]:
+            - button /Choose Saturday, April 4, \d+/ [disabled]
+          - gridcell /Choose Sunday, April 5, \d+/ [disabled]:
+            - button /Choose Sunday, April 5, \d+/ [disabled]
+  - alert
+  - heading "More inputs" [level=2]
+  - text: Team seats
+  - spinbutton "Team seats": "5"
+  - group:
+    - button "increment value"
+    - button "decrease value"
+  - text: Demo password
+  - textbox "Demo password": sample-password
+  - button "Show password"
+  - radiogroup "Workspace plan":
+    - text: ""
+    - radio "Starter" [checked]
+    - text: Starter
+    - radio "Team"
+    - text: Team
+  - heading "Project tree" [level=2]
+  - tree "Project folders":
+    - treeitem "Design" [expanded] [level=1]:
+      - button "Design"
+      - group:
+        - treeitem "Brand guidelines" [level=2]
+        - treeitem "Website refresh" [level=2] [selected]
+    - treeitem "Engineering" [expanded] [level=1]:
+      - button "Engineering"
+      - group:
+        - treeitem "API migration" [level=2]
+        - treeitem "Mobile app" [level=2]
+    - treeitem "Archive" [level=1]:
+      - button "Archive"
+  - paragraph: "Selected: website"
+  - heading "Files" [level=2]
+  - text: Project attachments
+  - button "Drop files here"
+  - button "Choose files"
+  - list:
+    - listitem:
+      - text: project-brief.txt
+      - button "delete file project-brief.txt"
+  - heading "Loading & empty states" [level=2]
+  - paragraph: Loading…
+  - heading "No saved reports" [level=3]
+  - heading "Chat" [level=2]
+  - log "Demo conversation": /Project assistant \d+ tasks remaining\./
+  - textbox "Message the demo assistant":
+    - /placeholder: Message…
+  - button "Send" [disabled]
+  - heading "Data table" [level=2]
+  - textbox "Filter by Project"
+  - button "Sort"
+  - button "Filters"
+  - text: /Website refresh Team Design Status In progress Tasks \d+ API migration Team Engineering Status In review Tasks \d+ Onboarding Team Operations Status Planned Tasks \d+ Mobile app Team Engineering Status In progress Tasks \d+ Brand guidelines Team Design Status Complete Tasks \d+/
+  - paragraph: 8 Items
+  - button "Previous page" [disabled]
+  - paragraph: 1 / 2
+  - button "Next page"
+  - heading "Data grid" [level=2]
+  - grid "Project planning grid":
+    - rowgroup:
+      - row "Project Team":
+        - columnheader "Project"
+        - columnheader "Team"
+    - rowgroup:
+      - row "Website refresh Design":
+        - gridcell "Website refresh"
+        - gridcell "Design"
+      - row "API migration Engineering":
+        - gridcell "API migration"
+        - gridcell "Engineering"
+      - row "Onboarding Operations":
+        - gridcell "Onboarding"
+        - gridcell "Operations"
+      - row "Mobile app Engineering":
+        - gridcell "Mobile app"
+        - gridcell "Engineering"
+      - row "Brand guidelines Design":
+        - gridcell "Brand guidelines"
+        - gridcell "Design"
+      - row "Release checklist Operations":
+        - gridcell "Release checklist"
+        - gridcell "Operations"
+      - row "Component library Design":
+        - gridcell "Component library"
+        - gridcell "Design"
+      - row "Search improvements Engineering":
+        - gridcell "Search improvements"
+        - gridcell "Engineering"
+  - paragraph: 8 projects
+  - status
+- region "Notifications, top-end (alt+T)"

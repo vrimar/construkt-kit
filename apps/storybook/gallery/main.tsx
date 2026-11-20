@@ -27,9 +27,10 @@ declare global {
   }
 }
 
-const modules = import.meta.glob<Record<string, FactoryStory | undefined>>(
+const modules = import.meta.glob<Record<string, FactoryStory | undefined>>([
   "../../../packages/{ui,pages,data-grid}/src/**/*.stories.tsx",
-);
+  "../stories/**/*.stories.tsx",
+]);
 
 function toJson(value: unknown, seen = new WeakSet<object>()): unknown {
   if (typeof value === "function") return "[function]";
@@ -67,7 +68,10 @@ async function render(root: HTMLElement) {
   if (id == null || !(id in stories)) throw new Error(`Unknown story id "${id}".`);
 
   const entry = stories[id as StoryId];
-  const load = modules[`../../../${entry.file}`];
+  const modulePath = entry.file.startsWith("apps/storybook/")
+    ? `../${entry.file.slice("apps/storybook/".length)}`
+    : `../../../${entry.file}`;
+  const load = modules[modulePath];
   if (!load) throw new Error(`The gallery cannot load ${entry.file}.`);
   const story = (await load())[entry.exportName];
   if (!story?.composed) throw new Error(`${entry.file} has no story export ${entry.exportName}.`);

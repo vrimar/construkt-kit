@@ -11,6 +11,7 @@ const storybookBasePath = normalizeBasePath(process.env.CONSTRUKT_KIT_STORYBOOK_
 
 export default defineMain({
   stories: [
+    "../stories/**/*.stories.@(ts|tsx)",
     "../../../packages/ui/src/**/*.stories.@(ts|tsx)",
     "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
     "../../../packages/data-grid/src/**/*.stories.@(ts|tsx)",
@@ -49,7 +50,6 @@ export default defineMain({
           },
         },
       },
-      plugins: [...(configOptions.plugins ?? []), ...kit.plugins],
       resolve: {
         ...configOptions.resolve,
         alias: [

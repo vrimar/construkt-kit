@@ -1,1 +1,6 @@
 @layer reset, base, tokens, recipes, utilities;
+
+/* Page demos opt into document scrolling instead of the kit's fixed app shell. */
+body:has([data-story-scroll]) {
+  overflow: auto;
+}

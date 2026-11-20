@@ -7,6 +7,7 @@ export default process.env.CONSTRUKT_KIT_STORYBOOK_USE_DESIGN_SYSTEM === "1"
       designSystem: "@construkt-kit/pages",
       presets: [dataGridPreset],
       include: [
+        "./stories/**/*.{ts,tsx}",
         "../../packages/ui/src/**/*.stories.{ts,tsx}",
         "../../packages/ui/src/_shared/**/*.{ts,tsx}",
         "../../packages/pages/src/**/*.stories.{ts,tsx}",
@@ -18,6 +19,7 @@ export default process.env.CONSTRUKT_KIT_STORYBOOK_USE_DESIGN_SYSTEM === "1"
       preflight: true,
       presets: ["@pandacss/preset-base", construktKitPreset, dataGridPreset],
       include: [
+        "./stories/**/*.{ts,tsx}",
         "../../packages/ui/src/**/*.{ts,tsx}",
         "../../packages/pages/src/**/*.{ts,tsx}",
         "../../packages/data-grid/src/**/*.stories.{ts,tsx}",

@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-import "@fontsource-variable/inter";
 import "./storybook.css";
 import addonA11y from "@storybook/addon-a11y";
 import addonThemes, { withThemeByClassName } from "@storybook/addon-themes";
