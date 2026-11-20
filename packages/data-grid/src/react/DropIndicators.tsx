@@ -43,6 +43,7 @@ export function ColumnDropLayer({ core, classes }: IndicatorProps) {
   const cell = core.columns.headerCell(indicator.id);
   if (!cell) return null;
   const { position } = indicator;
+  const { top } = core.headerBox(cell);
   const style: CSSProperties =
     position === "onto"
       ? spanGeometry(cell.first, cell.last)
@@ -67,7 +68,7 @@ export function ColumnDropLayer({ core, classes }: IndicatorProps) {
               className={classes.dropIndicator}
               data-axis="columns"
               data-position={position}
-              style={{ ...style, height: core.viewport.height }}
+              style={{ ...style, top, height: core.viewport.height - top }}
             />
           )}
         </div>

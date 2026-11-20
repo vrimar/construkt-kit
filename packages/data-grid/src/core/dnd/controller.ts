@@ -346,6 +346,20 @@ export class GridDnd<TRow, TNode> {
     );
   }
 
+  private columnOnto(source: DragSource, index: number): Placement<string> | null {
+    const { columns } = this.host;
+    const sourceCell = columns.headerCell(String(source.ids[0]));
+    const leaf = columns.leaves[index];
+    if (!sourceCell || !leaf) return null;
+    const target = sourceCell.isGroup
+      ? columns.headerRows[sourceCell.level]?.find(
+          (cell) => index >= cell.first && index <= cell.last,
+        )
+      : columns.headerCell(leaf.id);
+    if (!target || !this.columnReorderable(target.def)) return null;
+    return this.canDropOnto(source, target.id) ? { targetId: target.id, position: "onto" } : null;
+  }
+
   private columnPlacement(drag: ActiveDrag, x: number): Placement<RowId> | null {
     const { columns } = this.host;
     const siblings = columns.siblingsOf(String(drag.source.ids[0]));
@@ -353,6 +367,10 @@ export class GridDnd<TRow, TNode> {
     const last = siblings[siblings.length - 1];
     if (!first || !last) return null;
     const index = this.host.columnIndexAtX(x);
+    if (index < first.first || index > last.last) {
+      const onto = this.columnOnto(drag.source, index);
+      if (onto) return onto;
+    }
     let placement: Placement<string> | null = null;
     if (index < first.first) placement = { targetId: first.id, position: "before" };
     else if (index > last.last) placement = { targetId: last.id, position: "after" };

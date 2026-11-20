@@ -1,6 +1,7 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { Badge, Box, Button, HStack, Text, type TextProps } from "@construkt-kit/ui";
 import { useMemo, useRef, useState } from "react";
+import { fn } from "storybook/test";
 
 import { type FixtureRow, createFixture, moveIds } from "../../test/fixture";
 import { DataGrid } from "./DataGrid";
@@ -930,4 +931,65 @@ function ReorderTreeDemo() {
 export const ReorderTree = meta.story({
   name: "Reorder tree and groups",
   render: () => <ReorderTreeDemo />,
+});
+
+export const CellTooltips = meta.story({
+  render: () => (
+    <Box
+      data-story-scroll
+      minHeight="[200vh]"
+    >
+      <DataGrid
+        {...createFixture(6, 3)}
+        defaultCell={{
+          editable: true,
+          tooltip: ({ formattedValue }) => `About ${formattedValue}`,
+        }}
+        aria-label="Cell tooltips"
+        height="280px"
+      />
+    </Box>
+  ),
+});
+
+function ColumnGroupsDemo({
+  canDropOnto,
+  onColumnsDrop,
+}: Pick<DataGridProps<FixtureRow>, "canDropOnto" | "onColumnsDrop">) {
+  const leaf = (id: string): ColumnDef<FixtureRow> => ({
+    id,
+    headerText: id,
+    width: 120,
+    header: (ctx) => <GripLabel handle={ctx.dragHandleProps}>{id}</GripLabel>,
+    getValue: (row) => `${id}${row.id + 1}`,
+  });
+  return (
+    <DataGrid
+      {...createFixture(6, 0)}
+      columnDefs={[
+        { id: "g1", header: "Group 1", children: [leaf("a"), leaf("b")] },
+        { id: "g2", header: "Group 2", children: [leaf("c"), leaf("d")] },
+      ]}
+      canDropOnto={canDropOnto}
+      onColumnsDrop={onColumnsDrop}
+      aria-label="Column groups"
+      height="280px"
+    />
+  );
+}
+
+export const ColumnGroups = meta.story({
+  args: { onColumnsDrop: fn() },
+  render: (args) => <ColumnGroupsDemo onColumnsDrop={args.onColumnsDrop} />,
+});
+
+export const ColumnGroupsDropOnto = meta.story({
+  name: "Column groups, drop onto a column",
+  args: { onColumnsDrop: fn() },
+  render: (args) => (
+    <ColumnGroupsDemo
+      canDropOnto={(source) => source.kind === "columns"}
+      onColumnsDrop={args.onColumnsDrop}
+    />
+  ),
 });
