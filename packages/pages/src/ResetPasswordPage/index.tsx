@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { AuthForm, AuthSuccess } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
-import { besideFieldPositioning, isPasswordValid, PasswordRulesPopover } from "../PasswordRules";
+import { besideFieldPlacement, isPasswordValid, PasswordRulesPopover } from "../PasswordRules";
 import type { AuthPageProps } from "../types";
 
 export interface ResetPasswordPageProps extends AuthPageProps {
@@ -72,12 +72,9 @@ export function ResetPasswordPage({
 
           <Field label="Confirm password">
             <Popover.Root
-              lazyMount
-              unmountOnExit
               autoFocus={false}
-              modal={false}
               open={isConfirmFocused && !confirmValid}
-              positioning={besideFieldPositioning}
+              placement={besideFieldPlacement}
             >
               <Popover.Anchor>
                 <PasswordInput

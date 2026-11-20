@@ -58,6 +58,11 @@ use in `panda/`, so apps that use pages set `designSystem: "@construkt-kit/pages
 `"@construkt-kit/ui"`; Panda follows the chain and loads ui's theme and styles as well. Because pages is a nested
 design system, those apps generate a full local `styled-system/` instead of re-exporting ui's runtime.
 
+## Upgrading from 0.9
+
+- Apps need `@construkt-kit/ui` 0.15 or later: the forgot-password link renders through Link's `render` and the
+  password rules popover sits beside its field through Popover's `placement`; follow ui's "Upgrading from 0.14"
+
 ## Upgrading from 0.8
 
 - `LoginPage`'s submit button reads "Sign in" instead of "Login", and the back links of `ForgotPasswordPage`,

@@ -5,10 +5,11 @@ import { type ReactElement, useMemo } from "react";
 
 export const isPasswordValid = (password: string) => passwordSchema.safeParse(password).success;
 
-export const besideFieldPositioning = {
-  placement: "right",
-  flip: ["top", "bottom"],
-} satisfies PopoverRootProps["positioning"];
+export const besideFieldPlacement = [
+  "right",
+  "top",
+  "bottom",
+] as const satisfies PopoverRootProps["placement"];
 
 export interface PasswordRulesPopoverProps {
   open: boolean;
@@ -25,11 +26,8 @@ export const PasswordRulesPopover = ({ open, password, children }: PasswordRules
   return (
     <Popover.Root
       autoFocus={false}
-      lazyMount
-      unmountOnExit
-      modal={false}
       open={open}
-      positioning={besideFieldPositioning}
+      placement={besideFieldPlacement}
     >
       <Popover.Anchor>{children}</Popover.Anchor>
       <Popover.Content p="4">

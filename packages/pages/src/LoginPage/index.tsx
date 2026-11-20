@@ -67,17 +67,17 @@ export function LoginPage({
           labelAction={
             onForgotPassword && (
               <Link
-                asChild
+                render={
+                  <button
+                    type="button"
+                    onClick={onForgotPassword}
+                  />
+                }
                 variant="plain"
                 colorPalette="brand"
                 color="colorPalette.plain.fg"
               >
-                <button
-                  type="button"
-                  onClick={onForgotPassword}
-                >
-                  Forgot password?
-                </button>
+                Forgot password?
               </Link>
             )
           }

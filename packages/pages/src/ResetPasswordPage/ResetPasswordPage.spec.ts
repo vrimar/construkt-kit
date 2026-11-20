@@ -7,10 +7,6 @@ for (const id of selectStories(["pages-resetpasswordpage--default"])) {
     async ({ gallery, page }) => {
       await gallery.open(id);
       await page.getByLabel("New password", { exact: true }).fill("abc");
-      await expect(page.locator("[data-scope=popover][data-part=positioner]")).toHaveAttribute(
-        "style",
-        /--x:/,
-      );
       await expect(page.getByRole("dialog")).toBeInViewport({ ratio: 1 });
     },
   );
