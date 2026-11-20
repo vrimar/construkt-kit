@@ -7,7 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES = ["ui", "pages", "data-grid"];
 const BASELINES = path.join(repoRoot, "apps/storybook/__baselines__");
-const SHEET_MODULE = /^import\s+(?!type\b)[^;]*?from\s+["'](?:\.\.?\/)+overlayPresentation["']/m;
+const SHEET_MODULE =
+  /^import\s+(?!type\b)[^;]*?from\s+["'](?:\.\.?\/)+(?:overlayPresentation|pickerPopup)["']/m;
 
 const problems = [];
 const rel = (file) => path.relative(repoRoot, file);

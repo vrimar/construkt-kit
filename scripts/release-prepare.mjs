@@ -3,6 +3,8 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+import { isReleaseChange } from "./release-files.mjs";
+
 const planOnly = process.argv.includes("--plan");
 const unknown = process.argv.slice(2).filter((arg) => arg !== "--plan");
 if (unknown.length > 0) {
@@ -254,6 +256,8 @@ for (const release of releases) {
   console.log(`  ${short(release.name).padEnd(10)} ${change}`);
 }
 
+let unpushed = 0;
+
 function preflight() {
   const issues = [];
   const branch = git("branch", "--show-current");
@@ -262,20 +266,14 @@ function preflight() {
   if (gitOk("fetch", "--quiet", "--tags", "origin", "main")) {
     const behind = Number(git("rev-list", "--count", "HEAD..origin/main"));
     if (behind > 0) issues.push(`main is ${behind} commits behind origin/main; pull first.`);
+    unpushed = Number(git("rev-list", "--count", "origin/main..HEAD"));
   } else {
     issues.push("Could not fetch origin.");
   }
-  const releaseFile = /^packages\/[^/]+\/(package\.json|CHANGELOG\.md)$/;
   const status = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" });
   for (const line of status.split("\n").filter(Boolean)) {
     const file = line.slice(3);
-    const versionOnly =
-      file.endsWith("package.json") &&
-      git("diff", "-U0", "HEAD", "--", file)
-        .split("\n")
-        .filter((l) => /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l))
-        .every((l) => /^[+-]\s*"version": /.test(l));
-    if (!releaseFile.test(file) || (file.endsWith("package.json") && !versionOnly)) {
+    if (!isReleaseChange(file, git("diff", "-U0", "HEAD", "--", file))) {
       issues.push(`Uncommitted change outside a release: ${file}`);
     }
   }
@@ -419,9 +417,15 @@ function report() {
   const files = planned.flatMap((r) => [`${r.dir}/package.json`, `${r.dir}/CHANGELOG.md`]);
   const message = `chore: release ${planned.map((r) => `${short(r.name)} ${r.next}`).join(", ")}`;
   const tag = nextTag();
-  console.log("\nReady. Commit, push, wait for CI, then tag:");
+  console.log("\nReady. Commit, tag and push; the release waits for CI:");
   console.log(`  git add -- ${files.join(" ")}`);
   console.log(`  git commit -m "${message}"`);
-  console.log("  git push origin main");
-  console.log(`  git tag ${tag} && git push origin ${tag}`);
+  console.log(`  git tag ${tag}`);
+  console.log(`  git push --atomic origin main ${tag}`);
+  if (unpushed > 0) {
+    console.log(
+      `\nmain has ${unpushed} unpushed commit(s), so the release waits for this push's full CI run.` +
+        "\nPush main and let CI pass before `pnpm release:prepare` to publish without that wait.",
+    );
+  }
 }

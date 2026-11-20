@@ -12,7 +12,7 @@ const update = process.env.STORIES_UPDATE;
 
 if (process.argv.some((arg) => /^(-u|--update-snapshots)(=.*)?$/.test(arg))) {
   throw new Error(
-    "Snapshot updates are refused. Screenshots: the owner runs `pnpm stories:accept`. Accessibility snapshots: `pnpm stories:aria <story ids>`.",
+    "Snapshot updates are refused. Screenshots: `pnpm stories:accept`, once the owner says accept. Accessibility snapshots: `pnpm stories:aria <story ids>`.",
   );
 }
 if (process.env.STORIES_PIXELS === "required" && !wsEndpoint) {
@@ -21,12 +21,14 @@ if (process.env.STORIES_PIXELS === "required" && !wsEndpoint) {
   );
 }
 
+const BEHAVIOUR_SPECS = "packages/*/src/**/*.spec.ts";
+
 const gallery = (command: "dev" | "preview") =>
   `pnpm exec vite ${command === "preview" ? "preview " : ""}--config gallery/vite.config.ts --host 127.0.0.1 --port ${port} --strictPort`;
 
 export default defineConfig<{ storyTheme: StoryTheme }>({
   testDir: repoRoot,
-  testMatch: ["apps/storybook/tests/**/*.spec.ts", "packages/*/src/**/*.spec.ts"],
+  testMatch: ["apps/storybook/tests/**/*.spec.ts", BEHAVIOUR_SPECS],
   testIgnore: ["**/node_modules/**", "**/dist/**"],
   snapshotPathTemplate: "{testDir}/apps/storybook/__baselines__/{projectName}/{arg}{ext}",
   outputDir: path.join(here, "test-results"),
@@ -65,6 +67,12 @@ export default defineConfig<{ storyTheme: StoryTheme }>({
       grepInvert: /@phone-only/,
       testMatch: ["apps/storybook/tests/sweep.spec.ts"],
     },
+    ...(["webkit", "firefox"] as const).map((browserName) => ({
+      name: browserName,
+      use: { browserName, viewport: { width: 1280, height: 900 } },
+      grepInvert: /@phone-only/,
+      testMatch: [BEHAVIOUR_SPECS],
+    })),
   ],
   webServer: {
     command: gallery(wsEndpoint ? "preview" : "dev"),

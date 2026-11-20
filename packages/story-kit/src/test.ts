@@ -69,7 +69,7 @@ export interface Gallery {
   calls(arg: string): Promise<unknown[][]>;
   /** Resizes an element by setting its inline width, for stories that size themselves with CSS `resize`. */
   resizeTo(target: Locator, width: number): Promise<void>;
-  /** Compares the page's accessibility tree with its committed snapshot. */
+  /** Compares the accessibility tree of the page, or of its topmost open modal, with its committed snapshot. */
   expectAriaTree(name: string): Promise<void>;
   /** Fails the test with every axe violation on the page. */
   expectAccessible(): Promise<void>;
@@ -198,10 +198,12 @@ function createGallery(
       );
     },
     async expectAriaTree(name) {
-      const body = page.locator("body");
+      // showModal() leaves everything outside the dialog inert, which Playwright's snapshot ignores.
+      const modal = page.locator("dialog:modal").last();
+      const root = (await modal.count()) > 0 ? modal : page.locator("body");
       const file = `${name}.aria.yml`;
-      if ((await body.ariaSnapshot()).trim() !== "") {
-        await expect.soft(body).toMatchAriaSnapshot({ name: file });
+      if ((await root.ariaSnapshot()).trim() !== "") {
+        await expect.soft(root).toMatchAriaSnapshot({ name: file });
         return;
       }
       const stored = testInfo.snapshotPath(file, { kind: "aria" });
@@ -216,6 +218,8 @@ function createGallery(
     },
     async expectAccessible() {
       const results = await new AxeBuilder({ page })
+        // The default mode injects axe twice per run, the second time into a new blank page.
+        .setLegacyMode(true)
         .include("body")
         .disableRules([...AXE_DISABLED_BY_DEFAULT, ...a11yRules])
         .analyze();
@@ -248,8 +252,8 @@ function createGallery(
 
 export const test = base.extend<Fixtures, WorkerFixtures>({
   pixels: [
-    async ({ browser }, provide) => {
-      const pixels = Boolean(process.env.STORIES_BROWSER_WS);
+    async ({ browser, browserName }, provide) => {
+      const pixels = Boolean(process.env.STORIES_BROWSER_WS) && browserName === "chromium";
       if (pixels) await expectPinnedBrowser(browser);
       await provide(pixels);
     },
@@ -261,6 +265,8 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       const context = await browser.newContext({
         baseURL: use.baseURL,
         viewport: use.viewport,
+        // Firefox doesn't derive window.screen from the viewport.
+        screen: use.viewport ?? undefined,
         hasTouch: use.hasTouch,
         isMobile: use.isMobile,
         colorScheme: use.colorScheme,

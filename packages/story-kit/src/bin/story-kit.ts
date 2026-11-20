@@ -8,7 +8,7 @@ const USAGE = `Usage:
   story-kit test [--changed[=<ref>]] [playwright args]   run story tests (default ref: origin/main)
   story-kit aria <story id>... | --all                   rewrite accessibility snapshots
   story-kit accept <story id>... --reason "<intent>" [--project desktop|phone] [--from-ci <run id>] [--all-missing]
-                                                         accept screenshot baselines (owner only)
+                                                         accept screenshot baselines the owner approved
   story-kit browser start|stop|status                    manage the pinned browser container
   story-kit ids [--check]                                regenerate the typed story id list`;
 

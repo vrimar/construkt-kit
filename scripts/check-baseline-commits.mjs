@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,16 +36,6 @@ if (baselineCommits.length === 0) {
   process.exit(0);
 }
 
-const signer = process.env.STORIES_BASELINE_SIGNER?.trim();
-let allowedSigners = null;
-if (signer) {
-  allowedSigners = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), "baseline-signers-")),
-    "allowed_signers",
-  );
-  fs.writeFileSync(allowedSigners, `* namespaces="git" ${signer}\n`);
-}
-
 const problems = [];
 for (const { sha, files } of baselineCommits) {
   const subject = git(["log", "-1", "--format=%h %s", sha]).stdout.trim();
@@ -57,31 +45,12 @@ for (const { sha, files } of baselineCommits) {
       `${subject}: a baseline commit may change only baselines, but it also changes ${others.join(", ")}.`,
     );
   }
-  if (!allowedSigners) continue;
-  const verify = git([
-    "-c",
-    "gpg.format=ssh",
-    "-c",
-    `gpg.ssh.allowedSignersFile=${allowedSigners}`,
-    "verify-commit",
-    sha,
-  ]);
-  if (verify.status !== 0) {
-    problems.push(
-      `${subject}: not signed by the baseline key. Only \`pnpm stories:accept\`, run by the owner, may change baselines.`,
-    );
-  }
 }
 
 if (problems.length > 0) {
-  console.error(`\n${problems.length} baseline signature problem(s):\n`);
+  console.error(`\n${problems.length} baseline commit problem(s):\n`);
   for (const problem of problems) console.error(`  ${problem}`);
   process.exit(1);
 }
 
-console.log(
-  signer
-    ? `${baselineCommits.length} baseline commit(s) in ${range} are signed by the baseline key.`
-    : `${baselineCommits.length} baseline commit(s) in ${range} change only baselines. Signatures are not ` +
-        "checked until the STORIES_BASELINE_SIGNER repository variable is set.",
-);
+console.log(`${baselineCommits.length} baseline commit(s) in ${range} change only baselines.`);

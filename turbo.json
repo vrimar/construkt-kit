@@ -47,26 +47,8 @@
         "@construkt-kit/api#build",
         "@construkt-kit/data-grid#codegen"
       ],
-      "inputs": [
-        "oxlint.config.ts",
-        "packages/*/src/**",
-        "packages/*/bin/**",
-        "packages/*/scripts/**",
-        "packages/*/test/**",
-        "!packages/*/test/gen/**",
-        "packages/config/{oxlint,vite,vitest,playwright,kubb,oxfmt,tsdown,internal,typescript}/**",
-        "packages/*/*.config.ts",
-        "packages/*/oxlint-*.mjs",
-        "packages/*/vitest.setup.ts",
-        "packages/*/tsconfig.json",
-        "apps/*/.storybook/**",
-        "apps/*/scripts/**",
-        "apps/*/gallery/**",
-        "apps/*/tests/**",
-        "apps/*/*.ts",
-        "apps/*/*.config.{ts,mjs,cjs}",
-        "apps/*/tsconfig.json"
-      ]
+      // Subtract only file types neither oxlint nor the type checker reads; a directory list misses new ones.
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.{md,png,svg,css,html,yml}"]
     },
     "storybook": {
       "dependsOn": ["^build"],

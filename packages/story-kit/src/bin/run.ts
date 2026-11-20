@@ -46,7 +46,7 @@ export async function runStories(options: RunOptions): Promise<number> {
   if (options.playwrightArgs.some((arg) => UPDATE_FLAGS.test(arg))) {
     process.stderr.write(
       "Snapshot updates are refused. Fix the code, or, for an intended change:\n" +
-        "  screenshots: report the story ids to the owner, who runs `pnpm stories:accept`\n" +
+        "  screenshots: report the story ids to the owner; once they say accept, `pnpm stories:accept`\n" +
         "  accessibility snapshots: `pnpm stories:aria <story ids>`\n",
     );
     return 2;

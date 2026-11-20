@@ -45,14 +45,14 @@ function downloadCiReport(runId: string): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "story-kit-ci-"));
   const result = spawnSync(
     "gh",
-    ["run", "download", runId, "--name", "stories-report", "--dir", dir],
+    ["run", "download", runId, "--pattern", "stories-report-*", "--dir", dir],
     {
       cwd: repoRoot,
       stdio: "inherit",
     },
   );
   if (result.status !== 0)
-    throw new Error(`Could not download the stories-report artifact of run ${runId}.`);
+    throw new Error(`Could not download the stories-report artifacts of run ${runId}.`);
   return dir;
 }
 
@@ -61,6 +61,30 @@ function readReport(dir: string): StoryReport {
   if (!fs.existsSync(file))
     throw new Error(`No story report at ${file}. Run \`pnpm test:stories\` first.`);
   return JSON.parse(fs.readFileSync(file, "utf8")) as StoryReport;
+}
+
+function readShardReports(dir: string): StoryReport {
+  const shards = fs
+    .readdirSync(dir)
+    .filter((name) => fs.existsSync(path.join(dir, name, "report.json")))
+    .map((name) => ({ name, report: readReport(path.join(dir, name)) }));
+  if (shards.length === 0) throw new Error("The CI run uploaded no story report.");
+  const reports = shards.map(({ report }) => report);
+  const within = (name: string, file: string | null) => file && path.join(name, file);
+  return {
+    ...reports[0],
+    mode: reports.every((report) => report.mode === "pixels") ? "pixels" : "functional",
+    passed: reports.reduce((sum, report) => sum + report.passed, 0),
+    failed: reports.reduce((sum, report) => sum + report.failed, 0),
+    skipped: reports.reduce((sum, report) => sum + report.skipped, 0),
+    failures: shards.flatMap(({ name, report }) =>
+      report.failures.map((failure) => ({
+        ...failure,
+        image: within(name, failure.image),
+        actual: within(name, failure.actual),
+      })),
+    ),
+  };
 }
 
 function selectTargets(report: StoryReport, args: AcceptArgs, sourceDir: string): Target[] {
@@ -111,16 +135,13 @@ function selectTargets(report: StoryReport, args: AcceptArgs, sourceDir: string)
   });
 }
 
-function commit(targets: Target[], reason: string, key: string | undefined) {
+function commit(targets: Target[], reason: string) {
   const paths = targets.map((target) => path.relative(repoRoot, baselineFile(target)));
   const add = spawnSync("git", ["add", "--", ...paths], { cwd: repoRoot, stdio: "inherit" });
   if (add.status !== 0) throw new Error("git add failed.");
   const stories = targets.map((target) => `${target.storyId} (${target.project})`).join(", ");
   const message = `test(stories): accept ${targets.length} baseline${targets.length === 1 ? "" : "s"}\n\nVisual-change: ${reason}\nStories: ${stories}\n`;
-  const signing = key
-    ? ["-c", "gpg.format=ssh", "-c", `user.signingkey=${key}`, "commit", "--gpg-sign"]
-    : ["commit"];
-  const result = spawnSync("git", [...signing, "--file=-", "--", ...paths], {
+  const result = spawnSync("git", ["commit", "--file=-", "--", ...paths], {
     cwd: repoRoot,
     input: message,
     stdio: ["pipe", "inherit", "inherit"],
@@ -131,13 +152,13 @@ function commit(targets: Target[], reason: string, key: string | undefined) {
 
 export async function accept(argv: string[]): Promise<number> {
   const args = parseArgs(argv);
-  const key = process.env.STORIES_BASELINE_KEY || undefined;
   if (!args.reason.trim()) throw new Error('Say what changed and why with --reason "<intent>".');
   if (!args.allMissing && args.ids.length === 0)
     throw new Error("Name the stories to accept, or pass --all-missing.");
 
   const sourceDir = args.fromCi ? downloadCiReport(args.fromCi) : reportDir;
-  const targets = selectTargets(readReport(sourceDir), args, sourceDir);
+  const report = args.fromCi ? readShardReports(sourceDir) : readReport(sourceDir);
+  const targets = selectTargets(report, args, sourceDir);
   if (targets.length === 0) {
     process.stdout.write("Nothing to accept.\n");
     return 0;
@@ -172,9 +193,7 @@ export async function accept(argv: string[]): Promise<number> {
     }
   }
 
-  commit(targets, args.reason.trim(), key);
-  process.stdout.write(
-    `Committed ${targets.length} baseline(s) under ${BASELINE_DIR_RELATIVE}${key ? ", signed with the baseline key" : ", unsigned: STORIES_BASELINE_KEY is not set"}.\n`,
-  );
+  commit(targets, args.reason.trim());
+  process.stdout.write(`Committed ${targets.length} baseline(s) under ${BASELINE_DIR_RELATIVE}.\n`);
   return 0;
 }

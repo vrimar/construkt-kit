@@ -17,18 +17,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     steps:
-      - name: Require a green CI run on the tagged commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" \
-            --json status,conclusion --jq '[.[] | select(.status == "completed")][0].conclusion // "none"')
-          if [ "$conclusion" != "success" ]; then
-            echo "::error::CI has not passed on $GITHUB_SHA (latest finished run: $conclusion). Push the commit, wait for CI to go green, then tag it."
-            exit 1
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
@@ -42,6 +32,18 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
+
+      - name: Wait for green CI on the tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/require-green-ci.mjs
+
+      - name: Restore Turbo cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

@@ -7,15 +7,33 @@ on:
       - main
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # Every main commit runs to completion: a release may be gated on any of them.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  verify:
+  browser-image:
     runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.read.outputs.ref }}
+    steps:
+      - name: Checkout the browser pin
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: packages/story-kit/browser-image.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read the pinned image
+        id: read
+        run: echo "ref=$(jq -r '.image + "@" + .digest' packages/story-kit/browser-image.json)" >> "$GITHUB_OUTPUT"
+
+  verify:
+    needs: browser-image
+    runs-on: ubuntu-latest
+    container: ${{ needs.browser-image.outputs.ref }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -31,39 +49,29 @@ jobs:
           node-version: 26
           cache: pnpm
 
+      - name: Turbo cache
+        uses: actions/cache@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Chromium
-        run: pnpm --filter @construkt-kit/data-grid exec playwright install --with-deps chromium
 
       - name: Check formatting
         run: pnpm format --check
 
-      - name: Lint, typecheck, test, build
-        run: pnpm turbo run //#lint typecheck test test:browser build
+      - name: Lint, typecheck, test, build, validate exports
+        run: pnpm turbo run //#lint typecheck test test:browser build check:exports
 
       - name: Check preset CSS, dependencies and story coverage
         run: pnpm check:css && pnpm check:deps && pnpm check:stories
 
-      - name: Story tests
+      - name: Check baseline commits
         env:
-          STORIES_PIXELS: required
-        run: pnpm test:stories
-
-      - name: Upload story report
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: stories-report
-          path: apps/storybook/.stories-report/
-          if-no-files-found: ignore
-
-      - name: Check baseline signatures
-        env:
-          STORIES_BASELINE_SIGNER: ${{ vars.STORIES_BASELINE_SIGNER }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: node scripts/check-baseline-signature.mjs
+        run: node scripts/check-baseline-commits.mjs
 
       - name: Summarise story test guardrails
         if: always()
@@ -71,5 +79,49 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/guardrail-summary.mjs >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Validate package exports
-        run: pnpm turbo run check:exports
+      - name: Prune Turbo cache entries older than a week
+        run: find .turbo/cache -type f -mtime +7 -delete
+
+  stories:
+    name: stories (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Restore Turbo cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Story tests
+        env:
+          STORIES_PIXELS: required
+        run: pnpm test:stories --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+
+      - name: Upload story report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stories-report-${{ matrix.shard }}
+          path: apps/storybook/.stories-report/
+          include-hidden-files: true
+          if-no-files-found: ignore
