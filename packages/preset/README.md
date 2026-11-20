@@ -54,6 +54,7 @@ Tracks (slider, progress) sit on `subtle.bg`, the step every solid fill is guara
   `normal` on `:root` for the previous glyphs or when `fonts.body` names another typeface
 - The face carries Inter's optical-size axis, so text above 14px draws slightly tighter, headings most. Screenshot tests
   change
+- `<body>` no longer gets `overflow: hidden`, so the page scrolls by default; an app with a fixed shell sets it itself
 
 ## Upgrading from 0.10
 

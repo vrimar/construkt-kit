@@ -59,7 +59,6 @@ export const globalCss = {
   body: {
     height: "100%",
     width: "100%",
-    overflow: "hidden",
     fontFamily: "body",
     fontFeatureSettings: "var(--font-body-features)",
     background: "bg",
