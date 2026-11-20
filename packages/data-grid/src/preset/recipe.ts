@@ -147,6 +147,7 @@ export const dataGrid: SlotRecipeConfig = defineSlotRecipe({
       userSelect: "none",
       overscrollBehavior: "contain",
       focusVisibleRing: "inside",
+      "&[data-drop-refused], &[data-drop-refused] *": { cursor: "not-allowed !important" },
     },
     canvas: {
       position: "relative",

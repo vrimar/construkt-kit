@@ -104,6 +104,8 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       onCellClick,
       onHeaderClick,
       pointerSelection,
+      onDragMove,
+      dragLabel,
       keymap,
       keyboardSelection,
       commands,
@@ -123,7 +125,15 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       ...rootProps
     },
   ] = splitGridOptions(props);
-  const { rows, columnDefs, checkboxSelection, onRowsDrop, onColumnsDrop } = gridOptions;
+  const {
+    rows,
+    columnDefs,
+    checkboxSelection,
+    onRowsDrop,
+    onColumnsDrop,
+    canDropAcross,
+    onDropAcross,
+  } = gridOptions;
   const labels = withDefaults(DEFAULT_LABELS, labelOverrides);
   const latestLabels = useLatestRef(labels);
   const classes = useMemo(
@@ -160,6 +170,10 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
     columnDefs,
     onRowsDrop,
     onColumnsDrop,
+    onDragMove,
+    canDropAcross,
+    onDropAcross,
+    dragLabel,
   });
   const core = useGridCore<TRow>({ ...gridOptions, columnDefs: allColumnDefs, ...grip.options });
   useLayoutEffect(() => {
@@ -277,6 +291,7 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
             aria-colcount={columnCount}
             aria-multiselectable
             aria-busy={loading || undefined}
+            data-drop-refused={grip.refused || undefined}
             onScroll={onScroll}
             onPointerDown={pointer.onPointerDown}
             onMouseDown={focus.onMouseDown}

@@ -1,5 +1,6 @@
 import type { ColumnModel } from "../columns/columnModel";
 import type { ColumnDef } from "../columns/types";
+import type { CoreHit } from "../layout/hit";
 import type { OffsetIndex } from "../layout/offsetIndex";
 import type { RowModel } from "../rows/rowModel";
 import type { RowId, RowNode } from "../rows/rowNode";
@@ -38,6 +39,13 @@ export interface DndOptions<TRow> {
    * refuses, a whole target drops onto it when `canDropOnto` allows, else nothing does, and keyboard moves do nothing.
    */
   canDropBetween?: (source: DragSource) => boolean;
+  /**
+   * Whether a grip drag may land on the other axis at `hit`: a column over the body, or a row over the header.
+   * Without it a drag stays on its own axis.
+   */
+  canDropAcross?: (source: DragSource, hit: CoreHit) => boolean;
+  /** Called on release over the other axis where `canDropAcross` allowed it, in place of a reorder drop. */
+  onDropAcross?: (source: DragSource, hit: CoreHit) => void;
   /** Whether a row can be dragged or moved, and be a drop's target. Defaults to every row. */
   isRowReorderable?: (row: TRow) => boolean;
   /** A drop marker to draw while no grip drag is running, such as during an external drag or a merge picker. */
@@ -62,12 +70,19 @@ export interface DndHost<TRow, TNode> {
   rowGeometry(): RowGeometry;
   columnIndexAtX(x: number): number;
   columnSpanX(first: number, last: number): { left: number; right: number };
+  hitTest(x: number, y: number): CoreHit | null;
+}
+
+export interface DragAcross {
+  hit: CoreHit;
+  allowed: boolean;
 }
 
 interface ActiveDrag {
   source: DragSource;
   contiguous: boolean;
   target: Placement<RowId> | null;
+  across: DragAcross | null;
 }
 
 export class GridDnd<TRow, TNode> {
@@ -91,6 +106,14 @@ export class GridDnd<TRow, TNode> {
 
   get source(): DragSource | null {
     return this.drag?.source ?? null;
+  }
+
+  get placement(): Placement<RowId> | null {
+    return this.drag?.target ?? null;
+  }
+
+  get across(): DragAcross | null {
+    return this.drag?.across ?? null;
   }
 
   get indicator(): DropIndicator | null {
@@ -142,7 +165,7 @@ export class GridDnd<TRow, TNode> {
   begin(item: DragItem): boolean {
     const source = item.kind === "rows" ? this.rowSource(item.id) : this.columnSource(item.id);
     if (!source) return false;
-    this.drag = { source, contiguous: this.contiguous(source), target: null };
+    this.drag = { source, contiguous: this.contiguous(source), target: null, across: null };
     this.host.channels.batch(() => {
       this.host.channels.notify(DND_CHANNELS.drag);
       this.host.channels.notify(DND_CHANNELS.indicator);
@@ -150,11 +173,17 @@ export class GridDnd<TRow, TNode> {
     return true;
   }
 
-  hover(x: number, y: number): void {
+  /** Places the drag at `x, y`; `covered` means something above the grid takes the pointer there, so nothing is targeted. */
+  hover(x: number, y: number, covered = false): void {
     const drag = this.drag;
     if (!drag) return;
+    drag.across = covered ? null : this.acrossAt(drag.source, x, y);
     const target =
-      drag.source.kind === "rows" ? this.rowPlacement(drag, y) : this.columnPlacement(drag, x);
+      covered || drag.across
+        ? null
+        : drag.source.kind === "rows"
+          ? this.rowPlacement(drag, y)
+          : this.columnPlacement(drag, x);
     if (target?.targetId === drag.target?.targetId && target?.position === drag.target?.position) {
       return;
     }
@@ -170,7 +199,9 @@ export class GridDnd<TRow, TNode> {
       this.host.channels.notify(DND_CHANNELS.drag);
       this.host.channels.notify(DND_CHANNELS.indicator);
     });
-    if (!cancelled && drag.target) this.emit(drag.source, drag.target);
+    if (cancelled) return;
+    if (drag.target) this.emit(drag.source, drag.target);
+    else if (drag.across?.allowed) this.options().onDropAcross?.(drag.source, drag.across.hit);
   }
 
   move(kind: DragSource["kind"], step: -1 | 1): boolean {
@@ -206,6 +237,21 @@ export class GridDnd<TRow, TNode> {
 
   private canDropBetween(source: DragSource): boolean {
     return this.options().canDropBetween?.(source) !== false;
+  }
+
+  private acrossAt(source: DragSource, x: number, y: number): DragAcross | null {
+    const { canDropAcross } = this.options();
+    if (!canDropAcross) return null;
+    const hit = this.host.hitTest(x, y);
+    if (!hit) return null;
+    const across = source.kind === "rows" ? hit.region === "header" : this.onRowHeader(hit);
+    return across ? { hit, allowed: canDropAcross(source, hit) } : null;
+  }
+
+  private onRowHeader(hit: CoreHit): boolean {
+    if (hit.region !== "body" || hit.rowId === null) return false;
+    if (hit.columnId === null) return true;
+    return this.host.columns.headerCell(hit.columnId)?.def.rowHeader === true;
   }
 
   private slot(source: DragSource, targetId: RowId, fraction: number): DropPosition | null {

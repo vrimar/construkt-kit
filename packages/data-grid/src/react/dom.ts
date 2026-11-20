@@ -1,4 +1,4 @@
-import type { HitBox } from "../core/grid";
+import type { HitBox } from "../core/layout/hit";
 
 export interface CellTarget {
   element: HTMLElement;
@@ -41,6 +41,16 @@ export const tabStopsIn = (element: HTMLElement): HTMLElement[] =>
   Array.from(element.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
     (candidate) => candidate.tabIndex >= 0,
   );
+
+/** Whether something drawn above the grid, such as a popover, takes the pointer inside `scroller`'s box. */
+export const coveredAt = (scroller: HTMLElement, clientX: number, clientY: number) => {
+  const box = scroller.getBoundingClientRect();
+  if (clientX < box.left || clientX >= box.right || clientY < box.top || clientY >= box.bottom) {
+    return false;
+  }
+  const top = document.elementFromPoint(clientX, clientY);
+  return top !== null && !scroller.contains(top);
+};
 
 export const localPoint = (scroller: HTMLElement, clientX: number, clientY: number) => {
   const rect = scroller.getBoundingClientRect();

@@ -3,11 +3,52 @@ import { createRef } from "react";
 import { expect, test, vi } from "vitest";
 import { commands, userEvent } from "vitest/browser";
 
-import { rowHeight, rowOf, scrollerOf } from "../../test/dom";
-import { createFixture } from "../../test/fixture";
+import { cellOf, rowHeight, rowOf, scrollerOf } from "../../test/dom";
+import { type FixtureRow, createFixture } from "../../test/fixture";
 import { frames, nextFrame, settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
-import type { DataGridApi, ExternalDragEvent, RowId } from "./types";
+import type { DataGridApi, DataGridProps, ExternalDragEvent, RowId } from "./types";
+
+async function renderColumnGrips(props: Partial<DataGridProps<FixtureRow>> = {}) {
+  const fixture = createFixture(20, 4);
+  const onColumnsDrop = vi.fn();
+  const { container } = render(
+    <DataGrid
+      {...fixture}
+      columnDefs={fixture.columnDefs.map((def) => ({
+        ...def,
+        rowHeader: def.id === "c2",
+        header: (ctx) => (
+          <>
+            {ctx.dragHandleProps && <span {...ctx.dragHandleProps}>⠿</span>}
+            {String(def.header)}
+          </>
+        ),
+      }))}
+      onColumnsDrop={onColumnsDrop}
+      aria-label="Column grips"
+      style={{ width: 800, height: 400 }}
+      {...props}
+    />,
+  );
+  await settle();
+  return { container, onColumnsDrop };
+}
+
+async function pressGripAndMoveTo(container: HTMLElement, columnId: string, target: Element) {
+  const selector = `[data-header-id="${columnId}"] [data-drag-handle]`;
+  const grip = (container.querySelector(selector) as HTMLElement).getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  await commands.pressOn(selector);
+  await commands.moveBy(
+    to.left + to.width * 0.75 - (grip.left + grip.width / 2),
+    to.top + to.height / 2 - (grip.top + grip.height / 2),
+  );
+  await nextFrame();
+}
+
+const headerOf = (container: HTMLElement, id: string) =>
+  container.querySelector(`[data-header-id="${id}"]`) as HTMLElement;
 
 test("dragging a row's grip into the lower third of another row drops it after that row", async () => {
   const fixture = createFixture(20, 3);
@@ -46,6 +87,119 @@ test("dragging a row's grip into the lower third of another row drops it after t
 
   expect(onRowsDrop).toHaveBeenCalledTimes(1);
   expect(onRowsDrop.mock.calls[0][0]).toMatchObject({ ids: [1], targetId: 3, position: "after" });
+});
+
+test("onDragMove reports the placement within the axis, then across over a row header, then null on release", async () => {
+  const onDragMove = vi.fn();
+  const { container } = await renderColumnGrips({ onDragMove, canDropAcross: () => true });
+  const source = { kind: "columns", ids: ["c0"] };
+
+  await pressGripAndMoveTo(container, "c0", headerOf(container, "c2"));
+  expect(onDragMove).toHaveBeenLastCalledWith(source, {
+    hit: expect.objectContaining({ region: "header", headerId: "c2" }),
+    placement: { targetId: "c2", position: "after" },
+    point: expect.any(Object),
+    across: false,
+    acrossAllowed: false,
+  });
+
+  const header = headerOf(container, "c2").getBoundingClientRect();
+  const cell = cellOf(container, 2, 2).getBoundingClientRect();
+  await commands.moveBy(0, cell.top + cell.height / 2 - (header.top + header.height / 2));
+  await nextFrame();
+  expect(onDragMove).toHaveBeenLastCalledWith(source, {
+    hit: expect.objectContaining({ region: "body", rowId: 2, columnId: "c2" }),
+    placement: null,
+    point: expect.any(Object),
+    across: true,
+    acrossAllowed: true,
+  });
+
+  await commands.release();
+  expect(onDragMove).toHaveBeenLastCalledWith(source, null);
+});
+
+test("a column dropped across onto a row header calls onDropAcross with the row's hit, not onColumnsDrop", async () => {
+  const onDropAcross = vi.fn();
+  const { container, onColumnsDrop } = await renderColumnGrips({
+    canDropAcross: () => true,
+    onDropAcross,
+  });
+
+  await pressGripAndMoveTo(container, "c0", cellOf(container, 2, 2));
+  await commands.release();
+
+  expect(onColumnsDrop).not.toHaveBeenCalled();
+  expect(onDropAcross).toHaveBeenCalledTimes(1);
+  expect(onDropAcross.mock.calls[0]).toEqual([
+    { kind: "columns", ids: ["c0"] },
+    expect.objectContaining({ region: "body", rowId: 2, columnId: "c2" }),
+    { x: expect.any(Number), y: expect.any(Number) },
+  ]);
+});
+
+test("a column released across where canDropAcross refuses fires no drop", async () => {
+  const onDropAcross = vi.fn();
+  const { container, onColumnsDrop } = await renderColumnGrips({
+    canDropAcross: () => false,
+    onDropAcross,
+  });
+
+  await pressGripAndMoveTo(container, "c0", cellOf(container, 2, 2));
+  await commands.release();
+
+  expect(onDropAcross).not.toHaveBeenCalled();
+  expect(onColumnsDrop).not.toHaveBeenCalled();
+});
+
+test("with canDropAcross, a column over a body cell that isn't a row header still reorders by its x", async () => {
+  const onDropAcross = vi.fn();
+  const { container, onColumnsDrop } = await renderColumnGrips({
+    canDropAcross: () => true,
+    onDropAcross,
+  });
+
+  await pressGripAndMoveTo(container, "c0", cellOf(container, 2, 3));
+  await commands.release();
+
+  expect(onDropAcross).not.toHaveBeenCalled();
+  expect(onColumnsDrop).toHaveBeenCalledTimes(1);
+  expect(onColumnsDrop.mock.calls[0][0]).toMatchObject({ ids: ["c0"], targetId: "c3" });
+});
+
+test("a column released where something drawn above the grid covers it fires no drop", async () => {
+  const { container, onColumnsDrop } = await renderColumnGrips();
+  const box = headerOf(container, "c2").getBoundingClientRect();
+  const overlay = document.createElement("div");
+  Object.assign(overlay.style, {
+    position: "fixed",
+    left: `${box.left}px`,
+    top: `${box.top}px`,
+    width: `${box.width}px`,
+    height: `${box.height}px`,
+    zIndex: "9999",
+  });
+  document.body.append(overlay);
+
+  await pressGripAndMoveTo(container, "c0", headerOf(container, "c2"));
+  await commands.release();
+  overlay.remove();
+
+  expect(onColumnsDrop).not.toHaveBeenCalled();
+});
+
+test("without canDropAcross, a column dragged over the body still reorders by its x", async () => {
+  const { container, onColumnsDrop } = await renderColumnGrips();
+
+  await pressGripAndMoveTo(container, "c0", cellOf(container, 2, 2));
+  await commands.release();
+
+  expect(onColumnsDrop).toHaveBeenCalledTimes(1);
+  expect(onColumnsDrop.mock.calls[0][0]).toMatchObject({
+    ids: ["c0"],
+    targetId: "c2",
+    position: "after",
+  });
 });
 
 test("an external drag held at the bottom edge scrolls, and the target follows the scroll", async () => {

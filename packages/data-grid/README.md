@@ -181,6 +181,13 @@ cell: {
   never take part.
 - Alt+Shift+↑ / ↓ moves the active row, or the selected rows it is in, past its neighbour; Alt+Shift+← / → does the
   same for columns. Once the app applies the move the grid announces the new position.
+- `onDragMove(source, over)` runs on every move of a grip drag with `{ hit, placement, point, across, acrossAllowed }`,
+  `placement` being what `onRowsDrop` / `onColumnsDrop` would get, and with `null` once the drag ends or Escape
+  cancels it. `dragLabel(source)` replaces the ghost's text.
+- `canDropAcross(source, hit)` lets a drag land on the other axis: a column over a row header (the gutter or a `rowHeader` column), a row
+  over the header; elsewhere a drag keeps its own axis.
+  There the grid draws no marker, shows `not-allowed` where it refuses and stops edge scrolling; a release it allows
+  calls `onDropAcross(source, hit, point)` in place of a reorder. Without it a drag stays on its own axis.
 - External drags (native drag and drop, such as a sidebar item or a file) call `onExternalDragOver({ hit, types,
   dataTransfer })` as they move, and again as the grid scrolls under a still pointer near an edge; return `true` to
   accept a drop there. `onExternalDrop` receives the same, and `onExternalDragLeave` ends it.

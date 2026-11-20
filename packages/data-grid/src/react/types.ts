@@ -13,9 +13,12 @@ import type {
 import type {
   ColumnsDrop as CoreColumnsDrop,
   DragHandleProps,
+  DragSource,
+  DropPosition,
   RowsDrop as CoreRowsDrop,
 } from "../core/dnd/types";
-import type { GridOptions, HitRegion, VisibleRange } from "../core/grid";
+import type { GridOptions, VisibleRange } from "../core/grid";
+import type { HitRegion } from "../core/layout/hit";
 import type { MenuEntry as CoreMenuEntry, MenuItem as CoreMenuItem } from "../core/menu";
 import type { RowId } from "../core/rows/rowNode";
 import type {
@@ -55,7 +58,8 @@ export type {
   DropPosition,
 } from "../core/dnd/types";
 export type { CellChange, HeaderRename } from "../core/editing/controller";
-export type { HitRegion, VisibleRange } from "../core/grid";
+export type { VisibleRange } from "../core/grid";
+export type { HitRegion } from "../core/layout/hit";
 export type { MenuAnchorEvent, MenuSeparator } from "../core/menu";
 export type { RowId } from "../core/rows/rowNode";
 export type { SelectionMode } from "../core/selection/controller";
@@ -99,6 +103,23 @@ export interface ColumnsDrop extends CoreColumnsDrop {
   rect: DOMRect | null;
   /** Where the pointer let go; `null` after a keyboard move. */
   point: { x: number; y: number } | null;
+}
+
+/** Where a grip drag is, as `onDragMove` reports it on each move. */
+export interface DragOver {
+  /** What lies under the pointer; `null` outside the grid's scroll area. */
+  hit: GridHit | null;
+  /**
+   * The within-axis placement the grid would drop on, as `onRowsDrop` / `onColumnsDrop` would get it; `null` while
+   * across, or where a drop would change nothing.
+   */
+  placement: { targetId: RowId; position: DropPosition } | null;
+  /** The pointer in the viewport. */
+  point: { x: number; y: number };
+  /** The pointer is over the other axis (see `canDropAcross`). */
+  across: boolean;
+  /** Across, and `canDropAcross` allows it. */
+  acrossAllowed: boolean;
 }
 
 /** A dashed box around rows or columns, such as where something is about to land. */
@@ -214,7 +235,13 @@ export interface DataGridVariantProps {
   gridLines?: "both" | "rows" | "columns" | "none";
 }
 
-type HostOption = "dragHandles" | "onKeyboardMove" | "onRowsDrop" | "onColumnsDrop";
+type HostOption =
+  | "dragHandles"
+  | "onKeyboardMove"
+  | "onRowsDrop"
+  | "onColumnsDrop"
+  | "canDropAcross"
+  | "onDropAcross";
 
 export interface DataGridOwnProps<TRow>
   extends DataGridVariantProps, Omit<GridOptions<TRow, ReactNode>, HostOption> {
@@ -256,6 +283,19 @@ export interface DataGridOwnProps<TRow>
   onRowsDrop?: (drop: RowsDrop) => void;
   /** Called when columns or groups are dropped from a grip, or moved with Alt+Shift+Left/Right; apply it to `columnDefs`. */
   onColumnsDrop?: (drop: ColumnsDrop) => void;
+  /** Called on every pointer move of a grip drag, and with `null` when it ends, by a drop or a cancel. */
+  onDragMove?: (source: DragSource, over: DragOver | null) => void;
+  /**
+   * Whether a grip drag may land on the other axis at `hit`: a column dragged over a row header (the gutter or a
+   * `rowHeader` column's cell), or a row dragged over the header (a leaf, a group, or the top-left label header).
+   * Asked on each move while over the other axis; elsewhere the drag keeps its own axis.
+   * Without it a drag stays on its own axis.
+   */
+  canDropAcross?: (source: DragSource, hit: GridHit) => boolean;
+  /** Called on release over the other axis where `canDropAcross` allowed it; no `onColumnsDrop` / `onRowsDrop` fires then. */
+  onDropAcross?: (source: DragSource, hit: GridHit, point: { x: number; y: number }) => void;
+  /** The drag ghost's text; `undefined` falls back to the built-in label: the item's text, or `labels.dragging`. */
+  dragLabel?: (source: DragSource) => string | undefined;
   /** Called as an external drag moves or the grid scrolls under it; return `true` to accept a drop at that point. */
   onExternalDragOver?: (event: ExternalDragEvent) => boolean;
   onExternalDrop?: (event: ExternalDragEvent) => void;

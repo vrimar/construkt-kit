@@ -24,24 +24,15 @@ import type {
   DragSource,
   RowsDrop as CoreRowsDrop,
 } from "../core/dnd/types";
+import type { CoreHit } from "../core/layout/hit";
 import type { RowId } from "../core/rows/rowNode";
-import { clientRect, localPoint } from "./dom";
+import { clientRect, coveredAt, localPoint } from "./dom";
 import { ariaRows } from "./geometry";
 import { SELECTION_COLUMN_ID } from "./selectionColumn";
 import type { DataGridLabels, DataGridOwnProps, GridHit } from "./types";
 import type { AnyGridCore } from "./useGridCore";
 
-export function hitAt(
-  core: AnyGridCore,
-  scroller: HTMLElement | null,
-  clientX: number,
-  clientY: number,
-): GridHit | null {
-  if (!scroller) return null;
-  core.setScroll(scroller.scrollTop, scroller.scrollLeft);
-  const { x, y } = localPoint(scroller, clientX, clientY);
-  const hit = core.hitTest(x, y);
-  if (!hit) return null;
+function gridHit(scroller: HTMLElement, hit: CoreHit): GridHit {
   const { region, rowId, columnId, headerId, fractionX, fractionY, box } = hit;
   return {
     region,
@@ -54,7 +45,20 @@ export function hitAt(
   };
 }
 
-function dragLabel(core: AnyGridCore, source: DragSource, labels: DataGridLabels): string {
+export function hitAt(
+  core: AnyGridCore,
+  scroller: HTMLElement | null,
+  clientX: number,
+  clientY: number,
+): GridHit | null {
+  if (!scroller) return null;
+  core.setScroll(scroller.scrollTop, scroller.scrollLeft);
+  const { x, y } = localPoint(scroller, clientX, clientY);
+  const hit = core.hitTest(x, y);
+  return hit && gridHit(scroller, hit);
+}
+
+function defaultDragLabel(core: AnyGridCore, source: DragSource, labels: DataGridLabels): string {
   if (source.ids.length > 1) return labels.dragging(source.ids.length);
   const id = source.ids[0];
   if (source.kind === "columns") {
@@ -93,7 +97,14 @@ function movedIndex(core: AnyGridCore, source: DragSource): number {
 
 interface GripDropOptions<TRow> extends Pick<
   DataGridOwnProps<TRow>,
-  "rows" | "columnDefs" | "onRowsDrop" | "onColumnsDrop"
+  | "rows"
+  | "columnDefs"
+  | "onRowsDrop"
+  | "onColumnsDrop"
+  | "onDragMove"
+  | "canDropAcross"
+  | "onDropAcross"
+  | "dragLabel"
 > {
   coreRef: RefObject<AnyGridCore | null>;
   scroller: HTMLElement | null;
@@ -118,21 +129,50 @@ export function useGripDrop<TRow>({
   columnDefs,
   onRowsDrop,
   onColumnsDrop,
+  onDragMove,
+  canDropAcross,
+  onDropAcross,
+  dragLabel,
 }: GripDropOptions<TRow>) {
   const item = useRef<DragItem | null>(null);
   const releasePoint = useRef<{ x: number; y: number } | null>(null);
   const pendingMove = useRef<PendingMove | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
   const [ghost, setGhost] = useState<{ label: string; kind: DragItem["kind"] } | null>(null);
-  const latest = useLatestRef({ rows, columnDefs, onRowsDrop, onColumnsDrop });
+  const [across, setAcross] = useState<"allowed" | "refused" | null>(null);
+  const latest = useLatestRef({
+    rows,
+    columnDefs,
+    onRowsDrop,
+    onColumnsDrop,
+    onDragMove,
+    canDropAcross,
+    onDropAcross,
+    dragLabel,
+  });
 
   const follow = (core: AnyGridCore, clientX: number, clientY: number) => {
     if (scroller) {
       const { x, y } = localPoint(scroller, clientX, clientY);
       core.setScroll(scroller.scrollTop, scroller.scrollLeft);
-      core.dnd.hover(x, y);
+      core.dnd.hover(x, y, coveredAt(scroller, clientX, clientY));
     }
     ghostRef.current?.style.setProperty("translate", `${clientX}px ${clientY}px`);
+  };
+
+  const report = (core: AnyGridCore, clientX: number, clientY: number) => {
+    const source = core.dnd.source;
+    if (!source) return;
+    const over = core.dnd.across;
+    setAcross(over && (over.allowed ? "allowed" : "refused"));
+    const placement = core.dnd.placement;
+    latest.current.onDragMove?.(source, {
+      hit: hitAt(core, scroller, clientX, clientY),
+      placement: placement && { ...placement },
+      point: { x: clientX, y: clientY },
+      across: over !== null,
+      acrossAllowed: over?.allowed === true,
+    });
   };
 
   const { onPointerDown } = usePointerDrag<HTMLElement>({
@@ -144,25 +184,36 @@ export function useGripDrop<TRow>({
       if (!core || !next || !core.dnd.begin(next)) return;
       const source = core.dnd.source;
       if (source) {
-        setGhost({ label: dragLabel(core, source, labels.current), kind: next.kind });
+        const label =
+          latest.current.dragLabel?.(source) ?? defaultDragLabel(core, source, labels.current);
+        setGhost({ label, kind: next.kind });
       }
       follow(core, clientX, clientY);
     },
     onMove: ({ clientX, clientY }) => {
-      if (coreRef.current) follow(coreRef.current, clientX, clientY);
+      const core = coreRef.current;
+      if (!core) return;
+      follow(core, clientX, clientY);
+      report(core, clientX, clientY);
     },
     onEnd: ({ clientX, clientY }, { cancelled }) => {
+      const core = coreRef.current;
+      const source = core?.dnd.source;
+      if (source) latest.current.onDragMove?.(source, null);
       releasePoint.current = { x: clientX, y: clientY };
-      coreRef.current?.dnd.end(cancelled);
+      core?.dnd.end(cancelled);
       releasePoint.current = null;
       item.current = null;
       setGhost(null);
+      setAcross(null);
     },
-    autoScroll: {
-      element: scroller,
-      inset: () => coreRef.current?.scrollInset ?? {},
-      axis: ghost?.kind === "columns" ? "x" : "y",
-    },
+    autoScroll: across
+      ? undefined
+      : {
+          element: scroller,
+          inset: () => coreRef.current?.scrollInset ?? {},
+          axis: ghost?.kind === "columns" ? "x" : "y",
+        },
   });
 
   const dragHandles = useMemo<DragHandles>(
@@ -199,6 +250,18 @@ export function useGripDrop<TRow>({
     },
     [coreRef, scroller, latest],
   );
+  const canDropAcrossAt = useCallback(
+    (source: DragSource, hit: CoreHit) =>
+      scroller !== null && latest.current.canDropAcross?.(source, gridHit(scroller, hit)) === true,
+    [scroller, latest],
+  );
+  const dropAcross = useCallback(
+    (source: DragSource, hit: CoreHit) => {
+      const point = releasePoint.current;
+      if (scroller && point) latest.current.onDropAcross?.(source, gridHit(scroller, hit), point);
+    },
+    [scroller, latest],
+  );
   const onKeyboardMove = useCallback(
     (source: DragSource) => {
       const core = coreRef.current;
@@ -233,10 +296,13 @@ export function useGripDrop<TRow>({
       dragHandles,
       onRowsDrop: onRowsDrop && rowsDrop,
       onColumnsDrop: onColumnsDrop && columnsDrop,
+      canDropAcross: canDropAcross && canDropAcrossAt,
+      onDropAcross: onDropAcross && dropAcross,
       onKeyboardMove,
     },
     ghost,
     ghostRef,
+    refused: across === "refused",
   };
 }
 

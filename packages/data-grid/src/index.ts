@@ -24,6 +24,7 @@ export type {
   DataGridVariantProps,
   DragHandleEvent,
   DragHandleProps,
+  DragOver,
   DragSource,
   DropIndicator,
   DropPosition,
