@@ -6,6 +6,7 @@ import type { StorybookConfig } from "@storybook/react-vite";
 import { defineMain } from "@storybook/react-vite/node";
 
 import { kitResolution } from "../vite.shared.ts";
+import { settleWorkspaceBuilds } from "./settleWorkspaceBuilds.ts";
 
 const storybookBasePath = normalizeBasePath(process.env.CONSTRUKT_KIT_STORYBOOK_BASE_PATH);
 
@@ -40,6 +41,7 @@ export default defineMain({
     return {
       ...configOptions,
       base: storybookBasePath,
+      plugins: [...(configOptions.plugins ?? []), settleWorkspaceBuilds()],
       build: {
         ...configOptions.build,
         rolldownOptions: {
