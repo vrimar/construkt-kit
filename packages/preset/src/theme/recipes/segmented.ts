@@ -24,7 +24,10 @@ export const enclosedThumb = {
   borderColor: "neutral.surface.border",
 };
 
-export const enclosedItem = (dividerEdge: string) => ({
+const hiddenDivider = { _before: { opacity: "0" } };
+
+// A pressed item's fill comes in as `thumb`: a `_pressed` key spread after this would drop its divider rule.
+export const enclosedItem = (dividerEdge: string, thumb: Record<string, unknown> = {}) => ({
   // The track scrolls, so it clips a ring drawn outside the item.
   focusRingOffset: "-2px",
   _before: {
@@ -47,12 +50,11 @@ export const enclosedItem = (dividerEdge: string) => ({
       height: "1px",
     },
   },
-  "& + &:is([data-state=checked], [data-state=on]), &:is([data-state=checked], [data-state=on]) + &, &:first-of-type":
-    {
-      _before: {
-        opacity: "0",
-      },
-    },
+  "&:first-of-type": hiddenDivider,
+  _checked: hiddenDivider,
+  _afterChecked: hiddenDivider,
+  _pressed: { ...thumb, ...hiddenDivider },
+  _afterPressed: hiddenDivider,
 });
 
 export const outlineTrack = {

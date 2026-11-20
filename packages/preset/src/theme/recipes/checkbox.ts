@@ -1,4 +1,3 @@
-import { checkboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
@@ -7,7 +6,7 @@ import { paletteVariant } from "./palette";
 
 export const checkbox = defineSlotRecipe({
   className: "checkbox",
-  slots: checkboxAnatomy.keys(),
+  slots: ["root", "label", "control", "group"],
   base: {
     root: {
       display: "inline-flex",
@@ -40,6 +39,11 @@ export const checkbox = defineSlotRecipe({
     label: {
       fontWeight: "medium",
       userSelect: "none",
+    },
+    group: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "3",
     },
   },
 
@@ -81,9 +85,8 @@ export const checkbox = defineSlotRecipe({
         control: {
           ...paletteVariant.outline,
           borderColor: "colorPalette.control",
-          _checked: {
-            borderColor: "colorPalette.solid.bg",
-          },
+          _checked: { borderColor: "colorPalette.solid.bg" },
+          _indeterminate: { borderColor: "colorPalette.solid.bg" },
         },
       },
       plain: { control: { ...paletteVariant.plain, borderColor: "border.control" } },

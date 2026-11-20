@@ -1,4 +1,3 @@
-import { numberInputAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH } from "./control-size";
@@ -27,7 +26,7 @@ const trigger = {
 
 export const numberInput = defineSlotRecipe({
   className: "number-input",
-  slots: numberInputAnatomy.keys(),
+  slots: ["root", "label", "input", "control", "incrementTrigger", "decrementTrigger", "scrubber"],
   base: {
     root: {
       isolation: "isolate",
@@ -67,6 +66,10 @@ export const numberInput = defineSlotRecipe({
     decrementTrigger: {
       ...trigger,
       borderEndEndRadius: "md",
+    },
+    scrubber: {
+      cursor: "ew-resize",
+      _disabled: { cursor: "inherit" },
     },
   },
   defaultVariants: {

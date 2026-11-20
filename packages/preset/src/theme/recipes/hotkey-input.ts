@@ -23,6 +23,7 @@ export const hotkeyInput = defineSlotRecipe({
       bg: "bg",
       color: "fg",
       fontFamily: "mono",
+      fontFeatureSettings: "normal",
       fontWeight: "medium",
       textStyle: "xs",
       whiteSpace: "nowrap",
@@ -45,6 +46,7 @@ export const hotkeyInput = defineSlotRecipe({
         boxShadow: "0 0 0 3px var(--shadow-color)",
         color: "colorPalette.plain.fg",
         fontFamily: "body",
+        fontFeatureSettings: "var(--font-body-features)",
       },
     },
     error: {

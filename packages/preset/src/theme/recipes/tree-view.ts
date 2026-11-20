@@ -1,8 +1,15 @@
-import { treeViewAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
 import { controlText } from "./control-size";
+
+/** Variables the tree sets on its rows and drop line, and the sticky offset an app may set. */
+export const treeViewGlobalVars: GlobalVarsDefinition = {
+  "--tree-depth": { syntax: "*", inherits: true },
+  "--tree-drop-level": { syntax: "*", inherits: false },
+  "--tree-sticky-offset": { syntax: "*", inherits: true },
+};
 
 const clampedRow = {
   alignItems: "flex-start",
@@ -15,9 +22,35 @@ const clampedText = {
   overflowWrap: "anywhere",
 };
 
+// Rows have no border, so a ring at offset 0 falls outside them and a scrolling list clips it.
+const rowFocusRing = {
+  focusVisibleRing: "inside",
+  _focusVisible: { outlineOffset: "-1px" },
+} as const;
+
 export const treeView = defineSlotRecipe({
   className: "tree-view",
-  slots: [...treeViewAnatomy.keys(), "dropIndicator", "nodeActions", "nodeContent", "branchCount"],
+  slots: [
+    "branch",
+    "branchContent",
+    "branchControl",
+    "branchIndentGuide",
+    "branchIndicator",
+    "branchText",
+    "branchTrigger",
+    "item",
+    "itemIndicator",
+    "itemText",
+    "label",
+    "nodeCheckbox",
+    "nodeRenameInput",
+    "root",
+    "tree",
+    "dropIndicator",
+    "nodeActions",
+    "nodeContent",
+    "branchCount",
+  ],
   staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
@@ -53,7 +86,7 @@ export const treeView = defineSlotRecipe({
       rounded: "sm",
       cursor: "pointer",
       userSelect: "none",
-      ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
+      ps: "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)))",
       bg: "var(--tree-row-bg)",
       _hover: {
         "--tree-row-bg": "colors.bg.hover",
@@ -61,11 +94,11 @@ export const treeView = defineSlotRecipe({
       _selected: {
         "--tree-row-bg": "colors.bg.emphasized",
       },
-      focusVisibleRing: "inside",
+      ...rowFocusRing,
       _disabled: {
         layerStyle: "disabled",
       },
-      "&[data-dragging]": {
+      _dragging: {
         opacity: "0.4",
       },
       _loading: {
@@ -85,7 +118,7 @@ export const treeView = defineSlotRecipe({
       transition: "rotate 0.2s",
       transformOrigin: "center",
       color: "fg.subtle",
-      _open: {
+      _expanded: {
         rotate: "90deg",
       },
       _icon: {
@@ -124,7 +157,7 @@ export const treeView = defineSlotRecipe({
       top: "0",
       bottom: "0",
       start:
-        "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)) + (var(--tree-icon-size) * 0.5))",
+        "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)) + (var(--tree-icon-size) * 0.5))",
       width: "1px",
       bg: "border",
       pointerEvents: "none",
@@ -139,7 +172,7 @@ export const treeView = defineSlotRecipe({
       rounded: "sm",
       cursor: "pointer",
       userSelect: "none",
-      ps: "calc(var(--tree-padding-inline) + ((var(--depth) - 1) * var(--tree-indent)))",
+      ps: "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)))",
       bg: "var(--tree-row-bg)",
       _hover: {
         "--tree-row-bg": "colors.bg.hover",
@@ -147,11 +180,11 @@ export const treeView = defineSlotRecipe({
       _selected: {
         "--tree-row-bg": "colors.bg.emphasized",
       },
-      focusVisibleRing: "inside",
+      ...rowFocusRing,
       _disabled: {
         layerStyle: "disabled",
       },
-      "&[data-dragging]": {
+      _dragging: {
         opacity: "0.4",
       },
     },
@@ -187,7 +220,7 @@ export const treeView = defineSlotRecipe({
       colorPalette: "blue",
       position: "absolute",
       insetInlineStart:
-        "calc(var(--tree-padding-inline) + (var(--drop-level, 0) * var(--tree-indent)))",
+        "calc(var(--tree-padding-inline) + (var(--tree-drop-level, 0) * var(--tree-indent)))",
       insetInlineEnd: "0",
       height: "2px",
       bg: "colorPalette.solid.bg",
@@ -306,7 +339,7 @@ export const treeView = defineSlotRecipe({
         branchControl: {
           position: "sticky",
           top: "var(--tree-sticky-offset, 0)",
-          zIndex: "calc(var(--depth) + 1)",
+          zIndex: "calc(var(--tree-depth) + 1)",
           bg: "var(--tree-row-bg, var(--surface-bg, {colors.bg}))",
         },
       },

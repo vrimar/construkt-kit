@@ -1,6 +1,12 @@
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { controlGap, controlPx, controlText } from "./control-size";
+
+/** How far below the top of its scroller a `stickyHeader` table's head sticks; set on the table or an ancestor. */
+export const tableGlobalVars: GlobalVarsDefinition = {
+  "--table-sticky-offset": { syntax: "*", inherits: true },
+};
 
 export const table = defineSlotRecipe({
   className: "table",

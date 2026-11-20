@@ -1,4 +1,3 @@
-import { toggleGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import {
@@ -13,7 +12,7 @@ import {
 export const toggleGroup = defineSlotRecipe({
   className: "toggle-group",
   jsx: ["ToggleGroup", /ToggleGroup\..+/],
-  slots: toggleGroupAnatomy.keys(),
+  slots: ["root", "item"],
   base: {
     root: {
       colorPalette: "neutral",
@@ -38,7 +37,7 @@ export const toggleGroup = defineSlotRecipe({
       cursor: "pointer",
       display: "inline-flex",
       flexShrink: "0",
-      fontWeight: "semibold",
+      fontWeight: "medium",
       gap: "2",
       justifyContent: "center",
       outline: "0",
@@ -74,21 +73,18 @@ export const toggleGroup = defineSlotRecipe({
           _active: {
             bg: "colorPalette.outline.bg.active",
           },
-          _on: outlineThumb,
+          _pressed: outlineThumb,
         },
       },
       enclosed: {
         root: enclosedTrack,
         item: {
-          ...enclosedItem("-1px"),
+          ...enclosedItem("-1px", enclosedThumb),
           borderWidth: "1px",
           borderColor: "transparent",
-          "&[data-state=off]": {
-            _hover: {
-              bg: "neutral.subtle.bg.hover",
-            },
+          _hover: {
+            bg: "neutral.subtle.bg.hover",
           },
-          _on: enclosedThumb,
         },
       },
       solid: {
@@ -106,7 +102,7 @@ export const toggleGroup = defineSlotRecipe({
           _active: {
             bg: "colorPalette.subtle.bg.active",
           },
-          _on: {
+          _pressed: {
             bg: "colorPalette.solid.bg",
             color: "colorPalette.solid.fg",
             _hover: {
@@ -132,7 +128,7 @@ export const toggleGroup = defineSlotRecipe({
           _active: {
             bg: "colorPalette.plain.bg.active",
           },
-          _on: {
+          _pressed: {
             bg: "colorPalette.subtle.bg.active",
             color: "colorPalette.subtle.fg",
             _active: {

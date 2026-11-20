@@ -7,9 +7,23 @@ import { conditions } from "./theme/conditions";
 import { globalCss } from "./theme/global-css";
 import { globalFontface } from "./theme/global-fontface";
 import { keyframes } from "./theme/keyframes";
-import { layerStyles } from "./theme/layer-styles";
+import { layerStyles, surfaceGlobalVars } from "./theme/layer-styles";
 import { recipes, slotRecipes } from "./theme/recipes";
+import { carouselGlobalVars } from "./theme/recipes/carousel";
+import { collapsibleGlobalVars } from "./theme/recipes/collapsible";
+import { colorPickerGlobalVars } from "./theme/recipes/color-picker";
+import { controlGlobalVars } from "./theme/recipes/control-size";
+import { fieldGlobalVars } from "./theme/recipes/field";
+import { floatingGlobalVars } from "./theme/recipes/floating";
+import { indicatorGlobalVars } from "./theme/recipes/indicator";
+import { listboxGlobalVars } from "./theme/recipes/listbox";
+import { modalGlobalVars } from "./theme/recipes/modal";
+import { progressGlobalVars } from "./theme/recipes/progress";
 import { scrollAreaGlobalVars } from "./theme/recipes/scroll-area";
+import { sortableGlobalVars } from "./theme/recipes/sortable";
+import { tableGlobalVars } from "./theme/recipes/table";
+import { toastGlobalVars } from "./theme/recipes/toast";
+import { treeViewGlobalVars } from "./theme/recipes/tree-view";
 import { createSemanticTokens } from "./theme/semantic-tokens";
 import type { ColorOptions } from "./theme/semantic-tokens/colors";
 import { textStyles } from "./theme/text-styles";
@@ -47,7 +61,24 @@ export function createConstruktKitPreset(options: ConstruktKitPresetOptions = {}
       },
     },
     globalCss,
-    globalVars: scrollAreaGlobalVars,
+    globalVars: {
+      ...scrollAreaGlobalVars,
+      ...carouselGlobalVars,
+      ...collapsibleGlobalVars,
+      ...colorPickerGlobalVars,
+      ...controlGlobalVars,
+      ...fieldGlobalVars,
+      ...floatingGlobalVars,
+      ...indicatorGlobalVars,
+      ...listboxGlobalVars,
+      ...modalGlobalVars,
+      ...progressGlobalVars,
+      ...treeViewGlobalVars,
+      ...surfaceGlobalVars,
+      ...toastGlobalVars,
+      ...sortableGlobalVars,
+      ...tableGlobalVars,
+    },
     staticCss: {
       css: [
         {

@@ -1,13 +1,13 @@
-import { hoverCardAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlText, surface } from "./control-size";
-import { floatingArrow } from "./floating-arrow";
+import { floatingArrow, floatingPositioner } from "./floating";
 
 export const hoverCard = defineSlotRecipe({
   className: "hover-card",
-  slots: hoverCardAnatomy.keys(),
+  slots: ["arrow", "arrowTip", "trigger", "positioner", "content"],
   base: {
+    positioner: floatingPositioner,
     content: {
       layerStyle: "floating.surface",
       display: "flex",
@@ -18,7 +18,6 @@ export const hoverCard = defineSlotRecipe({
       position: "relative",
       ...controlText("sm"),
       transformOrigin: "var(--transform-origin)",
-      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
     },
     arrow: floatingArrow.arrow,
     arrowTip: floatingArrow.arrowTip,

@@ -17,19 +17,19 @@ export const animationStyles = defineAnimationStyles({
   "slide-fade-in": {
     value: {
       transformOrigin: "var(--transform-origin)",
-      "&[data-placement^=top]": withFade("slide-from-bottom", "fade-in"),
-      "&[data-placement^=bottom]": withFade("slide-from-top", "fade-in"),
-      "&[data-placement^=left]": withFade("slide-from-right", "fade-in"),
-      "&[data-placement^=right]": withFade("slide-from-left", "fade-in"),
+      _sideTop: withFade("slide-from-bottom", "fade-in"),
+      _sideBottom: withFade("slide-from-top", "fade-in"),
+      _sideLeft: withFade("slide-from-right", "fade-in"),
+      _sideRight: withFade("slide-from-left", "fade-in"),
     },
   },
   "slide-fade-out": {
     value: {
       transformOrigin: "var(--transform-origin)",
-      "&[data-placement^=top]": withFade("slide-to-bottom", "fade-out"),
-      "&[data-placement^=bottom]": withFade("slide-to-top", "fade-out"),
-      "&[data-placement^=left]": withFade("slide-to-right", "fade-out"),
-      "&[data-placement^=right]": withFade("slide-to-left", "fade-out"),
+      _sideTop: withFade("slide-to-bottom", "fade-out"),
+      _sideBottom: withFade("slide-to-top", "fade-out"),
+      _sideLeft: withFade("slide-to-right", "fade-out"),
+      _sideRight: withFade("slide-to-left", "fade-out"),
     },
   },
   "scale-fade-in": {

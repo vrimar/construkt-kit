@@ -1,10 +1,15 @@
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { touchHitArea } from "./control-size";
 
 const LINE = '&:is([data-instruction="before"], [data-instruction="after"])';
 const BEFORE = '&[data-instruction="before"]';
 const AFTER = '&[data-instruction="after"]';
+export const sortableGlobalVars: GlobalVarsDefinition = {
+  "--sortable-indicator-offset": { syntax: "*", inherits: false },
+};
+
 const OFFSET = "calc(-1 * var(--sortable-indicator-offset, 0px))";
 
 export const sortable = defineSlotRecipe({

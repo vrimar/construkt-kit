@@ -1,11 +1,10 @@
-import { accordionAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlGap, controlPx, controlText } from "./control-size";
 
 export const accordion = defineSlotRecipe({
   className: "accordion",
-  slots: accordionAnatomy.extendWith("itemBody").keys(),
+  slots: ["root", "item", "itemTrigger", "itemContent", "itemIndicator", "itemBody"],
   base: {
     root: {
       width: "full",
@@ -20,7 +19,7 @@ export const accordion = defineSlotRecipe({
       color: "fg",
       cursor: "pointer",
       display: "flex",
-      fontWeight: "semibold",
+      fontWeight: "medium",
       gap: "3",
       justifyContent: "space-between",
       textAlign: "start",
@@ -57,6 +56,7 @@ export const accordion = defineSlotRecipe({
       _closed: {
         animationName: "collapse-height, fade-out",
         animationDuration: "normal",
+        animationFillMode: "forwards",
       },
     },
   },

@@ -1,11 +1,10 @@
-import { clipboardAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
 
 export const clipboard = defineSlotRecipe({
   className: "clipboard",
-  slots: clipboardAnatomy.keys(),
+  slots: ["root", "control", "trigger", "indicator", "input", "label"],
   base: {
     root: {
       display: "flex",

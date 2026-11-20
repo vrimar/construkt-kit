@@ -1,4 +1,3 @@
-import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { type ControlSize, controlGap, controlBox, controlText, touchRow } from "./control-size";
@@ -11,12 +10,17 @@ const tier = (size: ControlSize) => ({
 
 export const radioGroup = defineSlotRecipe({
   className: "radio-group",
-  slots: radioGroupAnatomy.keys(),
+  slots: ["root", "item", "itemText", "itemControl"],
   base: {
     root: {
+      position: "relative",
       display: "flex",
       flexDirection: "column",
       gap: "3",
+      _horizontal: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+      },
     },
     itemControl: {
       alignItems: "center",

@@ -1,4 +1,3 @@
-import { segmentGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import {
@@ -12,7 +11,7 @@ import {
 
 export const segmentGroup = defineSlotRecipe({
   className: "segment-group",
-  slots: segmentGroupAnatomy.keys(),
+  slots: ["root", "label", "item", "itemText", "itemControl", "indicator"],
   base: {
     root: {
       display: "inline-flex",
@@ -51,10 +50,14 @@ export const segmentGroup = defineSlotRecipe({
     indicator: {
       borderWidth: "1px",
       borderRadius: "lg",
-      height: "var(--height)",
+      height: "var(--indicator-height)",
       pos: "absolute",
-      width: "var(--width)",
+      width: "var(--indicator-width)",
       zIndex: -1,
+      transitionProperty: "left, top, width, height",
+      transitionDuration: "fast",
+      _horizontal: { left: "var(--indicator-left)" },
+      _vertical: { top: "var(--indicator-top)" },
     },
   },
 
@@ -77,7 +80,7 @@ export const segmentGroup = defineSlotRecipe({
         },
         item: {
           color: "colorPalette.outline.fg",
-          "&[data-state=unchecked]": {
+          _unchecked: {
             _hover: {
               bg: "colorPalette.outline.bg.hover",
             },

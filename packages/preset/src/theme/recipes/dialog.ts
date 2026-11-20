@@ -1,7 +1,7 @@
-import { dialogAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { anchoredHitArea, surface } from "./control-size";
+import { modalPositioner } from "./modal";
 import { overlayMotion } from "./overlay-motion";
 
 const phoneFullScreen = {
@@ -24,35 +24,27 @@ const phoneFullScreen = {
     mdDown: {
       top: "calc({spacing.3} + env(safe-area-inset-top))",
       insetEnd: "calc({spacing.3} + max(env(safe-area-inset-left), env(safe-area-inset-right)))",
+      "[data-slot=header] > &": { top: "auto", insetEnd: "auto" },
     },
   },
 };
 
 export const dialog = defineSlotRecipe({
   className: "dialog",
-  slots: dialogAnatomy.extendWith("header", "body", "footer").keys(),
+  slots: [
+    "trigger",
+    "positioner",
+    "content",
+    "title",
+    "description",
+    "closeTrigger",
+    "header",
+    "body",
+    "footer",
+  ],
   base: {
-    backdrop: {
-      background: "black.a7",
-      height: "100dvh",
-      left: "0",
-      position: "fixed",
-      top: "0",
-      width: "100dvw",
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
-      _open: {
-        animationName: "fade-in",
-        animationTimingFunction: "emphasized-in",
-        animationDuration: "normal",
-      },
-      _closed: {
-        animationName: "fade-out",
-        animationTimingFunction: "emphasized-out",
-        animationDuration: "fast",
-      },
-    },
     positioner: {
-      display: "flex",
+      ...modalPositioner,
       height: "100dvh",
       justifyContent: "center",
       left: 0,
@@ -61,7 +53,21 @@ export const dialog = defineSlotRecipe({
       top: 0,
       width: "100dvw",
       px: { base: "4", sm: "0" },
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
+      _open: { display: "flex" },
+      _backdrop: {
+        background: "black.a7",
+        animationName: "fade-in",
+        animationTimingFunction: "emphasized-in",
+        animationDuration: "normal",
+      },
+      _closed: {
+        _backdrop: {
+          animationName: "fade-out",
+          animationTimingFunction: "emphasized-out",
+          animationDuration: "fast",
+        },
+      },
+      "&[data-no-backdrop]": { _backdrop: { background: "transparent", animation: "none" } },
     },
 
     title: {
@@ -77,6 +83,7 @@ export const dialog = defineSlotRecipe({
       top: "3",
       insetEnd: "3",
       ...anchoredHitArea,
+      "[data-slot=header] > &": { pos: "relative", top: "auto", insetEnd: "auto", flexShrink: "0" },
     },
     content: {
       layerStyle: "modal.surface",
@@ -88,7 +95,6 @@ export const dialog = defineSlotRecipe({
       position: "relative",
       textStyle: "sm",
       width: "100%",
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       maxH: "var(--dialog-full-max-h, var(--dialog-scroll-max-h, none))",
       "--dialog-full-max-h": "initial",
       "--dialog-scroll-max-h": "initial",

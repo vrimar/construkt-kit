@@ -1,11 +1,23 @@
-import { sliderAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { visual } from "./control-size";
 
 export const slider = defineSlotRecipe({
   className: "slider",
-  slots: sliderAnatomy.extendWith("markerIndicator").keys(),
+  slots: [
+    "root",
+    "label",
+    "thumb",
+    "valueText",
+    "track",
+    "range",
+    "control",
+    "markerGroup",
+    "marker",
+    "draggingIndicator",
+    "markerIndicator",
+    "markerLabel",
+  ],
   base: {
     root: {
       display: "flex",
@@ -18,36 +30,50 @@ export const slider = defineSlotRecipe({
       width: "full",
       cursor: "pointer",
       _disabled: {
-        cursor: "not-allowed",
+        layerStyle: "disabled",
       },
     },
     label: {
       fontWeight: "medium",
       textStyle: "sm",
+      userSelect: "none",
+      WebkitUserSelect: "none",
     },
     control: {
       display: "inline-flex",
       alignItems: "center",
+      position: "relative",
+      touchAction: "none",
+      userSelect: "none",
+      WebkitUserSelect: "none",
     },
     track: {
+      position: "relative",
       overflow: "hidden",
       borderRadius: "full",
       flex: "1",
     },
     range: {
+      position: "absolute",
       width: "inherit",
       height: "inherit",
     },
     markerGroup: {
-      position: "absolute!",
+      position: "absolute",
       zIndex: "1",
+      pointerEvents: "none",
+      userSelect: "none",
+      WebkitUserSelect: "none",
     },
     marker: {
+      position: "absolute",
+      pointerEvents: "none",
       display: "flex",
       alignItems: "center",
       gap: "calc(var(--slider-thumb-size) / 2)",
       color: "fg.muted",
       textStyle: "md",
+      _hidden: { visibility: "hidden" },
     },
     markerIndicator: {
       width: "var(--slider-marker-size)",
@@ -56,6 +82,7 @@ export const slider = defineSlotRecipe({
       bg: "colorPalette.solid.fg",
     },
     thumb: {
+      position: "absolute",
       width: "var(--slider-thumb-size)",
       height: "var(--slider-thumb-size)",
       display: "flex",
@@ -65,6 +92,9 @@ export const slider = defineSlotRecipe({
       zIndex: "2",
       borderRadius: "full",
       focusVisibleRing: "outside",
+      _focus: { zIndex: "3" },
+      _dragging: { zIndex: "3" },
+      _hidden: { visibility: "hidden" },
     },
   },
   defaultVariants: {
@@ -154,7 +184,7 @@ export const slider = defineSlotRecipe({
           flexDirection: "column",
           height: "100%",
           minWidth: "var(--slider-thumb-size)",
-          "&[data-has-mark-label]": {
+          "&:has(.slider__markerLabel)": {
             marginEnd: "4",
           },
         },
@@ -178,7 +208,7 @@ export const slider = defineSlotRecipe({
           flexDirection: "row",
           width: "100%",
           minHeight: "var(--slider-thumb-size)",
-          "&[data-has-mark-label]": {
+          "&:has(.slider__markerLabel)": {
             marginBottom: "4",
           },
         },

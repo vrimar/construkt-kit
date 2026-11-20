@@ -10,6 +10,7 @@ export const kbd = defineRecipe({
     alignItems: "center",
     fontWeight: "medium",
     fontFamily: "mono",
+    fontFeatureSettings: "normal",
     flexShrink: "0",
     whiteSpace: "nowrap",
     wordSpacing: "-0.25em",

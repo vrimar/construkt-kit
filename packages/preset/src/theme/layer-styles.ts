@@ -1,4 +1,10 @@
 import { defineLayerStyles } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
+
+/** The background a surface paints, for content that covers part of it to match. */
+export const surfaceGlobalVars: GlobalVarsDefinition = {
+  "--surface-bg": { syntax: "*", inherits: true },
+};
 
 const floatingSurface = {
   "--surface-bg": "colors.neutral.surface.bg",

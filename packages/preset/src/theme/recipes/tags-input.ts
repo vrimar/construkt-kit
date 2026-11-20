@@ -1,22 +1,30 @@
-import { tagsInputAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH, controlInputFont, controlText } from "./control-size";
 
 const controlFocusRing = {
-  outlineWidth: "1px",
-  outlineStyle: "solid",
-  outlineColor: "var(--focus-color)",
   borderColor: "var(--focus-color)",
+  boxShadow: "inset 0 0 0 1px var(--focus-color)",
   _invalid: {
-    outlineColor: "var(--error-color)",
     borderColor: "var(--error-color)",
+    boxShadow: "inset 0 0 0 1px var(--error-color)",
   },
 };
 
 export const tagsInput = defineSlotRecipe({
   className: "tags-input",
-  slots: tagsInputAnatomy.keys(),
+  slots: [
+    "root",
+    "label",
+    "control",
+    "input",
+    "clearTrigger",
+    "item",
+    "itemPreview",
+    "itemInput",
+    "itemText",
+    "itemDeleteTrigger",
+  ],
   base: {
     root: {
       display: "flex",

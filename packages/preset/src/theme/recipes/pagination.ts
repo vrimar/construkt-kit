@@ -1,11 +1,10 @@
-import { paginationAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH, controlIcon } from "./control-size";
 
 export const pagination = defineSlotRecipe({
   className: "pagination",
-  slots: paginationAnatomy.keys(),
+  slots: ["root", "item", "ellipsis", "prevTrigger", "nextTrigger"],
   base: {
     ellipsis: {
       display: "inline-flex",

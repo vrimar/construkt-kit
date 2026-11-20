@@ -1,11 +1,30 @@
-import { progressAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { visual } from "./control-size";
 
+/** The value as a percentage of the range, set on the root, and the circle geometry derived from it. */
+export const progressGlobalVars: GlobalVarsDefinition = {
+  "--progress-percent": { syntax: "*", inherits: true },
+  "--progress-radius": { syntax: "*", inherits: false },
+  "--progress-circumference": { syntax: "*", inherits: false },
+};
+
 export const progress = defineSlotRecipe({
   className: "progress",
-  slots: progressAnatomy.extendWith("segments", "segment").keys(),
+  slots: [
+    "root",
+    "label",
+    "track",
+    "range",
+    "valueText",
+    "view",
+    "circle",
+    "circleTrack",
+    "circleRange",
+    "segments",
+    "segment",
+  ],
   base: {
     root: {
       textStyle: "sm",
@@ -19,9 +38,11 @@ export const progress = defineSlotRecipe({
       "--thickness": "2px",
     },
     circleTrack: {
+      fill: "transparent",
       stroke: "neutral.subtle.bg",
     },
     circleRange: {
+      fill: "transparent",
       stroke: "currentColor",
       transitionProperty: "stroke-dashoffset",
       transitionDuration: "slow",
@@ -60,7 +81,7 @@ export const progress = defineSlotRecipe({
       bgColor: "var(--progress-segment-bg)",
       transitionProperty: "background-color, border-color",
       transitionDuration: "slow",
-      "&[data-filled]": {
+      _filled: {
         bgColor: "colorPalette.solid.bg",
       },
     },
@@ -125,7 +146,7 @@ export const progress = defineSlotRecipe({
           "--progress-segment-bg": "transparent",
           borderWidth: "1px",
           borderColor: "colorPalette.outline.border",
-          "&[data-filled]": {
+          _filled: {
             borderColor: "colorPalette.solid.bg",
           },
         },

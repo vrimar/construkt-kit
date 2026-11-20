@@ -1,4 +1,3 @@
-import { switchAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlFont, touchRow } from "./control-size";
@@ -6,7 +5,7 @@ import { controlFont, touchRow } from "./control-size";
 export const switchRecipe = defineSlotRecipe({
   className: "switch",
   jsx: ["Switch", /Switch\..+/],
-  slots: switchAnatomy.extendWith("indicator").keys(),
+  slots: ["root", "label", "control", "thumb", "indicator"],
   base: {
     root: {
       display: "inline-flex",

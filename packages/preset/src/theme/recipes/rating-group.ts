@@ -1,11 +1,18 @@
-import { ratingGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { visual } from "./control-size";
 
 export const ratingGroup = defineSlotRecipe({
   className: "rating-group",
-  slots: ratingGroupAnatomy.extendWith("itemIndicator").keys(),
+  slots: [
+    "root",
+    "label",
+    "item",
+    "control",
+    "itemIndicator",
+    "itemIndicatorBg",
+    "itemIndicatorFg",
+  ],
   base: {
     root: {
       alignItems: "center",
@@ -24,9 +31,9 @@ export const ratingGroup = defineSlotRecipe({
       userSelect: "none",
       cursor: "pointer",
       _disabled: {
-        cursor: "not-allowed",
+        layerStyle: "disabled",
       },
-      "&[data-readonly]": {
+      _readOnly: {
         cursor: "default",
         _disabled: {
           cursor: "not-allowed",
@@ -42,7 +49,7 @@ export const ratingGroup = defineSlotRecipe({
       alignItems: "center",
       justifyContent: "center",
       position: "relative",
-      "--clip-path": { base: "inset(0 50% 0 0)", _rtl: "inset(0 0 0 50%)" },
+      "--rating-half-clip": { base: "inset(0 50% 0 0)", _rtl: "inset(0 0 0 50%)" },
       _icon: {
         stroke: "currentColor",
         display: "inline-block",
@@ -53,22 +60,17 @@ export const ratingGroup = defineSlotRecipe({
         left: 0,
         top: 0,
       },
-      "& [data-bg]": {
-        color: "colorPalette.subtle.bg",
+    },
+    itemIndicatorBg: {
+      color: "colorPalette.subtle.bg",
+    },
+    itemIndicatorFg: {
+      color: "transparent",
+      _highlighted: {
+        color: "colorPalette.solid.bg",
       },
-      "& [data-fg]": {
-        color: "transparent",
-      },
-      "&[data-highlighted]:not([data-half])": {
-        "& [data-fg]": {
-          color: "colorPalette.solid.bg",
-        },
-      },
-      "&[data-half]": {
-        "& [data-fg]": {
-          color: "colorPalette.solid.bg",
-          clipPath: "var(--clip-path)",
-        },
+      _half: {
+        clipPath: "var(--rating-half-clip)",
       },
     },
   },

@@ -1,4 +1,3 @@
-import { radioGroupAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { cardAddon, cardBody, cardContent, cardDescription } from "./card-body";
@@ -8,7 +7,12 @@ export const radioCardGroup = defineSlotRecipe({
   className: "radio-card-group",
   jsx: ["RadioCard", /RadioCard\..+/],
   slots: [
-    ...radioGroupAnatomy.keys(),
+    "root",
+    "label",
+    "item",
+    "itemText",
+    "itemControl",
+    "indicator",
     "itemIndicator",
     "itemBody",
     "itemContent",
@@ -17,6 +21,7 @@ export const radioCardGroup = defineSlotRecipe({
   ],
   base: {
     root: {
+      position: "relative",
       display: "flex",
       flexDirection: "column",
       gap: "1.5",
@@ -79,10 +84,14 @@ export const radioCardGroup = defineSlotRecipe({
       borderRadius: "md",
       boxShadow: "0 0 0 1px var(--shadow-color)",
       boxShadowColor: "colorPalette.solid.bg",
-      height: "var(--height)",
+      height: "var(--indicator-height)",
       pointerEvents: "none",
       pos: "absolute",
-      width: "var(--width)",
+      width: "var(--indicator-width)",
+      top: "var(--indicator-top)",
+      transitionProperty: "left, top, width, height",
+      transitionDuration: "fast",
+      _horizontal: { left: "var(--indicator-left)" },
     },
   },
   defaultVariants: {

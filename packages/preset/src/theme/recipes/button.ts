@@ -42,7 +42,7 @@ export const button = defineRecipe({
     cursor: "pointer",
     display: "inline-flex",
     flexShrink: "0",
-    fontWeight: "semibold",
+    fontWeight: "medium",
     isolation: "isolate",
     justifyContent: "center",
     outline: "0",

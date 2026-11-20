@@ -1,4 +1,3 @@
-import { fieldsetAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
@@ -7,7 +6,7 @@ const sectionGap = { base: surface("1.25rem"), md: surface("2rem") };
 
 export const fieldset = defineSlotRecipe({
   className: "fieldset",
-  slots: fieldsetAnatomy.extendWith("content", "control").keys(),
+  slots: ["root", "errorText", "helperText", "legend", "content", "control"],
   base: {
     root: {
       display: "flex",

@@ -1,11 +1,10 @@
-import { tabsAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlGap, controlH, controlPx, controlText } from "./control-size";
 
 export const tabs = defineSlotRecipe({
   className: "tabs",
-  slots: tabsAnatomy.keys(),
+  slots: ["root", "list", "trigger", "content", "indicator"],
   base: {
     root: {
       position: "relative",
@@ -40,12 +39,12 @@ export const tabs = defineSlotRecipe({
       justifyContent: "center",
       cursor: "pointer",
       display: "flex",
-      fontWeight: "semibold",
+      fontWeight: "medium",
       outline: "0",
       position: "relative",
       _focusVisible: {
         zIndex: 1,
-        focusVisibleRing: "outside",
+        focusVisibleRing: "inside",
       },
       _disabled: {
         layerStyle: "disabled",
@@ -70,9 +69,18 @@ export const tabs = defineSlotRecipe({
       },
     },
     indicator: {
-      width: "var(--width)",
-      height: "var(--height)",
+      position: "absolute",
+      width: "var(--indicator-width)",
+      height: "var(--indicator-height)",
       zIndex: -1,
+      transitionProperty: "left, top, width, height",
+      transitionDuration: "fast",
+      _horizontal: {
+        left: "var(--indicator-left)",
+      },
+      _vertical: {
+        top: "var(--indicator-top)",
+      },
     },
   },
   defaultVariants: {

@@ -1,37 +1,49 @@
-import { datePickerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH } from "./control-size";
+import { floatingPositioner } from "./floating";
 
 export const datePicker = defineSlotRecipe({
   className: "date-picker",
-  slots: datePickerAnatomy.keys(),
+  slots: [
+    "clearTrigger",
+    "content",
+    "control",
+    "nextTrigger",
+    "positioner",
+    "presetTrigger",
+    "prevTrigger",
+    "root",
+    "table",
+    "tableBody",
+    "tableCell",
+    "tableCellTrigger",
+    "tableHead",
+    "tableHeader",
+    "tableRow",
+    "trigger",
+    "view",
+    "viewControl",
+    "viewTrigger",
+  ],
   base: {
     root: {
       display: "flex",
       flexDirection: "column",
       gap: "1.5",
     },
+    positioner: floatingPositioner,
     content: {
       layerStyle: "floating.surface",
       display: "flex",
       flexDirection: "column",
       gap: "3",
       p: "4",
-      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
-      _hidden: {
-        display: "none",
-      },
     },
     control: {
       display: "flex",
       flexDirection: "row",
       gap: "2",
-    },
-    label: {
-      color: "fg",
-      fontWeight: "medium",
-      textStyle: "sm",
     },
     tableHeader: {
       color: "fg.muted",
@@ -65,10 +77,11 @@ export const datePicker = defineSlotRecipe({
           marginTop: "6",
         },
       },
-      "&[data-in-range]": {
+      _inRange: {
         background: "neutral.subtle.bg",
       },
       _selected: {
+        background: "colorPalette.subtle.bg",
         _before: {
           color: "colorPalette.subtle.fg",
         },
@@ -78,9 +91,6 @@ export const datePicker = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       gap: "3",
-      _hidden: {
-        display: "none",
-      },
     },
   },
   variants: {
@@ -91,7 +101,6 @@ export const datePicker = defineSlotRecipe({
           boxShadow: "none",
           p: "0",
           width: "full",
-          zIndex: "auto",
         },
       },
     },

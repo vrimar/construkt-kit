@@ -45,6 +45,16 @@ export const preset = createConstruktKitPreset({
 
 Tracks (slider, progress) sit on `subtle.bg`, the step every solid fill is guaranteed 3:1 against.
 
+## Upgrading from 0.11
+
+- Inter loads from `inter-ui`, the official build, instead of `@fontsource-variable/inter`: swap the package. An app
+  that imports fontsource's CSS itself should drop it, since it declares a second `"Inter Variable"` without the
+  character variants
+- Body text turns on Inter's tailed l and serifed I (`cv05`, `cv08`) through `--font-body-features`; set it to
+  `normal` on `:root` for the previous glyphs or when `fonts.body` names another typeface
+- The face carries Inter's optical-size axis, so text above 14px draws slightly tighter, headings most. Screenshot tests
+  change
+
 ## Upgrading from 0.10
 
 - Raw colour ramps are gone: `blue.500`, `brand.600`, `gray.200` and every other step. Use the roles above, or a

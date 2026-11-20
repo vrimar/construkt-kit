@@ -127,7 +127,7 @@ export const chat = defineSlotRecipe({
       flexShrink: "0",
       borderRadius: "sm",
       color: "colorPalette.plain.fg",
-      fontWeight: "semibold",
+      fontWeight: "medium",
       textDecorationLine: "underline",
       textDecorationColor: "colorPalette.plain.fg/40",
       textUnderlineOffset: "0.125em",
@@ -212,7 +212,10 @@ export const chat = defineSlotRecipe({
       _disabled: {
         layerStyle: "disabled",
         // The box dims once for everything in it.
-        "& :disabled": { opacity: "1", filter: "none" },
+        "& :is(:disabled, [data-disabled], [aria-disabled=true])": {
+          opacity: "1",
+          filter: "none",
+        },
       },
       ...spacedTouchTargets(),
     },

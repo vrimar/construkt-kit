@@ -1,11 +1,52 @@
-import { colorPickerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { controlH, controlInputFont, controlPx } from "./control-size";
+import { floatingPositioner } from "./floating";
+
+const perElement = { syntax: "*", inherits: false } as const;
+
+/** The colors and gradients a color picker writes on its parts for the recipe to paint. */
+export const colorPickerGlobalVars: GlobalVarsDefinition = {
+  "--color-picker-value": { syntax: "*", inherits: true },
+  "--color-picker-color": perElement,
+  "--color-picker-area-bg": perElement,
+  "--color-picker-area-gradient": perElement,
+  "--color-picker-area-mask": perElement,
+  "--color-picker-track-bg": perElement,
+  "--color-picker-grid-size": perElement,
+};
 
 export const colorPicker = defineSlotRecipe({
   className: "color-picker",
-  slots: colorPickerAnatomy.extendWith("valueSwatch").keys(),
+  slots: [
+    "root",
+    "label",
+    "control",
+    "trigger",
+    "positioner",
+    "content",
+    "area",
+    "areaThumb",
+    "valueText",
+    "areaBackground",
+    "channelSlider",
+    "channelSliderLabel",
+    "channelSliderTrack",
+    "channelSliderThumb",
+    "channelSliderValueText",
+    "channelInput",
+    "transparencyGrid",
+    "swatchGroup",
+    "swatchTrigger",
+    "swatchIndicator",
+    "swatch",
+    "eyeDropperTrigger",
+    "formatTrigger",
+    "formatSelect",
+    "view",
+    "valueSwatch",
+  ],
   base: {
     root: {
       display: "flex",
@@ -23,6 +64,7 @@ export const colorPicker = defineSlotRecipe({
       gap: "2",
     },
     trigger: {
+      position: "relative",
       display: "grid",
       placeItems: "center",
       width: controlH("md"),
@@ -44,6 +86,7 @@ export const colorPicker = defineSlotRecipe({
         layerStyle: "disabled",
       },
     },
+    positioner: floatingPositioner,
     content: {
       layerStyle: "floating.surface",
       display: "flex",
@@ -51,28 +94,44 @@ export const colorPicker = defineSlotRecipe({
       gap: "3",
       maxWidth: "sm",
       p: "4",
-      zIndex: "popover",
-      _hidden: {
-        display: "none",
+      outline: "0",
+      _dragging: {
+        userSelect: "none",
       },
     },
     area: {
+      position: "relative",
       height: "36",
       borderRadius: "md",
       overflow: "hidden",
+      touchAction: "none",
+      forcedColorAdjust: "none",
+      background: "var(--color-picker-area-bg, none)",
     },
     areaThumb: {
+      position: "absolute",
       borderRadius: "full",
       height: { base: "2.5", _pointerCoarse: "5" },
       width: { base: "2.5", _pointerCoarse: "5" },
       boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
+      transform: "translate(-50%, -50%)",
+      touchAction: "none",
+      forcedColorAdjust: "none",
+      background: "var(--color-picker-color)",
       outline: "none",
+      focusVisibleRing: "outside",
     },
     areaBackground: {
+      position: "relative",
       height: "full",
+      touchAction: "none",
+      forcedColorAdjust: "none",
+      background: "var(--color-picker-area-gradient)",
+      maskImage: "var(--color-picker-area-mask, none)",
     },
     channelInput: {
       appearance: "none",
+      MozAppearance: "textfield",
       width: "full",
       minWidth: "0",
       height: controlH("md"),
@@ -94,10 +153,24 @@ export const colorPicker = defineSlotRecipe({
     channelSlider: {
       position: "relative",
       borderRadius: "md",
+      touchAction: "none",
+      _vertical: {
+        width: "fit-content",
+      },
+    },
+    channelSliderLabel: {
+      userSelect: "none",
     },
     channelSliderTrack: {
+      position: "relative",
       height: "3",
       borderRadius: "md",
+      forcedColorAdjust: "none",
+      backgroundImage: "var(--color-picker-track-bg)",
+      _vertical: {
+        width: "3",
+        height: "36",
+      },
     },
     swatchGroup: {
       display: "grid",
@@ -105,33 +178,52 @@ export const colorPicker = defineSlotRecipe({
       gap: "2",
       background: "colorPalette.surface.bg",
     },
+    swatchTrigger: {
+      position: "relative",
+    },
     swatch: {
+      position: "relative",
       height: "6",
       width: "6",
       borderRadius: "md",
+      background: "var(--color-picker-color)",
       boxShadow: "0 0 0 1px var(--colors-border-emphasized), 0 0 0 2px var(--colors-bg) inset",
     },
     channelSliderThumb: {
+      position: "absolute",
       borderRadius: "full",
       height: { base: "2.5", _pointerCoarse: "5" },
       width: { base: "2.5", _pointerCoarse: "5" },
       boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
       transform: "translate(-50%, -50%)",
+      forcedColorAdjust: "none",
+      background: "var(--color-picker-color)",
       outline: "none",
+      focusVisibleRing: "outside",
     },
     transparencyGrid: {
+      position: "absolute",
+      inset: "0",
+      zIndex: "auto",
       gridArea: "1 / 1",
       width: "full",
       height: "full",
       borderRadius: "inherit",
+      pointerEvents: "none",
+      backgroundColor: "white",
+      backgroundImage:
+        "conic-gradient({colors.black.a1} 0 25%, transparent 0 50%, {colors.black.a1} 0 75%, transparent 0)",
+      backgroundSize: "var(--color-picker-grid-size, 12px) var(--color-picker-grid-size, 12px)",
     },
     valueSwatch: {
+      position: "relative",
       gridArea: "1 / 1",
       display: "block",
       width: "full",
       height: "full",
       borderRadius: "inherit",
       zIndex: "1",
+      background: "var(--color-picker-color)",
     },
   },
 });

@@ -1,11 +1,20 @@
-import { editableAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlInputText, controlPx, controlText, inputFont } from "./control-size";
 
 export const editable = defineSlotRecipe({
   className: "editable",
-  slots: editableAnatomy.keys(),
+  slots: [
+    "root",
+    "area",
+    "label",
+    "preview",
+    "input",
+    "editTrigger",
+    "submitTrigger",
+    "cancelTrigger",
+    "control",
+  ],
   base: {
     root: {
       alignItems: "center",
@@ -53,6 +62,19 @@ export const editable = defineSlotRecipe({
     size: "md",
   },
   variants: {
+    autoResize: {
+      true: {
+        area: { display: "inline-grid" },
+        input: { gridArea: "1 / 1 / auto / auto", _hidden: { visibility: "hidden" } },
+        preview: {
+          whiteSpace: "pre",
+          gridArea: "1 / 1 / auto / auto",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          _hidden: { visibility: "hidden" },
+        },
+      },
+    },
     size: {
       "2xs": {
         preview: { ...controlText("2xs"), px: controlPx("2xs"), py: "0.5" },

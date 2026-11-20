@@ -3,15 +3,23 @@ import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { visual } from "./control-size";
 
-const overflowVar = { syntax: "<length>", inherits: false, initialValue: "0px" } as const;
+const lengthVar = { syntax: "<length>", inherits: false, initialValue: "0px" } as const;
 
-// zag rewrites these on the viewport every scroll; inheriting them would restyle every row inside.
+// Set from JS on the part that reads each, on every scroll; inheriting would restyle every row inside.
 export const scrollAreaGlobalVars: GlobalVarsDefinition = {
-  "--scroll-area-overflow-x-start": overflowVar,
-  "--scroll-area-overflow-x-end": overflowVar,
-  "--scroll-area-overflow-y-start": overflowVar,
-  "--scroll-area-overflow-y-end": overflowVar,
+  "--scroll-area-overflow-x-start": lengthVar,
+  "--scroll-area-overflow-x-end": lengthVar,
+  "--scroll-area-overflow-y-start": lengthVar,
+  "--scroll-area-overflow-y-end": lengthVar,
+  "--scroll-area-thumb-width": lengthVar,
+  "--scroll-area-thumb-height": lengthVar,
+  "--scroll-area-thumb-offset": lengthVar,
+  "--scroll-area-corner-width": lengthVar,
+  "--scroll-area-corner-height": lengthVar,
 };
+
+const shown = { opacity: "1" };
+const unshown = { opacity: "0" };
 
 export const scrollArea = defineSlotRecipe({
   className: "scroll-area",
@@ -36,36 +44,51 @@ export const scrollArea = defineSlotRecipe({
       overflow: "auto",
       WebkitOverflowScrolling: "touch",
       scrollbarWidth: "none",
-      // Panda drops an @property registration the stylesheet never writes; zag writes these from JS.
+      // Panda drops an @property registration the stylesheet never writes; the viewport writes these from JS.
       "--scroll-area-overflow-x-start": "0px",
       "--scroll-area-overflow-x-end": "0px",
       "--scroll-area-overflow-y-start": "0px",
       "--scroll-area-overflow-y-end": "0px",
-      "&::-webkit-scrollbar": {
+      _scrollbar: {
         display: "none",
       },
-      "&[data-overflow-x] [data-pinned]": {
-        _after: {
-          content: '""',
-          position: "absolute",
-          pointerEvents: "none",
-          top: "0",
-          bottom: "-1px",
-          width: "32px",
+      _overflowX: {
+        "& *": {
+          _pinned: {
+            _after: {
+              content: '""',
+              position: "absolute",
+              pointerEvents: "none",
+              top: "0",
+              bottom: "-1px",
+              width: "32px",
+            },
+          },
+          _pinnedLeft: {
+            _after: {
+              insetInlineEnd: "0",
+              translate: "100% 0",
+              boxShadow: "inset",
+            },
+          },
         },
-      },
-      '&[data-overflow-x]:not([data-at-left]) [data-pinned="left"]': {
-        _after: {
-          insetInlineEnd: "0",
-          translate: "100% 0",
-          boxShadow: "inset",
+        _atLeft: {
+          "& *": {
+            _pinnedLeft: {
+              _after: {
+                insetInlineEnd: "auto",
+                translate: "none",
+                boxShadow: "none",
+              },
+            },
+          },
         },
       },
     },
     scrollbar: {
       alignItems: "center",
       display: "flex",
-      position: "relative",
+      position: "absolute",
       touchAction: "none",
       userSelect: "none",
       zIndex: "overlay",
@@ -73,17 +96,20 @@ export const scrollArea = defineSlotRecipe({
         flexDirection: "column",
         width: "var(--scrollbar-size)",
         py: "var(--scrollbar-margin)",
-        "&:not([data-overflow-y])": {
-          display: "none",
-        },
+        top: "0",
+        bottom: "var(--scroll-area-corner-height)",
+        insetInlineEnd: "0",
       },
       _horizontal: {
         flexDirection: "row",
         height: "var(--scrollbar-size)",
         px: "var(--scrollbar-margin)",
-        "&:not([data-overflow-x])": {
-          display: "none",
-        },
+        insetInlineStart: "0",
+        insetInlineEnd: "var(--scroll-area-corner-width)",
+        bottom: "0",
+      },
+      _hidden: {
+        display: "none",
       },
     },
     thumb: {
@@ -92,13 +118,30 @@ export const scrollArea = defineSlotRecipe({
       transitionDuration: "normal",
       transitionProperty: "background, color, box-shadow",
       transitionTimingFunction: "default",
-      _vertical: { width: "var(--thumb-size)" },
-      _horizontal: { height: "var(--thumb-size)" },
+      _vertical: {
+        width: "var(--thumb-size)",
+        height: "var(--scroll-area-thumb-height)",
+        transform: "translate3d(0, var(--scroll-area-thumb-offset), 0)",
+      },
+      _horizontal: {
+        height: "var(--thumb-size)",
+        width: "var(--scroll-area-thumb-width)",
+        transform: "translate3d(var(--scroll-area-thumb-offset), 0, 0)",
+      },
     },
     content: {
       minW: "fit-content",
     },
-    corner: {},
+    corner: {
+      position: "absolute",
+      bottom: "0",
+      insetInlineEnd: "0",
+      width: "var(--scroll-area-corner-width)",
+      height: "var(--scroll-area-corner-height)",
+      _hidden: {
+        display: "none",
+      },
+    },
   },
   defaultVariants: {
     size: "md",
@@ -122,7 +165,7 @@ export const scrollArea = defineSlotRecipe({
             height: "var(--scroll-area-fade-size)",
             backgroundImage:
               "linear-gradient(to bottom, var(--scroll-area-fade-color) 0%, var(--scroll-area-fade-color) 30%, transparent 100%)",
-            opacity: "0",
+            ...unshown,
             transitionDuration: "normal",
             transitionProperty: "opacity",
             transitionTimingFunction: "default",
@@ -138,21 +181,17 @@ export const scrollArea = defineSlotRecipe({
             height: "var(--scroll-area-fade-size)",
             backgroundImage:
               "linear-gradient(to top, var(--scroll-area-fade-color) 0%, var(--scroll-area-fade-color) 30%, transparent 100%)",
-            opacity: "0",
+            ...unshown,
             transitionDuration: "normal",
             transitionProperty: "opacity",
             transitionTimingFunction: "default",
             zIndex: "docked",
           },
-          "&:has([data-part=viewport][data-overflow-y]:not([data-at-top]))": {
-            _before: {
-              opacity: "1",
-            },
-          },
-          "&:has([data-part=viewport][data-overflow-y]:not([data-at-bottom]))": {
-            _after: {
-              opacity: "1",
-            },
+          _overflowY: {
+            _before: shown,
+            _after: shown,
+            _atTop: { _before: unshown },
+            _atBottom: { _after: unshown },
           },
         },
       },
@@ -161,25 +200,23 @@ export const scrollArea = defineSlotRecipe({
     scrollbar: {
       auto: {
         scrollbar: {
-          "&[data-scrolling], &[data-hover]": {
-            "--thumb-bg": "{colors.neutral.subtle.bg.active}",
-          },
+          _scrolling: { "--thumb-bg": "{colors.neutral.subtle.bg.active}" },
+          _hover: { "--thumb-bg": "{colors.neutral.subtle.bg.active}" },
         },
       },
       thumb: {
         scrollbar: {
           "--thumb-bg": "{colors.neutral.subtle.bg.active}",
-          "&[data-scrolling], &[data-hover]": {
-            "--thumb-bg": "{colors.border.control}",
-          },
+          _scrolling: { "--thumb-bg": "{colors.border.control}" },
+          _hover: { "--thumb-bg": "{colors.border.control}" },
         },
       },
       visible: {
         content: {
-          "&[data-overflow-y]": {
+          _overflowY: {
             pe: "var(--scrollbar-size)",
           },
-          "&[data-overflow-x]": {
+          _overflowX: {
             pb: "var(--scrollbar-size)",
           },
         },

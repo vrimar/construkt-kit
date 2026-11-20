@@ -31,8 +31,6 @@ export const stat = defineSlotRecipe({
     },
     trendIndicator: {
       fontSize: "xs",
-      "&[data-direction=up]": { _before: { content: '"▲"' } },
-      "&[data-direction=down]": { _before: { content: '"▼"' } },
     },
   },
   defaultVariants: {

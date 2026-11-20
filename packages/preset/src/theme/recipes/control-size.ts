@@ -10,6 +10,8 @@
 // The control family keeps a base+per-size-offset model (grid-aligned, md-centred); offsets
 // reproduce today's ladders exactly, so defaults are a no-op until a knob is overridden.
 
+import type { GlobalVarsDefinition } from "@pandacss/types";
+
 export type ControlSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
 const BASE_H = "var(--control-base-h, 2.25rem)";
@@ -179,6 +181,15 @@ export const touchHitArea = () => ({
     "&:has(+ &), & + &": { _after: { width: "var(--touch-hit-sibling-width, 100%)" } },
   },
 });
+
+export const controlGlobalVars: GlobalVarsDefinition = {
+  "--touch-hit-sibling-width": {
+    syntax: "<length-percentage>",
+    inherits: true,
+    initialValue: "100%",
+  },
+  "--control-base-px-compact": { syntax: "*", inherits: true },
+};
 
 // Puts 32px targets 12px apart, so each keeps its full 44px hit area beside the next.
 export const spacedTouchTargets = () => ({

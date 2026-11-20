@@ -12,6 +12,7 @@ export const code = defineRecipe({
     fontVariantNumeric: "tabular-nums",
     fontWeight: "medium",
     fontFamily: "mono",
+    fontFeatureSettings: "normal",
     gap: "1",
     lineHeight: "1",
   },

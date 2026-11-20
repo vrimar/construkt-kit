@@ -7,6 +7,15 @@ const invalidRing = {
   borderColor: "border.error",
 } as const;
 
+const insetRing = {
+  // "none" still defines --focus-ring-color, which focusRingColor feeds.
+  focusVisibleRing: "none",
+  _focusVisible: {
+    borderColor: "var(--focus-ring-color)",
+    boxShadow: "inset 0 0 0 1px var(--focus-ring-color)",
+  },
+} as const;
+
 export const input = {
   className: "input",
   jsx: ["Input", "Field.Input", "SearchInput", "PasswordInput"],
@@ -21,7 +30,7 @@ export const input = {
     outline: "0",
     position: "relative",
     textAlign: "start",
-    transition: "colors",
+    transition: "common",
     width: "100%",
     _disabled: {
       layerStyle: "disabled",
@@ -36,15 +45,14 @@ export const input = {
       outline: {
         borderWidth: "1px",
         borderColor: "border.control",
-        focusVisibleRing: "inside",
+        ...insetRing,
         _invalid: invalidRing,
       },
       surface: {
         bg: "neutral.surface.bg",
         borderWidth: "1px",
         borderColor: "border.control",
-        focusVisibleRing: "inside",
-
+        ...insetRing,
         _invalid: invalidRing,
       },
       subtle: {
@@ -52,8 +60,7 @@ export const input = {
         borderColor: "transparent",
         bg: "neutral.subtle.bg",
         color: "neutral.subtle.fg",
-        focusVisibleRing: "inside",
-
+        ...insetRing,
         _invalid: invalidRing,
       },
       flushed: {
@@ -78,7 +85,7 @@ export const input = {
       colored: {
         borderWidth: "1px",
         borderColor: "colorPalette.outline.border",
-        focusVisibleRing: "inside",
+        ...insetRing,
         focusRingColor: "colorPalette.solid.bg",
         _invalid: invalidRing,
       },

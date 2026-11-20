@@ -1,13 +1,27 @@
-import { popoverAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { anchoredHitArea, controlPxCompact, controlText, surface } from "./control-size";
-import { floatingArrow } from "./floating-arrow";
+import { floatingArrow, floatingPositioner } from "./floating";
 
 export const popover = defineSlotRecipe({
   className: "popover",
-  slots: popoverAnatomy.extendWith("header", "body", "footer").keys(),
+  slots: [
+    "arrow",
+    "arrowTip",
+    "anchor",
+    "trigger",
+    "indicator",
+    "positioner",
+    "content",
+    "title",
+    "description",
+    "closeTrigger",
+    "header",
+    "body",
+    "footer",
+  ],
   base: {
+    positioner: floatingPositioner,
     content: {
       "--popover-padding": surface("1rem"),
 
@@ -21,7 +35,6 @@ export const popover = defineSlotRecipe({
       transformOrigin: "var(--transform-origin)",
       width: "xs",
       maxWidth: "calc(100vw - {spacing.4})",
-      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
     },
     title: {
       color: "fg",
@@ -49,7 +62,7 @@ export const popover = defineSlotRecipe({
       display: "flex",
       flex: "1",
       flexDirection: "column",
-      "& > [data-scope=listbox][data-part=root]": {
+      "& > .listbox__root": {
         m: "calc(-1 * var(--listbox-text-inset))",
         width: "auto",
       },

@@ -7,12 +7,15 @@ export const skeleton = defineRecipe({
     borderRadius: "var(--skeleton-circle-radius, var(--skeleton-radius))",
     bgColor: "var(--skeleton-loaded-bg, var(--skeleton-bg))",
     backgroundImage: "var(--skeleton-loaded-bg-image, var(--skeleton-bg-image))",
+    animation: "var(--skeleton-loaded-animation, var(--skeleton-animation))",
     "--skeleton-radius": "initial",
     "--skeleton-circle-radius": "initial",
     "--skeleton-bg": "initial",
     "--skeleton-bg-image": "initial",
     "--skeleton-loaded-bg": "initial",
     "--skeleton-loaded-bg-image": "initial",
+    "--skeleton-animation": "initial",
+    "--skeleton-loaded-animation": "initial",
   },
 
   defaultVariants: {
@@ -38,7 +41,7 @@ export const skeleton = defineRecipe({
       false: {
         "--skeleton-loaded-bg": "transparent",
         "--skeleton-loaded-bg-image": "none",
-        animation: "fade-in var(--fade-duration, 0.1s) ease-out !important",
+        "--skeleton-loaded-animation": "fade-in 0.1s ease-out",
       },
     },
 
@@ -55,8 +58,7 @@ export const skeleton = defineRecipe({
     animation: {
       pulse: {
         "--skeleton-bg": "{colors.neutral.subtle.bg.active}",
-        animation: "pulse",
-        animationDuration: "var(--duration, 1.2s)",
+        "--skeleton-animation": "pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       shine: {
         "--animate-from": "200%",
@@ -66,11 +68,11 @@ export const skeleton = defineRecipe({
         "--skeleton-bg-image":
           "linear-gradient(270deg,var(--start-color),var(--end-color),var(--end-color),var(--start-color))",
         backgroundSize: "400% 100%",
-        animation: "bg-position var(--duration, 5s) ease-in-out infinite",
+        "--skeleton-animation": "bg-position 5s ease-in-out infinite",
       },
       none: {
         "--skeleton-bg": "{colors.neutral.subtle.bg.active}",
-        animation: "none",
+        "--skeleton-animation": "none",
       },
     },
   },

@@ -1,4 +1,3 @@
-import { menuAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import {
@@ -11,11 +10,11 @@ import {
   dropdownItem,
   dropdownItemGroupLabel,
 } from "./control-size";
-import { floatingArrow } from "./floating-arrow";
+import { floatingArrow, floatingPositioner } from "./floating";
 
 const menuItem = (size: ControlSize) => ({
   ...dropdownItem(size),
-  "&:has([data-part=item-description])": { py: controlPy(size) },
+  "&:has(.menu__itemDescription)": { py: controlPy(size) },
 });
 
 const groupLabel = (size: ControlSize, captionSize: ControlSize) => ({
@@ -41,7 +40,18 @@ const segments = (size: ControlSize, captionSize: ControlSize) => ({
 export const menu = defineSlotRecipe({
   className: "menu",
   slots: [
-    ...menuAnatomy.keys(),
+    "arrow",
+    "arrowTip",
+    "content",
+    "contextTrigger",
+    "item",
+    "itemGroup",
+    "itemGroupLabel",
+    "itemIndicator",
+    "itemText",
+    "positioner",
+    "separator",
+    "trigger",
     "itemHint",
     "itemDescription",
     "itemSwitch",
@@ -52,6 +62,7 @@ export const menu = defineSlotRecipe({
     "segmentItem",
   ],
   base: {
+    positioner: floatingPositioner,
     content: {
       layerStyle: "dropdown.surface",
       display: "flex",
@@ -61,7 +72,6 @@ export const menu = defineSlotRecipe({
       overflow: "hidden",
       overflowY: "auto",
       position: "relative",
-      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
     },
     item: {
       alignItems: "center",
@@ -142,18 +152,18 @@ export const menu = defineSlotRecipe({
       outline: "0",
       userSelect: "none",
       whiteSpace: "nowrap",
-      "&[data-highlighted]": {
+      _highlighted: {
         bg: "neutral.subtle.bg.hover",
         color: "fg",
       },
-      "&[data-state=checked]": {
+      _checked: {
         bg: "bg.control",
         boxShadow: "xs",
         color: "fg",
-      },
-      "&[data-state=checked][data-highlighted]": {
-        bg: "bg.control",
-        boxShadow: "sm",
+        _highlighted: {
+          bg: "bg.control",
+          boxShadow: "sm",
+        },
       },
       _disabled: {
         layerStyle: "disabled",
@@ -166,9 +176,9 @@ export const menu = defineSlotRecipe({
       _checked: {
         color: "colorPalette.plain.fg",
       },
-      "&[data-state=unchecked]": { visibility: "hidden" },
+      _unchecked: { visibility: "hidden" },
       // A growing indicator would take the free space the hint's auto margin needs to right-align it.
-      "[data-part=item-hint] + &": {
+      ".menu__itemHint + &": {
         flex: "none",
       },
     },
@@ -189,7 +199,7 @@ export const menu = defineSlotRecipe({
       boxShadow: "inset 0 0 0 1px var(--shadow-color)",
       boxShadowColor: "border.control",
       transition: "colors",
-      "[data-state=checked] > &": {
+      "[data-checked] > &": {
         bg: "colorPalette.solid.bg",
         boxShadowColor: "colorPalette.solid.bg",
       },
@@ -203,7 +213,7 @@ export const menu = defineSlotRecipe({
       scale: "0.8",
       transitionProperty: "translate",
       transitionDuration: "fast",
-      "[data-state=checked] > [data-part=item-switch] > &": {
+      "[data-checked] > .menu__itemSwitch > &": {
         bg: "colorPalette.solid.fg",
         translate: "var(--switch-x) 0",
       },
@@ -233,9 +243,11 @@ export const menu = defineSlotRecipe({
       check: {},
       tint: {
         item: {
-          "&[data-state=checked]:not([data-switch])": { bg: "colorPalette.subtle.bg" },
-          "&[data-state=checked][data-highlighted]:not([data-switch])": {
-            bg: "colorPalette.subtle.bg.hover",
+          "&:not([data-switch])": {
+            _checked: {
+              bg: "colorPalette.subtle.bg",
+              _highlighted: { bg: "colorPalette.subtle.bg.hover" },
+            },
           },
         },
         itemIndicator: { display: "none" },
@@ -247,7 +259,7 @@ export const menu = defineSlotRecipe({
           p: "1",
           gap: "0.5",
           ...controlText("xs"),
-          minWidth: "max(var(--reference-width), {sizes.28})",
+          minWidth: "max(var(--anchor-width), {sizes.28})",
         },
         item: menuItem("xs"),
         itemGroup: { gap: "0.5" },
@@ -263,7 +275,7 @@ export const menu = defineSlotRecipe({
           p: "1",
           gap: "0.5",
           ...controlText("sm"),
-          minWidth: "max(var(--reference-width), {sizes.32})",
+          minWidth: "max(var(--anchor-width), {sizes.32})",
         },
         item: menuItem("sm"),
         itemGroup: { gap: "0.5" },
@@ -279,7 +291,7 @@ export const menu = defineSlotRecipe({
           p: "1",
           gap: "0.5",
           ...controlText("md"),
-          minWidth: "max(var(--reference-width), {sizes.40})",
+          minWidth: "max(var(--anchor-width), {sizes.40})",
         },
         item: menuItem("md"),
         itemGroup: { gap: "0.5" },
@@ -295,7 +307,7 @@ export const menu = defineSlotRecipe({
           p: "1",
           gap: "0.5",
           ...controlText("lg"),
-          minWidth: "max(var(--reference-width), {sizes.48})",
+          minWidth: "max(var(--anchor-width), {sizes.48})",
         },
         item: menuItem("lg"),
         itemGroup: { gap: "0.5" },
@@ -311,7 +323,7 @@ export const menu = defineSlotRecipe({
           p: "1",
           gap: "1",
           ...controlText("xl"),
-          minWidth: "max(var(--reference-width), {sizes.56})",
+          minWidth: "max(var(--anchor-width), {sizes.56})",
         },
         item: menuItem("xl"),
         itemGroup: { gap: "1" },

@@ -1,4 +1,3 @@
-import { comboboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlInputText, controlPxCompact, controlText, dropdownItem } from "./control-size";
@@ -11,9 +10,25 @@ const truncate = {
 
 export const commandPalette = defineSlotRecipe({
   className: "command-palette",
-  slots: comboboxAnatomy
-    .extendWith("token", "itemIcon", "itemBody", "itemDescription", "itemMeta", "itemGroupCount")
-    .keys(),
+  slots: [
+    "root",
+    "content",
+    "control",
+    "input",
+    "item",
+    "itemGroup",
+    "itemGroupLabel",
+    "itemIndicator",
+    "itemText",
+    "label",
+    "empty",
+    "token",
+    "itemIcon",
+    "itemBody",
+    "itemDescription",
+    "itemMeta",
+    "itemGroupCount",
+  ],
   base: {
     root: {
       display: "flex",
@@ -88,7 +103,7 @@ export const commandPalette = defineSlotRecipe({
       textTransform: "uppercase",
       userSelect: "none",
       ...controlText("xs"),
-      "[data-part=item-group]:first-child > &": { pt: "1" },
+      ".command-palette__itemGroup:first-child > &": { pt: "1" },
     },
     itemGroupCount: {
       ms: "auto",
@@ -140,7 +155,7 @@ export const commandPalette = defineSlotRecipe({
       display: "flex",
       flexShrink: "0",
       color: "colorPalette.plain.fg",
-      "&[data-state=unchecked]": { visibility: "hidden" },
+      _unchecked: { visibility: "hidden" },
     },
     empty: {
       px: controlPxCompact("md"),

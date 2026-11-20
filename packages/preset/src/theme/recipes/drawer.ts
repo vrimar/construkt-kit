@@ -1,7 +1,7 @@
-import { drawerAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { anchoredHitArea, surface } from "./control-size";
+import { modalPositioner } from "./modal";
 import { overlayMotion } from "./overlay-motion";
 
 const contentMaxH = "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))";
@@ -11,37 +11,45 @@ const contentPe = "var(--drawer-full-pe, var(--drawer-placement-pe, 0px))";
 
 export const drawer = defineSlotRecipe({
   className: "drawer",
-  slots: drawerAnatomy.extendWith("header", "body", "footer").keys(),
+  slots: [
+    "positioner",
+    "content",
+    "title",
+    "description",
+    "trigger",
+    "grabber",
+    "grabberIndicator",
+    "closeTrigger",
+    "header",
+    "body",
+    "footer",
+  ],
   base: {
-    backdrop: {
-      background: "black.a7",
+    positioner: {
+      ...modalPositioner,
+      width: "100vw",
+      height: "100dvh",
       position: "fixed",
       insetInlineStart: "0",
       top: "0",
-      width: "100vw",
-      height: "100dvh",
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
-      opacity: "calc(1 - var(--drawer-swipe-progress, 0))",
-      _open: {
+      overflow: "visible",
+      overscrollBehaviorY: "none",
+      _open: { display: "flex" },
+      _backdrop: {
+        background: "black.a7",
+        opacity: "calc(1 - var(--drawer-swipe-progress, 0))",
         animationName: "fade-in",
         animationTimingFunction: "emphasized-in",
         animationDuration: "slow",
       },
       _closed: {
-        animationName: "swipe-fade-out",
-        animationTimingFunction: "emphasized-out",
-        animationDuration: "normal",
+        _backdrop: {
+          animationName: "swipe-fade-out",
+          animationTimingFunction: "emphasized-out",
+          animationDuration: "normal",
+        },
       },
-    },
-    positioner: {
-      display: "flex",
-      width: "100vw",
-      height: "100dvh",
-      position: "fixed",
-      insetInlineStart: "0",
-      top: "0",
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
-      overscrollBehaviorY: "none",
+      "&[data-no-backdrop]": { _backdrop: { background: "transparent", animation: "none" } },
     },
     content: {
       layerStyle: "modal.surface",
@@ -50,16 +58,14 @@ export const drawer = defineSlotRecipe({
       position: "relative",
       width: "100%",
       outline: 0,
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
       maxH: contentMaxH,
       borderTopRadius: "var(--drawer-full-radius, var(--drawer-placement-radius, 0))",
       pt: contentPt,
       pb: contentPb,
       ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
       pe: contentPe,
-      // zag keeps will-change on, which freezes text rasterised mid-slide at a sub-pixel offset.
-      willChange: "auto !important",
-      "&[data-swiping]": { willChange: "transform !important" },
+      "&[data-swiping]": { transitionDuration: "0s", willChange: "transform" },
+      _startingStyle: { transitionDuration: "0s" },
       "--drawer-safe-start": {
         base: "env(safe-area-inset-left)",
         _rtl: "env(safe-area-inset-right)",
@@ -87,8 +93,6 @@ export const drawer = defineSlotRecipe({
       transitionTimingFunction: "emphasized-out",
       "&[data-overlay-sheet]": {
         "--available-height": `calc(${contentMaxH} - ${contentPt} - ${contentPb} - {sizes.4})`,
-        "--reference-width": "100%",
-        "& [data-part=arrow]": { display: "none" },
         "& > [data-overlay-sheet-content]": {
           flex: "1 1 auto",
           minHeight: "0",
@@ -101,10 +105,8 @@ export const drawer = defineSlotRecipe({
           width: "100% !important",
           minWidth: "0 !important",
           maxWidth: "none !important",
-          // The frame's modal layer sits above the overlay's, which zag sets inline to none.
-          pointerEvents: "auto !important",
         },
-        "& > [data-overlay-sheet-content]:has(~ [data-overlay-sheet-content][data-state=open])": {
+        "& > [data-overlay-sheet-content]:has(~ [data-overlay-sheet-content][data-open])": {
           display: "none",
         },
       },
@@ -157,6 +159,7 @@ export const drawer = defineSlotRecipe({
       top: `calc({spacing.3} + ${contentPt})`,
       insetEnd: `calc({spacing.3} + ${contentPe})`,
       ...anchoredHitArea,
+      "[data-slot=header] > &": { pos: "relative", top: "auto", insetEnd: "auto", flexShrink: "0" },
     },
     grabber: {
       display: "flex",
@@ -166,16 +169,13 @@ export const drawer = defineSlotRecipe({
       pt: "2",
       pb: "1",
       cursor: "grab",
+      touchAction: "none",
     },
     grabberIndicator: {
       width: "9",
       height: "1",
       borderRadius: "full",
       bg: "border",
-    },
-    swipeArea: {
-      position: "fixed",
-      zIndex: "calc(var(--z-index-modal) + var(--layer-index, 0))",
     },
   },
   defaultVariants: {
@@ -208,7 +208,6 @@ export const drawer = defineSlotRecipe({
           justifyContent: "flex-start",
           alignItems: "stretch",
         },
-        swipeArea: { insetBlock: "0", insetInlineStart: "0", width: "6" },
         content: {
           "--drawer-max-w": "var(--drawer-size)",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
@@ -223,7 +222,6 @@ export const drawer = defineSlotRecipe({
           justifyContent: "flex-end",
           alignItems: "stretch",
         },
-        swipeArea: { insetBlock: "0", insetInlineEnd: "0", width: "6" },
         content: {
           "--drawer-max-w": "var(--drawer-size)",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
@@ -238,7 +236,6 @@ export const drawer = defineSlotRecipe({
           justifyContent: "stretch",
           alignItems: "flex-start",
         },
-        swipeArea: { insetInline: "0", top: "0", height: "6" },
         content: {
           "--drawer-max-w": "100%",
           "--drawer-placement-pt": "env(safe-area-inset-top)",
@@ -253,7 +250,6 @@ export const drawer = defineSlotRecipe({
           justifyContent: "stretch",
           alignItems: "flex-end",
         },
-        swipeArea: { insetInline: "0", bottom: "0", height: "6" },
         content: {
           "--drawer-max-w": "100%",
           "--drawer-placement-max-h": "round(down, 90dvh, 1px)",
@@ -261,8 +257,8 @@ export const drawer = defineSlotRecipe({
           "--drawer-placement-pb": "env(safe-area-inset-bottom)",
           "--drawer-placement-ps": "var(--drawer-safe-start)",
           "--drawer-placement-pe": "var(--drawer-safe-end)",
-          "&[data-nested-drawer-open]": {
-            scale: "calc(1 - var(--nested-drawers) * 0.04)",
+          "&[data-nested-dialog-open]": {
+            scale: "calc(1 - var(--nested-dialogs) * 0.04)",
             transformOrigin: "top",
           },
           ...overlayMotion("slide-from-bottom-full", "slide-to-bottom-full"),

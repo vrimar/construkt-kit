@@ -1,5 +1,5 @@
-import { listboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
+import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import {
   type ControlSize,
@@ -11,6 +11,11 @@ import {
   dropdownItemGroupSpacing,
 } from "./control-size";
 
+/** A popover body reads the inset to pull a listbox flush with its edges. */
+export const listboxGlobalVars: GlobalVarsDefinition = {
+  "--listbox-text-inset": { syntax: "*", inherits: true },
+};
+
 // Must equal content `p` plus item `px`.
 const textInset = (size: ControlSize) => ({
   "--listbox-text-inset": `calc({spacing.1} + ${controlPxCompact(size)})`,
@@ -18,7 +23,21 @@ const textInset = (size: ControlSize) => ({
 
 export const listbox = defineSlotRecipe({
   className: "listbox",
-  slots: [...listboxAnatomy.keys(), "itemHint", "itemActions"],
+  slots: [
+    "label",
+    "input",
+    "item",
+    "itemText",
+    "itemIndicator",
+    "itemGroup",
+    "itemGroupLabel",
+    "content",
+    "root",
+    "valueText",
+    "empty",
+    "itemHint",
+    "itemActions",
+  ],
   base: {
     root: {
       display: "flex",
@@ -38,11 +57,6 @@ export const listbox = defineSlotRecipe({
       maxH: "96",
       minH: "0",
       outline: 0,
-      _horizontal: {
-        flexDirection: "row",
-        maxH: "none",
-        maxW: "max-content",
-      },
     },
     item: {
       alignItems: "center",
@@ -59,7 +73,7 @@ export const listbox = defineSlotRecipe({
       _highlighted: {
         background: "bg.hover",
       },
-      _checked: {
+      _selected: {
         color: "colorPalette.plain.fg",
       },
       _disabled: {
@@ -94,7 +108,7 @@ export const listbox = defineSlotRecipe({
       justifyContent: "center",
       color: "colorPalette.plain.fg",
       flexShrink: "0",
-      "&[data-state=unchecked]": { visibility: "hidden" },
+      _unchecked: { visibility: "hidden" },
     },
     itemGroup: {
       display: "flex",
@@ -127,6 +141,7 @@ export const listbox = defineSlotRecipe({
   defaultVariants: {
     size: "md",
     actionsVisibility: "hover",
+    actionsPosition: "inline",
     indicatorPosition: "end",
     selection: "check",
   },
@@ -135,9 +150,10 @@ export const listbox = defineSlotRecipe({
       check: {},
       tint: {
         item: {
-          "&[data-state=checked]": { bg: "colorPalette.subtle.bg" },
-          "&[data-state=checked]:is(:hover, [data-highlighted])": {
-            bg: "colorPalette.subtle.bg.hover",
+          _selected: {
+            bg: "colorPalette.subtle.bg",
+            _hover: { bg: "colorPalette.subtle.bg.hover" },
+            _highlighted: { bg: "colorPalette.subtle.bg.hover" },
           },
         },
         itemIndicator: { display: "none" },
@@ -145,7 +161,7 @@ export const listbox = defineSlotRecipe({
     },
     // Selected-item indicator placement. `start` reserves a constant logical-start gutter and
     // pins the indicator into it (absolute → out of flow), so rows stay aligned and text never
-    // shifts when Ark toggles the indicator's `hidden` attribute on selection change.
+    // shifts when the indicator hides on selection change.
     indicatorPosition: {
       end: {},
       start: {
@@ -166,6 +182,22 @@ export const listbox = defineSlotRecipe({
       always: {},
       hover: {
         itemActions: { _unrevealed: { opacity: "0" } },
+      },
+    },
+    actionsPosition: {
+      inline: {},
+      overlay: {
+        item: { position: "relative" },
+        itemActions: {
+          position: "absolute",
+          insetInlineEnd: "1",
+          top: "50%",
+          translate: "0 -50%",
+          px: "0.5",
+          borderRadius: "sm",
+          bg: "neutral.surface.bg",
+          boxShadow: "sm",
+        },
       },
     },
     size: {

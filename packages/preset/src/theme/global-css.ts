@@ -42,6 +42,7 @@ export const globalCss = {
     "--control-base-font": "fontSizes.sm",
     "--control-input-font-min": "0px",
     "--visual-scale": "1",
+    "--font-body-features": '"cv05", "cv08"',
     "@media (pointer: coarse)": {
       "--control-base-row-h": "sizes.11",
       // iOS zooms into any focused input whose text is under 16px.
@@ -60,6 +61,7 @@ export const globalCss = {
     width: "100%",
     overflow: "hidden",
     fontFamily: "body",
+    fontFeatureSettings: "var(--font-body-features)",
     background: "bg",
     color: "fg",
   },

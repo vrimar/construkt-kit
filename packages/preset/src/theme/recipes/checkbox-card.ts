@@ -14,6 +14,11 @@ const rootChecked = {
   _hover: rootCheckedColors,
 };
 
+const subtleChecked = {
+  bg: "colorPalette.subtle.bg.active",
+  _hover: { bg: "colorPalette.subtle.bg.active" },
+};
+
 export const checkboxCard = defineSlotRecipe({
   className: "checkbox-card",
   slots: ["root", "control", "checkbox", "content", "label", "description", "addon"],
@@ -29,6 +34,7 @@ export const checkboxCard = defineSlotRecipe({
       userSelect: "none",
       _hover: { bg: "bg.subtle" },
       _checked: rootChecked,
+      _indeterminate: rootChecked,
       _disabled: {
         layerStyle: "disabled",
       },
@@ -73,10 +79,8 @@ export const checkboxCard = defineSlotRecipe({
           borderWidth: "0",
           bg: "colorPalette.subtle.bg",
           _hover: { bg: "colorPalette.subtle.bg.hover" },
-          _checked: {
-            bg: "colorPalette.subtle.bg.active",
-            _hover: { bg: "colorPalette.subtle.bg.active" },
-          },
+          _checked: subtleChecked,
+          _indeterminate: subtleChecked,
         },
       },
       surface: {
@@ -87,6 +91,7 @@ export const checkboxCard = defineSlotRecipe({
             borderColor: "colorPalette.surface.border.hover",
           },
           _checked: rootChecked,
+          _indeterminate: rootChecked,
         },
       },
     },

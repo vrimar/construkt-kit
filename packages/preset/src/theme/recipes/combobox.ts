@@ -1,4 +1,3 @@
-import { comboboxAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import {
@@ -11,11 +10,29 @@ import {
   dropdownItemGroupLabel,
   dropdownItemGroupSpacing,
 } from "./control-size";
+import { floatingPositioner } from "./floating";
 import { input } from "./input";
 
 export const combobox = defineSlotRecipe({
   className: "combobox",
-  slots: comboboxAnatomy.extendWith("indicatorGroup").keys(),
+  slots: [
+    "root",
+    "clearTrigger",
+    "content",
+    "control",
+    "input",
+    "item",
+    "itemGroup",
+    "itemGroupLabel",
+    "itemIndicator",
+    "itemText",
+    "label",
+    "list",
+    "positioner",
+    "trigger",
+    "empty",
+    "indicatorGroup",
+  ],
   base: {
     root: {
       display: "flex",
@@ -35,17 +52,17 @@ export const combobox = defineSlotRecipe({
     control: {
       position: "relative",
     },
+    positioner: floatingPositioner,
     content: {
       layerStyle: "dropdown.surface",
       display: "flex",
       flexDirection: "column",
       maxH: "min(var(--available-height), {sizes.96})",
-      minWidth: "max(var(--reference-width), {sizes.40})",
+      minWidth: "max(var(--anchor-width), {sizes.40})",
       outline: "0",
       overflowY: "auto",
-      zIndex: "calc(var(--z-index-popover) + var(--layer-index, 0))",
-      "&[data-empty]:not(:has([data-scope=combobox][data-part=empty]))": {
-        opacity: 0,
+      _empty: {
+        "&:not(:has(.combobox__empty))": { opacity: 0 },
       },
     },
     item: {
@@ -91,7 +108,7 @@ export const combobox = defineSlotRecipe({
       justifyContent: "center",
       flexShrink: "0",
       color: "colorPalette.plain.fg",
-      "&[data-state=unchecked]": { visibility: "hidden" },
+      _unchecked: { visibility: "hidden" },
     },
     indicatorGroup: {
       display: "flex",

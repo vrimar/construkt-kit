@@ -1,11 +1,24 @@
-import { fileUploadAnatomy } from "@ark-ui/react/anatomy";
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlGap, controlIcon, controlPx, controlText, surface } from "./control-size";
 
 export const fileUpload = defineSlotRecipe({
   className: "file-upload",
-  slots: [...fileUploadAnatomy.keys(), "fileText"],
+  slots: [
+    "root",
+    "dropzone",
+    "item",
+    "itemDeleteTrigger",
+    "itemGroup",
+    "itemName",
+    "itemPreview",
+    "itemPreviewImage",
+    "itemSizeText",
+    "label",
+    "trigger",
+    "clearTrigger",
+    "fileText",
+  ],
   base: {
     root: {
       alignItems: "flex-start",
@@ -36,13 +49,13 @@ export const fileUpload = defineSlotRecipe({
         borderColor: "colorPalette.solid.bg",
       },
       _disabled: { layerStyle: "disabled" },
-      "&[data-readonly]": { display: "none" },
+      _readOnly: { display: "none" },
     },
     trigger: {
-      "&[data-readonly]": { display: "none" },
+      _readOnly: { display: "none" },
     },
     clearTrigger: {
-      "&[data-readonly]": { display: "none" },
+      _readOnly: { display: "none" },
     },
     item: {
       alignItems: "start",
@@ -71,7 +84,7 @@ export const fileUpload = defineSlotRecipe({
     itemDeleteTrigger: {
       color: "fg.subtle",
       _disabled: { layerStyle: "disabled" },
-      "&[data-readonly]": { display: "none" },
+      _readOnly: { display: "none" },
     },
     itemPreviewImage: {
       aspectRatio: "1",
