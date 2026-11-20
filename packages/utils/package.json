@@ -10,7 +10,8 @@
     "directory": "packages/utils"
   },
   "files": [
-    "dist"
+    "dist",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",
   "main": "./dist/index.mjs",
