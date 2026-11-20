@@ -21,6 +21,8 @@ export type { Locator, Page, StoryEntry, StoryId };
 export const FIXED_NOW = new Date("2026-03-11T09:00:00Z");
 
 const AXE_DISABLED_BY_DEFAULT = ["region"];
+const SWIPE_STEPS = 10;
+const SWIPE_HOLD_MS = 120;
 
 export interface SelectedStory extends StoryEntry {
   id: StoryId;
@@ -65,6 +67,17 @@ export interface Gallery {
   open(id: StoryId): Promise<void>;
   /** Taps on touch projects and clicks elsewhere. */
   press(target: Locator): Promise<void>;
+  /**
+   * Drags a real touch `dx`, `dy` px from the middle of `target` and holds it still before lifting,
+   * so a swipe ends where it let go rather than by its speed. `whileHeld` runs before the finger
+   * lifts. Touch projects only.
+   */
+  swipe(
+    target: Locator,
+    dx: number,
+    dy: number,
+    options?: { whileHeld?: () => Promise<void> },
+  ): Promise<void>;
   /** Calls recorded on a story arg created with `fn()`, with arguments serialised to JSON. */
   calls(arg: string): Promise<unknown[][]>;
   /** Resizes an element by setting its inline width, for stories that size themselves with CSS `resize`. */
@@ -179,6 +192,32 @@ function createGallery(
     async press(target) {
       if (isTouch) await target.tap();
       else await target.click();
+    },
+    async swipe(target, dx, dy, { whileHeld } = {}) {
+      if (!isTouch)
+        throw new Error("gallery.swipe needs a touch project; tag the test @phone-only.");
+      const box = await target.boundingBox();
+      if (!box) throw new Error("gallery.swipe: the target has no box.");
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      const cdp = await page.context().newCDPSession(page);
+      const touch = (type: "touchStart" | "touchMove" | "touchEnd", step: number) =>
+        cdp.send("Input.dispatchTouchEvent", {
+          type,
+          touchPoints:
+            type === "touchEnd"
+              ? []
+              : [{ x: x + (dx * step) / SWIPE_STEPS, y: y + (dy * step) / SWIPE_STEPS }],
+        });
+      try {
+        await touch("touchStart", 0);
+        for (let step = 1; step <= SWIPE_STEPS; step++) await touch("touchMove", step);
+        await page.waitForTimeout(SWIPE_HOLD_MS);
+        await whileHeld?.();
+        await touch("touchEnd", SWIPE_STEPS);
+      } finally {
+        await cdp.detach();
+      }
     },
     async calls(arg) {
       return page.evaluate(

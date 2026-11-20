@@ -107,6 +107,7 @@ const SPEC_ACTIONS = new Set([
   "click",
   "dblclick",
   "tap",
+  "swipe",
   "fill",
   "type",
   "hover",

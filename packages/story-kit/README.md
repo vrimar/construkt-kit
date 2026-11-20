@@ -119,6 +119,9 @@ for (const id of selectStories(["components-numberfilter--default"])) {
 ```
 
 - `gallery.press` taps on the phone project and clicks on desktop
+- `gallery.swipe(target, dx, dy)` drags a real touch from the middle of `target` and holds it still before lifting,
+  so the release goes by where it let go; it needs touch, so tag the test `@phone-only`. Pass `whileHeld` to act
+  before the finger lifts
 - Query overlay content through `page`; it renders outside the story root
 - A phone sheet hides the page from the accessibility tree: locate a trigger by its id before opening
 - `gallery.calls("onChange")` returns the calls recorded on a `fn()` story arg
