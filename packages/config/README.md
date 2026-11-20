@@ -23,6 +23,23 @@ Consume it from an `oxlint.config.ts` file and merge local overrides there.
 This requires the Node-based `oxlint` runtime with a Node version new enough to
 execute TypeScript config files.
 
+The base config loads the `construkt` JS plugin and turns on `construkt/no-style-prop-name`. It reports a component
+prop named after a Panda style prop (`content`, `width`, `fill`, …): Panda extracts such a prop as CSS from every
+PascalCase JSX element, and free text there emits invalid CSS. The rule reads the style props from the app's own
+generated Panda runtime: by default the `styled-system/` nearest each linted file, in its directory or an ancestor, so
+one lint from a workspace root covers every app. Name it when it lives elsewhere; a relative path resolves from where
+oxlint runs:
+
+```ts
+export default createOxlintConfig({
+  settings: { construkt: { styledSystem: path.join(import.meta.dirname, "src/styled-system") } },
+});
+```
+
+Without a `styled-system/` the rule does nothing; a `styledSystem` that names a missing directory fails the lint.
+`jsPlugins` passed to `createOxlintConfig` add to the base's. `construkt/no-literal-style-props`, off by default,
+reports style props and `css` on components in source that no Panda build extracts.
+
 ## Oxfmt Config
 
 The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `sortImports: true`, so consuming packages inherit automatic import ordering without additional local config.
@@ -39,7 +56,7 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 ## Vitest Setup
 
 `installDomPolyfills()` installs no-op `ResizeObserver`, `IntersectionObserver`, `Element#scrollTo`,
-`Element#scrollIntoView` and `Element#setPointerCapture`, which jsdom lacks and the kit's components call. An API the
+`Element#scrollIntoView`, `Element#setPointerCapture`, `Element#getAnimations`, `showPopover`, `hidePopover`, `togglePopover` and the `<dialog>` methods `showModal`, `show` and `close`, which jsdom lacks and the kit's components call. An API the
 environment already has stays. It doesn't register Testing Library's `cleanup`, which only registers itself under
 Vitest `globals`:
 
@@ -82,6 +99,17 @@ Key behaviors:
 
 The peer Kubb packages (`kubb`, `@kubb/adapter-oas`, `@kubb/plugin-ts`, `@kubb/plugin-fetch`,
 `@kubb/plugin-react-query`) are optional — install them in apps that run codegen.
+
+## Upgrading from 0.7
+
+- The base oxlint config loads the `construkt` JS plugin and reports `construkt/no-style-prop-name` as an error. Rename
+  every component prop named after a Panda style prop (`content`, `width`, `fill`, `cursor`, …), including props typed
+  through `forwardRef`, `memo` or a class component's `Component<Props>`
+- The rule reads the style props from the `styled-system/` nearest each linted file, so run Panda codegen before
+  linting, in CI too: without a generated runtime the rule checks nothing. A `settings.construkt.styledSystem` that
+  names a missing directory fails the lint
+- `installDomPolyfills()` also installs `Element#getAnimations`, `showPopover`, `hidePopover`, `togglePopover` and the
+  `<dialog>` methods `showModal`, `show` and `close`; drop any stubs of these from your test setup
 
 ## Upgrading from 0.6
 

@@ -6,6 +6,7 @@ type OxlintConfig = ReturnType<typeof defineConfig>;
 
 const baseConfig = defineConfig({
   plugins: ["react", "typescript", "import"],
+  jsPlugins: ["@construkt-kit/config/oxlint/construkt"],
   env: {
     browser: true,
     node: true,
@@ -72,11 +73,17 @@ const baseConfig = defineConfig({
     "import/no-cycle": "warn",
     "import/no-self-import": "error",
     "import/first": "error",
+
+    "construkt/no-style-prop-name": "error",
   },
 });
 
+/** The base config with `overrides` merged in; `jsPlugins` add to the base's rather than replace them. */
 export function createOxlintConfig(overrides: Partial<OxlintConfig> = {}): OxlintConfig {
-  return deepMerge(baseConfig, overrides);
+  const merged = deepMerge(baseConfig, overrides);
+  return overrides.jsPlugins
+    ? { ...merged, jsPlugins: [...(baseConfig.jsPlugins ?? []), ...overrides.jsPlugins] }
+    : merged;
 }
 
 export type { OxlintConfig };

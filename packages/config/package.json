@@ -10,6 +10,7 @@
   },
   "files": [
     "dist",
+    "oxlint/construkt.mjs",
     "typescript"
   ],
   "type": "module",
@@ -31,6 +32,7 @@
       "types": "./dist/oxlint/index.d.mts",
       "default": "./dist/oxlint/index.mjs"
     },
+    "./oxlint/construkt": "./oxlint/construkt.mjs",
     "./oxfmt": {
       "types": "./dist/oxfmt/index.d.mts",
       "default": "./dist/oxfmt/index.mjs"
@@ -47,7 +49,8 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./typescript",
+    "test": "vitest run",
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs --exclude-entrypoints ./typescript ./oxlint/construkt",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json"
   },
   "devDependencies": {
@@ -55,13 +58,14 @@
     "@kubb/plugin-fetch": "^6.0.4",
     "@kubb/plugin-react-query": "^5.10.4",
     "@kubb/plugin-ts": "^5.5.4",
-    "@playwright/test": "^1.65.1",
+    "@playwright/test": "catalog:",
     "@types/node": "^26.6.6",
     "@vitejs/plugin-react": "^6.3.0",
     "kubb": "^5.20.2",
     "tsdown": "^0.23.7",
     "vite": "^8.3.8",
-    "vite-plugin-checker": "^1.0.0"
+    "vite-plugin-checker": "^1.0.0",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@kubb/adapter-oas": "^5.20.2",
