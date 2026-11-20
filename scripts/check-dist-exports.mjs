@@ -110,8 +110,12 @@ try {
 
 let failed = false;
 for (const { srcEntry, distEntry, srcNames, distNames } of results) {
-  const missing = [...srcNames].filter((name) => !distNames.has(name)).sort();
-  const extra = [...distNames].filter((name) => !srcNames.has(name)).sort();
+  const missing = [...srcNames]
+    .filter((name) => !distNames.has(name))
+    .sort((a, b) => a.localeCompare(b));
+  const extra = [...distNames]
+    .filter((name) => !srcNames.has(name))
+    .sort((a, b) => a.localeCompare(b));
 
   if (missing.length) {
     console.error(
