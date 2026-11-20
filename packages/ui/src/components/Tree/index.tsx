@@ -18,7 +18,13 @@ export { useTreeNodeDnd, type UseTreeNodeDndReturn } from "./dnd/useTreeNodeDnd"
 export { DraggableTreeNode, type DraggableTreeNodeProps } from "./DraggableTreeNode";
 export type { TreeCheckedState, TreeNodeAccessors, TreeNodes } from "./treeCollection";
 export type { TreeNodeRenderDetails } from "./TreeRow";
-export { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
+export {
+  TreeSelectList,
+  type TreeSelectListProps,
+  type TreeSelectListRootProviderProps,
+  type TreeSelectListSearchProps,
+  type TreeSelectListTreeProps,
+} from "./TreeSelectList";
 export {
   type TreeExpandedChangeDetails,
   type TreeRenameDetails,
@@ -29,6 +35,11 @@ export {
   type TreeViewVariantProps,
 } from "./TreeView";
 export type { TreeLoadChildrenDetails, TreeLoadChildrenErrorDetails } from "./useTreeLazyLoad";
+export {
+  useTreeSelectList,
+  type UseTreeSelectListProps,
+  type UseTreeSelectListReturn,
+} from "./useTreeSelectList";
 export {
   VirtualTree,
   type VirtualTreeEntry,

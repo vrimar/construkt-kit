@@ -1,10 +1,11 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { childIdsOf, findTestNode, testAccessors, type TestNode } from "./tree.fixtures";
 import { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
 import type { TreeLoadChildrenDetails } from "./useTreeLazyLoad";
+import { useTreeSelectList } from "./useTreeSelectList";
 
 const virtualScrollAreaProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
 
@@ -543,6 +544,58 @@ describe("TreeSelectList search", () => {
     rerender({ onNodesChange, search: { query: "" } });
 
     expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
+  });
+
+  it("shows only the rows a node filter keeps, with their branches, and the query narrows them", () => {
+    const kept = new Set(["src/components/Button.tsx", "src/index.ts"]);
+    const props = { nodes: fileTreeCollection, nodeFilter: (node: TestNode) => kept.has(node.id) };
+    const { rerender } = renderList({ ...props, search: { query: "" } });
+
+    expect(screen.getByText("src")).toBeTruthy();
+    expect(screen.getByText("components")).toBeTruthy();
+    expect(screen.getByText("Button.tsx")).toBeTruthy();
+    expect(screen.getByText("index.ts")).toBeTruthy();
+    expect(screen.queryByText("Input.tsx")).toBeNull();
+
+    rerender({ ...props, search: { query: "tsx" } });
+
+    expect(screen.getByText("Button.tsx")).toBeTruthy();
+    expect(screen.queryByText("Input.tsx")).toBeNull();
+    expect(screen.queryByText("index.ts")).toBeNull();
+  });
+
+  it("disables dragging while a node filter is set", () => {
+    renderList({ onNodesChange: vi.fn(), nodeFilter: (node) => node.id === "apple" });
+
+    expect(screen.getByText("Apple").closest("[draggable='true']")).toBeNull();
+  });
+
+  it("counts the whole tree but offers only the bulk actions that change the shown leaves", () => {
+    const onValueChange = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ query }: { query: string }) =>
+        useTreeSelectList({
+          nodes: fruitVegCollection,
+          ...testAccessors,
+          value: ["carrot", "stale"],
+          onValueChange,
+          isNodeCheckable: ({ node }) => node.id !== "banana",
+          search: { query },
+        }),
+      { initialProps: { query: "app" } },
+    );
+
+    expect(result.current).toMatchObject({
+      selectableCount: 2,
+      selectedCount: 1,
+      canSelectAll: true,
+      canDeselectAll: false,
+    });
+
+    rerender({ query: "zzz" });
+    expect(result.current).toMatchObject({ canSelectAll: false, canDeselectAll: false });
+    result.current.selectAll();
+    expect(onValueChange).not.toHaveBeenCalled();
   });
 
   it("selects and deselects only the displayed leaves during a query", () => {

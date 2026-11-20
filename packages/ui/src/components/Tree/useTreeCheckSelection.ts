@@ -14,6 +14,25 @@ interface UseTreeCheckSelectionOptions<TNode> {
   toSourceIndexPath: (indexPath: number[]) => number[];
 }
 
+const getSelectableLeafValues = <TNode>(
+  collection: TreeCollection<TNode>,
+  isLeafCheckable: (node: TNode, indexPath: number[]) => boolean,
+) => {
+  const values: string[] = [];
+  collection.visit({
+    onEnter: (node, indexPath) => {
+      if (
+        !collection.isBranchNode(node) &&
+        !collection.getNodeDisabled(node) &&
+        isLeafCheckable(node, indexPath)
+      ) {
+        values.push(collection.getNodeValue(node));
+      }
+    },
+  });
+  return values;
+};
+
 export function useTreeCheckSelection<TNode>({
   collection,
   displayedCollection,
@@ -34,21 +53,26 @@ export function useTreeCheckSelection<TNode>({
     [displayedCollection, isNodeCheckable, leafValueSet, toSourceIndexPath],
   );
 
-  const selectableLeafValues = useMemo(() => {
-    const values: string[] = [];
-    displayedCollection.visit({
-      onEnter: (node, indexPath) => {
-        if (
-          !displayedCollection.isBranchNode(node) &&
-          !displayedCollection.getNodeDisabled(node) &&
-          isLeafCheckable(node, indexPath)
-        ) {
-          values.push(displayedCollection.getNodeValue(node));
-        }
-      },
-    });
-    return values;
-  }, [displayedCollection, isLeafCheckable]);
+  const selectableLeafValues = useMemo(
+    () => getSelectableLeafValues(displayedCollection, isLeafCheckable),
+    [displayedCollection, isLeafCheckable],
+  );
+
+  const treeSelectableLeafValues = useMemo(
+    () =>
+      displayedCollection === collection
+        ? selectableLeafValues
+        : getSelectableLeafValues(
+            collection,
+            (node, indexPath) => isNodeCheckable?.({ node, indexPath, isBranch: false }) ?? true,
+          ),
+    [collection, displayedCollection, isNodeCheckable, selectableLeafValues],
+  );
+
+  const selectedCount = useMemo(
+    () => treeSelectableLeafValues.filter((leafValue) => valueSet.has(leafValue)).length,
+    [treeSelectableLeafValues, valueSet],
+  );
 
   const selectableLeafSet = useMemo(() => new Set(selectableLeafValues), [selectableLeafValues]);
 
@@ -86,5 +110,13 @@ export function useTreeCheckSelection<TNode>({
     if (selectable.length) onValueChange(getSelectAllState(value, selectable).toggle());
   };
 
-  return { selectAll, isCheckable, checkedState, toggle };
+  return {
+    selectAll,
+    hasDisplayedSelectable: selectableLeafValues.length > 0,
+    selectableCount: treeSelectableLeafValues.length,
+    selectedCount,
+    isCheckable,
+    checkedState,
+    toggle,
+  };
 }

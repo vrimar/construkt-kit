@@ -20,6 +20,8 @@ export const encodeSelectionValue = (value: SelectionValue): string =>
 export interface SelectAllState<V> {
   allSelected: boolean;
   someSelected: boolean;
+  select: () => V[];
+  clear: () => V[];
   toggle: () => V[];
 }
 
@@ -31,17 +33,18 @@ export function getSelectAllState<V>(
   const allSelected =
     selectableValues.length > 0 && selectableValues.every((entry) => selectedSet.has(entry));
   const someSelected = !allSelected && selectableValues.some((entry) => selectedSet.has(entry));
+  const select = () => [...value, ...selectableValues.filter((entry) => !selectedSet.has(entry))];
+  const clear = () => {
+    const selectableSet = new Set(selectableValues);
+    return value.filter((entry) => !selectableSet.has(entry));
+  };
 
   return {
     allSelected,
     someSelected,
-    toggle: () => {
-      if (!allSelected) {
-        return [...value, ...selectableValues.filter((entry) => !selectedSet.has(entry))];
-      }
-      const selectableSet = new Set(selectableValues);
-      return value.filter((entry) => !selectableSet.has(entry));
-    },
+    select,
+    clear,
+    toggle: () => (allSelected ? clear() : select()),
   };
 }
 

@@ -1,18 +1,22 @@
 import { matchesQuery } from "../Listbox/managed";
 import type { TreeCollection } from "./treeCollection";
 
+/** The nodes that match the query and pass `rowFilter`, with their ancestors. */
 export const filterTreeCollection = <T>(
   collection: TreeCollection<T>,
   normalizedQuery: string,
-  filter?: (node: T, query: string) => boolean,
+  searchFilter?: (node: T, query: string) => boolean,
+  rowFilter?: (node: T) => boolean,
 ) => {
-  if (!normalizedQuery) return collection;
+  if (!normalizedQuery && !rowFilter) return collection;
 
-  return collection.filter((node) =>
-    filter
-      ? filter(node, normalizedQuery)
-      : matchesQuery(collection.stringifyNode(node), normalizedQuery),
-  );
+  const matchesSearch = (node: T) =>
+    !normalizedQuery ||
+    (searchFilter
+      ? searchFilter(node, normalizedQuery)
+      : matchesQuery(collection.stringifyNode(node), normalizedQuery));
+
+  return collection.filter((node) => matchesSearch(node) && (rowFilter?.(node) ?? true));
 };
 
 export const getExpandableBranchValues = <T>(

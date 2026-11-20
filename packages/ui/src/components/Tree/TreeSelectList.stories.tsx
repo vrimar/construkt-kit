@@ -1,12 +1,14 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { EllipsisIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { type TreeLoadChildrenDetails, TreeSelectList } from ".";
+import { type TreeLoadChildrenDetails, TreeSelectList, useTreeSelectList } from ".";
 import { useDebounce } from "../../hooks/useDebounce";
-import { IconButton } from "../Buttons";
-import { Box } from "../Layout";
+import { Button, IconButton } from "../Buttons";
+import { Box, HStack, Stack } from "../Layout";
 import { Menu } from "../Menu";
+import { SegmentGroup } from "../SegmentGroup";
+import { Text } from "../Text";
 
 const meta = preview.meta({
   title: "Components/TreeSelectList",
@@ -75,6 +77,86 @@ function TreeSelectListDemo() {
 
 export const Default = meta.story({
   render: () => <TreeSelectListDemo />,
+});
+
+function CustomHeaderDemo() {
+  const [selected, setSelected] = useState<string[]>(["apple", "lemon"]);
+  const [view, setView] = useState("all");
+  const isPicked = useCallback((node: DemoNode) => selected.includes(node.id), [selected]);
+  const list = useTreeSelectList({
+    nodes,
+    ...accessors,
+    value: selected,
+    onValueChange: setSelected,
+    nodeFilter: view === "picked" ? isPicked : undefined,
+  });
+
+  return (
+    <Stack
+      maxW="400px"
+      gap="3"
+    >
+      <Box
+        borderWidth="1px"
+        borderColor="border"
+        borderRadius="lg"
+      >
+        <TreeSelectList.RootProvider value={list}>
+          <TreeSelectList.Search showSelectAll={false} />
+          <HStack
+            justify="space-between"
+            px="2"
+            mb="1"
+          >
+            <HStack gap="1">
+              <Button
+                size="xs"
+                variant="plain"
+                disabled={!list.canSelectAll}
+                onClick={list.selectAll}
+              >
+                Select all
+              </Button>
+              <Button
+                size="xs"
+                variant="plain"
+                disabled={!list.canDeselectAll}
+                onClick={list.deselectAll}
+              >
+                Deselect all
+              </Button>
+            </HStack>
+            <SegmentGroup.Root
+              size="xs"
+              aria-label="Rows shown"
+              value={view}
+              onValueChange={(next) => setView(next ?? "all")}
+            >
+              <SegmentGroup.Indicator />
+              <SegmentGroup.Items
+                items={[
+                  { value: "all", label: "All" },
+                  { value: "picked", label: "Picked" },
+                ]}
+              />
+            </SegmentGroup.Root>
+          </HStack>
+          <TreeSelectList.Tree />
+        </TreeSelectList.RootProvider>
+      </Box>
+      <Text color="fg.muted">
+        {list.selectedCount} of {list.selectableCount} selected
+      </Text>
+    </Stack>
+  );
+}
+
+/**
+ * `useTreeSelectList` with the list's parts: bulk actions that turn off when they would do
+ * nothing, a Picked view that shows only the selected rows, and a count outside the list.
+ */
+export const CustomHeader = meta.story({
+  render: () => <CustomHeaderDemo />,
 });
 
 function BareTreeDemo() {

@@ -2357,6 +2357,12 @@ export const stories = {
     title: "Components/Tree/TreeDropIndicator",
     tags: [],
   },
+  "components-treeselectlist--custom-header": {
+    file: "packages/ui/src/components/Tree/TreeSelectList.stories.tsx",
+    exportName: "CustomHeader",
+    title: "Components/TreeSelectList",
+    tags: [],
+  },
   "components-treeselectlist--default": {
     file: "packages/ui/src/components/Tree/TreeSelectList.stories.tsx",
     exportName: "Default",
