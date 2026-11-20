@@ -1,11 +1,10 @@
-import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
-
 import { matchesQuery } from "../Listbox/managed";
+import type { TreeCollection } from "./treeCollection";
 
-export const filterTreeCollection = <TNode extends TreeNode>(
-  collection: TreeCollection<TNode>,
+export const filterTreeCollection = <T>(
+  collection: TreeCollection<T>,
   normalizedQuery: string,
-  filter?: (node: TNode, query: string) => boolean,
+  filter?: (node: T, query: string) => boolean,
 ) => {
   if (!normalizedQuery) return collection;
 
@@ -16,8 +15,8 @@ export const filterTreeCollection = <TNode extends TreeNode>(
   );
 };
 
-export const getExpandableBranchValues = <TNode extends TreeNode>(
-  collection: TreeCollection<TNode>,
+export const getExpandableBranchValues = <T>(
+  collection: TreeCollection<T>,
   loadedValues?: ReadonlySet<string>,
 ) => {
   const values: string[] = [];
@@ -34,20 +33,20 @@ export const getExpandableBranchValues = <TNode extends TreeNode>(
   return values;
 };
 
-export const locateNode = <TNode extends TreeNode>(
-  collection: TreeCollection<TNode>,
+export const locateNode = <T>(
+  collection: TreeCollection<T>,
   value: string,
-): { node: NonNullable<TNode>; indexPath: number[]; valuePath: string[] } | null => {
+): { node: T; indexPath: number[]; valuePath: string[] } | null => {
   const indexPath = collection.getIndexPath(value);
   const node = indexPath ? collection.at(indexPath) : undefined;
-  if (!indexPath || node == null) return null;
+  if (!indexPath || node === undefined) return null;
   return { node, indexPath, valuePath: collection.getValuePath(indexPath) };
 };
 
-export const replaceNodeChildren = <TNode extends TreeNode>(
-  collection: TreeCollection<TNode>,
+export const replaceNodeChildren = <T>(
+  collection: TreeCollection<T>,
   value: string,
-  children: TNode[],
+  children: T[],
 ) => {
   const located = locateNode(collection, value);
 
@@ -56,14 +55,14 @@ export const replaceNodeChildren = <TNode extends TreeNode>(
   return collection.replace(located.indexPath, { ...located.node, children });
 };
 
-export const collectCheckableBranches = <TNode extends TreeNode>(
-  collection: TreeCollection<TNode>,
+export const collectCheckableBranches = <T>(
+  collection: TreeCollection<T>,
   leafValues: ReadonlySet<string>,
   selectableLeafValues: ReadonlySet<string>,
 ) => {
   const values = new Set<string>();
 
-  const visit = (node: TNode): { hasLeaf: boolean; hasEmptiedBranch: boolean } => {
+  const visit = (node: T): { hasLeaf: boolean; hasEmptiedBranch: boolean } => {
     if (!collection.isBranchNode(node)) {
       const value = collection.getNodeValue(node);
       return { hasLeaf: selectableLeafValues.has(value), hasEmptiedBranch: !leafValues.has(value) };
@@ -86,7 +85,7 @@ export const collectCheckableBranches = <TNode extends TreeNode>(
     return { hasLeaf, hasEmptiedBranch };
   };
 
-  collection.getNodeChildren(collection.rootNode).forEach(visit);
+  collection.nodes.forEach(visit);
 
   return values;
 };

@@ -1,10 +1,10 @@
-import type { Listbox as ArkListbox } from "@ark-ui/react/listbox";
 import type { ReactNode } from "react";
 
 import type { HTMLStyledProps } from "#styled-system/jsx";
 import type { ListboxVariant } from "#styled-system/recipes";
 
 import type { Unstyled } from "../../types";
+import type { WithRender } from "../rootProps";
 
 /** Stable scalar value used to identify a selection item. */
 export type SelectionValue = string | number;
@@ -84,6 +84,10 @@ export interface SelectionSearchOptions<T> {
   /** Render the built-in search input. */
   showInput?: boolean;
   placeholder?: string;
+  /**
+   * Focuses the search as the list mounts. The `Select` family focuses its search on open unless
+   * this is `false`, which focuses the list instead.
+   */
   autoFocus?: boolean;
   endElement?: ReactNode;
 }
@@ -96,7 +100,7 @@ export interface SelectionValueRenderContext<T, V extends SelectionValue> {
 }
 
 export type ManagedItemProps = Partial<
-  Unstyled<Omit<HTMLStyledProps<typeof ArkListbox.Item>, "children" | "item">>
+  Unstyled<Omit<WithRender<HTMLStyledProps<"div">>, "children">>
 >;
 
 export interface ManagedListOptions<T, V extends SelectionValue> {

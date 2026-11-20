@@ -14,9 +14,7 @@ const meta = preview.meta({
 export const Default = meta.story({
   render: () => (
     <HoverCard.Root>
-      <HoverCard.Trigger asChild>
-        <Button variant="outline">Hover me</Button>
-      </HoverCard.Trigger>
+      <HoverCard.Trigger render={<Button variant="outline" />}>Hover me</HoverCard.Trigger>
       <HoverCard.Content>
         <HoverCard.Arrow />
         <Box p="4">
@@ -32,9 +30,7 @@ export const Open = meta.story({
   tags: ["open-state"],
   render: () => (
     <HoverCard.Root defaultOpen>
-      <HoverCard.Trigger asChild>
-        <Link href="#ada">@ada</Link>
-      </HoverCard.Trigger>
+      <HoverCard.Trigger render={<Link href="#ada" />}>@ada</HoverCard.Trigger>
       <HoverCard.Content>
         <HoverCard.Arrow />
         <Stack

@@ -34,7 +34,7 @@ export const WithFile = meta.story({
   render: (args) => (
     <FormFileUpload
       {...args}
-      defaultAcceptedFiles={[report]}
+      defaultValue={[report]}
     />
   ),
 });

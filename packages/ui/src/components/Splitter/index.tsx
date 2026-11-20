@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import { useEffect, useRef } from "react";
 import {
   Group,
@@ -15,14 +14,15 @@ import { type SplitterVariantProps, splitter } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { renderable } from "../../primitives/render";
 
 export type { PanelImperativeHandle as SplitterPanelHandle } from "react-resizable-panels";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(splitter);
 
 const RootProvider = withRootProvider(Group);
-const StyledPanel = withContext(ark.div, "panel");
-const StyledResizeTrigger = withContext(ark.div, "resizeTrigger");
+const StyledPanel = withContext(renderable.div, "panel");
+const StyledResizeTrigger = withContext(renderable.div, "resizeTrigger");
 type BoxProps = HTMLStyledProps<"div">;
 
 export type SplitterGroupProps = Pick<
@@ -136,26 +136,26 @@ function SplitterPanel({
 
   return (
     <StyledPanel
-      asChild
+      render={
+        <Panel
+          collapsedSize={collapsedSize}
+          collapsible={collapsible}
+          defaultSize={defaultSize}
+          disabled={disabled}
+          elementRef={composedElementRef}
+          groupResizeBehavior={groupResizeBehavior}
+          id={id}
+          maxSize={maxSize}
+          minSize={minSize}
+          onResize={onResize}
+          panelRef={panelRef}
+          // Unset the library's inline overflow so the recipe and style props own it.
+          style={{ overflow: undefined }}
+        />
+      }
       {...boxProps}
     >
-      <Panel
-        collapsedSize={collapsedSize}
-        collapsible={collapsible}
-        defaultSize={defaultSize}
-        disabled={disabled}
-        elementRef={composedElementRef}
-        groupResizeBehavior={groupResizeBehavior}
-        id={id}
-        maxSize={maxSize}
-        minSize={minSize}
-        onResize={onResize}
-        panelRef={panelRef}
-        // Unset the library's inline overflow so the recipe and style props own it.
-        style={{ overflow: undefined }}
-      >
-        {children}
-      </Panel>
+      {children}
     </StyledPanel>
   );
 }
@@ -178,17 +178,17 @@ function SplitterSeparator({
 
   return (
     <StyledResizeTrigger
-      asChild
+      render={
+        <Separator
+          disabled={disabled}
+          disableDoubleClick={disableDoubleClick}
+          elementRef={composedElementRef}
+          id={id}
+        />
+      }
       data-no-drag=""
       {...boxProps}
-    >
-      <Separator
-        disabled={disabled}
-        disableDoubleClick={disableDoubleClick}
-        elementRef={composedElementRef}
-        id={id}
-      />
-    </StyledResizeTrigger>
+    />
   );
 }
 

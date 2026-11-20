@@ -1,14 +1,22 @@
 import type { ReactNode } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { Anchor } from "../../primitives/position";
+import type { WithRef } from "../../types";
 import { renderFormActions } from "../formActions";
 import { isRenderable } from "../itemSlots";
 import { ActionPopoverRoot } from "./ActionPopoverRoot";
 import { Popover, type PopoverRootProps } from "./Popover";
 
-export interface ConfirmPopoverProps extends Omit<PopoverRootProps, "children">, PortalledProps {
-  /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
-  children: ReactNode;
+type ConfirmPopoverTriggerProps =
+  | {
+      /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
+      children: ReactNode;
+    }
+  | { children?: undefined; anchor: Anchor };
+
+export type ConfirmPopoverProps = ConfirmPopoverOwnProps & ConfirmPopoverTriggerProps;
+
+interface ConfirmPopoverOwnProps extends Omit<PopoverRootProps, "children"> {
   /** Shown on hover over the trigger, and hidden while the popover is open. */
   tooltip?: ReactNode;
   title: ReactNode;
@@ -39,8 +47,6 @@ export const ConfirmPopover = ({
   cancelLabel = "Cancel",
   destructive = false,
   loading,
-  portalled,
-  portalRef,
   ...rest
 }: WithRef<ConfirmPopoverProps>) => (
   <ActionPopoverRoot
@@ -59,7 +65,7 @@ export const ConfirmPopover = ({
           type: "button",
           colorPalette: destructive ? "danger" : "brand",
           "data-autofocus": destructive ? undefined : true,
-          onClick: () => action.run(onConfirm),
+          onClick: (event) => action.run(onConfirm, event),
         },
       });
 
@@ -68,8 +74,6 @@ export const ConfirmPopover = ({
           ref={ref}
           role="alertdialog"
           width="72"
-          portalled={portalled}
-          portalRef={portalRef}
         >
           <Popover.Header gap="0.5">
             <Popover.Title>{title}</Popover.Title>

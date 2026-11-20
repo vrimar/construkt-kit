@@ -1,31 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import { PointerEventsCheckLevel } from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { type Color, formatColor, parseColor } from "@construkt-kit/utils";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { useState } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ColorPicker, type UseColorPickerProps, parseColor, useColorPicker } from ".";
+import { ColorPicker } from ".";
 import { setupUser, settle, useFakeTime } from "../../_shared/fakeTime";
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
-
-function ProvidedColorPicker(props: UseColorPickerProps) {
-  return (
-    <ColorPicker.RootProvider value={useColorPicker(props)}>
-      <ColorPicker.Content>Body</ColorPicker.Content>
-    </ColorPicker.RootProvider>
-  );
-}
+import { sheetOf } from "../../_shared/sheet";
 
 describe("ColorPicker", () => {
-  it("applies the root slot styles", () => {
-    const { container } = render(
-      <ColorPicker.Root defaultValue={parseColor("#ffffff")}>
-        <ColorPicker.Label>Color</ColorPicker.Label>
-      </ColorPicker.Root>,
-    );
-
-    const root = container.querySelector('[data-scope="color-picker"][data-part="root"]');
-    expect(root?.className).toMatch(/\bcolor-picker__root\b/);
-  });
-
   it("keeps an inline picker on the page on a phone", () => {
     mockMatchMedia(viewportWidth(375));
     render(
@@ -39,29 +23,237 @@ describe("ColorPicker", () => {
       </ColorPicker.Root>,
     );
 
-    const area = document.querySelector('[data-scope="color-picker"][data-part="area"]');
+    const area = document.querySelector('[data-slot="area"]');
     expect(area).not.toBeNull();
-    expect(area?.closest("[data-overlay-sheet]")).toBeNull();
+    expect(sheetOf(area)).toBeNull();
+  });
+
+  it("takes hex typed without a #, and puts back the value's hex for text it can't read", async () => {
+    const user = userEvent.setup();
+    render(<ColorPicker defaultOpen />);
+    const input = await screen.findByRole("textbox", { name: "hex" });
+
+    await user.clear(input);
+    await user.type(input, "ff0000{Enter}");
+    expect(
+      screen.getByRole("button", { name: /current color is rgba\(255, 0, 0, 1\)/ }),
+    ).toBeTruthy();
+
+    await user.clear(input);
+    await user.type(input, "nope{Enter}");
+    expect((input as HTMLInputElement).value).toBe("#FF0000");
+  });
+
+  it("goes back to its first color when the form its hidden input names resets", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <form id="paint">
+          <button type="reset">Reset</button>
+        </form>
+        <ColorPicker.Root
+          inline
+          defaultValue={parseColor("#336699")}
+        >
+          <ColorPicker.Content>
+            <ColorPicker.ChannelInput channel="hex" />
+          </ColorPicker.Content>
+          <ColorPicker.HiddenInput form="paint" />
+        </ColorPicker.Root>
+      </>,
+    );
+    const hex = screen.getByRole<HTMLInputElement>("textbox", { name: "hex" });
+
+    await user.clear(hex);
+    await user.type(hex, "ff0000{Enter}");
+    await user.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(hex.value).toBe("#336699");
+  });
+
+  it("keeps a controlled grey's hue as its hue slider moves", () => {
+    function Controlled() {
+      const [color, setColor] = useState<Color>(parseColor("#808080"));
+      return (
+        <ColorPicker.Root
+          inline
+          value={color}
+          onValueChange={setColor}
+        >
+          <ColorPicker.Content>
+            <ColorPicker.ChannelSlider channel="hue">
+              <ColorPicker.ChannelSliderTrack />
+              <ColorPicker.ChannelSliderThumb />
+            </ColorPicker.ChannelSlider>
+          </ColorPicker.Content>
+        </ColorPicker.Root>
+      );
+    }
+    render(<Controlled />);
+    const thumb = screen.getByRole("slider", { name: "hue" });
+
+    fireEvent.keyDown(thumb, { key: "ArrowRight" });
+    fireEvent.keyDown(thumb, { key: "ArrowRight" });
+
+    expect(thumb.getAttribute("aria-valuenow")).toBe("2");
+  });
+
+  it("reads a channel slider in a space that has its channel, whatever the view's format", () => {
+    const onValueChange = vi.fn();
+    render(
+      <ColorPicker.Root
+        inline
+        defaultValue={parseColor("#ff0000")}
+        onValueChange={onValueChange}
+      >
+        <ColorPicker.Content>
+          <ColorPicker.ChannelSlider channel="red">
+            <ColorPicker.ChannelSliderTrack />
+            <ColorPicker.ChannelSliderThumb />
+          </ColorPicker.ChannelSlider>
+          <ColorPicker.View format="rgba">
+            <ColorPicker.ChannelSlider channel="hue">
+              <ColorPicker.ChannelSliderTrack />
+              <ColorPicker.ChannelSliderThumb />
+            </ColorPicker.ChannelSlider>
+          </ColorPicker.View>
+        </ColorPicker.Content>
+      </ColorPicker.Root>,
+    );
+    const red = screen.getByRole("slider", { name: "red" });
+    expect(red.getAttribute("aria-valuenow")).toBe("255");
+    expect(screen.getByRole("slider", { name: "hue" }).getAttribute("aria-valuenow")).toBe("0");
+
+    fireEvent.keyDown(red, { key: "ArrowLeft" });
+
+    expect(formatColor(onValueChange.mock.lastCall?.[0], "rgba")).toBe("rgba(254, 0, 0, 1)");
+  });
+
+  it("shows a swatch checked again once the hue comes back to it", () => {
+    render(
+      <ColorPicker.Root
+        inline
+        defaultValue={parseColor("#FF0000")}
+      >
+        <ColorPicker.Content>
+          <ColorPicker.ChannelSlider channel="hue">
+            <ColorPicker.ChannelSliderTrack />
+            <ColorPicker.ChannelSliderThumb />
+          </ColorPicker.ChannelSlider>
+          <ColorPicker.SwatchTrigger value="#FF0000" />
+        </ColorPicker.Content>
+      </ColorPicker.Root>,
+    );
+    const thumb = screen.getByRole("slider", { name: "hue" });
+
+    fireEvent.keyDown(thumb, { key: "ArrowRight" });
+    fireEvent.keyDown(thumb, { key: "ArrowLeft" });
+
+    expect(
+      screen
+        .getByRole("button", { name: "select #FF0000 as the color" })
+        .hasAttribute("data-checked"),
+    ).toBe(true);
+  });
+
+  it("writes a format change's valueAsString in the new format", () => {
+    const onValueChange = vi.fn();
+    const color = parseColor("#336699");
+    render(
+      <ColorPicker.Root
+        inline
+        defaultValue={color}
+        onValueChange={onValueChange}
+      >
+        <ColorPicker.Content>
+          <ColorPicker.FormatTrigger />
+        </ColorPicker.Content>
+      </ColorPicker.Root>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "change color format to hsba" }));
+
+    expect(onValueChange.mock.lastCall?.[1].valueAsString).toBe(formatColor(color, "hsba"));
+  });
+
+  describe("dragging", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    const stubRects = () =>
+      vi
+        .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+        .mockReturnValue({ x: 0, y: 0, left: 0, top: 0, width: 100, height: 100 } as DOMRect);
+    const area = () => document.querySelector('[data-slot="area"]') as HTMLElement;
+
+    it("calls no onValueChangeEnd for a press that leaves the color as it was", async () => {
+      stubRects();
+      const onValueChangeEnd = vi.fn();
+      render(
+        <ColorPicker.Root
+          inline
+          defaultValue={parseColor("hsb(0, 50%, 50%)")}
+          onValueChangeEnd={onValueChangeEnd}
+        >
+          <ColorPicker.Content>
+            <ColorPicker.Area>
+              <ColorPicker.AreaBackground />
+              <ColorPicker.AreaThumb />
+            </ColorPicker.Area>
+          </ColorPicker.Content>
+        </ColorPicker.Root>,
+      );
+
+      fireEvent.pointerDown(area(), { button: 0, clientX: 50, clientY: 50 });
+      await act(async () => fireEvent.pointerUp(document));
+
+      expect(onValueChangeEnd).not.toHaveBeenCalled();
+    });
+
+    it("ends the drag when the popup closes under it", async () => {
+      stubRects();
+      const onValueChange = vi.fn();
+      const onValueChangeEnd = vi.fn();
+      render(
+        <ColorPicker
+          defaultOpen
+          defaultValue={parseColor("hsb(210, 50%, 50%)")}
+          onValueChange={onValueChange}
+          onValueChangeEnd={onValueChangeEnd}
+        />,
+      );
+      await act(async () => {});
+
+      fireEvent.pointerDown(area(), { button: 0, clientX: 25, clientY: 25 });
+      fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+      await act(async () => {});
+      fireEvent.pointerMove(document, { clientX: 90, clientY: 10, buttons: 1 });
+      await act(async () => fireEvent.pointerUp(document));
+
+      expect(onValueChange).toHaveBeenCalledTimes(1);
+      expect(onValueChangeEnd.mock.calls.map(([, details]) => details.valueAsString)).toEqual([
+        "hsba(210, 25%, 75%, 1)",
+      ]);
+    });
   });
 
   describe("on phones", () => {
     useFakeTime();
 
-    it("keeps a RootProvider's sheet open on an outside tap its hook prevents", async () => {
+    it("keeps its sheet open on an outside tap that onOpenChange cancels", async () => {
       // jsdom loads no stylesheet, so the sheet's pointer-events override on its content is absent.
       const user = setupUser({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       mockMatchMedia(viewportWidth(375));
       render(
-        <ProvidedColorPicker
+        <ColorPicker.Root
           defaultOpen
-          onInteractOutside={(event) => event.preventDefault()}
-        />,
+          onOpenChange={(_open, details) => details.cancel()}
+        >
+          <ColorPicker.Content>Body</ColorPicker.Content>
+        </ColorPicker.Root>,
       );
       await settle();
 
-      await user.click(
-        document.querySelector('[data-scope="drawer"][data-part="backdrop"]') as Element,
-      );
+      await user.click(document.querySelector("dialog") as Element);
 
       await settle();
       expect(screen.queryByText("Body")).not.toBeNull();

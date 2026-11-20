@@ -20,12 +20,10 @@ export const produceProps = {
 export const groupLabels = () =>
   screen
     .getAllByRole("group")
-    .map((group) => group.querySelector("[data-part='item-group-label']")?.textContent ?? null);
+    .map((group) => group.querySelector(".listbox__itemGroupLabel")?.textContent ?? null);
 
 export const highlightedValue = () =>
-  document
-    .querySelector("[data-scope='listbox'][data-part='item'][data-highlighted]")
-    ?.getAttribute("data-value");
+  document.querySelector(".listbox__item[data-highlighted]")?.getAttribute("data-value");
 
 export const optionValues = () =>
   screen.getAllByRole("option").map((option) => option.getAttribute("data-value"));

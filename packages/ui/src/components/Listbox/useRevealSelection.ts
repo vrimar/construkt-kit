@@ -1,41 +1,48 @@
-import { useListboxContext } from "@ark-ui/react/listbox";
 import { useEffect, useRef } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import type { ListboxNode } from "./listboxNode";
 
+/**
+ * Reveals `selected`, the first selected option in list order, once it is there to reveal: on
+ * mount, or when it arrives later, as long as the user hasn't searched, pressed or typed in the
+ * list since.
+ */
 export function useRevealSelection(
+  node: ListboxNode,
   active: boolean,
   query: string,
+  selected: string | undefined,
   reveal: (value: string) => void,
 ): void {
-  const { collection, value } = useListboxContext();
-  const [selected] = active ? collection.sort(value.filter((item) => collection.has(item))) : [];
   const revealRef = useLatestRef(reveal);
   const queryRef = useLatestRef(query);
-  const pendingRef = useRef<string | null>(null);
+  const pendingRef = useRef<{ query: string; interactions: number } | null>(null);
+  const shown = active ? selected : undefined;
 
   useEffect(() => {
     if (!active) return;
-    pendingRef.current = queryRef.current;
+    pendingRef.current = { query: queryRef.current, interactions: node.interactions };
     return () => {
       pendingRef.current = null;
     };
-  }, [active, queryRef]);
+  }, [active, node, queryRef]);
 
   useEffect(() => {
-    if (pendingRef.current == null) return;
-    if (pendingRef.current !== query) {
+    const pending = pendingRef.current;
+    if (pending == null) return;
+    if (pending.query !== query || pending.interactions !== node.interactions) {
       pendingRef.current = null;
       return;
     }
-    if (selected == null) return;
+    if (shown == null) return;
     // A frame lets an opening overlay place itself first.
     const frame = requestAnimationFrame(() => {
       pendingRef.current = null;
-      revealRef.current(selected);
+      revealRef.current(shown);
     });
     return () => cancelAnimationFrame(frame);
-  }, [query, revealRef, selected]);
+  }, [node, query, revealRef, shown]);
 }
 
 // Unlike scrollIntoView, never scrolls the page or any other ancestor.

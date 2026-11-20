@@ -37,15 +37,13 @@ function AddToFolderDemo() {
         {folder ? `Add to ${folder.name}` : "Add to a new folder"}
       </SplitButton.Action>
       <Menu.Root placement="bottom-end">
-        <Menu.Trigger asChild>
-          <IconButton aria-label="Choose the folder">
-            <ChevronDownIcon />
-          </IconButton>
+        <Menu.Trigger render={<IconButton aria-label="Choose the folder" />}>
+          <ChevronDownIcon />
         </Menu.Trigger>
         <Menu.Content>
           <Menu.RadioItemGroup
             value={target}
-            onValueChange={({ value }) => setTarget(value)}
+            onValueChange={(value) => setTarget(value)}
           >
             {FOLDERS.map((f) => (
               <Menu.RadioItem
@@ -103,15 +101,13 @@ function CountDemo() {
     >
       <Popover.Root placement="bottom-start">
         <Popover.Trigger
-          asChild
+          render={<SplitButton.Action />}
           tooltip={
             partial
               ? `${shown} of ${FIELDS.length} fields shown, ${hidden.length} hidden`
               : "Show or hide fields"
           }
-        >
-          <SplitButton.Action>{`${shown} ${shown === 1 ? "field" : "fields"}`}</SplitButton.Action>
-        </Popover.Trigger>
+        >{`${shown} ${shown === 1 ? "field" : "fields"}`}</Popover.Trigger>
         <Popover.Content>
           <Popover.Body>
             <VStack
@@ -122,7 +118,7 @@ function CountDemo() {
                 <Checkbox
                   key={field}
                   checked={!hidden.includes(field)}
-                  onCheckedChange={({ checked }) =>
+                  onCheckedChange={(checked) =>
                     setHidden((fields) =>
                       checked === true ? fields.filter((f) => f !== field) : [...fields, field],
                     )

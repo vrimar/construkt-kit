@@ -2,13 +2,14 @@ import { act, render, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { LocaleProvider } from "../LocaleProvider";
 import { ScrollArea } from "./ScrollArea";
 
 const viewportOf = (container: HTMLElement) =>
-  container.querySelector<HTMLElement>('[data-scope="scroll-area"][data-part="viewport"]');
+  container.querySelector<HTMLElement>(".scroll-area__viewport");
 
 const contentOf = (container: HTMLElement) =>
-  container.querySelector<HTMLElement>('[data-scope="scroll-area"][data-part="content"]');
+  container.querySelector<HTMLElement>(".scroll-area__content");
 
 describe("ScrollArea", () => {
   it("leaves content sizing to classes so contentCss can override it", () => {
@@ -33,9 +34,21 @@ describe("ScrollArea", () => {
       </ScrollArea>,
     );
 
-    const root = container.querySelector('[data-scope="scroll-area"][data-part="root"]');
+    const root = container.querySelector(".scroll-area__root");
     expect(root?.className).toContain("scroll-area__root--scrollbars_vertical");
     expect(contentOf(container)?.style.minWidth).toBe("");
+  });
+
+  it("lays its content out in LocaleProvider's direction, which its scroll math follows", () => {
+    const { container } = render(
+      <LocaleProvider locale="ar">
+        <ScrollArea>
+          <div>content</div>
+        </ScrollArea>
+      </LocaleProvider>,
+    );
+
+    expect(container.querySelector(".scroll-area__root")?.getAttribute("dir")).toBe("rtl");
   });
 
   it("leaves viewport overflow to the recipe", () => {

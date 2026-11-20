@@ -53,7 +53,7 @@ export const Masked = meta.story({
   render: () => {
     return (
       <Box maxW="320px">
-        <PinInput.Root mask>
+        <PinInput.Root masked>
           <PinInput.Label>Secret PIN</PinInput.Label>
           <PinInput.Control>
             {[0, 1, 2, 3].map((id) => (

@@ -13,7 +13,10 @@
   "files": [
     "dist",
     "panda",
-    "styled-system"
+    "styled-system",
+    "codemods",
+    "!codemods/*.test.ts",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",
   "main": "./dist/index.mjs",
@@ -79,12 +82,15 @@
     "build": "tsdown && panda lib -o . --files \"./dist/*.mjs\"",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
+    "test:browser": "vitest run --project browser --project touch",
     "check:exports": "publint --strict && node ../../scripts/check-attw.mjs && node ../../scripts/check-dist-exports.mjs && node ../../scripts/check-dist-types.mjs"
   },
   "dependencies": {
-    "@ark-ui/react": "~5.40.0",
     "@construkt-kit/utils": "workspace:^",
+    "@floating-ui/react-dom": "^2.1.9",
+    "@internationalized/date": "^3.12.4",
+    "@internationalized/number": "^3.6.9",
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/react-virtual": "^3.14.26",
     "lucide-react": "^1.73.0",
@@ -103,10 +109,14 @@
     "@storybook/react-vite": "11.0.0-beta.3",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.12",
+    "@types/jscodeshift": "^17.3.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vitest/browser-playwright": "5.1.0",
+    "jscodeshift": "^17.4.0",
     "jsdom": "^31.0.1",
+    "playwright": "^1.65.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "storybook": "11.0.0-beta.3",
@@ -114,13 +124,13 @@
     "vitest": "^5.1.0"
   },
   "peerDependencies": {
-    "@fontsource-variable/inter": "^5.3.0",
     "@pandacss/dev": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "inter-ui": "^4.1.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "peerDependenciesMeta": {
-    "@fontsource-variable/inter": {
+    "inter-ui": {
       "optional": true
     }
   }

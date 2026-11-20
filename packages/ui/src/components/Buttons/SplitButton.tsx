@@ -5,7 +5,7 @@ import { splitButton } from "#styled-system/recipes";
 
 import { isAriaExpanded } from "../../foundations/dom";
 import type { WithRef } from "../../types";
-import { wrapAsChildContent } from "../asChildContent";
+import { wrapRenderContent } from "../renderContent";
 import { Button, ButtonGroup, type ButtonGroupProps, type ButtonProps } from "./Button";
 import { useButtonPropsContext } from "./buttonPropsContext";
 import { TruncatedLabel } from "./TruncatedLabel";
@@ -36,21 +36,23 @@ function SplitButtonAction({
     <TruncatedLabel expanded={expanded}>{content}</TruncatedLabel>
   );
 
+  const rendered = wrapRenderContent(props.render, children, label);
   return (
     <Button
       ref={ref}
       flex="1 1 auto"
       minW="0"
       {...props}
+      render={rendered.render}
     >
-      {props.asChild ? wrapAsChildContent(children, label) : label(children)}
+      {rendered.children}
     </Button>
   );
 }
 
 /**
  * A main action joined to parts that share its variant, size and colorPalette, such as a
- * `Menu.Trigger asChild` around an `IconButton`. The action's label shows in full on hover when cut off.
+ * `Menu.Trigger` that renders an `IconButton`. The action's label shows in full on hover when cut off.
  */
 export const SplitButton = {
   Root: SplitButtonRoot,

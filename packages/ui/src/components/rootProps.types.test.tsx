@@ -1,40 +1,62 @@
+import type { ComponentProps } from "react";
 import { describe, expectTypeOf, it } from "vitest";
 
+import type { Checkbox } from "./Checkbox";
+import type { ColorPicker } from "./ColorPicker";
 import { Combobox, type ComboboxRootProps } from "./Combobox";
-import { createListCollection, Listbox, type ListboxRootProps } from "./Listbox";
+import type { FileUpload } from "./FileUpload";
+import type { HotkeyInput } from "./HotkeyInput";
+import { Listbox, type ListboxRootProps } from "./Listbox";
+import type { RatingGroup } from "./RatingGroup";
+import type { ScrollArea } from "./ScrollArea";
+import type { ApplySelect, Select } from "./Select";
+import type { Table } from "./Table";
 import { type TreeViewRootProps } from "./Tree";
 
-type SelectDetails<P> = P extends { onSelect?: (details: infer D) => void } ? D : never;
+type PartsWithoutRender<Namespace> = {
+  [Key in keyof Namespace & string]: Key extends Capitalize<Key>
+    ? Namespace[Key] extends (props: infer Props) => unknown
+      ? "render" extends keyof Props
+        ? never
+        : Key
+      : never
+    : never;
+}[keyof Namespace & string];
 
-const collection = createListCollection({ items: ["a", "b"] });
+const letters = ["a", "b"];
 
-function ComboboxOnSelect() {
+function ComboboxValueChange() {
   return (
     <Combobox.Root
-      collection={collection}
+      items={letters}
+      getItemValue={(item) => item}
+      getItemLabel={(item) => item}
       size="sm"
       width="full"
-      onSelect={({ itemValue }) => itemValue}
+      onValueChange={(value) => value?.toUpperCase()}
     />
   );
 }
 
-function ListboxOnSelect() {
+function ListboxValueChange() {
   return (
     <Listbox.Root
-      collection={collection}
+      items={letters}
+      getItemValue={(item) => item}
+      getItemLabel={(item) => item}
       width="full"
-      onSelect={({ value }) => value}
+      value={null}
+      onValueChange={(value) => value.toUpperCase()}
     />
   );
 }
 
-describe("Ark root props", () => {
+describe("root props", () => {
   it("keeps the root's own props over same-named div props", () => {
-    expectTypeOf<SelectDetails<ComboboxRootProps>>().toHaveProperty("itemValue");
-    expectTypeOf<ComboboxRootProps["defaultValue"]>().toEqualTypeOf<string[] | undefined>();
-    expectTypeOf<SelectDetails<ListboxRootProps>>().toHaveProperty("value");
-    expectTypeOf<ListboxRootProps["defaultValue"]>().toEqualTypeOf<string[] | undefined>();
+    expectTypeOf<ComboboxRootProps<string, string>["defaultValue"]>().toEqualTypeOf<
+      string | null | undefined
+    >();
+    expectTypeOf<ListboxRootProps<string, string>>().not.toHaveProperty("defaultValue");
   });
 
   it("still takes style and variant props", () => {
@@ -42,7 +64,21 @@ describe("Ark root props", () => {
     expectTypeOf<ComboboxRootProps>().toHaveProperty("size");
     expectTypeOf<ListboxRootProps>().toHaveProperty("width");
     expectTypeOf<TreeViewRootProps>().toHaveProperty("width");
-    expectTypeOf(ComboboxOnSelect).toBeFunction();
-    expectTypeOf(ListboxOnSelect).toBeFunction();
+    expectTypeOf(ComboboxValueChange).toBeFunction();
+    expectTypeOf(ListboxValueChange).toBeFunction();
+  });
+
+  it("gives every part that renders an element a render prop", () => {
+    expectTypeOf<PartsWithoutRender<typeof Checkbox>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof ColorPicker>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof FileUpload>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof RatingGroup>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof ScrollArea>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof Table>>().toBeNever();
+    expectTypeOf<PartsWithoutRender<typeof Listbox>>().toEqualTypeOf<"EmptyState">();
+    expectTypeOf<PartsWithoutRender<typeof Select>>().toEqualTypeOf<"Root">();
+    expectTypeOf<PartsWithoutRender<typeof ApplySelect>>().toEqualTypeOf<"Root" | "Actions">();
+    expectTypeOf<ComponentProps<typeof ScrollArea>>().toHaveProperty("render");
+    expectTypeOf<ComponentProps<typeof HotkeyInput>>().toHaveProperty("render");
   });
 });

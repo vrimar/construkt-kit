@@ -1,16 +1,14 @@
-import { usePopoverContext } from "@ark-ui/react/popover";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, type SyntheticEvent, useRef, useState } from "react";
 
 import { styled } from "#styled-system/jsx";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { WithRef } from "../../types";
 import { formSubmitProps, renderFormActions } from "../formActions";
 import { Input } from "../Input";
 import { type ActionPopover, ActionPopoverRoot } from "./ActionPopoverRoot";
-import { Popover, type PopoverRootProps } from "./Popover";
+import { Popover, type PopoverRootProps, usePopoverContext } from "./Popover";
 
-export interface PromptPopoverProps
-  extends Omit<PopoverRootProps, "children" | "lazyMount" | "unmountOnExit">, PortalledProps {
+export interface PromptPopoverProps extends Omit<PopoverRootProps, "children"> {
   /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
   children: ReactNode;
   /** Heads the popover and labels the input. */
@@ -52,25 +50,33 @@ function PromptForm({
   onSubmit,
   action,
 }: PromptFormProps) {
-  const titleId = usePopoverContext().getTitleProps().id;
+  const titleId = usePopoverContext().ids.title;
   const [value, setValue] = useState(defaultValue);
   const selectedRef = useRef(false);
+  const submit = (event?: SyntheticEvent) => {
+    const trimmed = value.trim();
+    if (trimmed) action.run(() => onSubmit(trimmed), event);
+    else action.cancel(event);
+  };
   const { cancelButton, submitButton } = renderFormActions({
     size: "sm",
     onCancel: action.cancel,
     cancelLabel,
     submitLabel,
     loading: action.busy,
+    submitButtonProps: {
+      // Enter in the input clicks this too; its click, unlike the submit, tells a key from a pointer.
+      onClick: (event) => {
+        event.preventDefault();
+        submit(event);
+      },
+    },
   });
 
   return (
     <styled.form
       display="contents"
-      {...formSubmitProps(() => {
-        const trimmed = value.trim();
-        if (trimmed) action.run(() => onSubmit(trimmed));
-        else action.cancel();
-      })}
+      {...formSubmitProps(submit)}
     >
       <Popover.Header>
         <Popover.Title>{title}</Popover.Title>
@@ -108,23 +114,15 @@ export const PromptPopover = ({
   submitLabel = "Save",
   cancelLabel = "Cancel",
   loading,
-  portalled,
-  portalRef,
   ...rest
 }: WithRef<PromptPopoverProps>) => (
   <ActionPopoverRoot
     {...rest}
-    lazyMount
-    unmountOnExit
     trigger={children}
     loading={loading}
   >
     {(action) => (
-      <Popover.Content
-        ref={ref}
-        portalled={portalled}
-        portalRef={portalRef}
-      >
+      <Popover.Content ref={ref}>
         <PromptForm
           title={title}
           defaultValue={defaultValue}

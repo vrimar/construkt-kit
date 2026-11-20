@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import {
   type ComponentProps,
   type ReactNode,
@@ -12,6 +11,7 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type InputGroupVariant, inputGroup } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { renderable } from "../../primitives/render";
 import type { ButtonProps, CloseButtonProps } from "../Buttons";
 import { ClearButton, type ClearButtonProps } from "../Buttons/ClearButton";
 import type { InputProps } from "./Input";
@@ -57,8 +57,8 @@ export const InputGroupClearButton = ({ size, field, ...props }: InputGroupClear
 };
 
 type RootProps = ComponentProps<typeof Root>;
-const Root = withProvider(ark.div, "root");
-const Element = withContext(ark.div, "element");
+const Root = withProvider(renderable.div, "root");
+const Element = withContext(renderable.div, "element");
 
 export interface InputGroupProps extends RootProps {
   startElement?: ReactNode | undefined;

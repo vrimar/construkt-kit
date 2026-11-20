@@ -1,5 +1,14 @@
-import { ScrollArea as ArkScrollArea, useScrollAreaContext } from "@ark-ui/react/scroll-area";
-import { type ComponentProps, useCallback, useState, useSyncExternalStore } from "react";
+import {
+  type ComponentProps,
+  type PointerEvent,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
 import {
@@ -10,18 +19,106 @@ import {
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useLocale } from "../../primitives/locale";
+import { dataAttr, renderable } from "../../primitives/render";
+import { mergeProps } from "../../primitives/render/mergeProps";
+import { useStore } from "../../primitives/store";
 import type { CssProp } from "../../types";
+import {
+  type ScrollAreaState,
+  ScrollAreaNode,
+  type ScrollEdges,
+  type ScrollbarOrientation,
+} from "./scrollAreaNode";
 
 const { withProvider, withContext } = createSlotRecipeContext(scrollArea);
 
-const Root = withProvider(ArkScrollArea.Root, "root");
-const StyledViewport = withContext(ArkScrollArea.Viewport, "viewport");
-const StyledContent = withContext(ArkScrollArea.Content, "content");
-const Scrollbar = withContext(ArkScrollArea.Scrollbar, "scrollbar", {
-  defaultProps: { "data-no-drag": "" },
+const StyledRoot = withProvider(renderable.div, "root");
+const StyledViewport = withContext(renderable.div, "viewport");
+const StyledContent = withContext(renderable.div, "content");
+const StyledScrollbar = withContext(renderable.div, "scrollbar");
+const StyledThumb = withContext(renderable.div, "thumb");
+const StyledCorner = withContext(renderable.div, "corner");
+
+const ScrollAreaContext = createContext<ScrollAreaNode | null>(null);
+const ScrollbarContext = createContext<ScrollbarOrientation | null>(null);
+
+function useScrollArea(part: string): ScrollAreaNode {
+  const node = useContext(ScrollAreaContext);
+  if (!node) throw new Error(`ScrollArea.${part} must be placed inside <ScrollArea.Root>.`);
+  return node;
+}
+
+const selectEdges = (state: ScrollAreaState) => state.edges;
+const selectHovering = (state: ScrollAreaState) => state.hovering;
+const selectScrolling = (state: ScrollAreaState, orientation: ScrollbarOrientation) =>
+  orientation === "vertical" ? state.scrollingY : state.scrollingX;
+const selectDragging = (state: ScrollAreaState, orientation: ScrollbarOrientation) =>
+  state.dragging === orientation;
+
+const overflowAttributes = (edges: ScrollEdges) => ({
+  "data-overflow-x": dataAttr(edges.overflowX),
+  "data-overflow-y": dataAttr(edges.overflowY),
 });
-const Thumb = withContext(ArkScrollArea.Thumb, "thumb");
-const Corner = withContext(ArkScrollArea.Corner, "corner");
+
+const edgeAttributes = (edges: ScrollEdges) => ({
+  ...overflowAttributes(edges),
+  "data-at-top": dataAttr(edges.atTop),
+  "data-at-bottom": dataAttr(edges.atBottom),
+  "data-at-left": dataAttr(edges.atLeft),
+  "data-at-right": dataAttr(edges.atRight),
+});
+
+const pointerAttributes = (
+  orientation: ScrollbarOrientation | undefined,
+  hovering: boolean,
+  dragging: boolean,
+) => ({
+  "data-orientation": orientation,
+  "data-hover": dataAttr(hovering),
+  "data-dragging": dataAttr(dragging),
+});
+
+const trackAttributes = (scrolling: boolean) => ({
+  "data-scrolling": dataAttr(scrolling),
+  "data-no-drag": "",
+});
+
+type RootProps = ComponentProps<typeof StyledRoot>;
+
+function Root({ ref, ...props }: RootProps) {
+  const [node] = useState(() => new ScrollAreaNode());
+  const edges = useStore(node.store, selectEdges);
+  const { dir } = useLocale();
+
+  useLayoutEffect(() => {
+    node.setDirection(dir);
+    node.measure();
+  }, [node, dir, edges.overflowX, edges.overflowY]);
+
+  useLayoutEffect(() => node.checkHovering(), [node]);
+  useEffect(() => () => node.clearTimers(), [node]);
+
+  return (
+    <ScrollAreaContext value={node}>
+      <StyledRoot
+        {...mergeProps<RootProps>(
+          {
+            role: "presentation",
+            dir,
+            ...edgeAttributes(edges),
+            onPointerEnter: node.onRootPointer,
+            onPointerMove: node.onRootPointer,
+            onPointerDown: node.onRootPointer,
+            onPointerLeave: node.onRootPointerLeave,
+          },
+          props,
+        )}
+        ref={useComposedRefs(ref, node.setRoot)}
+      />
+    </ScrollAreaContext>
+  );
+}
 
 const TABBABLE =
   'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
@@ -49,37 +146,146 @@ function useHasTabbable(node: HTMLElement | null, watch: boolean) {
   );
 }
 
-// Clears zag's inline `overflow: auto` so the recipe's per-axis overflow applies.
-const Viewport = ({ ref, style, ...props }: ComponentProps<typeof StyledViewport>) => {
-  const { hasOverflowX, hasOverflowY } = useScrollAreaContext();
-  const overflows = hasOverflowX || hasOverflowY;
-  const [node, setNode] = useState<HTMLDivElement | null>(null);
-  const hasTabbable = useHasTabbable(node, overflows && !props.asChild);
-  const composedRef = useComposedRefs(ref, setNode);
+type ViewportProps = ComponentProps<typeof StyledViewport>;
 
-  // A scroller with nothing focusable inside takes focus itself, as Chromium does natively; null
-  // drops zag's tabIndex, which it sets only when both axes overflow. An asChild element owns its focus.
-  const focus: Record<string, unknown> = props.asChild
-    ? {}
-    : { tabIndex: overflows && !hasTabbable ? 0 : null };
+function Viewport({ ref, ...props }: ViewportProps) {
+  const node = useScrollArea("Viewport");
+  const edges = useStore(node.store, selectEdges);
+  const overflows = edges.overflowX || edges.overflowY;
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const hasTabbable = useHasTabbable(element, overflows && !props.render);
+  const register = useCallback(
+    (next: HTMLElement | null) => {
+      setElement(next);
+      return node.setViewport(next);
+    },
+    [node],
+  );
 
   return (
     <StyledViewport
-      ref={composedRef}
-      {...focus}
-      {...props}
-      style={{ overflow: undefined, ...style }}
+      {...mergeProps<ViewportProps>(
+        {
+          role: "presentation",
+          // Chromium focuses a scroller with nothing focusable inside; a render element owns its focus.
+          tabIndex: !props.render && overflows && !hasTabbable ? 0 : undefined,
+          ...edgeAttributes(edges),
+          onScroll: node.onViewportScroll,
+          onWheel: node.onUserInteraction,
+          onTouchMove: node.onUserInteraction,
+          onPointerMove: node.onUserInteraction,
+          onPointerEnter: node.onUserInteraction,
+          onKeyDown: node.onUserInteraction,
+        },
+        props,
+      )}
+      ref={useComposedRefs(ref, register)}
     />
   );
+}
+
+type ContentProps = ComponentProps<typeof StyledContent>;
+
+function Content({ ref, ...props }: ContentProps) {
+  const node = useScrollArea("Content");
+  const edges = useStore(node.store, selectEdges);
+
+  return (
+    <StyledContent
+      {...mergeProps<ContentProps>({ role: "presentation", ...overflowAttributes(edges) }, props)}
+      ref={useComposedRefs(ref, node.setContent)}
+    />
+  );
+}
+
+export type ScrollAreaScrollbarProps = ComponentProps<typeof StyledScrollbar> & {
+  /** @default "vertical" */
+  orientation?: ScrollbarOrientation | undefined;
 };
 
-// Clears zag's inline `min-width: fit-content` so the recipe's width applies and `css` can override it.
-const Content = ({ style, ...props }: ComponentProps<typeof StyledContent>) => (
-  <StyledContent
-    {...props}
-    style={{ minWidth: undefined, ...style }}
-  />
-);
+function Scrollbar({ ref, orientation = "vertical", ...props }: ScrollAreaScrollbarProps) {
+  const node = useScrollArea("Scrollbar");
+  const edges = useStore(node.store, selectEdges);
+  const hovering = useStore(node.store, selectHovering);
+  const scrolling = useStore(node.store, selectScrolling, orientation);
+  const dragging = useStore(node.store, selectDragging, orientation);
+  const overflows = orientation === "vertical" ? edges.overflowY : edges.overflowX;
+
+  return (
+    <ScrollbarContext value={orientation}>
+      <StyledScrollbar
+        {...mergeProps<ComponentProps<typeof StyledScrollbar>>(
+          {
+            "aria-hidden": true,
+            hidden: !overflows || undefined,
+            ...pointerAttributes(orientation, hovering, dragging),
+            ...overflowAttributes(edges),
+            ...trackAttributes(scrolling),
+            onPointerDown: (event: PointerEvent<HTMLElement>) =>
+              node.onTrackPointerDown(event, orientation),
+            onPointerUp: node.onPointerUp,
+            onPointerCancel: node.onPointerUp,
+            // A native scrollbar doesn't take focus from the page when pressed.
+            onMouseDown: (event) => event.preventDefault(),
+          },
+          props,
+        )}
+        ref={useComposedRefs(ref, node.scrollbarRefs[orientation])}
+      />
+    </ScrollbarContext>
+  );
+}
+
+type ThumbProps = ComponentProps<typeof StyledThumb>;
+
+function Thumb({ ref, ...props }: ThumbProps) {
+  const node = useScrollArea("Thumb");
+  const orientation = useContext(ScrollbarContext);
+  if (!orientation)
+    throw new Error("ScrollArea.Thumb must be placed inside <ScrollArea.Scrollbar>.");
+  const hovering = useStore(node.store, selectHovering);
+  const dragging = useStore(node.store, selectDragging, orientation);
+
+  return (
+    <StyledThumb
+      {...mergeProps<ThumbProps>(
+        {
+          ...pointerAttributes(orientation, hovering, dragging),
+          onPointerDown: (event: PointerEvent<HTMLElement>) =>
+            node.onThumbPointerDown(event, orientation),
+          onPointerMove: node.onThumbPointerMove,
+          onPointerUp: node.onPointerUp,
+          onPointerCancel: node.onPointerUp,
+        },
+        props,
+      )}
+      ref={useComposedRefs(ref, node.thumbRefs[orientation])}
+    />
+  );
+}
+
+type CornerProps = ComponentProps<typeof StyledCorner>;
+
+function Corner({ ref, ...props }: CornerProps) {
+  const node = useScrollArea("Corner");
+  const edges = useStore(node.store, selectEdges);
+  const hovering = useStore(node.store, selectHovering);
+
+  return (
+    <StyledCorner
+      {...mergeProps<CornerProps>(
+        {
+          "aria-hidden": true,
+          hidden: !(edges.overflowX && edges.overflowY) || undefined,
+          ...pointerAttributes(undefined, hovering, false),
+          ...overflowAttributes(edges),
+        },
+        props,
+      )}
+      ref={useComposedRefs(ref, node.setCorner)}
+    />
+  );
+}
 
 export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
   Omit<ScrollAreaVariantProps, "scrollbars"> & {

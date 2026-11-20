@@ -1,10 +1,10 @@
-import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import type { TreeCollection } from "./treeCollection";
 import { getExpandableBranchValues } from "./treeCollectionUtils";
 
-interface UseTreeSearchExpansionOptions<TNode extends TreeNode> {
+interface UseTreeSearchExpansionOptions<TNode> {
   collection: TreeCollection<TNode>;
   displayedCollection: TreeCollection<TNode>;
   expandedValue: string[] | undefined;
@@ -22,7 +22,7 @@ interface CollapsedDuringQuery {
 
 const NO_VALUES: string[] = [];
 
-export function useTreeSearchExpansion<TNode extends TreeNode>({
+export function useTreeSearchExpansion<TNode>({
   collection,
   displayedCollection,
   expandedValue,
@@ -66,6 +66,7 @@ export function useTreeSearchExpansion<TNode extends TreeNode>({
   const latestRef = useLatestRef({ expandedValue, onExpandedChange });
   // Written through on commit so updates landing in the same tick build on each other.
   const storedRef = useRef(storedExpandedValue);
+  const [, rerender] = useReducer((count: number) => count + 1, 0);
 
   useEffect(() => {
     storedRef.current = storedExpandedValue;
@@ -76,6 +77,9 @@ export function useTreeSearchExpansion<TNode extends TreeNode>({
       storedRef.current = nextExpandedValue;
       if (latestRef.current.expandedValue === undefined) {
         setUncontrolledExpandedValue(nextExpandedValue);
+      } else {
+        // An owner keeping its value won't re-render this, leaving the write-through stale.
+        rerender();
       }
       latestRef.current.onExpandedChange?.(nextExpandedValue);
     },

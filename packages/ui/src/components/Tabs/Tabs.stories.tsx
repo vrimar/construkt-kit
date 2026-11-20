@@ -72,3 +72,31 @@ export const Sizes = meta.story({
     />
   ),
 });
+
+export const ManualActivation = meta.story({
+  render: () => (
+    <Box maxW="400px">
+      <Tabs.Root
+        defaultValue="overview"
+        activationMode="manual"
+      >
+        <Tabs.List>
+          <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+          <Tabs.Trigger
+            value="usage"
+            disabled
+          >
+            Usage
+          </Tabs.Trigger>
+          <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+          <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
+          <Tabs.Indicator />
+        </Tabs.List>
+        <Tabs.Content value="overview">Overview content goes here.</Tabs.Content>
+        <Tabs.Content value="usage">Usage content goes here.</Tabs.Content>
+        <Tabs.Content value="settings">Settings content goes here.</Tabs.Content>
+        <Tabs.Content value="billing">Billing content goes here.</Tabs.Content>
+      </Tabs.Root>
+    </Box>
+  ),
+});

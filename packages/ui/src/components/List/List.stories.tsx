@@ -91,11 +91,11 @@ export const AsLink = meta.story({
   render: () => (
     <Box maxW="320px">
       <List.Action
-        asChild
+        render={<a href="#tables" />}
         icon={<TableIcon />}
         value="3"
       >
-        <a href="#tables">Open tables</a>
+        Open tables
       </List.Action>
     </Box>
   ),

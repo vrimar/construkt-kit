@@ -1,5 +1,3 @@
-import { type TreeCollection, createTreeCollection } from "@ark-ui/react/tree-view";
-
 export interface TestNode {
   id: string;
   label: string;
@@ -8,19 +6,26 @@ export interface TestNode {
   children?: TestNode[];
 }
 
-export const createTestTree = (children: TestNode[]) =>
-  createTreeCollection<TestNode>({
-    nodeToValue: (node) => node.id,
-    nodeToString: (node) => node.label,
-    rootNode: { id: "ROOT", label: "", children },
-  });
+export const testAccessors = {
+  getNodeValue: (node: TestNode) => node.id,
+  getNodeLabel: (node: TestNode) => node.label,
+};
 
-export const childIdsOf = (
-  collection: TreeCollection<TestNode> | null | undefined,
-  parentValue?: string,
-) => {
-  if (!collection) throw new Error("expected a collection");
-  const parent = parentValue === undefined ? collection.rootNode : collection.findNode(parentValue);
+export const testTree = (nodes: TestNode[]) => ({ nodes, ...testAccessors });
+
+export const findTestNode = (nodes: readonly TestNode[], id: string): TestNode | undefined => {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findTestNode(node.children ?? [], id);
+    if (found) return found;
+  }
+  return undefined;
+};
+
+export const childIdsOf = (nodes: readonly TestNode[] | null | undefined, parentValue?: string) => {
+  if (!nodes) throw new Error("expected nodes");
+  if (parentValue === undefined) return nodes.map((node) => node.id);
+  const parent = findTestNode(nodes, parentValue);
   if (!parent) throw new Error(`no node ${parentValue}`);
-  return collection.getNodeChildren(parent).map((node) => node.id);
+  return (parent.children ?? []).map((node) => node.id);
 };

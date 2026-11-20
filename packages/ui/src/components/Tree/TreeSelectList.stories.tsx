@@ -2,7 +2,7 @@ import preview from "@construkt-kit/story-kit/preview";
 import { EllipsisIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { type TreeViewLoadChildrenDetails, TreeSelectList, createTreeCollection } from ".";
+import { type TreeLoadChildrenDetails, TreeSelectList } from ".";
 import { useDebounce } from "../../hooks/useDebounce";
 import { IconButton } from "../Buttons";
 import { Box } from "../Layout";
@@ -19,41 +19,38 @@ interface DemoNode {
   children?: DemoNode[];
 }
 
-const collection = createTreeCollection<DemoNode>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.label,
-  rootNode: {
-    id: "ROOT",
-    label: "",
+const accessors = {
+  getNodeValue: (node: { id: string }) => node.id,
+  getNodeLabel: (node: { label: string }) => node.label,
+};
+
+const nodes: DemoNode[] = [
+  {
+    id: "fruits",
+    label: "Fruits",
     children: [
+      { id: "apple", label: "Apple" },
+      { id: "banana", label: "Banana" },
       {
-        id: "fruits",
-        label: "Fruits",
+        id: "citrus",
+        label: "Citrus",
         children: [
-          { id: "apple", label: "Apple" },
-          { id: "banana", label: "Banana" },
-          {
-            id: "citrus",
-            label: "Citrus",
-            children: [
-              { id: "orange", label: "Orange" },
-              { id: "lemon", label: "Lemon" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "vegetables",
-        label: "Vegetables",
-        children: [
-          { id: "carrot", label: "Carrot" },
-          { id: "broccoli", label: "Broccoli" },
-          { id: "spinach", label: "Spinach" },
+          { id: "orange", label: "Orange" },
+          { id: "lemon", label: "Lemon" },
         ],
       },
     ],
   },
-});
+  {
+    id: "vegetables",
+    label: "Vegetables",
+    children: [
+      { id: "carrot", label: "Carrot" },
+      { id: "broccoli", label: "Broccoli" },
+      { id: "spinach", label: "Spinach" },
+    ],
+  },
+];
 
 function TreeSelectListDemo() {
   const [selected, setSelected] = useState<string[]>(["apple", "lemon"]);
@@ -66,7 +63,8 @@ function TreeSelectListDemo() {
       borderRadius="lg"
     >
       <TreeSelectList
-        collection={collection}
+        nodes={nodes}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         listHeight="320px"
@@ -90,7 +88,8 @@ function BareTreeDemo() {
       borderRadius="lg"
     >
       <TreeSelectList
-        collection={collection}
+        nodes={nodes}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         search={{ showInput: false }}
@@ -105,25 +104,17 @@ export const WithoutToolbar = meta.story({
   render: () => <BareTreeDemo />,
 });
 
-const longLabelCollection = createTreeCollection<DemoNode>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.label,
-  rootNode: {
-    id: "ROOT",
-    label: "",
+const longLabelNodes: DemoNode[] = [
+  {
+    id: "reports",
+    label: "Quarterly reports shared with the leadership team",
     children: [
-      {
-        id: "reports",
-        label: "Quarterly reports shared with the leadership team",
-        children: [
-          { id: "q1", label: "Q1 performance review with regional breakdowns" },
-          { id: "q2", label: "Q2 performance review" },
-          { id: "q3", label: "Q3 performance review with the revised forecast and commentary" },
-        ],
-      },
+      { id: "q1", label: "Q1 performance review with regional breakdowns" },
+      { id: "q2", label: "Q2 performance review" },
+      { id: "q3", label: "Q3 performance review with the revised forecast and commentary" },
     ],
   },
-});
+];
 
 function HoverActionsDemo() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -136,7 +127,8 @@ function HoverActionsDemo() {
       borderRadius="lg"
     >
       <TreeSelectList
-        collection={longLabelCollection}
+        nodes={longLabelNodes}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         search={{ showInput: false }}
@@ -145,14 +137,16 @@ function HoverActionsDemo() {
         actionsVisibility="hover"
         renderActions={({ node }) => (
           <Menu.Root>
-            <Menu.Trigger asChild>
-              <IconButton
-                aria-label={`Actions for ${node.label}`}
-                size="2xs"
-                variant="plain"
-              >
-                <EllipsisIcon />
-              </IconButton>
+            <Menu.Trigger
+              render={
+                <IconButton
+                  aria-label={`Actions for ${node.label}`}
+                  size="2xs"
+                  variant="plain"
+                />
+              }
+            >
+              <EllipsisIcon />
             </Menu.Trigger>
             <Menu.Content>
               <Menu.Item value="rename">Rename</Menu.Item>
@@ -197,15 +191,7 @@ function generateLargeTree(): DemoNode[] {
   return categories;
 }
 
-const largeCollection = createTreeCollection<DemoNode>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.label,
-  rootNode: {
-    id: "ROOT",
-    label: "",
-    children: generateLargeTree(),
-  },
-});
+const largeNodes = generateLargeTree();
 
 function LongListDemo() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -213,7 +199,8 @@ function LongListDemo() {
   return (
     <Box maxW="400px">
       <TreeSelectList
-        collection={largeCollection}
+        nodes={largeNodes}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         listHeight="480px"
@@ -232,7 +219,8 @@ function StickyBranchesDemo() {
   return (
     <Box maxW="400px">
       <TreeSelectList
-        collection={largeCollection}
+        nodes={largeNodes}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         listHeight="360px"
@@ -247,21 +235,28 @@ export const StickyBranches = meta.story({
   render: () => <StickyBranchesDemo />,
 });
 
+const renameNode = (list: DemoNode[], id: string, label: string): DemoNode[] =>
+  list.map((node) =>
+    node.id === id
+      ? { ...node, label }
+      : node.children
+        ? { ...node, children: renameNode(node.children, id, label) }
+        : node,
+  );
+
 function RenameDemo() {
-  const [tree, setTree] = useState(collection);
+  const [tree, setTree] = useState(nodes);
   const [selected, setSelected] = useState<string[]>([]);
 
   return (
     <Box maxW="400px">
       <TreeSelectList
-        collection={tree}
+        nodes={tree}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         canRename={({ isBranch }) => !isBranch}
-        onRenameComplete={({ indexPath, label }) => {
-          const node = tree.at(indexPath);
-          if (node) setTree(tree.replace(indexPath, { ...node, label }));
-        }}
+        onRenameComplete={(value, { label }) => setTree(renameNode(tree, value, label))}
       />
     </Box>
   );
@@ -279,19 +274,11 @@ interface LazyDemoNode {
   children?: LazyDemoNode[];
 }
 
-const lazyCollection = createTreeCollection<LazyDemoNode>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.label,
-  rootNode: {
-    id: "ROOT",
-    label: "",
-    children: [
-      { id: "engineering", label: "Engineering", childrenCount: 3 },
-      { id: "design", label: "Design", childrenCount: 2 },
-      { id: "sales", label: "Sales", childrenCount: 4 },
-    ],
-  },
-});
+const lazyNodes: LazyDemoNode[] = [
+  { id: "engineering", label: "Engineering", childrenCount: 3 },
+  { id: "design", label: "Design", childrenCount: 2 },
+  { id: "sales", label: "Sales", childrenCount: 4 },
+];
 
 const delay = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -306,11 +293,10 @@ const delay = (ms: number, signal: AbortSignal) =>
     );
   });
 
-const loadTeam = async ({
-  node,
-  valuePath,
-  signal,
-}: TreeViewLoadChildrenDetails<LazyDemoNode>): Promise<LazyDemoNode[]> => {
+const loadTeam = async (
+  node: LazyDemoNode,
+  { valuePath, signal }: TreeLoadChildrenDetails,
+): Promise<LazyDemoNode[]> => {
   await delay(800, signal);
   const isTeam = valuePath.length > 1;
 
@@ -323,7 +309,7 @@ const loadTeam = async ({
 };
 
 function LazyLoadingDemo() {
-  const [teams, setTeams] = useState(lazyCollection);
+  const [teams, setTeams] = useState(lazyNodes);
   const [selected, setSelected] = useState<string[]>([]);
 
   return (
@@ -334,11 +320,12 @@ function LazyLoadingDemo() {
       borderRadius="lg"
     >
       <TreeSelectList
-        collection={teams}
+        nodes={teams}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         loadChildren={loadTeam}
-        onLoadChildrenComplete={(details) => setTeams(details.collection)}
+        onLoadChildrenComplete={setTeams}
         listHeight="320px"
       />
     </Box>
@@ -349,18 +336,25 @@ export const LazyLoading = meta.story({
   render: () => <LazyLoadingDemo />,
 });
 
+const filterNodes = (list: DemoNode[], matches: (node: DemoNode) => boolean): DemoNode[] =>
+  list.flatMap((node) => {
+    const children = filterNodes(node.children ?? [], matches);
+    if (!children.length && !matches(node)) return [];
+    return [node.children ? { ...node, children } : node];
+  });
+
 const searchServer = async (query: string, signal: AbortSignal) => {
   await delay(400, signal);
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return collection;
-  return collection.filter((node) => node.label.toLowerCase().includes(normalized));
+  if (!normalized) return nodes;
+  return filterNodes(nodes, (node) => node.label.toLowerCase().includes(normalized));
 };
 
 function ExternalSearchDemo() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   useDebounce(() => setDebouncedQuery(query), 300, [query]);
-  const [results, setResults] = useState(collection);
+  const [results, setResults] = useState(nodes);
   const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
@@ -377,7 +371,8 @@ function ExternalSearchDemo() {
       borderRadius="lg"
     >
       <TreeSelectList
-        collection={results}
+        nodes={results}
+        {...accessors}
         value={selected}
         onValueChange={setSelected}
         search={{ mode: "external", query, onQueryChange: setQuery }}

@@ -1,4 +1,3 @@
-import { useFieldContext } from "@ark-ui/react/field";
 import {
   NUMBER_FILTER_OPERATORS,
   type NumberFilterOperator,
@@ -12,6 +11,8 @@ import { HStack } from "#styled-system/jsx";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControlledMirror } from "../../hooks/useControlledMirror";
 import { useDebounce } from "../../hooks/useDebounce";
+import { FieldContext, joinIds, useFieldContext } from "../../primitives/field";
+import { dataAttr } from "../../primitives/render";
 import type { Unstyled } from "../../types";
 import { IconButton } from "../Buttons";
 import {
@@ -182,20 +183,22 @@ export const NumberFilter = ({
 
   const operatorTrigger = (
     <Menu.Root placement="bottom-start">
-      <Menu.Trigger asChild>
-        <IconButton
-          size={inputGroupButtonSizeFor(size)}
-          variant="plain"
-          disabled={disabled}
-          aria-label={labelFor(operator)}
-        >
-          {operatorSymbols[operator]}
-        </IconButton>
+      <Menu.Trigger
+        render={
+          <IconButton
+            size={inputGroupButtonSizeFor(size)}
+            variant="plain"
+            disabled={disabled}
+            aria-label={labelFor(operator)}
+          />
+        }
+      >
+        {operatorSymbols[operator]}
       </Menu.Trigger>
       <Menu.Content>
         <Menu.RadioItemGroup
           value={operator}
-          onValueChange={(e) => handleOperatorChange(e.value as NumberFilterOperator)}
+          onValueChange={(next) => handleOperatorChange(next as NumberFilterOperator)}
         >
           {offered.map((op) => (
             <Menu.RadioItem
@@ -250,28 +253,35 @@ export const NumberFilter = ({
       {...(isBetween && {
         role: "group",
         "aria-label": ariaLabel,
-        "aria-labelledby":
-          ariaLabelledby ?? (ariaLabel === undefined ? field?.ids.label : undefined),
+        "aria-labelledby": ariaLabelledby ?? (ariaLabel === undefined ? field?.labelId : undefined),
       })}
       gap="1"
       width="100%"
     >
       {fromInput}
       {isBetween && (
-        <InputGroup
-          size={size}
-          endElement={clearButton}
-        >
-          <Input
-            {...sharedInputProps}
-            {...managedInputProps}
-            id={toInputId}
-            aria-label={toLabel}
-            placeholder={toLabel}
-            value={toText}
-            onChange={(e) => handleTextChange(setToText, e.target.value)}
-          />
-        </InputGroup>
+        <FieldContext value={null}>
+          <InputGroup
+            size={size}
+            endElement={clearButton}
+          >
+            <Input
+              {...sharedInputProps}
+              {...managedInputProps}
+              id={toInputId}
+              aria-label={toLabel}
+              aria-describedby={joinIds([sharedInputProps["aria-describedby"], field?.describedBy])}
+              aria-invalid={sharedInputProps["aria-invalid"] ?? (field?.invalid || undefined)}
+              data-invalid={dataAttr(field?.invalid)}
+              disabled={disabled ?? field?.disabled}
+              readOnly={sharedInputProps.readOnly ?? field?.readOnly}
+              required={sharedInputProps.required ?? field?.required}
+              placeholder={toLabel}
+              value={toText}
+              onChange={(e) => handleTextChange(setToText, e.target.value)}
+            />
+          </InputGroup>
+        </FieldContext>
       )}
     </HStack>
   );

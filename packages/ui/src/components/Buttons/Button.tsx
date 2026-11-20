@@ -1,12 +1,12 @@
-import { ark } from "@ark-ui/react/factory";
-import { mergeProps } from "@ark-ui/react/utils";
 import type { ComponentProps } from "react";
 
 import { styled } from "#styled-system/jsx";
 import { type ButtonVariantProps, button } from "#styled-system/recipes";
 
+import { dataAttr, renderable } from "../../primitives/render";
+import { mergeProps } from "../../primitives/render/mergeProps";
 import type { WithRef } from "../../types";
-import { wrapAsChildContent } from "../asChildContent";
+import { wrapRenderContent } from "../renderContent";
 import {
   type ButtonGroupContextProps,
   ButtonPropsProvider,
@@ -18,7 +18,7 @@ import { Loader } from "./Loader";
 interface ButtonLoadingProps {
   /**
    * Shows the spinner and ignores clicks, presses and keys, rendering `aria-disabled` rather than
-   * `disabled` so a focused button keeps focus while it loads. Ignored with `asChild`.
+   * `disabled` so a focused button keeps focus while it loads. Ignored with `render`.
    */
   loading?: boolean | undefined;
   loadingText?: React.ReactNode | undefined;
@@ -40,11 +40,21 @@ interface ButtonDisabledProps {
   focusableWhenDisabled?: boolean | undefined;
 }
 
+interface ButtonPressedProps {
+  /** Makes it a toggle button: `aria-pressed`, and `data-pressed` while on for `_on` styles. */
+  pressed?: boolean | undefined;
+}
+
 type BaseButtonProps = ComponentProps<typeof BaseButton>;
-const BaseButton = styled(ark.button, button);
+const BaseButton = styled(renderable.button, button);
 
 export interface ButtonProps
-  extends BaseButtonProps, ButtonLoadingProps, ButtonIconProps, ButtonDisabledProps {}
+  extends
+    BaseButtonProps,
+    ButtonLoadingProps,
+    ButtonIconProps,
+    ButtonDisabledProps,
+    ButtonPressedProps {}
 
 const softDisabledProps = {
   "aria-disabled": true,
@@ -71,32 +81,41 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
     leftIcon,
     rightIcon,
     focusableWhenDisabled,
+    pressed,
     ...rest
   } = buttonProps;
-  const isLoading = Boolean(!props.asChild && loading);
+  const isLoading = Boolean(!rest.render && loading);
   const softDisabled = isLoading || Boolean(focusableWhenDisabled && rest.disabled);
+  const rendered = isLoading
+    ? {
+        render: undefined,
+        children: (
+          <Loader
+            spinner={spinner}
+            text={loadingText}
+            spinnerPlacement={spinnerPlacement}
+          >
+            {children}
+          </Loader>
+        ),
+      }
+    : wrapRenderContent(rest.render, children, (content) =>
+        wrapIcons(content, leftIcon, rightIcon),
+      );
   return (
     <BaseButton
-      type={props.asChild ? undefined : "button"}
+      type={rest.render ? undefined : "button"}
       ref={ref}
       {...rest}
+      {...(pressed === undefined
+        ? {}
+        : { "aria-pressed": pressed, "data-pressed": dataAttr(pressed) })}
       {...(softDisabled ? softDisabledProps : {})}
       data-loading={isLoading ? "" : undefined}
       disabled={!softDisabled && rest.disabled}
+      render={rendered.render}
     >
-      {props.asChild ? (
-        withIcons(children, leftIcon, rightIcon)
-      ) : isLoading ? (
-        <Loader
-          spinner={spinner}
-          text={loadingText}
-          spinnerPlacement={spinnerPlacement}
-        >
-          {children}
-        </Loader>
-      ) : (
-        wrapIcons(children, leftIcon, rightIcon)
-      )}
+      {rendered.children}
     </BaseButton>
   );
 };
@@ -112,15 +131,6 @@ const wrapIcons = (
     {rightIcon}
   </>
 );
-
-const withIcons = (
-  child: React.ReactNode,
-  leftIcon: React.ReactNode,
-  rightIcon: React.ReactNode,
-) => {
-  if (!leftIcon && !rightIcon) return child;
-  return wrapAsChildContent(child, (content) => wrapIcons(content, leftIcon, rightIcon));
-};
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}
 

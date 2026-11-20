@@ -1,6 +1,6 @@
 # @construkt-kit/ui
 
-60+ UI components for Construkt Kit apps, built on Panda CSS and Ark UI primitives.
+60+ UI components for Construkt Kit apps, built on Panda CSS and the kit's own React primitives.
 
 > **Rule:** Consumers import components from `@construkt-kit/ui` and Panda helpers from their own generated `styled-system/`. UI implementation code imports Panda helpers from `#styled-system/*`.
 
@@ -20,12 +20,13 @@
 
 **Form:** `Field`, `SubmitForm`, `Fieldset`, `Input`, `Textarea`, `InputGroup`, `PasswordInput`, `SearchInput`, `NumberInput`, `Checkbox`, `CheckboxCard`, `Switch`, `Radio` / `RadioGroup`, `RadioCard`, `Slider`, `TagsInput`, `Editable`, `FileUpload`, `FormFileUpload`, `PinInput`, `ColorPicker`, `HotkeyInput`
 
-Inside a `Field`, the trigger of `Select`, `ApplySelect`, `TagSelect`, `DatePicker` and `DatePickerSelect` is named by
-the field's label followed by its value, described by its helper and error text, and invalid with it.
+Inside a `Field`, the trigger of `Select`, `ApplySelect`, `TagSelect`, `DatePicker`, `DatePickerSelect` and
+`ColorPicker` is named by the field's label followed by its value, described by its helper and error text, and invalid
+with it.
 
 **Selection / Dropdowns:** `Select`, `Listbox`, `SelectButton`, `TagSelect`, `ApplySelect`, `Combobox` — the managed `Select`/`Listbox` families take `groupBy` / `groupSort` for group headings
 
-**Tree:** `TreeView`, `useTreeView`, `TreeSelectList`, `createTreeCollection`, `createFileTreeCollection`; `useVirtualTreeView` + `VirtualTree` + `VirtualTreeRow` render a tree whose rows mount only in view, with keyboard navigation, tab stop and sticky branch headings intact
+**Tree:** `TreeView`, `TreeSelectList` — both take `nodes` with `getNodeValue`, `getNodeLabel` and optional `getChildren`, `getChildrenCount` and `isNodeDisabled`; `VirtualTree` + `VirtualTreeRow` inside `TreeView.Tree` render a tree whose rows mount only in view, with keyboard navigation, tab stop and sticky branch headings intact
 
 **Sortable:** `Sortable`, `applySortableReorder`, `DragPreview` (the drag pill, also exported as `TreeDragPreview`)
 
@@ -57,12 +58,12 @@ cards moved across lists; `getExternalData` also hands native data to `dataTrans
 | `createEdgeAutoScroll`                  | Scroll a container while the pointer is near or past its edges   |
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint           |
 | `useIsMobile`                           | Whether the viewport is below the `md` breakpoint                |
+| `useHasOpenOverlay` / `hasOpenOverlay`  | Whether a popup, menu or dialog is open; tooltips don't count    |
+| `whenOverlaysSettle`                    | Run once closing overlays have gone and handed focus back        |
 
-Each `RootProvider` takes its `value` from its component's hook: `useAccordion`, `useAvatar`, `useCarousel`,
-`useCheckbox`, `useClipboard`, `useCollapsible`, `useColorPicker`, `useCombobox`, `useDialog`, `useDrawer`,
-`useEditable`, `useFieldset`, `useFileUpload`, `useHoverCard`, `useListbox`, `usePagination`, `usePinInput`,
-`useProgress`, `useRadioGroup` (`RadioCard`), `useRatingGroup`, `useSegmentGroup`, `useSheet`, `useTabs`,
-`useTagsInput`, `useToggleGroup`, `useTreeView`.
+`hasOpenOverlay(except)` leaves out an overlay inside `except` or holding it, such as one opened from a side pane.
+`whenOverlaysSettle(fn)` waits for the overlays closing by the next frame, so a menu's `onSelect` can call it to run
+`fn` once the menu has gone and its trigger has focus again; it returns a cancel.
 
 ### Panda CSS Utilities
 
@@ -105,37 +106,59 @@ Compound components (DataTable, Dialog, Menu, etc.) may have subfolders for sub-
 One-liner. Use when wrapping a single element with a recipe:
 
 ```tsx
-import { ark } from "@ark-ui/react/factory";
-
 import { styled } from "#styled-system/jsx";
 import { badge } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
+
 export type BadgeProps = ComponentProps<typeof Badge>;
-export const Badge = styled(ark.div, badge);
+export const Badge = styled(renderable.div, badge);
 ```
 
-For Ark UI field primitives: `export const Input = styled(Field.Input, input);`
+`renderable.<tag>` adds the `render` prop, which swaps in another element and merges the component's props into it.
 
-### 2. Compound component with style context (Dialog, Menu, Tabs)
+### 2. Compound component with style context (Collapsible, Tabs, Dialog)
 
-Use `createSlotRecipeContext(recipe)` to wrap Ark UI compound parts with slot-based styling:
+Use `createSlotRecipeContext(recipe)` for slot-based styling, and a kit hook plus React context for the state the
+parts share:
 
 ```tsx
-import { Dialog as ArkDialog } from "@ark-ui/react/dialog";
 import { createSlotRecipeContext } from "#styled-system/jsx";
-import { dialog } from "#styled-system/recipes";
+import { collapsible } from "#styled-system/recipes";
 
-const { withRootProvider, withContext } = createSlotRecipeContext(dialog);
+import { renderable } from "../../primitives/render";
+import { mergeProps } from "../../primitives/render/mergeProps";
 
-const Root = withRootProvider(ArkDialog.Root, { defaultProps: lazyOverlayDefaults });
-const Content = withContext(ArkDialog.Content, "content");  // "content" = slot name in recipe
-const Title = withContext(ArkDialog.Title, "title");
+const { withProvider, withContext } = createSlotRecipeContext(collapsible);
 
-export const Dialog = { Root, Content, Title, ... };  // Export as plain object
+const StyledRoot = withProvider(renderable.div, "root"); // "root" = slot name in recipe
+const StyledTrigger = withContext(renderable.button, "trigger");
+
+function Trigger(props: TriggerProps) {
+  const state = useCollapsibleContext("Collapsible.Trigger");
+  return (
+    <StyledTrigger
+      {...mergeProps<TriggerProps>(
+        {
+          type: "button",
+          "aria-expanded": state.open,
+          onClick: (event: MouseEvent<HTMLButtonElement>) => state.toggle(event.nativeEvent),
+        },
+        props,
+      )}
+    />
+  );
+}
+
+export const Collapsible = { Root, Trigger, Content, Indicator }; // Export as plain object
 ```
 
-- Each sub-component is a "slot" in the recipe — Panda generates e.g. `dialog__content`, `dialog__title`
-- Export as a **plain object** with capitalized properties → `<Dialog.Root>`, `<Dialog.Content>`
+- Each sub-component is a "slot" in the recipe — Panda generates e.g. `collapsible__root`, `collapsible__trigger`
+- Export as a **plain object** with capitalized properties → `<Collapsible.Root>`, `<Collapsible.Trigger>`
+- Behaviour comes from `src/primitives/` — `layer` (Escape, outside press, portals), `focus`, `presence`, `position`,
+  `composite` (arrow-key navigation), `field`, `locale`, `change` (`onXChange` details) and `render`
+- Parts state themselves with `data-slot` and boolean `data-*` attributes (`data-open`, `data-disabled`), which the
+  recipe matches with Panda conditions (`_open`, `_disabled`)
 - Slot recipes use `sva()` (slot variant authority)
 
 ### 3. Compound with custom context (Select, ButtonGroup)
@@ -294,8 +317,8 @@ A `light` or `dark` class on any element forces that scheme for its subtree, suc
 inside a dark app. Semantic tokens, `color-scheme` and text colour follow the nearest scope at any depth, and
 `_light`/`_dark` styles do up to three scopes deep (dark, light, dark). A scope resets `colorPalette` to `brand`: set
 `colorPalette` on the scope element to keep another. Give the scope its own background (`bg="bg"`). `_light`/`_dark`
-styles on the scope element itself follow the scheme around it, and an overlay portalled out of the scope follows the
-app's mode.
+styles on the scope element itself follow the scheme around it. A popup or dialog opened inside a scope follows the
+app's mode: its top-layer element takes the document's scheme as its own scope class.
 
 `resolveColor(color, colorScheme)` resolves a colour, such as a token's `var(--colors-brand-solid-bg)`, through such a
 scope and returns `#rrggbb`, for exported images and documents that can't read CSS variables.
@@ -397,7 +420,9 @@ The entry CSS keeps the usual layer line:
 @layer reset, base, tokens, recipes, utilities;
 ```
 
-`@fontsource-variable/inter` is an optional peer: install it unless the app replaces the preset's `globalFontface`.
+`inter-ui` is an optional peer: install it unless the app replaces the preset's `globalFontface`. Body text turns on
+Inter's tailed l and serifed I (`cv05`, `cv08`) through `--font-body-features` on `html`; set it to `normal` when
+`fonts.body` names another typeface, whose `cv05` and `cv08` mean other glyphs.
 `@pandacss/dev` 2 depends on `@parcel/watcher`, whose install script pnpm flags until `allowBuilds` lists it. Its
 prebuilt binaries ship as optional dependencies, so the script can stay off:
 
@@ -420,17 +445,18 @@ Two things adapt, each on its own signal:
 - **Presentation** follows the viewport. Below `md`, `Select`, `ApplySelect`, `TagSelect`, `Menu`, `Popover`,
   `DatePicker`, `DatePickerSelect`, `ColorPicker` and `Combobox` open as a bottom sheet that swipes away; from `md` up
   they stay anchored. Pass `mobileLayout="popover"` to keep one anchored; an overlay with `autoFocus={false}` (a hint
-  beside a focused field) and an `inline` picker always stay anchored. A sheet applies the overlay's `closeOnEscape`,
-  `closeOnInteractOutside` and outside/Escape handlers. A submenu opens inside its parent's sheet
-  behind a back row (`Menu.Content`'s `backLabel`). A phone `Combobox` field is a button that opens a full-height sheet
-  with the search input on top. `Dialog` sizes `md`, `lg`, `xl` and `cover` fill the screen below `md`; `xs` and `sm`
-  stay centred. A `DataTable` with `mobileLayout="cards"` also shows cards on a touch screen shorter than 32rem, a
-  phone on its side, where the table would leave room for a few rows.
+  beside a focused field) and an `inline` picker always stay anchored. A sheet applies the overlay's `closeOnEscape`
+  and `closeOnInteractOutside`, and its `onOpenChange` can `cancel()` the close. A submenu opens inside its parent's
+  sheet behind a back row (`Menu.Content`'s `backLabel`). A phone `Combobox` field is a button that opens a
+  full-height sheet with the search input on top. `Dialog` sizes `md`, `lg`, `xl` and `cover` fill the screen below
+  `md`; `xs` and `sm` stay centred. A `DataTable` with `mobileLayout="cards"` also shows cards on a touch screen
+  shorter than 32rem, a phone on its side, where the table would leave room for a few rows.
 
-`Sheet` is the bottom `Drawer` with a grabber, `snapPoints`, safe-area padding and a `Header` that takes
-`startElement`/`endElement`. Every `Drawer` placement swipes to dismiss on touch, and a mouse drags it by the grabber
-(`draggable` on `Drawer.Content` lets the mouse drag the content too); for `Drawer.RootProvider`, pass the placement
-to `useDrawer`, which sets the swipe direction and the provider's styling, and give `Sheet.RootProvider` `useSheet()`.
+`Sheet` is the bottom `Drawer` with a grabber, `snapPoints`, safe-area padding and a title header whose ends
+`Sheet.Content`'s `headerStart` and `headerEnd` fill. Every `Drawer` placement swipes to dismiss on touch, yielding
+to anything inside it that can still scroll that way, and a mouse drags it by the grabber (`draggable` on
+`Drawer.Content` lets the mouse drag the content too, and `draggable={false}` leaves only the grabber). A swipe's
+position and speed decide whether it closes or settles on the snap point it points at.
 On a coarse pointer a `Drawer` or `Sheet` opens with focus on itself rather than its first field, so the on-screen
 keyboard stays down; mark a field `data-autofocus` or pass `initialFocusEl` to focus it. Initial focus skips a close
 trigger: a `Dialog`, `Drawer` or `Popover` with nothing else to focus opens with focus on its content. A `DataTable` in
@@ -443,6 +469,760 @@ reachable another way.
 Give the app `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`.
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
+
+#### Upgrading from 0.14
+
+- Every component takes `render` in place of `asChild`. Pass the element to render as, and keep the content as the
+  component's children:
+
+  ```tsx
+  // before
+  <Menu.Trigger asChild>
+    <IconButton aria-label="More" icon={<EllipsisIcon />} />
+  </Menu.Trigger>
+  <Button asChild>
+    <a href="/export">Export</a>
+  </Button>
+
+  // after
+  <Menu.Trigger render={<IconButton aria-label="More" icon={<EllipsisIcon />} />} />
+  <Button render={<a href="/export" />}>Export</Button>
+  ```
+
+  `npx jscodeshift -t node_modules/@construkt-kit/ui/codemods/as-child-to-render.ts --extensions=tsx,ts src` rewrites
+  each `asChild` with a single element child, or an expression child such as `{children}` or a ternary of two
+  elements, and prints the file and line of any it leaves, such as a dynamic `asChild={…}`. A link whose children are a render function keeps them, and the component wraps that function's output
+
+  Every codemod here rewrites only elements imported from `@construkt-kit/ui`, under any name or through a namespace
+  import. An element from Ark, Radix or the app's own re-export is left as it is
+
+- `render` also takes a function, `render={(props) => <a {...props} />}`, for an element that needs the props spread by
+  hand. The render element's own defined props win over the component's, its handlers run before the component's, and
+  its own children replace the component's
+- `Menu.CheckboxItem`, `Menu.RadioItem` and `Menu.TriggerItem` take no `render`, as they took no `asChild`
+- `Popover`, `ConfirmPopover`, `PromptPopover`, `Tooltip`, `HoverCard`, `ToggleTip`, `InfoTip` and `ActionBar` no
+  longer run on Ark. Their `onOpenChange` takes `(open, details)`; `details` has the `reason`, the `event` and a
+  `cancel()` that keeps the overlay as it is:
+
+  ```tsx
+  // before
+  <Popover.Root onOpenChange={({ open }) => setOpen(open)}>
+  // after
+  <Popover.Root onOpenChange={(open) => setOpen(open)}>
+  ```
+
+  `npx jscodeshift -t node_modules/@construkt-kit/ui/codemods/open-change-args.ts --extensions=tsx,ts src` rewrites
+  inline handlers on these components and prints the file and line of any it leaves, such as a handler passed by name
+
+- `positioning` is gone from them. `placement` takes one placement or a list, the first preferred and the rest tried
+  when it doesn't fit (`placement={["right", "top", "bottom"]}` for Ark's `flip: ["top", "bottom"]`). `Tooltip` and
+  `Popover.Root` take `anchor`, an element or `{ getBoundingClientRect }`, in place of `positioning.getAnchorRect`. A
+  `ConfirmPopover` given `anchor` needs no trigger, for one opened from elsewhere, such as a menu item
+- They render in place in the browser's top layer instead of portalling to `<body>`, so nothing on the page can cover
+  or clip them and `z-index` no longer orders them. `portalled` and `portalRef` are gone from them, except
+  `ActionBar.Content`, whose `bottom` bar still portals. A popup takes CSS variables (density, `--control-*`) from where
+  it is rendered; its text styles, palette and colour mode reset to the page's, so one opened inside a `.dark` scope
+  still follows a light app
+- A tooltip's open delay counts from when the pointer enters its trigger, and a press keeps it closed until the pointer
+  leaves, asking `onOpenChange` once per press. Hovering another trigger within 300 ms of a tooltip closing shows its
+  tooltip at once
+- `ToggleTip` keeps its trigger in the same element whether or not `label` is set, and a `HoverCard` opens on focus only
+  when the focus is visible, never from a tap
+- Removed with Ark: `Popover.Positioner`, `Popover.Context`, the `Tooltip.*` parts (`Tooltip` is props only),
+  `HoverCard.RootProvider`, `HoverCard.Positioner`, `HoverCard.Context`, `useHoverCard`, `Tooltip`'s `ids`, and the Ark
+  root props `modal`, `lazyMount`, `unmountOnExit`, `onEscapeKeyDown`, `onInteractOutside`, `onPointerDownOutside`,
+  `onFocusOutside` and `finalFocusEl`. Use `details.cancel()` in `onOpenChange` where an outside handler kept the
+  overlay open, and `returnFocusTo` on `Popover.Root`, `ConfirmPopover`, `Dialog.Root`, `Drawer.Root` and
+  `Sheet.Root` in place of `finalFocusEl`
+
+  `npx jscodeshift -t node_modules/@construkt-kit/ui/codemods/overlay-props.ts --extensions=tsx,ts src` drops
+  `lazyMount`, `unmountOnExit`, `portalled` and `portalRef` where they are gone, moves `positioning={{ placement }}` to
+  `placement` and a `positioning.getAnchorRect` that takes no argument to `anchor`, and prints the file and line of any
+  it leaves, such as another `positioning` key or a `lazyMount` that kept a shown panel mounted
+
+- Their elements carry `data-slot`, `data-open` or `data-closed`, `data-side` and `data-align` instead of `data-scope`,
+  `data-part`, `data-state`, `data-placement` and `data-expanded`; style them with `_open`, `_closed` and
+  `_sideTop`/`_sideRight`/`_sideBottom`/`_sideLeft`. Their positioner sets `--anchor-width` in place of
+  `--reference-width`
+- A press that starts inside one of them and ends outside no longer closes it, and Escape closes an open tooltip before
+  the popover under it
+- `Popover.Root` and `Menu.Root` take `onExitComplete`, called once the overlay has gone and handed focus back, as
+  `Dialog.Root`'s is
+- `ActionBar` takes Escape only while no popup or dialog is open above where it renders, so Escape closes a popover
+  opened before the bar, and a bar inside a dialog clears before the dialog closes
+- `Toolbar.Button` and `NavRail.Item` no longer get a generated `id`
+- `Menu` no longer runs on Ark either. `Menu.Root`'s `onOpenChange` takes `(open, details)`, `onSelect` takes the
+  selected item's value and `onHighlightChange` the highlighted value or `null`; `Menu.RadioItemGroup` and
+  `Menu.SegmentGroup` take `onValueChange(value)`. The `open-change-args` codemod rewrites inline handlers on them:
+
+  ```tsx
+  // before
+  <Menu.Root onSelect={({ value }) => run(value)}>
+  // after
+  <Menu.Root onSelect={(value) => run(value)}>
+  ```
+
+- `Menu.Root` takes `anchor` in place of `positioning.getAnchorRect` and `anchorPoint`, and `placement` in place of
+  the rest of `positioning`. `Menu.Content` renders in place in the top layer, without `portalled` or `portalRef`, and
+  a submenu opens beside its trigger item as before
+- Removed with Ark: `Menu.Context`, `MenuSelectionDetails`, `Menu.Trigger`'s `value` with the root's `triggerValue`,
+  `defaultTriggerValue` and `onTriggerValueChange`, and the root props `id`, `ids`, `aria-label` (set it on
+  `Menu.Content`), `composite`, `typeahead`, `navigate`, `lazyMount`, `unmountOnExit`, `onEscapeKeyDown`,
+  `onInteractOutside`, `onPointerDownOutside`, `onFocusOutside` and `onRequestDismiss`. Enter on a link item clicks
+  the link, so a router link's own click handler navigates
+- Menu elements carry `data-slot`, `data-open` or `data-closed`, `data-checked` or `data-unchecked` and
+  `data-highlighted` instead of `data-scope`, `data-part` and `data-state`; style option items with `_checked` and the
+  preset's new `_unchecked`
+- A context menu returns focus to the element that had it when the menu opened, after Escape, a press outside or a
+  select
+- `Listbox`, `Select`, `ApplySelect`, `TagSelect`, `Combobox` and `CommandPalette`'s list no longer run on Ark. The
+  managed `Listbox` and the `Select` family keep their props. `Combobox.Root` and `Listbox.Root` take `items` with
+  `getItemValue` and `getItemLabel` (and `isItemDisabled`) in place of a `collection`; `Combobox.Item` and
+  `Listbox.Item` keep `item`. Filter a combobox's `items` yourself from `onInputValueChange`:
+
+  ```tsx
+  // before
+  const { collection, filter } = useListCollection({ initialItems: frameworks, filter: contains });
+  <Combobox.Root
+    collection={collection}
+    onInputValueChange={({ inputValue }) => filter(inputValue)}
+    onValueChange={({ value }) => setFramework(value[0] ?? null)}
+  >
+  // after
+  const shown = frameworks.filter((item) => contains(item.label, query));
+  <Combobox.Root
+    items={shown}
+    getItemValue={(item) => item.value}
+    getItemLabel={(item) => item.label}
+    onInputValueChange={(inputValue) => setQuery(inputValue)}
+    onValueChange={(value) => setFramework(value)}
+  >
+  ```
+
+- A combobox's `value` is the picked item's value, or `null`, like `Select`'s; `selectionMode="multiple"` takes the
+  place of `multiple` and makes it an array. `Combobox.Root` takes `onValueChange(value)`,
+  `onInputValueChange(inputValue, { reason })`, `onOpenChange(open, details)` and `onHighlightChange(value)`, and
+  `Listbox.Root` takes `onValueChange(value)`; the `open-change-args` codemod rewrites inline handlers on both
+- `Combobox.Root` takes `placement` in place of `positioning`; for `positioning.sameWidth`, give `Combobox.Content`
+  `w="var(--anchor-width)"`. Its content renders in place in the top layer, without `portalled`, `portalRef` or
+  `lazyMount`, and its live regions follow it
+- Removed with Ark: `createListCollection`, `useListCollection`, `CollectionItem`, `ListCollection`, `useListbox`,
+  `useCombobox` and their `Use*Props`/`Use*Return` types, `Listbox.RootProvider`, `Listbox.Context`,
+  `Combobox.RootProvider`, `Combobox.Context` and `Combobox.Positioner`; `Combobox.Root`'s `onSelect`, `ids`,
+  `composite`, `disableLayer`, `navigate`, `scrollToIndexFn`, `translations`, `placeholder` (set it on
+  `Combobox.Input`), `onFocusOutside`, `onPointerDownOutside` and `onInteractOutside` (use `details.cancel()`); and
+  the `Listbox`/`Listbox.Root` props `ids`, `orientation`, `highlightedValue`, `defaultHighlightedValue`,
+  `onHighlightChange`, `onSelect`, `selectOnHighlight`, `scrollToIndexFn`, `deselectable`, `disallowSelectAll` and
+  `composite`. Enter on a link option clicks the link, so a router link's own click handler navigates
+- Their elements carry `data-slot`, `data-selected` on picked options, `data-checked` or `data-unchecked` on item
+  indicators, `data-highlighted` and `data-open` or `data-closed` instead of `data-scope`, `data-part` and
+  `data-state`; style options with `_selected`. The combobox content reads `--anchor-width` in place of
+  `--reference-width`
+- `TreeView`, `TreeSelectList`, `VirtualTree` and the tree drag and drop no longer run on Ark. `TreeView.Root` and
+  `TreeSelectList` take the top-level `nodes` with `getNodeValue` and `getNodeLabel` in place of a `collection`, and
+  `getChildren`, `getChildrenCount` and `isNodeDisabled` where a node keeps them anywhere but `children`,
+  `childrenCount` and `disabled`. The tree re-reads every node when one of these functions changes identity, so define
+  them outside the component or memoize them:
+
+  ```tsx
+  // before
+  const collection = createTreeCollection({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: { id: "root", name: "", children: files },
+  });
+  <TreeSelectList
+    collection={collection}
+    value={picked}
+    onValueChange={setPicked}
+  />;
+  // after
+  const fileValue = (node: File) => node.id;
+  const fileLabel = (node: File) => node.name;
+
+  <TreeSelectList
+    nodes={files}
+    getNodeValue={fileValue}
+    getNodeLabel={fileLabel}
+    value={picked}
+    onValueChange={setPicked}
+  />;
+  ```
+
+- Controlled `expandedValue` and `selectedValue` on `TreeView.Root` replace `TreeView.RootProvider` and
+  `useVirtualTreeView`. `VirtualTree` drops `tree` and shows the nodes of the `TreeView.Root` around it; annotate its
+  render function's entry with your node type:
+
+  ```tsx
+  // before
+  const tree = useVirtualTreeView({
+    collection,
+    selectedValue: selected,
+    onSelectionChange: ({ selectedValue }) => setSelected(selectedValue),
+    expandedValue: expanded,
+    onExpandedChange: ({ expandedValue }) => setExpanded(expandedValue),
+  });
+  <TreeView.RootProvider value={tree.api}>
+    <TreeView.Tree aria-label="Chapters">
+      <VirtualTree
+        tree={tree}
+        rowHeight={32}
+      >
+        {({ node }) => <VirtualTreeRow>{node.label}</VirtualTreeRow>}
+      </VirtualTree>
+    </TreeView.Tree>
+  </TreeView.RootProvider>;
+  // after
+  const chapterValue = (node: Chapter) => node.id;
+  const chapterLabel = (node: Chapter) => node.label;
+
+  <TreeView.Root
+    nodes={chapters}
+    getNodeValue={chapterValue}
+    getNodeLabel={chapterLabel}
+    selectedValue={selected}
+    onSelectionChange={setSelected}
+    expandedValue={expanded}
+    onExpandedChange={setExpanded}
+  >
+    <TreeView.Tree aria-label="Chapters">
+      <VirtualTree rowHeight={32}>
+        {({ node }: VirtualTreeEntry<Chapter>) => <VirtualTreeRow>{node.label}</VirtualTreeRow>}
+      </VirtualTree>
+    </TreeView.Tree>
+  </TreeView.Root>;
+  ```
+
+  The hook's `scrollTo` and `focus` move to `TreeView.Root`'s `actionsRef`, which renders a `VirtualTree` row before it
+  scrolls to or focuses it. Its `visibleNodes` and `tabStopIndex` have no replacement; work out the shown rows from
+  your nodes and `expandedValue`
+
+- The tree callbacks take values: `onExpandedChange(expandedValue, { expandedNodes, focusedValue })`,
+  `onSelectionChange(selectedValue, { selectedNodes, focusedValue })`, `onCheckedChange(checkedValue)`,
+  `onRenameComplete(value, { label, indexPath })`, `loadChildren(node, { indexPath, valuePath, signal })`,
+  `onLoadChildrenComplete(nodes)` and `onLoadChildrenError(error, { node, indexPath, valuePath })`. The
+  `open-change-args` codemod rewrites inline handlers on `TreeView.Root` and `TreeSelectList`; rewrite
+  `onLoadChildrenError` by hand
+- Trees hand back nodes. `TreeSelectList` and `TreeViewDndProvider` take `onNodesChange(nodes)` in place of
+  `onCollectionChange`, `TreeDropDetails` has `nextNodes` and `previousNodes` in place of `nextCollection` and
+  `previousCollection`, and `applyTreeDrop(tree, args)` and `moveNodeByKeyboard(tree, value, move)` take
+  `{ nodes, getNodeValue, getNodeLabel, … }` and return nodes (`moveNodeByKeyboard`'s `nodes` replaces `next`). Drops
+  and loads write a node's new children to `children`, so a tree they change keeps its children there
+- Removed with Ark: `createTreeCollection`, `createFileTreeCollection`, `treeViewAnatomy`, `TreeCollection`,
+  `TreeNode`, `useTreeView`, `useTreeViewContext`, `useTreeViewNodeContext`, `useVirtualTreeView`, `VirtualTreeView`,
+  `VirtualTreeViewProps`, `TreeView.RootProvider`, `TreeView.Context` and `TreeView.NodeContext`; the
+  `TreeViewLoadChildren*Details` types (now `TreeLoadChildrenDetails` and `TreeLoadChildrenErrorDetails`); and the
+  root props `focusedValue`, `defaultFocusedValue`, `onFocusChange`, `onRenameStart`, `onBeforeRename`,
+  `scrollToIndexFn`, `translations`, `id`, `ids`, `lazyMount` and `unmountOnExit`
+- Tree elements carry `data-slot`, `data-expanded`, `data-selected`, `data-disabled`, `data-loading` and, on
+  `NodeCheckbox`, `data-checked`, `data-unchecked` or `data-indeterminate` instead of `data-scope`, `data-part` and
+  `data-state`; style branch indicators with `_expanded`. The pinned branch heading carries `data-pinned` in place of
+  `data-part="sticky-branch"`, rows read `--tree-depth` in place of `--depth`, and `TreeDropIndicator` sets
+  `--tree-drop-level` in place of `--drop-level`. `TreeView.NodeCheckbox` takes `checked` to show a state other than
+  the root's
+- `*` expands only the sibling branches, so leaves no longer join `expandedValue`, typeahead skips disabled rows, and
+  a rename submitted by leaving its input no longer moves focus back to the row
+- `Dialog`, `SubmitDialog`, `DeleteDialog`, `Drawer`, `Sheet`, `CommandPalette` and every phone sheet no longer run
+  on Ark. Each renders in place as a `<dialog>` opened with `showModal()`, in the browser's top layer: the rest of the
+  page is inert to clicks, Tab and find-in-page, the backdrop is that `<dialog>`'s `::backdrop`, and `z-index` no
+  longer orders it. Like the popups, it takes CSS variables from where it is rendered and resets its text styles and
+  palette to the page's. Its `<dialog>` is a DOM descendant of where it is rendered, so render one outside any
+  `<form>` whose fields it shouldn't join
+- `Dialog.Root`, `Drawer.Root`, `Sheet.Root` and `CommandPalette.Root` take `onOpenChange(open, details)`, and the
+  drawers `onSnapPointChange(snapPoint)`; `details.reason` is `"swipe"` when a drawer is swiped away. The
+  `open-change-args` codemod rewrites inline handlers on them
+- The roots need a name: `title`, with an optional `description`, renders the header `Dialog.Header` and
+  `Dialog.Title` used to, and `aria-label` names a dialog without one. `Dialog.Content`, `Drawer.Content` and
+  `Sheet.Content` take `headerStart` and `headerEnd` for the title header's ends, such as an icon, a back button or
+  actions; a `Dialog.CloseTrigger` given in `headerEnd` sits in line with them:
+
+  ```tsx
+  // before
+  <Dialog.Root>
+    <Dialog.Content>
+      <Dialog.Header>
+        <Dialog.Title>Archive project?</Dialog.Title>
+        <Dialog.Description>Archived projects are read-only.</Dialog.Description>
+      </Dialog.Header>
+      <Dialog.Body>…</Dialog.Body>
+    </Dialog.Content>
+  </Dialog.Root>
+  <Sheet.Root>
+    <Sheet.Content>
+      <Sheet.Header endElement={<Sheet.ActionTrigger>Done</Sheet.ActionTrigger>}>
+        <Sheet.Title>Filters</Sheet.Title>
+      </Sheet.Header>
+    </Sheet.Content>
+  </Sheet.Root>
+  // after
+  <Dialog.Root title="Archive project?" description="Archived projects are read-only.">
+    <Dialog.Content>
+      <Dialog.Body>…</Dialog.Body>
+    </Dialog.Content>
+  </Dialog.Root>
+  <Sheet.Root title="Filters">
+    <Sheet.Content headerEnd={<Sheet.ActionTrigger>Done</Sheet.ActionTrigger>} />
+  </Sheet.Root>
+  ```
+
+  The header parts stay for a header laid out another way; give that root an `aria-label`, which a rendered
+  `Dialog.Title` then overrides. `SubmitDialog`'s `title` no longer takes `null`, `undefined` or a boolean.
+  `npx jscodeshift -t node_modules/@construkt-kit/ui/codemods/dialog-header-title.ts --extensions=tsx,ts src` moves a
+  header that holds only a title and a description to its root, and a `Sheet.Header`'s `startElement` and `endElement`
+  to `headerStart` and `headerEnd`, and prints the file and line of a plain header whose root is in another component
+
+- Removed with Ark: `useDialog`, `useDrawer`, `useSheet` and their `Use*Props`/`Use*Return` types,
+  `DrawerRootProviderProps`, `Dialog.RootProvider`, `Drawer.RootProvider`, `Sheet.RootProvider`, `Dialog.Context`,
+  `Drawer.Context`, `Sheet.Context`, `Dialog.Backdrop`, `Dialog.Positioner`, `Drawer.SwipeArea`, `Dialog.Trigger`'s
+  `value`, `Dialog.Content`'s `portalled` and `portalRef`, and the root props `id`, `ids`, `modal`, `trapFocus`,
+  `preventScroll`, `finalFocusEl` (use `returnFocusTo`), `lazyMount`, `unmountOnExit`, `present`, `immediate`,
+  `skipAnimationOnMount`, `persistentElements`, `triggerValue`, `defaultTriggerValue`, `onTriggerValueChange`,
+  `onEscapeKeyDown`, `onInteractOutside`, `onPointerDownOutside`, `onFocusOutside`, `onRequestDismiss`,
+  `swipeDirection`, `snapToSequentialPoints`, `swipeVelocityThreshold`, `closeThreshold` and `preventDragOnScroll`. Use
+  `details.cancel()` in `onOpenChange` where `onEscapeKeyDown` or an outside handler kept the dialog open;
+  `details.reason` tells Escape (`"escape-key"`) from a press outside (`"outside-press"`)
+- Their elements carry `data-slot`, `data-open` or `data-closed`, `data-starting-style` and `data-ending-style`
+  instead of `data-scope`, `data-part` and `data-state`; the `<dialog>` is the `positioner` slot and the `backdrop`
+  slot is gone, so style the backdrop with `_backdrop` on the positioner. Content behind a nested dialog carries
+  `data-nested-dialog-open` and reads `--nested-dialogs` in place of `data-nested-drawer-open` and
+  `--nested-drawers`. A drawer moves by an inline `transform`, sets `--drawer-swipe-progress` on its `<dialog>`, keeps
+  `data-swiping` and `data-swipe-direction` on its content, and no longer sets `--drawer-translate-*`,
+  `--drawer-swipe-movement-*`, `--drawer-snap-point-offset-*`, `--drawer-swipe-strength`, `--drawer-height` or
+  `--drawer-frontmost-height`
+- A modal moves focus in also when it mounts open, keeps Tab inside it, and returns focus to its trigger, or to what
+  had focus before it opened, once it has animated out; while it animates out it is inert. Escape and a press
+  outside go to the topmost layer only, so a popover, menu or select open inside a dialog closes before the dialog.
+  A modal `<dialog>` the page shows itself, inside or over a kit dialog, takes Escape before the kit dialog, and a
+  press inside a modal opened over another one never closes the one below. Toasts move into the topmost open modal so they stay clickable
+- The page lock sets `overflow: hidden` and, where scrollbars take space, `scrollbar-gutter: stable` on `<html>`;
+  `<body>` no longer gets `data-scroll-lock` and `<html>` no longer gets `--scrollbar-width`
+- A press on a scrollbar no longer closes the popup or dialog it is outside of
+- `Field`, `Fieldset`, `Input`, `Textarea`, `Checkbox`, `CheckboxCard`, `Switch`, `RadioGroup`, `Radio`,
+  `RadioCard`, `NumberInput`, `Slider`, `PinInput`, `TagsInput`, `Editable` and `RatingGroup` no longer run on Ark.
+  Their value and checked callbacks take the value first and `details` second, with the `reason`, the `event`, a
+  `cancel()` that keeps the control as it is, and any other key the old object had:
+
+  ```tsx
+  // before
+  <Checkbox onCheckedChange={({ checked }) => setAgreed(checked)}>Agree</Checkbox>
+  <RadioGroup onValueChange={({ value }) => setPlan(value)}>…</RadioGroup>
+  <NumberInput.Root onValueChange={({ value, valueAsNumber }) => setQty(valueAsNumber)}>
+  // after
+  <Checkbox onCheckedChange={(checked) => setAgreed(checked)}>Agree</Checkbox>
+  <RadioGroup onValueChange={(value) => setPlan(value)}>…</RadioGroup>
+  <NumberInput.Root onValueChange={(value, { valueAsNumber }) => setQty(valueAsNumber)}>
+  ```
+
+  The `open-change-args` codemod rewrites inline handlers on them. The callbacks are `onCheckedChange` on `Checkbox`,
+  `Checkbox.Root`, `CheckboxCard` and `Switch`, and `onValueChange` on `RadioGroup` and `RadioCard.Root`
+  (`Checkbox.Group`'s already took the array, and now also gets `details`); on `NumberInput.Root`, `onValueChange(value, { valueAsNumber })`,
+  `onValueCommit(value, { valueAsNumber })`, `onValueInvalid(value, { reason, valueAsNumber })` and
+  `onFocusChange(focused, { value, valueAsNumber })`; on `Slider`, `onValueChange(value)`,
+  `onValueChangeEnd(value)` and `onFocusChange(focusedIndex, { value })`; on `PinInput.Root`,
+  `onValueChange(value, { valueAsString })`, `onValueComplete(value, { valueAsString })` and
+  `onValueInvalid(value, { index })`; on `TagsInput.Root`, `onValueChange(value)`,
+  `onInputValueChange(inputValue)`, `onHighlightChange(highlightedValue)` and `onValueInvalid(reason)`; on
+  `Editable.Root`, `onValueChange`, `onValueCommit` and `onValueRevert`, each `(value)`; and on `RatingGroup.Root`,
+  `onValueChange(value)` and `onHoverChange(hoveredValue)`
+
+- `Editable.Root` takes `editing`, `defaultEditing` and `onEditingChange(editing, details)` in place of `edit`,
+  `defaultEdit` and `onEditChange({ edit })`; the `open-change-args` codemod renames them. Controlled `value` and
+  `editing` replace `useEditable` with `Editable.RootProvider`: set `editing` to `true` where you called `api.edit()`:
+
+  ```tsx
+  // before
+  const editable = useEditable({ value, onValueChange: ({ value }) => setValue(value) });
+  editable.edit();
+  <Editable.RootProvider value={editable}>…</Editable.RootProvider>;
+  // after
+  const [editing, setEditing] = useState(false);
+  setEditing(true);
+  <Editable.Root
+    value={value}
+    onValueChange={setValue}
+    editing={editing}
+    onEditingChange={setEditing}
+  >
+    …
+  </Editable.Root>;
+  ```
+
+- `onValueCommit` and `onValueRevert` run once editing has ended, after `onEditingChange(false)`, and focus then goes to
+  `finalFocusEl`, the edit trigger or the preview. A press outside submits on release rather than on press, an
+  editable inside a popover or dialog stops editing before the overlay closes, and Escape while editing restores the
+  value
+- `PinInput.Root` takes `masked` in place of `mask`, which Panda read as the CSS property; the `open-change-args`
+  codemod renames it
+- A control's `id` is its input's: `Checkbox`, `CheckboxCard` and `Switch` put it on their `<input>`, and inside a
+  `Field` the label points at whichever control sets its own `id`. `Field` loses `ids` and `target`, and adds its
+  description to a control's own `aria-describedby` instead of replacing it. A `TagsInput` inside a `Field` gives its
+  visible input the field's id, so the label focuses it, and a `Slider` takes the field's `disabled`, `readOnly`,
+  `invalid` and label
+- `onValueInvalid` on `NumberInput.Root` fires when the value moves outside `min`–`max`, no longer also when it moves
+  back. `TagsInput`'s `onHighlightChange` gets the highlighted tag's value, not its element id. `RatingGroup`'s
+  `autoFocus` focuses the checked item, or the first, as it mounts
+- `Slider`'s `onValueChangeEnd` runs only after a drag or key press that changed the value
+- A `TagsInput` renders its `role="alert"` live region at the end of its root, while it is neither `disabled` nor
+  `readOnly`, instead of appending one to `<body>` for every instance, so it still announces inside a modal
+- With `addOnPaste`, a `TagsInput` skips empty entries, and existing tags unless `allowDuplicates`, and adds no more
+  than `max` allows unless `allowOverflow`
+- Removed with Ark: `useCheckbox`, `useRadioGroup`, `useFieldset`, `usePinInput`, `useTagsInput`, `useEditable`,
+  `useRatingGroup` and their `Use*Props`/`Use*Return` types; `Checkbox.RootProvider`, `Checkbox.Context`,
+  `RadioCard.RootProvider`, `RadioCard.Context`, `Fieldset.RootProvider`, `Fieldset.Context`,
+  `NumberInput.Context`, `PinInput.RootProvider`, `PinInput.Context`, `TagsInput.RootProvider`,
+  `TagsInput.Context`, `Editable.RootProvider`, `Editable.Context`, `RatingGroup.RootProvider`,
+  `RatingGroup.Context` and `RatingGroup.ItemContext`; the root props `ids` and `getRootNode`; and `TagsInput.Root`'s
+  and `Editable.Root`'s `onFocusOutside`, `onPointerDownOutside` and `onInteractOutside` (use `details.cancel()` in
+  `onEditingChange`)
+- Their elements carry `data-slot`, `data-checked`, `data-unchecked` or `data-indeterminate`, `data-disabled`,
+  `data-read-only`, `data-invalid` and `data-focus-visible` instead of `data-scope`, `data-part`, `data-state`,
+  `data-readonly`, `data-hover`, `data-active` and `data-focus`. An indeterminate checkbox no longer matches
+  `_checked`; style it with `_indeterminate`. `Checkbox.Indicator` renders nothing while unchecked. A rating's two
+  icons are the `itemIndicatorBg` and `itemIndicatorFg` slots in place of `[data-bg]` and `[data-fg]`, a slider mark's
+  label is the `markerLabel` slot in place of `data-has-mark-label`, and an `autoResize` editable takes its layout from
+  the recipe's `autoResize` variant
+- `RadioCard.Indicator` reads `--indicator-left`, `--indicator-top`, `--indicator-width` and `--indicator-height` in
+  place of `--left`, `--top`, `--width` and `--height`. The slider root no longer sets `--slider-thumb-offset-N`,
+  `--slider-thumb-transform`, `--slider-range-start`, `--slider-range-end`, `--slider-thumb-width` or
+  `--slider-thumb-height`; thumbs, marks and the range are placed by inline geometry
+- The preset's `_readOnly` matches `[readonly]`, `[data-read-only]` and `[aria-readonly=true]`, no longer `:read-only`,
+  which every element that isn't an editable field matches. New: `_half`, for a half-filled rating star
+- ui depends on `@internationalized/number` for `NumberInput`'s locale-aware parsing
+- `Tabs`, `ToggleGroup`, `SegmentGroup`, `Accordion` and `Collapsible` no longer run on Ark. `onValueChange` takes
+  `(value, details)`: the selected tab's value on `Tabs.Root`, the pressed or open items' values on
+  `ToggleGroup.Root` and `Accordion.Root`, and the picked value or `null` on `SegmentGroup.Root`. `Collapsible.Root`
+  takes `onOpenChange(open, details)`. The `open-change-args` codemod rewrites inline handlers on them:
+
+  ```tsx
+  // before
+  <Tabs.Root onValueChange={({ value }) => setTab(value)}>
+  <ToggleGroup.Root multiple onValueChange={({ value }) => setParts(value)}>
+  <Collapsible.Root onOpenChange={({ open }) => setOpen(open)}>
+  // after
+  <Tabs.Root onValueChange={(value) => setTab(value)}>
+  <ToggleGroup.Root multiple onValueChange={(value) => setParts(value)}>
+  <Collapsible.Root onOpenChange={(open) => setOpen(open)}>
+  ```
+
+- A hidden panel unmounts: `Tabs.Content` while another tab is selected, and `Accordion.ItemContent` and
+  `Collapsible.Content` while closed, where Ark kept every panel mounted with `hidden`. `keepMounted` on a panel keeps
+  its DOM and state, hidden in an `<Activity>` that pauses its effects until it shows again. It replaces the roots'
+  `lazyMount` and `unmountOnExit`; drop those:
+
+  ```tsx
+  // before: every panel stayed mounted
+  <Tabs.Content value="settings">…</Tabs.Content>
+  // after: keep a hidden panel's state, such as a half-filled form
+  <Tabs.Content value="settings" keepMounted>…</Tabs.Content>
+  ```
+
+- ui, pages and data-grid peer on `react` and `react-dom` `^19.3.0`, for `<Activity>`
+- Removed with Ark: `useTabs`, `useToggleGroup`, `useSegmentGroup`, `useAccordion`, `useCollapsible` and their
+  `Use*Props`/`Use*Return` types; `Tabs.RootProvider`, `Tabs.Context`, `ToggleGroup.RootProvider`,
+  `ToggleGroup.Context`, `ToggleGroupRootProviderProps`, `SegmentGroup.RootProvider`, `SegmentGroup.Context`,
+  `Accordion.RootProvider`, `Accordion.Context`, `Collapsible.RootProvider` and `Collapsible.Context`; `Tabs.Root`'s
+  `deselectable`, `composite`, `navigate`, `translations` (set `aria-label` on `Tabs.List`) and `onFocusChange`;
+  `Accordion.Root`'s `onFocusChange`; `Collapsible.Root`'s `collapsedHeight`, `collapsedWidth` and `onExitComplete`;
+  and their `ids`
+- With no tab selected, Tab reaches the first enabled tab, where the tab list used to be unreachable, and arrow keys
+  across a tab list's orientation scroll the page again. A toggle group's root is no longer focusable: Tab lands on
+  its first enabled item, or the item focused last while focus stays in the group. Accordion arrow keys skip disabled
+  triggers, wrap, and swap left and right in a right-to-left horizontal accordion. A disabled `Collapsible.Trigger` is
+  a disabled `<button>`, and a trigger whose panel is unmounted has no `aria-controls`
+- Their elements carry `data-slot` instead of `data-scope`, `data-part`, `data-state`, `data-focus` and
+  `data-ownedby`. Toggle items carry `data-pressed` in place of `data-state="on"`/`"off"`; style them with `_pressed`
+  (the preset's `_on` matches `data-pressed`, and no longer `data-state="on"`). Tab triggers carry `data-selected`, `data-disabled`,
+  `data-orientation` and `data-value`, and tab panels `data-selected` while shown. Segment items carry `data-checked`
+  or `data-unchecked`, `data-disabled`, `data-read-only`, `data-invalid` and `data-focus-visible`. Accordion items,
+  triggers, indicators and panels, and the collapsible's root, trigger, indicator and panel carry `data-open` or
+  `data-closed` and `data-disabled`. Panels carry `data-starting-style` and `data-ending-style`
+- `Button` and `IconButton` take `pressed` for a toggle button. It sets `aria-pressed`, and `data-pressed` while on,
+  which the button recipe's `_on` styles; give it in place of `aria-pressed` with `data-state="on"`
+- A resting open panel keeps `data-open`, where Zag dropped `data-state` once its open animation ended, and carries an
+  inline `animation-name: none`, so mounting open or an ancestor showing it again doesn't replay the animation
+- `Tabs.Indicator` and `SegmentGroup.Indicator` read `--indicator-left`, `--indicator-top`, `--indicator-width` and
+  `--indicator-height` in place of `--left`, `--top`, `--width` and `--height`, take their position and transition from
+  the recipe instead of inline styles, and also slide when the list resizes. Panels read `--collapsible-height` and
+  `--collapsible-width` in place of `--height` and `--width`, as do the preset's `expand-height` and `collapse-height`
+  keyframes, and a closing panel holds its collapsed frame until it unmounts
+- New preset conditions: `_afterChecked` and `_afterPressed`, for an item that follows a checked or pressed one (the
+  segmented controls' dividers), and `_filled`
+- `FileUpload` and `FormFileUpload` no longer run on Ark. `FileUpload.Root` takes `value`, `defaultValue` and
+  `onValueChange(files, details)` in place of `acceptedFiles`, `defaultAcceptedFiles`, `onFileChange` and
+  `onFileAccept`, and `onFileReject(rejectedFiles, details)`. `details.rejectedFiles` holds the files refused alongside
+  and `details.cancel()` keeps the files as they are; `onValueChange` runs only when the accepted files change. The
+  `open-change-args` codemod renames the props and rewrites inline handlers, and reports a root with both
+  `onFileChange` and `onFileAccept`. `FormFileUpload` keeps its `onFileChange(file)`
+- `FileUpload.Context` and `setClipboardFiles` give way to the root's `render` state: a function `render` gets
+  `{ value, rejectedFiles, dragging, disabled, readOnly, invalid, required, addFiles }`. `addFiles(files)` runs files
+  through the same transform and validation as a pick and returns whether any were accepted:
+
+  ```tsx
+  // before
+  <FileUpload.Root maxFiles={5} acceptedFiles={files} onFileAccept={(details) => setFiles(details.files)}>
+    <FileUpload.HiddenInput />
+    <FileUpload.Dropzone>Drop or paste files here</FileUpload.Dropzone>
+    <FileUpload.Context>
+      {(upload) => (
+        <>
+          <PastedFiles upload={upload} />
+          <RefusedFiles rejected={upload.rejectedFiles} />
+        </>
+      )}
+    </FileUpload.Context>
+  </FileUpload.Root>
+  // after: PastedFiles calls addFiles([...dataTransfer.files]) where it called upload.setClipboardFiles(dataTransfer)
+  <FileUpload.Root
+    maxFiles={5}
+    value={files}
+    onValueChange={(next) => setFiles(next)}
+    onFileReject={(rejected) => setRejected(rejected)}
+    render={(props, { addFiles }) => (
+      <section {...props}>
+        <PastedFiles addFiles={addFiles} />
+        {props.children}
+      </section>
+    )}
+  >
+    <FileUpload.HiddenInput />
+    <FileUpload.Dropzone>Drop or paste files here</FileUpload.Dropzone>
+    <RefusedFiles rejected={rejected} />
+  </FileUpload.Root>
+  ```
+
+- Removed with Ark: `useFileUpload`, `UseFileUploadProps`, `UseFileUploadReturn`, `FileUpload.RootProvider` and the
+  root props `ids`, `getRootNode` and `translations`; the locale comes from `LocaleProvider`. Inside a `Field` the
+  hidden input still takes the field's id, `disabled`, `readOnly`, `invalid` and `required`, and it picks up
+  `defaultValue` files as it mounts
+- File upload elements carry `data-slot`, `data-disabled`, `data-read-only`, `data-invalid`, `data-dragging` and
+  `data-required` instead of `data-scope`, `data-part` and `data-readonly`; style read-only parts with `_readOnly`.
+  A `transformFiles` that rejects surfaces as an unhandled rejection, and `ItemPreviewImage` on a file that isn't an
+  image throws an error that names the fix
+- `Clipboard`, `Avatar`, `Progress`, `Pagination` and `Highlight` no longer run on Ark. `Clipboard.Root` takes `value`,
+  `timeout` and `translations.triggerLabel`, and `onStatusChange(copied, details)`; `details.reason` is
+  `"trigger-press"` or `"input-copy"`, and `details.cancel()` keeps the value off the clipboard; a copy the browser
+  refuses calls `onStatusChange(false, details)` with `"copy-error"` and never shows as copied. `Avatar.Root` takes
+  `onStatusChange(status)`, `"loaded"` or `"error"`. The `open-change-args` codemod rewrites inline handlers on both
+- `Pagination.Root` takes `value`, `defaultValue` and `onValueChange(page, details)` in place of `page`,
+  `defaultPage` and `onPageChange`, since Panda read `page` as the CSS property; `details` has the `pageSize`. The
+  `open-change-args` codemod renames them and rewrites inline handlers:
+
+  ```tsx
+  // before
+  <Pagination.Root count={120} page={page} onPageChange={({ page }) => setPage(page)}>
+  // after
+  <Pagination.Root count={120} value={page} onValueChange={(page) => setPage(page)}>
+  ```
+
+- `Progress.Root` takes `value` (`null` while indeterminate, the midpoint of `min` and `max` when left out), `min`,
+  `max`, `formatOptions`, `orientation` and `translations.value`; the locale comes from `LocaleProvider`, and a value
+  outside `min`–`max` no longer throws
+- Removed with Ark: `useClipboard`, `useAvatar`, `useProgress`, `usePagination` and their `Use*Props`/`Use*Return`
+  types; `Clipboard.RootProvider`, `Clipboard.Context`, `Avatar.RootProvider`, `Avatar.Context`,
+  `Progress.RootProvider`, `Progress.Context`, `Pagination.RootProvider` and `Pagination.Context`; `Clipboard.Root`'s
+  `defaultValue` and `onValueChange`, `Progress.Root`'s `defaultValue`, `onValueChange` and `locale`,
+  `Pagination.Root`'s `defaultPageSize` and `onPageSizeChange` (`pageSize` is a plain prop) and
+  `Pagination.Ellipsis`'s `index`; and their `ids`. `useHighlight`, `HighlightChunk` and `UseHighlightProps` keep their
+  signatures
+- Their elements carry `data-slot` instead of `data-scope` and `data-part`. The clipboard input carries
+  `data-read-only` in place of `data-readonly="true"`, and the avatar's image and fallback lose `data-state` (read
+  their `hidden` attribute). A progress part's `data-state="indeterminate"`, `"loading"` or `"complete"` becomes
+  `data-indeterminate`, `data-loading` or `data-complete`; style it with `_indeterminate`, and a filled segment with
+  `_filled`. The progress root sets `--progress-percent` in place of `--percent`, the circle reads `--progress-radius`
+  and `--progress-circumference` in place of `--radius`, `--circumference` and `--offset`, and its
+  `fill: transparent` comes from the recipe
+- `Stat`'s trend arrow is a text node in the trend indicator instead of `::before` content; `data-direction` stays
+- `Calendar`, `DatePicker` and `DatePickerSelect` no longer run on Ark. `onValueChange` takes `(value, details)`, where
+  `details` has the `reason` (`"item-press"`, `"preset-press"` or `"clear-press"`), the `event` and a `cancel()` that
+  keeps the dates, and `onOpenChange` takes `(open, details)`. A handler that takes only the value or the open state
+  keeps working
+- `parseDate` is no longer re-exported. Import it from `@internationalized/date`, which ui depends on; add it to your
+  app's dependencies:
+
+  ```tsx
+  // before
+  import { DatePicker, parseDate } from "@construkt-kit/ui";
+  import { DatePicker } from "@construkt-kit/ui";
+  // after
+  import { parseDate } from "@internationalized/date";
+  ```
+
+  `DateValue`, `DateView` and `DateRangePreset` stay exported from ui
+
+- `DatePicker` and `DatePickerSelect` render their calendar in place in the top layer, without `portalled` or
+  `portalRef`, and take `placement` for where it opens against the trigger. Each picker renders its `role="alert"` live
+  region at the end of its root instead of appending one to `<body>`, so it still announces inside a modal. Only the
+  current view's grid renders, where Ark kept the day, month and year views mounted with `hidden`
+- Calendar elements carry `data-slot` instead of `data-scope`, `data-part` and `data-state`. Day, month and year buttons
+  carry `data-selected`, `data-today`, `data-in-range`, `data-range-start`, `data-range-end`, `data-unavailable`,
+  `data-disabled`, `data-outside-range`, `data-in-hover-range`, `data-hover-range-start`, `data-hover-range-end` and,
+  on days, `data-weekend` and `data-value`; they no longer carry `data-focus`, `data-selectable` or `data-view` (the
+  grid keeps `data-view`, and the day the arrow keys move from has `tabindex="0"`). The root carries `data-disabled`,
+  `data-read-only` and `data-empty`. Style in-range days with `_inRange`
+- A preset closes an uncontrolled `DatePicker` through `onOpenChange(false, details)`, where Ark closed it without
+  calling `onOpenChange`
+- `ColorPicker` no longer runs on Ark. `ColorPicker` and `ColorPicker.Root` take `onValueChange(value, details)` and
+  `onValueChangeEnd(value, details)`, where `details` has `valueAsString` and, on `onValueChange`, the `reason`, the
+  `event` and a `cancel()` that keeps the color; `onFormatChange(format)`; and `onOpenChange(open, details)`. The
+  `open-change-args` codemod rewrites inline handlers on them:
+
+  ```tsx
+  // before
+  <ColorPicker onValueChange={({ value }) => setColor(value)} />
+  // after
+  <ColorPicker onValueChange={(value) => setColor(value)} />
+  ```
+
+- `parseColor` moves to `@construkt-kit/utils`. A color is a plain object (`{ format: "rgba", red, green, blue, alpha }`,
+  or `hsla`/`hsba` with `hue`, `saturation` and `lightness`/`brightness`), and its methods are functions:
+
+  ```tsx
+  // before
+  import { parseColor } from "@construkt-kit/ui";
+  const hex = value.toString("hex");
+  const hue = value.getChannelValue("hue");
+  // after
+  import { formatColor, getColorChannelValue, parseColor } from "@construkt-kit/utils";
+  const hex = formatColor(value, "hex");
+  const hue = getColorChannelValue(value, "hue");
+  ```
+
+  `toFormat` is `convertColor`, `withChannelValue` `setColorChannelValue`, `getChannelRange` `getColorChannelRange`,
+  `getChannels` `getColorChannels`, `isEqual` `isColorEqual`, `incrementChannel`/`decrementChannel`
+  `incrementColorChannel`/`decrementColorChannel`, `formatChannelValue` `formatColorChannelValue`,
+  `getChannelValuePercent`/`getChannelPercentValue` `getColorChannelValuePercent`/`getColorChannelPercentValue`, and
+  `getFormat()` is `color.format`; `toHexInt`, `clone` and `toJSON` are gone
+
+- `ColorPicker.Root` takes `placement` in place of `positioning`. Its content renders in place in the top layer, without
+  `portalled` or `portalRef`
+- Removed with Ark: `useColorPicker`, `UseColorPickerProps`, `UseColorPickerReturn`, `ColorPicker.RootProvider`,
+  `ColorPicker.Context` and `ColorPicker.Positioner`; `portalled` and `portalRef` on `ColorPicker` and
+  `ColorPicker.Content`; and the root props `id`, `ids`, `dir` (it comes from `LocaleProvider`), `getRootNode`,
+  `openAutoFocus`, `lazyMount`, `unmountOnExit`, `onInteractOutside`, `onPointerDownOutside` and `onFocusOutside` (use
+  `details.cancel()` in `onOpenChange`)
+- `onValueChangeEnd` also runs after a key press on a thumb and a swatch press, and only when the value changed. Page Up and Page Down on a channel slider
+  step by ten of its steps, and a channel slider's keys and value text read the same color space as its track, so a hue
+  slider no longer throws on an RGB color. Inside a `Field` the trigger is named by the field's label and then its own
+  name, and takes the field's messages and invalid state
+- Color picker elements carry `data-slot`, `data-open` or `data-closed`, `data-disabled`, `data-read-only` and
+  `data-invalid` instead of `data-scope`, `data-part`, `data-state`, `data-readonly` and `data-focus`; swatches and
+  swatch triggers carry `data-checked` or `data-unchecked`, and the content `data-dragging` while a thumb is dragged.
+  Parts set variables the recipe paints with instead of inline colors: `--color-picker-color` in place of `--color` on
+  thumbs and swatches, `--color-picker-value` in place of the root's `--value`, `--color-picker-grid-size` in place of
+  the transparency grid's `--size`, and `--color-picker-area-bg`, `--color-picker-area-gradient`,
+  `--color-picker-area-mask` and `--color-picker-track-bg` on the area, its background and the slider tracks
+- `Field`'s root carries `data-slot`, `data-disabled`, `data-invalid` and `data-read-only` instead of
+  `data-scope="field"`, `data-part="root"` and `data-readonly`; it keeps its `id` and `role="group"`
+- `Toaster` and `toaster` no longer run on Ark. `toaster` keeps `create`, `success`, `error`, `info`, `warning`,
+  `loading`, `promise`, `update`, `dismiss`, `remove`, `pause`, `resume`, `expand`, `collapse`, `isVisible`,
+  `isDismissed`, `getVisibleToasts` and `getCount`. It is typed `ToastStore` in place of Ark's `CreateToasterReturn`,
+  and ui exports `Toast`, `ToastOptions`, `ToastType`, `ToastStatus`, `ToastAction`, `ToastPriority` and
+  `ToastPromiseOptions`:
+
+  ```tsx
+  // before
+  import type { CreateToasterReturn } from "@construkt-kit/ui";
+  // after
+  import type { ToastStore } from "@construkt-kit/ui";
+  ```
+
+- A toast's `type` is `"success"`, `"error"`, `"info"`, `"warning"` or `"loading"`, and `onStatusChange` takes the
+  status, `"visible"`, `"dismissing"` or `"unmounted"`:
+
+  ```tsx
+  // before
+  toaster.create({ title: "Saved", onStatusChange: ({ status }) => log(status) });
+  // after
+  toaster.create({ title: "Saved", onStatusChange: (status) => log(status) });
+  ```
+
+- `success`, `error`, `info`, `warning` and `loading` return the toast's id, and `promise` always returns
+  `{ id, unwrap }`. Removed with Ark: `removeDelay` (a toast unmounts once its exit transition ends) and the store's
+  `attrs`, `subscribe` and `subscribeLayout`
+- Toasts render in the browser's top layer, inside the topmost open modal while one is open, so popovers and menus no
+  longer cover them and they take clicks under a modal dialog. A press, focus or Escape in the toaster no longer
+  closes the popover, menu or dialog under it, and Escape on a toast dismisses that toast. Swiping a toast up or
+  towards the inline end dismisses it. Focus that moves from a toast to another element stays there; Ark sent it back
+  to where it was before the toaster
+- Toast elements carry `data-slot`, `data-open` or `data-closed`, `data-expanded` or `data-collapsed`, `data-paused`,
+  `data-type`, `data-starting-style` (the first frame of a new toast), `data-swiping` and `data-swipe-direction` instead
+  of `data-scope`, `data-part`, `data-state`, `data-mounted`, `data-first`, `data-sibling`, `data-stack`,
+  `data-overlap`, `data-placement`, `data-side` and `data-align`, and the region has no `id`. The toast recipe reads
+  `--toast-index`, `--toast-offset-y`, `--toast-height`, `--toast-frontmost-height` and `--toast-swipe-movement-x`/`-y`
+  in place of Zag's inline `--x`, `--y`, `--scale`, `--opacity`, `--height`, `--z-index`, `--index`, `--offset`,
+  `--initial-height`, `--first-height`, `--gap`, `--lift`, `--duration` and `--remove-delay`; style the stack with
+  `_expanded`, `_collapsed`, `_swiping` and `_swipeUp`/`_swipeRight`/`_swipeLeft`, and a new toast's entry with
+  `_startingStyle`. The toaster's position and insets come from the recipe, and `--toaster-inset-x` is gone
+- `ScrollArea` and its parts no longer run on Ark. `ScrollArea`, `VirtualScrollArea` and their props are unchanged.
+  `ScrollArea.Root` loses Ark's `ids`, `id`, `dir` and `getRootNode`; the direction comes from `LocaleProvider`, and a
+  viewport rendered as your own element is found without an id:
+
+  ```tsx
+  // before
+  <ScrollArea.Root ids={{ viewport: "results" }}>
+    <ScrollArea.Viewport render={<ul id="results" />}>
+  // after
+  <ScrollArea.Root>
+    <ScrollArea.Viewport render={<ul id="results" />}>
+  ```
+
+- Scroll area elements carry `data-slot` instead of `data-scope`, `data-part` and `data-ownedby`. The root and viewport carry `data-overflow-x`, `data-overflow-y`, `data-at-top`,
+  `data-at-bottom`, `data-at-left` and `data-at-right`. A scrollbar whose axis doesn't overflow, and the corner unless
+  both axes overflow, carry `hidden` in place of the corner's `data-state`. Style them with `_overflowX`, `_overflowY`,
+  `_atTop`, `_atBottom`, `_atLeft`, `_atRight` and `_scrolling`, and a left-pinned cell with `_pinnedLeft`
+- The root's `--thumb-width`, `--thumb-height`, `--corner-width` and `--corner-height` become
+  `--scroll-area-thumb-width` and `--scroll-area-thumb-height` on the thumb, and `--scroll-area-corner-width` and
+  `--scroll-area-corner-height` on the corner and scrollbars. `--scroll-area-thumb-offset` replaces the thumb's inline
+  `transform`. These variables and `--scroll-area-overflow-*` are registered and don't inherit
+- The scrollbars' and corner's `position` and insets, the viewport's `overflow` and the content's `min-width` come from
+  the recipe instead of inline styles, so `css` on those parts now overrides them
+- A scrollbar shows `data-scrolling` only while you scroll (wheel, touch, keys, a thumb drag), not when a script
+  scrolls. `data-hover` is set for mouse and pen only. Pressing a scrollbar no longer takes focus from the page
+- `Carousel` no longer runs on Ark. `Carousel.Root` takes `value`, `defaultValue` and `onValueChange(page, details)` in
+  place of `page`, `defaultPage` and `onPageChange`, since Panda read `page` as the CSS property, and `peek` in place of
+  `padding`, which Panda read as the root's padding. `details` has the `reason` (`"prev-press"`, `"next-press"`,
+  `"indicator-press"`, `"keyboard"`, `"autoplay"`, `"scroll"` or `"layout-change"`), the `event` and a `cancel()` that
+  stays on the current page. The `open-change-args` codemod renames them and rewrites inline handlers:
+
+  ```tsx
+  // before
+  <Carousel.Root slideCount={5} page={page} padding="2rem" onPageChange={({ page }) => setPage(page)}>
+  // after
+  <Carousel.Root slideCount={5} value={page} peek="2rem" onValueChange={(page) => setPage(page)}>
+  ```
+
+- Removed with Ark: `useCarousel`, `UseCarouselProps`, `UseCarouselReturn`, `Carousel.RootProvider`,
+  `Carousel.Context`, `translations.progressText`, and the root props `id`, `ids`, `onAutoplayStatusChange` and
+  `onDragStatusChange`; the direction comes from `LocaleProvider`. Control the page with `value`, and draw the autoplay
+  trigger from its `render` state:
+
+  ```tsx
+  <Carousel.AutoplayTrigger
+    render={(props, { playing }) => (
+      <button {...props}>{playing ? <PauseIcon /> : <PlayIcon />}</button>
+    )}
+  />
+  ```
+
+- Autoplay pauses while the pointer is over the carousel, focus is inside it (except on the autoplay trigger) or the
+  page is hidden, and resumes after; a swipe or wheel on the slides stops it, as a drag or a page move does. Arrow keys
+  on the slides follow `orientation` (Up and Down on a vertical carousel), mirror in right-to-left, and leave inputs
+  inside a slide alone. `autoSize` and `snapType` are recipe variants on `Carousel.Root`, and
+  `Carousel.AutoplayTrigger` is styled like the previous and next triggers
+- Carousel elements carry `data-slot` instead of `data-scope` and `data-part`, and an indicator carries
+  `data-read-only` in place of `data-readonly`. The item group sets `--carousel-slides-per-page`, `--carousel-spacing`
+  and `--carousel-peek` in place of the root's `--slides-per-page`, `--slide-spacing` and `--slide-item-size`, and each
+  slide sets `--carousel-snap-align`; the item group's grid, overflow and scroll-snap styles move from inline styles
+  into the recipe
+- ui depends on `@internationalized/date` and no longer on `@ark-ui/react` or `@zag-js/dismissable`. An app that
+  imports Ark itself adds `@ark-ui/react` to its own dependencies, and wraps the Ark components that format by locale
+  in Ark's `LocaleProvider`: the kit's no longer provides Ark's locale context
+- `Portal` is the kit's own. It takes `target` in place of Ark's `container`, and `disabled`. Without `target` it
+  mounts into the nearest `PortalContainer`, else the topmost open modal, else `<body>`, so what it holds stays
+  interactive while a `Dialog` or `Drawer` is open. It renders nothing until the first client render has committed,
+  where Ark's rendered its children in place on the server. `ActionBar.Content`'s `bottom` bar mounts the same way.
+  The codemod renames `container`
+- `Skeleton` no longer reads `--duration` or `--fade-duration`; set `animationDuration` instead
 
 #### Upgrading from 0.13
 
@@ -831,7 +1611,3 @@ Focus, keyboard and dismissal behaviour that needs a real browser lives in `*.sp
 through `@construkt-kit/story-kit/test`. Overlays that open as phone sheets are listed once in
 `src/components/sheetFrame.cases.ts`, and `sheetFrame.spec.ts` checks all of them. See
 `packages/story-kit/README.md` for the rules and commands.
-
-## Ark UI MCP
-
-Use the Ark UI MCP tools to look up Ark UI component props and examples when implementing or customizing components. Components are built on Ark UI primitives, so these tools are relevant for understanding component behavior, props, and theming at the primitive level.

@@ -1,5 +1,6 @@
 import preview from "@construkt-kit/story-kit/preview";
-import { CircleHelpIcon, XIcon } from "lucide-react";
+import { CircleHelpIcon, Redo2Icon, Undo2Icon, XIcon } from "lucide-react";
+import { fn } from "storybook/test";
 
 import { Tooltip, TooltipGroup } from ".";
 import { Button, IconButton } from "../Buttons";
@@ -105,19 +106,56 @@ export const WithShortcut = meta.story({
 
 export const Open = meta.story({
   tags: ["open-state"],
-  render: () => (
+  args: {
+    label: "Keyboard shortcuts",
+    shortcut: "?",
+    showArrow: true,
+    open: true,
+    onOpenChange: fn(),
+    children: (
+      <IconButton
+        variant="outline"
+        aria-label="Keyboard shortcuts"
+      >
+        <CircleHelpIcon />
+      </IconButton>
+    ),
+  },
+  render: (args) => (
     <Wrap p="16">
+      <Tooltip {...args} />
+    </Wrap>
+  ),
+});
+
+export const DefaultOpen = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Wrap
+      gap="2"
+      p="16"
+    >
       <Tooltip
-        label="Keyboard shortcuts"
-        shortcut="?"
-        showArrow
+        label="Undo"
+        shortcut="⌘Z"
         defaultOpen
       >
         <IconButton
           variant="outline"
-          aria-label="Keyboard shortcuts"
+          aria-label="Undo"
         >
-          <CircleHelpIcon />
+          <Undo2Icon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip
+        label="Redo"
+        shortcut="⇧⌘Z"
+      >
+        <IconButton
+          variant="outline"
+          aria-label="Redo"
+        >
+          <Redo2Icon />
         </IconButton>
       </Tooltip>
     </Wrap>

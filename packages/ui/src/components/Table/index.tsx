@@ -1,19 +1,21 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
-import { Box, type BoxProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { table } from "#styled-system/recipes";
+
+import { renderable } from "../../primitives/render";
 
 const { withProvider, withContext } = createSlotRecipeContext(table);
 
-const Root = withProvider(ark.table, "root");
-const Body = withContext(ark.tbody, "body");
-const Caption = withContext(ark.caption, "caption");
-const Cell = withContext(ark.td, "cell");
-const Foot = withContext(ark.tfoot, "foot");
-const Head = withContext(ark.thead, "head");
-const Header = withContext(ark.th, "header");
-const Row = withContext(ark.tr, "row");
+const Root = withProvider(renderable.table, "root");
+const Body = withContext(renderable.tbody, "body");
+const Caption = withContext(renderable.caption, "caption");
+const Cell = withContext(renderable.td, "cell");
+const Foot = withContext(renderable.tfoot, "foot");
+const Head = withContext(renderable.thead, "head");
+const Header = withContext(renderable.th, "header");
+const Row = withContext(renderable.tr, "row");
+const ScrollAreaElement = styled(renderable.div);
 
 /**
  * Horizontal-scroll wrapper for `Table.Root`. Cells use `whiteSpace: nowrap`,
@@ -21,8 +23,8 @@ const Row = withContext(ark.tr, "row");
  * clipping. `overflowX` can't go on the `<table>` element itself — it needs a
  * block container, which this provides.
  */
-const ScrollArea = (props: BoxProps) => (
-  <Box
+const ScrollArea = (props: ComponentProps<typeof ScrollAreaElement>) => (
+  <ScrollAreaElement
     width="100%"
     maxWidth="100%"
     overflowX="auto"

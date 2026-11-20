@@ -1,19 +1,13 @@
-import type {
-  DatePickerDateRangePreset,
-  DatePickerDateView,
-  DateValue,
-} from "@ark-ui/react/date-picker";
 import type { ReactNode } from "react";
 
 import type { JsxStyleProps } from "#styled-system/types";
 
-import type { PortalledProps } from "../../types";
+import type { ChangeDetails } from "../../primitives/change";
 import type { ButtonProps } from "../Buttons";
-import type { MobileLayoutProps } from "../overlayPresentation";
+import type { PickerPopupProps } from "../pickerPopup";
+import type { DateRangePreset, DateValue, DateView } from "./dateUtils";
 
-export type DateView = DatePickerDateView;
-
-export type DateRangePreset = DatePickerDateRangePreset;
+export type { DateRangePreset, DateValue, DateView };
 
 export interface RangePreset {
   label: string;
@@ -26,6 +20,12 @@ export const defaultRangePresets: RangePreset[] = [
   { label: "Last 30 days", value: "last30Days" },
   { label: "Last 90 days", value: "last90Days" },
 ];
+
+/** What picked the new dates: a day, month or year cell (pressed or Enter), a preset or a clear. */
+export type DateValueChangeReason = "item-press" | "preset-press" | "clear-press";
+
+/** Why `onValueChange` was called, and a way to keep the dates as they are. */
+export type DateValueChangeDetails = ChangeDetails<DateValueChangeReason>;
 
 export interface CalendarBaseProps {
   numOfMonths?: number;
@@ -50,14 +50,14 @@ export interface SingleCalendarProps extends CalendarBaseProps {
   selectionMode?: "single";
   value?: DateValue;
   defaultValue?: DateValue;
-  onValueChange?: (value: DateValue | undefined) => void;
+  onValueChange?: (value: DateValue | undefined, details: DateValueChangeDetails) => void;
 }
 
 export interface RangeCalendarProps extends CalendarBaseProps {
   selectionMode: "range";
   value?: DateValue[];
   defaultValue?: DateValue[];
-  onValueChange?: (value: DateValue[]) => void;
+  onValueChange?: (value: DateValue[], details: DateValueChangeDetails) => void;
   presets?: RangePreset[];
   showPresets?: boolean;
 }
@@ -66,7 +66,7 @@ export interface MultipleCalendarProps extends CalendarBaseProps {
   selectionMode: "multiple";
   value?: DateValue[];
   defaultValue?: DateValue[];
-  onValueChange?: (value: DateValue[]) => void;
+  onValueChange?: (value: DateValue[], details: DateValueChangeDetails) => void;
   maxSelectedDates?: number;
 }
 
@@ -82,13 +82,10 @@ interface CalendarPropsByMode {
  */
 export type CalendarProps<M extends CalendarMode = "single"> = CalendarPropsByMode[M];
 
-interface DatePickerExtraProps extends PortalledProps, JsxStyleProps, MobileLayoutProps {
+interface DatePickerExtraProps extends JsxStyleProps, PickerPopupProps {
   trigger?: ReactNode;
   placeholder?: string;
   formatValue?: (value: DateValue) => string;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
   closeOnSelect?: boolean;
 }
 
@@ -104,5 +101,3 @@ interface DatePickerSelectExtraProps extends Omit<DatePickerExtraProps, "trigger
 
 export type DatePickerSelectProps<M extends CalendarMode = "single"> = CalendarProps<M> &
   DatePickerSelectExtraProps;
-
-export type { DateValue };

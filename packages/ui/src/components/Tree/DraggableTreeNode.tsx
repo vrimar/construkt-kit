@@ -1,10 +1,9 @@
-import { type TreeCollection, type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
 import type { ReactNode } from "react";
 
 import { TreeDndRow, TreeNodeContent, type TreeNodeRenderDetails } from "./TreeRow";
-import { TreeView } from "./TreeView";
+import { TreeView, useTreeContext } from "./TreeView";
 
-export interface DraggableTreeNodeProps<T extends TreeNode> {
+export interface DraggableTreeNodeProps<T> {
   node: T;
   indexPath: number[];
   /** Render custom row content (label + icons). Defaults to the node's string label. */
@@ -13,15 +12,11 @@ export interface DraggableTreeNodeProps<T extends TreeNode> {
 
 /**
  * Drop-in tree node: renders `NodeProvider` + `Branch`/`Item` recursively from the tree's
- * collection. Must be rendered inside a `TreeView.Root`/`RootProvider`; drag and drop is wired
- * when it is also inside a `TreeViewDndProvider`.
+ * nodes. Must be rendered inside a `TreeView.Root`; drag and drop is wired when it is also inside
+ * a `TreeViewDndProvider`.
  */
-export function DraggableTreeNode<T extends TreeNode>({
-  node,
-  indexPath,
-  renderNode,
-}: DraggableTreeNodeProps<T>) {
-  const collection = useTreeViewContext().collection as TreeCollection<T>;
+export function DraggableTreeNode<T>({ node, indexPath, renderNode }: DraggableTreeNodeProps<T>) {
+  const { collection } = useTreeContext();
 
   const children = collection.getNodeChildren(node);
   const isBranch = collection.isBranchNode(node);
@@ -48,7 +43,7 @@ export function DraggableTreeNode<T extends TreeNode>({
             {children.map((child, index) => (
               <DraggableTreeNode
                 key={collection.getNodeValue(child)}
-                node={child}
+                node={child as T}
                 indexPath={[...indexPath, index]}
                 renderNode={renderNode}
               />

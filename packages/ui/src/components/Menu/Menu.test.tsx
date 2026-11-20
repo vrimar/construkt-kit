@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { setupUser, useFakeTime } from "../../_shared/fakeTime";
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
+import { sheetOf } from "../../_shared/sheet";
 import { Menu } from "./Menu";
 
 const openMenu = async () => {
@@ -25,11 +26,39 @@ describe("Menu", () => {
     );
 
     const menu = await openMenu();
-    const arrow = document.querySelector('[data-scope="menu"][data-part="arrow"]');
+    const arrow = document.querySelector(".menu__arrow");
     expect(arrow).not.toBeNull();
     expect(menu.contains(arrow)).toBe(false);
     expect(arrow?.parentElement).toBe(menu.parentElement);
     expect(screen.getByRole("menuitem", { name: "Settings" }).parentElement).toBe(menu);
+  });
+
+  it("opens from an arrow key as list navigation and from Enter as a trigger press", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Menu.Root onOpenChange={onOpenChange}>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item value="settings">Settings</Menu.Item>
+        </Menu.Content>
+      </Menu.Root>,
+    );
+
+    screen.getByRole("button", { name: "Open" }).focus();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(onOpenChange).toHaveBeenLastCalledWith(
+      true,
+      expect.objectContaining({ reason: "list-navigation" }),
+    );
+
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+    screen.getByRole("button", { name: "Open" }).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onOpenChange).toHaveBeenLastCalledWith(
+      true,
+      expect.objectContaining({ reason: "trigger-press" }),
+    );
   });
 
   describe("as a context menu", () => {
@@ -56,36 +85,7 @@ describe("Menu", () => {
     });
   });
 
-  describe("placement", () => {
-    const positionerOf = (menu: HTMLElement) => menu.parentElement as HTMLElement;
-    const placedAt = (menu: HTMLElement) =>
-      waitFor(() => {
-        const { style } = positionerOf(menu);
-        expect(style.getPropertyValue("--y")).not.toBe("");
-        return {
-          x: parseFloat(style.getPropertyValue("--x")),
-          y: parseFloat(style.getPropertyValue("--y")),
-        };
-      });
-
-    it("opens at its button when it also has a context trigger", async () => {
-      render(
-        <Menu.Root>
-          <Menu.ContextTrigger>Row</Menu.ContextTrigger>
-          <Menu.Trigger>Open</Menu.Trigger>
-          <Menu.Content>
-            <Menu.Item value="rename">Rename</Menu.Item>
-          </Menu.Content>
-        </Menu.Root>,
-      );
-
-      const { x, y } = await placedAt(await openMenu());
-      expect(x).toBe(0);
-      expect(Math.abs(y)).toBeLessThanOrEqual(8);
-    });
-  });
-
-  it("renders an asChild link as the menu item itself", async () => {
+  it("renders a render link as the menu item itself", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
       <Menu.Root>
@@ -94,9 +94,9 @@ describe("Menu", () => {
           <Menu.Item
             value="settings"
             icon={<span data-testid="icon" />}
-            asChild
+            render={<a href="/settings" />}
           >
-            <a href="/settings">Settings</a>
+            Settings
           </Menu.Item>
         </Menu.Content>
       </Menu.Root>,
@@ -113,7 +113,7 @@ describe("Menu", () => {
     consoleError.mockRestore();
   });
 
-  it("wraps the output of a render-prop asChild child", async () => {
+  it("wraps the output of a render link's render-prop children", async () => {
     const RenderLink = ({
       children,
       ...props
@@ -134,10 +134,8 @@ describe("Menu", () => {
           <Menu.Item
             value="docs"
             icon={<span data-testid="icon" />}
-            asChild
-          >
-            <RenderLink>{({ active }) => `Docs ${active}`}</RenderLink>
-          </Menu.Item>
+            render={<RenderLink>{({ active }) => `Docs ${active}`}</RenderLink>}
+          />
         </Menu.Content>
       </Menu.Root>,
     );
@@ -176,14 +174,14 @@ describe("Menu", () => {
         <Menu.Content>
           <Menu.Item
             value="settings"
-            asChild
+            render={
+              <a
+                href="/settings"
+                onClick={onClick}
+              />
+            }
           >
-            <a
-              href="/settings"
-              onClick={onClick}
-            >
-              Settings
-            </a>
+            Settings
           </Menu.Item>
         </Menu.Content>
       </Menu.Root>,
@@ -194,7 +192,7 @@ describe("Menu", () => {
     await userEvent.keyboard("{ArrowDown}{Enter}");
 
     await waitFor(() => expect(onClick).toHaveBeenCalledTimes(1));
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ value: "settings" }));
+    expect(onSelect).toHaveBeenCalledWith("settings");
     await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
   });
 
@@ -251,11 +249,11 @@ describe("Menu", () => {
 
       await user.click(screen.getByRole("button", { name: "Open" }));
       const menu = await screen.findByRole("menu");
-      const sheet = menu.closest("[data-overlay-sheet]");
+      const sheet = sheetOf(menu);
       await user.click(screen.getByRole("menuitem", { name: "Export" }));
 
       const csv = await screen.findByRole("menuitem", { name: "CSV" });
-      expect(csv.closest("[data-overlay-sheet]")).toBe(sheet);
+      expect(sheetOf(csv)).toBe(sheet);
 
       await user.click(screen.getByRole("menuitem", { name: "Actions" }));
       await waitFor(() => expect(screen.queryByRole("menuitem", { name: "CSV" })).toBeNull());
@@ -282,7 +280,7 @@ describe("Menu", () => {
       await user.click(await screen.findByRole("menuitem", { name: "Export" }));
 
       const csv = await screen.findByRole("menuitem", { name: "CSV" });
-      expect(csv.closest("[data-overlay-sheet]")).toBeNull();
+      expect(sheetOf(csv)).toBeNull();
     });
   });
 });

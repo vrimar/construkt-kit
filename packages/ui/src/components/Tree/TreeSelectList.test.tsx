@@ -1,14 +1,10 @@
-import {
-  type TreeCollection,
-  type TreeViewLoadChildrenDetails,
-  useTreeViewContext,
-} from "@ark-ui/react/tree-view";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { childIdsOf, createTestTree, type TestNode } from "./tree.fixtures";
+import { childIdsOf, findTestNode, testAccessors, type TestNode } from "./tree.fixtures";
 import { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
+import type { TreeLoadChildrenDetails } from "./useTreeLazyLoad";
 
 const virtualScrollAreaProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
 
@@ -33,7 +29,7 @@ vi.mock("../ScrollArea/VirtualScrollArea", () => ({
   },
 }));
 
-const fileTreeCollection = createTestTree([
+const fileTreeCollection: TestNode[] = [
   {
     id: "src",
     label: "src",
@@ -49,9 +45,9 @@ const fileTreeCollection = createTestTree([
       { id: "src/index.ts", label: "index.ts" },
     ],
   },
-]);
+];
 
-const fruitVegCollection = createTestTree([
+const fruitVegCollection: TestNode[] = [
   {
     id: "fruits",
     label: "Fruits",
@@ -65,7 +61,30 @@ const fruitVegCollection = createTestTree([
     label: "Vegetables",
     children: [{ id: "carrot", label: "Carrot" }],
   },
-]);
+];
+
+interface ItemsNode {
+  id: string;
+  label: string;
+  items?: ItemsNode[];
+}
+
+const itemsCollection: ItemsNode[] = [
+  {
+    id: "fruits",
+    label: "Fruits",
+    items: [
+      { id: "apple", label: "Apple" },
+      { id: "banana", label: "Banana" },
+    ],
+  },
+];
+
+const itemsAccessors = {
+  getNodeValue: (node: ItemsNode) => node.id,
+  getNodeLabel: (node: ItemsNode) => node.label,
+  getChildren: (node: ItemsNode) => node.items,
+};
 
 type ListProps = Partial<TreeSelectListProps<TestNode>>;
 
@@ -77,7 +96,13 @@ const treeSelectList = ({
   onLoadChildrenError,
   ...overrides
 }: ListProps = {}) => {
-  const props = { collection: fruitVegCollection, value: [], onValueChange: vi.fn(), ...overrides };
+  const props = {
+    nodes: fruitVegCollection,
+    ...testAccessors,
+    value: [],
+    onValueChange: vi.fn(),
+    ...overrides,
+  };
   return loadChildren ? (
     <TreeSelectList
       {...props}
@@ -101,19 +126,13 @@ describe("TreeSelectList", () => {
   it("renders ancestor indent guides for virtualized descendants", () => {
     renderList({
       ...listOnly,
-      collection: fileTreeCollection,
+      nodes: fileTreeCollection,
       defaultExpandedValue: ["src", "src/components"],
     });
 
-    const srcRow = screen
-      .getByText("src")
-      .closest('[data-scope="tree-view"][data-part="branch-control"]');
-    const componentsRow = screen
-      .getByText("components")
-      .closest('[data-scope="tree-view"][data-part="branch-control"]');
-    const buttonRow = screen
-      .getByText("Button.tsx")
-      .closest('[data-scope="tree-view"][data-part="item"]');
+    const srcRow = screen.getByText("src").closest('[data-slot="branchControl"]');
+    const componentsRow = screen.getByText("components").closest('[data-slot="branchControl"]');
+    const buttonRow = screen.getByText("Button.tsx").closest('[data-slot="item"]');
 
     expect(srcRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(0);
     expect(componentsRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(1);
@@ -123,28 +142,22 @@ describe("TreeSelectList", () => {
   it("renders a leaf indicator spacer so item content aligns with branch rows", () => {
     renderList({ ...listOnly, defaultExpandedValue: ["fruits"] });
 
-    const branchRow = screen
-      .getByText("Fruits")
-      .closest('[data-scope="tree-view"][data-part="branch-control"]');
-    const leafRow = screen.getByText("Apple").closest('[data-scope="tree-view"][data-part="item"]');
+    const branchRow = screen.getByText("Fruits").closest('[data-slot="branchControl"]');
+    const leafRow = screen.getByText("Apple").closest('[data-slot="item"]');
 
-    expect(
-      branchRow?.querySelector('[data-scope="tree-view"][data-part="branch-indicator"]'),
-    ).not.toBeNull();
+    expect(branchRow?.querySelector('[data-slot="branchIndicator"] > svg')).not.toBeNull();
     expect(leafRow?.querySelector(".tree-view__branchIndicator")).not.toBeNull();
   });
 
   it("renders a single check icon for a fully checked branch", () => {
     renderList({
       ...listOnly,
-      collection: fileTreeCollection,
+      nodes: fileTreeCollection,
       value: ["src/components/Button.tsx", "src/components/Input.tsx"],
       defaultExpandedValue: ["src", "src/components"],
     });
 
-    const branchRow = screen
-      .getByText("components")
-      .closest('[data-scope="tree-view"][data-part="branch-control"]');
+    const branchRow = screen.getByText("components").closest('[data-slot="branchControl"]');
 
     expect(branchRow).not.toBeNull();
     expect(branchRow?.querySelectorAll("svg.lucide-check")).toHaveLength(1);
@@ -155,14 +168,12 @@ describe("TreeSelectList", () => {
   it("renders an indeterminate icon for a partially checked branch", () => {
     renderList({
       ...listOnly,
-      collection: fileTreeCollection,
+      nodes: fileTreeCollection,
       value: ["src/components/Button.tsx"],
       defaultExpandedValue: ["src", "src/components"],
     });
 
-    const branchRow = screen
-      .getByText("components")
-      .closest('[data-scope="tree-view"][data-part="branch-control"]');
+    const branchRow = screen.getByText("components").closest('[data-slot="branchControl"]');
 
     expect(branchRow).not.toBeNull();
     expect(branchRow?.querySelectorAll("svg.lucide-check")).toHaveLength(0);
@@ -181,8 +192,8 @@ describe("TreeSelectList", () => {
 
     const appleCheckbox = screen
       .getByText("Apple")
-      .closest('[data-scope="tree-view"][data-part="item"]')
-      ?.querySelector('[data-scope="tree-view"][data-part="node-checkbox"]');
+      .closest('[data-slot="item"]')
+      ?.querySelector('[data-slot="nodeCheckbox"]');
     fireEvent.click(appleCheckbox as Element);
 
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(["carrot", "apple"]));
@@ -203,10 +214,10 @@ describe("TreeSelectList", () => {
 
   // --- Drag and drop ---
 
-  it("makes rows draggable when onCollectionChange is provided", () => {
+  it("makes rows draggable when onNodesChange is provided", () => {
     renderList({
       ...listOnly,
-      onCollectionChange: vi.fn(),
+      onNodesChange: vi.fn(),
       defaultExpandedValue: ["fruits", "vegetables"],
     });
 
@@ -214,17 +225,17 @@ describe("TreeSelectList", () => {
     expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
   });
 
-  it("leaves rows non-draggable without onCollectionChange", () => {
+  it("leaves rows non-draggable without onNodesChange", () => {
     renderList({ ...listOnly, defaultExpandedValue: ["fruits", "vegetables"] });
 
     expect(screen.getByText("Fruits").closest("[draggable='true']")).toBeNull();
   });
 
   it("reorders a node via keyboard (Ctrl+ArrowDown) and commits the change", () => {
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     renderList({
       ...listOnly,
-      onCollectionChange,
+      onNodesChange,
       defaultExpandedValue: ["fruits", "vegetables"],
     });
 
@@ -232,8 +243,8 @@ describe("TreeSelectList", () => {
     expect(apple).not.toBeNull();
     fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
 
-    expect(onCollectionChange).toHaveBeenCalledTimes(1);
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    expect(onNodesChange).toHaveBeenCalledTimes(1);
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
   });
 
@@ -244,7 +255,7 @@ describe("TreeSelectList", () => {
     [
       "disabled node",
       {
-        collection: createTestTree([
+        nodes: [
           {
             id: "fruits",
             label: "Fruits",
@@ -253,7 +264,7 @@ describe("TreeSelectList", () => {
               { id: "banana", label: "Banana" },
             ],
           },
-        ]),
+        ],
       },
       "Apple",
       "ArrowDown",
@@ -261,32 +272,32 @@ describe("TreeSelectList", () => {
   ] satisfies [string, ListProps, string, string][])(
     "keyboard moves respect the %s veto",
     (_, veto, label, key) => {
-      const onCollectionChange = vi.fn();
+      const onNodesChange = vi.fn();
       renderList({
         ...listOnly,
-        onCollectionChange,
+        onNodesChange,
         defaultExpandedValue: ["fruits", "vegetables"],
         ...veto,
       });
       const row = screen.getByText(label).closest("[draggable='true']");
       fireEvent.keyDown(row as HTMLElement, { key, ctrlKey: true });
-      expect(onCollectionChange).not.toHaveBeenCalled();
+      expect(onNodesChange).not.toHaveBeenCalled();
     },
   );
 
   it("keyboard-moves every getDragValues node, as a pointer drag does", () => {
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     renderList({
       ...listOnly,
-      onCollectionChange,
+      onNodesChange,
       getDragValues: (value) => (value === "apple" ? ["apple", "carrot"] : [value]),
       defaultExpandedValue: ["fruits", "vegetables"],
     });
     const apple = screen.getByText("Apple").closest("[draggable='true']");
     fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
 
-    expect(onCollectionChange).toHaveBeenCalledTimes(1);
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    expect(onNodesChange).toHaveBeenCalledTimes(1);
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple", "carrot"]);
     expect(childIdsOf(next, "vegetables")).toEqual([]);
   });
@@ -294,11 +305,11 @@ describe("TreeSelectList", () => {
   it("expands a collapsed branch on keyboard indent and keeps focus on the moved node", async () => {
     const onExpandedChange = vi.fn();
     const ReorderableTree = () => {
-      const [collection, setCollection] = useState(fruitVegCollection);
+      const [nodes, setNodes] = useState(fruitVegCollection);
       return treeSelectList({
         ...listOnly,
-        collection,
-        onCollectionChange: setCollection,
+        nodes,
+        onNodesChange: setNodes,
         defaultExpandedValue: [],
         onExpandedChange,
       });
@@ -319,7 +330,7 @@ describe("TreeSelectList", () => {
   });
 
   it("renders an assistive-tech live region when DnD is enabled", async () => {
-    const { container } = renderList({ ...listOnly, onCollectionChange: vi.fn() });
+    const { container } = renderList({ ...listOnly, onNodesChange: vi.fn() });
 
     expect(container.querySelector("[aria-live]")).not.toBeNull();
   });
@@ -328,14 +339,12 @@ describe("TreeSelectList", () => {
 const rowOf = (label: string) =>
   screen
     .getByText(label)
-    .closest<HTMLElement>(
-      '[data-scope="tree-view"][data-part="branch-control"], [data-scope="tree-view"][data-part="item"]',
-    ) as HTMLElement;
+    .closest<HTMLElement>('[data-slot="branchControl"], [data-slot="item"]') as HTMLElement;
 
-const checkboxOf = (label: string) => rowOf(label).querySelector('[data-part="node-checkbox"]');
+const checkboxOf = (label: string) => rowOf(label).querySelector('[data-slot="nodeCheckbox"]');
 
 const indicatorOf = (label: string) =>
-  rowOf(label).querySelector('[data-part="branch-indicator"]') as HTMLElement;
+  rowOf(label).querySelector('[data-slot="branchIndicator"]') as HTMLElement;
 
 const searchInput = () => screen.getByPlaceholderText("Search...");
 
@@ -360,7 +369,7 @@ describe("TreeSelectList sticky branches and rename", () => {
   it("pins the branch of the topmost visible row above the list", async () => {
     renderList({
       ...listOnly,
-      collection: fileTreeCollection,
+      nodes: fileTreeCollection,
       defaultExpandedValue: ["src", "src/components"],
       stickyBranches: true,
     });
@@ -369,14 +378,14 @@ describe("TreeSelectList sticky branches and rename", () => {
       firstUncut: number;
     }) => void;
     const rowIndex = (label: string) =>
-      Array.from(document.querySelectorAll('[data-scope="tree-view"][data-part]'))
-        .filter((el) => ["branch-control", "item"].includes(el.getAttribute("data-part") ?? ""))
-        .findIndex((el) => el.textContent?.includes(label) && !el.closest("[aria-hidden=true]"));
+      Array.from(document.querySelectorAll('[data-slot="branchControl"], [data-slot="item"]'))
+        .filter((el) => !el.closest("[aria-hidden=true]"))
+        .findIndex((el) => el.textContent?.includes(label));
 
     const inputRow = rowIndex("Input.tsx");
     act(() => onVisibleItemsChange({ firstVisible: inputRow, firstUncut: inputRow }));
 
-    const pinned = document.querySelector<HTMLElement>("[aria-hidden=true][data-state=open]");
+    const pinned = document.querySelector<HTMLElement>("[data-pinned]");
     expect(pinned?.textContent).toBe("components");
   });
 
@@ -384,7 +393,7 @@ describe("TreeSelectList sticky branches and rename", () => {
     const onRenameComplete = vi.fn();
     renderList({
       ...listOnly,
-      collection: fileTreeCollection,
+      nodes: fileTreeCollection,
       defaultExpandedValue: ["src", "src/components"],
       canRename: () => true,
       onRenameComplete,
@@ -398,7 +407,8 @@ describe("TreeSelectList sticky branches and rename", () => {
     await flush();
 
     expect(onRenameComplete).toHaveBeenCalledWith(
-      expect.objectContaining({ value: "src/components/Button.tsx", label: "Link.tsx" }),
+      "src/components/Button.tsx",
+      expect.objectContaining({ label: "Link.tsx" }),
     );
   });
 });
@@ -432,6 +442,21 @@ describe("TreeSelectList search", () => {
     expect(screen.queryByText("Apple")).toBeNull();
   });
 
+  it("filters a tree that keeps its children under another key", () => {
+    render(
+      <TreeSelectList
+        nodes={itemsCollection}
+        {...itemsAccessors}
+        value={[]}
+        onValueChange={vi.fn()}
+        search={{ query: "app" }}
+      />,
+    );
+
+    expect(screen.getByText("Apple")).toBeTruthy();
+    expect(screen.queryByText("Banana")).toBeNull();
+  });
+
   it("applies defaultQuery to an uncontrolled search", () => {
     renderList({ search: { defaultQuery: "ban" } });
 
@@ -440,7 +465,7 @@ describe("TreeSelectList search", () => {
     expect(screen.queryByText("Apple")).toBeNull();
   });
 
-  it("renders the collection unfiltered in external search mode", () => {
+  it("renders the nodes unfiltered in external search mode", () => {
     const filter = vi.fn(() => false);
     renderList({ search: { mode: "external", query: "zzz", filter } });
 
@@ -459,13 +484,13 @@ describe("TreeSelectList search", () => {
     fireEvent.change(searchInput(), { target: { value: "app" } });
 
     expect(screen.getByText("Apple")).toBeTruthy();
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
     expect(onExpandedChange).not.toHaveBeenCalled();
 
     fireEvent.change(searchInput(), { target: { value: "" } });
 
     expect(screen.queryByText("Apple")).toBeNull();
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(false);
     expect(onExpandedChange).not.toHaveBeenCalled();
   });
 
@@ -487,11 +512,11 @@ describe("TreeSelectList search", () => {
     fireEvent.change(searchInput(), { target: { value: "ap" } });
 
     expect(screen.getByText("Apple")).toBeTruthy();
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
 
     fireEvent.change(searchInput(), { target: { value: "a" } });
 
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
   });
 
   it("keeps stored expansion while searching when expandOnSearch is false", async () => {
@@ -510,12 +535,12 @@ describe("TreeSelectList search", () => {
   });
 
   it("disables dragging while a query is active", () => {
-    const onCollectionChange = vi.fn();
-    const { rerender } = renderList({ onCollectionChange, search: { query: "a" } });
+    const onNodesChange = vi.fn();
+    const { rerender } = renderList({ onNodesChange, search: { query: "a" } });
 
     expect(screen.getByText("Apple").closest("[draggable='true']")).toBeNull();
 
-    rerender({ onCollectionChange, search: { query: "" } });
+    rerender({ onNodesChange, search: { query: "" } });
 
     expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
   });
@@ -547,7 +572,7 @@ describe("TreeSelectList search", () => {
 
   it("never makes a matching branch with filtered-out children checkable", () => {
     const onValueChange = vi.fn();
-    const pantryCollection = createTestTree([
+    const pantryCollection = [
       {
         id: "pantry",
         label: "Pantry",
@@ -560,8 +585,8 @@ describe("TreeSelectList search", () => {
           { id: "fruit-tea", label: "Fruit tea" },
         ],
       },
-    ]);
-    renderList({ collection: pantryCollection, onValueChange, search: { query: "fruit" } });
+    ];
+    renderList({ nodes: pantryCollection, onValueChange, search: { query: "fruit" } });
 
     expect(checkboxOf("Fruits")).toBeNull();
     expect(checkboxOf("Pantry")).toBeNull();
@@ -622,7 +647,7 @@ describe("TreeSelectList checking and keyboard", () => {
     fireEvent.keyDown(rowOf("Fruits"), { key: "Enter" });
     await flush();
     expect(onValueChange).not.toHaveBeenCalled();
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(false);
 
     fireEvent.keyDown(rowOf("Fruits"), { key: " " });
     expect(onValueChange).toHaveBeenLastCalledWith(["apple", "banana"]);
@@ -630,11 +655,11 @@ describe("TreeSelectList checking and keyboard", () => {
 
   it("leaves keys pressed on a row action to the action", async () => {
     const onValueChange = vi.fn();
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     renderList({
       ...listOnly,
       onValueChange,
-      onCollectionChange,
+      onNodesChange,
       renderActions: ({ node }) => <button type="button">Edit {node.label}</button>,
     });
     const fruitsAction = screen.getByRole("button", { name: "Edit Fruits" });
@@ -647,13 +672,13 @@ describe("TreeSelectList checking and keyboard", () => {
     });
     await flush();
 
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
     expect(onValueChange).not.toHaveBeenCalled();
-    expect(onCollectionChange).not.toHaveBeenCalled();
+    expect(onNodesChange).not.toHaveBeenCalled();
   });
 
   it("exposes flat branch rows as expandable tree items", () => {
-    renderList({ ...listOnly, collection: fileTreeCollection, defaultExpandedValue: ["src"] });
+    renderList({ ...listOnly, nodes: fileTreeCollection, defaultExpandedValue: ["src"] });
 
     expect(rowOf("src").getAttribute("role")).toBe("treeitem");
     expect(rowOf("src").getAttribute("aria-expanded")).toBe("true");
@@ -701,35 +726,10 @@ describe("TreeSelectList checking and keyboard", () => {
     expect(checkboxOf("Fruits")).not.toBeNull();
   });
 
-  it("filters checks made through the tree context to checkable leaves", async () => {
-    const onValueChange = vi.fn();
-    const ToggleFruits = () => {
-      const tree = useTreeViewContext();
-      return (
-        <button
-          type="button"
-          onClick={() => tree.toggleChecked("fruits", true)}
-        >
-          Toggle fruits
-        </button>
-      );
-    };
-    renderList({
-      ...bananaLocked,
-      value: ["stale"],
-      onValueChange,
-      renderActions: ({ node }) => (node.id === "carrot" ? <ToggleFruits /> : undefined),
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: "Toggle fruits" }));
-    await flush();
-    expect(onValueChange).toHaveBeenLastCalledWith(["stale", "apple"]);
-  });
-
   it("skips disabled leaves on select-all and branch toggles", () => {
     const onValueChange = vi.fn();
     renderList({
-      collection: createTestTree([
+      nodes: [
         {
           id: "fruits",
           label: "Fruits",
@@ -738,7 +738,7 @@ describe("TreeSelectList checking and keyboard", () => {
             { id: "banana", label: "Banana", disabled: true },
           ],
         },
-      ]),
+      ],
       onValueChange,
       search: { showInput: false },
     });
@@ -751,17 +751,17 @@ describe("TreeSelectList checking and keyboard", () => {
   });
 
   it("leaves locked nodes out of a multi-node move", () => {
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     renderList({
       ...listOnly,
-      onCollectionChange,
+      onNodesChange,
       getDragValues: (value) => (value === "apple" ? ["apple", "carrot"] : [value]),
       isNodeDraggable: (node) => node.id !== "carrot",
     });
 
     fireEvent.keyDown(rowOf("Apple"), { key: "ArrowDown", ctrlKey: true });
 
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
     expect(childIdsOf(next, "vegetables")).toEqual(["carrot"]);
   });
@@ -779,15 +779,15 @@ const createLazyCollection = (
     { id: "remote", label: "Remote", childrenCount: 2 },
     { id: "carrot", label: "Carrot" },
   ],
-) => createTestTree(topLevel);
+) => topLevel;
 
 describe("TreeSelectList lazy loading", () => {
   it("renders a childrenCount-only branch collapsed, with a chevron and no checkbox", () => {
     const loadChildren = vi.fn(() => Promise.resolve(remoteChildren));
-    renderList({ collection: createLazyCollection(), showSelectAll: false, loadChildren });
+    renderList({ nodes: createLazyCollection(), showSelectAll: false, loadChildren });
 
-    expect(rowOf("Remote").getAttribute("data-part")).toBe("branch-control");
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Remote").getAttribute("data-slot")).toBe("branchControl");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
     expect(indicatorOf("Remote")).not.toBeNull();
     expect(checkboxOf("Remote")).toBeNull();
     expect(screen.getByText("Apple")).toBeTruthy();
@@ -795,29 +795,31 @@ describe("TreeSelectList lazy loading", () => {
   });
 
   it("loads on expand, marks the row busy and ignores clicks while pending", async () => {
-    const collection = createLazyCollection();
+    const nodes = createLazyCollection();
     const load = deferred<TestNode[]>();
-    const loadChildren = vi.fn((_details: TreeViewLoadChildrenDetails<TestNode>) => load.promise);
-    renderList({ collection, showSelectAll: false, loadChildren });
+    const loadChildren = vi.fn(
+      (_node: TestNode, _details: TreeLoadChildrenDetails) => load.promise,
+    );
+    renderList({ nodes, showSelectAll: false, loadChildren });
 
     await clickRow("Remote");
 
     expect(loadChildren).toHaveBeenCalledTimes(1);
-    const [details] = loadChildren.mock.calls[0];
-    expect(details.node).toBe(collection.findNode("remote"));
+    const [node, details] = loadChildren.mock.calls[0];
+    expect(node).toBe(findTestNode(nodes, "remote"));
     expect(details.indexPath).toEqual([2]);
     expect(details.valuePath).toEqual(["remote"]);
     expect(details.signal.aborted).toBe(false);
     expect(rowOf("Remote").hasAttribute("data-loading")).toBe(true);
     expect(rowOf("Remote").getAttribute("aria-busy")).toBe("true");
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
 
     await clickRow("Remote");
 
     expect(loadChildren).toHaveBeenCalledTimes(1);
   });
 
-  it("hands back the full source collection under a client query, then opens the branch", async () => {
+  it("hands back the full source nodes under a client query, then opens the branch", async () => {
     const load = deferred<TestNode[]>();
     const onLoadChildrenComplete = vi.fn();
     const props = {
@@ -826,29 +828,27 @@ describe("TreeSelectList lazy loading", () => {
       onLoadChildrenComplete,
       search: { query: "remote" },
     };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     expect(screen.queryByText("Apple")).toBeNull();
     await clickRow("Remote");
     load.resolve(remoteChildren);
 
     await waitFor(() => expect(onLoadChildrenComplete).toHaveBeenCalledTimes(1));
-    const { collection: next } = onLoadChildrenComplete.mock.calls[0][0] as {
-      collection: TreeCollection<TestNode>;
-    };
-    expect(next.findNode("apple")).toBeDefined();
-    expect(next.findNode("cloud")).toBeDefined();
+    const next = onLoadChildrenComplete.mock.calls[0][0] as TestNode[];
+    expect(findTestNode(next, "apple")).toBeDefined();
+    expect(findTestNode(next, "cloud")).toBeDefined();
     expect(childIdsOf(next, "remote")).toEqual(["remote/alpha", "remote/beta"]);
     expect(rowOf("Remote").hasAttribute("data-loading")).toBe(false);
 
-    rerender({ collection: next, ...props });
+    rerender({ nodes: next, ...props });
 
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
     expect(checkboxOf("Remote alpha")).not.toBeNull();
     expect(checkboxOf("Remote")).not.toBeNull();
   });
 
-  it("opens a loaded branch once the collection is applied without a query", async () => {
+  it("opens a loaded branch once the nodes are applied without a query", async () => {
     const onExpandedChange = vi.fn();
     const onLoadChildrenComplete = vi.fn();
     const props = {
@@ -857,7 +857,7 @@ describe("TreeSelectList lazy loading", () => {
       onLoadChildrenComplete,
       onExpandedChange,
     };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     await clickRow("Remote");
 
@@ -865,21 +865,18 @@ describe("TreeSelectList lazy loading", () => {
     expect(onExpandedChange).toHaveBeenCalledTimes(1);
     expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits", "remote"]);
 
-    rerender({ collection: onLoadChildrenComplete.mock.calls[0][0].collection, ...props });
+    rerender({ nodes: onLoadChildrenComplete.mock.calls[0][0], ...props });
 
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
     expect(screen.getByText("Remote beta")).toBeTruthy();
   });
 
   it("merges two loads that resolve in the same tick", async () => {
     const loads = { remote: deferred<TestNode[]>(), cloud: deferred<TestNode[]>() };
-    const loadChildren = vi.fn(
-      ({ node }: TreeViewLoadChildrenDetails<TestNode>) =>
-        loads[node.id as keyof typeof loads].promise,
-    );
+    const loadChildren = vi.fn((node: TestNode) => loads[node.id as keyof typeof loads].promise);
     const onLoadChildrenComplete = vi.fn();
     renderList({
-      collection: createLazyCollection(),
+      nodes: createLazyCollection(),
       showSelectAll: false,
       loadChildren,
       onLoadChildrenComplete,
@@ -893,30 +890,48 @@ describe("TreeSelectList lazy loading", () => {
     loads.cloud.resolve([{ id: "cloud/a", label: "Cloud a" }]);
 
     await waitFor(() => expect(onLoadChildrenComplete).toHaveBeenCalledTimes(2));
-    const { collection: merged } = onLoadChildrenComplete.mock.calls[1][0] as {
-      collection: TreeCollection<TestNode>;
-    };
-    expect(merged.getNodeChildren(merged.findNode("remote") as TestNode)).toHaveLength(2);
-    expect(merged.getNodeChildren(merged.findNode("cloud") as TestNode)).toHaveLength(1);
+    const merged = onLoadChildrenComplete.mock.calls[1][0] as TestNode[];
+    expect(childIdsOf(merged, "remote")).toHaveLength(2);
+    expect(childIdsOf(merged, "cloud")).toHaveLength(1);
+  });
+
+  it("opens a loaded branch on top of the expansion its owner kept", async () => {
+    const load = deferred<TestNode[]>();
+    const onExpandedChange = vi.fn();
+    renderList({
+      nodes: createLazyCollection(),
+      showSelectAll: false,
+      loadChildren: () => load.promise,
+      expandedValue: ["fruits"],
+      onExpandedChange,
+    });
+
+    await clickRow("Remote");
+    await clickRow("Fruits");
+    expect(onExpandedChange).toHaveBeenLastCalledWith([]);
+
+    load.resolve(remoteChildren);
+
+    await waitFor(() => expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits", "remote"]));
   });
 
   it("reports a rejected load, stays collapsed and retries on the next expand", async () => {
-    const collection = createLazyCollection();
+    const nodes = createLazyCollection();
     const error = new Error("boom");
     const loadChildren = vi.fn(() => Promise.reject(error));
     const onLoadChildrenError = vi.fn();
-    renderList({ collection, showSelectAll: false, loadChildren, onLoadChildrenError });
+    renderList({ nodes, showSelectAll: false, loadChildren, onLoadChildrenError });
 
     await clickRow("Remote");
 
     await waitFor(() => expect(onLoadChildrenError).toHaveBeenCalledTimes(1));
-    expect(onLoadChildrenError).toHaveBeenCalledWith({
-      nodes: [
-        { node: collection.findNode("remote"), error, indexPath: [2], valuePath: ["remote"] },
-      ],
+    expect(onLoadChildrenError).toHaveBeenCalledWith(error, {
+      node: findTestNode(nodes, "remote"),
+      indexPath: [2],
+      valuePath: ["remote"],
     });
     expect(rowOf("Remote").hasAttribute("data-loading")).toBe(false);
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
 
     await clickRow("Remote");
 
@@ -927,43 +942,43 @@ describe("TreeSelectList lazy loading", () => {
     const loadChildren = vi.fn(() => Promise.resolve([] as TestNode[]));
     const onLoadChildrenComplete = vi.fn();
     const props = { showSelectAll: false, loadChildren, onLoadChildrenComplete };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     await clickRow("Remote");
     await waitFor(() => expect(onLoadChildrenComplete).toHaveBeenCalledTimes(1));
-    rerender({ collection: onLoadChildrenComplete.mock.calls[0][0].collection, ...props });
+    rerender({ nodes: onLoadChildrenComplete.mock.calls[0][0], ...props });
 
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
 
     await clickRow("Remote");
     await clickRow("Remote");
 
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
     expect(loadChildren).toHaveBeenCalledTimes(1);
     expect(onLoadChildrenComplete).toHaveBeenCalledTimes(1);
   });
 
-  it("reloads a branch whose children a fresh collection dropped", async () => {
+  it("reloads a branch whose children fresh nodes dropped", async () => {
     const loadChildren = vi.fn(() => Promise.resolve(remoteChildren));
     const onLoadChildrenComplete = vi.fn();
     const props = { showSelectAll: false, loadChildren, onLoadChildrenComplete };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     await clickRow("Remote");
     await waitFor(() => expect(onLoadChildrenComplete).toHaveBeenCalledTimes(1));
-    rerender({ collection: onLoadChildrenComplete.mock.calls[0][0].collection, ...props });
+    rerender({ nodes: onLoadChildrenComplete.mock.calls[0][0], ...props });
     expect(screen.getByText("Remote alpha")).toBeTruthy();
 
-    rerender({ collection: createLazyCollection(), ...props });
+    rerender({ nodes: createLazyCollection(), ...props });
     expect(screen.queryByText("Remote alpha")).toBeNull();
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
 
     await clickRow("Remote");
 
     expect(loadChildren).toHaveBeenCalledTimes(2);
   });
 
-  it("drops a completion whose node left the collection", async () => {
+  it("drops a completion whose node left the tree", async () => {
     const load = deferred<TestNode[]>();
     const onLoadChildrenComplete = vi.fn();
     const onExpandedChange = vi.fn();
@@ -973,10 +988,10 @@ describe("TreeSelectList lazy loading", () => {
       onLoadChildrenComplete,
       onExpandedChange,
     };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     await clickRow("Remote");
-    rerender({ collection: createLazyCollection([{ id: "carrot", label: "Carrot" }]), ...props });
+    rerender({ nodes: createLazyCollection([{ id: "carrot", label: "Carrot" }]), ...props });
     load.resolve(remoteChildren);
     await flush();
 
@@ -986,11 +1001,13 @@ describe("TreeSelectList lazy loading", () => {
 
   it("aborts pending loads on unmount without reporting an error", async () => {
     const load = deferred<TestNode[]>();
-    const loadChildren = vi.fn((_details: TreeViewLoadChildrenDetails<TestNode>) => load.promise);
+    const loadChildren = vi.fn(
+      (_node: TestNode, _details: TreeLoadChildrenDetails) => load.promise,
+    );
     const onLoadChildrenComplete = vi.fn();
     const onLoadChildrenError = vi.fn();
     const { unmount } = renderList({
-      collection: createLazyCollection(),
+      nodes: createLazyCollection(),
       showSelectAll: false,
       loadChildren,
       onLoadChildrenComplete,
@@ -998,7 +1015,7 @@ describe("TreeSelectList lazy loading", () => {
     });
 
     await clickRow("Remote");
-    const { signal } = loadChildren.mock.calls[0][0];
+    const { signal } = loadChildren.mock.calls[0][1];
     unmount();
 
     expect(signal.aborted).toBe(true);
@@ -1010,17 +1027,17 @@ describe("TreeSelectList lazy loading", () => {
 
   it("aborts pending loads when an external query changes", async () => {
     const loadChildren = vi.fn(
-      (_details: TreeViewLoadChildrenDetails<TestNode>) => deferred<TestNode[]>().promise,
+      (_node: TestNode, _details: TreeLoadChildrenDetails) => deferred<TestNode[]>().promise,
     );
     const props = {
-      collection: createLazyCollection(),
+      nodes: createLazyCollection(),
       showSelectAll: false,
       loadChildren,
     };
     const { rerender } = renderList({ ...props, search: { mode: "external", query: "" } });
 
     await clickRow("Remote");
-    const { signal } = loadChildren.mock.calls[0][0];
+    const { signal } = loadChildren.mock.calls[0][1];
     rerender({ ...props, search: { mode: "external", query: "rem" } });
 
     expect(signal.aborted).toBe(true);
@@ -1028,76 +1045,76 @@ describe("TreeSelectList lazy loading", () => {
   });
 
   it("blocks keyboard indent into an unloaded branch until its children load", async () => {
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     const onLoadChildrenComplete = vi.fn();
     const props = {
       ...listOnly,
       loadChildren: () => Promise.resolve(remoteChildren),
       onLoadChildrenComplete,
-      onCollectionChange,
+      onNodesChange,
     };
-    const { rerender } = renderList({ collection: createLazyCollection(), ...props });
+    const { rerender } = renderList({ nodes: createLazyCollection(), ...props });
 
     fireEvent.keyDown(rowOf("Carrot"), { key: "ArrowRight", ctrlKey: true });
-    expect(onCollectionChange).not.toHaveBeenCalled();
+    expect(onNodesChange).not.toHaveBeenCalled();
 
     await clickRow("Remote");
     await waitFor(() => expect(onLoadChildrenComplete).toHaveBeenCalledTimes(1));
-    rerender({ collection: onLoadChildrenComplete.mock.calls[0][0].collection, ...props });
+    rerender({ nodes: onLoadChildrenComplete.mock.calls[0][0], ...props });
 
     fireEvent.keyDown(rowOf("Carrot"), { key: "ArrowRight", ctrlKey: true });
 
-    expect(onCollectionChange).toHaveBeenCalledTimes(1);
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    expect(onNodesChange).toHaveBeenCalledTimes(1);
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next, "remote")).toEqual(["carrot", "remote/alpha", "remote/beta"]);
   });
 
   it("keeps a branch that loaded empty loaded after a reorder", async () => {
     const loadChildren = vi.fn(() => Promise.resolve([] as TestNode[]));
     const LazyReorderableTree = () => {
-      const [collection, setCollection] = useState(() => createLazyCollection());
+      const [nodes, setNodes] = useState(() => createLazyCollection());
       return treeSelectList({
         ...listOnly,
-        collection,
+        nodes,
         loadChildren,
-        onLoadChildrenComplete: ({ collection: next }) => setCollection(next),
-        onCollectionChange: setCollection,
+        onLoadChildrenComplete: (next) => setNodes(next),
+        onNodesChange: setNodes,
       });
     };
     render(<LazyReorderableTree />);
 
     await clickRow("Remote");
-    await waitFor(() => expect(rowOf("Remote").getAttribute("data-state")).toBe("open"));
+    await waitFor(() => expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true));
 
     fireEvent.keyDown(rowOf("Carrot"), { key: "ArrowUp", ctrlKey: true });
     expect(rowOf("Carrot").getAttribute("data-path")).toBe("2");
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
 
     await clickRow("Remote");
     await clickRow("Remote");
 
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("open");
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(true);
     expect(loadChildren).toHaveBeenCalledTimes(1);
   });
 
   it("never loads unloaded branches when an external search auto-expands", () => {
     const loadChildren = vi.fn(() => Promise.resolve(remoteChildren));
     renderList({
-      collection: createLazyCollection(),
+      nodes: createLazyCollection(),
       showSelectAll: false,
       loadChildren,
       search: { mode: "external", query: "remote" },
       defaultExpandedValue: [],
     });
 
-    expect(rowOf("Fruits").getAttribute("data-state")).toBe("open");
-    expect(rowOf("Remote").getAttribute("data-state")).toBe("closed");
-    expect(rowOf("Cloud").getAttribute("data-state")).toBe("closed");
+    expect(rowOf("Fruits").hasAttribute("data-expanded")).toBe(true);
+    expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
+    expect(rowOf("Cloud").hasAttribute("data-expanded")).toBe(false);
     expect(loadChildren).not.toHaveBeenCalled();
   });
 });
 
-const pearCollection = createTestTree([
+const pearCollection: TestNode[] = [
   {
     id: "fruits",
     label: "Fruits",
@@ -1107,7 +1124,7 @@ const pearCollection = createTestTree([
     ],
   },
   { id: "pear", label: "Pear" },
-]);
+];
 
 const pointerDrag = (
   source: HTMLElement,
@@ -1144,33 +1161,33 @@ describe("TreeSelectList pointer drops", () => {
 
   it("nests a dropped node into a collapsed branch and reveals it", async () => {
     mockRowRects();
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     const onExpandedChange = vi.fn();
     renderList({
       ...listOnly,
-      collection: pearCollection,
+      nodes: pearCollection,
       defaultExpandedValue: [],
-      onCollectionChange,
+      onNodesChange,
       onExpandedChange,
     });
 
     pointerDrag(rowOf("Pear"), rowOf("Fruits"), 100, 10);
     await flush();
 
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next, "fruits")).toEqual(["pear", "apple", "banana"]);
     expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]);
   });
 
   it("leaves a branch collapsed when canDrop vetoes nesting into it", async () => {
     mockRowRects();
-    const onCollectionChange = vi.fn();
+    const onNodesChange = vi.fn();
     const onExpandedChange = vi.fn();
     renderList({
       ...listOnly,
-      collection: pearCollection,
+      nodes: pearCollection,
       defaultExpandedValue: [],
-      onCollectionChange,
+      onNodesChange,
       onExpandedChange,
       canDrop: () => false,
     });
@@ -1178,19 +1195,19 @@ describe("TreeSelectList pointer drops", () => {
     pointerDrag(rowOf("Pear"), rowOf("Fruits"), 100, 10);
     await flush();
 
-    expect(onCollectionChange).not.toHaveBeenCalled();
+    expect(onNodesChange).not.toHaveBeenCalled();
     expect(onExpandedChange).not.toHaveBeenCalled();
   });
 
   it("measures reparent levels from the inline start edge in RTL", () => {
     mockRowRects();
-    const onCollectionChange = vi.fn();
-    renderList({ ...listOnly, collection: pearCollection, onCollectionChange });
+    const onNodesChange = vi.fn();
+    renderList({ ...listOnly, nodes: pearCollection, onNodesChange });
     rowOf("Banana").style.direction = "rtl";
 
     pointerDrag(rowOf("Apple"), rowOf("Banana"), 195, 15);
 
-    const next = onCollectionChange.mock.calls[0][0] as TreeCollection<TestNode>;
+    const next = onNodesChange.mock.calls[0][0] as TestNode[];
     expect(childIdsOf(next)).toEqual(["fruits", "apple", "pear"]);
   });
 });

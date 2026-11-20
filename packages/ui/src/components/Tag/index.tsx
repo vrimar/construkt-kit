@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import { XIcon } from "lucide-react";
 import {
   type ComponentProps,
@@ -13,13 +12,15 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tag } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
+
 const { withProvider, withContext } = createSlotRecipeContext(tag);
 
-const StyledRoot = withProvider(ark.span, "root");
-const StyledLabel = withContext(ark.span, "label");
-const StartElement = withContext(ark.span, "startElement");
-const EndElement = withContext(ark.span, "endElement");
-const StyledCloseTrigger = withContext(ark.button, "closeTrigger", {
+const StyledRoot = withProvider(renderable.span, "root");
+const StyledLabel = withContext(renderable.span, "label");
+const StartElement = withContext(renderable.span, "startElement");
+const EndElement = withContext(renderable.span, "endElement");
+const StyledCloseTrigger = withContext(renderable.button, "closeTrigger", {
   defaultProps: { type: "button", children: <XIcon /> },
 });
 

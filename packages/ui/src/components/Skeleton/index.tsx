@@ -1,16 +1,16 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
 import { Stack, type StackProps, styled } from "#styled-system/jsx";
 import { type SkeletonVariantProps, skeleton } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import type { CssProp } from "../../types";
 
 export type SkeletonProps = ComponentProps<typeof Skeleton>;
-export const Skeleton = styled(ark.div, skeleton);
+export const Skeleton = styled(renderable.div, skeleton);
 
 export type SkeletonCircleProps = ComponentProps<typeof SkeletonCircle>;
-export const SkeletonCircle = styled(ark.div, skeleton, { defaultProps: { circle: true } });
+export const SkeletonCircle = styled(renderable.div, skeleton, { defaultProps: { circle: true } });
 
 const LAST_LINE_WIDTH = "80%";
 

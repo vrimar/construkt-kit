@@ -54,6 +54,20 @@ for (const overlay of sheetOverlayCases) {
     );
 
     test(
+      "the sheet is one named dialog",
+      { tag: [...storyTags(overlay.story), "@phone-only"] },
+      async ({ gallery, page }) => {
+        await gallery.open(overlay.story);
+        const trigger = await pinTrigger(page, overlay.trigger.phone);
+        await gallery.press(trigger);
+        const panel = page.locator("[data-overlay-sheet-content]");
+        await expect(panel).toBeVisible();
+        await expect(page.locator("dialog:modal").last()).toHaveAccessibleName(/\S/);
+        await expect(panel).not.toHaveAttribute("role", /dialog/);
+      },
+    );
+
+    test(
       "tapping outside closes the sheet",
       { tag: [...storyTags(overlay.story), "@phone-only"] },
       async ({ gallery, page }) => {

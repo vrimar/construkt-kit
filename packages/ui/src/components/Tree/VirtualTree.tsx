@@ -1,11 +1,3 @@
-import {
-  type TreeNode,
-  type UseTreeViewProps,
-  type UseTreeViewReturn,
-  useTreeView,
-  useTreeViewContext,
-  useTreeViewNodeContext,
-} from "@ark-ui/react/tree-view";
 import { ChevronRightIcon } from "lucide-react";
 import {
   type CSSProperties,
@@ -19,99 +11,33 @@ import {
 import { Box } from "#styled-system/jsx";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { useStore } from "../../primitives/store";
 import { type ScrollAreaProps, VirtualScrollArea, type VisibleItems } from "../ScrollArea";
-import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
 import { TreeDndRow, type TreeRowPartProps } from "./TreeRow";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
-import { FlatBranchControl, FlatBranchIndicator, TreeRowContent, TreeView } from "./TreeView";
+import {
+  FlatBranchControl,
+  FlatBranchIndicator,
+  TreeRowContent,
+  TreeView,
+  ariaChecked,
+  useTreeContext,
+  useTreeNodeState,
+} from "./TreeView";
+import { type VisibleNode, selectFocused } from "./treeViewNode";
 
-export type VirtualTreeViewProps<T extends TreeNode> = Omit<
-  UseTreeViewProps<T>,
-  "scrollToIndexFn" | "focusedValue" | "defaultFocusedValue"
->;
-
-export interface VirtualTreeEntry<T extends TreeNode> {
+export interface VirtualTreeEntry<T> {
   node: T;
   indexPath: number[];
 }
 
-export interface VirtualTreeView<T extends TreeNode> {
-  /** The tree's API; give it to the enclosing `TreeView.RootProvider`. */
-  api: UseTreeViewReturn<T>;
-  /** The rows the tree shows, in order: every node whose ancestors are all expanded. */
-  visibleNodes: VirtualTreeEntry<T>[];
-  /** Index in `visibleNodes` of the row holding the tree's tab stop, or -1 when there is none. */
-  tabStopIndex: number;
-  /** Scrolls the row of `value` into view; false when no shown row has that value. */
-  scrollTo: (value: string) => boolean;
-  /** Scrolls the row of `value` into view and focuses it. */
-  focus: (value: string) => void;
-  /** Receives `VirtualTree`'s scroller, through which keyboard navigation reaches unrendered rows. */
-  scrollToIndexRef: ScrollToIndexRef;
-}
-
-/**
- * `useTreeView` for a tree rendered by `VirtualTree`: keyboard navigation scrolls rows that aren't
- * rendered into view, and the focused row keeps the tab stop while it is scrolled away.
- */
-export function useVirtualTreeView<T extends TreeNode>({
-  onFocusChange,
-  ...props
-}: VirtualTreeViewProps<T>): VirtualTreeView<T> {
-  const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
-  const [focusedValue, setFocusedValue] = useState<string | null>(null);
-
-  const api = useTreeView({
-    ...props,
-    focusedValue,
-    onFocusChange: (details) => {
-      setFocusedValue(details.focusedValue);
-      onFocusChange?.(details);
-    },
-    scrollToIndexFn: (details) => scrollToIndexRef.current?.(details.index),
-  });
-
-  const { collection } = api;
-  const visibleNodes = api.getVisibleNodes();
-  const indexOf = (value: string) =>
-    visibleNodes.findIndex(({ node }) => collection.getNodeValue(node) === value);
-  const focusedIndex = focusedValue === null ? -1 : indexOf(focusedValue);
-  if (focusedValue !== null && focusedIndex < 0) setFocusedValue(null);
-  // Matches zag's tab stop while nothing is focused.
-  const tabStopIndex =
-    focusedIndex >= 0
-      ? focusedIndex
-      : visibleNodes.findIndex(({ node }) => !collection.getNodeDisabled(node));
-
-  const scrollTo = (value: string) => {
-    const index = indexOf(value);
-    if (index < 0) return false;
-    scrollToIndexRef.current?.(index);
-    return true;
-  };
-
-  return {
-    api,
-    visibleNodes,
-    tabStopIndex,
-    scrollToIndexRef,
-    scrollTo,
-    focus: (value) => {
-      if (!scrollTo(value)) return;
-      // Taking the tab stop keeps the row mounted until the scroll renders it.
-      setFocusedValue(value);
-      requestAnimationFrame(() => api.focus(value));
-    },
-  };
-}
-
-// Virtualized rows render flat, so Ark can't derive --depth from nesting.
-const depthStyleFor = (indexPath: number[]): CSSProperties & { "--depth": number } => ({
-  "--depth": indexPath.length,
+// Virtualized rows render flat, so nesting can't carry the depth down to them.
+const depthStyleFor = (indexPath: number[]): CSSProperties & { "--tree-depth": number } => ({
+  "--tree-depth": indexPath.length,
 });
 
 const stickyIndexOf = (
-  nodes: readonly VirtualTreeEntry<TreeNode>[],
+  nodes: readonly VisibleNode<unknown>[],
   { firstVisible, firstUncut }: VisibleItems,
 ) => {
   const depth = nodes[firstVisible]?.indexPath.length ?? 0;
@@ -150,16 +76,15 @@ const StickyBranch = ({ indexPath, children, onActivate, onHeightChange }: Stick
       <FlatBranchControl
         ref={rowRef}
         aria-hidden="true"
-        data-scope="tree-view"
-        data-part="sticky-branch"
-        data-state="open"
+        data-pinned=""
+        data-expanded=""
         borderBottomWidth="1px"
         borderColor="border"
         css={{ "--tree-row-bg": "var(--surface-bg, {colors.bg})" }}
         style={depthStyleFor(indexPath)}
         onClick={onActivate}
       >
-        <FlatBranchIndicator data-state="open">
+        <FlatBranchIndicator data-expanded="">
           <ChevronRightIcon />
         </FlatBranchIndicator>
         {children}
@@ -168,9 +93,7 @@ const StickyBranch = ({ indexPath, children, onActivate, onHeightChange }: Stick
   );
 };
 
-export interface VirtualTreeProps<T extends TreeNode> extends Omit<ScrollAreaProps, "children"> {
-  /** From `useVirtualTreeView`, whose `api` the enclosing `TreeView.RootProvider` holds. */
-  tree: VirtualTreeView<T>;
+export interface VirtualTreeProps<T> extends Omit<ScrollAreaProps, "children"> {
   /** Estimated row height in px; rows are measured once rendered. */
   rowHeight: number;
   /**
@@ -185,30 +108,42 @@ export interface VirtualTreeProps<T extends TreeNode> extends Omit<ScrollAreaPro
 }
 
 /**
- * The scrolling body of a tree that renders only the rows in view. Place it inside `TreeView.Tree`
- * under a `TreeView.RootProvider` driven by `useVirtualTreeView`.
+ * The scrolling body of a tree that renders only the rows in view. Place it inside `TreeView.Tree`:
+ * it shows every node of the enclosing `TreeView.Root` whose ancestors are all expanded, keyboard
+ * navigation scrolls rows that aren't rendered into view, and the focused row keeps the tab stop
+ * while it is scrolled away. Its rows' node type is `T`; annotate the render function's entry.
  */
-export const VirtualTree = <T extends TreeNode>({
-  tree,
+export const VirtualTree = <T,>({
   rowHeight,
   stickyBranches = false,
   renderStickyBranch,
   children,
   ...scrollAreaProps
 }: VirtualTreeProps<T>) => {
-  const { api, visibleNodes, tabStopIndex, scrollToIndexRef } = tree;
-  const { collection } = api;
+  const { tree, collection, visibleNodes, visibleValues, firstValue } = useTreeContext();
+  const focusedValue = useStore(tree.store, selectFocused);
+  const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    tree.setScroller((index) => scrollToIndexRef.current?.(index));
+    return () => tree.setScroller(undefined);
+  }, [tree]);
+
+  const tabStopValue =
+    focusedValue != null && visibleValues.has(focusedValue) ? focusedValue : firstValue;
+  const tabStopIndex =
+    tabStopValue == null ? -1 : visibleNodes.findIndex((entry) => entry.value === tabStopValue);
 
   const [stickyValue, setStickyValue] = useState<string | null>(null);
   const [stickyHeight, setStickyHeight] = useState<number>();
   const visibleItemsRef = useRef<VisibleItems | null>(null);
-  const latest = useLatestRef({ visibleNodes, collection });
+  const latest = useLatestRef(visibleNodes);
 
   // State holds only the pinned branch, so scrolling between its rows doesn't re-render the tree.
   const syncSticky = useCallback(() => {
-    const { visibleNodes: nodes, collection: nodeCollection } = latest.current;
+    const nodes = latest.current;
     const index = visibleItemsRef.current ? stickyIndexOf(nodes, visibleItemsRef.current) : -1;
-    setStickyValue(index < 0 ? null : nodeCollection.getNodeValue(nodes[index].node));
+    setStickyValue(index < 0 ? null : nodes[index].value);
   }, [latest]);
 
   const handleVisibleItems = useCallback(
@@ -225,22 +160,19 @@ export const VirtualTree = <T extends TreeNode>({
 
   const stickyIndex =
     stickyBranches && stickyValue !== null
-      ? visibleNodes.findIndex(({ node }) => collection.getNodeValue(node) === stickyValue)
+      ? visibleNodes.findIndex((entry) => entry.value === stickyValue)
       : -1;
   const stickyEntry = stickyIndex >= 0 ? visibleNodes[stickyIndex] : undefined;
 
-  const getItemKey = useCallback(
-    (index: number) => collection.getNodeValue(visibleNodes[index].node),
-    [collection, visibleNodes],
-  );
+  const getItemKey = useCallback((index: number) => visibleNodes[index].value, [visibleNodes]);
 
   const renderRow = useCallback(
-    (entry: VirtualTreeEntry<T>) => (
+    (entry: VisibleNode<unknown>) => (
       <TreeView.NodeProvider
         node={entry.node}
         indexPath={entry.indexPath}
       >
-        {children(entry)}
+        {children(entry as VirtualTreeEntry<T>)}
       </TreeView.NodeProvider>
     ),
     [children],
@@ -248,7 +180,7 @@ export const VirtualTree = <T extends TreeNode>({
 
   return (
     <VirtualScrollArea
-      items={visibleNodes}
+      items={visibleNodes as VisibleNode<unknown>[]}
       itemHeight={rowHeight}
       getItemKey={getItemKey}
       scrollToIndexRef={scrollToIndexRef}
@@ -267,13 +199,9 @@ export const VirtualTree = <T extends TreeNode>({
             <StickyBranch
               indexPath={stickyEntry.indexPath}
               onHeightChange={setStickyHeight}
-              onActivate={() => {
-                const value = collection.getNodeValue(stickyEntry.node);
-                scrollToIndexRef.current?.(stickyIndex);
-                requestAnimationFrame(() => api.focus(value));
-              }}
+              onActivate={() => tree.focus(stickyEntry.value)}
             >
-              {renderStickyBranch?.(stickyEntry) ?? (
+              {renderStickyBranch?.(stickyEntry as VirtualTreeEntry<T>) ?? (
                 <TreeRowContent>
                   <TreeView.BranchText>
                     {collection.stringifyNode(stickyEntry.node)}
@@ -298,8 +226,9 @@ export type VirtualTreeRowProps = Omit<TreeRowPartProps, "isBranch">;
  * as `TreeView.BranchIndicator` and `TreeView.BranchText` for a branch.
  */
 export function VirtualTreeRow({ style, children, ...props }: VirtualTreeRowProps) {
-  const tree = useTreeViewContext();
-  const { isBranch, expanded, disabled, indexPath } = useTreeViewNodeContext();
+  const { collection, checkable } = useTreeContext();
+  const state = useTreeNodeState();
+  const { isBranch, expanded, disabled, indexPath } = state;
 
   return (
     <TreeDndRow
@@ -307,7 +236,9 @@ export function VirtualTreeRow({ style, children, ...props }: VirtualTreeRowProp
       role={isBranch ? "treeitem" : undefined}
       aria-expanded={isBranch ? expanded : undefined}
       aria-level={isBranch ? indexPath.length : undefined}
-      aria-setsize={tree.collection.getSiblingNodes(indexPath).length}
+      aria-selected={isBranch && !disabled ? state.selected : undefined}
+      aria-checked={isBranch && checkable ? ariaChecked(state.checked) : undefined}
+      aria-setsize={collection.getSiblingNodes(indexPath).length}
       aria-posinset={indexPath[indexPath.length - 1] + 1}
       aria-disabled={disabled || undefined}
       {...props}

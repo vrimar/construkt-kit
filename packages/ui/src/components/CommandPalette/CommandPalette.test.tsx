@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { CommandPalette, type CommandPalettePage } from ".";
 
@@ -120,6 +120,33 @@ describe("CommandPalette", () => {
         description: "Revert the last change 3 left Ctrl+Z",
       }),
     ).not.toBeNull();
+  });
+
+  it("reports the search field's close button as a close press, not an item pick", async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(
+      <CommandPalette.Root
+        open
+        onOpenChange={onOpenChange}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="alpha"
+            label="Alpha"
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+    const control = screen.getByRole("combobox").parentElement as HTMLElement;
+
+    await user.click(within(control).getByRole("button", { name: "Close" }));
+
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(
+      false,
+      expect.objectContaining({ reason: "close-press" }),
+    );
   });
 
   it("goes back to the parent page on Backspace in an empty search", async () => {

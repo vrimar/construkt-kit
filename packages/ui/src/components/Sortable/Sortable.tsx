@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import {
   draggable,
   dropTargetForElements,
@@ -25,6 +24,7 @@ import { isRtl } from "../../foundations/dom";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
 import { DragPreview, useDragAutoScroll, useNativeDragPreview } from "../dnd";
 import { Tooltip } from "../Tooltip";
@@ -41,10 +41,10 @@ import {
 
 const { withProvider, withContext } = createSlotRecipeContext(sortableRecipe);
 
-const StyledRoot = withProvider(ark.div, "root");
-const StyledItem = withContext(ark.div, "item");
-const StyledHandle = withContext(ark.button, "handle");
-const StyledIndicator = withContext(ark.div, "indicator");
+const StyledRoot = withProvider(renderable.div, "root");
+const StyledItem = withContext(renderable.div, "item");
+const StyledHandle = withContext(renderable.button, "handle");
+const StyledIndicator = withContext(renderable.div, "indicator");
 
 const SORTABLE_INSTANCE_KEY = "construkt-sortable-instance";
 

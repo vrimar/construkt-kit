@@ -16,7 +16,8 @@ export interface SelectionSearch {
   external: boolean;
   filterQuery: string;
   placeholder: string;
-  autoFocus: boolean;
+  /** Undefined when unset: a Select focuses its search on open unless this is `false`. */
+  autoFocus: boolean | undefined;
   endElement?: ReactNode;
   setQuery: (query: string) => void;
   reset: () => void;
@@ -49,7 +50,7 @@ export function useSelectionSearch<T>(
     external,
     filterQuery: external ? "" : normalizedQuery,
     placeholder: options?.placeholder ?? "Search...",
-    autoFocus: options?.autoFocus ?? false,
+    autoFocus: options?.autoFocus,
     endElement: options?.endElement,
     setQuery,
     reset,

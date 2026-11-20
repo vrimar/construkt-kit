@@ -4,12 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { Button, ButtonGroup } from "./Button";
 
 describe("Button", () => {
-  it("styles its child when rendered asChild", () => {
-    render(
-      <Button asChild>
-        <a href="/download">Download</a>
-      </Button>,
-    );
+  it("styles its render element", () => {
+    render(<Button render={<a href="/download" />}>Download</Button>);
 
     const link = screen.getByRole("link", { name: "Download" });
     expect(link.tagName).toBe("A");
@@ -17,15 +13,15 @@ describe("Button", () => {
     expect(link.hasAttribute("type")).toBe(false);
   });
 
-  it("renders its icons around the asChild child's content", () => {
+  it("renders its icons inside its render element", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
       <Button
-        asChild
+        render={<a href="/download" />}
         leftIcon={<span data-testid="left" />}
         rightIcon={<span data-testid="right" />}
       >
-        <a href="/download">Download</a>
+        Download
       </Button>,
     );
 
@@ -37,13 +33,13 @@ describe("Button", () => {
     consoleError.mockRestore();
   });
 
-  it("ignores loading when rendered asChild", () => {
+  it("ignores loading when given a render element", () => {
     render(
       <Button
-        asChild
+        render={<a href="/download" />}
         loading
       >
-        <a href="/download">Download</a>
+        Download
       </Button>,
     );
 

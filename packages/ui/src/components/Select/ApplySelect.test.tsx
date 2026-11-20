@@ -151,7 +151,7 @@ describe("ApplySelect", () => {
 
   it("lets contentWidth narrow the content below its default minimum", () => {
     renderApplySelect({ contentWidth: 200, search: true });
-    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    const content = screen.getByRole("listbox").closest<HTMLElement>(".popover__content");
     expect(content?.style.width).toBe("200px");
     expect(content?.className).not.toMatch(/(^|\s)min-w_/);
   });
@@ -161,7 +161,10 @@ describe("ApplySelect", () => {
     renderApplySelect({ open: true, onOpenChange });
     await userEvent.click(screen.getByText("React"));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("supports generic primitive items and falsey IDs", async () => {

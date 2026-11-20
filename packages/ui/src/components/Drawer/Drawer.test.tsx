@@ -2,15 +2,17 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { Drawer, useDrawer } from ".";
+import { Drawer } from ".";
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 
 describe("Drawer", () => {
   it("ActionTrigger closes the drawer", async () => {
     render(
-      <Drawer.Root defaultOpen>
+      <Drawer.Root
+        defaultOpen
+        title="Filters"
+      >
         <Drawer.Content>
-          <Drawer.Title>Filters</Drawer.Title>
           <Drawer.ActionTrigger>Done</Drawer.ActionTrigger>
         </Drawer.Content>
       </Drawer.Root>,
@@ -26,29 +28,28 @@ describe("Drawer", () => {
     render(
       <Drawer.Root
         defaultOpen
+        title="Filters"
         placement={{ base: "bottom", md: "end" }}
       >
-        <Drawer.Content>
-          <Drawer.Title>Filters</Drawer.Title>
-        </Drawer.Content>
+        <Drawer.Content>Body</Drawer.Content>
       </Drawer.Root>,
     );
 
-    expect(screen.getByRole("dialog").getAttribute("data-swipe-direction")).toBe("right");
+    expect(screen.getByText("Body").getAttribute("data-swipe-direction")).toBe("right");
   });
 
-  it("styles a RootProvider by the placement given to useDrawer and swipes that way", () => {
-    const StartDrawer = () => (
-      <Drawer.RootProvider value={useDrawer({ placement: "start", defaultOpen: true })}>
-        <Drawer.Content>
-          <Drawer.Title>Filters</Drawer.Title>
-        </Drawer.Content>
-      </Drawer.RootProvider>
+  it("swipes towards the side its direction lays an end drawer out on", () => {
+    render(
+      <div dir="rtl">
+        <Drawer.Root
+          defaultOpen
+          title="Filters"
+        >
+          <Drawer.Content>Body</Drawer.Content>
+        </Drawer.Root>
+      </div>,
     );
-    render(<StartDrawer />);
 
-    const content = screen.getByRole("dialog");
-    expect(content.getAttribute("data-swipe-direction")).toBe("left");
-    expect(content.className).toContain("drawer__content--placement_start");
+    expect(screen.getByText("Body").getAttribute("data-swipe-direction")).toBe("left");
   });
 });

@@ -24,25 +24,27 @@ export const Default = meta.story({
         <Editable.Preview />
       </Editable.Area>
       <Editable.Control>
-        <Editable.EditTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-          >
-            Edit
-          </Button>
+        <Editable.EditTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+            />
+          }
+        >
+          Edit
         </Editable.EditTrigger>
-        <Editable.CancelTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-          >
-            Cancel
-          </Button>
+        <Editable.CancelTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+            />
+          }
+        >
+          Cancel
         </Editable.CancelTrigger>
-        <Editable.SubmitTrigger asChild>
-          <Button size="sm">Save</Button>
-        </Editable.SubmitTrigger>
+        <Editable.SubmitTrigger render={<Button size="sm" />}>Save</Editable.SubmitTrigger>
       </Editable.Control>
     </Editable.Root>
   ),
@@ -82,6 +84,21 @@ export const PageTitle = meta.story({
       <Editable.Area>
         <Editable.Input aria-label="Document title" />
         <Editable.Preview />
+      </Editable.Area>
+    </Editable.Root>
+  ),
+});
+
+export const Multiline = meta.story({
+  render: () => (
+    <Editable.Root
+      defaultValue={"Call the supplier\nConfirm the delivery date"}
+      maxW="sm"
+    >
+      <Editable.Label>Notes</Editable.Label>
+      <Editable.Area>
+        <Editable.Input render={<textarea rows={3} />} />
+        <Editable.Preview whiteSpace="pre-wrap" />
       </Editable.Area>
     </Editable.Root>
   ),

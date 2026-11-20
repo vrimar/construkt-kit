@@ -1,17 +1,15 @@
-import type { UseListboxContext } from "@ark-ui/react/listbox";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
+import { sheetOf } from "../../_shared/sheet";
 import { Field } from "../Form";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
 import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
 import { encodeSelectionValue } from "../Listbox/useSelectionController";
 import { Select, type SelectProps } from "./Select";
-
-type ListboxApi = UseListboxContext<unknown>;
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -67,7 +65,8 @@ describe("Select", () => {
   });
 
   it("opens the list from the trigger with ArrowDown", async () => {
-    renderSelect();
+    const onOpenChange = vi.fn();
+    renderSelect({ onOpenChange });
 
     await userEvent.tab();
     const trigger = document.activeElement as HTMLElement;
@@ -76,6 +75,10 @@ describe("Select", () => {
     await userEvent.keyboard("{ArrowDown}");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getAllByRole("option")).toHaveLength(3);
+    expect(onOpenChange).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ reason: "list-navigation" }),
+    );
   });
 
   it("names the trigger after its Field's label, invalid and described by its error", () => {
@@ -102,33 +105,31 @@ describe("Select", () => {
 
   it("uses trigger width by default", () => {
     renderSelect({ open: true });
-    expect(screen.getByRole("listbox").closest("[data-part='content']")?.className).toContain(
-      "w_full",
+    expect(screen.getByRole("listbox").closest(".popover__content")?.className).toContain(
+      "w_var(--anchor-width)",
     );
   });
 
   it("applies root style props to the listbox root and *Css props to their parts", () => {
     renderSelect({ w: "200px", contentCss: { minW: "320px" }, listCss: { p: "0" }, open: true });
     const list = screen.getByRole("listbox");
-    const contentClasses = list.closest("[data-part='content']")?.className.split(" ") ?? [];
+    const contentClasses = list.closest(".popover__content")?.className.split(" ") ?? [];
     expect(list.className.split(" ")).toContain("p_0");
     expect(contentClasses).toContain("min-w_320px");
     expect(contentClasses).not.toContain("min-w_140px");
-    expect(
-      document.querySelector("[data-scope='listbox'][data-part='root']")?.className.split(" "),
-    ).toContain("w_200px");
+    expect(document.querySelector(".listbox__root")?.className.split(" ")).toContain("w_200px");
   });
 
   it("applies an explicit content width", () => {
     renderSelect({ contentWidth: 320, open: true });
-    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    const content = screen.getByRole("listbox").closest<HTMLElement>(".popover__content");
     expect(content?.style.width).toBe("320px");
     expect(content?.className).not.toMatch(/(^|\s)w_/);
   });
 
   it("resolves a size token as the content width", () => {
     renderSelect({ contentWidth: "sm", open: true });
-    const content = screen.getByRole("listbox").closest<HTMLElement>("[data-part='content']");
+    const content = screen.getByRole("listbox").closest<HTMLElement>(".popover__content");
     expect(content?.style.width).toBe("var(--sizes-sm)");
   });
 
@@ -209,7 +210,10 @@ describe("Select", () => {
     await userEvent.click(screen.getByRole("option", { name: "Beta" }));
     expect(onValueChange).not.toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledOnce();
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("closes once when a different item is picked", async () => {
@@ -218,14 +222,20 @@ describe("Select", () => {
 
     await userEvent.click(screen.getByRole("option", { name: "Alpha" }));
     expect(onOpenChange).toHaveBeenCalledOnce();
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("notifies open changes in uncontrolled mode", async () => {
     const onOpenChange = vi.fn();
     renderSelect({ onOpenChange });
     await userEvent.click(screen.getByRole("button", { name: "Select item" }));
-    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(onOpenChange).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ reason: "trigger-press" }),
+    );
   });
 
   it("resets an uncontrolled search query after close", async () => {
@@ -276,7 +286,10 @@ describe("Select", () => {
     await userEvent.click(screen.getByRole("button", { name: "Pin Alpha" }));
     expect(onOpenChange).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Edit Alpha" }));
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("forwards trigger props when custom children are used", () => {
@@ -346,7 +359,10 @@ describe("Select", () => {
     await userEvent.type(screen.getByRole("textbox"), "bet");
     await userEvent.keyboard("{Enter}");
     expect(onValueChange).not.toHaveBeenCalled();
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("stays open when an IME-confirming Enter lands on the selected option", async () => {
@@ -361,13 +377,16 @@ describe("Select", () => {
     expect(onOpenChange).not.toHaveBeenCalled();
 
     fireEvent.keyDown(search, { key: "Enter" });
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(
+      false,
+      expect.objectContaining({ reason: "item-press" }),
+    );
   });
 
   it("drops the highlight when reopened", async () => {
-    renderSelect({ search: { autoFocus: true }, defaultOpen: true });
+    renderSelect({ search: true, defaultOpen: true });
 
-    await nextFrame();
+    await userEvent.click(screen.getByRole("textbox"));
     await userEvent.keyboard("{ArrowDown}{ArrowDown}");
     expect(highlightedValue()).toBe(encodeSelectionValue(2));
     await userEvent.keyboard("{Escape}");
@@ -382,43 +401,6 @@ describe("Select", () => {
     await userEvent.click(screen.getByRole("textbox"));
     await userEvent.keyboard("{ArrowDown}");
     expect(highlightedValue()).toBe(encodeSelectionValue(1));
-  });
-
-  it.each([
-    ["clearValue", (api: ListboxApi) => api.clearValue()],
-    ["setValue([])", (api: ListboxApi) => api.setValue([])],
-  ])("ignores an imperative %s in single mode", async (_, clear) => {
-    const onValueChange = vi.fn();
-    const onOpenChange = vi.fn();
-    render(
-      <Select.Root
-        {...optionProps}
-        value={2}
-        onValueChange={onValueChange}
-        onOpenChange={onOpenChange}
-        open
-      >
-        <Select.Trigger />
-        <Select.Content>
-          <Select.List />
-          <Listbox.Context>
-            {(api) => (
-              <button
-                type="button"
-                onClick={() => clear(api)}
-              >
-                Clear
-              </button>
-            )}
-          </Listbox.Context>
-        </Select.Content>
-      </Select.Root>,
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
-    expect(onValueChange).not.toHaveBeenCalled();
-    expect(onOpenChange).not.toHaveBeenCalled();
-    expect(screen.getByRole("option", { name: "Beta" }).getAttribute("aria-selected")).toBe("true");
   });
 
   describe("highlight scrolling", () => {
@@ -485,8 +467,6 @@ describe("Select", () => {
   });
 
   describe("on phones", () => {
-    const sheetOf = (element: Element) => element.closest("[data-overlay-sheet]");
-
     const renderOnPhone = (props?: SelectOverrides) => {
       const media = mockMatchMedia(viewportWidth(375));
       renderSelect(props);

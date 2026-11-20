@@ -1,35 +1,29 @@
-import { DatePicker as ArkDatePicker } from "@ark-ui/react/date-picker";
-import { ark } from "@ark-ui/react/factory";
-import type { ComponentProps, ReactElement } from "react";
-
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { datePicker } from "#styled-system/recipes";
 
-import { namedByContent } from "../namedByContent";
-import { lazyOverlayDefaults } from "../overlayDefaults";
+import { renderable } from "../../primitives/render";
+import { createPickerContent } from "../pickerPopup";
 
 const { withProvider, withContext } = createSlotRecipeContext(datePicker);
 
-export const RootProvider = withProvider(ArkDatePicker.RootProvider, "root", {
-  defaultProps: lazyOverlayDefaults,
-});
-export const Content = withContext(ArkDatePicker.Content, "content");
-export const Control = withContext(ArkDatePicker.Control, "control");
-export const Trigger = namedByContent(withContext(ArkDatePicker.Trigger, "trigger"));
-export const Positioner = withContext(ArkDatePicker.Positioner, "positioner");
-export const View = withContext(ArkDatePicker.View, "view");
-export const ViewControl = withContext(ark.div, "viewControl");
-export const ViewTrigger = namedByContent(withContext(ArkDatePicker.ViewTrigger, "viewTrigger"));
-export const PrevTrigger = withContext(ArkDatePicker.PrevTrigger, "prevTrigger");
-export const NextTrigger = withContext(ArkDatePicker.NextTrigger, "nextTrigger");
-export const Table = withContext(ArkDatePicker.Table, "table");
-export const TableHead = withContext(ArkDatePicker.TableHead, "tableHead");
-export const TableRow = withContext(ArkDatePicker.TableRow, "tableRow");
-export const TableHeader = withContext(ArkDatePicker.TableHeader, "tableHeader");
-export const TableBody = withContext(ArkDatePicker.TableBody, "tableBody");
-export const TableCell = withContext(ArkDatePicker.TableCell, "tableCell");
-export const TableCellTrigger = withContext(ArkDatePicker.TableCellTrigger, "tableCellTrigger");
-const StyledPresetTrigger = withContext(ArkDatePicker.PresetTrigger, "presetTrigger");
-export const PresetTrigger: (props: ComponentProps<typeof StyledPresetTrigger>) => ReactElement =
-  namedByContent(StyledPresetTrigger);
-export const ClearTrigger = namedByContent(withContext(ArkDatePicker.ClearTrigger, "clearTrigger"));
+export const Root = withProvider(renderable.div, "root");
+export const Control = withContext(renderable.div, "control");
+export const Trigger = withContext(renderable.button, "trigger");
+export const Content = createPickerContent(
+  withContext(renderable.div, "positioner"),
+  withContext(renderable.div, "content"),
+);
+export const View = withContext(renderable.div, "view");
+export const ViewControl = withContext(renderable.div, "viewControl");
+export const ViewTrigger = withContext(renderable.button, "viewTrigger");
+export const PrevTrigger = withContext(renderable.button, "prevTrigger");
+export const NextTrigger = withContext(renderable.button, "nextTrigger");
+export const Table = withContext(renderable.table, "table");
+export const TableHead = withContext(renderable.thead, "tableHead");
+export const TableRow = withContext(renderable.tr, "tableRow");
+export const TableHeader = withContext(renderable.th, "tableHeader");
+export const TableBody = withContext(renderable.tbody, "tableBody");
+export const TableCell = withContext(renderable.td, "tableCell");
+export const TableCellTrigger = withContext(renderable.button, "tableCellTrigger");
+export const PresetTrigger = withContext(renderable.button, "presetTrigger");
+export const ClearTrigger = withContext(renderable.button, "clearTrigger");

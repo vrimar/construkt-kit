@@ -187,7 +187,7 @@ export const Default = meta.story({
         </Text>
         <CommandPalette.Root
           open={open}
-          onOpenChange={({ open: next }) => setOpen(next)}
+          onOpenChange={(next) => setOpen(next)}
           query={query}
           onQueryChange={setQuery}
           pages={pages}

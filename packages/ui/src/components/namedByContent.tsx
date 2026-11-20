@@ -1,12 +1,13 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps, ElementType, ReactElement } from "react";
+
+import { renderable } from "../primitives/render";
 
 function OwnLabel({
   ownLabel,
   ...props
-}: ComponentProps<typeof ark.button> & { ownLabel?: string }) {
+}: ComponentProps<typeof renderable.button> & { ownLabel?: string }) {
   return (
-    <ark.button
+    <renderable.button
       {...props}
       aria-label={ownLabel}
     />
@@ -19,18 +20,18 @@ export function namedByContent<C extends ElementType>(
 ): (props: ComponentProps<C>) => ReactElement {
   const PartElement: ElementType = Part;
 
-  return function ContentNamedPart({ "aria-label": ownLabel, asChild, children, ...props }) {
+  return function ContentNamedPart({ "aria-label": ownLabel, render, children, ...props }) {
     return (
       <PartElement
         {...props}
-        asChild
+        render={
+          <OwnLabel
+            ownLabel={ownLabel}
+            render={render}
+          />
+        }
       >
-        <OwnLabel
-          ownLabel={ownLabel}
-          asChild={asChild}
-        >
-          {children}
-        </OwnLabel>
+        {children}
       </PartElement>
     );
   };

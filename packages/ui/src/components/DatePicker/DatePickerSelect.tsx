@@ -1,17 +1,18 @@
-import { type DateValue, useDatePickerContext } from "@ark-ui/react/date-picker";
 import type { JSX } from "react";
 
 import { SelectButton, type SelectButtonProps } from "../Buttons";
 import { DatePickerBase } from "./DatePicker";
+import type { DateValue } from "./dateUtils";
 import { getDisplayLabel } from "./format";
 import type { CalendarMode, DatePickerSelectProps } from "./types";
+import { useCalendarContext } from "./useCalendar";
 
 interface DatePickerSelectTriggerProps extends Omit<
   SelectButtonProps,
   "hasValue" | "label" | "onClear"
 > {
-  placeholder?: string;
-  formatValue?: (value: DateValue) => string;
+  placeholder?: string | undefined;
+  formatValue?: ((value: DateValue) => string) | undefined;
 }
 
 function DatePickerSelectTrigger({
@@ -19,16 +20,20 @@ function DatePickerSelectTrigger({
   formatValue,
   ...props
 }: DatePickerSelectTriggerProps) {
-  const datePicker = useDatePickerContext();
-  const hasValue = datePicker.value.length > 0;
+  const calendar = useCalendarContext();
+  const hasValue = calendar.value.length > 0;
 
   return (
     <SelectButton
       width="100%"
       {...props}
       hasValue={hasValue}
-      label={getDisplayLabel(datePicker.value, datePicker.selectionMode, placeholder, formatValue)}
-      onClear={hasValue && !datePicker.readOnly ? () => datePicker.clearValue() : undefined}
+      label={getDisplayLabel(calendar.value, calendar.selectionMode, placeholder, formatValue)}
+      onClear={
+        hasValue && !calendar.readOnly
+          ? () => calendar.clear(undefined, { focusCell: false })
+          : undefined
+      }
     />
   );
 }

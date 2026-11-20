@@ -11,7 +11,7 @@ import { Dialog, type DialogRootProps } from "./Dialog";
 export type SubmitDialogFooterParts = FormActions;
 
 export interface SubmitDialogProps {
-  title: ReactNode;
+  title: Exclude<ReactNode, null | undefined | boolean>;
   onSubmit?: () => unknown;
   submitLabel?: string;
   submitButtonProps?: Unstyled<ButtonProps>;
@@ -67,22 +67,20 @@ export const SubmitDialog = ({
 
   return (
     <Dialog.Root
+      title={title}
       open={open}
       size={size}
-      onOpenChange={(e) => {
-        if (!e.open && !loading) onClose?.();
+      onOpenChange={(next, details) => {
+        if (next) return;
+        if (loading) details.cancel();
+        else onClose?.();
       }}
       closeOnInteractOutside={false}
-      // Stay open when the popover or menu that opened it closes.
-      onRequestDismiss={(e) => e.preventDefault()}
     >
       <Dialog.Content
         maxW={contentWidth == null ? undefined : { md: "var(--submit-dialog-max-w)" }}
         style={contentWidth == null ? undefined : contentWidthStyle(contentWidth)}
       >
-        <Dialog.Header>
-          <Dialog.Title>{title}</Dialog.Title>
-        </Dialog.Header>
         <styled.form
           display="contents"
           {...formSubmitProps(onSubmit)}

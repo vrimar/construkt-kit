@@ -1,12 +1,11 @@
-import { ark } from "@ark-ui/react/factory";
-
 import { styled } from "#styled-system/jsx";
 import { absoluteCenter } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import { Span } from "../Span";
 import { Spinner } from "../Spinner";
 
-const AbsoluteCenter = styled(ark.span, absoluteCenter);
+const AbsoluteCenter = styled(renderable.span, absoluteCenter);
 
 export interface LoaderProps {
   /**

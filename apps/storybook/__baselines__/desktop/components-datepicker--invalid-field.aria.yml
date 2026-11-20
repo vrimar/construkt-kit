@@ -1,10 +1,7 @@
-- group:
-  - text: Due date
-  - button "Due date Select date"
-  - text: Pick a due date.
-- group:
-  - text: Period
-  - button "Period Select date"
-  - text: Pick a period.
+- text: Due date
+- button "Due date Select date"
 - alert
+- text: Pick a due date. Period
+- button "Period Select date"
 - alert
+- text: Pick a period.

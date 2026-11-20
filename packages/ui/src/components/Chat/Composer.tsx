@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import { ArrowUpIcon, MicIcon, SquareIcon } from "lucide-react";
 import type { ComponentProps, ReactNode, Ref } from "react";
 
@@ -6,14 +5,15 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { chat } from "#styled-system/recipes";
 
 import { useControllableState } from "../../hooks/useControllableState";
+import { renderable } from "../../primitives/render";
 import { IconButton } from "../Buttons";
 import { Textarea } from "../Input";
 
 const { withProvider, withContext } = createSlotRecipeContext(chat);
 
-const Root = withProvider(ark.form, "composer");
-const Context = withContext(ark.div, "composerContext");
-const Box = withContext(ark.div, "composerBox");
+const Root = withProvider(renderable.form, "composer");
+const Context = withContext(renderable.div, "composerContext");
+const Box = withContext(renderable.div, "composerBox");
 const MicButton = withContext(IconButton, "composerMic");
 
 export interface ChatComposerProps extends Omit<

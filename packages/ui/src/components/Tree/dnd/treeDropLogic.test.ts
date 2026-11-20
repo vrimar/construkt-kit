@@ -1,7 +1,7 @@
-import type { TreeCollection } from "@ark-ui/react/tree-view";
 import { describe, expect, it } from "vitest";
 
-import { childIdsOf, createTestTree, type TestNode } from "../tree.fixtures";
+import { childIdsOf, type TestNode, testTree } from "../tree.fixtures";
+import { TreeCollection } from "../treeCollection";
 import {
   applyTreeDrop,
   getItemMode,
@@ -11,7 +11,7 @@ import {
 } from "./treeDropLogic";
 
 const makeCollection = () =>
-  createTestTree([
+  testTree([
     {
       id: "a",
       label: "a",
@@ -32,8 +32,8 @@ const makeCollection = () =>
     { id: "c", label: "c" },
   ]);
 
-const indexPathOf = (collection: TreeCollection<TestNode>, value: string) => {
-  const path = collection.getIndexPath(value);
+const indexPathOf = (tree: ReturnType<typeof makeCollection>, value: string) => {
+  const path = TreeCollection.from(tree).getIndexPath(value);
   if (!path) throw new Error(`no index path for ${value}`);
   return path;
 };
@@ -44,9 +44,9 @@ const instruction = (partial: {
   desiredLevel?: number;
 }): TreeDropInstruction => ({ currentLevel: 1, ...partial }) as TreeDropInstruction;
 
-const allValues = (collection: TreeCollection<TestNode> | null) => {
-  if (!collection) throw new Error("expected a reordered collection");
-  return collection.getDescendantValues([]);
+const allValues = (nodes: TestNode[] | null) => {
+  if (!nodes) throw new Error("expected reordered nodes");
+  return TreeCollection.from(testTree(nodes)).getDescendantValues([]);
 };
 
 describe("applyTreeDrop", () => {
@@ -178,7 +178,7 @@ describe("applyTreeDrop", () => {
   });
 
   const makeFlatCollection = () =>
-    createTestTree(["A", "B", "C", "D", "E"].map((id) => ({ id, label: id })));
+    testTree(["A", "B", "C", "D", "E"].map((id) => ({ id, label: id })));
 
   it("multi-drags non-adjacent siblings above a later sibling", () => {
     const next = applyTreeDrop(makeFlatCollection(), {
@@ -238,7 +238,7 @@ describe("applyTreeDrop", () => {
 
   describe("make-child into a lazy branch", () => {
     const makeLazyCollection = () =>
-      createTestTree([
+      testTree([
         { id: "unloaded", label: "unloaded", childrenCount: 2 },
         { id: "empty", label: "empty", childrenCount: 0 },
         { id: "c", label: "c" },
@@ -290,23 +290,24 @@ describe("getItemMode", () => {
 
 describe("isLastChildOfParent", () => {
   it("detects the last sibling", () => {
-    const collection = makeCollection();
-    expect(isLastChildOfParent(collection, indexPathOf(collection, "a3"))).toBe(true);
-    expect(isLastChildOfParent(collection, indexPathOf(collection, "a1"))).toBe(false);
+    const tree = makeCollection();
+    const collection = TreeCollection.from(tree);
+    expect(isLastChildOfParent(collection, indexPathOf(tree, "a3"))).toBe(true);
+    expect(isLastChildOfParent(collection, indexPathOf(tree, "a1"))).toBe(false);
   });
 });
 
 describe("moveNodeByKeyboard", () => {
   it("moves a node up among its siblings", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a2", "up");
-    expect(childIdsOf(result?.next, "a")).toEqual(["a2", "a1", "a3"]);
+    expect(childIdsOf(result?.nodes, "a")).toEqual(["a2", "a1", "a3"]);
     expect(result?.targetValue).toBe("a1");
     expect(result?.instruction.type).toBe("reorder-above");
   });
 
   it("moves a node down among its siblings", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a2", "down");
-    expect(childIdsOf(result?.next, "a")).toEqual(["a1", "a3", "a2"]);
+    expect(childIdsOf(result?.nodes, "a")).toEqual(["a1", "a3", "a2"]);
     expect(result?.targetValue).toBe("a3");
   });
 
@@ -317,8 +318,8 @@ describe("moveNodeByKeyboard", () => {
 
   it("indents a node to the first child of the previous sibling branch, as a pointer drop does", () => {
     const result = moveNodeByKeyboard(makeCollection(), "b", "indent");
-    expect(childIdsOf(result?.next)).toEqual(["a", "c"]);
-    expect(childIdsOf(result?.next, "a")).toEqual(["b", "a1", "a2", "a3"]);
+    expect(childIdsOf(result?.nodes)).toEqual(["a", "c"]);
+    expect(childIdsOf(result?.nodes, "a")).toEqual(["b", "a1", "a2", "a3"]);
     expect(result?.targetValue).toBe("a");
     expect(result?.instruction).toEqual({ type: "make-child", currentLevel: 0 });
   });
@@ -329,8 +330,8 @@ describe("moveNodeByKeyboard", () => {
 
   it("outdents a node to become its parent's next sibling", () => {
     const result = moveNodeByKeyboard(makeCollection(), "a1", "outdent");
-    expect(childIdsOf(result?.next)).toEqual(["a", "a1", "b", "c"]);
-    expect(childIdsOf(result?.next, "a")).toEqual(["a2", "a3"]);
+    expect(childIdsOf(result?.nodes)).toEqual(["a", "a1", "b", "c"]);
+    expect(childIdsOf(result?.nodes, "a")).toEqual(["a2", "a3"]);
     expect(result?.targetValue).toBe("a");
     expect(result?.instruction.type).toBe("reparent");
   });

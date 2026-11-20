@@ -1,4 +1,4 @@
-import { parseDate } from "@ark-ui/react/date-picker";
+import { parseDate } from "@internationalized/date";
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -10,22 +10,20 @@ import { DatePicker } from "./DatePicker";
 import { DatePickerSelect } from "./DatePickerSelect";
 
 const rootClassesOf = (container: HTMLElement) => {
-  const root = container.querySelector('[data-scope="date-picker"][data-part="root"]');
+  const root = container.querySelector('[data-slot="root"]');
   expect(root).toBe(container.firstElementChild);
   return root?.className.split(" ") ?? [];
 };
 
 const triggerOf = (container: HTMLElement) => {
-  const trigger = container.querySelector<HTMLButtonElement>(
-    '[data-scope="date-picker"][data-part="trigger"]',
-  );
+  const trigger = container.querySelector<HTMLButtonElement>('[data-slot="trigger"]');
   if (!trigger) throw new Error("No date picker trigger");
   return trigger;
 };
 
 const dayTrigger = (iso: string) => {
   const day = document.querySelector<HTMLElement>(
-    `[data-part="table-cell-trigger"][data-view="day"][data-value="${iso}"]`,
+    `[data-slot="tableCellTrigger"][data-value="${iso}"]`,
   );
   if (!day) throw new Error(`No day cell for ${iso}`);
   return day;
@@ -54,7 +52,7 @@ describe("DatePicker", () => {
     expect(rootClassesOf(container)).toContain("date-picker__root");
   });
 
-  it("labels a DatePickerSelect range from the machine's selection mode", () => {
+  it("labels a DatePickerSelect range from its selection mode", () => {
     const { container } = render(
       <DatePickerSelect
         selectionMode="range"
@@ -79,7 +77,7 @@ describe("DatePicker", () => {
 
   it("shows two months for a range on desktop", () => {
     const { container } = render(<Calendar selectionMode="range" />);
-    expect(container.querySelectorAll('[data-part="table-head"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-slot="tableHead"]')).toHaveLength(2);
   });
 
   it("stops adding dates once maxSelectedDates is reached", async () => {
@@ -103,7 +101,7 @@ describe("DatePicker", () => {
   it("names its trigger by the date it shows, not by its open state", () => {
     render(<DatePicker defaultValue={parseDate("2024-01-15")} />);
 
-    expect(screen.getByRole("button", { name: "2024-01-15" }).getAttribute("data-part")).toBe(
+    expect(screen.getByRole("button", { name: "2024-01-15" }).getAttribute("data-slot")).toBe(
       "trigger",
     );
   });
@@ -121,7 +119,7 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     const { container } = render(<DatePickerSelect defaultOpen />);
     const day = document.querySelector<HTMLElement>(
-      '[data-part="table-cell-trigger"][data-view="day"][data-selectable]',
+      '[data-slot="tableCellTrigger"]:not([data-disabled])',
     );
     if (!day) throw new Error("No selectable day");
     const iso = day.dataset.value;
@@ -141,9 +139,7 @@ describe("DatePicker", () => {
       render(<DatePicker defaultOpen />);
       await settle();
 
-      await user.click(
-        document.querySelector('[data-scope="drawer"][data-part="grabber"]') as Element,
-      );
+      await user.click(document.querySelector('[data-slot="grabber"]') as Element);
 
       await settle();
       expect(screen.queryByRole("grid")).not.toBeNull();

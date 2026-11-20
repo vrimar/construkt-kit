@@ -1,4 +1,3 @@
-import { usePopoverContext } from "@ark-ui/react/popover";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { Box } from "#styled-system/jsx";
@@ -10,7 +9,7 @@ import { Listbox } from "../Listbox/Listbox";
 import { ListboxSearchField, ManagedList, splitKeys } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
 import { useOverlayMode } from "../overlayPresentation";
-import { Popover } from "../Popover";
+import { Popover, usePopoverContext } from "../Popover/Popover";
 import { useSelectContext } from "./Select.context";
 import type {
   SelectContentProps,
@@ -31,13 +30,13 @@ export function SelectTrigger({
 }: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
   const popover = usePopoverContext();
-  const fieldProps = useFieldTriggerProps(popover.getTriggerProps().id);
+  const fieldProps = useFieldTriggerProps(popover.ids.trigger);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     onKeyDown?.(event);
     if (event.defaultPrevented || event.key !== "ArrowDown") return;
     event.preventDefault();
-    popover.setOpen(true);
+    popover.requestOpenChange(true, "list-navigation", event.nativeEvent);
   };
 
   return (
@@ -45,16 +44,16 @@ export function SelectTrigger({
       {...fieldProps}
       {...triggerProps}
       onKeyDown={handleKeyDown}
-      asChild
-    >
-      {children ?? (
-        <SelectButton
-          {...buttonProps}
-          hasValue={buttonProps?.hasValue ?? hasValue}
-          label={buttonProps?.label ?? triggerValue}
-        />
-      )}
-    </Popover.Trigger>
+      render={
+        children ?? (
+          <SelectButton
+            {...buttonProps}
+            hasValue={buttonProps?.hasValue ?? hasValue}
+            label={buttonProps?.label ?? triggerValue}
+          />
+        )
+      }
+    />
   );
 }
 
@@ -66,10 +65,10 @@ export function SelectContent({ children, style, ...props }: SelectContentProps)
 
   return (
     <Popover.Content
-      aria-labelledby={popover.getTriggerProps().id}
+      aria-labelledby={popover.triggerId}
       layerStyle={anchored ? "dropdown.surface" : undefined}
       minW={anchored && contentWidth == null ? minContentWidth : undefined}
-      width={anchored && sameWidth ? "full" : undefined}
+      width={anchored && sameWidth ? "var(--anchor-width)" : undefined}
       style={
         anchored && contentWidth != null ? { width: toCssSize(contentWidth), ...style } : style
       }
@@ -80,16 +79,17 @@ export function SelectContent({ children, style, ...props }: SelectContentProps)
   );
 }
 
-export function SelectSearch({ children, ...props }: SelectSearchProps) {
+export function SelectSearch({ children, autoFocus, ...props }: SelectSearchProps) {
   const { managed } = useSelectContext();
   // On a phone, focusing the search raises the keyboard over half the sheet.
   const sheet = useOverlayMode() === "sheet";
+  const skipped = sheet || (autoFocus ?? managed.controller.search.autoFocus) === false;
 
   return (
     <ListboxSearchField
       {...props}
-      autoFocus={sheet ? false : props.autoFocus}
-      data-no-autofocus={sheet ? "" : undefined}
+      autoFocus={false}
+      data-no-autofocus={skipped ? "" : undefined}
       search={managed.controller.search}
       inputRef={managed.inputRef}
       endElement={children}
@@ -105,7 +105,7 @@ export function SelectList(props: SelectListProps) {
     <ManagedList
       managed={managed}
       {...list}
-      contentProps={{ "aria-labelledby": popover.getTriggerProps().id, ...props }}
+      contentProps={{ "aria-labelledby": popover.triggerId, ...props }}
     />
   );
 }

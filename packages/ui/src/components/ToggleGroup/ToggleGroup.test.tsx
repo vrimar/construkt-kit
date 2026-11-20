@@ -1,4 +1,3 @@
-import { useToggleGroup } from "@ark-ui/react/toggle-group";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -6,24 +5,17 @@ import { describe, expect, it } from "vitest";
 import { ToggleGroup } from ".";
 import { Toolbar } from "../Toolbar";
 
-function ProvidedGroup() {
-  const toggleGroup = useToggleGroup({ multiple: true });
-  return (
-    <ToggleGroup.RootProvider value={toggleGroup}>
-      <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
-      <ToggleGroup.Item value="italic">Italic</ToggleGroup.Item>
-    </ToggleGroup.RootProvider>
-  );
-}
-
 describe("ToggleGroup", () => {
-  it("joins a toolbar's arrow keys and single tab stop through RootProvider", async () => {
+  it("joins a toolbar's arrow keys and single tab stop", async () => {
     const user = userEvent.setup();
     render(
       <>
         <Toolbar.Root aria-label="Format">
           <button type="button">Undo</button>
-          <ProvidedGroup />
+          <ToggleGroup.Root multiple>
+            <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
+            <ToggleGroup.Item value="italic">Italic</ToggleGroup.Item>
+          </ToggleGroup.Root>
           <button type="button">Redo</button>
         </Toolbar.Root>
         <button type="button">After</button>

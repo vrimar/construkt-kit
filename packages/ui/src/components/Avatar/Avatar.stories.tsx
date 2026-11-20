@@ -4,6 +4,9 @@ import { avatar } from "#styled-system/recipes";
 
 import { Avatar } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Button } from "../Buttons";
+import { Collapsible } from "../Collapsible";
+import { HStack } from "../Layout";
 
 const portraitSrc = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
@@ -56,5 +59,25 @@ export const Sizes = meta.story({
         </Avatar.Root>
       )}
     />
+  ),
+});
+
+export const LazyImageInClosedSection = meta.story({
+  render: () => (
+    <Collapsible.Root>
+      <Collapsible.Trigger render={<Button variant="outline" />}>Reviewers</Collapsible.Trigger>
+      <Collapsible.Content>
+        <HStack pt="3">
+          <Avatar.Root>
+            <Avatar.Fallback name="Ada Lovelace" />
+            <Avatar.Image
+              loading="lazy"
+              src={portraitSrc}
+              alt="Ada Lovelace"
+            />
+          </Avatar.Root>
+        </HStack>
+      </Collapsible.Content>
+    </Collapsible.Root>
   ),
 });

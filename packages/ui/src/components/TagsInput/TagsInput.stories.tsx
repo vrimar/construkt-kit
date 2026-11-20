@@ -4,6 +4,8 @@ import { tagsInput } from "#styled-system/recipes";
 
 import { TagsInput } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
+import { Button } from "../Buttons";
+import { Dialog } from "../Dialog";
 
 const meta = preview.meta({
   title: "Components/TagsInput",
@@ -58,5 +60,29 @@ export const Sizes = meta.story({
         </TagsInput.Root>
       )}
     />
+  ),
+});
+
+export const InDialog = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Dialog.Root
+      defaultOpen
+      title="Edit post"
+    >
+      <Dialog.Trigger render={<Button />}>Edit post</Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Body>
+          <TagsInput.Root defaultValue={["React", "Vue"]}>
+            <TagsInput.Label>Tags</TagsInput.Label>
+            <TagsInput.Control>
+              <TagsInput.Items />
+              <TagsInput.Input placeholder="Add tag..." />
+            </TagsInput.Control>
+          </TagsInput.Root>
+        </Dialog.Body>
+        <Dialog.CloseTrigger />
+      </Dialog.Content>
+    </Dialog.Root>
   ),
 });

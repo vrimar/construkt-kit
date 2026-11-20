@@ -17,7 +17,7 @@ const OpenedFromPopover = () => {
     <>
       <Popover.Root
         open={popoverOpen}
-        onOpenChange={({ open }) => setPopoverOpen(open)}
+        onOpenChange={(open) => setPopoverOpen(open)}
       >
         <Popover.Trigger>Settings</Popover.Trigger>
         <Popover.Content>
@@ -128,9 +128,8 @@ describe("SubmitDialog", () => {
         Body
       </SubmitDialog>,
     );
-    expect(screen.getByRole("dialog").style.getPropertyValue("--submit-dialog-max-w")).toBe(
-      "540px",
-    );
+    const content = screen.getByRole("dialog").querySelector<HTMLElement>('[data-slot="content"]');
+    expect(content?.style.getPropertyValue("--submit-dialog-max-w")).toBe("540px");
   });
 
   it("lays out extra footer buttons that don't submit", async () => {

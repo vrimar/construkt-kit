@@ -32,12 +32,17 @@ const meta = preview.meta({
 export const Default = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Open Menu</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Open Menu</Menu.Trigger>
       <Menu.Content>
         <Menu.Item value="edit">Edit</Menu.Item>
         <Menu.Item value="duplicate">Duplicate</Menu.Item>
+        <Menu.Root>
+          <Menu.TriggerItem>Share</Menu.TriggerItem>
+          <Menu.Content>
+            <Menu.Item value="copy-link">Copy link</Menu.Item>
+            <Menu.Item value="email">Email</Menu.Item>
+          </Menu.Content>
+        </Menu.Root>
         <Menu.Separator />
         <Menu.Item value="delete">Delete</Menu.Item>
       </Menu.Content>
@@ -50,9 +55,9 @@ export const TriggerWithTooltip = meta.story({
     <Menu.Root>
       <Menu.Trigger
         tooltip="Show actions"
-        asChild
+        render={<Button variant="outline" />}
       >
-        <Button variant="outline">Open Menu</Button>
+        Open Menu
       </Menu.Trigger>
       <Menu.Content>
         <Menu.Item value="edit">Edit</Menu.Item>
@@ -67,9 +72,7 @@ export const TriggerWithTooltip = meta.story({
 export const WithIcons = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button>Actions</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button />}>Actions</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="edit"
@@ -104,9 +107,7 @@ export const WithIcons = meta.story({
 export const WithGroups = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Grouped Menu</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Grouped Menu</Menu.Trigger>
       <Menu.Content>
         <Menu.ItemGroup label="Actions">
           <Menu.Item value="edit">Edit</Menu.Item>
@@ -124,9 +125,7 @@ export const WithGroups = meta.story({
 export const Destructive = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Actions</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Actions</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="edit"
@@ -150,9 +149,7 @@ export const Destructive = meta.story({
 export const Hints = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Edit</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Edit</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="cut"
@@ -198,9 +195,7 @@ export const Hints = meta.story({
 export const Descriptions = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Visibility</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Visibility</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="public"
@@ -231,9 +226,7 @@ export const Descriptions = meta.story({
 export const DisabledWithReason = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Assign</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Assign</Menu.Trigger>
       <Menu.Content>
         <Menu.ItemGroup label="Team members">
           <Menu.Item
@@ -265,29 +258,27 @@ export const DisabledWithReason = meta.story({
 export const Links = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Navigate</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Navigate</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="settings"
           icon={<SettingsIcon />}
-          asChild
+          render={<a href="#settings" />}
         >
-          <a href="#settings">Settings</a>
+          Settings
         </Menu.Item>
         <Menu.Item
           value="docs"
           icon={<ExternalLinkIcon />}
-          asChild
+          render={
+            <a
+              href="https://ark-ui.com"
+              target="_blank"
+              rel="noreferrer"
+            />
+          }
         >
-          <a
-            href="https://ark-ui.com"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Documentation
-          </a>
+          Documentation
         </Menu.Item>
       </Menu.Content>
     </Menu.Root>
@@ -306,15 +297,17 @@ export const Sizes = meta.story({
           onOpenChange={() => {}}
           size={size}
         >
-          <Menu.Trigger asChild>
-            <Button
-              size={size}
-              variant="outline"
-            >
-              Actions
-            </Button>
+          <Menu.Trigger
+            render={
+              <Button
+                size={size}
+                variant="outline"
+              />
+            }
+          >
+            Actions
           </Menu.Trigger>
-          <Menu.Content portalled={false}>
+          <Menu.Content>
             <Menu.Item value="edit">Edit</Menu.Item>
             <Menu.Item value="duplicate">Duplicate</Menu.Item>
             <Menu.Separator />
@@ -342,10 +335,8 @@ function TypesDemo() {
         open
         onOpenChange={() => {}}
       >
-        <Menu.Trigger asChild>
-          <Button variant="outline">Checkbox</Button>
-        </Menu.Trigger>
-        <Menu.Content portalled={false}>
+        <Menu.Trigger render={<Button variant="outline" />}>Checkbox</Menu.Trigger>
+        <Menu.Content>
           <Menu.CheckboxItem
             value="bold"
             checked={bold}
@@ -374,13 +365,11 @@ function TypesDemo() {
         open
         onOpenChange={() => {}}
       >
-        <Menu.Trigger asChild>
-          <Button variant="outline">Radio</Button>
-        </Menu.Trigger>
-        <Menu.Content portalled={false}>
+        <Menu.Trigger render={<Button variant="outline" />}>Radio</Menu.Trigger>
+        <Menu.Content>
           <Menu.RadioItemGroup
             value={size}
-            onValueChange={({ value }) => setSize(value)}
+            onValueChange={(value) => setSize(value)}
           >
             <Menu.RadioItem value="sm">Small</Menu.RadioItem>
             <Menu.RadioItem value="md">Medium</Menu.RadioItem>
@@ -410,20 +399,15 @@ function FilterDemo() {
         closeOnSelect={false}
         selection="tint"
       >
-        <Menu.Trigger asChild>
-          <Button variant="outline">Filter</Button>
-        </Menu.Trigger>
-        <Menu.Content
-          portalled={false}
-          width="64"
-        >
+        <Menu.Trigger render={<Button variant="outline" />}>Filter</Menu.Trigger>
+        <Menu.Content width="64">
           <Menu.ItemGroup
             label="File type"
             labelVariant="caps"
           >
             <Menu.RadioItemGroup
               value={kind}
-              onValueChange={({ value }) => setKind(value)}
+              onValueChange={(value) => setKind(value)}
             >
               <Menu.RadioItem
                 value=""
@@ -449,7 +433,7 @@ function FilterDemo() {
           <Menu.SegmentGroup
             label="Sort"
             value={sort}
-            onValueChange={({ value }) => setSort(value)}
+            onValueChange={(value) => setSort(value)}
             segments={[
               { value: "recent", label: "Recent" },
               { value: "name", label: "Name" },
@@ -501,27 +485,31 @@ export const ContextMenu = meta.story({
 export const ContextAndButtonTriggers = meta.story({
   render: () => (
     <Menu.Root>
-      <Menu.ContextTrigger asChild>
-        <Flex
-          align="center"
-          justify="space-between"
-          gap="4"
-          p="4"
-          border="1px solid"
-          borderColor="border"
-          borderRadius="md"
-          userSelect="none"
-        >
-          Right-click this row, or open its menu from the button
-          <Menu.Trigger asChild>
+      <Menu.ContextTrigger
+        render={
+          <Flex
+            align="center"
+            justify="space-between"
+            gap="4"
+            p="4"
+            border="1px solid"
+            borderColor="border"
+            borderRadius="md"
+            userSelect="none"
+          />
+        }
+      >
+        Right-click this row, or open its menu from the button
+        <Menu.Trigger
+          render={
             <Button
               variant="outline"
               size="sm"
-            >
-              More
-            </Button>
-          </Menu.Trigger>
-        </Flex>
+            />
+          }
+        >
+          More
+        </Menu.Trigger>
       </Menu.ContextTrigger>
       <Menu.Content>
         <Menu.Item value="rename">Rename</Menu.Item>
@@ -543,9 +531,7 @@ export const Phone = meta.story({
   globals: { viewport: { value: "mobile1", isRotated: false } },
   render: () => (
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Actions</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Actions</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="edit"
@@ -579,9 +565,7 @@ export const Open = meta.story({
   parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
   render: () => (
     <Menu.Root defaultOpen>
-      <Menu.Trigger asChild>
-        <Button variant="outline">Actions</Button>
-      </Menu.Trigger>
+      <Menu.Trigger render={<Button variant="outline" />}>Actions</Menu.Trigger>
       <Menu.Content>
         <Menu.Item
           value="edit"

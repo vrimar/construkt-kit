@@ -1,0 +1,20 @@
+- text: Fruit
+- textbox "Search..."
+- grid "Fruit":
+  - row "Apple":
+    - gridcell "Apple"
+    - gridcell "Edit Apple":
+      - button "Edit Apple"
+  - row "Banana":
+    - gridcell "Banana"
+    - gridcell "Edit Banana":
+      - button "Edit Banana"
+  - row "Cherry":
+    - gridcell "Cherry"
+    - gridcell "Edit Cherry":
+      - button "Edit Cherry"
+  - row "Dragon fruit" [selected]:
+    - gridcell "Dragon fruit"
+    - gridcell "Edit Dragon fruit":
+      - button "Edit Dragon fruit"
+- status

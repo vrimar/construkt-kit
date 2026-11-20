@@ -10,7 +10,7 @@ const TriggerInput = styled(FileUpload.Trigger, input);
 
 export interface FormFileUploadProps extends Omit<
   FileUploadRootProps,
-  "onFileChange" | "maxFiles" | "children"
+  "onValueChange" | "maxFiles" | "children"
 > {
   onFileChange: (file: File | undefined) => void;
   placeholder?: string;
@@ -25,23 +25,22 @@ export const FormFileUpload = ({
     <FileUpload.Root
       {...rootProps}
       maxFiles={1}
-      onFileChange={({ acceptedFiles }) =>
-        onFileChange(acceptedFiles.length === 1 ? acceptedFiles[0] : undefined)
-      }
+      onValueChange={(files) => onFileChange(files.length === 1 ? files[0] : undefined)}
     >
       <FileUpload.HiddenInput />
       <InputGroup
         startElement={<FileUpIcon />}
-        cursor={rootProps.disabled ? "not-allowed" : "pointer"}
         endElement={
-          <FileUpload.ClearTrigger asChild>
-            <InputGroupClearButton
-              me="-1"
-              size="sm"
-              focusVisibleRing="inside"
-              focusRingWidth="2px"
-            />
-          </FileUpload.ClearTrigger>
+          <FileUpload.ClearTrigger
+            render={
+              <InputGroupClearButton
+                me="-1"
+                size="sm"
+                focusVisibleRing="inside"
+                focusRingWidth="2px"
+              />
+            }
+          />
         }
       >
         <TriggerInput _enabled={{ cursor: "pointer" }}>

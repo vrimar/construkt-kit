@@ -1,44 +1,38 @@
-import { ark } from "@ark-ui/react/factory";
-import { Switch as ArkSwitch, useSwitchContext } from "@ark-ui/react/switch";
 import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { switchRecipe } from "#styled-system/recipes";
 
+import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { renderable } from "../../primitives/render";
+import { mergeProps } from "../../primitives/render/mergeProps";
 import type { HiddenInputControlProps, WithRef } from "../../types";
+import { type CheckableProps, type CheckedChangeDetails, useCheckable } from "../checkable";
+
+export type { CheckedChangeDetails as SwitchCheckedChangeDetails };
 
 const { withProvider, withContext } = createSlotRecipeContext(switchRecipe);
 
+const Root = withProvider(renderable.label, "root");
+const Label = withContext(renderable.span, "label");
+const Thumb = withContext(renderable.span, "thumb");
+const Control = withContext(renderable.span, "control");
+const Indicator = withContext(renderable.span, "indicator");
+
 type RootProps = ComponentProps<typeof Root>;
-const Root = withProvider(ArkSwitch.Root, "root");
-const Label = withContext(ArkSwitch.Label, "label");
-const Thumb = withContext(ArkSwitch.Thumb, "thumb");
-const HiddenInput = ArkSwitch.HiddenInput;
-const Control = withContext(ArkSwitch.Control, "control");
-const Indicator = withContext(ark.span, "indicator");
 
 interface SwitchLabel {
   on: ReactNode;
   off: ReactNode;
 }
 
-export interface SwitchProps extends Omit<RootProps, "ref">, HiddenInputControlProps {
+export interface SwitchProps
+  extends
+    Omit<RootProps, "ref" | keyof CheckableProps>,
+    CheckableProps<boolean>,
+    HiddenInputControlProps {
   trackLabel?: SwitchLabel;
   thumbLabel?: SwitchLabel;
-}
-
-function SwitchControl({ trackLabel, thumbLabel }: Pick<SwitchProps, "trackLabel" | "thumbLabel">) {
-  const { checked } = useSwitchContext();
-  const pick = (label: SwitchLabel) => (checked ? label.on : label.off);
-
-  return (
-    <Control>
-      <Thumb>{thumbLabel && pick(thumbLabel)}</Thumb>
-      {trackLabel && (
-        <Indicator data-checked={checked ? "" : undefined}>{pick(trackLabel)}</Indicator>
-      )}
-    </Control>
-  );
 }
 
 export const Switch = ({
@@ -48,22 +42,67 @@ export const Switch = ({
   rootRef,
   trackLabel,
   thumbLabel,
+  checked,
+  defaultChecked,
+  onCheckedChange,
+  disabled,
+  readOnly,
+  invalid,
+  required,
+  name,
+  value,
+  form,
+  id,
   ...rest
 }: WithRef<SwitchProps, HTMLInputElement>) => {
+  const {
+    state,
+    stateAttributes,
+    rootProps,
+    inputProps: checkableInputProps,
+  } = useCheckable(
+    {
+      checked,
+      defaultChecked,
+      onCheckedChange:
+        onCheckedChange && ((next, details) => onCheckedChange(next === true, details)),
+      disabled,
+      readOnly,
+      invalid,
+      required,
+      name,
+      value,
+      form,
+      id,
+    },
+    { focusOnPress: true },
+  );
+  const inputRef = useComposedRefs(checkableInputProps.ref, ref);
+  const pick = (label: SwitchLabel) => (state.checked ? label.on : label.off);
+
   return (
     <Root
       ref={rootRef}
-      {...rest}
+      {...stateAttributes}
+      {...mergeProps<RootProps>(rootProps, rest)}
     >
-      <HiddenInput
-        ref={ref}
-        {...inputProps}
+      <renderable.input
+        {...mergeProps<ComponentProps<typeof renderable.input>>(checkableInputProps, inputProps)}
+        ref={inputRef}
       />
-      <SwitchControl
-        trackLabel={trackLabel}
-        thumbLabel={thumbLabel}
-      />
-      {children != null && <Label>{children}</Label>}
+      <Control
+        aria-hidden
+        {...stateAttributes}
+      >
+        <Thumb
+          aria-hidden
+          {...stateAttributes}
+        >
+          {thumbLabel && pick(thumbLabel)}
+        </Thumb>
+        {trackLabel && <Indicator {...stateAttributes}>{pick(trackLabel)}</Indicator>}
+      </Control>
+      {children != null && <Label {...stateAttributes}>{children}</Label>}
     </Root>
   );
 };

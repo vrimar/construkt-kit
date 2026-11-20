@@ -1,62 +1,39 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import { Box } from "#styled-system/jsx";
+import type { DrawerVariantProps } from "#styled-system/recipes";
 
 import type { WithRef } from "../../types";
-import {
-  Drawer,
-  type DrawerContentProps,
-  type DrawerRootProps,
-  type UseDrawerProps,
-  type UseDrawerReturn,
-  useDrawer,
-} from "../Drawer";
+import { type DialogLabelProps, type DialogRootBaseProps, useModalContext } from "../dialogParts";
+import type { DrawerContentProps } from "../Drawer";
+import { DrawerRoot, type DrawerSnapProps, drawerParts } from "../Drawer/drawerParts";
 import { isRenderable } from "../itemSlots";
 
-export type SheetRootProps = Omit<DrawerRootProps, "placement" | "swipeDirection">;
+// Panda extracts style props only from JSX tags that start with a capital.
+const { ModalContent, Grabber, GrabberIndicator, Header, Title, Body, Description } = drawerParts;
 
-/** `useDrawer` for `Sheet.RootProvider`: a bottom drawer that swipes down to dismiss. */
-export function useSheet(props: Omit<UseDrawerProps, "placement"> = {}): UseDrawerReturn {
-  return useDrawer({ ...props, placement: "bottom" });
-}
+export type SheetRootProps = DialogRootBaseProps &
+  DrawerSnapProps &
+  Pick<DrawerVariantProps, "size"> &
+  DialogLabelProps;
 
-function SheetRoot(props: SheetRootProps) {
+function SheetRoot(props: SheetRootProps): ReactElement {
   return (
-    <Drawer.Root
+    <DrawerRoot
       placement="bottom"
       {...props}
     />
   );
 }
 
-export interface SheetContentProps extends DrawerContentProps {
-  /** Hold the sheet at its maximum height instead of fitting its content. */
-  fullHeight?: boolean;
-}
-
-function SheetContent({ ref, fullHeight = false, children, ...props }: WithRef<SheetContentProps>) {
-  return (
-    <Drawer.Content
-      ref={ref}
-      height={fullHeight ? "var(--drawer-placement-max-h)" : undefined}
-      {...props}
-    >
-      <Drawer.Grabber>
-        <Drawer.GrabberIndicator />
-      </Drawer.Grabber>
-      {children}
-    </Drawer.Content>
-  );
-}
-
-export interface SheetHeaderProps extends ComponentProps<typeof Drawer.Header> {
+export interface SheetHeaderProps extends ComponentProps<typeof Header> {
   startElement?: ReactNode;
   endElement?: ReactNode;
 }
 
 function SheetHeader({ startElement, endElement, children, ...props }: SheetHeaderProps) {
   return (
-    <Drawer.Header
+    <Header
       flexDirection="row"
       alignItems="center"
       gap="1"
@@ -74,13 +51,13 @@ function SheetHeader({ startElement, endElement, children, ...props }: SheetHead
         {children}
       </Box>
       {endElement}
-    </Drawer.Header>
+    </Header>
   );
 }
 
-function SheetTitle(props: ComponentProps<typeof Drawer.Title>) {
+function SheetTitle(props: ComponentProps<typeof Title>) {
   return (
-    <Drawer.Title
+    <Title
       textStyle="md"
       truncate
       {...props}
@@ -88,9 +65,9 @@ function SheetTitle(props: ComponentProps<typeof Drawer.Title>) {
   );
 }
 
-function SheetBody(props: ComponentProps<typeof Drawer.Body>) {
+function SheetBody(props: ComponentProps<typeof Body>) {
   return (
-    <Drawer.Body
+    <Body
       alignItems="stretch"
       minHeight="0"
       {...props}
@@ -98,17 +75,71 @@ function SheetBody(props: ComponentProps<typeof Drawer.Body>) {
   );
 }
 
+function RootTitleHeader({
+  headerStart,
+  headerEnd,
+}: {
+  headerStart: ReactNode;
+  headerEnd: ReactNode;
+}) {
+  const { title, description } = useModalContext();
+  if (title == null) return null;
+  return (
+    <SheetHeader
+      startElement={headerStart}
+      endElement={headerEnd}
+    >
+      <SheetTitle>{title}</SheetTitle>
+      {description != null && <Description>{description}</Description>}
+    </SheetHeader>
+  );
+}
+
+export interface SheetContentProps extends DrawerContentProps {
+  /** Hold the sheet at its maximum height instead of fitting its content. */
+  fullHeight?: boolean;
+  /** Shown before the root's `title`, such as a back button. */
+  headerStart?: ReactNode;
+  /** Shown after the root's `title`, such as a Done button. */
+  headerEnd?: ReactNode;
+}
+
+function SheetContent({
+  ref,
+  fullHeight = false,
+  headerStart,
+  headerEnd,
+  children,
+  ...props
+}: WithRef<SheetContentProps>): ReactElement {
+  return (
+    <ModalContent
+      ref={ref}
+      header={null}
+      height={fullHeight ? "var(--drawer-placement-max-h)" : undefined}
+      {...props}
+    >
+      <Grabber>
+        <GrabberIndicator />
+      </Grabber>
+      <RootTitleHeader
+        headerStart={headerStart}
+        headerEnd={headerEnd}
+      />
+      {children}
+    </ModalContent>
+  );
+}
+
 export const Sheet = {
   Root: SheetRoot,
-  RootProvider: Drawer.RootProvider,
-  Trigger: Drawer.Trigger,
+  Trigger: drawerParts.Trigger,
   Content: SheetContent,
   Header: SheetHeader,
   Title: SheetTitle,
-  Description: Drawer.Description,
+  Description,
   Body: SheetBody,
-  Footer: Drawer.Footer,
-  CloseTrigger: Drawer.CloseTrigger,
-  ActionTrigger: Drawer.ActionTrigger,
-  Context: Drawer.Context,
+  Footer: drawerParts.Footer,
+  CloseTrigger: drawerParts.CloseTrigger,
+  ActionTrigger: drawerParts.ActionTrigger,
 };

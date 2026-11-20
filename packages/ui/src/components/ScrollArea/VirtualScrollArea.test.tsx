@@ -116,9 +116,7 @@ describe("VirtualScrollArea", () => {
       </VirtualScrollArea>,
     );
 
-    const scrollAreaRoot = container.querySelector<HTMLElement>(
-      '[data-scope="scroll-area"][data-part="root"]',
-    );
+    const scrollAreaRoot = container.querySelector<HTMLElement>(".scroll-area__root");
 
     expect(scrollAreaRoot).not.toBeNull();
     expect(scrollAreaRoot?.style.height).toBe("480px");

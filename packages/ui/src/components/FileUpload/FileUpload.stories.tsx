@@ -17,9 +17,7 @@ export const Default = meta.story({
     <Box maxW="400px">
       <FileUpload.Root maxFiles={5}>
         <FileUpload.HiddenInput />
-        <FileUpload.Trigger asChild>
-          <Button variant="outline">Choose File</Button>
-        </FileUpload.Trigger>
+        <FileUpload.Trigger render={<Button variant="outline" />}>Choose File</FileUpload.Trigger>
         <FileUpload.ItemGroup>
           <FileUpload.Items />
         </FileUpload.ItemGroup>
@@ -79,7 +77,7 @@ export const DisabledAndReadOnly = meta.story({
         <FileUpload.Root
           key={state}
           maxFiles={3}
-          defaultAcceptedFiles={sampleFiles}
+          defaultValue={sampleFiles}
           disabled={state === "disabled"}
           readOnly={state === "readOnly"}
         >

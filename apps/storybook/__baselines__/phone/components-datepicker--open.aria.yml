@@ -1,4 +1,4 @@
-- application "calendar":
+- dialog "calendar":
   - button "Switch to previous month"
   - button /March \d+/
   - button "Switch to next month"
@@ -94,4 +94,3 @@
           - button /Choose Saturday, April 4, \d+/ [disabled]
         - gridcell /Choose Sunday, April 5, \d+/ [disabled]:
           - button /Choose Sunday, April 5, \d+/ [disabled]
-- alert

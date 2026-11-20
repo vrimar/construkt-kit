@@ -16,13 +16,15 @@ export const Default = meta.story({
         <Clipboard.Label>Share URL</Clipboard.Label>
         <Clipboard.Control>
           <Clipboard.Input />
-          <Clipboard.Trigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-            >
-              <Clipboard.Indicator />
-            </Button>
+          <Clipboard.Trigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+              />
+            }
+          >
+            <Clipboard.Indicator />
           </Clipboard.Trigger>
         </Clipboard.Control>
       </Clipboard.Root>
@@ -37,13 +39,15 @@ export const CopyText = meta.story({
         <Clipboard.Label>Snippet</Clipboard.Label>
         <Clipboard.Control>
           <Clipboard.Input />
-          <Clipboard.Trigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-            >
-              <Clipboard.CopyText />
-            </Button>
+          <Clipboard.Trigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+              />
+            }
+          >
+            <Clipboard.CopyText />
           </Clipboard.Trigger>
         </Clipboard.Control>
       </Clipboard.Root>

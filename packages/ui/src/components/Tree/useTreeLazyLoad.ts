@@ -1,46 +1,63 @@
-import type {
-  TreeCollection,
-  TreeNode,
-  TreeViewLoadChildrenCompleteDetails,
-  TreeViewLoadChildrenDetails,
-  TreeViewLoadChildrenErrorDetails,
-} from "@ark-ui/react/tree-view";
 import { useEffect, useRef, useState } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import type { TreeCollection } from "./treeCollection";
 import { locateNode, replaceNodeChildren } from "./treeCollectionUtils";
 
-interface UseTreeLazyLoadOptions<TNode extends TreeNode> {
-  collection: TreeCollection<TNode>;
-  loadChildren: ((details: TreeViewLoadChildrenDetails<TNode>) => Promise<TNode[]>) | undefined;
-  onLoadChildrenComplete:
-    | ((details: TreeViewLoadChildrenCompleteDetails<TNode>) => void)
+/** Where the branch `loadChildren` loads sits, and the signal that aborts the load. */
+export interface TreeLoadChildrenDetails {
+  indexPath: number[];
+  valuePath: string[];
+  signal: AbortSignal;
+}
+
+/** The branch whose `loadChildren` rejected. */
+export interface TreeLoadChildrenErrorDetails<T> {
+  node: T;
+  indexPath: number[];
+  valuePath: string[];
+}
+
+export interface TreeLazyLoadProps<T> {
+  /**
+   * Loads a branch's children when it is expanded. A node needs loading while it has a non-zero
+   * children count, no children and no finished load; `nodes` not handed back by
+   * `onLoadChildrenComplete` start afresh. The branch stays collapsed until the load finishes, then
+   * opens even if it came back empty.
+   */
+  loadChildren?: ((node: T, details: TreeLoadChildrenDetails) => Promise<T[]>) | undefined;
+  /** Receives `nodes` with the loaded children merged in; pass them back as `nodes`. */
+  onLoadChildrenComplete?: ((nodes: T[]) => void) | undefined;
+  /** Called when `loadChildren` rejects; the branch stays collapsed and retries on next expand. */
+  onLoadChildrenError?:
+    | ((error: unknown, details: TreeLoadChildrenErrorDetails<T>) => void)
     | undefined;
-  onLoadChildrenError: ((details: TreeViewLoadChildrenErrorDetails<TNode>) => void) | undefined;
+}
+
+interface UseTreeLazyLoadOptions<T> extends TreeLazyLoadProps<T> {
+  collection: TreeCollection<T>;
   abortKey: string;
 }
 
 const NO_VALUES: ReadonlySet<string> = new Set();
 
-interface LoadLineage<TNode extends TreeNode> {
-  base: TreeCollection<TNode>;
-  merged: TreeCollection<TNode>;
+interface LoadLineage<T> {
+  base: readonly T[];
+  merged: readonly T[];
   loaded: ReadonlySet<string>;
 }
 
-// Loads count only within one lineage; a collection built anew may hold the branch unloaded again.
-const getLoaded = <TNode extends TreeNode>(
-  lineage: LoadLineage<TNode>,
-  prop: TreeCollection<TNode>,
-) => (lineage.base === prop || lineage.merged === prop ? lineage.loaded : NO_VALUES);
+// Loads count only within one lineage; nodes built anew may hold the branch unloaded again.
+const getLoaded = <T>(lineage: LoadLineage<T>, nodes: readonly T[]) =>
+  lineage.base === nodes || lineage.merged === nodes ? lineage.loaded : NO_VALUES;
 
-export function useTreeLazyLoad<TNode extends TreeNode>({
+export function useTreeLazyLoad<T>({
   collection,
   loadChildren,
   onLoadChildrenComplete,
   onLoadChildrenError,
   abortKey,
-}: UseTreeLazyLoadOptions<TNode>) {
+}: UseTreeLazyLoadOptions<T>) {
   const [loadingValues, setLoadingValues] = useState(NO_VALUES);
 
   const latestRef = useLatestRef({
@@ -48,9 +65,9 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     onLoadChildrenComplete,
     onLoadChildrenError,
   });
-  const [lineage, setLineage] = useState<LoadLineage<TNode>>(() => ({
-    base: collection,
-    merged: collection,
+  const [lineage, setLineage] = useState<LoadLineage<T>>(() => ({
+    base: collection.nodes,
+    merged: collection.nodes,
     loaded: NO_VALUES,
   }));
   const sourceRef = useRef(lineage);
@@ -65,9 +82,9 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     };
   }, [abortKey]);
 
-  // Merges stay visible to later completions until the collection prop moves on from `base`.
-  const getSource = (prop: TreeCollection<TNode>) =>
-    sourceRef.current.base === prop ? sourceRef.current.merged : prop;
+  // Merges stay visible to later completions until the nodes prop moves on from `base`.
+  const getSource = (prop: TreeCollection<T>) =>
+    sourceRef.current.base === prop.nodes ? prop.copy(sourceRef.current.merged) : prop;
 
   const needsLoad = (value: string) => {
     if (!loadChildren) return false;
@@ -77,7 +94,7 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
       node !== undefined &&
       (source.getNodeChildrenCount(node) ?? 0) > 0 &&
       source.getNodeChildren(node).length === 0 &&
-      !getLoaded(sourceRef.current, collection).has(value)
+      !getLoaded(sourceRef.current, collection.nodes).has(value)
     );
   };
 
@@ -93,30 +110,29 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     return true;
   };
 
-  const handleLoaded = (value: string, children: TNode[], onLoaded: (value: string) => void) => {
+  const handleLoaded = (value: string, children: T[], onLoaded: (value: string) => void) => {
     const { collection: prop, onLoadChildrenComplete: onComplete } = latestRef.current;
     const source = getSource(prop);
     if (source.findNode(value) === undefined) return;
 
     const next = replaceNodeChildren(source, value, children);
     sourceRef.current = {
-      base: prop,
-      merged: next ?? source,
-      loaded: new Set(getLoaded(sourceRef.current, prop)).add(value),
+      base: prop.nodes,
+      merged: (next ?? source).nodes,
+      loaded: new Set(getLoaded(sourceRef.current, prop.nodes)).add(value),
     };
     setLineage(sourceRef.current);
-    if (next) onComplete?.({ collection: next });
+    if (next) onComplete?.(next.nodes as T[]);
     onLoaded(value);
   };
 
   const handleFailed = (value: string, error: unknown) => {
     const { collection: prop, onLoadChildrenError: onError } = latestRef.current;
     const located = locateNode(getSource(prop), value);
-    if (!located) return;
-    onError?.({ nodes: [{ ...located, error: error as Error }] });
+    if (located) onError?.(error, located);
   };
 
-  const carry = (prev: TreeCollection<TNode>, next: TreeCollection<TNode>) => {
+  const carry = (prev: readonly T[], next: readonly T[]) => {
     sourceRef.current = { base: prev, merged: next, loaded: getLoaded(sourceRef.current, prev) };
     setLineage(sourceRef.current);
   };
@@ -133,8 +149,9 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
       controllersRef.current.set(value, controller);
       setLoadingValues((prev) => new Set(prev).add(value));
 
-      new Promise<TNode[]>((resolve) => {
-        resolve(loadChildren({ ...located, signal: controller.signal }));
+      const { node, indexPath, valuePath } = located;
+      new Promise<T[]>((resolve) => {
+        resolve(loadChildren(node, { indexPath, valuePath, signal: controller.signal }));
       }).then(
         (children) => {
           if (settle(value, controller)) handleLoaded(value, children, onLoaded);
@@ -146,5 +163,11 @@ export function useTreeLazyLoad<TNode extends TreeNode>({
     }
   };
 
-  return { loadingValues, loadedValues: getLoaded(lineage, collection), needsLoad, start, carry };
+  return {
+    loadingValues,
+    loadedValues: getLoaded(lineage, collection.nodes),
+    needsLoad,
+    start,
+    carry,
+  };
 }

@@ -1,75 +1,151 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { Combobox, type ComboboxRootProps, useCombobox } from ".";
+import { Combobox, type ComboboxRootProps } from ".";
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
-import { createListCollection } from "../Listbox";
+import { Field } from "../Form";
 
-const collection = createListCollection({ items: ["a", "b"] });
+const letters = ["a", "b"];
 
-const renderPositioner = (positioning: ComboboxRootProps["positioning"]) =>
+const letterProps = {
+  items: letters,
+  getItemValue: (item: string) => item,
+  getItemLabel: (item: string) => item,
+};
+
+const letterItems = letters.map((item) => (
+  <Combobox.Item
+    key={item}
+    item={item}
+  >
+    <Combobox.ItemText>{item}</Combobox.ItemText>
+  </Combobox.Item>
+));
+
+const frameworks = [
+  { value: "react", label: "React" },
+  { value: "vue", label: "Vue" },
+];
+
+const renderFrameworks = (onValueChange = vi.fn()) => {
   render(
     <Combobox.Root
-      collection={collection}
-      positioning={positioning}
-      defaultOpen
+      items={frameworks}
+      getItemValue={(item) => item.value}
+      getItemLabel={(item) => item.label}
+      onValueChange={onValueChange}
     >
-      <Combobox.Positioner data-testid="positioner" />
+      <Combobox.Control>
+        <Combobox.Input aria-label="Framework" />
+      </Combobox.Control>
+      <Combobox.Content>
+        <Combobox.List>
+          {frameworks.map((item) => (
+            <Combobox.Item
+              key={item.value}
+              item={item}
+            >
+              <Combobox.ItemText>{item.label}</Combobox.ItemText>
+            </Combobox.Item>
+          ))}
+        </Combobox.List>
+      </Combobox.Content>
     </Combobox.Root>,
   );
+  return screen.getByRole<HTMLInputElement>("combobox");
+};
 
 describe("Combobox", () => {
-  it("keeps its content free of the input's width when given other positioning", () => {
-    const { getByTestId } = renderPositioner({ placement: "top-start" });
+  it("picks the highlighted option with Enter, shows its label and closes", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const input = renderFrameworks(onValueChange);
+    const highlighted = () =>
+      document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.textContent;
 
-    expect(getByTestId("positioner").style.width).not.toBe("var(--reference-width)");
+    await user.click(input);
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => expect(highlighted()).toBe("React"));
+    await user.keyboard("{ArrowDown}{Enter}");
+
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith("vue");
+    expect(input.value).toBe("Vue");
+    expect(input.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("matches the input's width when asked to", () => {
-    const { getByTestId } = renderPositioner({ sameWidth: true });
+  it("clears typed text that matches no option when a press outside closes the list", async () => {
+    const user = userEvent.setup();
+    const input = renderFrameworks();
 
-    expect(getByTestId("positioner").style.width).toBe("var(--reference-width)");
+    await user.click(input);
+    await user.keyboard("zz");
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    await user.click(document.body);
+
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+    expect(input.value).toBe("");
   });
 
-  it("keeps RootProvider content free of the input's width", () => {
-    const Provided = () => {
-      const combobox = useCombobox({
-        collection,
-        positioning: { placement: "top-start" },
-        defaultOpen: true,
-      });
-      return (
-        <Combobox.RootProvider value={combobox}>
-          <Combobox.Positioner data-testid="positioner" />
-        </Combobox.RootProvider>
-      );
-    };
-    const { getByTestId } = render(<Provided />);
+  it("goes back to its initial value and text when its form resets", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const { container } = render(
+      <form>
+        <Combobox.Root
+          items={frameworks}
+          getItemValue={(item) => item.value}
+          getItemLabel={(item) => item.label}
+          defaultValue="react"
+          onValueChange={onValueChange}
+        >
+          <Combobox.Control>
+            <Combobox.Input
+              aria-label="Framework"
+              name="framework"
+            />
+          </Combobox.Control>
+          <Combobox.Content>
+            <Combobox.List>
+              {frameworks.map((item) => (
+                <Combobox.Item
+                  key={item.value}
+                  item={item}
+                >
+                  <Combobox.ItemText>{item.label}</Combobox.ItemText>
+                </Combobox.Item>
+              ))}
+            </Combobox.List>
+          </Combobox.Content>
+        </Combobox.Root>
+      </form>,
+    );
+    const form = container.querySelector("form") as HTMLFormElement;
+    const input = screen.getByRole<HTMLInputElement>("combobox");
 
-    expect(getByTestId("positioner").style.width).not.toBe("var(--reference-width)");
+    await user.click(input);
+    await user.keyboard("{ArrowDown}");
+    await user.click(await screen.findByRole("option", { name: "Vue" }));
+    expect(input.value).toBe("Vue");
+
+    act(() => form.reset());
+
+    expect(onValueChange).toHaveBeenLastCalledWith("react");
+    expect(input.value).toBe("React");
+    expect(new FormData(form).get("framework")).toBe("React");
   });
 
   it("submits its value with the form when picked from a phone sheet", async () => {
     mockMatchMedia(viewportWidth(375));
     const { container } = render(
       <form>
-        <Combobox.Root collection={collection}>
+        <Combobox.Root {...letterProps}>
           <Combobox.Label>Letter</Combobox.Label>
           <Combobox.Control>
             <Combobox.Input name="letter" />
           </Combobox.Control>
           <Combobox.Content>
-            <Combobox.List>
-              {collection.items.map((item) => (
-                <Combobox.Item
-                  key={item}
-                  item={item}
-                >
-                  <Combobox.ItemText>{item}</Combobox.ItemText>
-                </Combobox.Item>
-              ))}
-            </Combobox.List>
+            <Combobox.List>{letterItems}</Combobox.List>
           </Combobox.Content>
         </Combobox.Root>
       </form>,
@@ -88,23 +164,14 @@ describe("Combobox", () => {
     const user = userEvent.setup();
     render(
       <Combobox.Root
-        collection={collection}
+        {...letterProps}
         defaultOpen
       >
         <Combobox.Control>
           <Combobox.Input aria-label="Letter" />
         </Combobox.Control>
         <Combobox.Content>
-          <Combobox.List>
-            {collection.items.map((item) => (
-              <Combobox.Item
-                key={item}
-                item={item}
-              >
-                <Combobox.ItemText>{item}</Combobox.ItemText>
-              </Combobox.Item>
-            ))}
-          </Combobox.List>
+          <Combobox.List>{letterItems}</Combobox.List>
         </Combobox.Content>
       </Combobox.Root>,
     );
@@ -121,13 +188,48 @@ describe("Combobox", () => {
     expect(input.selectionStart).toBe(2);
   });
 
+  it("leaves a link option to the browser when a new-tab click opens it", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render(
+      <Combobox.Root
+        {...letterProps}
+        defaultOpen
+        onValueChange={onValueChange}
+      >
+        <Combobox.Control>
+          <Combobox.Input aria-label="Letter" />
+        </Combobox.Control>
+        <Combobox.Content>
+          <Combobox.List>
+            <Combobox.Item
+              item="a"
+              render={<a href="#a" />}
+            >
+              <Combobox.ItemText>a</Combobox.ItemText>
+            </Combobox.Item>
+          </Combobox.List>
+        </Combobox.Content>
+      </Combobox.Root>,
+    );
+    const option = screen.getByRole("option", { name: "a" });
+
+    await user.keyboard("{Control>}{Meta>}");
+    await user.click(option);
+    await user.keyboard("{/Meta}{/Control}");
+    expect(onValueChange).not.toHaveBeenCalled();
+
+    await user.click(option);
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith("a");
+  });
+
   describe("on phones", () => {
-    const renderPhoneField = (rootProps: Partial<ComboboxRootProps<string>>) => {
+    const renderPhoneField = (rootProps: Partial<ComboboxRootProps<string, string>>) => {
       mockMatchMedia(viewportWidth(375));
       return render(
         <form>
           <Combobox.Root
-            collection={collection}
+            {...letterProps}
             {...rootProps}
           >
             <Combobox.Label>Letter</Combobox.Label>
@@ -140,7 +242,7 @@ describe("Combobox", () => {
     };
 
     it("leaves a disabled field's value out of the form and validates a required one", () => {
-      const { container, unmount } = renderPhoneField({ disabled: true, defaultValue: ["b"] });
+      const { container, unmount } = renderPhoneField({ disabled: true, defaultValue: "b" });
       expect(
         new FormData(container.querySelector("form") as HTMLFormElement).get("letter"),
       ).toBeNull();
@@ -163,7 +265,7 @@ describe("Combobox", () => {
     it("names the field by the input's aria-label when there is no label", () => {
       mockMatchMedia(viewportWidth(375));
       render(
-        <Combobox.Root collection={collection}>
+        <Combobox.Root {...letterProps}>
           <Combobox.Control>
             <Combobox.Input
               aria-label="Letter"
@@ -174,6 +276,51 @@ describe("Combobox", () => {
       );
 
       expect(screen.getByRole("button", { name: "Letter Pick one" })).not.toBeNull();
+    });
+
+    it("marks the field invalid and described by its Field's error", () => {
+      mockMatchMedia(viewportWidth(375));
+      render(
+        <Field
+          label="Letter"
+          invalid
+          errorText="Pick a letter."
+        >
+          <Combobox.Root {...letterProps}>
+            <Combobox.Control>
+              <Combobox.Input />
+            </Combobox.Control>
+          </Combobox.Root>
+        </Field>,
+      );
+
+      const field = screen.getByRole("button", { name: /Letter/ });
+      expect(field.getAttribute("aria-invalid")).toBe("true");
+      expect(field.hasAttribute("data-invalid")).toBe(true);
+      expect(
+        document.getElementById(field.getAttribute("aria-describedby") ?? "")?.textContent,
+      ).toBe("Pick a letter.");
+    });
+
+    it("announces from inside the sheet, which makes the page behind it inert", async () => {
+      mockMatchMedia(viewportWidth(375));
+      render(
+        <Combobox.Root {...letterProps}>
+          <Combobox.Label>Letter</Combobox.Label>
+          <Combobox.Control>
+            <Combobox.Input />
+          </Combobox.Control>
+          <Combobox.Content>
+            <Combobox.List>{letterItems}</Combobox.List>
+          </Combobox.Content>
+        </Combobox.Root>,
+      );
+      const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+      await user.click(screen.getByRole("button", { name: /Letter/ }));
+      const sheet = await screen.findByRole("dialog");
+
+      await waitFor(() => expect(sheet.querySelector("[aria-live='polite']")).not.toBeNull());
     });
   });
 });

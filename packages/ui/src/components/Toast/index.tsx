@@ -1,3 +1,11 @@
 export { Toaster, toaster } from "./Toast";
-
-export type { CreateToasterReturn } from "@ark-ui/react/toast";
+export type {
+  Toast,
+  ToastAction,
+  ToastOptions,
+  ToastPriority,
+  ToastPromiseOptions,
+  ToastStatus,
+  ToastStore,
+  ToastType,
+} from "./toastStore";

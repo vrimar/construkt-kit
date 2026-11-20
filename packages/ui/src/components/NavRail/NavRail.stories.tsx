@@ -79,44 +79,53 @@ function RailBesidePane() {
           />
         </NavRail.Footer>
       </NavRail.Root>
-      {!tucked && (
-        <Box
-          w="64"
+      <HStack
+        flex="1"
+        minW="0"
+        alignItems="stretch"
+        flexWrap="wrap"
+        gap="0"
+        rowGap="2.5"
+      >
+        {!tucked && (
+          <Box
+            w="64"
+            p="4"
+            bg="bg"
+            borderWidth="1px"
+            borderColor="border"
+            borderRadius="md"
+          >
+            <Text fontWeight="semibold">{current?.label}</Text>
+            <Text
+              color="fg.muted"
+              textStyle="sm"
+            >
+              The pane for this section.
+            </Text>
+          </Box>
+        )}
+        <Stack
+          flex="1"
+          mx="2.5"
           p="4"
           bg="bg"
           borderWidth="1px"
           borderColor="border"
           borderRadius="md"
+          alignItems="flex-start"
         >
-          <Text fontWeight="semibold">{current?.label}</Text>
-          <Text
-            color="fg.muted"
-            textStyle="sm"
+          <Text color="fg.muted">Canvas</Text>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={tucked}
+            onClick={() => setTucked(true)}
           >
-            The pane for this section.
-          </Text>
-        </Box>
-      )}
-      <Stack
-        flex="1"
-        mx="2.5"
-        p="4"
-        bg="bg"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="md"
-        alignItems="flex-start"
-      >
-        <Text color="fg.muted">Canvas</Text>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={tucked}
-          onClick={() => setTucked(true)}
-        >
-          Open the assistant
-        </Button>
-      </Stack>
+            Open the assistant
+          </Button>
+        </Stack>
+      </HStack>
     </HStack>
   );
 }

@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import type { MultipleSelectionProps, SelectionMode, SingleSelectionProps } from "./types";
-import { encodeSelectionValue, useSelectionController } from "./useSelectionController";
+import { useSelectionController } from "./useSelectionController";
 
 const items = [{ id: 1 }, { id: 2 }];
 
@@ -20,25 +20,24 @@ const renderController = (selectionMode: SelectionMode) => {
         : { ...itemProps, selectionMode, value: 1, onValueChange },
     ),
   );
-  return { onListboxValueChange: result.current.onListboxValueChange, onValueChange };
+  return { setValue: result.current.setValue, onValueChange };
 };
 
 describe("useSelectionController", () => {
   it("never emits an empty single selection", () => {
-    const { onListboxValueChange, onValueChange } = renderController("single");
+    const { setValue, onValueChange } = renderController("single");
 
-    onListboxValueChange({ value: [] });
-    onListboxValueChange({ value: ["s:missing"] });
+    setValue([]);
     expect(onValueChange).not.toHaveBeenCalled();
 
-    onListboxValueChange({ value: [encodeSelectionValue(2)] });
+    setValue([2]);
     expect(onValueChange).toHaveBeenCalledExactlyOnceWith(2);
   });
 
   it("emits an empty multiple selection", () => {
-    const { onListboxValueChange, onValueChange } = renderController("multiple");
+    const { setValue, onValueChange } = renderController("multiple");
 
-    onListboxValueChange({ value: [] });
+    setValue([]);
     expect(onValueChange).toHaveBeenCalledExactlyOnceWith([]);
   });
 

@@ -1,18 +1,18 @@
-import { ark } from "@ark-ui/react/factory";
-import { useLocaleContext } from "@ark-ui/react/locale";
 import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { stat } from "#styled-system/recipes";
 
+import { useLocale } from "../../primitives/locale";
+import { renderable } from "../../primitives/render";
 import { Badge, type BadgeProps } from "../Badge";
 import { InfoTip } from "../ToggleTip";
 
 const { withProvider, withContext } = createSlotRecipeContext(stat);
 
-const StatRoot = withProvider(ark.div, "root");
-const StatHelpText = withContext(ark.span, "helpText");
-const StatValueUnit = withContext(ark.span, "valueUnit");
+const StatRoot = withProvider(renderable.div, "root");
+const StatHelpText = withContext(renderable.span, "helpText");
+const StatValueUnit = withContext(renderable.span, "valueUnit");
 
 type StatLabelBaseProps = ComponentProps<typeof StatLabelRoot>;
 
@@ -20,7 +20,7 @@ interface StatLabelProps extends StatLabelBaseProps {
   info?: ReactNode;
 }
 
-const StatLabelRoot = withContext(ark.span, "label");
+const StatLabelRoot = withContext(renderable.span, "label");
 
 function StatLabel({ ref, info, children, ...rest }: StatLabelProps) {
   return (
@@ -34,7 +34,7 @@ function StatLabel({ ref, info, children, ...rest }: StatLabelProps) {
   );
 }
 
-const StatValueTextRoot = withContext(ark.span, "valueText");
+const StatValueTextRoot = withContext(renderable.span, "valueText");
 
 type StatValueTextBaseProps = ComponentProps<typeof StatValueTextRoot>;
 
@@ -44,7 +44,7 @@ interface StatValueTextProps extends StatValueTextBaseProps {
 }
 
 function StatValueText({ ref, value, formatOptions, children, ...rest }: StatValueTextProps) {
-  const { locale } = useLocaleContext();
+  const { locale } = useLocale();
   return (
     <StatValueTextRoot
       {...rest}
@@ -55,7 +55,9 @@ function StatValueText({ ref, value, formatOptions, children, ...rest }: StatVal
   );
 }
 
-const TrendIndicator = withContext(ark.span, "trendIndicator");
+const TrendIndicator = withContext(renderable.span, "trendIndicator");
+
+const TREND_GLYPHS = { up: "▲", down: "▼" };
 
 function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" | "down") {
   return function StatTrend({ ref, children, ...props }: BadgeProps) {
@@ -66,7 +68,7 @@ function createTrend(colorPalette: BadgeProps["colorPalette"], direction: "up" |
         {...props}
         ref={ref}
       >
-        <TrendIndicator data-direction={direction} />
+        <TrendIndicator data-direction={direction}>{TREND_GLYPHS[direction]}</TrendIndicator>
         {children}
       </Badge>
     );

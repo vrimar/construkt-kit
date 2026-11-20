@@ -2,8 +2,9 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 
 import { HStack } from "#styled-system/jsx";
 
+import type { OpenChangeDetails } from "../../primitives/layer";
 import { Button } from "../Buttons";
-import type { SelectionSearchOptions, SelectionValue } from "../Listbox/types";
+import type { SelectionValue } from "../Listbox/types";
 import { useOverlayMode } from "../overlayPresentation";
 import { Select } from "./Select";
 import { useSelectContext } from "./Select.context";
@@ -88,22 +89,18 @@ function ApplySelectActions({
         >
           <Button
             variant="plain"
-            onClick={
-              reset
-                ? () => {
-                    handleReset();
-                    close();
-                  }
-                : close
-            }
+            onClick={(event) => {
+              if (reset) handleReset();
+              close(event.nativeEvent);
+            }}
             size="xs"
           >
             {reset ? resetLabel : cancelLabel}
           </Button>
           <Button
-            onClick={() => {
+            onClick={(event) => {
               apply();
-              close();
+              close(event.nativeEvent);
             }}
             size="xs"
             disabled={!isDirty}
@@ -133,17 +130,15 @@ function ApplySelectRoot<T, V extends SelectionValue>({
     if (open === false || !sameValueSet(synced.value, value)) setDraft([...value]);
   }
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) setDraft([...value]);
-    onOpenChange?.(nextOpen);
+  const handleOpenChange = (nextOpen: boolean, details: OpenChangeDetails) => {
+    onOpenChange?.(nextOpen, details);
+    if (!nextOpen && !details.canceled) setDraft([...value]);
   };
 
   const apply = useCallback(() => onValueChange([...draft]), [draft, onValueChange]);
   const reset = useCallback(() => onValueChange([]), [onValueChange]);
 
   const isDirty = !sameValueSet(value, draft);
-  const resolvedSearch: boolean | SelectionSearchOptions<T> =
-    search === false ? false : { autoFocus: true, ...(typeof search === "object" ? search : {}) };
 
   const contextValue = useMemo<ApplySelectContextValue>(
     () => ({ apply, reset, isDirty }),
@@ -157,7 +152,7 @@ function ApplySelectRoot<T, V extends SelectionValue>({
         value={draft}
         onValueChange={setDraft}
         selectionMode="multiple"
-        search={resolvedSearch}
+        search={search ?? true}
         open={open}
         onOpenChange={handleOpenChange}
         appliedValue={value}

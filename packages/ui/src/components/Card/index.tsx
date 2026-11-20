@@ -1,17 +1,18 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { card } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
+
 const { withProvider, withContext } = createSlotRecipeContext(card);
 
-const Root = withProvider(ark.div, "root");
-const Header = withContext(ark.div, "header");
-const Body = withContext(ark.div, "body");
-const Footer = withContext(ark.div, "footer");
-const Title = withContext(ark.h3, "title");
-const Description = withContext(ark.div, "description");
+const Root = withProvider(renderable.div, "root");
+const Header = withContext(renderable.div, "header");
+const Body = withContext(renderable.div, "body");
+const Footer = withContext(renderable.div, "footer");
+const Title = withContext(renderable.h3, "title");
+const Description = withContext(renderable.div, "description");
 
 export type CardRootProps = ComponentProps<typeof Root>;
 

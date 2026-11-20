@@ -55,7 +55,7 @@ const renderTable = (
 
 // The ScrollArea viewport is itself focusable, so a row tab stop is the nearer one.
 const focusableRow = (text: string) =>
-  screen.getByText(text).closest<HTMLElement>('[tabindex]:not([data-scope="scroll-area"])');
+  screen.getByText(text).closest<HTMLElement>("[tabindex]:not(.scroll-area__viewport)");
 
 const rows = () => screen.getAllByRole("row");
 
@@ -82,16 +82,14 @@ const renderSubRow = (row: DataTableRow<Person>) => <div>{`Sub-row of ${row.orig
 const datedColumns = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
 
 const dateTrigger = (container: HTMLElement) => {
-  const trigger = container.querySelector<HTMLElement>(
-    '[data-scope="date-picker"][data-part="trigger"]',
-  );
+  const trigger = container.querySelector<HTMLElement>(".date-picker__trigger");
   if (!trigger) throw new Error("No date picker trigger");
   return trigger;
 };
 
 const dayCell = (iso: string) => {
   const day = document.querySelector<HTMLElement>(
-    `[data-part="table-cell-trigger"][data-view="day"][data-value="${iso}"]`,
+    `.date-picker__tableCellTrigger[data-value="${iso}"]`,
   );
   if (!day) throw new Error(`No day cell for ${iso}`);
   return day;
@@ -223,7 +221,7 @@ describe("DataTable", () => {
     const dated = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
     renderTable({ columnDefs: dated });
 
-    const root = document.querySelector('[data-scope="date-picker"][data-part="root"]');
+    const root = document.querySelector(".date-picker__root");
     expect(root?.parentElement?.getAttribute("role")).toBe("cell");
     expect(root?.className.split(" ")).toContain("w_100%");
   });

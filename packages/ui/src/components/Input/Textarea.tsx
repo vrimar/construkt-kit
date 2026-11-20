@@ -1,13 +1,40 @@
-import { Field } from "@ark-ui/react/field";
-import { type ComponentProps, type KeyboardEvent } from "react";
+import { type ComponentProps, type KeyboardEvent, useEffect, useRef } from "react";
 
 import { styled } from "#styled-system/jsx";
 import { textarea } from "#styled-system/recipes";
 
 import { isComposingEvent } from "../../foundations/dom";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useFieldInputProps } from "../../primitives/field";
+import { renderable } from "../../primitives/render";
+import { autoresizeTextarea } from "./autoresize";
+
+interface FieldTextareaProps extends ComponentProps<typeof renderable.textarea> {
+  /** Grows the textarea with its content, up to its `max-height`. */
+  autoresize?: boolean | undefined;
+}
+
+function FieldTextarea({ ref, autoresize, style, ...props }: FieldTextareaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composedRef = useComposedRefs(ref, textareaRef);
+
+  useEffect(() => {
+    const element = textareaRef.current;
+    if (!autoresize || !element) return;
+    return autoresizeTextarea(element);
+  }, [autoresize]);
+
+  return (
+    <renderable.textarea
+      {...useFieldInputProps(props)}
+      ref={composedRef}
+      style={autoresize ? { resize: "none", ...style } : style}
+    />
+  );
+}
 
 type BaseTextareaProps = ComponentProps<typeof BaseTextarea>;
-const BaseTextarea = styled(Field.Textarea, textarea);
+const BaseTextarea = styled(FieldTextarea, textarea);
 
 export interface TextareaProps extends BaseTextareaProps {
   /**

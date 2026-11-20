@@ -7,7 +7,6 @@ import {
   type TreeDropInstruction,
   type TreeNodeRenderDetails,
   TreeView,
-  createTreeCollection,
 } from ".";
 import { Box } from "../Layout";
 
@@ -17,37 +16,32 @@ interface Node {
   children?: Node[];
 }
 
-const collection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "root",
-    name: "",
+const nodes: Node[] = [
+  {
+    id: "src",
+    name: "src",
     children: [
       {
-        id: "src",
-        name: "src",
+        id: "components",
+        name: "components",
         children: [
-          {
-            id: "components",
-            name: "components",
-            children: [
-              { id: "button", name: "Button.tsx" },
-              { id: "input", name: "Input.tsx" },
-            ],
-          },
-          {
-            id: "utils",
-            name: "utils",
-            children: [{ id: "format", name: "format.ts" }],
-          },
-          { id: "index-ts", name: "index.ts" },
+          { id: "button", name: "Button.tsx" },
+          { id: "input", name: "Input.tsx" },
         ],
       },
-      { id: "readme", name: "README.md" },
+      {
+        id: "utils",
+        name: "utils",
+        children: [{ id: "format", name: "format.ts" }],
+      },
+      { id: "index-ts", name: "index.ts" },
     ],
   },
-});
+  { id: "readme", name: "README.md" },
+];
+
+const nodeValue = (node: Node) => node.id;
+const nodeLabel = (node: Node) => node.name;
 
 const TARGET = "utils";
 
@@ -73,11 +67,13 @@ function DropTargetTree({ instruction }: { instruction: TreeDropInstruction | nu
       p="2"
     >
       <TreeView.Root
-        collection={collection}
+        nodes={nodes}
+        getNodeValue={nodeValue}
+        getNodeLabel={nodeLabel}
         defaultExpandedValue={["src", "components"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children?.map((node, index) => (
+          {nodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}

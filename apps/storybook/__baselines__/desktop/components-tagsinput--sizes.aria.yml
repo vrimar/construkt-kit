@@ -13,6 +13,7 @@
         - button "Delete tag Vue"
         - textbox "Tags":
           - /placeholder: Add tag...
+        - alert
     - row "sm Tags React Delete tag React Vue Delete tag Vue":
       - cell "sm"
       - cell "Tags React Delete tag React Vue Delete tag Vue":
@@ -22,6 +23,7 @@
         - button "Delete tag Vue"
         - textbox "Tags":
           - /placeholder: Add tag...
+        - alert
     - row "md Tags React Delete tag React Vue Delete tag Vue":
       - cell "md"
       - cell "Tags React Delete tag React Vue Delete tag Vue":
@@ -31,6 +33,7 @@
         - button "Delete tag Vue"
         - textbox "Tags":
           - /placeholder: Add tag...
+        - alert
     - row "lg Tags React Delete tag React Vue Delete tag Vue":
       - cell "lg"
       - cell "Tags React Delete tag React Vue Delete tag Vue":
@@ -40,7 +43,4 @@
         - button "Delete tag Vue"
         - textbox "Tags":
           - /placeholder: Add tag...
-- alert
-- alert
-- alert
-- alert
+        - alert

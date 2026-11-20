@@ -1,15 +1,20 @@
-import { usePopoverContext } from "@ark-ui/react/popover";
 import { InfoIcon } from "lucide-react";
-import { type ComponentProps, type ReactNode, isValidElement } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
-import type { PortalledProps, WithRef } from "../../types";
+import type { WithRef } from "../../types";
 import { IconButton } from "../Buttons";
 import { isRenderable } from "../itemSlots";
-import { Popover, type PopoverRootProps } from "../Popover";
+import {
+  Popover,
+  PopoverRootWithGutter,
+  type PopoverRootProps,
+  usePopoverContext,
+} from "../Popover/Popover";
+import { asRender } from "../renderContent";
 
 const TRIGGER_GUTTER = 4;
 
-export interface ToggleTipProps extends Omit<PopoverRootProps, "mobileLayout">, PortalledProps {
+export interface ToggleTipProps extends Omit<PopoverRootProps, "mobileLayout"> {
   showArrow?: boolean;
   label?: ReactNode;
 }
@@ -17,46 +22,59 @@ export interface ToggleTipProps extends Omit<PopoverRootProps, "mobileLayout">, 
 export type InfoTipProps = Partial<Omit<ToggleTipProps, "label">>;
 
 function ToggleTipContent(props: ComponentProps<typeof Popover.Content>) {
+  const { triggerId } = usePopoverContext();
   return (
     <Popover.Content
-      aria-labelledby={usePopoverContext().getTriggerProps().id}
+      aria-labelledby={triggerId}
       {...props}
     />
   );
 }
 
+const BARE_TRIGGER = {
+  "aria-haspopup": undefined,
+  "aria-expanded": undefined,
+  "data-closed": undefined,
+} as const;
+
 export const ToggleTip = ({
   ref,
   showArrow,
   children,
-  portalled,
   label,
-  portalRef,
+  open,
+  onOpenChange,
   ...rest
 }: WithRef<ToggleTipProps>) => {
-  if (!isRenderable(label)) return <>{children}</>;
+  // An empty label keeps the same trigger tree, so toggling it never remounts the child.
+  const bare = !isRenderable(label);
 
   return (
-    <Popover.Root
+    <PopoverRootWithGutter
       {...rest}
+      open={bare ? false : open}
+      onOpenChange={bare ? undefined : onOpenChange}
       mobileLayout="popover"
-      positioning={{ gutter: TRIGGER_GUTTER, ...rest.positioning }}
+      gutter={TRIGGER_GUTTER}
     >
-      <Popover.Trigger asChild={isValidElement(children)}>{children}</Popover.Trigger>
-      <ToggleTipContent
-        portalled={portalled}
-        portalRef={portalRef}
-        width="auto"
-        px="2"
-        py="1"
-        textStyle="xs"
-        rounded="sm"
-        ref={ref}
-      >
-        {showArrow && <Popover.Arrow />}
-        {label}
-      </ToggleTipContent>
-    </Popover.Root>
+      <Popover.Trigger
+        {...asRender(children)}
+        {...(bare && BARE_TRIGGER)}
+      />
+      {!bare && (
+        <ToggleTipContent
+          width="auto"
+          px="2"
+          py="1"
+          textStyle="xs"
+          rounded="sm"
+          ref={ref}
+        >
+          {showArrow && <Popover.Arrow />}
+          {label}
+        </ToggleTipContent>
+      )}
+    </PopoverRootWithGutter>
   );
 };
 

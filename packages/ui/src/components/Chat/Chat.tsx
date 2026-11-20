@@ -1,20 +1,20 @@
-import { ark } from "@ark-ui/react/factory";
 import { CheckIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode, useId } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { chat, tag } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import { Spinner } from "../Spinner";
 import { Composer } from "./Composer";
 
 const { withProvider, withContext } = createSlotRecipeContext(chat);
 
-const MessageRoot = withProvider(ark.div, "message");
-const MessageBubble = withContext(ark.div, "messageBubble");
-const MessageHeader = withContext(ark.div, "messageHeader");
-const MessageMeta = withContext(ark.span, "messageMeta");
-const MessageBody = withContext(ark.div, "messageBody");
+const MessageRoot = withProvider(renderable.div, "message");
+const MessageBubble = withContext(renderable.div, "messageBubble");
+const MessageHeader = withContext(renderable.div, "messageHeader");
+const MessageMeta = withContext(renderable.span, "messageMeta");
+const MessageBody = withContext(renderable.div, "messageBody");
 
 export interface ChatMessageProps extends ComponentProps<typeof MessageRoot> {
   /** A `user` message renders as a bubble at the end; an `assistant` one under a header. */
@@ -56,14 +56,14 @@ function Message({ sender, name, icon, meta, children, ...props }: ChatMessagePr
   );
 }
 
-const Citation = withProvider(ark.button, "citation", { defaultProps: { type: "button" } });
+const Citation = withProvider(renderable.button, "citation", { defaultProps: { type: "button" } });
 
 export type ChatCitationProps = ComponentProps<typeof Citation>;
 
-const ActionLineRoot = withProvider(ark.div, "actionLine");
-const ActionLineIndicator = withContext(ark.span, "actionLineIndicator");
-const ActionLineText = withContext(ark.span, "actionLineText");
-const ActionLineUndo = withContext(ark.button, "actionLineUndo", {
+const ActionLineRoot = withProvider(renderable.div, "actionLine");
+const ActionLineIndicator = withContext(renderable.span, "actionLineIndicator");
+const ActionLineText = withContext(renderable.span, "actionLineText");
+const ActionLineUndo = withContext(renderable.button, "actionLineUndo", {
   defaultProps: { type: "button" },
 });
 
@@ -108,7 +108,7 @@ function ActionLine({
   );
 }
 
-const TypingRoot = withProvider(ark.span, "typing", { defaultProps: { role: "status" } });
+const TypingRoot = withProvider(renderable.span, "typing", { defaultProps: { role: "status" } });
 
 export type ChatTypingIndicatorProps = ComponentProps<typeof TypingRoot>;
 
@@ -125,8 +125,10 @@ function TypingIndicator({ children, ...props }: ChatTypingIndicatorProps) {
   );
 }
 
-const SuggestionsRoot = withProvider(ark.div, "suggestions", { defaultProps: { role: "group" } });
-const SuggestionsLabel = withContext(ark.p, "suggestionsLabel");
+const SuggestionsRoot = withProvider(renderable.div, "suggestions", {
+  defaultProps: { role: "group" },
+});
+const SuggestionsLabel = withContext(renderable.p, "suggestionsLabel");
 
 export interface ChatSuggestionsProps extends ComponentProps<typeof SuggestionsRoot> {
   /** Heading above the suggestions, such as "Try" or "Next"; it names the group. */
@@ -146,7 +148,7 @@ function Suggestions({ label, children, ...props }: ChatSuggestionsProps) {
   );
 }
 
-const Suggestion = createSlotRecipeContext(tag).withProvider(ark.button, "root", {
+const Suggestion = createSlotRecipeContext(tag).withProvider(renderable.button, "root", {
   defaultProps: { type: "button" },
 });
 

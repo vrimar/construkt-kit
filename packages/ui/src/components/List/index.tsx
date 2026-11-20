@@ -1,26 +1,26 @@
-import { ark } from "@ark-ui/react/factory";
 import { ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { list } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
-import { wrapAsChildContent } from "../asChildContent";
 import { isRenderable } from "../itemSlots";
+import { wrapRenderContent } from "../renderContent";
 
 const { withProvider, withContext } = createSlotRecipeContext(list);
 
-const ListRoot = styled(ark.ul);
-const ListItem = styled(ark.li);
+const ListRoot = styled(renderable.ul);
+const ListItem = styled(renderable.li);
 
-const ActionRoot = withProvider(ark.button, "action");
-const ActionIcon = withContext(ark.span, "actionIcon");
-const ActionContent = withContext(ark.span, "actionContent");
-const ActionTitle = withContext(ark.span, "actionTitle");
-const ActionDescription = withContext(ark.span, "actionDescription");
-const ActionValue = withContext(ark.span, "actionValue");
-const ActionChevron = withContext(ark.span, "actionChevron");
+const ActionRoot = withProvider(renderable.button, "action");
+const ActionIcon = withContext(renderable.span, "actionIcon");
+const ActionContent = withContext(renderable.span, "actionContent");
+const ActionTitle = withContext(renderable.span, "actionTitle");
+const ActionDescription = withContext(renderable.span, "actionDescription");
+const ActionValue = withContext(renderable.span, "actionValue");
+const ActionChevron = withContext(renderable.span, "actionChevron");
 
 export type ListRootProps = ComponentProps<typeof ListRoot>;
 export type ListItemProps = ComponentProps<typeof ListItem>;
@@ -38,7 +38,7 @@ export interface ListActionProps extends Omit<ComponentProps<typeof ActionRoot>,
 
 /**
  * Full-width row that drills into a detail: icon, title (the children), optional description and
- * value, and a chevron. Renders a button; pass `asChild` with a link to navigate instead.
+ * value, and a chevron. Renders a button; pass a link as `render` to navigate instead.
  */
 function ListAction({
   ref,
@@ -65,13 +65,15 @@ function ListAction({
     </>
   );
 
+  const rendered = wrapRenderContent(rest.render, children, content);
   return (
     <ActionRoot
       ref={ref}
-      type={rest.asChild ? undefined : "button"}
+      type={rest.render ? undefined : "button"}
       {...rest}
+      render={rendered.render}
     >
-      {rest.asChild ? wrapAsChildContent(children, content) : content(children)}
+      {rendered.children}
     </ActionRoot>
   );
 }

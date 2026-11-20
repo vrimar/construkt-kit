@@ -95,26 +95,24 @@ const DraftSheet = ({
 
   return (
     <Sheet.Root
+      title={title}
       open={open}
-      onOpenChange={({ open: next }) => {
+      onOpenChange={(next) => {
         if (!next) onClose();
       }}
     >
-      <Sheet.Content>
-        <Sheet.Header
-          endElement={
-            onClear && (
-              <Button
-                variant="plain"
-                onClick={onClear}
-              >
-                {clearLabel}
-              </Button>
-            )
-          }
-        >
-          <Sheet.Title>{title}</Sheet.Title>
-        </Sheet.Header>
+      <Sheet.Content
+        headerEnd={
+          onClear && (
+            <Button
+              variant="plain"
+              onClick={onClear}
+            >
+              {clearLabel}
+            </Button>
+          )
+        }
+      >
         <Sheet.Body
           p="0"
           pb="4"
@@ -360,8 +358,8 @@ export const DataTableCardsToolbar = <TData extends object>({
               width="full"
               value={sortDraft ? (sortDraft.desc ? "desc" : "asc") : null}
               disabled={!sortDraft}
-              onValueChange={(details) =>
-                setSortDraft((draft) => draft && { ...draft, desc: details.value === "desc" })
+              onValueChange={(value) =>
+                setSortDraft((draft) => draft && { ...draft, desc: value === "desc" })
               }
             >
               <SegmentGroup.Indicator />

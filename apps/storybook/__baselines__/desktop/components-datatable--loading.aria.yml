@@ -31,6 +31,7 @@
         - button "Filter by Role"
       - cell "Filter by Created At":
         - button "Filter by Created At"
+        - alert
       - cell
   - rowgroup:
     - row:
@@ -43,4 +44,3 @@
 - button "Previous page" [disabled]
 - button "Next page" [disabled]
 - button "Last page" [disabled]
-- alert

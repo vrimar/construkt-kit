@@ -1,10 +1,21 @@
-import { ark } from "@ark-ui/react/factory";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactElement } from "react";
 
 import { styled } from "#styled-system/jsx";
 import { icon } from "#styled-system/recipes";
 
-export type IconProps = ComponentProps<typeof Icon>;
-export const Icon = styled(ark.svg, icon, {
-  defaultProps: { asChild: true },
-});
+import { renderable } from "../../primitives/render";
+
+const StyledIcon = styled(renderable.svg, icon);
+
+export type IconProps = Omit<ComponentProps<typeof StyledIcon>, "render" | "children"> & {
+  children?: ReactElement;
+};
+
+export function Icon({ children, ...props }: IconProps) {
+  return (
+    <StyledIcon
+      {...props}
+      render={children}
+    />
+  );
+}

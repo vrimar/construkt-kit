@@ -87,36 +87,34 @@ export const Clickable = meta.story({
       );
     return (
       <Wrap gap="2">
-        <Tag.Root asChild>
-          <button type="button">
-            <SparklesIcon />
-            What stands out?
-          </button>
+        <Tag.Root render={<button type="button" />}>
+          <SparklesIcon />
+          What stands out?
         </Tag.Root>
         {["Open", "In progress", "Done"].map((label) => (
           <Tag.Root
             key={label}
-            asChild
+            render={
+              <button
+                type="button"
+                aria-pressed={picked.includes(label)}
+                onClick={() => toggle(label)}
+              />
+            }
           >
-            <button
-              type="button"
-              aria-pressed={picked.includes(label)}
-              onClick={() => toggle(label)}
-            >
-              {label}
-            </button>
+            {label}
           </Tag.Root>
         ))}
         <Tag.Root
-          asChild
+          render={
+            <button
+              type="button"
+              disabled
+            />
+          }
           variant="subtle"
         >
-          <button
-            type="button"
-            disabled
-          >
-            Disabled
-          </button>
+          Disabled
         </Tag.Root>
       </Wrap>
     );

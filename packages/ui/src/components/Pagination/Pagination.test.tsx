@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { Pagination } from ".";
 
 const pageItems = (container: HTMLElement) =>
-  Array.from(container.querySelectorAll<HTMLElement>('[data-part="item"]'));
+  Array.from(container.querySelectorAll<HTMLElement>("[data-slot=item]"));
 
 const pageLabels = (container: HTMLElement) => pageItems(container).map((item) => item.textContent);
 
@@ -21,7 +21,7 @@ describe("Pagination", () => {
       <Pagination.Root
         count={100}
         pageSize={10}
-        page={5}
+        value={5}
       >
         <Pagination.Items
           render={(item) => (
@@ -45,7 +45,7 @@ describe("Pagination", () => {
       <Pagination.Root
         count={100}
         pageSize={10}
-        defaultPage={4}
+        defaultValue={4}
       >
         <Pagination.Items
           render={(item) => (

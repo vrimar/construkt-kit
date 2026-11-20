@@ -1,5 +1,5 @@
 - button /\d+-\d+-\d+/ [expanded]
-- application "calendar":
+- dialog "calendar":
   - button "Switch to previous month"
   - button /March \d+/
   - button "Switch to next month"

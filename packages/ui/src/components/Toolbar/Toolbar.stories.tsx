@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 
 import { Toolbar } from ".";
-import { IconButton } from "../Buttons";
+import { Button, IconButton } from "../Buttons";
+import { Input } from "../Input";
 import { Box, HStack } from "../Layout";
 import { Menu } from "../Menu";
 import { Popover } from "../Popover";
@@ -52,28 +53,40 @@ const TableActions = ({ collapseBelow }: { collapseBelow?: number }) => (
     <Popover.Root>
       <Popover.Trigger
         tooltip="Notes"
-        asChild
-      >
-        <IconButton
-          variant="outline"
-          size="sm"
-          aria-label="Notes"
-          icon={<MessageSquareIcon />}
-        />
-      </Popover.Trigger>
+        render={
+          <IconButton
+            variant="outline"
+            size="sm"
+            aria-label="Notes"
+            icon={<MessageSquareIcon />}
+          />
+        }
+      />
       <Popover.Content>
-        <Popover.Body>No notes on this table yet.</Popover.Body>
+        <Popover.Body gap="3">
+          No notes on this table yet.
+          <Input
+            size="sm"
+            aria-label="Note"
+            placeholder="Add a note"
+          />
+        </Popover.Body>
+        <Popover.Footer>
+          <Button size="sm">Save note</Button>
+        </Popover.Footer>
       </Popover.Content>
     </Popover.Root>
     <Menu.Root>
-      <Menu.Trigger asChild>
-        <Toolbar.Button
-          variant="solid"
-          size="sm"
-          icon={<DownloadIcon />}
-          label="Export"
-        />
-      </Menu.Trigger>
+      <Menu.Trigger
+        render={
+          <Toolbar.Button
+            variant="solid"
+            size="sm"
+            icon={<DownloadIcon />}
+            label="Export"
+          />
+        }
+      />
       <Menu.Content>
         <Menu.Item value="xlsx">Excel workbook</Menu.Item>
         <Menu.Item value="csv">CSV</Menu.Item>
@@ -87,7 +100,7 @@ export const Default = meta.story({
   render: () => (
     <HStack gap="4">
       <Text fontWeight="semibold">Open invoices by customer</Text>
-      <TableActions />
+      <TableActions collapseBelow={480} />
     </HStack>
   ),
 });

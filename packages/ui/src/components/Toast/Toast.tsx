@@ -1,90 +1,612 @@
-import { Portal } from "@ark-ui/react/portal";
 import {
-  Toaster as ArkToaster,
-  Toast,
-  createToaster,
-  type CreateToasterReturn,
-  useToastContext,
-} from "@ark-ui/react/toast";
+  type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
-import { Stack, createSlotRecipeContext, styled } from "#styled-system/jsx";
-import { toast } from "#styled-system/recipes";
+import { Stack, createSlotRecipeContext } from "#styled-system/jsx";
+import { toast as toastRecipe } from "#styled-system/recipes";
 
-import type { WithRef } from "../../types";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useLatestRef } from "../../hooks/useLatestRef";
+import { usePointerDrag } from "../../hooks/usePointerDrag";
+import { subscribeLayers, useLayerBranch } from "../../primitives/layer";
+import { useLocale } from "../../primitives/locale";
+import { usePresence } from "../../primitives/presence";
+import { dataAttr, renderable } from "../../primitives/render";
 import { createCloseTrigger } from "../closeTrigger";
-import { Icon, type IconProps } from "../Icon";
+import { Icon } from "../Icon";
+import { Portal } from "../Portal";
 import { Spinner } from "../Spinner";
 import { statusIcons } from "../statusIcons";
+import { type ToastEntry, type ToastStore, createToastStore, getToastDuration } from "./toastStore";
 
-const { withProvider, withContext } = createSlotRecipeContext(toast);
+const { withProvider, withContext } = createSlotRecipeContext(toastRecipe);
 
-const Root = withProvider(Toast.Root, "root");
-const Title = withContext(Toast.Title, "title");
-const Description = withContext(Toast.Description, "description");
-const ActionTrigger = withContext(Toast.ActionTrigger, "actionTrigger");
-const CloseTrigger = createCloseTrigger(withContext(Toast.CloseTrigger, "closeTrigger"));
-const StyledToaster = styled(ArkToaster);
+const Root = withProvider(renderable.div, "root");
+const Indicator = withContext(Icon, "indicator");
+const Title = withContext(renderable.div, "title");
+const Description = withContext(renderable.div, "description");
+const ActionTrigger = withContext(renderable.button, "actionTrigger");
+const CloseTrigger = createCloseTrigger(withContext(renderable.button, "closeTrigger"));
 
-function Indicator({ ref, ...props }: WithRef<IconProps, SVGSVGElement>) {
-  const toastCtx = useToastContext();
+const store = createToastStore({ max: 5 });
 
-  const StatusIcon = statusIcons[toastCtx.type];
-  if (!StatusIcon) return null;
+/** Shows, updates and dismisses the toasts that `<Toaster />` renders. */
+export const toaster: ToastStore = store;
+
+const REGION_LABEL = "Notifications, top-end (alt+T)";
+const SWIPE_THRESHOLD = 40;
+const REVERSE_CANCEL_THRESHOLD = 10;
+const SWIPE_IGNORE = 'button, a, input, textarea, [role="button"], [data-no-drag]';
+
+type SwipeDirection = "up" | "down" | "left" | "right";
+
+interface Countdown {
+  key: string;
+  remaining: number;
+}
+
+interface ToasterGroup {
+  entered: Set<number>;
+  countdowns: Map<number, Countdown>;
+  setHeight: (instance: number, height: number) => void;
+  remove: (id: string) => void;
+  moveFocusFrom: (root: HTMLElement, focusVisible: boolean) => void;
+  resumeIfIdle: () => void;
+}
+
+const isPageHidden = () => document.visibilityState === "hidden";
+
+function raise(group: HTMLElement) {
+  // A modal it was portalled into can unmount, and its layer change notify, before the portal moves it.
+  if (!group.isConnected || group.contains(group.ownerDocument.activeElement)) return;
+  group.hidePopover();
+  group.showPopover();
+}
+
+function findOpenToast(roots: Element[], from: number, step: number) {
+  for (let index = from; index >= 0 && index < roots.length; index += step) {
+    const root = roots[index];
+    if (root instanceof HTMLElement && root.hasAttribute("data-open")) return root;
+  }
+  return null;
+}
+
+/**
+ * Renders the toasts `toaster` shows, stacked at the top end of the viewport, or in the topmost
+ * open modal so they stay interactive while it is.
+ */
+export function Toaster() {
+  const { toasts, expanded } = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getSnapshot,
+  );
+  const { dir } = useLocale();
+
+  const [group, setGroup] = useState<HTMLDivElement | null>(null);
+  const groupRef = useRef<HTMLDivElement | null>(null);
+  const showGroup = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    node.showPopover();
+    groupRef.current = node;
+    setGroup(node);
+    return () => {
+      if (node.isConnected) node.hidePopover();
+      groupRef.current = null;
+      setGroup(null);
+    };
+  }, []);
+  useLayerBranch(group);
+
+  const [heights, setHeights] = useState<ReadonlyMap<number, number>>(() => new Map());
+  const interaction = useRef({
+    lastFocused: null as HTMLElement | null,
+    focusWithin: false,
+    pointerWithin: false,
+    ignoreMouseFrame: 0,
+  });
+
+  const api = useMemo(() => {
+    const state = interaction.current;
+    const restoreFocus = () => {
+      state.lastFocused?.focus({ preventScroll: true });
+      state.lastFocused = null;
+    };
+    const resumeIfIdle = () => {
+      if (isPageHidden() || state.pointerWithin || state.focusWithin) return;
+      store.resume();
+    };
+    const pointerEnter = () => {
+      if (state.ignoreMouseFrame) return;
+      state.pointerWithin = true;
+      store.expand();
+      store.pause();
+    };
+    const pointerLeave = () => {
+      state.pointerWithin = false;
+      store.collapse();
+      resumeIfIdle();
+      if (!state.focusWithin) restoreFocus();
+    };
+    const ignoreMouseUntilMove = () => {
+      cancelAnimationFrame(state.ignoreMouseFrame);
+      state.ignoreMouseFrame = requestAnimationFrame(() => {
+        state.ignoreMouseFrame = 0;
+        document.addEventListener(
+          "pointermove",
+          (event) => {
+            const node = groupRef.current;
+            if (!state.pointerWithin || node?.contains(event.target as Node)) return;
+            pointerLeave();
+          },
+          { once: true },
+        );
+      });
+    };
+
+    const toasterGroup: ToasterGroup = {
+      entered: new Set(),
+      countdowns: new Map(),
+      setHeight: (instance, height) =>
+        setHeights((previous) =>
+          previous.get(instance) === height ? previous : new Map(previous).set(instance, height),
+        ),
+      remove: (id) => {
+        store.remove(id);
+        ignoreMouseUntilMove();
+      },
+      moveFocusFrom: (root, focusVisible) => {
+        const roots = [...(groupRef.current?.children ?? [])];
+        const index = roots.indexOf(root);
+        const next = focusVisible
+          ? (findOpenToast(roots, index + 1, 1) ?? findOpenToast(roots, index - 1, -1))
+          : null;
+        if (next) next.focus({ preventScroll: true });
+        else if (focusVisible && state.lastFocused) restoreFocus();
+        else if (root.ownerDocument.activeElement instanceof HTMLElement) {
+          root.ownerDocument.activeElement.blur();
+        }
+      },
+      resumeIfIdle,
+    };
+
+    return {
+      group: toasterGroup,
+      onMouseEnter: pointerEnter,
+      onMouseMove: pointerEnter,
+      onMouseLeave: () => {
+        if (!state.ignoreMouseFrame) pointerLeave();
+      },
+      onFocus: (event: FocusEvent<HTMLDivElement>) => {
+        if (!state.focusWithin) {
+          state.focusWithin = true;
+          state.lastFocused =
+            event.relatedTarget instanceof HTMLElement ? event.relatedTarget : null;
+        }
+        store.expand();
+        store.pause();
+      },
+      onBlur: (event: FocusEvent<HTMLDivElement>) => {
+        const to = event.relatedTarget as Node | null;
+        if (!state.focusWithin || event.currentTarget.contains(to)) return;
+        queueMicrotask(() => {
+          state.focusWithin = false;
+          if (to) state.lastFocused = null;
+          if (state.pointerWithin) return;
+          store.collapse();
+          resumeIfIdle();
+          restoreFocus();
+        });
+      },
+      reset: () => {
+        state.focusWithin = false;
+        state.pointerWithin = false;
+        state.lastFocused = null;
+      },
+      dispose: () => cancelAnimationFrame(state.ignoreMouseFrame),
+    };
+  }, []);
+
+  useEffect(() => api.dispose, [api]);
+
+  useEffect(
+    () =>
+      store.subscribe(() => {
+        const shown = new Set(store.getSnapshot().toasts.map((toast) => toast.instance));
+        setHeights((previous) => {
+          const kept = [...previous].filter(([instance]) => shown.has(instance));
+          return kept.length === previous.size ? previous : new Map(kept);
+        });
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    const shown = new Set(toasts.map((toast) => toast.instance));
+    const { entered, countdowns } = api.group;
+    for (const instance of entered) if (!shown.has(instance)) entered.delete(instance);
+    for (const instance of countdowns.keys()) if (!shown.has(instance)) countdowns.delete(instance);
+  }, [api, toasts]);
+
+  useEffect(() => {
+    if (!group) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.altKey && event.code === "KeyT") queueMicrotask(() => group.focus());
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    const unsubscribe = subscribeLayers(() => raise(group));
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      unsubscribe();
+    };
+  }, [group]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (isPageHidden()) store.pause();
+      else api.group.resumeIfIdle();
+    };
+    if (isPageHidden()) store.pause();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [api]);
+
+  const count = toasts.length;
+  const shownCount = useRef(count);
+  useLayoutEffect(() => {
+    if (group && count > shownCount.current) raise(group);
+    shownCount.current = count;
+  }, [group, count]);
+
+  useEffect(() => {
+    if (count <= 1) store.collapse();
+    if (count > 0) return;
+    api.reset();
+    if (!isPageHidden()) store.resume();
+  }, [api, count]);
+
+  const swipeDirections: readonly SwipeDirection[] = ["up", dir === "rtl" ? "left" : "right"];
+  const frontmostHeight = toasts.length > 0 ? heights.get(toasts[0].instance) : undefined;
+  const offsets = toasts.map((_, index) =>
+    toasts.slice(0, index).reduce((sum, above) => sum + (heights.get(above.instance) ?? 0), 0),
+  );
 
   return (
-    <Icon
-      ref={ref}
-      data-type={toastCtx.type}
-      {...props}
-    >
-      <StatusIcon />
-    </Icon>
+    <Portal>
+      <div
+        ref={showGroup}
+        popover="manual"
+        className={toastRecipe().group}
+        data-slot="group"
+        role="region"
+        aria-label={REGION_LABEL}
+        aria-live="polite"
+        aria-relevant="additions text"
+        aria-atomic="false"
+        tabIndex={-1}
+        dir={dir}
+        style={
+          frontmostHeight === undefined
+            ? undefined
+            : ({ "--toast-frontmost-height": `${frontmostHeight}px` } as CSSProperties)
+        }
+        onMouseEnter={api.onMouseEnter}
+        onMouseMove={api.onMouseMove}
+        onMouseLeave={api.onMouseLeave}
+        onFocus={api.onFocus}
+        onBlur={api.onBlur}
+      >
+        {toasts.map((toast, index) => (
+          <ToastItem
+            key={toast.instance}
+            toast={toast}
+            index={index}
+            offsetY={offsets[index]}
+            measuredHeight={heights.get(toast.instance)}
+            expanded={expanded}
+            swipeDirections={swipeDirections}
+            group={api.group}
+          />
+        ))}
+      </div>
+    </Portal>
   );
 }
 
-const APP_HEADER_HEIGHT = "80px";
-const VIEWPORT_INSET = "40px";
+interface ToastItemProps {
+  toast: ToastEntry;
+  index: number;
+  offsetY: number;
+  measuredHeight: number | undefined;
+  expanded: boolean;
+  swipeDirections: readonly SwipeDirection[];
+  group: ToasterGroup;
+}
 
-export const toaster: CreateToasterReturn = createToaster({
-  placement: "top-end",
-  pauseOnPageIdle: true,
-  overlap: true,
-  max: 5,
-  offsets: {
-    top: APP_HEADER_HEIGHT,
-    bottom: "0px",
-    // zag applies offsets as inline styles, so a responsive class cannot override them
-    left: `var(--toaster-inset-x, ${VIEWPORT_INSET})`,
-    right: `var(--toaster-inset-x, ${VIEWPORT_INSET})`,
-  },
-});
+function ToastItem({
+  toast,
+  index,
+  offsetY,
+  measuredHeight,
+  expanded,
+  swipeDirections,
+  group,
+}: ToastItemProps) {
+  const open = !toast.closing;
+  const presence = usePresence(open);
+  const [root, setRoot] = useState<HTMLDivElement | null>(null);
+  const attachRoot = useCallback((node: HTMLDivElement | null) => setRoot(node), []);
+  const rootRef = useComposedRefs<HTMLDivElement>(attachRoot, presence.setElement);
+  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>();
+  const [entering, setEntering] = useState(() => !group.entered.has(toast.instance));
+  const titleId = useId();
+  const descriptionId = useId();
 
-export const Toaster = () => {
+  useLayoutEffect(() => {
+    group.entered.add(toast.instance);
+    if (!entering) return;
+    const frame = requestAnimationFrame(() => setEntering(false));
+    return () => cancelAnimationFrame(frame);
+  }, [group, toast.instance, entering]);
+
+  useDismissTimer(toast, group.countdowns);
+  useMeasuredHeight(root, open, toast.instance, group.setHeight);
+  const swipe = useSwipeToDismiss(root, swipeDirections, open, {
+    onSwipe: (direction) => {
+      setSwipeDirection(direction);
+      store.dismiss(toast.id);
+    },
+    onRelease: group.resumeIfIdle,
+  });
+
+  const { mounted } = presence;
+  const { id } = toast;
+  useEffect(() => {
+    if (!mounted) group.remove(id);
+  }, [mounted, id, group]);
+
+  useLayoutEffect(() => {
+    if (open || !root) return;
+    const active = root.ownerDocument.activeElement;
+    if (active instanceof HTMLElement && root.contains(active)) {
+      group.moveFocusFrom(root, active.matches(":focus-visible"));
+    }
+  }, [open, root, group]);
+
+  if (!mounted) return null;
+
+  const StatusIcon = statusIcons[toast.type];
+
   return (
-    <Portal>
-      <StyledToaster
-        toaster={toaster}
-        insetInline={{ mdDown: "4" }}
-        css={{ "--toaster-inset-x": { mdDown: "{spacing.4}" } }}
+    <Root
+      ref={rootRef}
+      status={toast.type}
+      role="status"
+      aria-atomic="true"
+      aria-labelledby={toast.title ? titleId : undefined}
+      aria-describedby={toast.description ? descriptionId : undefined}
+      tabIndex={0}
+      data-type={toast.type}
+      {...(open ? { "data-open": "" } : { "data-closed": "" })}
+      {...(expanded ? { "data-expanded": "" } : { "data-collapsed": "" })}
+      data-paused={dataAttr(toast.paused)}
+      data-starting-style={dataAttr(entering && open)}
+      data-swipe-direction={swipeDirection}
+      style={
+        {
+          "--toast-index": index,
+          "--toast-offset-y": `${offsetY}px`,
+          "--toast-height": measuredHeight === undefined ? undefined : `${measuredHeight}px`,
+        } as CSSProperties
+      }
+      onKeyDown={(event: KeyboardEvent) => {
+        if (event.key !== "Escape" || event.defaultPrevented) return;
+        event.preventDefault();
+        store.dismiss(toast.id);
+      }}
+      onPointerDown={swipe.onPointerDown}
+    >
+      {toast.type === "loading" ? (
+        <Spinner color="colorPalette.plain.fg" />
+      ) : (
+        StatusIcon && (
+          <Indicator>
+            <StatusIcon />
+          </Indicator>
+        )
+      )}
+      <Stack
+        gap="3"
+        alignItems="start"
       >
-        {(options) => (
-          <Root>
-            {options.type === "loading" ? <Spinner color="colorPalette.plain.fg" /> : <Indicator />}
-
-            <Stack
-              gap="3"
-              alignItems="start"
-            >
-              <Stack gap="1">
-                {options.title && <Title>{options.title}</Title>}
-                {options.description && <Description>{options.description}</Description>}
-              </Stack>
-              {options.action && <ActionTrigger>{options.action.label}</ActionTrigger>}
-            </Stack>
-            {options.closable && <CloseTrigger />}
-          </Root>
+        <Stack gap="1">
+          {toast.title && <Title id={titleId}>{toast.title}</Title>}
+          {toast.description && <Description id={descriptionId}>{toast.description}</Description>}
+        </Stack>
+        {toast.action && (
+          <ActionTrigger
+            type="button"
+            onClick={() => {
+              toast.action?.onClick();
+              store.dismiss(toast.id);
+            }}
+          >
+            {toast.action.label}
+          </ActionTrigger>
         )}
-      </StyledToaster>
-    </Portal>
+      </Stack>
+      {toast.closable && <CloseTrigger onClick={() => store.dismiss(toast.id)} />}
+    </Root>
   );
+}
+
+function useDismissTimer(toast: ToastEntry, countdowns: Map<number, Countdown>) {
+  const duration = getToastDuration(toast);
+  const { id, instance, type, closing, paused } = toast;
+  const key = `${type}:${duration}`;
+
+  const running = !closing && !paused && Number.isFinite(duration);
+  useEffect(() => {
+    if (!running) return;
+    const saved = countdowns.get(instance);
+    const remaining = saved?.key === key ? saved.remaining : duration;
+    const startedAt = Date.now();
+    const timer = setTimeout(() => store.dismiss(id), remaining);
+    return () => {
+      clearTimeout(timer);
+      countdowns.set(instance, { key, remaining: remaining - (Date.now() - startedAt) });
+    };
+  }, [running, id, instance, key, duration, countdowns]);
+}
+
+function useMeasuredHeight(
+  root: HTMLElement | null,
+  open: boolean,
+  instance: number,
+  setHeight: (instance: number, height: number) => void,
+) {
+  const openRef = useLatestRef(open);
+
+  useLayoutEffect(() => {
+    if (!root) return;
+    const measure = () => {
+      if (!openRef.current || !root.isConnected) return;
+      const previous = root.style.getPropertyValue("height");
+      root.style.setProperty("height", "auto");
+      const height = root.offsetHeight;
+      if (previous) root.style.setProperty("height", previous);
+      else root.style.removeProperty("height");
+      setHeight(instance, height);
+    };
+    measure();
+
+    let frame = 0;
+    const resizeObserver = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    });
+    const observeChildren = () => {
+      resizeObserver.disconnect();
+      for (const child of root.children) resizeObserver.observe(child);
+    };
+    observeChildren();
+    const mutationObserver = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      measure();
+      observeChildren();
+    });
+    mutationObserver.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [root, instance, setHeight, openRef]);
+}
+
+const displacement = (direction: SwipeDirection, x: number, y: number) =>
+  ({ up: -y, down: y, left: -x, right: x })[direction];
+
+const damp = (delta: number, towardsPositive: boolean, towardsNegative: boolean) => {
+  if (delta > 0) return towardsPositive ? delta : Math.sqrt(delta);
+  return towardsNegative ? delta : -Math.sqrt(-delta);
 };
+
+function useSwipeToDismiss(
+  root: HTMLElement | null,
+  directions: readonly SwipeDirection[],
+  open: boolean,
+  { onSwipe, onRelease }: { onSwipe: (direction: SwipeDirection) => void; onRelease: () => void },
+) {
+  const swipe = useRef({
+    lock: null as "x" | "y" | null,
+    direction: undefined as SwipeDirection | undefined,
+    furthest: 0,
+    reversed: false,
+    x: 0,
+    y: 0,
+  });
+
+  const setMovement = (x: number, y: number) => {
+    swipe.current.x = x;
+    swipe.current.y = y;
+    root?.style.setProperty("--toast-swipe-movement-x", `${x}px`);
+    root?.style.setProperty("--toast-swipe-movement-y", `${y}px`);
+  };
+
+  return usePointerDrag<HTMLDivElement>({
+    disabled: !open,
+    threshold: 1,
+    activeAttribute: "data-swiping",
+    onPress: (event) => !(event.target as Element).closest(SWIPE_IGNORE),
+    onStart: () => {
+      swipe.current = {
+        lock: null,
+        direction: undefined,
+        furthest: 0,
+        reversed: false,
+        x: 0,
+        y: 0,
+      };
+      store.pause();
+    },
+    onMove: ({ deltaX, deltaY }) => {
+      const state = swipe.current;
+      const right = directions.includes("right");
+      const left = directions.includes("left");
+      const down = directions.includes("down");
+      const up = directions.includes("up");
+      const horizontal = left || right;
+      const vertical = up || down;
+      if (state.lock === null && horizontal && vertical) {
+        state.lock = Math.abs(deltaX) > Math.abs(deltaY) ? "x" : "y";
+      }
+
+      if (state.direction === undefined) {
+        const alongX =
+          state.lock === "x" || (state.lock === null && Math.abs(deltaX) >= Math.abs(deltaY));
+        const candidate: SwipeDirection = alongX
+          ? deltaX > 0
+            ? "right"
+            : "left"
+          : deltaY > 0
+            ? "down"
+            : "up";
+        if (directions.includes(candidate)) {
+          state.direction = candidate;
+          state.furthest = displacement(candidate, deltaX, deltaY);
+        }
+      } else {
+        const current = displacement(state.direction, deltaX, deltaY);
+        state.furthest = Math.max(state.furthest, current);
+        if (current > SWIPE_THRESHOLD) state.reversed = false;
+        else if (state.furthest - current >= REVERSE_CANCEL_THRESHOLD) state.reversed = true;
+      }
+
+      setMovement(
+        state.lock === "y" || !horizontal ? 0 : damp(deltaX, right, left),
+        state.lock === "x" || !vertical ? 0 : damp(deltaY, down, up),
+      );
+    },
+    onEnd: (_, { cancelled }) => {
+      const state = swipe.current;
+      const direction =
+        cancelled || state.reversed
+          ? undefined
+          : directions.find((each) => displacement(each, state.x, state.y) > SWIPE_THRESHOLD);
+      if (direction) onSwipe(direction);
+      else setMovement(0, 0);
+      onRelease();
+    },
+  });
+}

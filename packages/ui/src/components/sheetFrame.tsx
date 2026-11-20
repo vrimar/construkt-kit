@@ -1,144 +1,135 @@
-import { PresenceProvider, usePresence, usePresenceContext } from "@ark-ui/react/presence";
 import {
-  type ComponentProps,
   type ElementType,
   type ReactNode,
-  type RefObject,
+  createContext,
+  useContext,
   useEffect,
-  useLayoutEffect,
-  useRef,
+  useState,
 } from "react";
 
-import { useComposedRefs } from "../hooks/useComposedRefs";
 import { useLatestRef } from "../hooks/useLatestRef";
-import type { PortalledProps, WithRef } from "../types";
-import { useOverlayMode, useSheetPresentation } from "./overlayPresentation";
-import { type PortalledContentComponent, createPortalledContent } from "./portalledContent";
-import { Sheet } from "./Sheet";
+import type { OpenChangeDetails } from "../primitives/layer";
+import { DrawerRoot, drawerParts } from "./Drawer/drawerParts";
+import { FloatingContext } from "./floating";
+import { useSheetPresentation } from "./overlayPresentation";
 
 export const SHEET_FRAME_ATTRIBUTE = "data-overlay-sheet";
 export const SHEET_PANEL_ATTRIBUTE = "data-overlay-sheet-content";
 
+export type SheetCloseReason = "escape-key" | "outside-press" | "close-press" | "swipe";
+
 interface SheetApi {
   open: boolean;
-  inline?: boolean;
-  setOpen: (open: boolean) => void;
-  getTriggerProps: () => { id?: string | undefined };
+  /** Asks the overlay to close; returns whether it did. */
+  dismiss: (reason: SheetCloseReason, event?: Event) => boolean;
+  restoreFocus: boolean;
+  /** The element focus returns to; the one focused before the sheet opened when it gives none. */
+  returnFocusTo: () => HTMLElement | null;
+  /** Names the sheet after a dialog overlay, whose panel then takes no dialog role of its own. */
+  label?: SheetLabel | undefined;
 }
 
-function UnmountEffect({ onUnmount }: { onUnmount: () => void }) {
-  const onUnmountRef = useLatestRef(onUnmount);
-  useEffect(() => () => onUnmountRef.current(), [onUnmountRef]);
-  return null;
+export interface SheetLabel {
+  role?: "dialog" | "alertdialog" | undefined;
+  "aria-label"?: string | undefined;
+  "aria-labelledby"?: string | undefined;
+  "aria-describedby"?: string | undefined;
 }
 
-// The drawer stays present through its exit animation; the inner content must outlive it too.
-function InnerPresence({ children, onUnmount }: { children: ReactNode; onUnmount: () => void }) {
-  const { present } = usePresenceContext();
-  const presence = usePresence({ present, lazyMount: true, unmountOnExit: true });
+type SheetLabelSource = Omit<SheetLabel, "role"> & { role?: string | undefined };
 
-  return (
-    <PresenceProvider value={presence}>
-      {children}
-      {!presence.unmounted && <UnmountEffect onUnmount={onUnmount} />}
-    </PresenceProvider>
-  );
+/** Splits a dialog overlay's role and naming props off its content props, for the sheet to carry. */
+export function splitSheetLabel<P extends SheetLabelSource>({
+  role,
+  "aria-label": label,
+  "aria-labelledby": labelledBy,
+  "aria-describedby": describedBy,
+  ...rest
+}: P): [SheetLabel, Omit<P, keyof SheetLabel>] {
+  return [
+    {
+      role: role === "alertdialog" ? "alertdialog" : undefined,
+      "aria-label": label,
+      "aria-labelledby": labelledBy,
+      "aria-describedby": describedBy,
+    },
+    rest,
+  ];
 }
 
-// zag fires these on the layer it is about to dismiss, which stays open if one is cancelled.
-const OUTSIDE_INTERACTION_EVENTS = ["pointerdown.outside", "focus.outside"];
+const { ModalContent, Grabber, GrabberIndicator } = drawerParts;
 
-function keepPanelsOpenOnChrome(frame: HTMLDivElement | null) {
-  if (frame == null) return;
-  const keepOpen = (event: Event) => {
-    const layer = event.target;
-    const { target } = (event as CustomEvent<{ target: EventTarget }>).detail;
-    if (!(layer instanceof Element) || !layer.hasAttribute(SHEET_PANEL_ATTRIBUTE)) return;
-    if (target instanceof Node && frame.contains(target)) event.preventDefault();
-  };
-  for (const type of OUTSIDE_INTERACTION_EVENTS) frame.addEventListener(type, keepOpen, true);
-  return () => {
-    for (const type of OUTSIDE_INTERACTION_EVENTS) frame.removeEventListener(type, keepOpen, true);
-  };
-}
+const panelTakesFocus = () => false as const;
 
-// null, unlike undefined, drops zag's aria-modal, which a presentational element must not carry.
-const frameAttributes: Record<string, unknown> = {
-  [SHEET_FRAME_ATTRIBUTE]: "",
-  "aria-modal": null,
-};
+const SheetFrameContext = createContext<HTMLElement | null>(null);
+
+/** The open phone sheet's frame, where a drill-down panel portals; `null` outside a sheet. */
+export const useSheetFrame = (): HTMLElement | null => useContext(SheetFrameContext);
 
 interface SheetFrameProps {
   api: SheetApi;
-  portalRef?: RefObject<HTMLElement | null>;
   fullHeight?: boolean;
   children: ReactNode;
 }
 
-function SheetFrame({ api, portalRef, fullHeight = false, children }: SheetFrameProps) {
+function SheetFrame({ api, fullHeight = false, children }: SheetFrameProps) {
   const presentation = useSheetPresentation();
-  const frameRef = presentation?.frameRef;
-  const composedFrameRef = useComposedRefs(frameRef, keepPanelsOpenOnChrome);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const onExitCompleteRef = useLatestRef(presentation?.onSheetExitComplete);
 
   // Unmounting mid-exit skips onExitComplete, which would hold the overlay in sheet mode.
   useEffect(() => () => onExitCompleteRef.current?.(), [onExitCompleteRef]);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
-  const openRef = useLatestRef(api.open);
 
-  useLayoutEffect(() => {
-    if (!api.open) return;
-    const active = document.activeElement;
-    if (active instanceof HTMLElement && active !== document.body) returnFocusRef.current = active;
-  }, [api.open]);
-
-  const getReturnFocusEl = () => {
-    const id = api.getTriggerProps().id;
-    return (id == null ? null : document.getElementById(id)) ?? returnFocusRef.current;
-  };
-
-  // An inner machine can restore focus while the trap is still up, which pulls it back inside.
-  const restoreLostFocus = () => {
-    const active = document.activeElement;
-    if (active == null || active === document.body) {
-      getReturnFocusEl()?.focus({ preventScroll: true });
-    }
-  };
-
-  const getInitialFocusEl = () => {
-    const frame = frameRef?.current;
-    const active = document.activeElement;
-    if (!openRef.current) return false;
-    if (frame == null) return null;
-    if (active instanceof HTMLElement && frame.contains(active)) return active;
-    return frame.querySelector<HTMLElement>(`[${SHEET_PANEL_ATTRIBUTE}]`);
-  };
+  // A panel moves focus into itself a frame after it opens; the sheet steps in only when it doesn't.
+  useEffect(() => {
+    if (!api.open || !frame) return;
+    let next = 0;
+    const first = requestAnimationFrame(() => {
+      next = requestAnimationFrame(() => {
+        if (frame.contains(frame.ownerDocument.activeElement)) return;
+        frame
+          .querySelector<HTMLElement>(`[${SHEET_PANEL_ATTRIBUTE}]`)
+          ?.focus({ preventScroll: true });
+      });
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(next);
+    };
+  }, [api.open, frame]);
 
   if (!api.open && !presentation?.sheetExiting) return null;
 
+  const onOpenChange = (next: boolean, details: OpenChangeDetails) => {
+    if (next) return;
+    if (!api.dismiss(details.reason as SheetCloseReason, details.event)) details.cancel();
+  };
+
   return (
-    <Sheet.Root
-      {...presentation?.dismissProps}
+    <DrawerRoot
+      placement="bottom"
       open={api.open}
-      onOpenChange={({ open }) => {
-        if (!open) api.setOpen(false);
-      }}
+      onOpenChange={onOpenChange}
       onExitComplete={presentation?.onSheetExitComplete}
-      trapFocus
-      restoreFocus
-      initialFocusEl={getInitialFocusEl}
-      finalFocusEl={getReturnFocusEl}
+      initialFocusEl={panelTakesFocus}
+      restoreFocus={api.restoreFocus}
+      returnFocusTo={api.returnFocusTo}
+      {...api.label}
     >
-      <Sheet.Content
-        ref={composedFrameRef}
-        portalRef={portalRef}
-        fullHeight={fullHeight}
-        role="presentation"
-        {...frameAttributes}
+      <ModalContent
+        ref={setFrame}
+        header={null}
+        height={fullHeight ? "var(--drawer-placement-max-h)" : undefined}
+        {...{ [SHEET_FRAME_ATTRIBUTE]: "" }}
       >
-        <InnerPresence onUnmount={restoreLostFocus}>{children}</InnerPresence>
-      </Sheet.Content>
-    </Sheet.Root>
+        <Grabber>
+          <GrabberIndicator />
+        </Grabber>
+        <FloatingContext value={null}>
+          <SheetFrameContext value={frame}>{children}</SheetFrameContext>
+        </FloatingContext>
+      </ModalContent>
+    </DrawerRoot>
   );
 }
 
@@ -155,7 +146,7 @@ export function SheetPanel({
   );
 }
 
-interface SheetOverlayContentProps extends PortalledProps {
+interface SheetOverlayContentProps {
   api: SheetApi;
   Content: ElementType;
   fullHeight?: boolean;
@@ -165,8 +156,6 @@ interface SheetOverlayContentProps extends PortalledProps {
 export function SheetOverlayContent({
   api,
   Content,
-  portalled: _sheetsAlwaysPortal,
-  portalRef,
   fullHeight,
   header,
   ...contentProps
@@ -174,7 +163,6 @@ export function SheetOverlayContent({
   return (
     <SheetFrame
       api={api}
-      portalRef={portalRef}
       fullHeight={fullHeight}
     >
       {header}
@@ -184,42 +172,4 @@ export function SheetOverlayContent({
       />
     </SheetFrame>
   );
-}
-
-export function createSheetCapableContent<C extends ElementType>(
-  Positioner: ElementType,
-  Content: C,
-  useSheetApi: () => SheetApi,
-): PortalledContentComponent<C> {
-  const ContentElement: ElementType = Content;
-  const AnchoredContent = createPortalledContent(Positioner, Content);
-
-  function InlineContent({
-    portalled: _inlineNeverPortals,
-    portalRef: _inlineHasNoPortal,
-    ...rest
-  }: WithRef<ComponentProps<C> & PortalledProps>) {
-    return (
-      <ContentElement
-        animation="none"
-        {...rest}
-      />
-    );
-  }
-
-  return function SheetCapableContent(props) {
-    const api = useSheetApi();
-    const mode = useOverlayMode();
-    if (api.inline) return <InlineContent {...props} />;
-    if (mode === "sheet") {
-      return (
-        <SheetOverlayContent
-          {...(props as Record<string, unknown>)}
-          api={api}
-          Content={Content}
-        />
-      );
-    }
-    return <AnchoredContent {...props} />;
-  };
 }

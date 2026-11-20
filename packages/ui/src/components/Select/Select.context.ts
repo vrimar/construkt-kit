@@ -12,7 +12,7 @@ export interface SelectContextValue {
   appliedItems: readonly unknown[];
   triggerValue: ReactNode;
   hasValue: boolean;
-  close: () => void;
+  close: (event?: Event) => void;
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);

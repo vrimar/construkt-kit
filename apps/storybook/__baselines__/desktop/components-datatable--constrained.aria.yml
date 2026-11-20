@@ -22,6 +22,7 @@
         - paragraph: Score
       - columnheader "actions":
         - paragraph
+        - text: ""
     - row "Equals Filter by Role (center) Filter by Created At (end)":
       - cell "Equals":
         - button "Equals": =
@@ -34,6 +35,7 @@
         - button "Filter by Role (center)"
       - cell "Filter by Created At (end)":
         - button "Filter by Created At (end)"
+        - alert
       - cell
       - cell
       - cell
@@ -144,4 +146,3 @@
 - button "Previous page" [disabled]
 - button "Next page"
 - button "Last page"
-- alert

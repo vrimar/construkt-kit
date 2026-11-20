@@ -1,10 +1,11 @@
 import type { ComponentProps, ElementType, ReactElement, ReactNode } from "react";
 
+import type { RenderProp } from "../primitives/render";
 import { CloseButton } from "./Buttons";
 import { namedByContent } from "./namedByContent";
 
 export type CloseTriggerComponent<C extends ElementType> = (
-  props: ComponentProps<C> & { children?: ReactNode },
+  props: ComponentProps<C> & { children?: ReactNode; render?: RenderProp | undefined },
 ) => ReactElement;
 
 export function createCloseTrigger<C extends ElementType>(
@@ -13,7 +14,7 @@ export function createCloseTrigger<C extends ElementType>(
   const TriggerElement: ElementType = namedByContent(CloseTrigger);
 
   return function CloseTriggerWithDefault({ children, ...props }) {
-    if (children) {
+    if (children || props.render) {
       return (
         <TriggerElement
           data-no-autofocus=""
@@ -30,10 +31,8 @@ export function createCloseTrigger<C extends ElementType>(
         aria-label="Close"
         data-no-autofocus=""
         {...props}
-        asChild
-      >
-        <CloseButton size="sm" />
-      </TriggerElement>
+        render={<CloseButton size="sm" />}
+      />
     );
   };
 }

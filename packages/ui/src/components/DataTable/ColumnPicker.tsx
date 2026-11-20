@@ -81,17 +81,19 @@ export const DataTableColumnPicker = <TData extends object>({
 
   return (
     <Menu.Root closeOnSelect={false}>
-      <Menu.Trigger asChild>
-        {children ?? (
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Columns3Icon />}
-          >
-            {triggerLabel}
-          </Button>
-        )}
-      </Menu.Trigger>
+      <Menu.Trigger
+        render={
+          children ?? (
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Columns3Icon />}
+            >
+              {triggerLabel}
+            </Button>
+          )
+        }
+      />
       <Menu.Content>
         {groups.map(({ parent, columns }) =>
           parent ? (

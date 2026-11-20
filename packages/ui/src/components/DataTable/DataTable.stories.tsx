@@ -41,16 +41,18 @@ const actionsColumn = columnHelper.display({
   cell: ({ row }) => (
     <Menu.Root
       placement="bottom-end"
-      onSelect={({ value }) => onAction(value, row.original)}
+      onSelect={(value) => onAction(value, row.original)}
     >
-      <Menu.Trigger asChild>
-        <IconButton
-          variant="plain"
-          size="sm"
-          aria-label="Actions"
-        >
-          <EllipsisIcon />
-        </IconButton>
+      <Menu.Trigger
+        render={
+          <IconButton
+            variant="plain"
+            size="sm"
+            aria-label="Actions"
+          />
+        }
+      >
+        <EllipsisIcon />
       </Menu.Trigger>
       <Menu.Content>
         <Menu.Item

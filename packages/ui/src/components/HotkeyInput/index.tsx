@@ -1,4 +1,3 @@
-import { ark } from "@ark-ui/react/factory";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
@@ -13,13 +12,14 @@ import {
 } from "../../foundations/shortcuts";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(hotkeyInput);
 
-const Root = withProvider(ark.div, "root");
-const Control = withContext(ark.button, "control");
-const ErrorText = withContext(ark.span, "error");
+const Root = withProvider(renderable.div, "root");
+const Control = withContext(renderable.button, "control");
+const ErrorText = withContext(renderable.span, "error");
 
 const subscribeToNothing = () => () => {};
 const useIsMac = () => useSyncExternalStore(subscribeToNothing, isMacPlatform, () => false);

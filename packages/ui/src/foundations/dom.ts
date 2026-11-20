@@ -19,10 +19,20 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "submit",
 ]);
 
+const EDITING_HOST_VALUES = new Set(["", "true", "plaintext-only"]);
+
+// jsdom has no `isContentEditable`, so there the nearest `contenteditable` attribute decides.
+const isContentEditable = (element: HTMLElement) =>
+  typeof element.isContentEditable === "boolean"
+    ? element.isContentEditable
+    : EDITING_HOST_VALUES.has(
+        element.closest("[contenteditable]")?.getAttribute("contenteditable") ?? "false",
+      );
+
 /** Whether `target` takes typed keys: a text-like input, a textarea, a select or editable content. */
 export function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
+  if (isContentEditable(target)) return true;
   if (target instanceof HTMLInputElement) return !NON_TEXT_INPUT_TYPES.has(target.type);
   return target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
 }
@@ -33,3 +43,7 @@ export function isRtl(element: Element): boolean {
 
 export const isAriaExpanded = (value: AriaAttributes["aria-expanded"]): boolean =>
   value === true || value === "true";
+
+/** Safari on macOS or iOS, which leaves a checkbox or radio unfocused when its label is clicked. */
+export const isSafari = (): boolean =>
+  /^(Mac|iPhone|iPad)/i.test(navigator.platform) && /apple/i.test(navigator.vendor);

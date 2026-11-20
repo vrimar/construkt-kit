@@ -1,7 +1,8 @@
 import preview from "@construkt-kit/story-kit/preview";
+import { parseDate } from "@internationalized/date";
 import { fn } from "storybook/test";
 
-import { DatePicker, DatePickerSelect, defaultRangePresets, parseDate } from ".";
+import { DatePicker, DatePickerSelect, defaultRangePresets } from ".";
 import { Button } from "../Buttons";
 import { Field } from "../Form";
 import { Box, Stack } from "../Layout";
@@ -38,18 +39,6 @@ export const CustomTrigger = meta.story({
     <Box maxW="320px">
       <DatePicker
         trigger={<Button variant="outline">Pick a date</Button>}
-        onValueChange={fn()}
-      />
-    </Box>
-  ),
-});
-
-export const NotPortalled = meta.story({
-  name: "Not Portalled",
-  render: () => (
-    <Box maxW="320px">
-      <DatePicker
-        portalled={false}
         onValueChange={fn()}
       />
     </Box>

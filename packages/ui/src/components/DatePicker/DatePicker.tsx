@@ -1,84 +1,84 @@
-import { useDatePickerContext } from "@ark-ui/react/date-picker";
-import type { ComponentProps, JSX } from "react";
+import type { JSX } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
 import { SelectButton } from "../Buttons";
 import { useFieldTriggerProps } from "../fieldTrigger";
-import { type MobileLayoutProps, withMobileLayoutProvider } from "../overlayPresentation";
-import { createSheetCapableContent } from "../sheetFrame";
-import { CalendarContent } from "./CalendarContent";
+import { getPickerTriggerProps, usePickerPopup } from "../pickerPopup";
+import { asRender } from "../renderContent";
+import {
+  CalendarBody,
+  CalendarProviders,
+  calendarRootAttributes,
+  focusedCell,
+  useCalendarRoot,
+} from "./calendarRoot";
 import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
 import type { CalendarMode, DatePickerProps } from "./types";
-import { useCalendarMachine } from "./useCalendarMachine";
 
-const RootProvider = withMobileLayoutProvider<
-  ComponentProps<typeof Parts.RootProvider> & MobileLayoutProps
->(Parts.RootProvider);
-
-const DatePickerContent = createSheetCapableContent(
-  Parts.Positioner,
-  Parts.Content,
-  useDatePickerContext,
-);
-
-export const DatePickerBase = (props: DatePickerProps<CalendarMode>) => {
+export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
   const [styleProps, pickerProps] = splitCssProps(props);
   const {
     trigger,
     placeholder,
     formatValue,
-    portalled = true,
-    portalRef,
     open,
     defaultOpen,
     onOpenChange,
-    closeOnSelect = true,
     mobileLayout,
+    placement,
   } = pickerProps;
 
-  const { api, contentProps } = useCalendarMachine(pickerProps, {
+  const popup = usePickerPopup({
     open,
     defaultOpen,
-    closeOnSelect,
-    onOpenChange: (details) => {
-      onOpenChange?.(details.open);
-    },
+    onOpenChange,
+    mobileLayout,
+    placement,
+    initialFocus: focusedCell,
   });
-  const fieldProps = useFieldTriggerProps(api.getTriggerProps().id);
+  const calendar = useCalendarRoot(pickerProps, popup);
+  const fieldProps = useFieldTriggerProps(popup.ids.trigger);
 
   return (
-    <RootProvider
-      value={api}
-      mobileLayout={mobileLayout}
-      {...styleProps}
+    <CalendarProviders
+      popup={popup}
+      calendar={calendar}
     >
-      <Parts.Control>
-        <Parts.Trigger
-          asChild
-          {...fieldProps}
-        >
-          {trigger ?? (
-            <SelectButton
-              variant="outline"
-              width="full"
-              hasValue={api.value.length > 0}
-              label={getDisplayLabel(api.value, api.selectionMode, placeholder, formatValue)}
-            />
-          )}
-        </Parts.Trigger>
-      </Parts.Control>
-
-      <DatePickerContent
-        portalled={portalled}
-        portalRef={portalRef}
+      <Parts.Root
+        {...calendarRootAttributes(calendar)}
+        {...styleProps}
       >
-        <CalendarContent {...contentProps} />
-      </DatePickerContent>
-    </RootProvider>
+        <Parts.Control>
+          <Parts.Trigger
+            {...getPickerTriggerProps(popup, { interactive: calendar.interactive })}
+            disabled={calendar.disabled}
+            {...fieldProps}
+            {...asRender(
+              trigger ?? (
+                <SelectButton
+                  variant="outline"
+                  width="full"
+                  hasValue={calendar.value.length > 0}
+                  label={getDisplayLabel(
+                    calendar.value,
+                    calendar.selectionMode,
+                    placeholder,
+                    formatValue,
+                  )}
+                />
+              ),
+            )}
+          />
+        </Parts.Control>
+
+        <CalendarBody props={pickerProps} />
+        {calendar.liveRegion}
+      </Parts.Root>
+    </CalendarProviders>
   );
-};
+}
 
 // One signature per mode: a union of modes with style props breaks Omit on its ComponentProps.
 interface DatePickerComponent {

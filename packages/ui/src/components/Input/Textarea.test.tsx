@@ -36,6 +36,23 @@ describe("Textarea", () => {
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
+  it("stops resizing on value writes once autoresize turns off", () => {
+    const field = (props: { autoresize?: boolean; value: string }) => (
+      <Textarea
+        {...props}
+        onChange={() => {}}
+      />
+    );
+    const { rerender } = render(field({ autoresize: true, value: "a" }));
+    rerender(field({ value: "a" }));
+    const frame = vi.spyOn(window, "requestAnimationFrame");
+
+    rerender(field({ value: "a\nb" }));
+
+    expect(frame).not.toHaveBeenCalled();
+    frame.mockRestore();
+  });
+
   it("leaves submitting to onEnter when preventNewline blocks Shift+Enter", () => {
     const onEnter = vi.fn();
     const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());

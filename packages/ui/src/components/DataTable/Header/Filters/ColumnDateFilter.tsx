@@ -3,10 +3,11 @@ import {
   parseDateRangeFilter,
   serializeDateRangeFilter,
 } from "@construkt-kit/utils";
+import { parseDate } from "@internationalized/date";
 import { useState } from "react";
 
 import { useControlledMirror } from "../../../../hooks/useControlledMirror";
-import { DatePickerSelect, type DateValue, parseDate } from "../../../DatePicker";
+import { DatePickerSelect, type DateValue } from "../../../DatePicker";
 import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 

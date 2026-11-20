@@ -1,4 +1,3 @@
-import type { ListboxScrollToIndexDetails } from "@ark-ui/react/listbox";
 import { type RefObject, useRef } from "react";
 
 import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
@@ -20,7 +19,6 @@ export interface ManagedListbox<T, V extends SelectionValue> {
 
 type ManagedListboxProps<T, V extends SelectionValue> = SelectionControllerOptions<T, V> & {
   virtual?: boolean;
-  scrollToIndexFn?: (details: ListboxScrollToIndexDetails) => void;
 };
 
 const MANAGED_LISTBOX_KEYS = {
@@ -35,7 +33,6 @@ const MANAGED_LISTBOX_KEYS = {
   value: true,
   onValueChange: true,
   virtual: true,
-  scrollToIndexFn: true,
 } as const satisfies Record<keyof ManagedListboxProps<unknown, SelectionValue>, true>;
 
 export function useManagedListbox<T, V extends SelectionValue, P extends ManagedListboxProps<T, V>>(
@@ -60,16 +57,17 @@ export function useManagedListbox<T, V extends SelectionValue, P extends Managed
     managed,
     rest,
     rootProps: {
-      collection: controller.collection,
-      value: controller.listboxValue,
-      onValueChange: controller.onListboxValueChange,
+      items: controller.items,
+      getItemValue: options.getItemValue,
+      getItemLabel: options.getItemLabel,
+      isItemDisabled: options.isItemDisabled,
       selectionMode,
-      deselectable: selectionMode === "single" ? false : undefined,
-      disallowSelectAll: true,
-      typeahead: false,
-      scrollToIndexFn: virtual
-        ? (details: ListboxScrollToIndexDetails) => scrollToIndexRef.current?.(details.index)
-        : options.scrollToIndexFn,
+      value: options.value,
+      onValueChange: options.onValueChange,
+      scrollToIndex: virtual ? (index: number) => scrollToIndexRef.current?.(index) : undefined,
+    } as SelectionControllerOptions<T, V> & {
+      items: readonly T[];
+      scrollToIndex: ((index: number) => void) | undefined;
     },
   };
 }

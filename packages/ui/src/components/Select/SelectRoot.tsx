@@ -1,44 +1,19 @@
-import { useEnvironmentContext } from "@ark-ui/react/environment";
-import { useListboxContext } from "@ark-ui/react/listbox";
-import { usePresenceContext } from "@ark-ui/react/presence";
-import { type ReactNode, type RefObject, useEffect } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
-import { isComposingEvent } from "../../foundations/dom";
-import { useControllableState } from "../../hooks/useControllableState";
 import {
-  scrollIntoViewWithin,
-  useHighlightIntoView,
-  useHighlightSource,
-} from "../../hooks/useHighlightIntoView";
-import { useLatestRef } from "../../hooks/useLatestRef";
-import { Listbox } from "../Listbox/Listbox";
-import {
+  ListboxRootImpl,
   type ManagedListbox,
   splitManagedListOptions,
+  useListboxContext,
   useManagedListbox,
 } from "../Listbox/managed";
 import type { ManagedListOptions, SelectionMode, SelectionValue } from "../Listbox/types";
 import { useRevealSelection } from "../Listbox/useRevealSelection";
-import { Popover } from "../Popover";
-import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
+import { Popover, usePopoverContext } from "../Popover/Popover";
 import { SelectContext, type SelectContextValue } from "./Select.context";
 import type { SelectRootProps } from "./Select.types";
-
-const ITEM_SELECTOR = '[data-scope="listbox"][data-part="item"]';
-const LIST_SELECTOR = '[data-scope="listbox"][data-part="content"]';
-const CONTENT_SELECTOR = '[data-scope="popover"][data-part="content"]';
-
-function findItem(target: EventTarget, highlighted: boolean) {
-  if (!(target instanceof Element)) return null;
-  return highlighted
-    ? target.closest(CONTENT_SELECTOR)?.querySelector(`${ITEM_SELECTOR}[data-highlighted]`)
-    : target.closest(ITEM_SELECTOR);
-}
-
-const isInList = (target: EventTarget) =>
-  target instanceof Element && target.closest(LIST_SELECTOR) != null;
 
 function getSelectionLabel<T>(
   selectedCount: number,
@@ -53,50 +28,19 @@ function getSelectionLabel<T>(
   return `${selectedCount} selected`;
 }
 
-interface SelectHighlightSyncProps {
-  open: boolean;
-  query: string;
-  pointerRef: RefObject<boolean>;
-  scrollToIndexRef: ScrollToIndexRef;
-  virtual: boolean;
-}
-
-// The listbox machine outlives the lazily mounted content, so it never resets per open.
-function SelectHighlightSync({
-  open,
-  query,
-  pointerRef,
-  scrollToIndexRef,
-  virtual,
-}: SelectHighlightSyncProps) {
-  const listbox = useListboxContext();
-  const environment = useEnvironmentContext();
-  const { present } = usePresenceContext();
-  const listboxRef = useLatestRef(listbox);
-  const shown = open && present;
+// The list outlives the content, which mounts per open, so each open starts without a highlight.
+function SelectHighlightSync({ query }: { query: string }) {
+  const { node, firstSelected } = useListboxContext();
+  const { open, contentMounted } = usePopoverContext();
+  const shown = open && contentMounted;
 
   useEffect(() => {
-    if (shown) listboxRef.current.clearHighlightedValue();
-  }, [listboxRef, shown]);
+    if (shown) node.reset();
+  }, [node, shown]);
 
-  useRevealSelection(shown, query, (selected) => {
-    pointerRef.current = false;
-    listbox.highlightValue(selected);
-  });
-
-  useHighlightIntoView(listbox.highlightedValue, pointerRef, (highlightedValue) => {
-    const { collection, getContentProps } = listbox;
-    if (virtual) {
-      scrollToIndexRef.current?.(collection.indexOf(highlightedValue));
-      return;
-    }
-    const root = environment.getRootNode() as Document | ShadowRoot;
-    const { id, "aria-activedescendant": itemId } = getContentProps();
-    scrollIntoViewWithin(
-      id == null ? null : root.getElementById(id),
-      itemId == null ? null : root.getElementById(itemId),
-    );
-  });
+  useRevealSelection(node, shown, query, firstSelected, (selected) =>
+    node.highlight(selected, true),
+  );
 
   return null;
 }
@@ -107,6 +51,20 @@ type SelectRootImplProps<T, V extends SelectionValue> = SelectRootProps<T, V, Se
 };
 
 export function SelectRootImpl<T, V extends SelectionValue>(props: SelectRootImplProps<T, V>) {
+  return (
+    <Popover.Root
+      mobileLayout={props.mobileLayout}
+      open={props.open}
+      defaultOpen={props.defaultOpen}
+      onOpenChange={props.onOpenChange}
+      placement={props.placement}
+    >
+      <SelectRootBody {...props} />
+    </Popover.Root>
+  );
+}
+
+function SelectRootBody<T, V extends SelectionValue>(props: SelectRootImplProps<T, V>) {
   const [styleProps, selectProps] = splitCssProps(props);
   const {
     managed,
@@ -119,42 +77,30 @@ export function SelectRootImpl<T, V extends SelectionValue>(props: SelectRootImp
     appliedValue,
     children,
     contentWidth,
-    defaultOpen = false,
     matchTriggerWidth = true,
-    mobileLayout,
-    onOpenChange,
-    open,
     placeholder = "Select item",
-    placement,
     renderValue,
     wideContent = false,
   } = rootProps;
   const { controller, selectionMode } = managed;
-  const [resolvedOpen, setOpen] = useControllableState({
-    value: open,
-    defaultValue: defaultOpen,
-    onChange: onOpenChange,
-  });
-  const { pointerRef, handlers: highlightSource } = useHighlightSource();
+  const popover = usePopoverContext();
   const sameWidth = matchTriggerWidth && contentWidth == null;
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) controller.search.reset();
-    setOpen(nextOpen);
+  const close = (event?: Event) => {
+    popover.requestOpenChange(false, "item-press", event);
   };
-  const close = () => handleOpenChange(false);
 
-  // Re-picking the current value changes nothing, so onValueChange never fires to close.
-  const closeOnReselect = (item: Element | null | undefined) => {
-    if (selectionMode === "single" && item?.matches('[data-state="checked"]:not([data-disabled])'))
-      close();
-  };
+  const wasOpen = useRef(popover.open);
+  useLayoutEffect(() => {
+    if (wasOpen.current && !popover.open) controller.search.reset();
+    wasOpen.current = popover.open;
+  });
 
   const { renderItemActions } = props;
   const list: ManagedListOptions<T, V> = {
     ...listOptions,
     renderItemActions:
-      renderItemActions && ((item, state) => renderItemActions(item, state, { close })),
+      renderItemActions &&
+      ((item, state) => renderItemActions(item, state, { close: () => close() })),
   };
   const appliedValues = appliedValue ?? controller.selectedValues;
   const appliedItems = controller.getItemsByValue(appliedValues);
@@ -175,39 +121,18 @@ export function SelectRootImpl<T, V extends SelectionValue>(props: SelectRootImp
 
   return (
     <SelectContext.Provider value={contextValue}>
-      <Popover.Root
-        mobileLayout={mobileLayout}
-        open={resolvedOpen}
-        onOpenChange={({ open: nextOpen }) => handleOpenChange(nextOpen)}
-        positioning={{ placement, sameWidth }}
+      <ListboxRootImpl
+        {...styleProps}
+        actionsVisibility={actionsVisibility}
+        indicatorPosition={list.indicatorPosition}
+        {...listboxRootProps}
+        onPick={(_, event) => {
+          if (selectionMode === "single") close(event);
+        }}
       >
-        <Listbox.Root
-          {...styleProps}
-          actionsVisibility={actionsVisibility}
-          indicatorPosition={list.indicatorPosition}
-          {...listboxRootProps}
-          {...highlightSource}
-          onValueChange={(details) => {
-            listboxRootProps.onValueChange(details);
-            if (selectionMode === "single" && details.value.length > 0) close();
-          }}
-          onClick={(event) => closeOnReselect(findItem(event.target, false))}
-          onKeyDown={(event) => {
-            if (isComposingEvent(event)) return;
-            if (event.key === "Enter" || (event.key === " " && isInList(event.target)))
-              closeOnReselect(findItem(event.target, true));
-          }}
-        >
-          <SelectHighlightSync
-            open={resolvedOpen}
-            query={controller.search.query}
-            pointerRef={pointerRef}
-            scrollToIndexRef={managed.scrollToIndexRef}
-            virtual={managed.virtual}
-          />
-          {children}
-        </Listbox.Root>
-      </Popover.Root>
+        <SelectHighlightSync query={controller.search.query} />
+        {children}
+      </ListboxRootImpl>
     </SelectContext.Provider>
   );
 }

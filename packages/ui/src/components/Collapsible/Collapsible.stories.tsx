@@ -13,8 +13,8 @@ export const Default = meta.story({
   render: () => (
     <Box maxW="400px">
       <Collapsible.Root>
-        <Collapsible.Trigger asChild>
-          <Button variant="outline">Toggle content</Button>
+        <Collapsible.Trigger render={<Button variant="outline" />}>
+          Toggle content
         </Collapsible.Trigger>
         <Collapsible.Content>
           <Box p="4">
@@ -31,9 +31,7 @@ export const DefaultOpen = meta.story({
   render: () => (
     <Box maxW="400px">
       <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger asChild>
-          <Button variant="outline">Toggle</Button>
-        </Collapsible.Trigger>
+        <Collapsible.Trigger render={<Button variant="outline" />}>Toggle</Collapsible.Trigger>
         <Collapsible.Content>
           <Box p="4">This section is open by default.</Box>
         </Collapsible.Content>

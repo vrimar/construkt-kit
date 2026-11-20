@@ -1,11 +1,12 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
 import { styled } from "#styled-system/jsx";
 import { spinner } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
+
 type BaseSpinnerProps = ComponentProps<typeof BaseSpinner>;
-const BaseSpinner = styled(ark.span, spinner);
+const BaseSpinner = styled(renderable.span, spinner);
 
 export interface SpinnerProps extends Omit<BaseSpinnerProps, "variant"> {
   /**

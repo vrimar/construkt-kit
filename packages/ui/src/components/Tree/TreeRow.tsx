@@ -1,12 +1,11 @@
-import { type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
 import type { ComponentProps, ReactNode } from "react";
 
 import { useTreeDndContext } from "./dnd/TreeDndContext";
 import { TreeDropIndicator } from "./dnd/TreeDropIndicator";
 import { useTreeNodeDnd } from "./dnd/useTreeNodeDnd";
-import { TreeView } from "./TreeView";
+import { TreeView, useTreeContext } from "./TreeView";
 
-export interface TreeNodeRenderDetails<T extends TreeNode> {
+export interface TreeNodeRenderDetails<T> {
   node: T;
   indexPath: number[];
   isBranch: boolean;
@@ -55,14 +54,14 @@ export function TreeNodeLabel({ isBranch, children }: { isBranch: boolean; child
   );
 }
 
-export function TreeNodeContent<T extends TreeNode>({
+export function TreeNodeContent<T>({
   details,
   renderNode,
 }: {
   details: TreeNodeRenderDetails<T>;
   renderNode: ((details: TreeNodeRenderDetails<T>) => ReactNode) | undefined;
 }) {
-  const { collection } = useTreeViewContext();
+  const { collection } = useTreeContext();
 
   return (
     renderNode?.(details) ?? (

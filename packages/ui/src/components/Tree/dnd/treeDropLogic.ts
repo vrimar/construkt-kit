@@ -1,5 +1,6 @@
-import type { TreeCollection, TreeNode } from "@ark-ui/react/tree-view";
 import type { ItemMode } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
+
+import { TreeCollection, type TreeNodes, isDescendantPath } from "../treeCollection";
 
 /**
  * Where a drop lands relative to its target row. `currentLevel` is the target row's depth;
@@ -23,12 +24,16 @@ export interface TreeDropArgs {
 }
 
 /**
- * Apply a drop instruction to the collection, returning a NEW collection with the
- * dragged node(s) moved, or `null` when the drop is invalid or a no-op. Values missing from
- * the collection are skipped, a node moves along with a dragged ancestor, and moved nodes keep
- * their document order.
+ * Apply a drop instruction to the tree, returning NEW nodes with the dragged node(s) moved, or
+ * `null` when the drop is invalid or a no-op. Values missing from the tree are skipped, a node
+ * moves along with a dragged ancestor, and moved nodes keep their document order.
  */
-export function applyTreeDrop<T extends TreeNode>(
+export function applyTreeDrop<T>(tree: TreeNodes<T>, args: TreeDropArgs): T[] | null {
+  const next = dropInto(TreeCollection.from(tree), args);
+  return next ? (next.nodes as T[]) : null;
+}
+
+export function dropInto<T>(
   collection: TreeCollection<T>,
   { sourceValues, targetValue, instruction, isBranchLoaded }: TreeDropArgs,
 ): TreeCollection<T> | null {
@@ -42,7 +47,7 @@ export function applyTreeDrop<T extends TreeNode>(
     return sourcePath?.length ? [sourcePath] : [];
   });
   const movedPaths = sourcePaths
-    .filter((path) => !sourcePaths.some((other) => isWithinSubtree(other, path)))
+    .filter((path) => !sourcePaths.some((other) => isDescendantPath(other, path)))
     .sort(compareIndexPaths);
   if (!movedPaths.length) return null;
 
@@ -75,11 +80,8 @@ export function applyTreeDrop<T extends TreeNode>(
   return next && !next.isEqual(collection) ? next : null;
 }
 
-// Removing a branch's last child leaves `children: []`, which zag reads as a leaf.
-function keepBranches<T extends TreeNode>(
-  collection: TreeCollection<T>,
-  values: string[],
-): TreeCollection<T> {
+// Removing a branch's last child leaves `children: []`, which reads as a leaf.
+function keepBranches<T>(collection: TreeCollection<T>, values: string[]): TreeCollection<T> {
   return values.reduce((current, value) => {
     const indexPath = current.getIndexPath(value);
     const node = indexPath ? current.at(indexPath) : undefined;
@@ -88,7 +90,7 @@ function keepBranches<T extends TreeNode>(
   }, collection);
 }
 
-export function canNestInto<T extends TreeNode>(
+export function canNestInto<T>(
   collection: TreeCollection<T>,
   node: T | undefined,
   loaded: boolean,
@@ -99,11 +101,6 @@ export function canNestInto<T extends TreeNode>(
   );
 }
 
-/** Whether `targetPath` lies strictly inside `sourcePath`'s subtree (a descendant). */
-function isWithinSubtree(sourcePath: number[], targetPath: number[]): boolean {
-  return targetPath.length > sourcePath.length && sourcePath.every((v, i) => targetPath[i] === v);
-}
-
 function compareIndexPaths(a: number[], b: number[]): number {
   for (let i = 0; i < Math.min(a.length, b.length); i++) {
     if (a[i] !== b[i]) return a[i] - b[i];
@@ -111,7 +108,7 @@ function compareIndexPaths(a: number[], b: number[]): number {
   return a.length - b.length;
 }
 
-export function isDropTargetValid<T extends TreeNode>(
+export function isDropTargetValid<T>(
   collection: TreeCollection<T>,
   sourceValues: readonly string[],
   targetValue: string,
@@ -121,7 +118,7 @@ export function isDropTargetValid<T extends TreeNode>(
   return sourceValues.every((sourceValue) => {
     if (sourceValue === targetValue) return false;
     const sourcePath = collection.getIndexPath(sourceValue);
-    return !sourcePath?.length || !isWithinSubtree(sourcePath, targetPath);
+    return !sourcePath?.length || !isDescendantPath(sourcePath, targetPath);
   });
 }
 
@@ -130,7 +127,7 @@ interface DropAnchor {
   position: "before" | "after" | "inside";
 }
 
-function getDropAnchor<T extends TreeNode>(
+function getDropAnchor<T>(
   collection: TreeCollection<T>,
   targetPath: number[],
   targetValue: string,
@@ -176,7 +173,7 @@ export function getItemMode({
 }
 
 /** Whether the node at `indexPath` is the last child of its parent. */
-export function isLastChildOfParent<T extends TreeNode>(
+export function isLastChildOfParent<T>(
   collection: TreeCollection<T>,
   indexPath: number[],
 ): boolean {
@@ -193,11 +190,12 @@ export interface KeyboardDropTarget {
   instruction: TreeDropInstruction;
 }
 
-export interface TreeKeyboardMoveResult<T extends TreeNode> extends KeyboardDropTarget {
-  next: TreeCollection<T>;
+export interface TreeKeyboardMoveResult<T> extends KeyboardDropTarget {
+  /** The nodes after the move. */
+  nodes: T[];
 }
 
-export function getKeyboardDropTarget<T extends TreeNode>(
+export function getKeyboardDropTarget<T>(
   collection: TreeCollection<T>,
   value: string,
   move: TreeKeyboardMove,
@@ -230,16 +228,17 @@ export function getKeyboardDropTarget<T extends TreeNode>(
 /**
  * Keyboard-driven reorder of `value`: `up`/`down` among siblings, `indent` to the first child
  * of the previous sibling (must be a branch), `outdent` to become the parent's next sibling.
- * Returns the new collection plus the equivalent drop target/instruction, or `null` when the
- * move isn't possible.
+ * Returns the new nodes plus the equivalent drop target/instruction, or `null` when the move
+ * isn't possible.
  */
-export function moveNodeByKeyboard<T extends TreeNode>(
-  collection: TreeCollection<T>,
+export function moveNodeByKeyboard<T>(
+  tree: TreeNodes<T>,
   value: string,
   move: TreeKeyboardMove,
 ): TreeKeyboardMoveResult<T> | null {
+  const collection = TreeCollection.from(tree);
   const target = getKeyboardDropTarget(collection, value, move);
   if (!target) return null;
-  const next = applyTreeDrop(collection, { sourceValues: [value], ...target });
-  return next ? { next, ...target } : null;
+  const next = dropInto(collection, { sourceValues: [value], ...target });
+  return next ? { nodes: next.nodes as T[], ...target } : null;
 }

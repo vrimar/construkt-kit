@@ -16,15 +16,13 @@ describe("IconButton", () => {
     expect(button.firstElementChild).toBe(screen.getByTestId("icon"));
   });
 
-  it("renders its icon inside the asChild child", () => {
+  it("renders its icon inside its render element", () => {
     render(
       <IconButton
-        asChild
+        render={<a href="/close" />}
         aria-label="Close"
         icon={<span data-testid="icon" />}
-      >
-        <a href="/close" />
-      </IconButton>,
+      />,
     );
 
     const link = screen.getByRole("link", { name: "Close" });

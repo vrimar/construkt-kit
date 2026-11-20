@@ -4,13 +4,7 @@ import { useState } from "react";
 
 import { treeView } from "#styled-system/recipes";
 
-import {
-  DraggableTreeNode,
-  type TreeNodeRenderDetails,
-  TreeView,
-  TreeViewDndProvider,
-  createTreeCollection,
-} from ".";
+import { DraggableTreeNode, type TreeNodeRenderDetails, TreeView, TreeViewDndProvider } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
@@ -20,53 +14,50 @@ interface Node {
   children?: Node[];
 }
 
-const collection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "root",
-    name: "",
+const accessors = {
+  getNodeValue: (node: Node) => node.id,
+  getNodeLabel: (node: Node) => node.name,
+};
+
+const nodes: Node[] = [
+  {
+    id: "src",
+    name: "src",
     children: [
       {
-        id: "src",
-        name: "src",
+        id: "components",
+        name: "components",
         children: [
-          {
-            id: "components",
-            name: "components",
-            children: [
-              { id: "button", name: "Button.tsx" },
-              { id: "input", name: "Input.tsx" },
-              { id: "dialog", name: "Dialog.tsx" },
-            ],
-          },
-          {
-            id: "utils",
-            name: "utils",
-            children: [
-              { id: "format", name: "format.ts" },
-              { id: "validate", name: "validate.ts" },
-            ],
-          },
-          { id: "index-ts", name: "index.ts" },
+          { id: "button", name: "Button.tsx" },
+          { id: "input", name: "Input.tsx" },
+          { id: "dialog", name: "Dialog.tsx" },
         ],
       },
       {
-        id: "docs",
-        name: "docs",
+        id: "utils",
+        name: "utils",
         children: [
-          { id: "readme", name: "README.md" },
-          { id: "changelog", name: "CHANGELOG.md" },
+          { id: "format", name: "format.ts" },
+          { id: "validate", name: "validate.ts" },
         ],
       },
-      {
-        id: "config",
-        name: "config",
-        children: [{ id: "tsconfig", name: "tsconfig.json" }],
-      },
+      { id: "index-ts", name: "index.ts" },
     ],
   },
-});
+  {
+    id: "docs",
+    name: "docs",
+    children: [
+      { id: "readme", name: "README.md" },
+      { id: "changelog", name: "CHANGELOG.md" },
+    ],
+  },
+  {
+    id: "config",
+    name: "config",
+    children: [{ id: "tsconfig", name: "tsconfig.json" }],
+  },
+];
 
 const renderWithIcons = ({ node, isBranch }: TreeNodeRenderDetails<Node>) =>
   isBranch ? (
@@ -107,11 +98,12 @@ export const Basic = meta.story({
       p="2"
     >
       <TreeView.Root
-        collection={collection}
+        nodes={nodes}
+        {...accessors}
         defaultExpandedValue={["src", "components"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children?.map((node, index) => (
+          {nodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}
@@ -134,11 +126,12 @@ export const WithCustomRender = meta.story({
       p="2"
     >
       <TreeView.Root
-        collection={collection}
+        nodes={nodes}
+        {...accessors}
         defaultExpandedValue={["src"]}
       >
         <TreeView.Tree>
-          {collection.rootNode.children?.map((node, index) => (
+          {nodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}
@@ -162,12 +155,13 @@ export const WithCheckboxes = meta.story({
       p="2"
     >
       <TreeView.Root
-        collection={collection}
+        nodes={nodes}
+        {...accessors}
         defaultExpandedValue={["src", "components"]}
         checkable
       >
         <TreeView.Tree>
-          {collection.rootNode.children?.map((node, index) => (
+          {nodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}
@@ -182,7 +176,7 @@ export const WithCheckboxes = meta.story({
 });
 
 function DragAndDropExample() {
-  const [treeCollection, setTreeCollection] = useState(collection);
+  const [treeNodes, setTreeNodes] = useState(nodes);
 
   return (
     <Box
@@ -193,12 +187,13 @@ function DragAndDropExample() {
       p="2"
     >
       <TreeView.Root
-        collection={treeCollection}
+        nodes={treeNodes}
+        {...accessors}
         defaultExpandedValue={["src", "components"]}
       >
-        <TreeViewDndProvider onCollectionChange={setTreeCollection}>
+        <TreeViewDndProvider onNodesChange={setTreeNodes}>
           <TreeView.Tree>
-            {treeCollection.rootNode.children?.map((node, index) => (
+            {treeNodes.map((node, index) => (
               <DraggableTreeNode
                 key={node.id}
                 node={node}
@@ -217,22 +212,14 @@ export const WithDragAndDrop = meta.story({
   render: () => <DragAndDropExample />,
 });
 
-const sectionCollection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "root",
-    name: "",
-    children: ["Design", "Engineering", "Marketing", "Sales"].map((section) => ({
-      id: section,
-      name: section,
-      children: Array.from({ length: 8 }, (_, index) => ({
-        id: `${section}-${index + 1}`,
-        name: `${section} file ${index + 1}`,
-      })),
-    })),
-  },
-});
+const sectionNodes: Node[] = ["Design", "Engineering", "Marketing", "Sales"].map((section) => ({
+  id: section,
+  name: section,
+  children: Array.from({ length: 8 }, (_, index) => ({
+    id: `${section}-${index + 1}`,
+    name: `${section} file ${index + 1}`,
+  })),
+}));
 
 const renderWithCount = ({ node, isBranch }: TreeNodeRenderDetails<Node>) =>
   isBranch ? (
@@ -258,12 +245,13 @@ export const StickyBranches = meta.story({
       pb="2"
     >
       <TreeView.Root
-        collection={sectionCollection}
+        nodes={sectionNodes}
+        {...accessors}
         defaultExpandedValue={["Design", "Engineering", "Marketing", "Sales"]}
         stickyBranches
       >
         <TreeView.Tree>
-          {sectionCollection.rootNode.children?.map((node, index) => (
+          {sectionNodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}
@@ -277,25 +265,17 @@ export const StickyBranches = meta.story({
   ),
 });
 
-const longNameCollection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "root",
-    name: "",
+const longNameNodes: Node[] = [
+  {
+    id: "redesign",
+    name: "Website redesign, phase 2 (research from March to April)",
     children: [
-      {
-        id: "redesign",
-        name: "Website redesign, phase 2 (research from March to April)",
-        children: [
-          { id: "interviews", name: "Interview notes from the first round of customer calls" },
-          { id: "sitemap", name: "Sitemap" },
-          { id: "comparison", name: "Comparison against the three nearest competitors by feature" },
-        ],
-      },
+      { id: "interviews", name: "Interview notes from the first round of customer calls" },
+      { id: "sitemap", name: "Sitemap" },
+      { id: "comparison", name: "Comparison against the three nearest competitors by feature" },
     ],
   },
-});
+];
 
 /** Long names wrap onto two lines before truncating. */
 export const ClampedText = meta.story({
@@ -308,12 +288,13 @@ export const ClampedText = meta.story({
       p="2"
     >
       <TreeView.Root
-        collection={longNameCollection}
+        nodes={longNameNodes}
+        {...accessors}
         defaultExpandedValue={["redesign"]}
         clampText
       >
         <TreeView.Tree>
-          {longNameCollection.rootNode.children?.map((node, index) => (
+          {longNameNodes.map((node, index) => (
             <DraggableTreeNode
               key={node.id}
               node={node}
@@ -340,12 +321,13 @@ export const Sizes = meta.story({
           p="2"
         >
           <TreeView.Root
-            collection={collection}
+            nodes={nodes}
+            {...accessors}
             defaultExpandedValue={["src"]}
             size={size}
           >
             <TreeView.Tree>
-              {collection.rootNode.children?.map((node, index) => (
+              {nodes.map((node, index) => (
                 <DraggableTreeNode
                   key={node.id}
                   node={node}

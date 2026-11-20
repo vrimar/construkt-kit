@@ -14,38 +14,42 @@ export const Default = meta.story({
     <Pagination.Root
       count={100}
       pageSize={10}
-      defaultPage={1}
+      defaultValue={1}
     >
-      <Pagination.PrevTrigger asChild>
-        <IconButton
-          variant="outline"
-          aria-label="Previous"
-        >
-          <ChevronLeftIcon />
-        </IconButton>
+      <Pagination.PrevTrigger
+        render={
+          <IconButton
+            variant="outline"
+            aria-label="Previous"
+          />
+        }
+      >
+        <ChevronLeftIcon />
       </Pagination.PrevTrigger>
       <Pagination.Items
         render={(page) => (
           <Pagination.Item
             {...page}
-            asChild
+            render={
+              <Button
+                variant={page.selected ? "solid" : "outline"}
+                size="sm"
+              />
+            }
           >
-            <Button
-              variant={page.selected ? "solid" : "outline"}
-              size="sm"
-            >
-              {page.value}
-            </Button>
+            {page.value}
           </Pagination.Item>
         )}
       />
-      <Pagination.NextTrigger asChild>
-        <IconButton
-          variant="outline"
-          aria-label="Next"
-        >
-          <ChevronRightIcon />
-        </IconButton>
+      <Pagination.NextTrigger
+        render={
+          <IconButton
+            variant="outline"
+            aria-label="Next"
+          />
+        }
+      >
+        <ChevronRightIcon />
       </Pagination.NextTrigger>
     </Pagination.Root>
   ),

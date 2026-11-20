@@ -1,25 +1,34 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { expect, it } from "vitest";
 
-import { SegmentGroup, useSegmentGroup } from ".";
+import { SegmentGroup } from ".";
 
-describe("SegmentGroup", () => {
-  it("orients a RootProvider like Root", () => {
-    const Provided = () => (
-      <SegmentGroup.RootProvider
-        value={useSegmentGroup()}
-        data-testid="provided"
-      />
-    );
-    render(
-      <>
-        <SegmentGroup.Root data-testid="root" />
-        <Provided />
-      </>,
-    );
+it("goes back to its initial value when the form its radios join through `form` resets", async () => {
+  render(
+    <>
+      <form id="settings" />
+      <SegmentGroup.Root
+        form="settings"
+        name="view"
+        defaultValue="list"
+      >
+        <SegmentGroup.Items
+          items={[
+            { value: "list", label: "List" },
+            { value: "grid", label: "Grid" },
+          ]}
+        />
+      </SegmentGroup.Root>
+    </>,
+  );
+  const form = document.getElementById("settings") as HTMLFormElement;
+  await userEvent.click(screen.getByText("Grid"));
+  expect(new FormData(form).get("view")).toBe("grid");
 
-    expect(screen.getByTestId("provided").dataset.orientation).toBe(
-      screen.getByTestId("root").dataset.orientation,
-    );
-  });
+  act(() => form.reset());
+  await act(() => new Promise(requestAnimationFrame));
+
+  expect(new FormData(form).get("view")).toBe("list");
+  expect(screen.getByText("List").closest("label")?.hasAttribute("data-checked")).toBe(true);
 });

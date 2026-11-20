@@ -1,4 +1,3 @@
-import { type TreeCollection, type TreeNode, useTreeViewContext } from "@ark-ui/react/tree-view";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import type { ReactNode, RefObject } from "react";
@@ -7,8 +6,10 @@ import { createContext, useContext, useEffect, useId, useMemo } from "react";
 import { useAnnouncer } from "../../../hooks/useAnnouncer";
 import { useLatestRef } from "../../../hooks/useLatestRef";
 import { useDragAutoScroll } from "../../dnd";
+import type { TreeCollection } from "../treeCollection";
+import { useTreeContext } from "../TreeView";
 import {
-  applyTreeDrop,
+  dropInto,
   getKeyboardDropTarget,
   type TreeDropInstruction,
   type TreeKeyboardMove,
@@ -41,16 +42,18 @@ export interface TreeCanDropDetails {
   instruction: TreeDropInstruction;
 }
 
-export interface TreeDropDetails<T extends TreeNode = TreeNode> {
+export interface TreeDropDetails<T = unknown> {
   /** Every dragged node (one, unless multi-drag). */
   sourceValues: string[];
   targetValue: string;
   instruction: TreeDropInstruction;
-  nextCollection: TreeCollection<T>;
-  previousCollection: TreeCollection<T>;
+  /** The nodes after the drop. */
+  nextNodes: T[];
+  /** The nodes before the drop. */
+  previousNodes: T[];
 }
 
-export interface TreeDndContextValue<T extends TreeNode = TreeNode> {
+export interface TreeDndContextValue<T = unknown> {
   instanceId: string;
   /** Whether drag-and-drop is currently off. */
   disabled: boolean;
@@ -72,7 +75,7 @@ export interface TreeDndContextValue<T extends TreeNode = TreeNode> {
   renderDragPreview: (value: string) => ReactNode;
   /**
    * Keyboard reorder of `value` and the rest of its drag values. Runs the same
-   * `canDrag`/`canDrop`/`blockReparent` validation and `onCollectionChange`/`onDrop`/announce
+   * `canDrag`/`canDrop`/`blockReparent` validation and `onNodesChange`/`onDrop`/announce
    * pipeline as pointer drops. Returns the committed drop, or `null` when nothing moved.
    */
   moveByKeyboard: (value: string, move: TreeKeyboardMove) => TreeDropDetails<T> | null;
@@ -84,13 +87,13 @@ export function useTreeDndContext(): TreeDndContextValue | null {
   return useContext(TreeDndContext);
 }
 
-export interface TreeViewDndProviderProps<T extends TreeNode> {
-  /** Called with the reordered collection after any reorder (optimistic; pointer or keyboard). */
-  onCollectionChange: (collection: TreeCollection<T>) => void;
+export interface TreeViewDndProviderProps<T> {
+  /** Called with the reordered nodes after any reorder (optimistic; pointer or keyboard). */
+  onNodesChange: (nodes: T[]) => void;
   /**
    * Side-effect after a reorder (persist, analytics). If it rejects, the optimistic
-   * `onCollectionChange` is reverted to the previous collection (unless a newer reorder has
-   * since been committed). Fires for both pointer drops and keyboard moves.
+   * `onNodesChange` is reverted to the previous nodes (unless a newer reorder has since been
+   * committed). Fires for both pointer drops and keyboard moves.
    */
   onDrop?: (details: TreeDropDetails<T>) => void | Promise<void>;
   /** Fired when any drag in this tree starts. */
@@ -101,7 +104,7 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
   canDrop?: (details: TreeCanDropDetails) => boolean;
   /**
    * Values to move when dragging or keyboard-moving `value` (e.g. the current multi-selection).
-   * Values missing from the collection are skipped. Default `[value]`.
+   * Values missing from the tree are skipped. Default `[value]`.
    */
   getDragValues?: (value: string) => string[];
   /** Extra data attached to the drag payload for cross-surface drops. */
@@ -141,20 +144,20 @@ export interface TreeViewDndProviderProps<T extends TreeNode> {
 
 const DEFAULT_AUTO_EXPAND_DELAY_MS = 500;
 
-const defaultDropAnnouncement = <T extends TreeNode>({
-  sourceValues,
-  nextCollection,
-}: TreeDropDetails<T>): string => {
+const defaultDropAnnouncement = (
+  { sourceValues }: TreeDropDetails<unknown>,
+  collection: TreeCollection<unknown>,
+): string => {
   if (sourceValues.length > 1) return `Moved ${sourceValues.length} items.`;
-  return `Moved ${nextCollection.stringify(sourceValues[0]) ?? "item"}.`;
+  return `Moved ${collection.stringify(sourceValues[0]) ?? "item"}.`;
 };
 
 /**
- * Drag-and-drop and keyboard reordering for the enclosing `TreeView.Root`/`RootProvider`,
- * whose `collection` it reorders.
+ * Drag-and-drop and keyboard reordering for the enclosing `TreeView.Root`, whose `nodes` it
+ * reorders.
  */
-export function TreeViewDndProvider<T extends TreeNode>({
-  onCollectionChange,
+export function TreeViewDndProvider<T>({
+  onNodesChange,
   onDrop,
   onDragStart,
   onDragEnd,
@@ -175,11 +178,11 @@ export function TreeViewDndProvider<T extends TreeNode>({
   const instanceId = useId();
   const { announce, liveRegion } = useAnnouncer();
 
-  const tree = useTreeViewContext();
-  const treeRef = useLatestRef(tree);
-  const collectionRef = useLatestRef<TreeCollection<T>>(tree.collection);
+  const { tree, collection: treeCollection, expanded } = useTreeContext();
+  const expandedRef = useLatestRef(expanded);
+  const collectionRef = useLatestRef(treeCollection as TreeCollection<T>);
   const handlers = useLatestRef({
-    onCollectionChange,
+    onNodesChange,
     onDrop,
     onDragStart,
     onDragEnd,
@@ -204,7 +207,7 @@ export function TreeViewDndProvider<T extends TreeNode>({
     const allowsDrop = (details: TreeCanDropDetails) => handlers.current.canDrop?.(details) ?? true;
 
     const branchLoaded = (value: string) =>
-      handlers.current.isBranchLoaded?.(value) ?? treeRef.current.expandedValue.includes(value);
+      handlers.current.isBranchLoaded?.(value) ?? expandedRef.current.has(value);
 
     const dragValuesOf = (value: string) =>
       (handlers.current.getDragValues?.(value) ?? [value]).filter(canDrag);
@@ -213,26 +216,31 @@ export function TreeViewDndProvider<T extends TreeNode>({
       if (!allowsDrop(details)) return null;
       const { targetValue, instruction } = details;
       const sourceValues = dragValuesOf(details.sourceValue);
-      const previousCollection = collectionRef.current;
-      const nextCollection = applyTreeDrop(previousCollection, {
+      const previous = collectionRef.current;
+      const next = dropInto(previous, {
         sourceValues,
         targetValue,
         instruction,
         isBranchLoaded: branchLoaded,
       });
-      if (!nextCollection) return null;
+      if (!next) return null;
 
-      const drop = { sourceValues, targetValue, instruction, nextCollection, previousCollection };
+      const nextNodes = next.nodes as T[];
+      const previousNodes = previous.nodes as T[];
+      const drop = { sourceValues, targetValue, instruction, nextNodes, previousNodes };
       const h = handlers.current;
-      h.onCollectionChange(nextCollection);
-      if (instruction.type === "make-child") treeRef.current.expand([targetValue]);
-      announce((h.getDropAnnouncement ?? defaultDropAnnouncement)(drop));
+      h.onNodesChange(nextNodes);
+      if (instruction.type === "make-child") tree.expand([targetValue]);
+      announce(
+        h.getDropAnnouncement?.(drop) ??
+          defaultDropAnnouncement(drop, next as TreeCollection<unknown>),
+      );
       Promise.resolve()
         .then(() => h.onDrop?.(drop))
         .catch(() => {
           // Revert only if no later move has committed since.
-          if (collectionRef.current === nextCollection) {
-            h.onCollectionChange(previousCollection);
+          if (collectionRef.current.nodes === nextNodes) {
+            h.onNodesChange(previousNodes);
           }
         });
       return drop;
@@ -263,7 +271,8 @@ export function TreeViewDndProvider<T extends TreeNode>({
     instanceId,
     disabled,
     collectionRef,
-    treeRef,
+    expandedRef,
+    tree,
     blockReparent,
     autoExpandDelay,
     handlers,

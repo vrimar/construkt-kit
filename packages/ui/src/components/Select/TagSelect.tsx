@@ -3,6 +3,7 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { Box, type BoxProps } from "#styled-system/jsx";
 
 import type { Unstyled } from "../../types";
+import { encodeSelectionValue } from "../Listbox/managed";
 import type { SelectionValue } from "../Listbox/types";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
@@ -26,10 +27,10 @@ interface TagSelectTriggerProps<T> extends BoxProps {
 
 function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTriggerProps<T>) {
   const { managed, appliedItems, hasValue, triggerValue } = useSelectContext();
-  const { collection } = managed.controller;
+  const { getItemValue, getItemLabel } = managed.controller;
   const tags = (appliedItems as T[]).map((item) => ({
     item,
-    value: collection.getItemValue(item) ?? "",
+    value: encodeSelectionValue(getItemValue(item)),
   }));
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -68,7 +69,7 @@ function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTrigge
             >
               <TagsInput.ItemPreview>
                 {renderTag?.(item)}
-                <TagsInput.ItemText>{collection.stringifyItem(item)}</TagsInput.ItemText>
+                <TagsInput.ItemText>{getItemLabel(item)}</TagsInput.ItemText>
               </TagsInput.ItemPreview>
             </TagsInput.Item>
           ))}

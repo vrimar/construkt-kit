@@ -1,21 +1,4 @@
 export {
-  createFileTreeCollection,
-  createTreeCollection,
-  treeViewAnatomy,
-  useTreeView,
-  useTreeViewContext,
-  useTreeViewNodeContext,
-} from "@ark-ui/react/tree-view";
-
-export type {
-  TreeCollection,
-  TreeNode,
-  TreeViewLoadChildrenCompleteDetails,
-  TreeViewLoadChildrenDetails,
-  TreeViewLoadChildrenErrorDetails,
-} from "@ark-ui/react/tree-view";
-
-export {
   type TreeCanDropDetails,
   type TreeDropDetails,
   TreeViewDndProvider,
@@ -33,16 +16,23 @@ export {
 } from "./dnd/treeDropLogic";
 export { useTreeNodeDnd, type UseTreeNodeDndReturn } from "./dnd/useTreeNodeDnd";
 export { DraggableTreeNode, type DraggableTreeNodeProps } from "./DraggableTreeNode";
+export type { TreeCheckedState, TreeNodeAccessors, TreeNodes } from "./treeCollection";
 export type { TreeNodeRenderDetails } from "./TreeRow";
 export { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
-export { TreeView, type TreeViewRootProps, type TreeViewVariantProps } from "./TreeView";
+export {
+  type TreeExpandedChangeDetails,
+  type TreeRenameDetails,
+  type TreeSelectionChangeDetails,
+  TreeView,
+  type TreeViewActions,
+  type TreeViewRootProps,
+  type TreeViewVariantProps,
+} from "./TreeView";
+export type { TreeLoadChildrenDetails, TreeLoadChildrenErrorDetails } from "./useTreeLazyLoad";
 export {
   VirtualTree,
   type VirtualTreeEntry,
   type VirtualTreeProps,
   VirtualTreeRow,
   type VirtualTreeRowProps,
-  type VirtualTreeView,
-  type VirtualTreeViewProps,
-  useVirtualTreeView,
 } from "./VirtualTree";

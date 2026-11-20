@@ -1,4 +1,5 @@
 import type { WithRef } from "../../types";
+import { rendersOwnContent } from "../renderContent";
 import { Button, type ButtonProps } from "./Button";
 
 export interface IconButtonProps extends ButtonProps {
@@ -12,15 +13,16 @@ export const IconButton = ({
   children,
   ...props
 }: WithRef<IconButtonProps, HTMLButtonElement>) => {
+  const ownContent = rendersOwnContent(props.render);
   return (
     <Button
       px="0"
       py="0"
       ref={ref}
       {...props}
-      leftIcon={props.asChild ? (icon ?? leftIcon) : leftIcon}
+      leftIcon={ownContent ? (icon ?? leftIcon) : leftIcon}
     >
-      {props.asChild ? children : (icon ?? children)}
+      {ownContent ? children : (icon ?? children)}
     </Button>
   );
 };

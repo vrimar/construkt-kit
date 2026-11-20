@@ -1,0 +1,9 @@
+- region:
+  - button "Previous slide"
+  - button "Next slide"
+  - group "1 of 5": Slide 1
+  - button "Go to slide 1"
+  - button "Go to slide 2"
+  - button "Go to slide 3"
+  - button "Go to slide 4"
+  - button "Go to slide 5"

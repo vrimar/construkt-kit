@@ -1,21 +1,21 @@
-import { ark } from "@ark-ui/react/factory";
-import { type ComponentProps, type ReactNode, useId } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { Float, createSlotRecipeContext } from "#styled-system/jsx";
 import { navRail } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
-import { wrapAsChildContent } from "../asChildContent";
 import { Badge } from "../Badge";
+import { wrapRenderContent } from "../renderContent";
 import { Tooltip } from "../Tooltip";
 
 const { withProvider, withContext } = createSlotRecipeContext(navRail);
 
-const Root = withProvider(ark.nav, "root");
-const StyledItem = withContext(ark.button, "item");
-const ItemIcon = withContext(ark.span, "itemIcon");
-const ItemLabel = withContext(ark.span, "itemLabel");
-const Footer = withContext(ark.div, "footer");
+const Root = withProvider(renderable.nav, "root");
+const StyledItem = withContext(renderable.button, "item");
+const ItemIcon = withContext(renderable.span, "itemIcon");
+const ItemLabel = withContext(renderable.span, "itemLabel");
+const Footer = withContext(renderable.div, "footer");
 
 export type NavRailRootProps = ComponentProps<typeof Root>;
 export type NavRailFooterProps = ComponentProps<typeof Footer>;
@@ -41,12 +41,9 @@ function Item({
   dot,
   tooltip,
   id,
-  asChild,
-  children,
+  render,
   ...rest
 }: WithRef<NavRailItemProps, HTMLButtonElement>) {
-  const generatedId = useId();
-  const triggerId = id ?? generatedId;
   const content = (
     <>
       <ItemIcon>
@@ -67,24 +64,24 @@ function Item({
       <ItemLabel>{label}</ItemLabel>
     </>
   );
+  const rendered = wrapRenderContent(render, undefined, () => content);
 
   return (
     <Tooltip
       label={tooltip ?? label}
       disabled={tooltip == null}
       placement="right"
-      ids={{ trigger: triggerId }}
     >
       <StyledItem
         ref={ref}
-        id={triggerId}
-        type={asChild ? undefined : "button"}
+        id={id}
+        type={render ? undefined : "button"}
         aria-current={active ? "page" : undefined}
         data-tucked={tucked ? "" : undefined}
-        asChild={asChild}
+        render={rendered.render}
         {...rest}
       >
-        {asChild ? wrapAsChildContent(children, () => content) : content}
+        {rendered.children}
       </StyledItem>
     </Tooltip>
   );

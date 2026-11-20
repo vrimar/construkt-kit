@@ -1,12 +1,9 @@
-import { ark } from "@ark-ui/react/factory";
 import {
   type ComponentProps,
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
-  useCallback,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -18,7 +15,7 @@ import { toolbar } from "#styled-system/recipes";
 
 import { isAriaExpanded, isRtl } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { useLatestRef } from "../../hooks/useLatestRef";
+import { renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
 import { Button, type ButtonProps } from "../Buttons";
 import { Tooltip } from "../Tooltip";
@@ -30,8 +27,8 @@ import {
 
 const { withProvider, withContext } = createSlotRecipeContext(toolbar);
 
-const StyledRoot = withProvider(ark.div, "root");
-const StyledSeparator = withContext(ark.div, "separator");
+const StyledRoot = withProvider(renderable.div, "root");
+const StyledSeparator = withContext(renderable.div, "separator");
 
 const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex], [contenteditable]";
 const OWNS_ARROW_KEYS =
@@ -47,7 +44,7 @@ function getItems(root: HTMLElement, demoted: ReadonlyMap<HTMLElement, string | 
       (el.tabIndex >= 0 || demoted.has(el)) &&
       !el.matches(":disabled, [type=hidden]") &&
       el.closest("[hidden], [inert]") === null &&
-      el.closest("[role=toolbar]") === root &&
+      el.closest("[role=toolbar], [popover], dialog") === root &&
       (typeof el.checkVisibility !== "function" || el.checkVisibility()),
   );
 }
@@ -228,20 +225,9 @@ function Root({
     const nextItem = next === undefined ? undefined : items[next];
     if (!nextItem) return;
     event.preventDefault();
-    if (nextItem === target) return;
-    // zag queues tooltip events: the old trigger's close must run before the new trigger's open.
-    target.blur();
-    queueMicrotask(() => nextItem.focus());
+    if (nextItem !== target) nextItem.focus();
   };
-  const navigateRef = useLatestRef(navigate);
-  const navigateItem = useCallback(
-    (event: KeyboardEvent<HTMLElement>) => navigateRef.current(event),
-    [navigateRef],
-  );
-  const state = useMemo(
-    () => ({ orientation, collapsed, navigate: navigateItem }),
-    [orientation, collapsed, navigateItem],
-  );
+  const state = useMemo(() => ({ orientation, collapsed }), [orientation, collapsed]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
@@ -286,20 +272,16 @@ function ToolbarButton({
   ...rest
 }: WithRef<ToolbarButtonProps, HTMLButtonElement>) {
   const collapsed = useToolbarContext()?.collapsed ?? false;
-  const generatedId = useId();
-  const triggerId = id ?? generatedId;
   const expanded = isAriaExpanded(rest["aria-expanded"]);
 
-  // Ids are shared so a Menu.Trigger or Popover.Trigger parent and the tooltip find one element.
   return (
     <Tooltip
       label={tooltip ?? label}
-      ids={{ trigger: triggerId }}
       disabled={(tooltip == null && !collapsed) || expanded}
     >
       <Button
         ref={ref}
-        id={triggerId}
+        id={id}
         aria-label={collapsed ? label : undefined}
         {...rest}
         px={collapsed ? "0" : rest.px}

@@ -11,8 +11,8 @@ import { instructionLevel, type TreeDropInstruction } from "./treeDropLogic";
 export function TreeDropIndicator({ instruction }: { instruction: TreeDropInstruction | null }) {
   if (!instruction) return null;
 
-  const style: CSSProperties & { "--drop-level"?: number } = {
-    "--drop-level": instructionLevel(instruction),
+  const style: CSSProperties & { "--tree-drop-level"?: number } = {
+    "--tree-drop-level": instructionLevel(instruction),
   };
 
   return (

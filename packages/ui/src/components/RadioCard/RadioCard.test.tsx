@@ -31,6 +31,6 @@ describe("RadioCard", () => {
       </RadioCard.Root>,
     );
 
-    expect(screen.getByTestId("indicator").closest('[data-part="item-control"]')).not.toBeNull();
+    expect(screen.getByTestId("indicator").closest('[data-slot="itemControl"]')).not.toBeNull();
   });
 });

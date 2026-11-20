@@ -21,6 +21,15 @@ export const Default = meta.story({
   },
 });
 
+export const Disabled = meta.story({
+  args: {
+    label: "Volume",
+    defaultValue: [50],
+    disabled: true,
+    width: "300px",
+  },
+});
+
 export const Range = meta.story({
   args: {
     label: "Price range",

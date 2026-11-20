@@ -1,21 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { childIdsOf, createTestTree, type TestNode } from "./tree.fixtures";
+import { childIdsOf, findTestNode, testTree } from "./tree.fixtures";
+import { TreeCollection } from "./treeCollection";
 import { getExpandableBranchValues, replaceNodeChildren } from "./treeCollectionUtils";
 
 const createCollection = () =>
-  createTestTree([
-    {
-      id: "fruits",
-      label: "Fruits",
-      children: [
-        { id: "apple", label: "Apple" },
-        { id: "berries", label: "Berries", childrenCount: 2 },
-      ],
-    },
-    { id: "remote", label: "Remote", childrenCount: 1 },
-    { id: "carrot", label: "Carrot" },
-  ]);
+  TreeCollection.from(
+    testTree([
+      {
+        id: "fruits",
+        label: "Fruits",
+        children: [
+          { id: "apple", label: "Apple" },
+          { id: "berries", label: "Berries", childrenCount: 2 },
+        ],
+      },
+      { id: "remote", label: "Remote", childrenCount: 1 },
+      { id: "carrot", label: "Carrot" },
+    ]),
+  );
 
 describe("getExpandableBranchValues", () => {
   it("returns branches that have children and excludes childrenCount-only nodes", () => {
@@ -37,9 +40,9 @@ describe("replaceNodeChildren", () => {
     const next = replaceNodeChildren(collection, "remote", [{ id: "remote/a", label: "A" }]);
 
     expect(next).not.toBeNull();
-    expect(childIdsOf(next, "remote")).toEqual(["remote/a"]);
+    expect(childIdsOf(next?.nodes, "remote")).toEqual(["remote/a"]);
     expect(next?.findNode("remote")?.childrenCount).toBe(1);
-    expect(collection.getNodeChildren(collection.findNode("remote") as TestNode)).toEqual([]);
+    expect(findTestNode(collection.nodes, "remote")?.children).toBeUndefined();
     expect(next?.findNode("carrot")).toBeDefined();
   });
 

@@ -1,11 +1,11 @@
-import type { TreeCollection, TreeNode, TreeViewNodeState } from "@ark-ui/react/tree-view";
 import { useCallback, useMemo } from "react";
 
 import { getSelectAllState } from "../Listbox/managed";
+import type { TreeCheckedState, TreeCollection } from "./treeCollection";
 import { collectCheckableBranches } from "./treeCollectionUtils";
 import type { TreeNodeRenderDetails } from "./TreeRow";
 
-interface UseTreeCheckSelectionOptions<TNode extends TreeNode> {
+interface UseTreeCheckSelectionOptions<TNode> {
   collection: TreeCollection<TNode>;
   displayedCollection: TreeCollection<TNode>;
   value: string[];
@@ -14,7 +14,7 @@ interface UseTreeCheckSelectionOptions<TNode extends TreeNode> {
   toSourceIndexPath: (indexPath: number[]) => number[];
 }
 
-export function useTreeCheckSelection<TNode extends TreeNode>({
+export function useTreeCheckSelection<TNode>({
   collection,
   displayedCollection,
   value,
@@ -74,7 +74,7 @@ export function useTreeCheckSelection<TNode extends TreeNode>({
     return leafValues.filter((leafValue) => selectableLeafSet.has(leafValue));
   };
 
-  const checkedState = (node: TNode, isBranch: boolean): TreeViewNodeState["checked"] => {
+  const checkedState = (node: TNode, isBranch: boolean): TreeCheckedState => {
     if (!isBranch) return valueSet.has(displayedCollection.getNodeValue(node));
     const { allSelected, someSelected } = getSelectAllState(value, selectableLeavesOf(node, true));
     return allSelected ? true : someSelected ? "indeterminate" : false;
@@ -86,13 +86,5 @@ export function useTreeCheckSelection<TNode extends TreeNode>({
     if (selectable.length) onValueChange(getSelectAllState(value, selectable).toggle());
   };
 
-  const setCheckedValue = (checkedValue: string[]) => {
-    const nextSet = new Set(checkedValue);
-    onValueChange([
-      ...value.filter((entry) => nextSet.has(entry) || !selectableLeafSet.has(entry)),
-      ...checkedValue.filter((entry) => !valueSet.has(entry) && selectableLeafSet.has(entry)),
-    ]);
-  };
-
-  return { selectAll, isCheckable, checkedState, toggle, setCheckedValue };
+  return { selectAll, isCheckable, checkedState, toggle };
 }

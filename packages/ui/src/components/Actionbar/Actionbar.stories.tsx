@@ -25,7 +25,7 @@ function ControlledActionBarStory() {
       </Button>
       <ActionBar.Root
         open={open}
-        onOpenChange={(e) => setOpen(e.open)}
+        onOpenChange={(next) => setOpen(next)}
       >
         <ActionBar.Content>
           <ActionBar.SelectionTrigger>2 selected</ActionBar.SelectionTrigger>
@@ -101,8 +101,8 @@ function InlineActionBarStory() {
         <ActionBar.Root
           placement="inline"
           open={selected.length > 0}
-          onOpenChange={(e) => {
-            if (!e.open) setSelected([]);
+          onOpenChange={(open) => {
+            if (!open) setSelected([]);
           }}
         >
           <ActionBar.Content aria-label="Selected tasks">
@@ -149,15 +149,15 @@ function InlineActionBarStory() {
               <Menu.Root>
                 <Menu.Trigger
                   tooltip="More"
-                  asChild
-                >
-                  <IconButton
-                    variant="plain"
-                    size="sm"
-                    aria-label="More"
-                    icon={<MoreHorizontalIcon />}
-                  />
-                </Menu.Trigger>
+                  render={
+                    <IconButton
+                      variant="plain"
+                      size="sm"
+                      aria-label="More"
+                      icon={<MoreHorizontalIcon />}
+                    />
+                  }
+                />
                 <Menu.Content>
                   <Menu.Item value="copy">Copy to another project</Menu.Item>
                   <Menu.Item value="board">Start a board from these</Menu.Item>

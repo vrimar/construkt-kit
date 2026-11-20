@@ -1,24 +1,24 @@
-import { ark } from "@ark-ui/react/factory";
 import type { ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { alert } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import { createCloseTrigger } from "../closeTrigger";
 import { statusIcons } from "../statusIcons";
 
 const { withProvider, withContext } = createSlotRecipeContext(alert);
 
 export type AlertRootProps = ComponentProps<typeof Root>;
-const Root = withProvider(ark.div, "root");
-const Title = withContext(ark.h3, "title");
-const Description = withContext(ark.div, "description");
-const Content = withContext(ark.div, "content");
-const Indicator = withContext(ark.span, "indicator", {
+const Root = withProvider(renderable.div, "root");
+const Title = withContext(renderable.h3, "title");
+const Description = withContext(renderable.div, "description");
+const Content = withContext(renderable.div, "content");
+const Indicator = withContext(renderable.span, "indicator", {
   defaultProps: { children: <statusIcons.info /> },
 });
 const CloseTrigger = createCloseTrigger(
-  withContext(ark.button, "closeTrigger", { defaultProps: { type: "button" } }),
+  withContext(renderable.button, "closeTrigger", { defaultProps: { type: "button" } }),
 );
 
 export interface AlertProps extends Omit<AlertRootProps, "title"> {

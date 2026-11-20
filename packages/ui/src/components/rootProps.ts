@@ -1,8 +1,14 @@
 import type { HTMLStyledProps } from "#styled-system/jsx";
 
+import type { RenderProp } from "../primitives/render";
+
 /**
- * Styled `div` props for an Ark root whose own props are `Base`, without the keys `Base` defines.
- * Ark's `RootComponent<P>` lets `P` win, so a DOM `onSelect` or `defaultValue` left in `P`
- * would replace the root's own.
+ * Styled `div` props for a root whose own props are `Base`, without the keys `Base` defines, so a
+ * DOM `onSelect` or `defaultValue` can't stand in for the root's own.
  */
-export type StyledRootProps<Base> = Omit<HTMLStyledProps<"div">, keyof Base>;
+export type StyledRootProps<Base> = Omit<HTMLStyledProps<"div">, keyof Base> & {
+  asChild?: never;
+  render?: RenderProp | undefined;
+};
+
+export type WithRender<P> = P & { asChild?: never; render?: RenderProp | undefined };

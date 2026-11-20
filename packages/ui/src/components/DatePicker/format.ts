@@ -1,6 +1,6 @@
-import type { DateValue } from "@ark-ui/react/date-picker";
 import { formatIsoDate } from "@construkt-kit/utils";
 
+import type { DateValue } from "./dateUtils";
 import type { CalendarMode } from "./types";
 
 export const getDisplayLabel = (

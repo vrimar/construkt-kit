@@ -1,14 +1,16 @@
-import { type CollectionItem, createListCollection } from "@ark-ui/react/collection";
-import { Combobox as ArkCombobox } from "@ark-ui/react/combobox";
-import { Dialog as ArkDialog, useDialogContext } from "@ark-ui/react/dialog";
-import { ark } from "@ark-ui/react/factory";
 import { CheckIcon, SearchIcon } from "lucide-react";
 import {
   type ComponentProps,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
   type ReactNode,
+  type Ref,
   type RefObject,
   createContext,
+  useCallback,
   useContext,
+  useEffect,
   useId,
   useLayoutEffect,
   useMemo,
@@ -23,14 +25,25 @@ import { isComposingEvent } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import type { WithRef } from "../../types";
+import {
+  type OpenChangeDetails,
+  type OpenChangeReason,
+  createOpenChangeDetails,
+} from "../../primitives/layer";
+import { renderable } from "../../primitives/render";
+import { useStore } from "../../primitives/store";
 import { CloseButton } from "../Buttons";
-import { moveCaretOnHomeEnd } from "../Combobox/inputKeys";
-import { Dialog, type DialogRootProps } from "../Dialog";
+import { Announcer } from "../Combobox/Announcer";
+import { Dialog, type DialogRootOwnProps } from "../Dialog";
 import { SearchHighlight } from "../Highlight";
 import { useItemSlotIds } from "../itemSlots";
 import { Kbd } from "../Kbd";
-import type { StyledRootProps } from "../rootProps";
+import {
+  type ListEntry,
+  ListboxNode,
+  selectHighlighted,
+  selectIsHighlighted,
+} from "../Listbox/listboxNode";
 
 /** A sub-page on the palette's stack. `label` is its token in the search field. */
 export interface CommandPalettePage {
@@ -60,10 +73,16 @@ interface ItemRegistry {
 }
 
 interface PaletteContextValue {
+  node: ListboxNode;
+  ids: { label: string; input: string; list: string };
   query: string;
+  setQuery: (query: string) => void;
   pages: readonly CommandPalettePage[];
   closePage: () => void;
+  close: (reason: OpenChangeReason, event?: Event) => void;
+  empty: boolean;
   register: ItemRegistry["register"];
+  pick: (value: string, event: Event) => void;
 }
 
 const PaletteContext = createContext<PaletteContextValue | null>(null);
@@ -78,28 +97,23 @@ function usePalette() {
 
 const { withProvider, withContext } = createSlotRecipeContext(commandPalette);
 
-type ComboboxRootProps = StyledRootProps<ArkCombobox.RootBaseProps<CollectionItem>>;
-
-const StyledRoot = withProvider(
-  ArkCombobox.Root,
-  "root",
-) as ArkCombobox.RootComponent<ComboboxRootProps>;
-const Label = withContext(ArkCombobox.Label, "label");
-const Control = withContext(ArkCombobox.Control, "control");
-const Token = withContext(ark.span, "token");
-const StyledInput = withContext(ArkCombobox.Input, "input");
-const StyledContent = withContext(ArkCombobox.Content, "content");
-const ItemGroup = withContext(ArkCombobox.ItemGroup, "itemGroup");
-const ItemGroupLabel = withContext(ArkCombobox.ItemGroupLabel, "itemGroupLabel");
-const ItemGroupCount = withContext(ark.span, "itemGroupCount");
-const StyledItem = withContext(ArkCombobox.Item, "item");
-const ItemIcon = withContext(ark.span, "itemIcon");
-const ItemBody = withContext(ark.span, "itemBody");
-const ItemText = withContext(ArkCombobox.ItemText, "itemText");
-const ItemDescription = withContext(ark.span, "itemDescription");
-const ItemMeta = withContext(ark.span, "itemMeta");
-const ItemIndicator = withContext(ArkCombobox.ItemIndicator, "itemIndicator");
-const Empty = withContext(ArkCombobox.Empty, "empty");
+const StyledRoot = withProvider(renderable.div, "root");
+const Label = withContext(renderable.label, "label");
+const Control = withContext(renderable.div, "control");
+const Token = withContext(renderable.span, "token");
+const StyledInput = withContext(renderable.input, "input");
+const StyledContent = withContext(renderable.div, "content");
+const StyledItemGroup = withContext(renderable.div, "itemGroup");
+const ItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
+const ItemGroupCount = withContext(renderable.span, "itemGroupCount");
+const StyledItem = withContext(renderable.div, "item");
+const ItemIcon = withContext(renderable.span, "itemIcon");
+const ItemBody = withContext(renderable.span, "itemBody");
+const ItemText = withContext(renderable.span, "itemText");
+const ItemDescription = withContext(renderable.span, "itemDescription");
+const ItemMeta = withContext(renderable.span, "itemMeta");
+const ItemIndicator = withContext(renderable.div, "itemIndicator");
+const StyledEmpty = withContext(renderable.div, "empty");
 
 const byDocumentOrder = (a: RegisteredItem, b: RegisteredItem) => {
   if (a.node == null || b.node == null || a.node === b.node) return 0;
@@ -159,27 +173,19 @@ interface Navigation {
   closePage: () => void;
 }
 
-interface PaletteComboboxProps {
+interface PaletteListProps {
   label: string;
   navigation: Navigation;
+  close: (reason: OpenChangeReason, event?: Event) => void;
   children?: ReactNode;
 }
 
-function PaletteCombobox({ label, navigation, children }: PaletteComboboxProps) {
-  const dialog = useDialogContext();
+function PaletteList({ label, navigation, close, children }: PaletteListProps) {
+  const id = useId();
+  const [node] = useState(() => new ListboxNode(`command-palette:${id}`, null));
   const { items, registry } = useItemRegistry();
-  const collection = useMemo(
-    () =>
-      createListCollection({
-        items,
-        itemToValue: (item) => item.value,
-        itemToString: (item) => item.label,
-        isItemDisabled: (item) => item.disabled,
-      }),
-    [items],
-  );
-  const checkedValues = useMemo(
-    () => items.filter((item) => item.checked).map((item) => item.value),
+  const entries = useMemo<ListEntry[]>(
+    () => items.map(({ value, label: text, disabled }) => ({ value, label: text, disabled })),
     [items],
   );
 
@@ -189,9 +195,11 @@ function PaletteCombobox({ label, navigation, children }: PaletteComboboxProps) 
     value: null,
   });
   const pickedValue = picked.scope === highlightScope ? picked.value : null;
-  const pickedItem = collection.find(pickedValue);
+  const pickedItem = items.find((item) => item.value === pickedValue);
   const highlightedValue =
-    pickedItem != null && !pickedItem.disabled ? pickedItem.value : collection.firstValue;
+    pickedItem != null && !pickedItem.disabled
+      ? pickedItem.value
+      : (items.find((item) => !item.disabled)?.value ?? null);
 
   const select = (value: string) => {
     const item = registry.get(value);
@@ -202,46 +210,77 @@ function PaletteCombobox({ label, navigation, children }: PaletteComboboxProps) 
       navigation.openPage({ value: opensPage, label: itemLabel });
       return;
     }
-    if (closeOnSelect) dialog.setOpen(false);
+    if (closeOnSelect) close("item-press");
     onSelect?.();
   };
 
+  useLayoutEffect(() => {
+    node.update({
+      entries,
+      disabled: false,
+      loopFocus: true,
+      typeahead: false,
+      alwaysShowHighlight: true,
+      scrollToIndex: undefined,
+      onPick: (value) => select(value),
+      onNavigate: undefined,
+      onSelectAll: undefined,
+      onHighlightChange: (value) => setPicked({ scope: highlightScope, value }),
+      highlightControlled: true,
+    });
+  });
+
+  useLayoutEffect(() => {
+    node.syncHighlight(highlightedValue);
+  }, [node, highlightedValue]);
+
+  useEffect(() => {
+    if (highlightedValue != null) node.scrollTo(highlightedValue);
+  }, [node, highlightedValue, entries]);
+
   const context: PaletteContextValue = {
+    node,
+    ids: {
+      label: `${node.id}:label`,
+      input: `${node.id}:input`,
+      list: `${node.id}:content`,
+    },
     query: navigation.query,
+    setQuery: navigation.setQuery,
     pages: navigation.pages,
     closePage: navigation.closePage,
+    close,
+    empty: items.length === 0,
     register: registry.register,
+    pick: (value, event) => node.pick(value, event),
   };
 
   return (
     <PaletteContext.Provider value={context}>
-      <StyledRoot
-        collection={collection}
-        open
-        disableLayer
-        allowCustomValue
-        selectionBehavior="preserve"
-        inputValue={navigation.query}
-        onInputValueChange={({ inputValue, reason }) => {
-          if (reason === "input-change") navigation.setQuery(inputValue);
-        }}
-        value={checkedValues}
-        highlightedValue={highlightedValue}
-        onHighlightChange={({ highlightedValue: value }) => {
-          setPicked({ scope: highlightScope, value });
-        }}
-        onSelect={({ itemValue }) => select(itemValue)}
-      >
-        <Label>{[label, ...navigation.pages.map((page) => page.label)].join(" › ")}</Label>
+      <StyledRoot>
+        <Label
+          id={context.ids.label}
+          htmlFor={context.ids.input}
+        >
+          {[label, ...navigation.pages.map((page) => page.label)].join(" › ")}
+        </Label>
         {children}
+        <Announcer
+          node={node}
+          entries={entries}
+          inputValue={navigation.query}
+          loading={false}
+          suggesting
+          isSelected={(value) => registry.get(value)?.checked === true}
+        />
       </StyledRoot>
     </PaletteContext.Provider>
   );
 }
 
 export interface CommandPaletteRootProps extends Omit<
-  DialogRootProps,
-  "children" | "aria-label" | "role" | "size" | "placement" | "scrollBehavior" | "motionPreset"
+  DialogRootOwnProps,
+  "children" | "role" | "size" | "placement" | "scrollBehavior" | "motionPreset"
 > {
   children?: ReactNode;
   /** Names the dialog and its search field. */
@@ -266,7 +305,9 @@ function Root({
   pages: pagesProp,
   defaultPages = NO_PAGES,
   onPagesChange,
-  onEscapeKeyDown,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
   onExitComplete,
   children,
   ...dialogProps
@@ -281,6 +322,12 @@ function Root({
     defaultValue: defaultPages,
     onChange: onPagesChange,
   });
+  const [open, setOpen] = useControllableState({ value: openProp, defaultValue: defaultOpen });
+
+  const changeOpen = (next: boolean, details: OpenChangeDetails) => {
+    onOpenChange?.(next, details);
+    if (!details.canceled) setOpen(next);
+  };
 
   const setPages = (next: CommandPalettePage[]) => {
     changePages(next);
@@ -301,11 +348,14 @@ function Root({
       scrollBehavior="inside"
       aria-label={label}
       {...dialogProps}
-      onEscapeKeyDown={(event) => {
-        onEscapeKeyDown?.(event);
-        if (event.defaultPrevented || pages.length === 0) return;
-        event.preventDefault();
-        navigation.closePage();
+      open={open}
+      onOpenChange={(next, details) => {
+        if (!next && details.reason === "escape-key" && pages.length > 0) {
+          details.cancel();
+          navigation.closePage();
+          return;
+        }
+        changeOpen(next, details);
       }}
       onExitComplete={() => {
         resetQuery();
@@ -318,23 +368,53 @@ function Root({
         py={{ md: "0" }}
         overflow="hidden"
       >
-        <PaletteCombobox
+        <PaletteList
           label={label}
           navigation={navigation}
+          close={(reason, event) => changeOpen(false, createOpenChangeDetails(reason, event))}
         >
           {children}
-        </PaletteCombobox>
+        </PaletteList>
       </Dialog.Content>
     </Dialog.Root>
   );
 }
 
-function Input({
-  ref,
-  onKeyDown,
-  ...props
-}: WithRef<ComponentProps<typeof StyledInput>, HTMLInputElement>) {
-  const { pages, closePage } = usePalette();
+function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof StyledInput>) {
+  const context = usePalette();
+  const { node, pages, closePage } = context;
+  const highlighted = useStore(node.store, selectHighlighted);
+  const setInput = useCallback(
+    (element: HTMLElement | null) => {
+      node.setInput(element);
+      return () => node.setInput(null);
+    },
+    [node],
+  );
+  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setInput);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || isComposingEvent(event)) return;
+    const backOnePage =
+      event.key === "Backspace" && event.currentTarget.value === "" && pages.length > 0;
+    if (backOnePage) {
+      event.preventDefault();
+      closePage();
+      return;
+    }
+    if (event.ctrlKey || (event.shiftKey && event.key !== "Enter")) return;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      node.move(event.key === "ArrowDown" ? "next" : "prev");
+      return;
+    }
+    if (event.key !== "Enter" || node.highlighted == null) return;
+    event.preventDefault();
+    const item = node.elementOf(node.highlighted);
+    if (item?.matches("a[href]")) queueMicrotask(() => item.click());
+    else context.pick(node.highlighted, event.nativeEvent);
+  };
 
   return (
     <Control>
@@ -344,35 +424,54 @@ function Input({
         pages.map((page, index) => <Token key={index}>{page.label}</Token>)
       )}
       <StyledInput
-        ref={ref}
+        id={context.ids.input}
+        type="text"
+        role="combobox"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="none"
+        spellCheck={false}
+        aria-autocomplete="list"
+        aria-controls={context.ids.list}
+        aria-expanded
+        aria-activedescendant={highlighted == null ? undefined : node.itemId(highlighted)}
+        value={context.query}
         {...props}
-        onKeyDown={(event) => {
-          onKeyDown?.(event);
-          moveCaretOnHomeEnd(event);
-          const backOnePage =
-            event.key === "Backspace" &&
-            !isComposingEvent(event) &&
-            event.currentTarget.value === "" &&
-            pages.length > 0;
-          if (event.defaultPrevented || !backOnePage) return;
-          event.preventDefault();
-          closePage();
+        ref={composedRef}
+        onChange={(event) => {
+          onChange?.(event);
+          context.setQuery(event.currentTarget.value);
         }}
+        onKeyDown={handleKeyDown}
       />
-      <ArkDialog.CloseTrigger asChild>
-        <CloseButton
-          size="sm"
-          hideFrom="md"
-        />
-      </ArkDialog.CloseTrigger>
+      <CloseButton
+        size="sm"
+        hideFrom="md"
+        onClick={(event) => context.close("close-press", event.nativeEvent)}
+      />
     </Control>
   );
 }
 
-function List({ onMouseDown, ...props }: WithRef<ComponentProps<typeof StyledContent>>) {
+function List({ ref, onMouseDown, ...props }: ComponentProps<typeof StyledContent>) {
+  const context = usePalette();
+  const setContent = useCallback(
+    (element: HTMLElement | null) => {
+      context.node.setContent(element);
+      return () => context.node.setContent(null);
+    },
+    [context.node],
+  );
+  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setContent);
   return (
     <StyledContent
+      id={context.ids.list}
+      role="listbox"
+      tabIndex={-1}
+      aria-labelledby={context.ids.label}
+      data-empty={context.empty ? "" : undefined}
       {...props}
+      ref={composedRef}
       onMouseDown={(event) => {
         onMouseDown?.(event);
         // Keeps focus in the search field when a row is clicked.
@@ -382,29 +481,51 @@ function List({ onMouseDown, ...props }: WithRef<ComponentProps<typeof StyledCon
   );
 }
 
-export interface CommandPaletteGroupProps extends ComponentProps<typeof ItemGroup> {
+function Empty(props: ComponentProps<typeof StyledEmpty>) {
+  if (!usePalette().empty) return null;
+  return (
+    <StyledEmpty
+      {...props}
+      role="presentation"
+    />
+  );
+}
+
+export interface CommandPaletteGroupProps extends ComponentProps<typeof StyledItemGroup> {
   label?: ReactNode;
   /** Shown at the end of the heading, such as the number of matches before a limit. */
   count?: ReactNode;
 }
 
-function Group({ label, count, children, ...props }: WithRef<CommandPaletteGroupProps>) {
+function Group({ id, label, count, children, ...props }: CommandPaletteGroupProps) {
+  const generated = useId();
+  const groupId = id ?? `command-palette-group:${generated}`;
+  const labelId = `${groupId}:label`;
+  const labelled = label != null || count != null;
   return (
-    <ItemGroup {...props}>
-      {(label != null || count != null) && (
-        <ItemGroupLabel>
+    <StyledItemGroup
+      id={groupId}
+      role="group"
+      aria-labelledby={labelled ? labelId : undefined}
+      {...props}
+    >
+      {labelled && (
+        <ItemGroupLabel
+          id={labelId}
+          role="presentation"
+        >
           {label}
           {count != null && <ItemGroupCount>{count}</ItemGroupCount>}
         </ItemGroupLabel>
       )}
       {children}
-    </ItemGroup>
+    </StyledItemGroup>
   );
 }
 
 export interface CommandPaletteItemProps extends Omit<
   ComponentProps<typeof StyledItem>,
-  "item" | "persistFocus" | "children" | "onSelect"
+  "children" | "onSelect"
 > {
   /** Identifies the item among the items rendered with it. */
   value: string;
@@ -445,12 +566,21 @@ function Item({
   opensPage,
   onSelect,
   closeOnSelect = true,
+  onPointerMove,
+  onClick,
   ...props
-}: WithRef<CommandPaletteItemProps>) {
-  const { query, register } = usePalette();
+}: CommandPaletteItemProps) {
+  const context = usePalette();
+  const { node, query, register } = context;
   const nodeRef = useRef<HTMLDivElement>(null);
-  const composedRef = useComposedRefs(nodeRef, ref);
+  const registerElement = useCallback(
+    (element: HTMLElement | null) => (element ? node.registerItem(value, element) : undefined),
+    [node, value],
+  );
+  const elementRef = useComposedRefs(nodeRef, registerElement);
+  const composedRef = useComposedRefs(elementRef, ref);
   const action = useLatestRef<ItemAction>({ label, opensPage, closeOnSelect, onSelect });
+  const highlighted = useStore(node.store, selectIsHighlighted, value);
 
   // No deps: registering on every commit keeps keyboard order in step with keyed reorders.
   useLayoutEffect(() =>
@@ -471,12 +601,28 @@ function Item({
 
   return (
     <StyledItem
-      ref={composedRef}
+      id={node.itemId(value)}
+      role="option"
+      tabIndex={-1}
+      data-value={value}
+      aria-selected={checked === true}
+      aria-disabled={disabled || undefined}
+      data-selected={checked ? "" : undefined}
+      data-highlighted={highlighted ? "" : undefined}
+      data-disabled={disabled ? "" : undefined}
       aria-labelledby={props["aria-label"] === undefined ? textId : undefined}
       {...props}
       aria-describedby={describedBy}
-      item={{ value, label, disabled }}
-      persistFocus
+      ref={composedRef}
+      onPointerMove={(event: PointerEvent<HTMLDivElement>) => {
+        onPointerMove?.(event);
+        if (!disabled && !highlighted) node.highlight(value);
+      }}
+      onClick={(event: MouseEvent<HTMLDivElement>) => {
+        onClick?.(event);
+        if (event.defaultPrevented || disabled || event.button !== 0) return;
+        context.pick(value, event.nativeEvent);
+      }}
     >
       {icon != null && <ItemIcon>{icon}</ItemIcon>}
       <ItemBody>
@@ -514,7 +660,10 @@ function Item({
         </Kbd>
       )}
       {checked != null && (
-        <ItemIndicator hidden={false}>
+        <ItemIndicator
+          aria-hidden
+          {...(checked ? { "data-checked": "" } : { "data-unchecked": "" })}
+        >
           <CheckIcon />
         </ItemIndicator>
       )}

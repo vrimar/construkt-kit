@@ -12,4 +12,24 @@ for (const id of selectStories(["components-popover-confirmpopover--destructive"
       ).toBeFocused();
     },
   );
+
+  test(
+    `${id} Cancel from the keyboard returns focus to the trigger with its focus ring`,
+    { tag: [...storyTags(id), "@desktop-only"] },
+    async ({ gallery, page }) => {
+      await gallery.open(id);
+      const trigger = page
+        .getByRole("button", { name: "Delete project" })
+        .and(page.locator("[aria-expanded]"));
+      await trigger.focus();
+      await page.keyboard.press("Enter");
+      const cancel = page.getByRole("alertdialog").getByRole("button", { name: "Cancel" });
+      await expect(cancel).toBeFocused();
+
+      await page.keyboard.press("Enter");
+
+      await expect(trigger).toBeFocused();
+      expect(await trigger.evaluate((element) => element.matches(":focus-visible"))).toBe(true);
+    },
+  );
 }

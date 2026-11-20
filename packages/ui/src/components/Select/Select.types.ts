@@ -4,6 +4,7 @@ import type { Box, HTMLStyledProps } from "#styled-system/jsx";
 import type { ListboxVariant } from "#styled-system/recipes";
 import type { JsxStyleProps } from "#styled-system/types";
 
+import type { OpenChangeDetails } from "../../primitives/layer";
 import type { CssProp, Unstyled } from "../../types";
 import type { SelectButtonProps } from "../Buttons";
 import type { SearchInputProps } from "../Input";
@@ -49,7 +50,7 @@ export interface SelectRootBaseProps<T, V extends SelectionValue>
   matchTriggerWidth?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => unknown;
+  onOpenChange?: (open: boolean, details: OpenChangeDetails) => unknown;
   placement?: PopoverRootProps["placement"];
   actionsVisibility?: ListboxVariant["actionsVisibility"];
 }

@@ -55,7 +55,7 @@ export const formSubmitProps = (onSubmit: (() => unknown) | undefined) => ({
   noValidate: true,
   onSubmit: (event: SyntheticEvent) => {
     event.preventDefault();
-    // React bubbles submit out of a portal to any form that renders this one.
+    // Submit bubbles to any form that renders this one, in place or through a portal.
     event.stopPropagation();
     onSubmit?.();
   },

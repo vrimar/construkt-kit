@@ -7,12 +7,15 @@ import { Drawer } from "../Drawer";
 import { SubmitForm } from "./SubmitForm";
 
 describe("SubmitForm", () => {
-  it("does not submit a form that renders it through a portal", async () => {
+  it("does not submit a form that renders it inside a drawer", async () => {
     const onOuterSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
     const onSubmit = vi.fn();
     render(
       <form onSubmit={onOuterSubmit}>
-        <Drawer.Root open>
+        <Drawer.Root
+          open
+          aria-label="Edit"
+        >
           <Drawer.Content>
             <SubmitForm
               onSubmit={onSubmit}

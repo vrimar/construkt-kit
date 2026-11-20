@@ -80,6 +80,32 @@ export const CustomRendering = meta.story({
   ),
 });
 
+export const OverlayActions = meta.story({
+  render: () => (
+    <Listbox
+      items={items}
+      getItemValue={(item) => item.id}
+      getItemLabel={(item) => item.name}
+      value={4}
+      onValueChange={() => {}}
+      selection="tint"
+      actionsPosition="overlay"
+      actionsVisibility="always"
+      renderItemActions={(item) => (
+        <Button
+          size="2xs"
+          variant="plain"
+          aria-label={`Edit ${item.name}`}
+        >
+          Edit
+        </Button>
+      )}
+      label="Fruit"
+      maxW="32"
+    />
+  ),
+});
+
 const teamMembers = [
   { id: 1, name: "Ada Lovelace", count: 12, unavailable: "Already assigned" },
   { id: 2, name: "Grace Hopper", count: 8 },
@@ -114,7 +140,10 @@ export const Hints = meta.story({
 
 export const IndicatorPositions = meta.story({
   render: () => (
-    <HStack alignItems="flex-start">
+    <HStack
+      alignItems="flex-start"
+      flexWrap="wrap"
+    >
       {(["start", "end", "none"] as const).map((indicatorPosition) => (
         <Listbox
           key={indicatorPosition}
@@ -202,9 +231,7 @@ export const InPopover = meta.story({
     const [value, setValue] = useState<number | null>(1);
     return (
       <Popover.Root defaultOpen>
-        <Popover.Trigger asChild>
-          <Button variant="outline">Produce</Button>
-        </Popover.Trigger>
+        <Popover.Trigger render={<Button variant="outline" />}>Produce</Popover.Trigger>
         <Popover.Content>
           <Popover.Header>
             <Popover.Title>Produce</Popover.Title>

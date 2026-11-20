@@ -1,19 +1,29 @@
-import { CalendarContent } from "./CalendarContent";
+import { usePickerPopup } from "../pickerPopup";
+import {
+  CalendarBody,
+  CalendarProviders,
+  calendarRootAttributes,
+  useCalendarRoot,
+} from "./calendarRoot";
 import * as Parts from "./parts";
 import type { CalendarMode, CalendarProps } from "./types";
-import { useCalendarMachine } from "./useCalendarMachine";
 
 export const Calendar = (props: CalendarProps<CalendarMode>) => {
-  const { api, contentProps } = useCalendarMachine(props, { inline: true });
+  const popup = usePickerPopup({ inline: true });
+  const calendar = useCalendarRoot(props, popup);
 
   return (
-    <Parts.RootProvider
-      value={api}
-      variant="inline"
+    <CalendarProviders
+      popup={popup}
+      calendar={calendar}
     >
-      <Parts.Content>
-        <CalendarContent {...contentProps} />
-      </Parts.Content>
-    </Parts.RootProvider>
+      <Parts.Root
+        variant="inline"
+        {...calendarRootAttributes(calendar)}
+      >
+        <CalendarBody props={props} />
+        {calendar.liveRegion}
+      </Parts.Root>
+    </CalendarProviders>
   );
 };

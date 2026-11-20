@@ -26,7 +26,7 @@ export function useFakeTime() {
   });
 }
 
-// zag wires overlay listeners up to two frames after opening, so actions are spaced like a quick human's.
+// Overlays settle presence and initial focus a frame after opening, so actions are spaced like a quick human's.
 const ACTION_GAP_MS = 50;
 
 export const setupUser = (options?: UserEventOptions): UserEvent =>

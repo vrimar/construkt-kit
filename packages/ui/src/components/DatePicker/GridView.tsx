@@ -1,66 +1,92 @@
-import { useDatePickerContext } from "@ark-ui/react/date-picker";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { HStack } from "#styled-system/jsx";
 
 import { Button, IconButton } from "../Buttons";
+import type { DateView } from "./dateUtils";
 import * as Parts from "./parts";
+import { useCalendarContext } from "./useCalendar";
 
-const viewTrigger = (text: string) => (
-  <Parts.ViewTrigger asChild>
-    <Button fontWeight="bold">{text}</Button>
+const ViewTrigger = ({ view, text }: { view: DateView; text: string }) => (
+  <Parts.ViewTrigger
+    {...useCalendarContext().getViewTriggerProps(view)}
+    render={<Button fontWeight="bold" />}
+  >
+    {text}
   </Parts.ViewTrigger>
 );
 
-export const DatePickerViewControl = ({ endLabel }: { endLabel?: boolean }) => {
-  const datePicker = useDatePickerContext();
+export const DatePickerViewControl = ({
+  view,
+  endLabel,
+}: {
+  view: DateView;
+  endLabel?: boolean;
+}) => {
+  const calendar = useCalendarContext();
 
   return (
-    <Parts.ViewControl>
+    <Parts.ViewControl data-view={view}>
       <HStack>
-        <Parts.PrevTrigger asChild>
-          <IconButton>
-            <ChevronLeftIcon />
-          </IconButton>
+        <Parts.PrevTrigger
+          {...calendar.getPrevTriggerProps(view)}
+          render={<IconButton />}
+        >
+          <ChevronLeftIcon />
         </Parts.PrevTrigger>
-        {viewTrigger(datePicker.visibleRangeText.start)}
+        <ViewTrigger
+          view={view}
+          text={calendar.visibleRangeText.start}
+        />
       </HStack>
 
-      {endLabel && viewTrigger(datePicker.visibleRangeText.end)}
+      {endLabel && (
+        <ViewTrigger
+          view={view}
+          text={calendar.visibleRangeText.end}
+        />
+      )}
 
-      <Parts.NextTrigger asChild>
-        <IconButton>
-          <ChevronRightIcon />
-        </IconButton>
+      <Parts.NextTrigger
+        {...calendar.getNextTriggerProps(view)}
+        render={<IconButton />}
+      >
+        <ChevronRightIcon />
       </Parts.NextTrigger>
     </Parts.ViewControl>
   );
 };
 
 export const DatePickerGridView = ({ view }: { view: "month" | "year" }) => {
-  const datePicker = useDatePickerContext();
-  const grid =
-    view === "month"
-      ? datePicker.getMonthsGrid({ columns: 4, format: "short" })
-      : datePicker.getYearsGrid({ columns: 4 });
+  const calendar = useCalendarContext();
+  const grid = view === "month" ? calendar.monthsGrid() : calendar.yearsGrid();
 
   return (
-    <Parts.View view={view}>
-      <DatePickerViewControl />
-      <Parts.Table>
+    <Parts.View data-view={view}>
+      <DatePickerViewControl view={view} />
+      <Parts.Table {...calendar.getTableProps(view, 4)}>
         <Parts.TableBody>
           {grid.map((row, rowIndex) => (
-            <Parts.TableRow key={rowIndex}>
-              {row.map((cell, cellIndex) => (
-                <Parts.TableCell
-                  key={cellIndex}
-                  value={cell.value}
-                >
-                  <Parts.TableCellTrigger asChild>
-                    <Button>{cell.label}</Button>
-                  </Parts.TableCellTrigger>
-                </Parts.TableCell>
-              ))}
+            <Parts.TableRow
+              key={rowIndex}
+              {...calendar.getRowProps()}
+            >
+              {row.map((cell) => {
+                const state = calendar.getGridCell(view, cell.value);
+                return (
+                  <Parts.TableCell
+                    key={cell.value}
+                    {...calendar.getGridCellProps(state)}
+                  >
+                    <Parts.TableCellTrigger
+                      {...calendar.getGridTriggerProps(state, view)}
+                      render={<Button />}
+                    >
+                      {cell.label}
+                    </Parts.TableCellTrigger>
+                  </Parts.TableCell>
+                );
+              })}
             </Parts.TableRow>
           ))}
         </Parts.TableBody>

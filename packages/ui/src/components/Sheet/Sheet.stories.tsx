@@ -1,6 +1,7 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { ChevronLeftIcon } from "lucide-react";
 import { useState } from "react";
+import { fn } from "storybook/test";
 
 import { Sheet } from ".";
 import { Button, IconButton } from "../Buttons";
@@ -18,25 +19,22 @@ const lines = Array.from({ length: 30 }, (_, i) => `Row ${i + 1}`);
 
 export const Default = meta.story({
   render: () => (
-    <Sheet.Root>
-      <Sheet.Trigger asChild>
-        <Button>Open sheet</Button>
-      </Sheet.Trigger>
-      <Sheet.Content>
-        <Sheet.Header
-          endElement={
-            <Sheet.ActionTrigger asChild>
+    <Sheet.Root title="Sheet title">
+      <Sheet.Trigger render={<Button />}>Open sheet</Sheet.Trigger>
+      <Sheet.Content
+        headerEnd={
+          <Sheet.ActionTrigger
+            render={
               <Button
                 variant="plain"
                 size="sm"
-              >
-                Done
-              </Button>
-            </Sheet.ActionTrigger>
-          }
-        >
-          <Sheet.Title>Sheet title</Sheet.Title>
-        </Sheet.Header>
+              />
+            }
+          >
+            Done
+          </Sheet.ActionTrigger>
+        }
+      >
         <Sheet.Body>
           <Text>Swipe down, tap the backdrop or press Escape to close.</Text>
         </Sheet.Body>
@@ -47,14 +45,9 @@ export const Default = meta.story({
 
 export const FullHeight = meta.story({
   render: () => (
-    <Sheet.Root>
-      <Sheet.Trigger asChild>
-        <Button>Open full-height sheet</Button>
-      </Sheet.Trigger>
+    <Sheet.Root title="Long list">
+      <Sheet.Trigger render={<Button />}>Open full-height sheet</Sheet.Trigger>
       <Sheet.Content fullHeight>
-        <Sheet.Header>
-          <Sheet.Title>Long list</Sheet.Title>
-        </Sheet.Header>
         <Sheet.Body>
           {lines.map((line) => (
             <Text
@@ -66,13 +59,15 @@ export const FullHeight = meta.story({
           ))}
         </Sheet.Body>
         <Sheet.Footer>
-          <Sheet.ActionTrigger asChild>
-            <Button
-              width="full"
-              size="lg"
-            >
-              Done
-            </Button>
+          <Sheet.ActionTrigger
+            render={
+              <Button
+                width="full"
+                size="lg"
+              />
+            }
+          >
+            Done
           </Sheet.ActionTrigger>
         </Sheet.Footer>
       </Sheet.Content>
@@ -82,14 +77,12 @@ export const FullHeight = meta.story({
 
 export const SnapPoints = meta.story({
   render: () => (
-    <Sheet.Root snapPoints={[0.5, 1]}>
-      <Sheet.Trigger asChild>
-        <Button>Open half-height sheet</Button>
-      </Sheet.Trigger>
+    <Sheet.Root
+      snapPoints={[0.5, 1]}
+      title="Drag up to expand"
+    >
+      <Sheet.Trigger render={<Button />}>Open half-height sheet</Sheet.Trigger>
       <Sheet.Content fullHeight>
-        <Sheet.Header>
-          <Sheet.Title>Drag up to expand</Sheet.Title>
-        </Sheet.Header>
         <Sheet.Body>
           {lines.map((line) => (
             <Text
@@ -107,34 +100,26 @@ export const SnapPoints = meta.story({
 
 export const Nested = meta.story({
   render: () => (
-    <Sheet.Root>
-      <Sheet.Trigger asChild>
-        <Button>Open sheet</Button>
-      </Sheet.Trigger>
+    <Sheet.Root title="Settings">
+      <Sheet.Trigger render={<Button />}>Open sheet</Sheet.Trigger>
       <Sheet.Content>
-        <Sheet.Header>
-          <Sheet.Title>Settings</Sheet.Title>
-        </Sheet.Header>
         <Sheet.Body>
-          <Sheet.Root>
-            <Sheet.Trigger asChild>
-              <Button variant="outline">Open nested sheet</Button>
-            </Sheet.Trigger>
-            <Sheet.Content>
-              <Sheet.Header
-                startElement={
-                  <Sheet.ActionTrigger asChild>
+          <Sheet.Root title="Nested">
+            <Sheet.Trigger render={<Button variant="outline" />}>Open nested sheet</Sheet.Trigger>
+            <Sheet.Content
+              headerStart={
+                <Sheet.ActionTrigger
+                  render={
                     <IconButton
                       variant="plain"
                       aria-label="Back"
-                    >
-                      <ChevronLeftIcon />
-                    </IconButton>
-                  </Sheet.ActionTrigger>
-                }
-              >
-                <Sheet.Title>Nested</Sheet.Title>
-              </Sheet.Header>
+                    />
+                  }
+                >
+                  <ChevronLeftIcon />
+                </Sheet.ActionTrigger>
+              }
+            >
               <Sheet.Body>
                 <Text>Swiping this sheet leaves the one behind it in place.</Text>
               </Sheet.Body>
@@ -156,14 +141,9 @@ export const PickerInSheet = meta.story({
   render: function PickerInSheetStory() {
     const [value, setValue] = useState<number | null>(null);
     return (
-      <Sheet.Root>
-        <Sheet.Trigger asChild>
-          <Button>Open filters</Button>
-        </Sheet.Trigger>
+      <Sheet.Root title="Filters">
+        <Sheet.Trigger render={<Button />}>Open filters</Sheet.Trigger>
         <Sheet.Content>
-          <Sheet.Header>
-            <Sheet.Title>Filters</Sheet.Title>
-          </Sheet.Header>
           <Sheet.Body>
             <Select
               items={fruits}
@@ -183,28 +163,50 @@ export const PickerInSheet = meta.story({
 export const Open = meta.story({
   tags: ["open-state"],
   render: () => (
-    <Sheet.Root defaultOpen>
-      <Sheet.Trigger asChild>
-        <Button>Open sheet</Button>
-      </Sheet.Trigger>
-      <Sheet.Content>
-        <Sheet.Header
-          endElement={
-            <Sheet.ActionTrigger asChild>
+    <Sheet.Root
+      defaultOpen
+      title="Q3 planning"
+    >
+      <Sheet.Trigger render={<Button />}>Open sheet</Sheet.Trigger>
+      <Sheet.Content
+        headerEnd={
+          <Sheet.ActionTrigger
+            render={
               <Button
                 variant="plain"
                 size="sm"
-              >
-                Done
-              </Button>
-            </Sheet.ActionTrigger>
-          }
-        >
-          <Sheet.Title>Q3 planning</Sheet.Title>
-        </Sheet.Header>
+              />
+            }
+          >
+            Done
+          </Sheet.ActionTrigger>
+        }
+      >
         <Sheet.Body>
           <Text>12 tasks · 4 members · Due 30 September</Text>
           <Text color="fg.muted">Swipe down, tap the backdrop or press Escape to close.</Text>
+        </Sheet.Body>
+      </Sheet.Content>
+    </Sheet.Root>
+  ),
+});
+
+export const HeldOpen = meta.story({
+  tags: ["open-state"],
+  args: { onOpenChange: fn(), onSnapPointChange: fn() },
+  render: ({ onOpenChange, onSnapPointChange }) => (
+    <Sheet.Root
+      title="Uploading files"
+      open
+      snapPoints={[0.5, 1]}
+      snapPoint={1}
+      onOpenChange={onOpenChange}
+      onSnapPointChange={onSnapPointChange}
+    >
+      <Sheet.Content fullHeight>
+        <Sheet.Body>
+          <Text>3 of 5 files uploaded.</Text>
+          <Text color="fg.muted">This stays open at full height until every file is done.</Text>
         </Sheet.Body>
       </Sheet.Content>
     </Sheet.Root>

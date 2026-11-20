@@ -1,4 +1,3 @@
-import { type ListCollection, createListCollection } from "@ark-ui/react/collection";
 import { useCallback, useMemo } from "react";
 
 import type { DistributiveOmit } from "#styled-system/types";
@@ -7,14 +6,13 @@ import { useLatestRef } from "../../hooks/useLatestRef";
 import type {
   ManagedListOptions,
   ManagedSelectionProps,
+  SelectionGroupSort,
   SelectionItemState,
   SelectionMode,
   SelectionProps,
   SelectionValue,
 } from "./types";
 import { type SelectionSearch, matchesQuery, useSelectionSearch } from "./useSelectionSearch";
-
-export type SelectionValueChangeDetails = { value: string[] };
 
 export const encodeSelectionValue = (value: SelectionValue): string =>
   typeof value === "number" ? `n:${value}` : `s:${value}`;
@@ -85,21 +83,54 @@ export function splitManagedListOptions<
   return [options as ManagedListOptions<T, V>, rest];
 }
 
+function compareGroups(sort: SelectionGroupSort, a: string, b: string): number {
+  if (typeof sort === "function") return sort(a, b);
+  if (Array.isArray(sort)) {
+    const indexA = sort.indexOf(a);
+    const indexB = sort.indexOf(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  }
+  if (sort === "asc") return a.localeCompare(b);
+  if (sort === "desc") return b.localeCompare(a);
+  return 0;
+}
+
+function toGroups<T>(
+  items: readonly T[],
+  groupBy: ((item: T, index: number) => string) | undefined,
+  groupSort: SelectionGroupSort | undefined,
+): [string, T[]][] {
+  if (!groupBy) return [["", [...items]]];
+  const groups = new Map<string, T[]>();
+  items.forEach((item, index) => {
+    const key = groupBy(item, index);
+    const group = groups.get(key);
+    if (group) group.push(item);
+    else groups.set(key, [item]);
+  });
+  const entries = [...groups.entries()];
+  if (groupSort) entries.sort(([a], [b]) => compareGroups(groupSort, a, b));
+  return entries;
+}
+
 export type SelectionControllerOptions<T, V extends SelectionValue> = ManagedSelectionProps<T, V> &
   SelectionProps<V, SelectionMode>;
 
 export interface SelectionController<T, V extends SelectionValue> {
-  collection: ListCollection<T>;
+  /** The items the search shows, in the order the list shows them. */
+  items: readonly T[];
   groups: [string, T[]][];
   grouped: boolean;
   selectedValues: V[];
+  getItemValue: (item: T) => V;
+  getItemLabel: (item: T) => string;
   getItemsByValue: (values: readonly SelectionValue[]) => T[];
   setValue(this: void, values: readonly V[]): void;
   getItemState: (item: T) => SelectionItemState<V>;
   getSelectAllState: () => SelectAllState<V>;
   search: SelectionSearch;
-  listboxValue: string[];
-  onListboxValueChange: (details: SelectionValueChangeDetails) => void;
 }
 
 export function useSelectionController<T, V extends SelectionValue>(
@@ -115,55 +146,40 @@ export function useSelectionController<T, V extends SelectionValue>(
     [value],
   );
 
-  const encodedMaps = useMemo(() => {
-    const values = new Map<string, V>();
-    const itemByValue = new Map<string, T>();
-
+  const itemByValue = useMemo(() => {
+    const byValue = new Map<string, T>();
     for (const item of items) {
       const nativeValue = getItemValue(item);
       const encoded = encodeSelectionValue(nativeValue);
-      if (itemByValue.has(encoded)) {
+      if (byValue.has(encoded)) {
         throw new Error(
           `Selection items must have unique values. Duplicate value: ${String(nativeValue)}`,
         );
       }
-      values.set(encoded, nativeValue);
-      itemByValue.set(encoded, item);
+      byValue.set(encoded, item);
     }
-
-    for (const nativeValue of selectedValues) {
-      values.set(encodeSelectionValue(nativeValue), nativeValue);
-    }
-
-    return { values, itemByValue };
-  }, [getItemValue, items, selectedValues]);
+    return byValue;
+  }, [getItemValue, items]);
 
   const { filterQuery } = search;
-  const collection = useMemo(() => {
-    const created = createListCollection<T>({
-      items: items as T[],
-      itemToString: getItemLabel,
-      itemToValue: (item) => encodeSelectionValue(getItemValue(item)),
-      isItemDisabled,
-      groupBy,
-      groupSort,
-    });
-    if (!filterQuery) return created;
+  const groups = useMemo(() => {
+    const shown = filterQuery
+      ? items.filter((item) =>
+          filter ? filter(item, filterQuery) : matchesQuery(getItemLabel(item), filterQuery),
+        )
+      : items;
+    return toGroups(shown, groupBy, groupSort);
+  }, [filter, filterQuery, getItemLabel, groupBy, groupSort, items]);
 
-    return created.filter((itemText, _index, item) =>
-      filter ? filter(item, filterQuery) : matchesQuery(itemText, filterQuery),
-    );
-  }, [filter, filterQuery, getItemLabel, getItemValue, groupBy, groupSort, isItemDisabled, items]);
-
-  const groups = useMemo(() => collection.group(), [collection]);
   const grouped = !(groups.length === 1 && groups[0][0] === "");
+  const shownItems = useMemo(() => groups.flatMap(([, groupItems]) => groupItems), [groups]);
 
   const getItemsByValue = useCallback(
     (values: readonly SelectionValue[]) =>
       values
-        .map((nativeValue) => encodedMaps.itemByValue.get(encodeSelectionValue(nativeValue)))
+        .map((nativeValue) => itemByValue.get(encodeSelectionValue(nativeValue)))
         .filter((item): item is T => item !== undefined),
-    [encodedMaps.itemByValue],
+    [itemByValue],
   );
   const selectedSet = useMemo(() => new Set<SelectionValue>(selectedValues), [selectedValues]);
 
@@ -174,17 +190,6 @@ export function useSelectionController<T, V extends SelectionValue>(
       else if (next.length > 0) latest.onValueChange(next[0]);
     },
     [optionsRef],
-  );
-
-  const listboxValue = useMemo(() => selectedValues.map(encodeSelectionValue), [selectedValues]);
-  const onListboxValueChange = useCallback(
-    ({ value: encoded }: SelectionValueChangeDetails) =>
-      setValue(
-        encoded
-          .map((entry) => encodedMaps.values.get(entry))
-          .filter((entry): entry is V => entry !== undefined),
-      ),
-    [encodedMaps.values, setValue],
   );
 
   const getItemState = useCallback(
@@ -203,22 +208,22 @@ export function useSelectionController<T, V extends SelectionValue>(
     () =>
       getSelectAllState(
         selectedValues,
-        collection.items.filter((item) => !collection.getItemDisabled(item)).map(getItemValue),
+        shownItems.filter((item) => !(isItemDisabled?.(item) ?? false)).map(getItemValue),
       ),
-    [collection, getItemValue, selectedValues],
+    [getItemValue, isItemDisabled, selectedValues, shownItems],
   );
 
   return {
-    collection,
+    items: shownItems,
     groups,
     grouped,
     selectedValues,
+    getItemValue,
+    getItemLabel,
     getItemsByValue,
     setValue,
     getItemState,
     getSelectAllState: getShownSelectAllState,
     search,
-    listboxValue,
-    onListboxValueChange,
   };
 }

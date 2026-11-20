@@ -24,6 +24,7 @@
         - separator "Resize Created At"
       - columnheader "actions":
         - paragraph
+        - text: ""
     - row "Equals Filter by Role Filter by Created At":
       - cell "Equals":
         - button "Equals": =
@@ -36,6 +37,7 @@
         - button "Filter by Role"
       - cell "Filter by Created At":
         - button "Filter by Created At"
+        - alert
       - cell
   - rowgroup:
     - row /1 Alice Johnson alice@example\.com Admin \d+-\d+-\d+ Actions/:
@@ -124,4 +126,3 @@
 - button "Previous page" [disabled]
 - button "Next page"
 - button "Last page"
-- alert

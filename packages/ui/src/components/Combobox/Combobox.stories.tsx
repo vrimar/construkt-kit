@@ -1,10 +1,12 @@
 import preview from "@construkt-kit/story-kit/preview";
+import { useState } from "react";
 
 import { combobox } from "#styled-system/recipes";
 
 import { Combobox, type ComboboxRootProps } from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
-import { useListCollection } from "../Listbox";
+import { Button } from "../Buttons";
+import { Dialog } from "../Dialog";
 
 const meta = preview.meta({
   title: "Components/Combobox",
@@ -32,18 +34,20 @@ function FrameworkCombobox({
   size,
   defaultOpen,
 }: FrameworkComboboxProps) {
-  const { collection, filter } = useListCollection({
-    initialItems: items,
-    filter: (itemText, query) => itemText.toLowerCase().includes(query.trim().toLowerCase()),
-  });
+  const [query, setQuery] = useState("");
+  const shown = items.filter((item) =>
+    item.label.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   return (
     <Combobox.Root
-      collection={collection}
+      items={shown}
+      getItemValue={(item) => item.value}
+      getItemLabel={(item) => item.label}
       size={size}
       defaultOpen={defaultOpen}
-      onInputValueChange={({ inputValue, reason }) => {
-        filter(reason === "input-change" ? inputValue : "");
+      onInputValueChange={(inputValue, { reason }) => {
+        setQuery(reason === "input-change" ? inputValue : "");
       }}
     >
       <Combobox.Label>{label}</Combobox.Label>
@@ -57,7 +61,7 @@ function FrameworkCombobox({
       <Combobox.Content>
         <Combobox.Empty>No frameworks found.</Combobox.Empty>
         <Combobox.List>
-          {collection.items.map((item) => (
+          {shown.map((item) => (
             <Combobox.Item
               key={item.value}
               item={item}
@@ -101,4 +105,22 @@ export const Open = meta.story({
   // The phone sheet traps focus, so the trigger behind its aria-hidden page is unreachable.
   parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
   render: () => <FrameworkCombobox defaultOpen />,
+});
+
+export const InDialog = meta.story({
+  tags: ["open-state"],
+  render: () => (
+    <Dialog.Root
+      defaultOpen
+      title="Edit project"
+    >
+      <Dialog.Trigger render={<Button />}>Edit project</Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Body>
+          <FrameworkCombobox />
+        </Dialog.Body>
+        <Dialog.CloseTrigger />
+      </Dialog.Content>
+    </Dialog.Root>
+  ),
 });

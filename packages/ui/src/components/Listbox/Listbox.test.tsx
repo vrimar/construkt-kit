@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { type MouseEvent as ReactMouseEvent, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createListCollection, Listbox, type ListboxProps, type SingleSelectionProps } from ".";
+import { Listbox, type ListboxProps, type SingleSelectionProps } from ".";
 import {
   encodedValues,
   groupLabels,
@@ -152,6 +152,22 @@ describe("Listbox", () => {
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
+  it("leaves clicks and Enter in a field inside an item to the field", async () => {
+    const onValueChange = vi.fn();
+    renderListbox({
+      onValueChange,
+      renderItem: (item) =>
+        item.id === 1 ? <input aria-label={`Rename ${item.name}`} /> : item.name,
+    });
+
+    const field = screen.getByRole("textbox", { name: "Rename Apple" });
+    await userEvent.click(field);
+    await userEvent.keyboard("Pear{Enter}");
+    expect(document.activeElement).toBe(field);
+    expect((field as HTMLInputElement).value).toBe("Pear");
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
   it("suppresses the empty state while loading", () => {
     renderListbox({ items: [], loading: true });
     expect(screen.queryByText("No items available")).toBeNull();
@@ -269,49 +285,48 @@ describe("Listbox", () => {
       renderGroupLabel: (group) => group,
     });
 
-    const root = screen.getByRole("listbox").closest("[data-scope='listbox'][data-part='root']");
+    const root = screen.getByRole("listbox").closest(".listbox__root");
     expect(root?.hasAttribute("groupby")).toBe(false);
     expect(root?.hasAttribute("groupsort")).toBe(false);
     expect(root?.hasAttribute("rendergrouplabel")).toBe(false);
   });
 
-  it("keeps the advanced collection API on Listbox.Root", () => {
-    const collection = createListCollection({
-      items: [
-        { label: "North", value: "north", region: "Americas" },
-        { label: "South", value: "south", region: "Americas" },
-      ],
-      groupBy: (item) => item.region,
-    });
+  it("composes Listbox.Root with its parts", () => {
+    const regions = [
+      { label: "North", value: "north", region: "Americas" },
+      { label: "South", value: "south", region: "Americas" },
+    ];
 
     render(
-      <Listbox.Root collection={collection}>
+      <Listbox.Root
+        items={regions}
+        getItemValue={(item) => item.value}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+      >
         <Listbox.Content>
-          {collection.group().map(([region, regionItems]) => (
-            <Listbox.ItemGroup key={region}>
-              <Listbox.ItemGroupLabel>{region}</Listbox.ItemGroupLabel>
-              {regionItems.map((item) => (
-                <Listbox.Item
-                  key={item.value}
-                  item={item}
-                >
-                  <Listbox.ItemText>{item.label}</Listbox.ItemText>
-                </Listbox.Item>
-              ))}
-            </Listbox.ItemGroup>
-          ))}
+          <Listbox.ItemGroup>
+            <Listbox.ItemGroupLabel>Americas</Listbox.ItemGroupLabel>
+            {regions.map((item) => (
+              <Listbox.Item
+                key={item.value}
+                item={item}
+              >
+                <Listbox.ItemText>{item.label}</Listbox.ItemText>
+              </Listbox.Item>
+            ))}
+          </Listbox.ItemGroup>
         </Listbox.Content>
       </Listbox.Root>,
     );
     expect(groupLabels()).toEqual(["Americas"]);
-    expect(optionValues()).toEqual(["north", "south"]);
+    expect(optionValues()).toEqual(encodedValues("north", "south"));
   });
 
   it("renders content inside a scroll area that shows its thumb at rest", () => {
     renderListbox();
-    const scrollArea = screen
-      .getByRole("listbox")
-      .closest("[data-scope='scroll-area'][data-part='root']");
+    const scrollArea = screen.getByRole("listbox").closest(".scroll-area__root");
     expect(scrollArea?.className).toContain("scroll-area__root--scrollbar_thumb");
   });
 
@@ -321,31 +336,6 @@ describe("Listbox", () => {
     expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe(
       screen.getByRole("listbox").id,
     );
-  });
-
-  it("keeps a custom root content id on the composed list", () => {
-    const collection = createListCollection({ items: ["north", "south"] });
-    render(
-      <Listbox.Root
-        collection={collection}
-        ids={{ content: "custom" }}
-      >
-        <Listbox.Input />
-        <Listbox.Content>
-          {collection.items.map((item) => (
-            <Listbox.Item
-              key={item}
-              item={item}
-            >
-              <Listbox.ItemText>{item}</Listbox.ItemText>
-            </Listbox.Item>
-          ))}
-        </Listbox.Content>
-      </Listbox.Root>,
-    );
-
-    expect(screen.getByRole("listbox").id).toBe("custom");
-    expect(screen.getByRole("textbox").getAttribute("aria-controls")).toBe("custom");
   });
 
   it("rejects root props the managed selection owns", () => {
@@ -380,6 +370,74 @@ describe("Listbox", () => {
     expect(screen.getByText("Apple").closest("[aria-selected='true']")).not.toBeNull();
   });
 
+  it("extends a multiple selection from the last pick with Shift", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    function Example() {
+      const [value, setValue] = useState<number[]>([]);
+      return (
+        <Listbox
+          {...produceProps}
+          selectionMode="multiple"
+          value={value}
+          onValueChange={(next) => {
+            onValueChange(next);
+            setValue(next);
+          }}
+          search={false}
+        />
+      );
+    }
+    render(<Example />);
+
+    await user.click(screen.getByText("Apple"));
+    await user.keyboard("{Shift>}");
+    await user.click(screen.getByText("Banana"));
+    await user.keyboard("{/Shift}");
+    expect(onValueChange).toHaveBeenLastCalledWith([1, 2, 3]);
+  });
+
+  function InlineGetters({ search }: { search: boolean }) {
+    const [value, setValue] = useState<number[]>([]);
+    return (
+      <Listbox
+        items={produce}
+        getItemValue={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        selectionMode="multiple"
+        value={value}
+        onValueChange={setValue}
+        search={search}
+      />
+    );
+  }
+
+  it("keeps the highlight on the picked option when getters are inline", async () => {
+    const user = userEvent.setup();
+    render(<InlineGetters search />);
+
+    await user.click(screen.getByRole("textbox"));
+    await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+    await Promise.resolve();
+
+    expect(screen.getByRole("option", { name: "Carrot" }).getAttribute("aria-selected")).toBe(
+      "true",
+    );
+    expect(highlightedValue()).toBe(encodeSelectionValue(2));
+  });
+
+  it("keeps the highlight where the keyboard left it when Ctrl+A selects everything", async () => {
+    const user = userEvent.setup();
+    render(<InlineGetters search={false} />);
+
+    await user.tab();
+    await user.keyboard("{ArrowDown}{Control>}a{/Control}");
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    expect(screen.getAllByRole("option", { selected: true })).toHaveLength(produce.length);
+    expect(highlightedValue()).toBe(encodeSelectionValue(2));
+  });
+
   describe("revealing the selection", () => {
     const ROW = 36;
     const many = Array.from({ length: 50 }, (_, index) => ({ id: index, name: `Item ${index}` }));
@@ -407,10 +465,8 @@ describe("Listbox", () => {
         this: Element,
       ) {
         const index = Number(this.getAttribute("data-value")?.replace(/\D/g, "") || 0);
-        const listbox = this.matches("[data-part='content']");
-        const top = listbox
-          ? 0
-          : index * ROW - (this.closest("[data-part='content']")?.scrollTop ?? 0);
+        const listbox = this.matches(".listbox__content");
+        const top = listbox ? 0 : index * ROW - (this.closest(".listbox__content")?.scrollTop ?? 0);
         return DOMRect.fromRect({ y: top, height: listbox ? 100 : ROW });
       });
     });

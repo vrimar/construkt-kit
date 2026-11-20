@@ -1,23 +1,20 @@
-import { ark } from "@ark-ui/react/factory";
-import {
-  Tooltip as ArkTooltip,
-  TooltipContext,
-  type UseTooltipReturn,
-  useTooltip,
-} from "@ark-ui/react/tooltip";
 import {
   type ComponentProps,
   Fragment,
+  type PointerEvent,
   type ReactElement,
   type ReactNode,
+  type Ref,
   type SyntheticEvent,
   createContext,
   isValidElement,
+  useCallback,
   useContext,
+  useEffect,
   useId,
   useLayoutEffect,
   useMemo,
-  useReducer,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -25,78 +22,28 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tooltip } from "#styled-system/recipes";
 
-import type { PortalledProps, WithRef } from "../../types";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { useLatestRef } from "../../hooks/useLatestRef";
+import { type OpenChangeDetails, useLayer } from "../../primitives/layer";
+import { type Anchor, type PlacementOption, usePosition } from "../../primitives/position";
+import { presenceAttributes, usePresence } from "../../primitives/presence";
+import { openStateAttributes, renderable } from "../../primitives/render";
+import type { WithRef } from "../../types";
+import { FloatingContext, createArrow, createTopLayerPositioner } from "../floating";
 import { isRenderable } from "../itemSlots";
 import { Kbd } from "../Kbd";
-import { lazyOverlayDefaults } from "../overlayDefaults";
-import { createPlacementRoot } from "../placementRoot";
-import { createPortalledContent } from "../portalledContent";
+import { DEFAULT_OPEN_DELAY, TooltipStore } from "./tooltipStore";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(tooltip);
 
-type RootProps = ComponentProps<typeof Root>;
-const Root = withRootProvider(ArkTooltip.Root, { defaultProps: lazyOverlayDefaults });
-const RootProvider = withRootProvider(ArkTooltip.RootProvider, {
-  defaultProps: lazyOverlayDefaults,
-});
-const PlacedRoot = createPlacementRoot<RootProps & Pick<TooltipProps, "placement">>(Root, "top");
-const ArrowTip = withContext(ArkTooltip.ArrowTip, "arrowTip");
-const Arrow = withContext(ArkTooltip.Arrow, "arrow", {
-  defaultProps: { children: <ArrowTip /> },
-});
-const Content = withContext(ArkTooltip.Content, "content");
-const Positioner = withContext(ArkTooltip.Positioner, "positioner");
-const Trigger = withContext(ArkTooltip.Trigger, "trigger");
+const StyledArrow = withContext(renderable.div, "arrow");
+const StyledArrowTip = withContext(renderable.div, "arrowTip");
+const StyledContent = withContext(renderable.div, "content");
+const Positioner = createTopLayerPositioner(withContext(renderable.div, "positioner"));
+const StyledTrigger = withContext(renderable.span, "trigger");
+const { Arrow } = createArrow(StyledArrow, StyledArrowTip);
 
-export interface TooltipContentProps extends ComponentProps<typeof Content>, PortalledProps {}
-
-const TooltipContent = createPortalledContent(Positioner, Content);
-
-export interface TooltipProps extends RootProps, PortalledProps {
-  showArrow?: boolean;
-  children: React.ReactNode | undefined;
-  label: React.ReactNode;
-  placement?: NonNullable<RootProps["positioning"]>["placement"];
-  /** Opens only while the trigger's text is cut off, measured when the pointer or focus arrives. */
-  showWhenTruncated?: boolean;
-  /** Keyboard shortcut shown after the label. */
-  shortcut?: ReactNode;
-}
-
-// zag's default `dir="ltr"` would override the direction the trigger inherits from the page.
-const ALWAYS_STRIPPED = ["data-state", "data-expanded", "dir"];
-const TRIGGER_ATTRIBUTES = [
-  ...ALWAYS_STRIPPED,
-  "data-scope",
-  "data-part",
-  "data-ownedby",
-  "data-value",
-  "data-current",
-  "id",
-  "aria-describedby",
-];
-
-function TriggerTarget({
-  bare,
-  extraKeys,
-  children,
-  ...props
-}: ComponentProps<typeof ark.span> & { bare: boolean; extraKeys: readonly string[] }) {
-  const own = isValidElement<Record<string, unknown>>(children) ? children.props : {};
-  const target: Record<string, unknown> = { ...props };
-  for (const key of bare ? TRIGGER_ATTRIBUTES : [...ALWAYS_STRIPPED, ...extraKeys]) {
-    if (!(key in own)) delete target[key];
-  }
-
-  return (
-    <ark.span
-      asChild
-      {...target}
-    >
-      {children}
-    </ark.span>
-  );
-}
+const StyleRoot = withRootProvider(({ children }: { children?: ReactNode }) => children);
 
 // Scroll and client sizes round separately, so a 1px difference is not a cut.
 const isClipped = (el: Element) =>
@@ -106,111 +53,129 @@ const isClipped = (el: Element) =>
 const isTextCut = (el: Element) =>
   isClipped(el) || Array.from(el.querySelectorAll("*")).some(isClipped);
 
-const whenTextCut =
-  <E extends SyntheticEvent<HTMLElement>>(handler: ((event: E) => void) | undefined) =>
-  (event: E) => {
-    if (isTextCut(event.currentTarget)) handler?.(event);
-  };
+const OWN_TRIGGER_KEY = "trigger";
 
-function TruncationGate({
-  onPointerMove,
-  onPointerOver,
-  onFocus,
-  ...props
-}: ComponentProps<typeof ark.span>) {
+const useStoreValue = <T,>(store: TooltipStore, read: () => T) =>
+  useSyncExternalStore(store.subscribe, read, read);
+
+interface TriggerBindingOptions {
+  store: TooltipStore;
+  contentId: string;
+  triggerKey: string;
+  disabled: boolean;
+  showWhenTruncated: boolean;
+}
+
+function useTriggerBinding({
+  store,
+  contentId,
+  triggerKey,
+  disabled,
+  showWhenTruncated,
+}: TriggerBindingOptions) {
+  const [trigger, setTrigger] = useState<HTMLElement | null>(null);
+  const shown = useStoreValue(store, () => store.isShown(triggerKey));
+  const latest = useLatestRef({ disabled, showWhenTruncated });
+  // Set once the pointer asks to open, so it shows at most once until the pointer leaves.
+  const hovering = useRef(false);
+  // Set by a press's pointerdown, so the click that ends the press doesn't ask to close again.
+  const pressing = useRef(false);
+
+  useLayoutEffect(() => {
+    if (disabled && shown) store.hide(triggerKey, "trigger-blur");
+  }, [store, disabled, shown, triggerKey]);
+
+  useEffect(() => {
+    if (!shown || !trigger) return;
+    const onScroll = (event: Event) => {
+      const { target } = event;
+      if (target instanceof Document || (target instanceof Node && target.contains(trigger))) {
+        store.hide(triggerKey, "scroll", event);
+      }
+    };
+    const onPointerLockChange = (event: Event) => store.hide(triggerKey, "scroll", event);
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    document.addEventListener("pointerlockchange", onPointerLockChange);
+    return () => {
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      document.removeEventListener("pointerlockchange", onPointerLockChange);
+    };
+  }, [store, shown, trigger, triggerKey]);
+
+  const handlers = useMemo(() => {
+    const opens = (event: SyntheticEvent<HTMLElement>) =>
+      !latest.current.disabled &&
+      (!latest.current.showWhenTruncated || isTextCut(event.currentTarget));
+    const onHover = (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType === "touch" || hovering.current || !opens(event)) return;
+      hovering.current = true;
+      store.showAfterDelay(triggerKey, event.currentTarget, event.nativeEvent);
+    };
+    const onLeave = (event: PointerEvent<HTMLElement>) => {
+      // A finger only leaves as it lifts, after its press has already asked to close.
+      if (event.pointerType === "touch") return;
+      hovering.current = false;
+      pressing.current = false;
+      store.hideAfterDelay(triggerKey, event.nativeEvent);
+    };
+    const onPress = (event: SyntheticEvent<HTMLElement>) => {
+      if (!latest.current.disabled) store.hide(triggerKey, "trigger-press", event.nativeEvent);
+    };
+    return {
+      onPointerMove: onHover,
+      onPointerOver: onHover,
+      onPointerLeave: onLeave,
+      onPointerCancel: (event: PointerEvent<HTMLElement>) => {
+        pressing.current = false;
+        onLeave(event);
+      },
+      onPointerDown: (event: PointerEvent<HTMLElement>) => {
+        if (event.button !== 0) return;
+        pressing.current = true;
+        onPress(event);
+      },
+      onClick: (event: SyntheticEvent<HTMLElement>) => {
+        if (pressing.current) pressing.current = false;
+        else onPress(event);
+      },
+      onKeyDown: () => {
+        pressing.current = false;
+      },
+      onFocus: (event: SyntheticEvent<HTMLElement>) => {
+        if (!opens(event) || !event.currentTarget.matches(":focus-visible")) return;
+        store.show(triggerKey, event.currentTarget, "trigger-focus", event.nativeEvent);
+      },
+      onBlur: (event: SyntheticEvent<HTMLElement>) => {
+        store.hide(triggerKey, "trigger-blur", event.nativeEvent);
+      },
+    };
+  }, [store, triggerKey, latest]);
+
+  return { ref: setTrigger, "aria-describedby": shown ? contentId : undefined, ...handlers };
+}
+
+type TriggerBinding = ReturnType<typeof useTriggerBinding>;
+
+const asTriggerElement = (children: ReactNode): ReactElement =>
+  isValidElement(children) && children.type !== Fragment ? children : <span>{children}</span>;
+
+function TriggerTarget({ binding, children }: { binding: TriggerBinding; children: ReactNode }) {
   return (
-    <ark.span
-      asChild
-      {...props}
-      onPointerMove={whenTextCut(onPointerMove)}
-      onPointerOver={whenTextCut(onPointerOver)}
-      onFocus={whenTextCut(onFocus)}
+    <StyledTrigger
+      {...binding}
+      render={asTriggerElement(children)}
     />
   );
 }
 
-interface TooltipBaseProps extends TooltipProps {
-  stripTriggerAttributes?: readonly string[];
+interface TooltipEntry {
+  label: ReactNode;
+  placement: PlacementOption;
+  shortcut: ReactNode;
+  showArrow: boolean | undefined;
 }
 
-export function TooltipBase({
-  ref,
-  showArrow,
-  children,
-  portalled,
-  label,
-  portalRef,
-  showWhenTruncated,
-  shortcut,
-  stripTriggerAttributes = [],
-  ...rootProps
-}: WithRef<TooltipBaseProps>) {
-  const group = useContext(TooltipGroupContext);
-  const bare = !isRenderable(label);
-  const trigger =
-    isValidElement(children) && children.type !== Fragment ? children : <span>{children}</span>;
-  const target = showWhenTruncated ? <TruncationGate>{trigger}</TruncationGate> : trigger;
-
-  const { disabled, placement, ...ownRootProps } = rootProps;
-  const joinsGroup =
-    group !== null &&
-    ref === undefined &&
-    portalRef === undefined &&
-    portalled === undefined &&
-    Object.keys(ownRootProps).length === 0;
-  if (joinsGroup) {
-    return (
-      <GroupTrigger
-        store={group}
-        entry={bare ? null : { label, placement, shortcut, showArrow }}
-        disabled={disabled ?? false}
-        stripTriggerAttributes={stripTriggerAttributes}
-      >
-        {target}
-      </GroupTrigger>
-    );
-  }
-
-  return (
-    <PlacedRoot
-      openDelay={300}
-      closeDelay={0}
-      {...rootProps}
-      disabled={bare || rootProps.disabled}
-      open={bare ? false : rootProps.open}
-    >
-      <Trigger asChild>
-        <TriggerTarget
-          bare={bare}
-          extraKeys={stripTriggerAttributes}
-        >
-          {target}
-        </TriggerTarget>
-      </Trigger>
-      {!bare && (
-        <TooltipContent
-          ref={ref}
-          portalled={portalled}
-          portalRef={portalRef}
-        >
-          <TooltipBody
-            label={label}
-            showArrow={showArrow}
-            shortcut={shortcut}
-          />
-        </TooltipContent>
-      )}
-    </PlacedRoot>
-  );
-}
-
-const TooltipComponent: (props: WithRef<TooltipProps>) => ReactElement = TooltipBase;
-
-function TooltipBody({
-  label,
-  showArrow,
-  shortcut,
-}: Pick<TooltipProps, "label" | "showArrow" | "shortcut">) {
+function TooltipBody({ label, showArrow, shortcut }: Omit<TooltipEntry, "placement">) {
   return (
     <>
       {showArrow && <Arrow />}
@@ -230,185 +195,328 @@ function TooltipBody({
   );
 }
 
-type Placement = TooltipProps["placement"];
-
-interface GroupEntry extends Pick<TooltipProps, "label" | "showArrow" | "shortcut"> {
-  placement: Placement;
-}
-
-const TRIGGER_EVENTS = [
-  "onClick",
-  "onFocus",
-  "onBlur",
-  "onPointerDown",
-  "onPointerMove",
-  "onPointerOver",
-  "onPointerLeave",
-  "onPointerCancel",
-] as const;
-
-class TooltipGroupStore {
-  api: UseTooltipReturn | null = null;
-  readonly entries = new Map<string, GroupEntry>();
-  private onCurrentEntryChange = () => {};
-  private readonly listeners = new Set<() => void>();
-
-  connect(api: UseTooltipReturn, onCurrentEntryChange: () => void) {
-    this.api = api;
-    this.onCurrentEntryChange = onCurrentEntryChange;
-    for (const listener of [...this.listeners]) listener();
-  }
-
-  readonly subscribe = (listener: () => void) => {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
-  };
-
-  stateOf(value: string): "unready" | "shown" | "hidden" {
-    if (!this.api) return "unready";
-    return this.api.open && this.api.triggerValue === value ? "shown" : "hidden";
-  }
-
-  register(value: string, entry: GroupEntry | null) {
-    if (entry) this.entries.set(value, entry);
-    else this.entries.delete(value);
-    if (this.api?.triggerValue === value) this.onCurrentEntryChange();
-    return () => {
-      this.entries.delete(value);
-    };
-  }
-}
-
-const TooltipGroupContext = createContext<TooltipGroupStore | null>(null);
-
-function GroupTrigger({
-  store,
-  entry,
-  disabled,
-  stripTriggerAttributes,
-  children,
-}: {
-  store: TooltipGroupStore;
-  entry: GroupEntry | null;
-  disabled: boolean;
-  stripTriggerAttributes: readonly string[];
+interface TooltipPopupProps {
+  store: TooltipStore;
+  contentId: string;
+  placement: PlacementOption;
+  anchor: Anchor | null;
+  ref?: Ref<HTMLDivElement> | undefined;
   children: ReactNode;
-}) {
-  const value = useId();
-  const shown =
-    useSyncExternalStore(
-      store.subscribe,
-      () => store.stateOf(value),
-      () => "unready",
-    ) === "shown";
-  const { label, placement, shortcut, showArrow } = entry ?? {};
-  const active = entry !== null && !disabled;
+}
 
-  useLayoutEffect(
-    () => store.register(value, active ? { label, placement, shortcut, showArrow } : null),
-    [store, value, active, label, placement, shortcut, showArrow],
-  );
-  useLayoutEffect(() => {
-    if (!active && shown) store.api?.setOpen(false);
-  }, [store, active, shown]);
+function TooltipPopup({ store, contentId, placement, anchor, ref, children }: TooltipPopupProps) {
+  const open = useStoreValue(store, () => store.open);
+  const trigger = useStoreValue(store, () => store.trigger);
+  const { setFloating, setArrow, side, align, floatingStyle, arrowStyle } = usePosition({
+    open,
+    placement,
+    anchor: anchor ?? trigger,
+  });
+  const presence = usePresence(open);
+  const elementRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, presence.setElement);
+  useLayer(open, {
+    contains: () => false,
+    dismiss: (reason, event) => {
+      if (reason !== "escape-key") return false;
+      store.hide(null, reason, event);
+      return true;
+    },
+  });
 
-  // The shared machine's state moves on without re-rendering this trigger, so handlers read it when they run.
-  const handlers = useMemo(
-    () =>
-      Object.fromEntries(
-        TRIGGER_EVENTS.map((key) => [
-          key,
-          (event: unknown) =>
-            (
-              store.api?.getTriggerProps({ value })[key] as ((event: unknown) => void) | undefined
-            )?.(event),
-        ]),
-      ),
-    [store, value],
-  );
-
-  const attributes: Record<string, unknown> = { ...store.api?.getTriggerProps({ value }) };
-  for (const key of TRIGGER_EVENTS) delete attributes[key];
-  // zag describes every trigger while open, and only a trigger whose state changes re-renders.
-  delete attributes["data-current"];
-  if (!shown) delete attributes["aria-describedby"];
+  if (!presence.mounted) return null;
 
   return (
-    <TriggerTarget
-      bare={entry === null}
-      extraKeys={stripTriggerAttributes}
-      className={triggerClassName}
-      data-slot="trigger"
-      {...attributes}
-      {...(active && handlers)}
-    >
-      {children}
-    </TriggerTarget>
+    <FloatingContext value={{ side, align, arrowStyle, setArrow }}>
+      <Positioner
+        ref={setFloating}
+        style={floatingStyle}
+        data-side={side}
+        data-align={align}
+      >
+        <StyledContent
+          ref={elementRef}
+          id={contentId}
+          role="tooltip"
+          data-side={side}
+          data-align={align}
+          {...openStateAttributes(open)}
+          {...presenceAttributes(presence.status)}
+        >
+          {children}
+        </StyledContent>
+      </Positioner>
+    </FloatingContext>
   );
 }
 
-const triggerClassName = tooltip().trigger;
+export interface TooltipProps {
+  /** The trigger. An element becomes the trigger itself; anything else is wrapped in a `span`. */
+  children: ReactNode | undefined;
+  label: ReactNode;
+  open?: boolean | undefined;
+  defaultOpen?: boolean | undefined;
+  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
+  disabled?: boolean | undefined;
+  /** @default 300 */
+  openDelay?: number | undefined;
+  /** @default 0 */
+  closeDelay?: number | undefined;
+  /** @default "top" */
+  placement?: PlacementOption | undefined;
+  /** Places the tooltip against this element or box instead of the trigger. */
+  anchor?: Anchor | null | undefined;
+  showArrow?: boolean | undefined;
+  /** Opens only while the trigger's text is cut off, measured when the pointer or focus arrives. */
+  showWhenTruncated?: boolean | undefined;
+  /** Keyboard shortcut shown after the label. */
+  shortcut?: ReactNode;
+}
 
-export interface TooltipGroupProps extends PortalledProps {
+function OwnTooltip({
+  contentRef,
+  open,
+  defaultOpen,
+  onOpenChange,
+  openDelay,
+  closeDelay,
+  disabled,
+  placement,
+  anchor,
+  showWhenTruncated,
+  body,
+  children,
+}: {
+  contentRef: Ref<HTMLDivElement> | undefined;
+  open: boolean | undefined;
+  defaultOpen: boolean;
+  onOpenChange: TooltipProps["onOpenChange"];
+  openDelay: number;
+  closeDelay: number;
+  disabled: boolean;
+  placement: PlacementOption;
+  anchor: Anchor | null;
+  showWhenTruncated: boolean;
+  body: ReactElement | null;
+  children: ReactNode;
+}) {
+  const [store] = useState(
+    () =>
+      new TooltipStore(
+        { open, onOpenChange, openDelay, closeDelay },
+        { defaultOpen, key: OWN_TRIGGER_KEY },
+      ),
+  );
+  const contentId = `tooltip:${useId()}:content`;
+
+  useLayoutEffect(() => {
+    store.configure({ open, onOpenChange, openDelay, closeDelay });
+  }, [store, open, onOpenChange, openDelay, closeDelay]);
+  useEffect(() => {
+    store.mount();
+    return () => store.dispose();
+  }, [store]);
+
+  const binding = useTriggerBinding({
+    store,
+    contentId,
+    triggerKey: OWN_TRIGGER_KEY,
+    disabled,
+    showWhenTruncated,
+  });
+  const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
+  const triggerRef = useComposedRefs(binding.ref, setTriggerEl);
+
+  return (
+    <StyleRoot>
+      {children != null && (
+        <TriggerTarget binding={{ ...binding, ref: triggerRef }}>{children}</TriggerTarget>
+      )}
+      {body && (
+        <TooltipPopup
+          store={store}
+          contentId={contentId}
+          placement={placement}
+          anchor={anchor ?? triggerEl}
+          ref={contentRef}
+        >
+          {body}
+        </TooltipPopup>
+      )}
+    </StyleRoot>
+  );
+}
+
+interface TooltipGroupValue {
+  store: TooltipStore;
+  contentId: string;
+  placement: PlacementOption;
+  entries: Map<string, TooltipEntry>;
+  refresh: () => void;
+}
+
+const TooltipGroupContext = createContext<TooltipGroupValue | null>(null);
+
+function GroupTrigger({
+  group,
+  entry,
+  bare,
+  disabled,
+  showWhenTruncated,
+  children,
+}: {
+  group: TooltipGroupValue;
+  entry: TooltipEntry;
+  bare: boolean;
+  disabled: boolean;
+  showWhenTruncated: boolean;
+  children: ReactNode;
+}) {
+  const triggerKey = useId();
+  const { store, contentId, entries, refresh } = group;
+  const binding = useTriggerBinding({
+    store,
+    contentId,
+    triggerKey,
+    disabled,
+    showWhenTruncated,
+  });
+  const { label, placement, shortcut, showArrow } = entry;
+
+  useLayoutEffect(() => {
+    if (bare) return;
+    entries.set(triggerKey, { label, placement, shortcut, showArrow });
+    if (store.key === triggerKey) refresh();
+    return () => {
+      entries.delete(triggerKey);
+    };
+  }, [entries, refresh, store, triggerKey, bare, label, placement, shortcut, showArrow]);
+
+  return (
+    <StyleRoot>
+      <TriggerTarget binding={binding}>{children}</TriggerTarget>
+    </StyleRoot>
+  );
+}
+
+/** Shows `label` beside its trigger on hover and keyboard focus. */
+export function Tooltip({
+  ref,
+  children,
+  label,
+  open,
+  defaultOpen,
+  onOpenChange,
+  disabled = false,
+  openDelay = DEFAULT_OPEN_DELAY,
+  closeDelay = 0,
+  placement,
+  anchor,
+  showArrow,
+  showWhenTruncated = false,
+  shortcut,
+}: WithRef<TooltipProps>): ReactNode {
+  const group = useContext(TooltipGroupContext);
+  // An empty label keeps the same trigger tree, so toggling it never remounts the child.
+  const bare = !isRenderable(label);
+  const joinsGroup =
+    group !== null &&
+    ref === undefined &&
+    open === undefined &&
+    defaultOpen === undefined &&
+    onOpenChange === undefined &&
+    anchor === undefined &&
+    openDelay === DEFAULT_OPEN_DELAY &&
+    closeDelay === 0;
+
+  if (joinsGroup) {
+    return (
+      <GroupTrigger
+        group={group}
+        entry={{ label, placement: placement ?? group.placement, shortcut, showArrow }}
+        bare={bare}
+        disabled={disabled || bare}
+        showWhenTruncated={showWhenTruncated}
+      >
+        {children}
+      </GroupTrigger>
+    );
+  }
+
+  return (
+    <OwnTooltip
+      contentRef={ref}
+      open={bare ? false : open}
+      defaultOpen={defaultOpen ?? false}
+      onOpenChange={onOpenChange}
+      openDelay={openDelay}
+      closeDelay={closeDelay}
+      disabled={disabled || bare}
+      placement={placement ?? "top"}
+      anchor={anchor ?? null}
+      showWhenTruncated={showWhenTruncated}
+      body={
+        bare ? null : (
+          <TooltipBody
+            label={label}
+            showArrow={showArrow}
+            shortcut={shortcut}
+          />
+        )
+      }
+    >
+      {children}
+    </OwnTooltip>
+  );
+}
+
+export interface TooltipGroupProps {
   children: ReactNode;
   /** Where a tooltip in the group opens when it doesn't set `placement`. @default "top" */
-  placement?: Placement;
+  placement?: PlacementOption;
 }
 
 /**
  * Runs one tooltip for every plain `Tooltip` inside it, so a long list doesn't mount a tooltip per
- * row. A `Tooltip` that sets root props (`open`, `positioning`, `onOpenChange`, …), `ref`,
- * `portalled` or `portalRef` keeps its own. A shared tooltip's label renders here, outside its row.
+ * row. A `Tooltip` that sets `open`, `defaultOpen`, `onOpenChange`, `openDelay`, `closeDelay`,
+ * `anchor` or `ref` keeps its own. A shared tooltip's label renders here, outside its row.
  */
-export function TooltipGroup({
-  children,
-  placement = "top",
-  portalled,
-  portalRef,
-}: TooltipGroupProps) {
-  const [store] = useState(() => new TooltipGroupStore());
-  const [triggerValue, setTriggerValue] = useState<string | null>(null);
-  const [, refreshContent] = useReducer((count: number) => count + 1, 0);
-  const entry = triggerValue === null ? undefined : store.entries.get(triggerValue);
-
-  const api = useTooltip({
-    openDelay: 300,
-    closeDelay: 0,
-    positioning: { placement: entry?.placement ?? placement },
-    triggerValue,
-    onTriggerValueChange: ({ value }) => setTriggerValue(value),
-  });
-  useLayoutEffect(() => store.connect(api, refreshContent), [store, api]);
+export function TooltipGroup({ children, placement = "top" }: TooltipGroupProps) {
+  const [store] = useState(
+    () => new TooltipStore({ openDelay: DEFAULT_OPEN_DELAY, closeDelay: 0 }),
+  );
+  useEffect(() => () => store.dispose(), [store]);
+  const contentId = `tooltip:${useId()}:content`;
+  const [entries] = useState(() => new Map<string, TooltipEntry>());
+  const [, setVersion] = useState(0);
+  const refresh = useCallback(() => setVersion((version) => version + 1), []);
+  const value = useMemo(
+    () => ({ store, contentId, placement, entries, refresh }),
+    [store, contentId, placement, entries, refresh],
+  );
+  const activeKey = useStoreValue(store, () => store.key);
+  const entry = activeKey === null ? undefined : entries.get(activeKey);
 
   return (
-    <TooltipGroupContext value={store}>
+    <TooltipGroupContext value={value}>
       {children}
-      <RootProvider value={api}>
+      <StyleRoot>
         {entry && (
-          <TooltipContent
-            portalled={portalled}
-            portalRef={portalRef}
+          <TooltipPopup
+            store={store}
+            contentId={contentId}
+            placement={entry.placement}
+            anchor={null}
           >
             <TooltipBody
               label={entry.label}
               showArrow={entry.showArrow}
               shortcut={entry.shortcut}
             />
-          </TooltipContent>
+          </TooltipPopup>
         )}
-      </RootProvider>
+      </StyleRoot>
     </TooltipGroupContext>
   );
 }
 
-export const Tooltip = Object.assign(TooltipComponent, {
-  Root,
-  Arrow,
-  ArrowTip,
-  Content: TooltipContent,
-  Positioner,
-  Trigger,
-  Context: TooltipContext,
-});
+export type TooltipContentProps = ComponentProps<typeof StyledContent>;

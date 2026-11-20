@@ -234,7 +234,7 @@ describe.each(wrappers)("$name selection contract", (wrapper) => {
     expect(within(groups[1]).queryByText("Apple")).toBeNull();
     expect(optionValues()).toEqual(encodedValues(1, 3, 2));
     expect(groups[0].getAttribute("aria-labelledby")).toBe(
-      groups[0].querySelector("[data-part='item-group-label']")?.id,
+      groups[0].querySelector(".listbox__itemGroupLabel")?.id,
     );
   });
 
@@ -279,7 +279,9 @@ describe.each(wrappers)("$name selection contract", (wrapper) => {
 
       await userEvent.click(screen.getByRole("textbox"));
       await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
-      expect(onOpenChange.mock.calls).toEqual(wrapper.closesOnPick ? [[false]] : []);
+      expect(onOpenChange.mock.calls).toEqual(
+        wrapper.closesOnPick ? [[false, expect.objectContaining({ reason: "item-press" })]] : [],
+      );
       await wrapper.commit?.();
       expect(onValueChange).toHaveBeenCalledExactlyOnceWith(picked([2]));
     });
@@ -290,7 +292,9 @@ describe.each(wrappers)("$name selection contract", (wrapper) => {
       await userEvent.type(screen.getByRole("textbox"), "an");
       expect(highlightedValue()).toBe(encodeSelectionValue(3));
       await userEvent.keyboard("{Enter}");
-      expect(onOpenChange.mock.calls).toEqual(wrapper.closesOnPick ? [[false]] : []);
+      expect(onOpenChange.mock.calls).toEqual(
+        wrapper.closesOnPick ? [[false, expect.objectContaining({ reason: "item-press" })]] : [],
+      );
       await wrapper.commit?.();
       expect(onValueChange).toHaveBeenCalledExactlyOnceWith(picked([3]));
     });

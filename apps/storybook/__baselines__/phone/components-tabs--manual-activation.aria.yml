@@ -1,0 +1,6 @@
+- tablist:
+  - tab "Overview" [selected]
+  - tab "Usage" [disabled]
+  - tab "Settings"
+  - tab "Billing"
+- tabpanel "Overview": Overview content goes here.

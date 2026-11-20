@@ -1,4 +1,3 @@
-import { useTreeViewContext, useTreeViewNodeContext } from "@ark-ui/react/tree-view";
 import {
   attachInstruction,
   type Instruction,
@@ -14,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { isRtl } from "../../../foundations/dom";
 import { useLatestRef } from "../../../hooks/useLatestRef";
 import { DragPreview, useNativeDragPreview } from "../../dnd";
+import { useTreeContext, useTreeNodeState } from "../TreeView";
 import {
   readTreeDragSource,
   readTreeDropInstruction,
@@ -104,12 +104,12 @@ function keyboardMoveForKey(key: string, element: HTMLElement): TreeKeyboardMove
 
 /**
  * Wire a tree row as a drag source + drop target + keyboard-reorder target. Reads the node from
- * Ark's NodeProvider context and the collection/config from {@link useTreeDndContext}, so it must
- * be called inside a `TreeView.Root`/`RootProvider` and a `TreeViewDndProvider`.
+ * `TreeView.NodeProvider` and the nodes/config from {@link useTreeDndContext}, so it must be
+ * called inside a `TreeView.Root` and a `TreeViewDndProvider`.
  */
 export function useTreeNodeDnd(): UseTreeNodeDndReturn {
-  const nodeState = useTreeViewNodeContext();
-  const api = useTreeViewContext();
+  const nodeState = useTreeNodeState();
+  const { tree } = useTreeContext();
   const dnd = useTreeDndContext();
 
   const [element, setElement] = useState<HTMLElement | null>(null);
@@ -130,7 +130,6 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   });
 
   const snapshotRef = useLatestRef(nodeState);
-  const apiRef = useLatestRef(api);
   const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -154,8 +153,6 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       }
     };
 
-    // Keyboard reorder (Ctrl/Cmd + arrows) attached natively so it composes with Ark's own
-    // arrow-key navigation. Routes through moveByKeyboard so it obeys the same guards as drops.
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.target !== element || !(event.ctrlKey || event.metaKey)) return;
       const move = keyboardMoveForKey(event.key, element);
@@ -165,7 +162,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       event.preventDefault();
       event.stopPropagation();
       requestAnimationFrame(() => {
-        apiRef.current.focus(value);
+        tree.focus(value);
         if (element.isConnected) element.scrollIntoView({ block: "nearest", inline: "nearest" });
       });
     };
@@ -226,10 +223,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
           const { isBranch, expanded } = snapshotRef.current;
           if (isBranch && !expanded && autoExpandDelay !== false) {
             clearExpandTimer();
-            expandTimerRef.current = setTimeout(
-              () => apiRef.current.expand([value]),
-              autoExpandDelay,
-            );
+            expandTimerRef.current = setTimeout(() => tree.expand([value]), autoExpandDelay);
           }
         },
         onDrag: ({ self, source }) => {
@@ -259,7 +253,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
       element.removeEventListener("keydown", handleKeyDown);
       cleanup();
     };
-  }, [element, dnd, value, apiRef, snapshotRef, onGenerateDragPreview]);
+  }, [element, dnd, value, tree, snapshotRef, onGenerateDragPreview]);
 
   return {
     ref: dnd && !dnd.disabled ? setElement : NOOP_REF,
