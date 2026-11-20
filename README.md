@@ -1,7 +1,7 @@
 # Construkt Kit
 
-React 19 kit on Panda CSS and Ark UI: components, auth pages, a virtualized data grid, an API client and shared tool
-configs.
+React 19 kit on Panda CSS and its own React primitives: components, auth pages, a virtualized data grid, an API
+client and shared tool configs.
 
 ## Packages
 
@@ -18,7 +18,7 @@ configs.
 ## Quick start
 
 ```sh
-pnpm add @construkt-kit/ui @fontsource-variable/inter react react-dom
+pnpm add @construkt-kit/ui inter-ui react react-dom
 pnpm add -D @pandacss/dev
 ```
 

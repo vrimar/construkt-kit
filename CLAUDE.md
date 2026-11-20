@@ -1,12 +1,12 @@
 # Construkt Kit Frontend Shared — AI Instructions
 
-Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases publish from CI on a `release-*` tag — see `.github/workflows/release.yml`. `pnpm release:prepare` gets one ready and prints the commit, push and tag commands; accepting screenshot baselines, pushing and tagging stay with the owner.
+Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turbo**, **Tsdown**. Releases publish from CI on a `release-*` tag — see `.github/workflows/release.yml`. `pnpm release:prepare` gets one ready and prints the commit, push and tag commands; accepting screenshot baselines, pushing and tagging wait for the owner to ask.
 
 > For per-package details (exports, patterns, architecture), see `README.md` in each package under `packages/`.
 
 ## Packages
 
-- **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS + Ark UI primitives. Always import components from `@construkt-kit/ui`, never `@ark-ui/*`.
+- **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS and the kit's own React primitives (`packages/ui/src/primitives/`). Always import components from `@construkt-kit/ui`.
 - **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
@@ -41,11 +41,11 @@ honours `options.typeAware` only in the config it loads as its root.
 
 - Named exports only (no default exports)
 - Source under `packages/<name>/src/`, each with `tsconfig.json` + `tsdown.config.ts`
-- React 19 peer dep (`^19.0.0`)
-- Never import from `@ark-ui/react` directly — use `@construkt-kit/ui`
+- React 19 peer dep (`^19.3.0`)
+- No `@ark-ui/*` or `@zag-js/*` in the kit — build behaviour on `packages/ui/src/primitives/`; lint bans the imports
 - Consuming apps import `css`/`cx`/`styled`/`token` and Panda's types from their own generated `styled-system/`, through the specifier their Panda `importMap` names (an alias such as `@construkt-kit/styled-system/*` is fine) — never from `@construkt-kit/ui` or `@construkt-kit/pages`, which Panda doesn't extract from and whose `token` knows only the kit's theme
 - Inside `packages/data-grid/src`: no `css()`, `styled`, patterns, `*Css` props or style props on components — no Panda build extracts that source. Style through the `dataGrid` recipe, inline geometry and CSS variables; `construkt/no-literal-style-props` and `no-restricted-imports` enforce it. `*.stories.tsx` may use style and `*Css` props (Storybook's Panda extracts them), not the imports. `src/core/**` imports no `react`, `react-dom`, `@construkt-kit/ui` or Panda
-- Don't name a non-style component prop after a CSS property (`content`, `width`, `fill`, …) — Panda extracts it as a style from every PascalCase JSX element, and free text there emits invalid CSS. `construkt/no-style-prop-name` enforces this in ui, pages and data-grid
+- Don't name a non-style component prop after a CSS property (`content`, `width`, `fill`, …) — Panda extracts it as a style from every PascalCase JSX element, and free text there emits invalid CSS. `construkt/no-style-prop-name` enforces this in the kit and, through `@construkt-kit/config/oxlint`, in consuming apps
 - Never use hardcoded colors — use Panda tokens
 - Never import between packages via relative paths — use `@construkt-kit/*` aliases
 - `react` / `react-dom` are peer deps — never add to `dependencies`
@@ -61,8 +61,8 @@ specs (`packages/*/src/**/*.spec.ts`) drive stories with real keyboard, mouse an
 - A failure is real. Read `apps/storybook/.stories-report/report.md` and, for a visual failure, open its image
   (reference | actual | diff). Fix the code
 - Never pass `-u`/`--update-snapshots`, copy PNGs into `__baselines__`, loosen screenshot options, disable an axe
-  rule to get green, or tag a story out of a device. Agents do not accept screenshot baselines: for an intended
-  visual change, report the story ids and the reason; the owner runs `pnpm stories:accept`
+  rule to get green, or tag a story out of a device. For an intended visual change, report the story
+  ids and the reason; when the owner says accept, run `pnpm stories:accept <story id>… --reason "…"` yourself
 - An intended accessibility-tree change: `pnpm stories:aria <story id>…`, then commit the `.aria.yml` diff
 - An `unstable` failure means the story is not deterministic; fix the story, never accept it
 - No Docker means a functional run only (no pixels); say so when reporting
