@@ -207,9 +207,8 @@ function Dropzone({ ref, disableClick = false, ...props }: DropzoneProps) {
               event.preventDefault();
               event.stopPropagation();
             }
-            if (!context.dragging) return;
             context.setDragging(false);
-            if (!isEventWithFiles(event)) return;
+            if (!allowDrop || !isEventWithFiles(event)) return;
             const { nativeEvent } = event;
             void getFileEntries(event.dataTransfer.items, context.directory).then((files) =>
               context.select(files, "drop", nativeEvent),
