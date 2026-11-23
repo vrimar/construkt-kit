@@ -2,8 +2,6 @@ import type { Locator, Page } from "@playwright/test";
 
 type Scope = Page | Locator;
 
-const pageOf = (scope: Scope): Page => ("page" in scope ? scope.page() : scope);
-
 /**
  * Signs in through `LoginPage`: types `username` into its Email field and `password` into its
  * Password field, then presses Sign in. Wait for what the app shows once signed in.
@@ -28,7 +26,7 @@ export function authFormError(scope: Scope): Locator {
  */
 export function authFieldError(scope: Scope, label: string): Locator {
   return scope
-    .getByRole("group")
-    .filter({ has: pageOf(scope).getByLabel(label, { exact: true }) })
+    .getByLabel(label, { exact: true })
+    .locator("xpath=ancestor::*[label][1]")
     .locator("[aria-live]");
 }
