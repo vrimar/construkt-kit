@@ -1,29 +1,20 @@
-import {
-  type ComponentProps,
-  type MouseEvent,
-  type ReactNode,
-  type Ref,
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
+import { type ComponentProps, type MouseEvent, type ReactNode, useMemo } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { actionbar } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { useControllableState } from "../../hooks/useControllableState";
 import {
-  type OpenChangeDetails,
   type OpenChangeReason,
-  createOpenChangeDetails,
+  type UseOpenStateOptions,
   useEscapeFallback,
+  useOpenState,
 } from "../../primitives/layer";
 import { usePresence } from "../../primitives/presence";
 import { openStateAttributes, renderable } from "../../primitives/render";
-import type { PortalledProps, WithRef } from "../../types";
+import type { PortalledProps } from "../../types";
 import { createCloseTrigger } from "../closeTrigger";
+import { createPartContext } from "../partContext";
 import { Portal } from "../Portal";
 
 const { withProvider, withContext } = createSlotRecipeContext(actionbar);
@@ -41,22 +32,16 @@ type ActionBarPlacement = "bottom" | "inline";
 interface ActionBarContextValue {
   open: boolean;
   placement: ActionBarPlacement;
-  requestOpenChange: (open: boolean, reason: OpenChangeReason, event?: Event) => void;
+  requestOpenChange: (open: boolean, reason: OpenChangeReason, event?: Event) => boolean;
 }
 
-const ActionBarContext = createContext<ActionBarContextValue | null>(null);
+const [ActionBarContext, useActionBarContext] = createPartContext<ActionBarContextValue>(
+  "<ActionBar.Root>",
+  "ActionBar parts",
+);
 
-const useActionBarContext = () => {
-  const context = useContext(ActionBarContext);
-  if (!context) throw new Error("ActionBar parts must be rendered inside ActionBar.Root.");
-  return context;
-};
-
-export interface ActionBarRootProps {
+export interface ActionBarRootProps extends UseOpenStateOptions {
   children?: ReactNode;
-  open?: boolean | undefined;
-  defaultOpen?: boolean | undefined;
-  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
   /** @default true */
   closeOnEscape?: boolean | undefined;
   /**
@@ -69,21 +54,12 @@ export interface ActionBarRootProps {
 function Root({
   children,
   open: openProp,
-  defaultOpen = false,
+  defaultOpen,
   onOpenChange,
   closeOnEscape = true,
   placement = "bottom",
 }: ActionBarRootProps) {
-  const [open, setOpen] = useControllableState({ value: openProp, defaultValue: defaultOpen });
-
-  const requestOpenChange = useCallback(
-    (next: boolean, reason: OpenChangeReason, event?: Event) => {
-      const details = createOpenChangeDetails(reason, event);
-      onOpenChange?.(next, details);
-      if (!details.canceled) setOpen(next);
-    },
-    [onOpenChange, setOpen],
-  );
+  const { open, requestOpenChange } = useOpenState({ open: openProp, defaultOpen, onOpenChange });
 
   useEscapeFallback(open && closeOnEscape, (event) => {
     requestOpenChange(false, "escape-key", event);
@@ -101,10 +77,10 @@ export interface ActionBarContentProps
   extends ComponentProps<typeof StyledContent>, PortalledProps {}
 
 /** Portalled at the `bottom` placement and rendered in place at `inline`, unless `portalled` says otherwise. */
-function Content({ ref, portalled, portalRef, ...props }: WithRef<ActionBarContentProps>) {
+function Content({ ref, portalled, portalRef, ...props }: ActionBarContentProps) {
   const { open, placement } = useActionBarContext();
   const presence = usePresence(open);
-  const contentRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, presence.setElement);
+  const contentRef = useComposedRefs(ref, presence.setElement);
   const portal = portalled ?? placement === "bottom";
   if (!presence.mounted) return null;
 
@@ -129,18 +105,10 @@ function Content({ ref, portalled, portalRef, ...props }: WithRef<ActionBarConte
   );
 }
 
-function CloseTriggerPart({ onClick, ...props }: ComponentProps<typeof StyledCloseTrigger>) {
+function useCloseActionBar() {
   const { requestOpenChange } = useActionBarContext();
-  return (
-    <StyledCloseTrigger
-      type="button"
-      {...props}
-      onClick={(event: MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event);
-        if (!event.defaultPrevented) requestOpenChange(false, "close-press", event.nativeEvent);
-      }}
-    />
-  );
+  return (event: MouseEvent<HTMLElement>) =>
+    requestOpenChange(false, "close-press", event.nativeEvent);
 }
 
 export const ActionBar = {
@@ -148,7 +116,7 @@ export const ActionBar = {
   Content,
   Separator,
   SelectionTrigger,
-  CloseTrigger: createCloseTrigger(CloseTriggerPart),
+  CloseTrigger: createCloseTrigger(StyledCloseTrigger, useCloseActionBar),
   Lead,
   Scope,
 };

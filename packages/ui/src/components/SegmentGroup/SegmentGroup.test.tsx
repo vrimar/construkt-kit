@@ -1,8 +1,9 @@
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 
 import { SegmentGroup } from ".";
+import { resetForm } from "../../_shared/resetForm";
 
 it("goes back to its initial value when the form its radios join through `form` resets", async () => {
   render(
@@ -26,8 +27,7 @@ it("goes back to its initial value when the form its radios join through `form` 
   await userEvent.click(screen.getByText("Grid"));
   expect(new FormData(form).get("view")).toBe("grid");
 
-  act(() => form.reset());
-  await act(() => new Promise(requestAnimationFrame));
+  await resetForm(form);
 
   expect(new FormData(form).get("view")).toBe("list");
   expect(screen.getByText("List").closest("label")?.hasAttribute("data-checked")).toBe(true);

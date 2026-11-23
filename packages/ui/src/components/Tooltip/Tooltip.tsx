@@ -1,14 +1,11 @@
 import {
   type ComponentProps,
-  Fragment,
   type PointerEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
   type SyntheticEvent,
   createContext,
-  isValidElement,
-  useCallback,
   useContext,
   useEffect,
   useId,
@@ -16,30 +13,37 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tooltip } from "#styled-system/recipes";
 
+import { isAriaTrue } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type OpenChangeDetails, useLayer } from "../../primitives/layer";
-import { type Anchor, type PlacementOption, usePosition } from "../../primitives/position";
-import { presenceAttributes, usePresence } from "../../primitives/presence";
+import type { UseOpenStateOptions } from "../../primitives/layer";
+import type { Anchor, PlacementOption } from "../../primitives/position";
+import { presenceAttributes } from "../../primitives/presence";
 import { openStateAttributes, renderable } from "../../primitives/render";
+import { useStore } from "../../primitives/store";
 import type { WithRef } from "../../types";
-import { FloatingContext, createArrow, createTopLayerPositioner } from "../floating";
+import { createAnchoredPositioner, createArrow, useAnchoredPopup } from "../floating";
 import { isRenderable } from "../itemSlots";
 import { Kbd } from "../Kbd";
-import { DEFAULT_OPEN_DELAY, TooltipStore } from "./tooltipStore";
+import { asRender } from "../renderContent";
+import {
+  DEFAULT_OPEN_DELAY,
+  type TooltipEntry,
+  type TooltipState,
+  TooltipStore,
+} from "./tooltipStore";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(tooltip);
 
 const StyledArrow = withContext(renderable.div, "arrow");
 const StyledArrowTip = withContext(renderable.div, "arrowTip");
 const StyledContent = withContext(renderable.div, "content");
-const Positioner = createTopLayerPositioner(withContext(renderable.div, "positioner"));
+const Positioner = createAnchoredPositioner(withContext(renderable.div, "positioner"));
 const StyledTrigger = withContext(renderable.span, "trigger");
 const { Arrow } = createArrow(StyledArrow, StyledArrowTip);
 
@@ -53,10 +57,33 @@ const isClipped = (el: Element) =>
 const isTextCut = (el: Element) =>
   isClipped(el) || Array.from(el.querySelectorAll("*")).some(isClipped);
 
+const isExpanded = (el: Element) => isAriaTrue(el.getAttribute("aria-expanded") ?? undefined);
+
 const OWN_TRIGGER_KEY = "trigger";
 
-const useStoreValue = <T,>(store: TooltipStore, read: () => T) =>
-  useSyncExternalStore(store.subscribe, read, read);
+const selectOpen = (state: TooltipState) => state.open;
+const selectTrigger = (state: TooltipState) => state.trigger;
+const selectShown = (state: TooltipState, key: string) => state.open && state.key === key;
+const selectEntry = (state: TooltipState) => state.entry;
+
+function useHideOnScroll(store: TooltipStore, key: string | null, trigger: HTMLElement | null) {
+  useEffect(() => {
+    if (!trigger) return;
+    const onScroll = (event: Event) => {
+      const { target } = event;
+      if (target instanceof Document || (target instanceof Node && target.contains(trigger))) {
+        store.hide(key, "scroll", event);
+      }
+    };
+    const onPointerLockChange = (event: Event) => store.hide(key, "scroll", event);
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    document.addEventListener("pointerlockchange", onPointerLockChange);
+    return () => {
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      document.removeEventListener("pointerlockchange", onPointerLockChange);
+    };
+  }, [store, key, trigger]);
+}
 
 interface TriggerBindingOptions {
   store: TooltipStore;
@@ -74,7 +101,7 @@ function useTriggerBinding({
   showWhenTruncated,
 }: TriggerBindingOptions) {
   const [trigger, setTrigger] = useState<HTMLElement | null>(null);
-  const shown = useStoreValue(store, () => store.isShown(triggerKey));
+  const shown = useStore(store, selectShown, triggerKey);
   const latest = useLatestRef({ disabled, showWhenTruncated });
   // Set once the pointer asks to open, so it shows at most once until the pointer leaves.
   const hovering = useRef(false);
@@ -87,24 +114,21 @@ function useTriggerBinding({
 
   useEffect(() => {
     if (!shown || !trigger) return;
-    const onScroll = (event: Event) => {
-      const { target } = event;
-      if (target instanceof Document || (target instanceof Node && target.contains(trigger))) {
-        store.hide(triggerKey, "scroll", event);
-      }
+    const hideIfExpanded = () => {
+      if (isExpanded(trigger)) store.hide(triggerKey, "trigger-blur");
     };
-    const onPointerLockChange = (event: Event) => store.hide(triggerKey, "scroll", event);
-    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-    document.addEventListener("pointerlockchange", onPointerLockChange);
-    return () => {
-      document.removeEventListener("scroll", onScroll, { capture: true });
-      document.removeEventListener("pointerlockchange", onPointerLockChange);
-    };
+    hideIfExpanded();
+    const expansion = new MutationObserver(hideIfExpanded);
+    expansion.observe(trigger, { attributeFilter: ["aria-expanded"] });
+    return () => expansion.disconnect();
   }, [store, shown, trigger, triggerKey]);
+
+  useHideOnScroll(store, triggerKey, shown ? trigger : null);
 
   const handlers = useMemo(() => {
     const opens = (event: SyntheticEvent<HTMLElement>) =>
       !latest.current.disabled &&
+      !isExpanded(event.currentTarget) &&
       (!latest.current.showWhenTruncated || isTextCut(event.currentTarget));
     const onHover = (event: PointerEvent<HTMLElement>) => {
       if (event.pointerType === "touch" || hovering.current || !opens(event)) return;
@@ -151,28 +175,21 @@ function useTriggerBinding({
     };
   }, [store, triggerKey, latest]);
 
-  return { ref: setTrigger, "aria-describedby": shown ? contentId : undefined, ...handlers };
+  return {
+    trigger,
+    props: { ref: setTrigger, "aria-describedby": shown ? contentId : undefined, ...handlers },
+  };
 }
 
 type TriggerBinding = ReturnType<typeof useTriggerBinding>;
 
-const asTriggerElement = (children: ReactNode): ReactElement =>
-  isValidElement(children) && children.type !== Fragment ? children : <span>{children}</span>;
-
 function TriggerTarget({ binding, children }: { binding: TriggerBinding; children: ReactNode }) {
   return (
     <StyledTrigger
-      {...binding}
-      render={asTriggerElement(children)}
+      {...binding.props}
+      {...asRender(children)}
     />
   );
-}
-
-interface TooltipEntry {
-  label: ReactNode;
-  placement: PlacementOption;
-  shortcut: ReactNode;
-  showArrow: boolean | undefined;
 }
 
 function TooltipBody({ label, showArrow, shortcut }: Omit<TooltipEntry, "placement">) {
@@ -205,57 +222,46 @@ interface TooltipPopupProps {
 }
 
 function TooltipPopup({ store, contentId, placement, anchor, ref, children }: TooltipPopupProps) {
-  const open = useStoreValue(store, () => store.open);
-  const trigger = useStoreValue(store, () => store.trigger);
-  const { setFloating, setArrow, side, align, floatingStyle, arrowStyle } = usePosition({
+  const open = useStore(store, selectOpen);
+  const trigger = useStore(store, selectTrigger);
+  const popup = useAnchoredPopup({
     open,
     placement,
     anchor: anchor ?? trigger,
-  });
-  const presence = usePresence(open);
-  const elementRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, presence.setElement);
-  useLayer(open, {
-    contains: () => false,
+    trigger,
+    contains: false,
+    overlay: false,
     dismiss: (reason, event) => {
       if (reason !== "escape-key") return false;
       store.hide(null, reason, event);
       return true;
     },
   });
+  const elementRef = useComposedRefs(ref, popup.setElement);
 
-  if (!presence.mounted) return null;
+  if (!popup.mounted) return null;
 
   return (
-    <FloatingContext value={{ side, align, arrowStyle, setArrow }}>
-      <Positioner
-        ref={setFloating}
-        style={floatingStyle}
-        data-side={side}
-        data-align={align}
+    <Positioner popup={popup}>
+      <StyledContent
+        ref={elementRef}
+        id={contentId}
+        role="tooltip"
+        data-side={popup.side}
+        data-align={popup.align}
+        {...openStateAttributes(open)}
+        {...presenceAttributes(popup.status)}
       >
-        <StyledContent
-          ref={elementRef}
-          id={contentId}
-          role="tooltip"
-          data-side={side}
-          data-align={align}
-          {...openStateAttributes(open)}
-          {...presenceAttributes(presence.status)}
-        >
-          {children}
-        </StyledContent>
-      </Positioner>
-    </FloatingContext>
+        {children}
+      </StyledContent>
+    </Positioner>
   );
 }
 
-export interface TooltipProps {
+export interface TooltipProps extends UseOpenStateOptions {
   /** The trigger. An element becomes the trigger itself; anything else is wrapped in a `span`. */
   children: ReactNode | undefined;
   label: ReactNode;
-  open?: boolean | undefined;
-  defaultOpen?: boolean | undefined;
-  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
   disabled?: boolean | undefined;
   /** @default 300 */
   openDelay?: number | undefined;
@@ -323,20 +329,16 @@ function OwnTooltip({
     disabled,
     showWhenTruncated,
   });
-  const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
-  const triggerRef = useComposedRefs(binding.ref, setTriggerEl);
 
   return (
     <StyleRoot>
-      {children != null && (
-        <TriggerTarget binding={{ ...binding, ref: triggerRef }}>{children}</TriggerTarget>
-      )}
+      {children != null && <TriggerTarget binding={binding}>{children}</TriggerTarget>}
       {body && (
         <TooltipPopup
           store={store}
           contentId={contentId}
           placement={placement}
-          anchor={anchor ?? triggerEl}
+          anchor={anchor ?? binding.trigger}
           ref={contentRef}
         >
           {body}
@@ -350,8 +352,6 @@ interface TooltipGroupValue {
   store: TooltipStore;
   contentId: string;
   placement: PlacementOption;
-  entries: Map<string, TooltipEntry>;
-  refresh: () => void;
 }
 
 const TooltipGroupContext = createContext<TooltipGroupValue | null>(null);
@@ -372,7 +372,7 @@ function GroupTrigger({
   children: ReactNode;
 }) {
   const triggerKey = useId();
-  const { store, contentId, entries, refresh } = group;
+  const { store, contentId } = group;
   const binding = useTriggerBinding({
     store,
     contentId,
@@ -384,12 +384,8 @@ function GroupTrigger({
 
   useLayoutEffect(() => {
     if (bare) return;
-    entries.set(triggerKey, { label, placement, shortcut, showArrow });
-    if (store.key === triggerKey) refresh();
-    return () => {
-      entries.delete(triggerKey);
-    };
-  }, [entries, refresh, store, triggerKey, bare, label, placement, shortcut, showArrow]);
+    return store.register(triggerKey, { label, placement, shortcut, showArrow });
+  }, [store, triggerKey, bare, label, placement, shortcut, showArrow]);
 
   return (
     <StyleRoot>
@@ -486,37 +482,152 @@ export function TooltipGroup({ children, placement = "top" }: TooltipGroupProps)
   );
   useEffect(() => () => store.dispose(), [store]);
   const contentId = `tooltip:${useId()}:content`;
-  const [entries] = useState(() => new Map<string, TooltipEntry>());
-  const [, setVersion] = useState(0);
-  const refresh = useCallback(() => setVersion((version) => version + 1), []);
-  const value = useMemo(
-    () => ({ store, contentId, placement, entries, refresh }),
-    [store, contentId, placement, entries, refresh],
-  );
-  const activeKey = useStoreValue(store, () => store.key);
-  const entry = activeKey === null ? undefined : entries.get(activeKey);
+  const value = useMemo(() => ({ store, contentId, placement }), [store, contentId, placement]);
 
   return (
     <TooltipGroupContext value={value}>
       {children}
-      <StyleRoot>
-        {entry && (
-          <TooltipPopup
-            store={store}
-            contentId={contentId}
-            placement={entry.placement}
-            anchor={null}
-          >
-            <TooltipBody
-              label={entry.label}
-              showArrow={entry.showArrow}
-              shortcut={entry.shortcut}
-            />
-          </TooltipPopup>
-        )}
-      </StyleRoot>
+      <EntryPopup
+        store={store}
+        contentId={contentId}
+        anchor={null}
+      />
     </TooltipGroupContext>
   );
+}
+
+function EntryPopup({
+  store,
+  contentId,
+  anchor,
+}: {
+  store: TooltipStore;
+  contentId: string;
+  anchor: Anchor | null;
+}) {
+  const entry = useStore(store, selectEntry);
+  return (
+    <StyleRoot>
+      {entry && (
+        <TooltipPopup
+          store={store}
+          contentId={contentId}
+          placement={entry.placement}
+          anchor={anchor}
+        >
+          <TooltipBody
+            label={entry.label}
+            showArrow={entry.showArrow}
+            shortcut={entry.shortcut}
+          />
+        </TooltipPopup>
+      )}
+    </StyleRoot>
+  );
+}
+
+export interface UseTooltipDelegateOptions {
+  /** @default 300 */
+  openDelay?: number | undefined;
+  /** @default "top" */
+  placement?: PlacementOption | undefined;
+}
+
+export interface TooltipDelegate {
+  /** Shows `label` beside `trigger` at once. */
+  show: (trigger: HTMLElement, label: ReactNode) => void;
+  /**
+   * Shows `label` beside `trigger` after `openDelay`, or at once while another tooltip is open or
+   * has just closed.
+   */
+  showAfterDelay: (trigger: HTMLElement, label: ReactNode) => void;
+  /** Hides the tooltip, or stops one waiting to show. */
+  hide: () => void;
+  /** The tooltip; render it once. */
+  tooltip: ReactNode;
+}
+
+let delegatedCount = 0;
+const delegatedKeys = new WeakMap<HTMLElement, string>();
+
+const delegatedKey = (trigger: HTMLElement) => {
+  let key = delegatedKeys.get(trigger);
+  if (key === undefined) {
+    delegatedCount += 1;
+    key = `delegated:${delegatedCount}`;
+    delegatedKeys.set(trigger, key);
+  }
+  return key;
+};
+
+// A delegated trigger can leave the document while its tooltip shows; the tooltip then stays put.
+const lastBoxOf = (trigger: HTMLElement): Anchor => {
+  let box: DOMRect | null = null;
+  return {
+    getBoundingClientRect: () => {
+      if (box === null || trigger.isConnected) box = trigger.getBoundingClientRect();
+      return box;
+    },
+  };
+};
+
+function DelegatedPopup({ store, contentId }: { store: TooltipStore; contentId: string }) {
+  const open = useStore(store, selectOpen);
+  const trigger = useStore(store, selectTrigger);
+  const anchor = useMemo(() => trigger && lastBoxOf(trigger), [trigger]);
+  useHideOnScroll(store, null, open ? trigger : null);
+  return (
+    <EntryPopup
+      store={store}
+      contentId={contentId}
+      anchor={anchor}
+    />
+  );
+}
+
+/**
+ * One tooltip for elements found as events arrive rather than wrapped in `Tooltip`, such as the cell
+ * under the pointer in a grid. It hands off with every other tooltip as `Tooltip` does: another
+ * tooltip open, or just closed, skips the delay.
+ */
+export function useTooltipDelegate({
+  openDelay = DEFAULT_OPEN_DELAY,
+  placement = "top",
+}: UseTooltipDelegateOptions = {}): TooltipDelegate {
+  const [store] = useState(() => new TooltipStore({ openDelay, closeDelay: 0 }));
+  const contentId = `tooltip:${useId()}:content`;
+  const registration = useRef<(() => void) | null>(null);
+
+  useLayoutEffect(() => {
+    store.configure({ openDelay, closeDelay: 0 });
+  }, [store, openDelay]);
+  useEffect(() => () => store.dispose(), [store]);
+
+  return useMemo<TooltipDelegate>(() => {
+    const register = (trigger: HTMLElement, label: ReactNode) => {
+      const key = delegatedKey(trigger);
+      const previous = registration.current;
+      registration.current = store.register(key, {
+        label,
+        placement,
+        shortcut: null,
+        showArrow: undefined,
+      });
+      previous?.();
+      return key;
+    };
+    return {
+      show: (trigger, label) => store.show(register(trigger, label), trigger, "trigger-focus"),
+      showAfterDelay: (trigger, label) => store.showAfterDelay(register(trigger, label), trigger),
+      hide: () => store.hide(null, "pointer-leave"),
+      tooltip: (
+        <DelegatedPopup
+          store={store}
+          contentId={contentId}
+        />
+      ),
+    };
+  }, [store, contentId, placement]);
 }
 
 export type TooltipContentProps = ComponentProps<typeof StyledContent>;

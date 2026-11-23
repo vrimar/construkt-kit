@@ -1,3 +1,4 @@
+import { clampValue, sameItems } from "@construkt-kit/utils";
 import {
   type FocusEvent,
   type KeyboardEvent,
@@ -13,14 +14,20 @@ import {
   useState,
 } from "react";
 
-import { isComposingEvent } from "../../foundations/dom";
+import { isComposingEvent, ownsArrowKeys } from "../../foundations/dom";
+import { swallowNextClick, trackPointerMove } from "../../foundations/trackPointerMove";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { getArrowStep } from "../../primitives/composite";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import {
+  CompositeList,
+  type ListTarget,
+  getKeyTarget,
+  getTargetIndex,
+} from "../../primitives/composite";
 import { isFocusable } from "../../primitives/focus";
 import { useLocale } from "../../primitives/locale";
-import { getPageSnapPoints, getScrollSnapPositions } from "./scrollSnap";
+import { getPageSnapPoints, getScrollSnapPositions, resolveSlidesPerMove } from "./scrollSnap";
 
 export type CarouselOrientation = "horizontal" | "vertical";
 
@@ -97,16 +104,40 @@ export interface CarouselRootOptions {
   translations?: CarouselTranslations | undefined;
 }
 
+/** Every `CarouselRootOptions` key, to split them off the root's props. */
+export const CAROUSEL_ROOT_KEYS = {
+  slideCount: true,
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  orientation: true,
+  slidesPerPage: true,
+  slidesPerMove: true,
+  spacing: true,
+  peek: true,
+  loop: true,
+  autoplay: true,
+  allowMouseDrag: true,
+  autoSize: true,
+  inViewThreshold: true,
+  translations: true,
+} as const satisfies Record<keyof CarouselRootOptions, true>;
+
 type Mode = "idle" | "userScroll" | "dragging" | "settling";
 
-const AUTOPLAY_DELAY = 4000;
+export const AUTOPLAY_DELAY = 4000;
 const DRIFT_THRESHOLD = 1;
 const USER_SCROLL_END_DELAY = 150;
 const SETTLE_END_DELAY = 200;
 const WHEEL_THROTTLE = 150;
 const SWIPE_DISTANCE = 10;
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const pressesFocusable = (target: Element, container: Element) => {
+  for (let node: Element | null = target; node && node !== container; node = node.parentElement) {
+    if (isFocusable(node)) return true;
+  }
+  return false;
+};
 
 const closestIndex = (points: readonly number[], position: number) =>
   points.reduce(
@@ -114,13 +145,6 @@ const closestIndex = (points: readonly number[], position: number) =>
       Math.abs(point - position) < Math.abs(points[closest] - position) ? index : closest,
     0,
   );
-
-const sameNumbers = (a: readonly number[], b: readonly number[]) =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
-
-const takesArrowKeys = (target: EventTarget | null) =>
-  target instanceof HTMLElement &&
-  (target.isContentEditable || target.matches("input, textarea, select"));
 
 interface ElementObserver {
   observe: (element: HTMLElement) => void;
@@ -195,7 +219,7 @@ export function useCarouselRoot({
   }
 
   const lastPage = snapPoints.length - 1;
-  const activePage = snapPoints.length ? clamp(page, 0, lastPage) : 0;
+  const activePage = snapPoints.length ? clampValue(page, 0, lastPage) : 0;
   const canScrollPrev = loop || page > 0;
   const canScrollNext = loop || page < lastPage;
   const running = playing && !hovered && !focused && !pageHidden;
@@ -210,7 +234,7 @@ export function useCarouselRoot({
   const pointerTypeRef = useRef("mouse");
   const lastWheelRef = useRef(0);
   const [slides] = useState(() => new SlideRegistry());
-  const [indicators] = useState(() => new Map<number, HTMLElement>());
+  const [indicators] = useState(() => new CompositeList());
   const [autoplayTriggers] = useState(() => new Set<HTMLElement>());
 
   const scrollToPage = useCallback(
@@ -218,7 +242,7 @@ export function useCarouselRoot({
       const element = elementRef.current;
       const points = latest.current.snapPoints;
       if (!element || !points.length) return;
-      const position = points[clamp(index, 0, points.length - 1)];
+      const position = points[clampValue(index, 0, points.length - 1)];
       element.scrollTo({ [latest.current.horizontal ? "left" : "top"]: position, behavior });
     },
     [latest],
@@ -228,9 +252,7 @@ export function useCarouselRoot({
     (next: number, reason: CarouselValueChangeReason, event?: Event) => {
       const current = latest.current.page;
       if (next === current) return false;
-      const details = createChangeDetails(reason, event);
-      latest.current.onValueChange?.(next, details);
-      if (details.canceled) {
+      if (!emitChange(latest.current.onValueChange, next, reason, event)) {
         if (reason === "scroll") scrollToPage(current, "smooth");
         return false;
       }
@@ -240,14 +262,13 @@ export function useCarouselRoot({
     [latest, scrollToPage, setPage],
   );
 
-  const adjacentPage = useCallback(
-    (step: -1 | 1, wrap: boolean) => {
+  const pageAt = useCallback(
+    (target: ListTarget, wrap: boolean) => {
       const { page: current, snapPoints: points } = latest.current;
       const count = points.length;
       if (!count) return current;
-      const next = current + step;
-      if (wrap) return (next + count) % count;
-      return clamp(next, 0, count - 1);
+      const pages = { length: count, isDisabled: () => false };
+      return getTargetIndex(pages, clampValue(current, 0, count - 1), target, wrap);
     },
     [latest],
   );
@@ -299,10 +320,10 @@ export function useCarouselRoot({
     const alongX = latest.current.horizontal;
     if ((alongX ? element.offsetWidth : element.offsetHeight) === 0) return;
     const points = getScrollSnapPositions(element, alongX ? "x" : "y");
-    setSnapPoints((previous) => (sameNumbers(previous, points) ? previous : points));
+    setSnapPoints((previous) => (sameItems(previous, points) ? previous : points));
     if (!points.length) return;
     const current = latest.current.page;
-    const clamped = clamp(current, 0, points.length - 1);
+    const clamped = clampValue(current, 0, points.length - 1);
     if (clamped !== current) commitPage(clamped, "layout-change");
   }, [commitPage, latest]);
 
@@ -313,11 +334,8 @@ export function useCarouselRoot({
   };
 
   const keyTarget = (key: string): number | null => {
-    const step = getArrowStep(key, orientation, rtl);
-    if (step !== 0) return adjacentPage(step, loop);
-    if (key === "Home") return 0;
-    if (key === "End") return lastPage;
-    return null;
+    const target = getKeyTarget(key, orientation, rtl);
+    return target && pageAt(target, loop);
   };
 
   const startUserScroll = () => {
@@ -333,44 +351,29 @@ export function useCarouselRoot({
     swipeOriginRef.current = null;
   };
 
-  const startDrag = (element: HTMLElement) => {
+  const startDrag = (element: HTMLElement, startX: number, startY: number) => {
     setPlaying(false);
     enter("dragging");
-    const doc = element.ownerDocument;
-    const onMove = (event: globalThis.PointerEvent) => {
-      if (event.pointerType === "mouse" && event.buttons === 0) {
-        onEnd();
-        return;
-      }
-      element.scrollBy({ left: -event.movementX, top: -event.movementY, behavior: "instant" });
-    };
-    const onEnd = () => {
+    let moved = false;
+    const onEnd = (event: Event) => {
       stopDragRef.current?.();
+      if (moved && event.type === "pointerup") swallowNextClick(element.ownerDocument);
       const { snapPoints: points, horizontal: alongX } = latest.current;
       enter("settling");
-      if (points.length) {
-        const target =
-          points[closestIndex(points, alongX ? element.scrollLeft : element.scrollTop)];
-        requestAnimationFrame(() =>
-          element.scrollTo({
-            left: alongX ? target : element.scrollLeft,
-            top: alongX ? element.scrollTop : target,
-            behavior: "smooth",
-          }),
-        );
-      }
+      const target = closestIndex(points, alongX ? element.scrollLeft : element.scrollTop);
+      requestAnimationFrame(() => scrollToPage(target, "smooth"));
       trackScrollEnd(SETTLE_END_DELAY, true);
     };
-    doc.addEventListener("pointermove", onMove);
-    doc.addEventListener("pointerup", onEnd);
-    doc.addEventListener("pointercancel", onEnd);
-    doc.addEventListener("contextmenu", onEnd);
+    const stopTracking = trackPointerMove(element.ownerDocument, {
+      onMove: ({ x, y }, event) => {
+        moved ||= Math.hypot(x - startX, y - startY) > SWIPE_DISTANCE;
+        element.scrollBy({ left: -event.movementX, top: -event.movementY, behavior: "instant" });
+      },
+      onUp: onEnd,
+    });
     stopDragRef.current = () => {
       stopDragRef.current = undefined;
-      doc.removeEventListener("pointermove", onMove);
-      doc.removeEventListener("pointerup", onEnd);
-      doc.removeEventListener("pointercancel", onEnd);
-      doc.removeEventListener("contextmenu", onEnd);
+      stopTracking();
     };
   };
 
@@ -436,7 +439,7 @@ export function useCarouselRoot({
             else next.delete(index);
           }
           const values = [...next];
-          return sameNumbers(previous, values) ? previous : values;
+          return sameItems(previous, values) ? previous : values;
         }),
       { root: itemGroup, threshold: thresholdKey.split(",").map(Number) },
     );
@@ -479,17 +482,17 @@ export function useCarouselRoot({
     if (!running) return;
     const timer = setInterval(() => {
       if (!latest.current.canScrollNext) setPlaying(false);
-      else commitPage(adjacentPage(1, true), "autoplay");
+      else commitPage(pageAt("next", true), "autoplay");
     }, delay);
     return () => clearInterval(timer);
-  }, [running, delay, latest, commitPage, adjacentPage]);
+  }, [running, delay, latest, commitPage, pageAt]);
 
   const focusIndicatorAfter = (moved: boolean, next: number) => {
-    if (moved) indicators.get(next)?.focus({ preventScroll: true });
+    if (moved) indicators.find(String(next))?.element.focus({ preventScroll: true });
   };
 
   const translated = { ...DEFAULT_TRANSLATIONS, ...translations };
-  const perMove = slidesPerMove === "auto" ? Math.floor(slidesPerPage) : slidesPerMove;
+  const perMove = resolveSlidesPerMove(slidesPerMove, slidesPerPage);
 
   return {
     dir,
@@ -508,16 +511,17 @@ export function useCarouselRoot({
     inView,
     translations: translated,
     itemGroupId: `carousel:${uid}:item-group`,
+    mountedItemGroupId: itemGroup?.id || undefined,
     setItemGroup,
     registerItem,
     indicators,
     autoplayTriggers,
     snapsAt: (index: number) => (index + perMove) % perMove === 0,
     prev(event: Event) {
-      navigate(adjacentPage(-1, loop), "prev-press", event);
+      navigate(pageAt("prev", loop), "prev-press", event);
     },
     next(event: Event) {
-      navigate(adjacentPage(1, loop), "next-press", event);
+      navigate(pageAt("next", loop), "next-press", event);
     },
     goToIndicator(index: number, reason: CarouselValueChangeReason, event: Event) {
       focusIndicatorAfter(navigate(index, reason, event), index);
@@ -548,7 +552,7 @@ export function useCarouselRoot({
     },
     itemGroupProps: {
       onKeyDown(event: KeyboardEvent<HTMLElement>) {
-        if (event.defaultPrevented || isComposingEvent(event) || takesArrowKeys(event.target)) {
+        if (event.defaultPrevented || isComposingEvent(event) || ownsArrowKeys(event.target)) {
           return;
         }
         const target = keyTarget(event.key);
@@ -588,10 +592,9 @@ export function useCarouselRoot({
       onMouseDown(event: MouseEvent<HTMLElement>) {
         if (event.defaultPrevented || !allowMouseDrag || event.button !== 0) return;
         if (pointerTypeRef.current !== "mouse" || modeRef.current === "dragging") return;
-        const target = event.target as Element;
-        if (target !== event.currentTarget && isFocusable(target)) return;
+        if (pressesFocusable(event.target as Element, event.currentTarget)) return;
         event.preventDefault();
-        startDrag(event.currentTarget);
+        startDrag(event.currentTarget, event.clientX, event.clientY);
       },
     },
   };

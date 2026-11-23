@@ -44,6 +44,60 @@ describe("ColorPicker", () => {
     expect((input as HTMLInputElement).value).toBe("#FF0000");
   });
 
+  it("takes the alpha typed into the css input", async () => {
+    const user = userEvent.setup();
+    render(
+      <ColorPicker.Root
+        inline
+        defaultValue={parseColor("#336699")}
+      >
+        <ColorPicker.Content>
+          <ColorPicker.ChannelInput channel="css" />
+        </ColorPicker.Content>
+      </ColorPicker.Root>,
+    );
+    const css = screen.getByRole<HTMLInputElement>("textbox", { name: "css" });
+
+    await user.clear(css);
+    await user.type(css, "rgba(255, 0, 0, 0.5){Enter}");
+
+    expect(css.value).toBe("rgba(255, 0, 0, 0.5)");
+  });
+
+  it("takes the alpha of hex typed with one, and keeps its own for hex typed without", async () => {
+    const user = userEvent.setup();
+    render(
+      <ColorPicker.Root
+        inline
+        defaultValue={parseColor("rgba(51, 102, 153, 0.5)")}
+      >
+        <ColorPicker.Content>
+          <ColorPicker.ChannelInput channel="hex" />
+          <ColorPicker.ChannelInput channel="css" />
+        </ColorPicker.Content>
+      </ColorPicker.Root>,
+    );
+    const hex = screen.getByRole<HTMLInputElement>("textbox", { name: "hex" });
+    const css = screen.getByRole<HTMLInputElement>("textbox", { name: "css" });
+
+    await user.clear(hex);
+    await user.type(hex, "ff0000{Enter}");
+    expect(css.value).toBe("rgba(255, 0, 0, 0.5)");
+
+    await user.clear(hex);
+    await user.type(hex, "ff000000{Enter}");
+    expect(css.value).toBe("rgba(255, 0, 0, 0)");
+  });
+
+  it("hands focus that lands on its hidden input to its trigger", () => {
+    render(<ColorPicker name="color" />);
+    const hidden = document.querySelector<HTMLInputElement>('input[name="color"]');
+
+    act(() => hidden?.focus());
+
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /current color is/ }));
+  });
+
   it("goes back to its first color when the form its hidden input names resets", async () => {
     const user = userEvent.setup();
     render(
@@ -207,6 +261,31 @@ describe("ColorPicker", () => {
       await act(async () => fireEvent.pointerUp(document));
 
       expect(onValueChangeEnd).not.toHaveBeenCalled();
+    });
+
+    it("keeps the color as a press grabs the area thumb off centre, and drags from that grip", () => {
+      stubRects();
+      const onValueChange = vi.fn();
+      render(
+        <ColorPicker.Root
+          inline
+          defaultValue={parseColor("hsb(0, 50%, 50%)")}
+          onValueChange={onValueChange}
+        >
+          <ColorPicker.Content>
+            <ColorPicker.Area>
+              <ColorPicker.AreaBackground />
+              <ColorPicker.AreaThumb />
+            </ColorPicker.Area>
+          </ColorPicker.Content>
+        </ColorPicker.Root>,
+      );
+
+      fireEvent.pointerDown(screen.getByRole("slider"), { button: 0, clientX: 60, clientY: 40 });
+      expect(onValueChange).not.toHaveBeenCalled();
+
+      fireEvent.pointerMove(document, { clientX: 70, clientY: 30, buttons: 1 });
+      expect(formatColor(onValueChange.mock.lastCall?.[0], "hsba")).toBe("hsba(0, 60%, 60%, 1)");
     });
 
     it("ends the drag when the popup closes under it", async () => {

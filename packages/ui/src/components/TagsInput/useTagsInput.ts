@@ -1,12 +1,11 @@
+import { sameItems } from "@construkt-kit/utils";
 import {
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useRef,
@@ -14,17 +13,22 @@ import {
 } from "react";
 
 import { isComposingEvent } from "../../foundations/dom";
+import { useAnnouncer } from "../../hooks/useAnnouncer";
 import { useControllableState } from "../../hooks/useControllableState";
+import { useFocusOnMount } from "../../hooks/useFocusOnMount";
+import { useFrameQueue } from "../../hooks/useFrameQueue";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { useLiveRegion } from "../../hooks/useLiveRegion";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
+import { useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { type NavigableList, getTargetIndex, mirrorArrowKey } from "../../primitives/composite";
 import {
-  dispatchInputValueEvent,
-  useFieldControlState,
-  useFormControl,
+  hiddenFormInputProps,
+  useFormFieldState,
+  useHiddenInputValue,
 } from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr } from "../../primitives/render";
+import { dataAttr, fieldStateAttributes } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import { autoresizeInput } from "./autoresizeInput";
 
 export type TagsInputValueChangeReason =
@@ -120,15 +124,44 @@ export interface TagsInputOptions {
   id?: string | undefined;
 }
 
+/** Every `TagsInputOptions` key, to split them off the root's props. */
+export const TAGS_INPUT_OPTION_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  inputValue: true,
+  defaultInputValue: true,
+  onInputValueChange: true,
+  onHighlightChange: true,
+  onValueInvalid: true,
+  validate: true,
+  sanitizeValue: true,
+  allowDuplicates: true,
+  max: true,
+  allowOverflow: true,
+  delimiter: true,
+  addOnPaste: true,
+  blurBehavior: true,
+  editable: true,
+  maxLength: true,
+  placeholder: true,
+  autoFocus: true,
+  translations: true,
+  name: true,
+  form: true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  required: true,
+  id: true,
+} as const satisfies Record<keyof TagsInputOptions, true>;
+
 type Mode = "idle" | "input" | "navigating" | "editing";
 
 type Log =
   | { type: "add" | "update" | "delete" | "select"; value: string }
-  | { type: "clear" }
+  | { type: "clear"; removed: string[]; emptied: boolean }
   | { type: "paste"; values: string[] };
-
-const isEqual = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((entry, index) => entry === b[index]);
 
 const uniq = (values: string[]) => [...new Set(values)];
 
@@ -188,22 +221,14 @@ export function useTagsInput({
   const uid = useId();
   const id = idProp ?? uid;
   const { dir } = useLocale();
-  const field = useFieldControlState({ disabled, readOnly, invalid, required });
   const translations = { ...defaultTranslations, ...translationsProp };
 
-  const ids = {
-    root: `tags-input:${id}`,
-    label: `tags-input:${id}:label`,
-    control: `tags-input:${id}:control`,
-    input: field.id ?? `tags-input:${id}:input`,
-    hiddenInput: `tags-input:${id}:hidden-input`,
-    clearTrigger: `tags-input:${id}:clear-btn`,
-    item: (value: string, index: number) => `tags-input:${id}:tag:${value}:${index}`,
-  };
-
+  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement | null>(null);
   const itemElements = useRef(new Set<HTMLElement>());
+  const [disabledItems, setDisabledItems] = useState<ReadonlySet<number>>(() => new Set());
   const [initialValue] = useState(valueProp ?? defaultValue);
   const [value, setValueState] = useControllableState({ value: valueProp, defaultValue });
   const [inputValue, setInputValueState] = useControllableState({
@@ -224,50 +249,40 @@ export function useTagsInput({
   };
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedValue, setEditedValue] = useState("");
-  const [deleteIntent, setDeleteIntent] = useState<number | null>(null);
 
-  const { fieldsetDisabled } = useFormControl(hiddenInputRef, () =>
-    setValue(initialValue, "form-reset"),
+  const [rendered, reportRendered] = useRenderedParts<"input">();
+  const field = useFormFieldState(
+    { disabled, readOnly, invalid, required },
+    {
+      elementRef: rootRef,
+      onReset: () => setValue(initialValue, "form-reset"),
+      input: () => hiddenInputRef.current,
+    },
   );
-  const resolvedDisabled = field.disabled || fieldsetDisabled;
+  const ids = {
+    root: `tags-input:${id}`,
+    label: `tags-input:${id}:label`,
+    control: `tags-input:${id}:control`,
+    input: `tags-input:${id}:input`,
+    hiddenInput: `tags-input:${id}:hidden-input`,
+    clearTrigger: `tags-input:${id}:clear-btn`,
+    item: (tag: string, index: number) => `tags-input:${id}:tag:${tag}:${index}`,
+  };
+  const resolvedDisabled = field.disabled;
   const resolvedReadOnly = field.readOnly;
   const interactive = !(resolvedDisabled || resolvedReadOnly);
   const overflowing = value.length > max;
   const resolvedInvalid = field.invalid || overflowing;
   const empty = value.length === 0;
-  const atMax = value.length === max;
   const valueAsString = value.join(", ");
   const focused = mode !== "idle";
 
   const latest = useLatestRef({ value, inputValue });
 
-  const frames = useRef(new Map<string, number>());
-  const requestFrame = useCallback((key: string, callback: () => void) => {
-    const pending = frames.current;
-    cancelAnimationFrame(pending.get(key) ?? 0);
-    pending.set(
-      key,
-      requestAnimationFrame(() => {
-        pending.delete(key);
-        callback();
-      }),
-    );
-  }, []);
-  const cancelFrame = (key: string) => {
-    cancelAnimationFrame(frames.current.get(key) ?? 0);
-    frames.current.delete(key);
-  };
-  useEffect(() => {
-    const pending = frames.current;
-    return () => pending.forEach(cancelAnimationFrame);
-  }, []);
+  const frames = useFrameQueue();
+  useFocusOnMount(autoFocus, () => inputRef.current?.focus());
 
-  const [focusOnMount] = useState(autoFocus);
-  useEffect(() => {
-    if (focusOnMount) requestFrame("focus-input", () => inputRef.current?.focus());
-  }, [focusOnMount, requestFrame]);
-
-  const [liveRegion, announceMessage] = useLiveRegion("assertive");
+  const { liveRegion, announce: announceMessage } = useAnnouncer({ politeness: "assertive" });
 
   const log = useRef<{ current: Log | null; prev: Log | null }>({ current: null, prev: null });
   const announce = (entry: Log) => {
@@ -278,8 +293,11 @@ export function useTagsInput({
     else if (entry.type === "delete") message = translations.tagDeleted(entry.value);
     else if (entry.type === "update") message = translations.tagUpdated(entry.value);
     else if (entry.type === "paste") message = translations.tagsPasted(entry.values);
-    else if (entry.type === "clear") message = translations.noTagsSelected;
-    else if (entry.type === "select") {
+    else if (entry.type === "clear") {
+      message = entry.emptied
+        ? translations.noTagsSelected
+        : entry.removed.map((tag) => translations.tagDeleted(tag)).join(". ");
+    } else if (entry.type === "select") {
       message = translations.tagSelected(entry.value);
       if (prev?.type === "delete") message = `${translations.tagDeleted(prev.value)}. ${message}`;
       else if (prev?.type === "update")
@@ -289,19 +307,15 @@ export function useTagsInput({
   };
 
   function setValue(next: string[], reason: TagsInputValueChangeReason, event?: Event) {
-    if (isEqual(next, latest.current.value)) return true;
-    const details = createChangeDetails(reason, event);
-    onValueChange?.(next, details);
-    if (details.canceled) return false;
+    if (sameItems(next, latest.current.value)) return true;
+    if (!emitChange(onValueChange, next, reason, event)) return false;
     setValueState(next);
     return true;
   }
 
   function setInputValue(next: string, reason: TagsInputInputValueChangeReason, event?: Event) {
     if (next === latest.current.inputValue) return;
-    const details = createChangeDetails(reason, event);
-    onInputValueChange?.(next, details);
-    if (!details.canceled) setInputValueState(next);
+    if (emitChange(onInputValueChange, next, reason, event)) setInputValueState(next);
   }
 
   const highlightedValue = highlightedIndex === null ? null : (value[highlightedIndex] ?? null);
@@ -323,18 +337,13 @@ export function useTagsInput({
     if (overflowing) onValueInvalid?.("rangeOverflow");
   });
 
-  const mountedValue = useRef(valueAsString);
-  useEffect(() => {
-    if (mountedValue.current === valueAsString) return;
-    mountedValue.current = valueAsString;
-    queueMicrotask(() => dispatchInputValueEvent(hiddenInputRef.current, valueAsString));
-  }, [valueAsString]);
+  useHiddenInputValue(() => hiddenInputRef.current, valueAsString);
 
-  const focusInput = () => requestFrame("focus-input", () => inputRef.current?.focus());
+  const focusInput = () => frames.request("focus-input", () => inputRef.current?.focus());
 
   const leaveTagModes = () => {
-    cancelFrame("highlight");
-    cancelFrame("focus-input");
+    frames.cancel("highlight");
+    frames.cancel("focus-input");
   };
 
   const enterInput = () => {
@@ -345,7 +354,7 @@ export function useTagsInput({
   };
 
   const highlightAtIndex = (index: number) =>
-    requestFrame("highlight", () => {
+    frames.request("highlight", () => {
       if (index < latest.current.value.length) setHighlightedIndex(index);
       else enterInput();
     });
@@ -356,23 +365,26 @@ export function useTagsInput({
     setEditingIndex(null);
   };
 
-  const addTag = (raw: string, event?: Event) => {
-    const tag = sanitizeValue(raw);
-    const tags = latest.current.value;
-    if (!validate({ inputValue: tag, value: [...tags] })) {
-      onValueInvalid?.("invalidTag");
-      return true;
-    }
-    const next = allowDuplicates ? [...tags, tag] : uniq([...tags, tag]);
-    const applied = setValue(next, "add", event);
-    if (applied) announce({ type: "add", value: tag });
-    return applied;
+  const appendTags = (raw: readonly string[], reason: "add" | "paste", event?: Event) => {
+    const existing = latest.current.value;
+    const room = allowOverflow ? Infinity : max - existing.length;
+    const tags = raw.map(sanitizeValue).filter((tag) => tag.length > 0);
+    if (room <= 0 || tags.length === 0) return false;
+    const valid = tags.filter((tag) => validate({ inputValue: tag, value: [...existing] }));
+    if (valid.length < tags.length) onValueInvalid?.("invalidTag");
+    if (valid.length === 0) return false;
+    const fresh = allowDuplicates ? valid : uniq(valid).filter((tag) => !existing.includes(tag));
+    const added = fresh.slice(0, room);
+    if (added.length === 0) return true;
+    if (!setValue([...existing, ...added], reason, event)) return false;
+    announce(
+      reason === "paste" ? { type: "paste", values: added } : { type: "add", value: added[0] },
+    );
+    return true;
   };
 
   const insertTag = (raw: string, event?: Event) => {
-    if (atMax && !allowOverflow) return;
-    if (sanitizeValue(raw).length === 0) return;
-    if (addTag(raw, event)) setInputValue("", "add", event);
+    if (appendTags([raw], "add", event)) setInputValue("", "add", event);
   };
 
   const deleteAt = (index: number, event?: Event) => {
@@ -431,55 +443,70 @@ export function useTagsInput({
     setMode("editing");
     setEditingIndex(index);
     setEditedValue(latest.current.value[index] ?? "");
-    requestFrame("edit", () => {
-      const tag = latest.current.value[index];
-      if (tag === undefined) return;
-      const input = document.getElementById(`${ids.item(tag, index)}:input`);
-      if (!(input instanceof HTMLInputElement)) return;
+    frames.request("edit", () => {
+      const input = editInputRef.current;
+      if (!input) return;
       input.focus();
       input.select();
     });
   };
+
+  const attachEditInput = useCallback((input: HTMLInputElement | null) => {
+    if (!input) return;
+    editInputRef.current = input;
+    const stopResizing = autoresizeInput(input);
+    return () => {
+      stopResizing();
+      if (editInputRef.current === input) editInputRef.current = null;
+    };
+  }, []);
 
   const finishEditing = () => {
     setEditingIndex(null);
     setEditedValue("");
   };
 
-  const editingTag = editingIndex === null ? undefined : value[editingIndex];
-  const editingInputId =
-    mode === "editing" && editable && editingTag !== undefined && editingIndex !== null
-      ? `${ids.item(editingTag, editingIndex)}:input`
-      : null;
-  useEffect(() => {
-    const input = editingInputId && document.getElementById(editingInputId);
-    if (input instanceof HTMLInputElement) return autoresizeInput(input);
-  }, [editingInputId]);
+  const saveEdit = (index: number, event: Event) => {
+    const tags = latest.current.value;
+    const edited = sanitizeValue(editedValue);
+    if (edited === "") {
+      deleteAt(index, event);
+      return true;
+    }
+    if (edited === tags[index]) return true;
+    const others = tags.filter((_, at) => at !== index);
+    if (!validate({ inputValue: edited, value: others })) {
+      onValueInvalid?.("invalidTag");
+      return false;
+    }
+    if (!allowDuplicates && others.includes(edited)) return true;
+    const next = [...tags];
+    next[index] = edited;
+    if (setValue(next, "edit", event)) announce({ type: "update", value: edited });
+    return true;
+  };
 
-  const arrowKey = (key: string) =>
-    dir === "rtl" && key === "ArrowLeft"
-      ? "ArrowRight"
-      : dir === "rtl" && key === "ArrowRight"
-        ? "ArrowLeft"
-        : key;
+  const isItemDisabled = (index: number) => disabledItems.has(index);
+  const keptOnClear = value.filter((_, index) => isItemDisabled(index));
+  const removedOnClear = value.filter((_, index) => !isItemDisabled(index));
 
   const lastIndex = value.length - 1;
+  const tagList: NavigableList = { length: value.length, isDisabled: () => false };
+  const stepFrom = (index: number, target: "prev" | "next") =>
+    getTargetIndex(tagList, index, target, false);
 
   const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.defaultPrevented || isComposingEvent(event)) return;
     const target = event.currentTarget;
-    const combobox = target.getAttribute("role") === "combobox";
-    const expanded = target.getAttribute("aria-expanded") === "true";
     const native = event.nativeEvent;
     const caretAtStart = isCaretAtStart(target);
     const hasTags = value.length > 0;
 
-    switch (arrowKey(event.key)) {
+    switch (mirrorArrowKey(event.key, dir === "rtl")) {
       case "ArrowDown":
         if (mode === "navigating") enterInput();
         return;
       case "ArrowLeft":
-        if (combobox && expanded) return;
         if (mode === "input") {
           if (hasTags && caretAtStart) {
             enterNavigating();
@@ -488,17 +515,14 @@ export function useTagsInput({
         } else if (mode === "navigating") {
           if (!caretAtStart) enterInput();
           else if (highlightedIndex !== null)
-            setHighlightedIndex(Math.max(0, highlightedIndex - 1));
+            setHighlightedIndex(stepFrom(highlightedIndex, "prev"));
         }
         return;
       case "ArrowRight":
         if (highlightedIndex !== null) event.preventDefault();
-        if (combobox && expanded) return;
         if (mode !== "navigating") return;
         if (hasTags && caretAtStart && highlightedIndex !== lastIndex) {
-          if (highlightedIndex !== null) {
-            setHighlightedIndex(Math.min(highlightedIndex + 1, lastIndex));
-          }
+          if (highlightedIndex !== null) setHighlightedIndex(stepFrom(highlightedIndex, "next"));
         } else {
           enterInput();
         }
@@ -517,12 +541,13 @@ export function useTagsInput({
           }
         } else if (mode === "navigating") {
           if (!caretAtStart) enterInput();
+          else if (highlightedIndex !== null && isItemDisabled(highlightedIndex)) return;
           else if (highlightedIndex === 0) {
             deleteAt(0, native);
             highlightAtIndex(0);
           } else if (highlightedIndex !== null) {
             deleteAt(highlightedIndex, native);
-            setHighlightedIndex(Math.max(0, highlightedIndex - 1));
+            setHighlightedIndex(stepFrom(highlightedIndex, "prev"));
           } else {
             setHighlightedIndex(lastIndex >= 0 ? lastIndex : null);
           }
@@ -535,14 +560,19 @@ export function useTagsInput({
           return;
         }
         event.preventDefault();
+        if (isItemDisabled(highlightedIndex)) return;
         deleteAt(highlightedIndex, native);
         highlightAtIndex(highlightedIndex);
         return;
       case "Enter": {
-        if (combobox && expanded && target.getAttribute("aria-activedescendant")) return;
         event.preventDefault();
         if (mode === "input") insertTag(inputValue, native);
-        else if (mode === "navigating" && editable && highlightedIndex !== null) {
+        else if (
+          mode === "navigating" &&
+          editable &&
+          highlightedIndex !== null &&
+          !isItemDisabled(highlightedIndex)
+        ) {
           editTag(highlightedIndex);
         }
         return;
@@ -559,25 +589,9 @@ export function useTagsInput({
       if (fromTags) enterInput();
       setInputValue(typed, "input-change", native);
       if (addOnPaste && mode !== "idle") {
-        requestFrame("paste", () => {
+        frames.request("paste", () => {
           const pasted = sanitizeValue(typed);
-          const existing = latest.current.value;
-          if (validate({ inputValue: pasted, value: [...existing] })) {
-            const tags = (delimiter ? pasted.split(delimiter).map(sanitizeValue) : [pasted]).filter(
-              (tag) => tag.length > 0,
-            );
-            const fresh = allowDuplicates
-              ? tags
-              : uniq(tags).filter((tag) => !existing.includes(tag));
-            const added = allowOverflow
-              ? fresh
-              : fresh.slice(0, Math.max(0, max - existing.length));
-            if (added.length > 0 && setValue([...existing, ...added], "paste", native)) {
-              announce({ type: "paste", values: added });
-            }
-          } else {
-            onValueInvalid?.("invalidTag");
-          }
+          appendTags(delimiter ? pasted.split(delimiter) : [pasted], "paste", native);
           setInputValue("", "add", native);
         });
       }
@@ -600,17 +614,17 @@ export function useTagsInput({
     const state = getItemState(index, itemDisabled);
     const itemId = ids.item(tag, index);
     const highlightedAttribute = dataAttr(state.highlighted);
+    const disabledAttribute = dataAttr(state.disabled);
 
     return {
       state,
-      itemProps: { "data-value": tag, "data-disabled": dataAttr(resolvedDisabled) },
+      itemProps: { "data-value": tag, "data-disabled": disabledAttribute },
       previewProps: {
         id: itemId,
         hidden: state.editing,
         "data-value": tag,
-        "data-disabled": dataAttr(resolvedDisabled),
+        "data-disabled": disabledAttribute,
         "data-highlighted": highlightedAttribute,
-        "data-delete-intent": dataAttr(deleteIntent === index),
         onPointerDown(event: PointerEvent<HTMLElement>) {
           if (!interactive || state.disabled || event.button !== 0) return;
           event.preventDefault();
@@ -624,10 +638,11 @@ export function useTagsInput({
         },
       },
       textProps: {
-        "data-disabled": dataAttr(resolvedDisabled),
+        "data-disabled": disabledAttribute,
         "data-highlighted": highlightedAttribute,
       },
       inputProps: {
+        ref: state.editing ? attachEditInput : undefined,
         id: `${itemId}:input`,
         "aria-label": translations.tagEdited(tag),
         disabled: resolvedDisabled,
@@ -657,22 +672,7 @@ export function useTagsInput({
           if (event.defaultPrevented || isComposingEvent(event)) return;
           if (event.key !== "Enter" && event.key !== "Escape") return;
           event.preventDefault();
-          const native = event.nativeEvent;
-          if (event.key === "Enter") {
-            if (sanitizeValue(editedValue) === "") {
-              deleteAt(index, native);
-            } else {
-              const tags = latest.current.value;
-              const duplicate = tags.some((entry, at) => at !== index && entry === editedValue);
-              if ((allowDuplicates || !duplicate) && tags[index] !== editedValue) {
-                const next = [...tags];
-                next[index] = editedValue;
-                if (setValue(next, "edit", native)) {
-                  announce({ type: "update", value: editedValue });
-                }
-              }
-            }
-          }
+          if (event.key === "Enter" && !saveEdit(index, event.nativeEvent)) return;
           setMode("navigating");
           finishEditing();
           focusInput();
@@ -681,21 +681,14 @@ export function useTagsInput({
       },
       deleteTriggerProps: {
         id: `${itemId}:delete-btn`,
-        type: "button" as const,
         disabled: state.disabled,
         tabIndex: -1,
         "aria-label": translations.deleteTagTriggerLabel(tag),
         "aria-disabled": state.disabled,
-        "data-disabled": dataAttr(state.disabled),
+        "data-disabled": disabledAttribute,
         "data-highlighted": highlightedAttribute,
         onPointerDown(event: PointerEvent<HTMLButtonElement>) {
           if (event.button === 0 && !interactive) event.preventDefault();
-        },
-        onPointerMove() {
-          if (interactive) setDeleteIntent(index);
-        },
-        onPointerLeave() {
-          if (interactive) setDeleteIntent(null);
         },
         onClick(event: MouseEvent<HTMLButtonElement>) {
           if (event.defaultPrevented || !interactive) return;
@@ -706,25 +699,40 @@ export function useTagsInput({
     };
   };
 
-  const registerItem = useCallback((element: HTMLElement) => {
+  const registerItem = useCallback((element: HTMLElement | null) => {
+    if (!element) return;
     itemElements.current.add(element);
     return () => {
       itemElements.current.delete(element);
     };
   }, []);
 
-  const stateAttributes = {
-    "data-invalid": dataAttr(resolvedInvalid),
-    "data-read-only": dataAttr(resolvedReadOnly),
-    "data-disabled": dataAttr(resolvedDisabled),
-  };
+  const registerDisabledItem = useCallback((index: number) => {
+    setDisabledItems((indexes) => new Set(indexes).add(index));
+    return () => {
+      setDisabledItems((indexes) => {
+        const next = new Set(indexes);
+        next.delete(index);
+        return next;
+      });
+    };
+  }, []);
+
+  const stateAttributes = fieldStateAttributes({
+    disabled: resolvedDisabled,
+    invalid: resolvedInvalid,
+    readOnly: resolvedReadOnly,
+  });
 
   return {
     value,
     getItemParts,
     registerItem,
+    registerDisabledItem,
     liveRegion: interactive ? liveRegion : null,
+    reportRendered,
     rootProps: {
+      ref: rootRef,
       id: ids.root,
       ...stateAttributes,
       "data-focus": dataAttr(focused),
@@ -738,11 +746,13 @@ export function useTagsInput({
     },
     labelProps: {
       id: ids.label,
-      htmlFor: ids.input,
-      "data-disabled": dataAttr(resolvedDisabled),
-      "data-invalid": dataAttr(resolvedInvalid),
-      "data-read-only": dataAttr(resolvedReadOnly),
-      "data-required": dataAttr(field.required),
+      htmlFor: rendered.input,
+      ...fieldStateAttributes({
+        disabled: resolvedDisabled,
+        invalid: resolvedInvalid,
+        readOnly: resolvedReadOnly,
+        required: field.required,
+      }),
     },
     controlProps: {
       id: ids.control,
@@ -775,9 +785,9 @@ export function useTagsInput({
       },
     },
     hiddenInputProps: {
+      ...hiddenFormInputProps,
       ref: hiddenInputRef,
       type: "text",
-      hidden: true,
       id: ids.hiddenInput,
       name,
       form,
@@ -785,18 +795,21 @@ export function useTagsInput({
       readOnly: resolvedReadOnly,
       required: field.required,
       defaultValue: valueAsString,
-      "aria-describedby": field.describedBy,
+      onFocus() {
+        inputRef.current?.focus();
+      },
     },
     clearTriggerProps: {
       id: ids.clearTrigger,
-      type: "button" as const,
       disabled: resolvedDisabled,
-      hidden: empty,
+      hidden: removedOnClear.length === 0,
       "aria-label": translations.clearTriggerLabel,
       "data-read-only": dataAttr(resolvedReadOnly),
       onClick(event: MouseEvent<HTMLButtonElement>) {
         if (!interactive) return;
-        if (setValue([], "clear", event.nativeEvent)) announce({ type: "clear" });
+        if (setValue(keptOnClear, "clear", event.nativeEvent)) {
+          announce({ type: "clear", removed: removedOnClear, emptied: keptOnClear.length === 0 });
+        }
         setInputValue("", "clear", event.nativeEvent);
         focusInput();
       },
@@ -806,12 +819,7 @@ export function useTagsInput({
 
 export type TagsInputApi = ReturnType<typeof useTagsInput>;
 
-const TagsInputContext = createContext<TagsInputApi | null>(null);
+export const [TagsInputContext, useTagsInputContext] =
+  createPartContext<TagsInputApi>("<TagsInput.Root>");
 
 export const TagsInputProvider = TagsInputContext.Provider;
-
-export function useTagsInputContext(part: string): TagsInputApi {
-  const context = useContext(TagsInputContext);
-  if (!context) throw new Error(`${part} must be placed inside <TagsInput.Root>.`);
-  return context;
-}

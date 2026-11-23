@@ -1,0 +1,2 @@
+export const HOVER_CARD_OPEN_DELAY = 600;
+export const HOVER_CARD_CLOSE_DELAY = 300;

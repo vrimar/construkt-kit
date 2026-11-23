@@ -1,70 +1,68 @@
-import {
-  type Locator,
-  expect,
-  selectStories,
-  storyTags,
-  test,
-} from "@construkt-kit/story-kit/test";
+import { type Page, type StoryId, expect, storyTest } from "@construkt-kit/story-kit/test";
 
-const focusVisible = (locator: Locator) =>
-  locator.evaluate((node) => node.matches(":focus-visible"));
+import { sheetOverlayCases } from "../sheetFrame.cases";
 
-for (const id of selectStories(["components-select--default"])) {
-  const tag = [...storyTags(id), "@desktop-only"];
+const triggerOf = (page: Page, story: StoryId) => {
+  const query = sheetOverlayCases.find((overlay) => overlay.story === story)?.trigger.desktop;
+  if (!query) throw new Error(`${story} has no case in sheetOverlayCases.`);
+  return page.getByRole(query.role, { name: query.name });
+};
 
-  test(
-    `${id} a keyboard pick returns focus to the trigger with its ring`,
-    { tag },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      const triggerId = await page.getByRole("button", { name: "Select fruit" }).getAttribute("id");
-      const trigger = page.locator(`[id="${triggerId}"]`);
-      await trigger.click();
-      await expect(page.getByRole("option").first()).toBeVisible();
+storyTest(
+  ["components-select--default"],
+  "a keyboard pick returns focus to the trigger with its ring",
+  async ({ page, id }) => {
+    const triggerId = await triggerOf(page, id).getAttribute("id");
+    const trigger = page.locator(`[id="${triggerId}"]`);
+    await trigger.click();
+    await expect(page.getByRole("option").first()).toBeVisible();
 
-      await page.keyboard.press("ArrowDown");
-      await page.keyboard.press("Enter");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
 
-      await expect(trigger).toHaveAttribute("aria-expanded", "false");
-      await expect(trigger).toBeFocused();
-      expect(await focusVisible(trigger)).toBe(true);
-    },
-  );
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger).toBeFocusVisible();
+  },
+  { only: "desktop" },
+);
 
-  test(
-    `${id} a pointer pick returns focus to the trigger without its ring`,
-    { tag },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      const triggerId = await page.getByRole("button", { name: "Select fruit" }).getAttribute("id");
-      const trigger = page.locator(`[id="${triggerId}"]`);
-      await trigger.click();
+storyTest(
+  ["components-select--default"],
+  "a pointer pick returns focus to the trigger without its ring",
+  async ({ page, id }) => {
+    const triggerId = await triggerOf(page, id).getAttribute("id");
+    const trigger = page.locator(`[id="${triggerId}"]`);
+    await trigger.click();
 
-      await page.getByRole("option").first().click();
+    await page.getByRole("option").first().click();
 
-      await expect(trigger).toHaveAttribute("aria-expanded", "false");
-      await expect(trigger).toBeFocused();
-      expect(await focusVisible(trigger)).toBe(false);
-    },
-  );
-}
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger).toBeFocused();
+    await expect(trigger).not.toBeFocusVisible();
+  },
+  { only: "desktop" },
+);
 
-const searchableTriggers = {
-  "components-applyselect--default": "Select frameworks",
-  "components-tagselect--default": "Red",
-} as const;
+storyTest(
+  ["components-applyselect--default", "components-tagselect--default"],
+  "opening the list focuses its search",
+  async ({ gallery, page, id }) => {
+    await gallery.press(triggerOf(page, id));
 
-for (const id of selectStories(
-  Object.keys(searchableTriggers) as (keyof typeof searchableTriggers)[],
-)) {
-  test(
-    `${id} opening the list focuses its search`,
-    { tag: [...storyTags(id), "@desktop-only"] },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      await gallery.press(page.getByRole("button", { name: searchableTriggers[id] }));
+    await expect(page.getByRole("textbox", { name: "Search..." })).toBeFocused();
+  },
+  { only: "desktop" },
+);
 
-      await expect(page.getByRole("textbox", { name: "Search..." })).toBeFocused();
-    },
-  );
-}
+storyTest(
+  ["components-select--invalid-field"],
+  "a press on the Field's label focuses the trigger without opening it",
+  async ({ gallery, page }) => {
+    const trigger = page.getByRole("button", { name: "Fruit Select fruit" });
+
+    await gallery.press(page.getByText("Fruit", { exact: true }));
+
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  },
+);

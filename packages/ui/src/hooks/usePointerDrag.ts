@@ -6,6 +6,11 @@ import {
   useRef,
 } from "react";
 
+import {
+  lockTextSelection,
+  swallowNextClick,
+  trackPointerMove,
+} from "../foundations/trackPointerMove";
 import { type EdgeAutoScrollOptions, createEdgeAutoScroll } from "./edgeAutoScroll";
 import { useLatestRef } from "./useLatestRef";
 
@@ -31,8 +36,16 @@ export interface UsePointerDragOptions<T extends Element> {
   onStart?: (point: PointerDragPoint) => void;
   /** Runs on every pointer move and every auto-scroll step once the drag has started. */
   onMove: (point: PointerDragPoint) => void;
-  /** Runs once per started drag; `cancelled` after Escape, a `pointercancel`, or an unmount mid-drag. */
+  /**
+   * Runs once per started drag; `cancelled` after Escape, a `pointercancel`, a context menu, or an
+   * unmount mid-drag.
+   */
   onEnd?: (point: PointerDragPoint, details: { cancelled: boolean }) => void;
+  /**
+   * Runs once per press `onPress` accepted, as it ends, after `onEnd`: `dragged` once the drag
+   * started, `cancelled` as for `onEnd`.
+   */
+  onRelease?: (point: PointerDragPoint, details: { dragged: boolean; cancelled: boolean }) => void;
   /** Attribute set on the pressed element while a drag runs, such as `"data-resizing"`. */
   activeAttribute?: string;
   autoScroll?: EdgeAutoScrollOptions;
@@ -40,8 +53,9 @@ export interface UsePointerDragOptions<T extends Element> {
 
 /**
  * Tracks a pointer drag that starts on the element given `onPointerDown`. Moves are followed on the
- * document, so the element may unmount mid-drag; Escape cancels; the click that ends a drag is
- * swallowed. With `autoScroll`, a pointer held near an edge scrolls the container and calls
+ * document, so the element may unmount mid-drag; Escape cancels; a mouse move with no button held
+ * ends a press whose release was lost; the click that ends a drag is swallowed, and iOS selects no
+ * text through it. With `autoScroll`, a pointer held near an edge scrolls the container and calls
  * `onMove` on every step, so the target under the pointer stays current. Give the element
  * `touch-action: none` to drag with touch.
  */
@@ -65,7 +79,6 @@ export function usePointerDrag<T extends Element = Element>(
 
       const target = event.currentTarget;
       const doc = target.ownerDocument;
-      const view = doc.defaultView ?? window;
       const { pointerId, pointerType } = event;
       const startX = event.clientX;
       const startY = event.clientY;
@@ -76,6 +89,7 @@ export function usePointerDrag<T extends Element = Element>(
       let clientY = startY;
       let phase: "pressed" | "dragging" | "cancelled" = "pressed";
       let activeAttribute: string | undefined;
+      let releaseSelection: (() => void) | undefined;
 
       const point = (): PointerDragPoint => ({
         clientX,
@@ -98,23 +112,15 @@ export function usePointerDrag<T extends Element = Element>(
         latestRef.current.onEnd?.(point(), { cancelled });
       };
 
-      const swallowClick = () => {
-        const swallow = (click: MouseEvent) => {
-          click.stopPropagation();
-          click.preventDefault();
-        };
-        doc.addEventListener("click", swallow, { capture: true, once: true });
-        view.setTimeout(() => doc.removeEventListener("click", swallow, { capture: true }), 0);
-      };
-
-      const onMove = (move: PointerEvent) => {
-        if (move.pointerId !== pointerId || phase === "cancelled") return;
+      const onMove = (_point: unknown, move: PointerEvent) => {
+        if (phase === "cancelled") return;
         clientX = move.clientX;
         clientY = move.clientY;
         if (phase === "pressed") {
           const threshold = latestRef.current.threshold ?? 0;
           if (Math.hypot(clientX - startX, clientY - startY) <= threshold) return;
           phase = "dragging";
+          releaseSelection = lockTextSelection(doc);
           if (target.isConnected) target.setPointerCapture(pointerId);
           activeAttribute = latestRef.current.activeAttribute;
           if (activeAttribute) target.toggleAttribute(activeAttribute, true);
@@ -124,21 +130,18 @@ export function usePointerDrag<T extends Element = Element>(
         edgeScroll.update(clientX, clientY);
       };
 
-      const onUp = (up: PointerEvent) => {
-        if (up.pointerId !== pointerId) return;
+      const finish = (released: boolean) => {
         const dragged = phase !== "pressed";
-        if (phase === "dragging") end(false);
+        const cancelled = !released || phase === "cancelled";
+        if (phase === "dragging") end(cancelled);
         stop();
-        if (dragged) swallowClick();
+        latestRef.current.onRelease?.(point(), { dragged, cancelled });
+        return dragged;
       };
 
-      const abort = () => {
-        if (phase === "dragging") end(true);
-        stop();
-      };
-
-      const onCancel = (cancel: PointerEvent) => {
-        if (cancel.pointerId === pointerId) abort();
+      const onUp = (up: PointerEvent | MouseEvent) => {
+        const released = up.type === "pointerup" || up.type === "pointermove";
+        if (finish(released) && up.type === "pointerup") swallowNextClick(doc);
       };
 
       const onKeyDown = (key: KeyboardEvent) => {
@@ -150,20 +153,23 @@ export function usePointerDrag<T extends Element = Element>(
         end(true);
       };
 
+      const stopTracking = trackPointerMove(doc, {
+        pointerId,
+        lockSelection: false,
+        onMove,
+        onUp,
+      });
+
       const stop = () => {
         edgeScroll.stop();
-        doc.removeEventListener("pointermove", onMove);
-        doc.removeEventListener("pointerup", onUp);
-        doc.removeEventListener("pointercancel", onCancel);
+        stopTracking();
+        releaseSelection?.();
         doc.removeEventListener("keydown", onKeyDown, { capture: true });
         cancelRef.current = null;
       };
 
-      doc.addEventListener("pointermove", onMove);
-      doc.addEventListener("pointerup", onUp);
-      doc.addEventListener("pointercancel", onCancel);
       doc.addEventListener("keydown", onKeyDown, { capture: true });
-      cancelRef.current = abort;
+      cancelRef.current = () => finish(false);
     },
     [latestRef],
   );

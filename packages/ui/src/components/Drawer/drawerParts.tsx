@@ -11,10 +11,12 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type DrawerVariantProps, drawer } from "#styled-system/recipes";
 
+import { isRtl } from "../../foundations/dom";
 import { getMediaQueryList } from "../../hooks/mediaQueryList";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useResponsiveValue } from "../../hooks/useResponsiveValue";
-import { useLocale } from "../../primitives/locale";
+import type { SwipeDirection } from "../../primitives/drag";
+import { findMarkedFocus } from "../../primitives/focus";
 import { renderable } from "../../primitives/render";
 import {
   type DialogContentProps,
@@ -24,7 +26,8 @@ import {
   ModalRoot,
   createDialogParts,
 } from "../dialogParts";
-import { type DrawerSnapPoint, type SwipeDirection, useDrawerSwipe } from "./drawerSwipe";
+import { createPartContext } from "../partContext";
+import { type DrawerSnapPoint, useDrawerSwipe } from "./drawerSwipe";
 
 export type { DrawerSnapPoint };
 
@@ -37,15 +40,28 @@ export interface DrawerSnapProps {
   onSnapPointChange?: ((snapPoint: DrawerSnapPoint) => void) | undefined;
 }
 
+const PHYSICAL = {
+  ltr: { start: "left", end: "right", top: "up", bottom: "down" },
+  rtl: { start: "right", end: "left", top: "up", bottom: "down" },
+} as const;
+
+type Edge = keyof (typeof PHYSICAL)["ltr"];
+
+const isEdge = (value: unknown): value is Edge =>
+  typeof value === "string" && value in PHYSICAL.ltr;
+
 interface DrawerContextValue {
-  direction: SwipeDirection;
+  edge: Edge;
   snapPoints: readonly DrawerSnapPoint[] | undefined;
   snapPoint: DrawerSnapPoint | null;
   setSnapPoint: (point: DrawerSnapPoint) => void;
   resetSnapPoint: () => void;
 }
 
-const DrawerContext = createContext<DrawerContextValue | null>(null);
+const [DrawerContext, useDrawerContext] = createPartContext<DrawerContextValue>(
+  "<Drawer.Root>",
+  "Drawer parts",
+);
 
 type GrabberHandlers = { onPointerDown: (event: PointerEvent<HTMLElement>) => void };
 
@@ -55,16 +71,14 @@ const { withRootProvider, withContext } = createSlotRecipeContext(drawer);
 
 // A field focused on open raises the on-screen keyboard over the drawer.
 const focusDialogOnTouch = (dialog: HTMLElement) =>
-  getMediaQueryList("(pointer: coarse)")?.matches
-    ? (dialog.querySelector<HTMLElement>("[data-autofocus],[autofocus]") ?? dialog)
-    : null;
+  getMediaQueryList("(pointer: coarse)")?.matches ? (findMarkedFocus(dialog) ?? dialog) : null;
 
 interface DrawerRootBaseProps extends ModalRootProps, DrawerSnapProps {
-  swipeDirection: SwipeDirection;
+  edge: Edge;
 }
 
 function DrawerRootBase({
-  swipeDirection,
+  edge,
   snapPoints,
   snapPoint: snapPointProp,
   defaultSnapPoint,
@@ -80,8 +94,8 @@ function DrawerRootBase({
     },
   });
   const value = useMemo(
-    () => ({ direction: swipeDirection, snapPoints, snapPoint, setSnapPoint, resetSnapPoint }),
-    [swipeDirection, snapPoints, snapPoint, setSnapPoint, resetSnapPoint],
+    () => ({ edge, snapPoints, snapPoint, setSnapPoint, resetSnapPoint }),
+    [edge, snapPoints, snapPoint, setSnapPoint, resetSnapPoint],
   );
 
   return (
@@ -96,29 +110,23 @@ function DrawerRootBase({
 
 const StyledRoot = withRootProvider(DrawerRootBase);
 
-const PHYSICAL = {
-  ltr: { start: "left", end: "right", top: "up", bottom: "down" },
-  rtl: { start: "right", end: "left", top: "up", bottom: "down" },
-} as const;
-
-const isPlacement = (value: unknown): value is keyof (typeof PHYSICAL)["ltr"] =>
-  typeof value === "string" && value in PHYSICAL.ltr;
-
-/** The way a drawer swipes away: towards the side its placement at the current breakpoint opens from. */
-function useSwipeDirection(placement: DrawerVariantProps["placement"]): SwipeDirection {
+function useEdge(placement: DrawerVariantProps["placement"]): Edge {
   const current = useResponsiveValue(placement);
-  return PHYSICAL[useLocale().dir][isPlacement(current) ? current : "end"];
+  return isEdge(current) ? current : "end";
 }
 
-export type DrawerRootInternalProps = Omit<DrawerRootBaseProps, "swipeDirection"> &
-  DrawerVariantProps;
+/** The way a drawer swipes away: towards the side its edge lies on in the dialog's direction. */
+const swipeDirection = (edge: Edge, dialog: HTMLElement | null): SwipeDirection =>
+  PHYSICAL[dialog !== null && isRtl(dialog) ? "rtl" : "ltr"][edge];
+
+export type DrawerRootInternalProps = Omit<DrawerRootBaseProps, "edge"> & DrawerVariantProps;
 
 /** The drawer root: `Drawer.Root` and `Sheet.Root` require a name; a phone sheet's frame takes its overlay's. */
 export function DrawerRoot({ placement = "end", ...props }: DrawerRootInternalProps) {
   return (
     <StyledRoot
       placement={placement}
-      swipeDirection={useSwipeDirection(placement)}
+      edge={useEdge(placement)}
       {...props}
     />
   );
@@ -128,11 +136,10 @@ function useDrawerSurface(
   surface: ModalSurface,
   { draggable }: DialogContentProps,
 ): ModalSurfaceProps {
-  const drawerContext = useContext(DrawerContext);
-  if (!drawerContext) throw new Error("Drawer parts must be rendered inside Drawer.Root.");
+  const drawerContext = useDrawerContext();
   const swipe = useDrawerSwipe({
     surface,
-    direction: drawerContext.direction,
+    direction: swipeDirection(drawerContext.edge, surface.dialog),
     snapPoints: drawerContext.snapPoints,
     snapPoint: drawerContext.snapPoint,
     setSnapPoint: drawerContext.setSnapPoint,

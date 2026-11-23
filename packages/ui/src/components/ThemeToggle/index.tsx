@@ -1,18 +1,12 @@
 import { MoonIcon, SunIcon } from "lucide-react";
 
 import { useColorMode } from "../../color-mode";
-import type { WithRef } from "../../types";
 import { IconButton, type IconButtonProps } from "../Buttons";
 
 export type ThemeToggleProps = Omit<IconButtonProps, "icon">;
 
 /** Icon button that toggles light/dark. Requires a `ColorModeProvider` ancestor. */
-export const ThemeToggle = ({
-  ref,
-  variant = "plain",
-  onClick,
-  ...props
-}: WithRef<ThemeToggleProps, HTMLButtonElement>) => {
+export const ThemeToggle = ({ ref, variant = "plain", onClick, ...props }: ThemeToggleProps) => {
   const { resolvedMode, toggle } = useColorMode();
   const isDark = resolvedMode === "dark";
 

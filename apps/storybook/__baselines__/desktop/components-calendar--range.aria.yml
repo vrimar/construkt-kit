@@ -3,7 +3,7 @@
   - button /March \d+/
   - button /April \d+/
   - button "Switch to next month"
-  - grid /March \d+ - April \d+/:
+  - grid /March \d+ – April \d+/:
     - rowgroup:
       - row /Choose Monday, February \d+, \d+ Choose Tuesday, February \d+, \d+ Choose Wednesday, February \d+, \d+ Choose Thursday, February \d+, \d+ Choose Friday, February \d+, \d+ Choose Saturday, February \d+, \d+ Choose Sunday, March 1, \d+/:
         - gridcell /Choose Monday, February \d+, \d+/ [disabled]:
@@ -95,7 +95,7 @@
           - button /Choose Saturday, April 4, \d+/ [disabled]
         - gridcell /Choose Sunday, April 5, \d+/ [disabled]:
           - button /Choose Sunday, April 5, \d+/ [disabled]
-  - grid /March \d+ - April \d+/:
+  - grid /March \d+ – April \d+/:
     - rowgroup:
       - row /Choose Monday, March \d+, \d+ Choose Tuesday, March \d+, \d+ Choose Wednesday, April 1, \d+ Choose Thursday, April 2, \d+ Choose Friday, April 3, \d+ Choose Saturday, April 4, \d+ Choose Sunday, April 5, \d+/:
         - gridcell /Choose Monday, March \d+, \d+/ [disabled]:

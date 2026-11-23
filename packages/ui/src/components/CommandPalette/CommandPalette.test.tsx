@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CommandPalette, type CommandPalettePage } from ".";
@@ -149,6 +149,60 @@ describe("CommandPalette", () => {
     );
   });
 
+  it("clicks a link item on Enter instead of picking it", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onClick = vi.fn((event: MouseEvent) => event.preventDefault());
+    render(
+      <CommandPalette.Root open>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="docs"
+            label="Docs"
+            render={<a href="/docs" />}
+            onClick={onClick}
+            onSelect={onSelect}
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+    await user.click(screen.getByRole("combobox"));
+
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => expect(onClick).toHaveBeenCalledOnce());
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("leaves a link item to the browser when a new-tab click opens it", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(
+      <CommandPalette.Root open>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="docs"
+            label="Docs"
+            render={<a href="#docs" />}
+            closeOnSelect={false}
+            onSelect={onSelect}
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+    const item = screen.getByRole("option", { name: "Docs" });
+
+    await user.keyboard("{Control>}{Meta>}");
+    await user.click(item);
+    await user.keyboard("{/Meta}{/Control}");
+    expect(onSelect).not.toHaveBeenCalled();
+
+    await user.click(item);
+    expect(onSelect).toHaveBeenCalledOnce();
+  });
+
   it("goes back to the parent page on Backspace in an empty search", async () => {
     const user = userEvent.setup();
     render(<PaletteWithSubPage />);
@@ -159,5 +213,36 @@ describe("CommandPalette", () => {
     await user.keyboard("{Backspace}");
 
     expect(screen.getByRole("option", { name: "Change theme" })).not.toBeNull();
+  });
+
+  it("reports no page change on closing once it is back on its first page", async () => {
+    const user = userEvent.setup();
+    const onPagesChange = vi.fn();
+    const onExitComplete = vi.fn();
+    render(
+      <CommandPalette.Root
+        defaultOpen
+        onPagesChange={onPagesChange}
+        onExitComplete={onExitComplete}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="theme"
+            label="Change theme"
+            opensPage="themes"
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+    await user.click(screen.getByRole("combobox"));
+
+    await user.keyboard("{Enter}{Backspace}{Escape}");
+    await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
+
+    expect(onPagesChange.mock.calls).toEqual([
+      [[{ value: "themes", label: "Change theme" }]],
+      [[]],
+    ]);
   });
 });

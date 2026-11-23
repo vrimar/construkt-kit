@@ -1,17 +1,27 @@
+import { useMemo } from "react";
+
 import { ApplySelect } from "../../../Select";
-import { selectItemLabel } from "../../columns";
+import { columnMeta, facetOptions, selectItemLabel } from "../../columns";
+import { useDataTableContext } from "../../context";
 import type { ColumnFilterProps } from "../../types";
 
-const NO_OPTIONS: string[] = [];
-
 export const ColumnSelectFilter = ({
+  column,
   placeholder,
-  meta,
   value,
   onChange,
   layout,
-  options = NO_OPTIONS,
+  size,
+  variant,
 }: ColumnFilterProps) => {
+  const { clientSide, selections } = useDataTableContext();
+  const meta = columnMeta(column);
+  const selection = selections?.[column.id];
+  const facets = clientSide && !selection ? column.getFacetedUniqueValues() : undefined;
+  const options = useMemo(
+    () => (facets ? facetOptions(facets) : [...new Set(selection)]),
+    [facets, selection],
+  );
   const {
     actions,
     getItemLabel: _getItemLabel,
@@ -32,11 +42,7 @@ export const ColumnSelectFilter = ({
       actions={{ reset: true, ...actions }}
       triggerProps={{
         ...triggerProps,
-        buttonProps: {
-          size: layout === "field" ? "md" : "sm",
-          variant: layout === "field" ? "outline" : "plain",
-          ...triggerProps?.buttonProps,
-        },
+        buttonProps: { size, variant, ...triggerProps?.buttonProps },
       }}
     />
   );

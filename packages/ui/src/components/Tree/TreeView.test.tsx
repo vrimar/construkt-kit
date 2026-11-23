@@ -1,10 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { type RenderOptions, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LocaleContext } from "../../primitives/locale";
 import { DraggableTreeNode } from "./DraggableTreeNode";
 import { testAccessors, type TestNode } from "./tree.fixtures";
-import { TreeView } from "./TreeView";
+import { TreeView, type TreeViewRootProps } from "./TreeView";
 
 const nodes: TestNode[] = [
   { id: "src", label: "src", children: [{ id: "src/index.ts", label: "index.ts" }] },
@@ -52,6 +52,30 @@ function renderTree({ checkable }: { checkable?: boolean } = {}) {
     </TreeView.Root>,
   );
 }
+
+const renderNodes = (
+  tree: TestNode[],
+  props: Partial<TreeViewRootProps<TestNode>> = {},
+  options?: RenderOptions,
+) =>
+  render(
+    <TreeView.Root
+      nodes={tree}
+      {...testAccessors}
+      {...props}
+    >
+      <TreeView.Tree>
+        {tree.map((node, index) => (
+          <DraggableTreeNode
+            key={node.id}
+            node={node}
+            indexPath={[index]}
+          />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>,
+    options,
+  );
 
 describe("TreeView", () => {
   it("applies the root slot class from the recipe", () => {
@@ -110,22 +134,11 @@ describe("TreeView", () => {
         ],
       },
     ];
-    const { container } = render(
-      <TreeView.Root
-        nodes={tree}
-        {...testAccessors}
-        checkable
-        defaultExpandedValue={["fruits"]}
-        onCheckedChange={onCheckedChange}
-      >
-        <TreeView.Tree>
-          <DraggableTreeNode
-            node={tree[0]}
-            indexPath={[0]}
-          />
-        </TreeView.Tree>
-      </TreeView.Root>,
-    );
+    const { container } = renderNodes(tree, {
+      checkable: true,
+      defaultExpandedValue: ["fruits"],
+      onCheckedChange,
+    });
 
     fireEvent.keyDown(screen.getByRole("button", { name: "Fruits" }), { key: " " });
 
@@ -135,6 +148,25 @@ describe("TreeView", () => {
         .querySelector('[role="treeitem"][data-value="fruits"]')
         ?.getAttribute("aria-checked"),
     ).toBe("true");
+  });
+
+  it("selects nothing in selectionMode none, while pressing a branch still toggles it", () => {
+    const onSelectionChange = vi.fn();
+    const onExpandedChange = vi.fn();
+    const { container } = renderNodes(nodes, {
+      selectionMode: "none",
+      defaultExpandedValue: ["src"],
+      onSelectionChange,
+      onExpandedChange,
+    });
+    const leaf = container.querySelector('[role="treeitem"][data-value="src/index.ts"]');
+
+    fireEvent.click(leaf as Element);
+    fireEvent.click(screen.getByRole("button", { name: "src" }));
+
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    expect(leaf?.hasAttribute("aria-selected")).toBe(false);
+    expect(onExpandedChange).toHaveBeenLastCalledWith([], expect.anything());
   });
 
   it("reads a controlled expansion its owner turned down from the prop", () => {
@@ -147,21 +179,7 @@ describe("TreeView", () => {
         ],
       },
     ];
-    render(
-      <TreeView.Root
-        nodes={tree}
-        {...testAccessors}
-        expandedValue={["src"]}
-        onExpandedChange={() => {}}
-      >
-        <TreeView.Tree>
-          <DraggableTreeNode
-            node={tree[0]}
-            indexPath={[0]}
-          />
-        </TreeView.Tree>
-      </TreeView.Root>,
-    );
+    renderNodes(tree, { expandedValue: ["src"], onExpandedChange: () => {} });
     const lib = screen.getByRole("button", { name: "lib" });
     lib.focus();
 
@@ -179,26 +197,55 @@ describe("TreeView", () => {
 
   it("mirrors the arrows that open and close a branch in RTL", () => {
     const onExpandedChange = vi.fn();
-    render(
-      <LocaleContext value={{ locale: "ar", dir: "rtl" }}>
-        <TreeView.Root
-          nodes={nodes}
-          {...testAccessors}
-          onExpandedChange={onExpandedChange}
-        >
-          <TreeView.Tree>
-            <DraggableTreeNode
-              node={nodes[0]}
-              indexPath={[0]}
-            />
-          </TreeView.Tree>
-        </TreeView.Root>
-      </LocaleContext>,
+    renderNodes(
+      nodes,
+      { onExpandedChange },
+      {
+        wrapper: ({ children }) => (
+          <LocaleContext value={{ locale: "ar", dir: "rtl" }}>{children}</LocaleContext>
+        ),
+      },
     );
 
     fireEvent.keyDown(screen.getByRole("button", { name: "src" }), { key: "ArrowLeft" });
 
     expect(onExpandedChange).toHaveBeenLastCalledWith(["src"], expect.anything());
+  });
+
+  describe("multiple selection", () => {
+    const fruits: TestNode[] = [
+      { id: "apple", label: "Apple" },
+      { id: "avocado", label: "Avocado", disabled: true },
+      { id: "apricot", label: "Apricot" },
+      { id: "banana", label: "Banana" },
+    ];
+
+    const renderFruits = () => {
+      const onSelectionChange = vi.fn();
+      renderNodes(fruits, { selectionMode: "multiple", onSelectionChange });
+      return onSelectionChange;
+    };
+    const row = (name: string) => screen.getByRole("treeitem", { name });
+
+    it("extends a Shift range from the last pressed row, past disabled rows", () => {
+      const onSelectionChange = renderFruits();
+
+      fireEvent.click(row("Apple"));
+      fireEvent.click(row("Apricot"), { shiftKey: true });
+
+      expect(onSelectionChange).toHaveBeenLastCalledWith(["apple", "apricot"], expect.anything());
+    });
+
+    it("selects every enabled node on Ctrl+A", () => {
+      const onSelectionChange = renderFruits();
+
+      fireEvent.keyDown(row("Apple"), { key: "a", ctrlKey: true });
+
+      expect(onSelectionChange).toHaveBeenLastCalledWith(
+        ["apple", "apricot", "banana"],
+        expect.anything(),
+      );
+    });
   });
 
   it("skips disabled rows on typeahead", () => {
@@ -207,22 +254,7 @@ describe("TreeView", () => {
       { id: "avocado", label: "Avocado", disabled: true },
       { id: "apricot", label: "Apricot" },
     ];
-    render(
-      <TreeView.Root
-        nodes={fruits}
-        {...testAccessors}
-      >
-        <TreeView.Tree>
-          {fruits.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>,
-    );
+    renderNodes(fruits);
     const apple = screen.getByRole("treeitem", { name: "Apple" });
     apple.focus();
 

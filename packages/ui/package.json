@@ -99,7 +99,6 @@
   },
   "devDependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
-    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.2.1",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^3.0.0",
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
@@ -119,7 +118,7 @@
     "react-dom": "^19.3.1",
     "storybook": "catalog:",
     "tsdown": "^0.23.7",
-    "vitest": "^5.1.0"
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@pandacss/dev": "^2.3.0",

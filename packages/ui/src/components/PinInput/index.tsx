@@ -1,13 +1,15 @@
 import { type ComponentProps, useLayoutEffect, useRef } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
-import { visuallyHidden } from "#styled-system/patterns";
 import { pinInput } from "#styled-system/recipes";
 
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { useFieldControlId } from "../../primitives/field";
+import { mergeProps, renderable } from "../../primitives/render";
 import {
+  PIN_INPUT_OPTION_KEYS,
   type PinInputOptions,
   PinInputProvider,
   usePinInput,
@@ -33,65 +35,17 @@ type StyledRootProps = ComponentProps<typeof StyledRoot>;
 export interface PinInputRootProps
   extends Omit<StyledRootProps, keyof PinInputOptions>, PinInputOptions {}
 
-function Root({
-  value,
-  defaultValue,
-  onValueChange,
-  onValueComplete,
-  onValueInvalid,
-  count,
-  type,
-  pattern,
-  placeholder,
-  masked,
-  otp,
-  autoFocus,
-  autoSubmit,
-  blurOnComplete,
-  selectOnFocus,
-  sanitizeValue,
-  translations,
-  name,
-  form,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  id,
-  ...props
-}: PinInputRootProps) {
-  const api = usePinInput({
-    value,
-    defaultValue,
-    onValueChange,
-    onValueComplete,
-    onValueInvalid,
-    count,
-    type,
-    pattern,
-    placeholder,
-    masked,
-    otp,
-    autoFocus,
-    autoSubmit,
-    blurOnComplete,
-    selectOnFocus,
-    sanitizeValue,
-    translations,
-    name,
-    form,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    id,
-  });
+function Root({ ref, ...rootProps }: PinInputRootProps) {
+  const [options, props] = splitOptions(rootProps, PIN_INPUT_OPTION_KEYS);
+  const api = usePinInput(options);
+  const composedRef = useComposedRefs(api.rootProps.ref, ref);
 
   return (
     <PinInputProvider value={api}>
       <StyledRoot
         {...api.rootProps}
         {...props}
+        ref={composedRef}
       />
     </PinInputProvider>
   );
@@ -100,8 +54,9 @@ function Root({
 type LabelProps = ComponentProps<typeof StyledLabel>;
 
 function Label(props: LabelProps) {
-  const { labelProps } = usePinInputContext("PinInput.Label");
-  return <StyledLabel {...mergeProps<LabelProps>(labelProps, props)} />;
+  const { labelProps, reportRendered } = usePinInputContext("PinInput.Label");
+  const id = useReportRendered(reportRendered, "label", props.id ?? labelProps.id);
+  return <StyledLabel {...mergeProps<LabelProps>(labelProps, props, { id })} />;
 }
 
 type ControlProps = ComponentProps<typeof StyledControl>;
@@ -113,14 +68,17 @@ function Control(props: ControlProps) {
 
 type HiddenInputProps = ComponentProps<typeof renderable.input>;
 
-const hiddenInputClass = visuallyHidden();
-
 function HiddenInput({ ref, ...props }: HiddenInputProps) {
-  const { hiddenInputProps } = usePinInputContext("PinInput.HiddenInput");
+  const { hiddenInputProps, reportRendered } = usePinInputContext("PinInput.HiddenInput");
   const composedRef = useComposedRefs(hiddenInputProps.ref, ref);
+  const id = useReportRendered(
+    reportRendered,
+    "hiddenInput",
+    useFieldControlId(props.id) ?? hiddenInputProps.id,
+  );
   return (
     <renderable.input
-      {...mergeProps<HiddenInputProps>({ className: hiddenInputClass, ...hiddenInputProps }, props)}
+      {...mergeProps<HiddenInputProps>(hiddenInputProps, props, { id })}
       ref={composedRef}
     />
   );

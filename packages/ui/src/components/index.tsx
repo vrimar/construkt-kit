@@ -87,5 +87,6 @@ export * from "./ToggleTip";
 export * from "./Toolbar";
 export * from "./Tooltip";
 export * from "./Tree";
-export type { MobileLayout, MobileLayoutProps } from "./overlayPresentation";
+export type { MobileLayout, MobileLayoutProps } from "../primitives/popup";
 export { hasOpenOverlay, useHasOpenOverlay, whenOverlaysSettle } from "../primitives/layer";
+export { getTabbables, isFocusable } from "../primitives/focus";

@@ -5,11 +5,8 @@ import {
   type MouseEvent,
   type ReactElement,
   type ReactNode,
-  type Ref,
   type SyntheticEvent,
-  createContext,
   useCallback,
-  useContext,
   useId,
   useLayoutEffect,
   useMemo,
@@ -27,27 +24,28 @@ import type { dialog } from "#styled-system/recipes";
 
 import { useDocumentScheme } from "../color-mode/useDocumentScheme";
 import { useComposedRefs } from "../hooks/useComposedRefs";
-import { useControllableState } from "../hooks/useControllableState";
 import { useModalFocus } from "../primitives/focus";
 import {
   type DismissReason,
   LayerContext,
-  type OpenChangeDetails,
   type OpenChangeReason,
+  type OverlayRootProps,
   PortalContainer,
-  createOpenChangeDetails,
+  allowsDismiss,
   isTopmostLayer,
   useLayer,
   useNestedModalCount,
+  useOpenState,
   useOverlayExit,
 } from "../primitives/layer";
 import { type TransitionStatus, presenceAttributes, usePresence } from "../primitives/presence";
-import { openStateAttributes, renderable } from "../primitives/render";
-import { mergeProps } from "../primitives/render/mergeProps";
+import { dataAttr, mergeProps, openStateAttributes, renderable } from "../primitives/render";
 import { useScrollLock } from "../primitives/scroll-lock";
-import type { WithRef } from "../types";
 import { createCloseTrigger } from "./closeTrigger";
+import { getPopupTriggerProps } from "./floating";
 import { isRenderable } from "./itemSlots";
+import { type OverlayLabels, createLabelParts, useOverlayLabels } from "./labelParts";
+import { createPartContext } from "./partContext";
 
 type Label = Exclude<ReactNode, null | undefined | boolean>;
 
@@ -56,23 +54,13 @@ export type DialogLabelProps =
   | { title: Label; description?: ReactNode; "aria-label"?: undefined }
   | { "aria-label": string; title?: undefined; description?: undefined };
 
-export interface DialogRootBaseProps {
-  children?: ReactNode;
-  open?: boolean | undefined;
-  defaultOpen?: boolean | undefined;
-  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
+export interface DialogRootBaseProps extends OverlayRootProps {
   /** Called once the dialog has animated out, left the page and handed focus back. */
   onExitComplete?: (() => void) | undefined;
-  /** @default true */
-  closeOnEscape?: boolean | undefined;
   /** Closes on a press outside the dialog's content. @default true */
   closeOnInteractOutside?: boolean | undefined;
-  /** The element to focus when it opens, in place of its first focusable one. */
-  initialFocusEl?: (() => HTMLElement | null) | undefined;
   /** Moves focus back to the trigger, or to what had focus before it opened, once it closes. @default true */
   restoreFocus?: boolean | undefined;
-  /** The element focus returns to in place of the trigger. */
-  returnFocusTo?: (() => HTMLElement | null) | undefined;
   /** `alertdialog` for one that interrupts with an urgent message. @default "dialog" */
   role?: "dialog" | "alertdialog" | undefined;
 }
@@ -88,12 +76,10 @@ export interface ModalRootProps extends Omit<DialogRootBaseProps, "initialFocusE
   initialFocusEl?: ((dialog: HTMLElement) => HTMLElement | null | false) | undefined;
 }
 
-type LabelPart = "title" | "description";
-
 interface ModalContextValue {
   open: boolean;
   requestOpenChange: (open: boolean, reason: OpenChangeReason, event?: Event) => boolean;
-  ids: { trigger: string; dialog: string; title: string; description: string };
+  ids: { trigger: string; dialog: string };
   title: ReactNode;
   description: ReactNode;
   ariaLabel: string | undefined;
@@ -110,23 +96,18 @@ interface ModalContextValue {
   setTriggerEl: (node: HTMLElement | null) => void;
   dialogMounted: boolean;
   setDialogMounted: (mounted: boolean) => void;
-  labels: Record<LabelPart, boolean>;
-  registerLabel: (part: LabelPart, rendered: boolean) => void;
+  labels: OverlayLabels;
 }
 
-const ModalContext = createContext<ModalContextValue | null>(null);
-
-export function useModalContext(): ModalContextValue {
-  const context = useContext(ModalContext);
-  if (!context)
-    throw new Error("Dialog, Drawer and Sheet parts must be rendered inside their Root.");
-  return context;
-}
+export const [ModalContext, useModalContext] = createPartContext<ModalContextValue>(
+  "their Root",
+  "Dialog, Drawer and Sheet parts",
+);
 
 export function ModalRoot({
   children,
   open: openProp,
-  defaultOpen = false,
+  defaultOpen,
   onOpenChange,
   onExitComplete,
   closeOnEscape = true,
@@ -141,37 +122,21 @@ export function ModalRoot({
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
 }: ModalRootProps) {
-  const [open, setOpen] = useControllableState({ value: openProp, defaultValue: defaultOpen });
+  const { open, requestOpenChange } = useOpenState({
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+  });
   const id = useId();
   const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
   const [dialogMounted, setDialogMounted] = useState(false);
-  const [labels, setLabels] = useState({ title: false, description: false });
-
-  const requestOpenChange = useCallback(
-    (next: boolean, reason: OpenChangeReason, event?: Event) => {
-      const details = createOpenChangeDetails(reason, event);
-      onOpenChange?.(next, details);
-      if (details.canceled) return false;
-      setOpen(next);
-      return true;
-    },
-    [onOpenChange, setOpen],
-  );
-
-  const registerLabel = useCallback((part: LabelPart, rendered: boolean) => {
-    setLabels((prev) => (prev[part] === rendered ? prev : { ...prev, [part]: rendered }));
-  }, []);
+  const labels = useOverlayLabels("dialog");
 
   const value = useMemo<ModalContextValue>(
     () => ({
       open,
       requestOpenChange,
-      ids: {
-        trigger: `dialog:${id}:trigger`,
-        dialog: `dialog:${id}`,
-        title: `dialog:${id}:title`,
-        description: `dialog:${id}:description`,
-      },
+      ids: { trigger: `dialog:${id}:trigger`, dialog: `dialog:${id}` },
       title,
       description,
       ariaLabel,
@@ -189,7 +154,6 @@ export function ModalRoot({
       dialogMounted,
       setDialogMounted,
       labels,
-      registerLabel,
     }),
     [
       open,
@@ -210,7 +174,6 @@ export function ModalRoot({
       triggerEl,
       dialogMounted,
       labels,
-      registerLabel,
     ],
   );
 
@@ -251,6 +214,14 @@ const useNoSurface = (): ModalSurfaceProps => ({});
 
 const StyledButton = styled(renderable.button);
 
+const useModalLabels = () => useModalContext().labels;
+
+function useCloseModal() {
+  const { requestOpenChange } = useModalContext();
+  return (event: MouseEvent<HTMLElement>) =>
+    requestOpenChange(false, "close-press", event.nativeEvent);
+}
+
 export function createDialogParts(
   withContext: SlotRecipeContext<typeof dialog>["withContext"],
   { useSurface = useNoSurface }: DialogPartsOptions = {},
@@ -265,33 +236,7 @@ export function createDialogParts(
   const Body = withContext(renderable.div, "body");
   const Footer = withContext(renderable.div, "footer");
 
-  function useRegisterLabel(part: LabelPart) {
-    const { registerLabel } = useModalContext();
-    useLayoutEffect(() => {
-      registerLabel(part, true);
-      return () => registerLabel(part, false);
-    }, [registerLabel, part]);
-  }
-
-  function Title(props: ComponentProps<typeof StyledTitle>) {
-    useRegisterLabel("title");
-    return (
-      <StyledTitle
-        id={useModalContext().ids.title}
-        {...props}
-      />
-    );
-  }
-
-  function Description(props: ComponentProps<typeof StyledDescription>) {
-    useRegisterLabel("description");
-    return (
-      <StyledDescription
-        id={useModalContext().ids.description}
-        {...props}
-      />
-    );
-  }
+  const { Title, Description } = createLabelParts(StyledTitle, StyledDescription, useModalLabels);
 
   function DefaultHeader({
     headerStart,
@@ -330,21 +275,18 @@ export function createDialogParts(
     );
   }
 
-  function Trigger({
-    ref,
-    onClick,
-    ...props
-  }: WithRef<ComponentProps<typeof StyledTrigger>, HTMLButtonElement>) {
+  function Trigger({ ref, onClick, ...props }: ComponentProps<typeof StyledTrigger>) {
     const context = useModalContext();
-    const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setTriggerEl);
+    const composedRef = useComposedRefs(ref, context.setTriggerEl);
     return (
       <StyledTrigger
-        type="button"
+        type={props.render ? undefined : "button"}
         id={context.ids.trigger}
-        aria-haspopup="dialog"
-        aria-expanded={context.open}
-        aria-controls={context.dialogMounted ? context.ids.dialog : undefined}
-        {...openStateAttributes(context.open)}
+        {...getPopupTriggerProps({
+          open: context.open,
+          contentId: context.dialogMounted ? context.ids.dialog : undefined,
+          haspopup: "dialog",
+        })}
         {...props}
         ref={composedRef}
         onClick={(event: MouseEvent<HTMLButtonElement>) => {
@@ -356,26 +298,7 @@ export function createDialogParts(
     );
   }
 
-  function CloseTriggerPart({ onClick, ...props }: ComponentProps<typeof StyledCloseTrigger>) {
-    const context = useModalContext();
-    return (
-      <StyledCloseTrigger
-        type="button"
-        {...props}
-        onClick={(event: MouseEvent<HTMLButtonElement>) => {
-          onClick?.(event);
-          if (event.defaultPrevented) return;
-          context.requestOpenChange(false, "close-press", event.nativeEvent);
-        }}
-      />
-    );
-  }
-
-  function ActionTrigger({
-    ref,
-    onClick,
-    ...props
-  }: WithRef<ComponentProps<typeof StyledButton>, HTMLButtonElement>) {
+  function ActionTrigger({ ref, onClick, ...props }: ComponentProps<typeof StyledButton>) {
     const context = useModalContext();
     return (
       <StyledButton
@@ -395,7 +318,7 @@ export function createDialogParts(
   interface MountedContentProps {
     status: TransitionStatus;
     setPresenceElement: (node: HTMLElement | null) => void;
-    contentProps: WithRef<DialogContentProps>;
+    contentProps: DialogContentProps;
     header: ReactNode;
   }
 
@@ -411,16 +334,13 @@ export function createDialogParts(
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const [dialogEl, setDialogEl] = useState<HTMLDialogElement | null>(null);
     const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
-    const contentRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setContentEl);
+    const contentRef = useComposedRefs(ref, setContentEl);
     const elementRef = useComposedRefs(contentRef, setPresenceElement);
 
-    const dismiss = (reason: DismissReason, event: Event) => {
-      if (reason === "focus-out") return false;
-      if (reason === "escape-key" ? !context.closeOnEscape : !context.closeOnInteractOutside) {
-        return false;
-      }
-      return requestOpenChange(false, reason, event);
-    };
+    const dismiss = (reason: DismissReason, event: Event) =>
+      reason !== "focus-out" &&
+      allowsDismiss(reason, context) &&
+      requestOpenChange(false, reason, event);
 
     const layer = useLayer(open, {
       contains: (target) => {
@@ -519,7 +439,7 @@ export function createDialogParts(
     const content = (
       <StyledContent
         {...presenceAttributes(status)}
-        data-nested-dialog-open={nestedModals > 0 ? "" : undefined}
+        data-nested-dialog-open={dataAttr(nestedModals > 0)}
         {...openStateAttributes(open)}
         {...mergeProps<Record<string, unknown>>(rest, surfaceProps.contentProps)}
         style={{ "--nested-dialogs": nestedModals, ...rest.style } as CSSProperties}
@@ -537,13 +457,11 @@ export function createDialogParts(
         id={context.ids.dialog}
         role={context.role === "alertdialog" ? "alertdialog" : undefined}
         aria-label={context.ariaLabel}
-        aria-labelledby={context.labels.title ? context.ids.title : context.ariaLabelledBy}
-        aria-describedby={
-          context.labels.description ? context.ids.description : context.ariaDescribedBy
-        }
+        aria-labelledby={context.labels.labelledBy ?? context.ariaLabelledBy}
+        aria-describedby={context.labels.describedBy ?? context.ariaDescribedBy}
         tabIndex={-1}
         inert={!open}
-        data-no-backdrop={backdrop ? undefined : ""}
+        data-no-backdrop={dataAttr(!backdrop)}
         {...openStateAttributes(open)}
         onKeyDown={focus.onKeyDown}
         onCancel={onCancel}
@@ -567,7 +485,7 @@ export function createDialogParts(
     headerStart,
     headerEnd,
     ...props
-  }: WithRef<DialogContentProps> & { header?: ReactNode }): ReactElement | null {
+  }: DialogContentProps & { header?: ReactNode }): ReactElement | null {
     const { open, onExitComplete } = useModalContext();
     const presence = usePresence(open);
     useOverlayExit(open, !presence.mounted, onExitComplete);
@@ -592,7 +510,7 @@ export function createDialogParts(
     );
   }
 
-  function Content(props: WithRef<DialogContentProps>): ReactElement | null {
+  function Content(props: DialogContentProps): ReactElement | null {
     return <ModalContent {...props} />;
   }
 
@@ -605,7 +523,7 @@ export function createDialogParts(
     Description,
     Body,
     Footer,
-    CloseTrigger: createCloseTrigger(CloseTriggerPart),
+    CloseTrigger: createCloseTrigger(StyledCloseTrigger, useCloseModal),
     ActionTrigger,
   };
 }

@@ -3,8 +3,7 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { Box, type BoxProps } from "#styled-system/jsx";
 
 import type { Unstyled } from "../../types";
-import { encodeSelectionValue } from "../Listbox/managed";
-import type { SelectionValue } from "../Listbox/types";
+import { type SelectionValue, encodeSelectionValue } from "../selection";
 import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
 import { Select } from "./Select";

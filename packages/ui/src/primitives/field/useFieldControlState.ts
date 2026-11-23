@@ -1,5 +1,7 @@
 import {
+  type FieldContextValue,
   type FieldState,
+  type FieldsetContextValue,
   useFieldContext,
   useFieldControlId,
   useFieldsetContext,
@@ -19,20 +21,16 @@ export interface FieldControlState extends FieldState {
 }
 
 /**
- * A control's id and states: its own props where given, else the enclosing `Field`'s, else the
- * enclosing `Fieldset`'s `disabled`.
+ * A control's id and states: its own where given, else `field`'s, else `fieldset`'s `disabled`.
+ * Registers nothing, so `field`'s label keeps pointing at the control that did.
  */
-export function useFieldControlState({
-  id,
-  disabled,
-  invalid,
-  readOnly,
-  required,
-}: FieldControlStateOptions): FieldControlState {
-  const field = useFieldContext();
-  const fieldset = useFieldsetContext();
+export function resolveFieldControlState(
+  field: FieldContextValue | null,
+  fieldset: FieldsetContextValue | null,
+  { id, disabled, invalid, readOnly, required }: FieldControlStateOptions,
+): FieldControlState {
   return {
-    id: useFieldControlId(id),
+    id: id ?? field?.ids.control,
     labelId: field?.labelId,
     describedBy: field?.describedBy,
     disabled: disabled ?? field?.disabled ?? fieldset?.disabled ?? false,
@@ -40,4 +38,15 @@ export function useFieldControlState({
     readOnly: readOnly ?? field?.readOnly ?? false,
     required: required ?? field?.required ?? false,
   };
+}
+
+/**
+ * A control's id and states: its own props where given, else the enclosing `Field`'s, else the
+ * enclosing `Fieldset`'s `disabled`.
+ */
+export function useFieldControlState(options: FieldControlStateOptions): FieldControlState {
+  const field = useFieldContext();
+  const fieldset = useFieldsetContext();
+  const id = useFieldControlId(options.id);
+  return resolveFieldControlState(field, fieldset, { ...options, id });
 }

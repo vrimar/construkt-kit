@@ -11,6 +11,8 @@ export const ColumnSearchInput = ({
   value,
   onChange,
   layout,
+  size,
+  variant,
   debounceMs,
 }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
@@ -35,7 +37,7 @@ export const ColumnSearchInput = ({
 
   return (
     <SearchInput
-      size={layout === "field" ? "md" : "sm"}
+      size={size}
       autoComplete="off"
       onClear={() => changeQuery("")}
       onChange={(e) => changeQuery(e.target.value)}
@@ -44,7 +46,7 @@ export const ColumnSearchInput = ({
       clearLabel={labels.clearSearch}
       hasIcon={layout === "field"}
       value={query}
-      variant={layout === "field" ? "outline" : "plain"}
+      variant={variant}
     />
   );
 };

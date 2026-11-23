@@ -6,7 +6,6 @@ import {
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
-  type Ref,
   createContext,
   isValidElement,
   useCallback,
@@ -20,26 +19,41 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { Box, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type MenuVariantProps, menu } from "#styled-system/recipes";
 
+import { opensLinkNatively } from "../../foundations/dom";
+import { isMacPlatform } from "../../foundations/platform";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { useCompositeListItem } from "../../primitives/composite";
+import {
+  selectHighlighted,
+  selectIsHighlighted,
+  useCompositeListItem,
+} from "../../primitives/composite";
 import { KEEP_FOCUS, dismissFocusIntent } from "../../primitives/focus";
 import {
   type DismissReason,
   LayerContext,
-  type OpenChangeDetails,
   type OpenChangeReason,
+  type UseOpenStateOptions,
   isWithinLayer,
   useOpenState,
-  useOverlayExit,
 } from "../../primitives/layer";
 import { useLocale } from "../../primitives/locale";
+import {
+  type MobileLayoutProps,
+  OverlayPresentationContext,
+  usePopupPresentation,
+} from "../../primitives/popup";
 import type { Anchor, PlacementOption, VirtualElement } from "../../primitives/position";
 import { type TransitionStatus, presenceAttributes, usePresence } from "../../primitives/presence";
-import { openStateAttributes, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import {
+  checkedStateAttributes,
+  dataAttr,
+  mergeProps,
+  openStateAttributes,
+  renderable,
+} from "../../primitives/render";
 import { useStore } from "../../primitives/store";
 import type { WithRef } from "../../types";
 import {
@@ -49,21 +63,16 @@ import {
   useAnchoredPopup,
 } from "../floating";
 import { isRenderable, useItemSlotIds } from "../itemSlots";
-import {
-  type MobileLayoutProps,
-  OverlayPresentationContext,
-  useOverlayPresentation,
-  usePresentedOverlayFocus,
-} from "../overlayPresentation";
+import { createPartContext } from "../partContext";
 import { wrapRenderContent } from "../renderContent";
 import {
   type SheetCloseReason,
   SheetOverlayContent,
   SheetPanel,
   useSheetFrame,
-} from "../sheetFrame";
+} from "../Sheet/sheetFrame";
 import { type WithTooltipProps, withTriggerTooltip } from "../Tooltip/TriggerTooltip";
-import { MenuNode, selectHighlighted, selectIsHighlighted } from "./menuNode";
+import { MenuNode } from "./menuNode";
 import type { Point } from "./pointerGrace";
 
 const { withRootProvider, withContext } = createSlotRecipeContext(menu);
@@ -90,29 +99,16 @@ const SegmentTrack = withContext("div", "segmentTrack");
 const StyledSegmentItem = withContext(renderable.div, "segmentItem");
 
 const floatingArrow = createArrow(StyledArrow, StyledArrowTip);
-const Arrow: (props: WithRef<ComponentProps<typeof StyledArrow>>) => ReactNode =
-  floatingArrow.Arrow;
+const Arrow: (props: ComponentProps<typeof StyledArrow>) => ReactNode = floatingArrow.Arrow;
 
 const BACK_ITEM_VALUE = "construkt-menu-back";
 const LONG_PRESS_DELAY = 700;
 
-const checkedAttributes = (checked: boolean) =>
-  checked ? { "data-checked": "" } : { "data-unchecked": "" };
-
-const isMac = () => /^Mac/i.test(navigator.platform);
-
 const isContextMenuEvent = (event: MouseEvent) =>
-  event.button === 2 || (isMac() && event.ctrlKey && event.button === 0);
+  event.button === 2 || (isMacPlatform() && event.ctrlKey && event.button === 0);
 
 const isTargetDisabled = (element: HTMLElement) =>
   element.hasAttribute("data-disabled") || element.hasAttribute("disabled");
-
-const opensInNewTab = (event: MouseEvent<HTMLElement>) =>
-  event.currentTarget.matches("a[href], button[type='submit'], input[type='submit']") &&
-  (event.button === 1 || (isMac() ? event.metaKey : event.ctrlKey));
-
-const downloads = (event: MouseEvent<HTMLElement>) =>
-  event.altKey && event.currentTarget.matches("a, button[type='submit'], input[type='submit']");
 
 const pointOf = (event: { clientX: number; clientY: number }): Point => ({
   x: event.clientX,
@@ -155,25 +151,20 @@ interface MenuContextValue {
   labelledBy: string | undefined;
   triggerEl: HTMLElement | null;
   setTriggerEl: (element: HTMLElement | null) => void;
-  contentMounted: boolean;
+  /** The id the mounted content renders with. */
+  contentId: string | undefined;
   setContentEl: (element: HTMLElement | null) => void;
   openFromTrigger: (event: Event, edge?: "first" | "last", reason?: OpenChangeReason) => void;
   openAtPoint: (point: Point, source: HTMLElement, event: Event) => void;
 }
 
-const MenuContext = createContext<MenuContextValue | null>(null);
+const [MenuContext, useMenuContext] = createPartContext<MenuContextValue>(
+  "<Menu.Root>",
+  "Menu parts",
+);
 
-function useMenuContext(): MenuContextValue {
-  const context = useContext(MenuContext);
-  if (!context) throw new Error("Menu parts must be rendered inside Menu.Root.");
-  return context;
-}
-
-export interface MenuRootProps extends MobileLayoutProps, MenuVariantProps {
+export interface MenuRootProps extends MobileLayoutProps, MenuVariantProps, UseOpenStateOptions {
   children?: ReactNode;
-  open?: boolean | undefined;
-  defaultOpen?: boolean | undefined;
-  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
   /** Called once the menu has closed, left the page and handed focus back. */
   onExitComplete?: (() => void) | undefined;
   /**
@@ -230,17 +221,6 @@ function MenuRootBase({
     defaultOpen,
     onOpenChange,
   });
-  const presentation = useOverlayPresentation({
-    mobileLayout: parent ? "popover" : mobileLayout,
-    open,
-  });
-  const layout: MenuLayout = parent
-    ? parent.layout === "anchored"
-      ? "anchored"
-      : "drill-down"
-    : presentation.mode === "sheet"
-      ? "sheet"
-      : "anchored";
   const active = open && (parent?.active ?? true);
   const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
   const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
@@ -253,15 +233,23 @@ function MenuRootBase({
     return point ? node.origin : triggerEl;
   }, [parentNode, point, node, triggerEl]);
 
-  const { setReturnFocus, returningFocus } = usePresentedOverlayFocus(presentation, {
+  const { presentation, setReturnFocus } = usePopupPresentation({
+    mobileLayout: parent ? "popover" : mobileLayout,
     open,
-    popup: contentEl,
+    content: contentEl,
     autoFocus: true,
     initialFocus: () => node.initialFocus(),
     restoreFocus: true,
     returnFocusTo,
+    onExitComplete,
   });
-  useOverlayExit(open, contentEl === null && !returningFocus, onExitComplete);
+  const layout: MenuLayout = parent
+    ? parent.layout === "anchored"
+      ? "anchored"
+      : "drill-down"
+    : presentation.mode === "sheet"
+      ? "sheet"
+      : "anchored";
 
   useLayoutEffect(() => {
     node.update({
@@ -278,7 +266,7 @@ function MenuRootBase({
   });
 
   useLayoutEffect(() => {
-    if (highlightedValue !== undefined) node.store.set("highlightedValue", highlightedValue);
+    if (highlightedValue !== undefined) node.syncHighlight(highlightedValue);
   }, [node, highlightedValue]);
 
   useLayoutEffect(() => {
@@ -363,7 +351,7 @@ function MenuRootBase({
       labelledBy,
       triggerEl,
       setTriggerEl,
-      contentMounted: contentEl !== null,
+      contentId: contentEl?.id || undefined,
       setContentEl: setContentRef,
       openFromTrigger,
       openAtPoint,
@@ -404,17 +392,16 @@ function TriggerPart({
   onPointerDown,
   onKeyDown,
   ...props
-}: WithRef<ComponentProps<typeof StyledTrigger>, HTMLButtonElement>) {
+}: ComponentProps<typeof StyledTrigger>) {
   const context = useMenuContext();
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setTriggerEl);
+  const composedRef = useComposedRefs(ref, context.setTriggerEl);
   return (
     <StyledTrigger
-      type="button"
+      type={props.render ? undefined : "button"}
       id={context.ids.trigger}
       {...getPopupTriggerProps({
         open: context.open,
-        contentId: context.ids.content,
-        contentMounted: context.contentMounted,
+        contentId: context.contentId,
         haspopup: "menu",
       })}
       {...props}
@@ -451,7 +438,7 @@ function TriggerPart({
   );
 }
 
-const MenuTrigger = withTriggerTooltip(TriggerPart, () => useMenuContext().open);
+const MenuTrigger = withTriggerTooltip(TriggerPart);
 
 function ContextTrigger({
   ref,
@@ -462,7 +449,7 @@ function ContextTrigger({
   onPointerUp,
   onPointerCancel,
   ...props
-}: WithRef<ComponentProps<typeof StyledContextTrigger>, HTMLButtonElement>) {
+}: ComponentProps<typeof StyledContextTrigger>) {
   const context = useMenuContext();
   const { node } = context;
   const longPress = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -476,7 +463,7 @@ function ContextTrigger({
     },
     [node],
   );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
+  const composedRef = useComposedRefs(ref, register);
 
   useEffect(() => () => clearTimeout(longPress.current), []);
 
@@ -554,7 +541,7 @@ function ContentElement({
   const context = useMenuContext();
   const { node, active, layout } = context;
   const highlighted = useStore(node.store, selectHighlighted);
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setContentEl);
+  const composedRef = useComposedRefs(ref, context.setContentEl);
   const parentMenu = useMemo(() => ({ node, layout, active }), [node, layout, active]);
   return (
     <StyledContent
@@ -562,7 +549,7 @@ function ContentElement({
       role="menu"
       tabIndex={0}
       aria-labelledby={props["aria-label"] ? undefined : context.labelledBy}
-      aria-activedescendant={highlighted == null ? undefined : node.itemId(highlighted)}
+      aria-activedescendant={highlighted == null ? undefined : node.renderedItemId(highlighted)}
       {...presenceAttributes(status)}
       {...openStateAttributes(context.open)}
       {...props}
@@ -586,7 +573,7 @@ function AnchoredContent({
   backLabel: _onlySheetsHaveBack,
   children,
   ...props
-}: WithRef<MenuContentProps>) {
+}: MenuContentProps) {
   const context = useMenuContext();
   const { node, active } = context;
   const parentLayer = useContext(LayerContext);
@@ -614,7 +601,7 @@ function AnchoredContent({
     trigger: context.triggerEl,
     dismiss,
   });
-  const elementRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, popup.setElement);
+  const elementRef = useComposedRefs(ref, popup.setElement);
   const { arrows, items } = useSplitArrows(children);
 
   useLayoutEffect(() => {
@@ -640,11 +627,7 @@ function AnchoredContent({
   );
 }
 
-function SheetContent({
-  backLabel: _rootHasNoBack,
-  children,
-  ...props
-}: WithRef<MenuContentProps>) {
+function SheetContent({ backLabel: _rootHasNoBack, children, ...props }: MenuContentProps) {
   const context = useMenuContext();
   const { node } = context;
   const api = {
@@ -683,12 +666,7 @@ function BackItem({ label }: { label: string }) {
   );
 }
 
-function DrillDownContent({
-  ref,
-  backLabel = "Back",
-  children,
-  ...props
-}: WithRef<MenuContentProps>) {
+function DrillDownContent({ ref, backLabel = "Back", children, ...props }: MenuContentProps) {
   const context = useMenuContext();
   const frame = useSheetFrame();
   const presence = usePresence(context.open);
@@ -709,7 +687,7 @@ function DrillDownContent({
   );
 }
 
-function MenuContent(props: WithRef<MenuContentProps>) {
+function MenuContent(props: MenuContentProps) {
   const { layout } = useMenuContext();
   if (layout === "drill-down") return <DrillDownContent {...props} />;
   if (layout === "sheet") return <SheetContent {...props} />;
@@ -745,8 +723,8 @@ function useMenuItem(
     props: {
       id: owner.itemId(value),
       "aria-disabled": disabled || undefined,
-      "data-disabled": disabled ? "" : undefined,
-      "data-highlighted": highlighted ? "" : undefined,
+      "data-disabled": dataAttr(disabled),
+      "data-highlighted": dataAttr(highlighted),
       onPointerMove: (event: PointerEvent<HTMLElement>) => {
         if (disabled || event.pointerType !== "mouse" || highlighted) return;
         owner.hoverItem(value, pointOf(event), triggerItem);
@@ -759,7 +737,7 @@ function useMenuItem(
         if (!disabled) owner.highlight(value);
       },
       onClick: (event: MouseEvent<HTMLElement>) => {
-        if (disabled || downloads(event) || opensInNewTab(event)) return;
+        if (disabled || opensLinkNatively(event)) return;
         if (triggerItem) {
           owner.highlight(value);
           return;
@@ -792,13 +770,13 @@ function ItemPart({
   onSelect,
   notify,
   ...rest
-}: WithRef<ItemPartProps>) {
+}: ItemPartProps) {
   const { node } = useMenuContext();
   const { register, props: itemProps } = useMenuItem(
     { value, disabled, closeOnSelect, valueText, onSelect },
     { owner: node, notify },
   );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
+  const composedRef = useComposedRefs(ref, register);
   return (
     <StyledItem
       {...mergeProps<ComponentProps<typeof StyledItem>>({ role: "menuitem", ...itemProps }, rest)}
@@ -847,7 +825,7 @@ const ItemCheckedContext = createContext(false);
 function ItemIndicator(props: ComponentProps<typeof StyledItemIndicator>) {
   return (
     <StyledItemIndicator
-      {...checkedAttributes(useContext(ItemCheckedContext))}
+      {...checkedStateAttributes(useContext(ItemCheckedContext))}
       {...props}
     >
       {props.children ?? <CheckIcon />}
@@ -897,7 +875,7 @@ function OptionItem({
     { owner: node, toggle },
   );
   const slots = useItemSlots({ hint, description }, describedBy);
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
+  const composedRef = useComposedRefs(ref, register);
 
   return (
     <ItemCheckedContext value={checked}>
@@ -906,7 +884,7 @@ function OptionItem({
           {
             role: `menuitem${type}`,
             "aria-checked": checked,
-            ...checkedAttributes(checked),
+            ...checkedStateAttributes(checked),
             ...itemProps,
           },
           rest,
@@ -925,11 +903,7 @@ function OptionItem({
   );
 }
 
-function MenuCheckboxItem({
-  checked = false,
-  onCheckedChange,
-  ...props
-}: WithRef<MenuCheckboxItemProps>) {
+function MenuCheckboxItem({ checked = false, onCheckedChange, ...props }: MenuCheckboxItemProps) {
   return (
     <OptionItem
       {...props}
@@ -942,11 +916,7 @@ function MenuCheckboxItem({
 }
 
 /** A checkbox item drawn as a switch, for a setting that turns on and off; never tinted by `selection="tint"`. */
-function MenuSwitchItem({
-  checked = false,
-  onCheckedChange,
-  ...props
-}: WithRef<MenuCheckboxItemProps>) {
+function MenuSwitchItem({ checked = false, onCheckedChange, ...props }: MenuCheckboxItemProps) {
   return (
     <OptionItem
       data-switch=""
@@ -978,7 +948,7 @@ function useRadioItem(value: string) {
   };
 }
 
-function MenuRadioItem(props: WithRef<MenuRadioItemProps>) {
+function MenuRadioItem(props: MenuRadioItemProps) {
   const radio = useRadioItem(props.value);
   return (
     <OptionItem
@@ -1003,7 +973,7 @@ export interface MenuRadioItemGroupProps extends ComponentProps<typeof StyledIte
   onValueChange?: ((value: string) => void) | undefined;
 }
 
-function RadioItemGroup({ id, value, onValueChange, ...rest }: WithRef<MenuRadioItemGroupProps>) {
+function RadioItemGroup({ id, value, onValueChange, ...rest }: MenuRadioItemGroupProps) {
   const { groupId } = useGroupIds(id);
   const radio = useMemo(() => ({ value, onValueChange }), [value, onValueChange]);
   return (
@@ -1031,10 +1001,10 @@ function ItemLabel({
   return (
     <>
       {icon}
-      <Box flex="1">
+      <ItemText flex="1">
         {children}
         {description}
-      </Box>
+      </ItemText>
       {hint}
     </>
   );
@@ -1058,7 +1028,7 @@ function MenuItem({
   children,
   render,
   ...rest
-}: WithRef<MenuItemProps>) {
+}: MenuItemProps) {
   const slots = useItemSlots({ hint, description }, rest["aria-describedby"]);
   const content = (label: ReactNode) => (
     <ItemLabel
@@ -1076,7 +1046,7 @@ function MenuItem({
       {...rest}
       render={rendered.render}
       aria-describedby={slots.describedBy}
-      data-destructive={destructive ? "" : undefined}
+      data-destructive={dataAttr(destructive)}
     >
       {rendered.children}
     </ItemPart>
@@ -1096,7 +1066,7 @@ function MenuItemGroup({
   labelVariant = "default",
   children,
   ...rest
-}: WithRef<MenuItemGroupProps>) {
+}: MenuItemGroupProps) {
   const { groupId, labelId } = useGroupIds(id);
   const labelled = isRenderable(label);
   return (
@@ -1153,7 +1123,7 @@ function SegmentItem({
     <StyledSegmentItem
       role="menuitemradio"
       aria-checked={radio.checked}
-      {...checkedAttributes(radio.checked)}
+      {...checkedStateAttributes(radio.checked)}
       {...itemProps}
       ref={register}
     >
@@ -1170,7 +1140,7 @@ function MenuSegmentGroup({
   value,
   onValueChange,
   ...rest
-}: WithRef<MenuSegmentGroupProps>) {
+}: MenuSegmentGroupProps) {
   const { groupId, labelId } = useGroupIds(id);
   const radio = useMemo(() => ({ value, onValueChange }), [value, onValueChange]);
   return (
@@ -1218,7 +1188,7 @@ function MenuTriggerItem({
   children,
   "aria-describedby": describedBy,
   ...rest
-}: WithRef<MenuTriggerItemProps>) {
+}: MenuTriggerItemProps) {
   const context = useMenuContext();
   const { node } = context;
   const parent = requireParent(node);
@@ -1228,7 +1198,7 @@ function MenuTriggerItem({
     { owner: parent, triggerItem: true },
   );
   const slots = useItemSlots({ hint, description }, describedBy);
-  const itemRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
+  const itemRef = useComposedRefs(ref, register);
   const composedRef = useComposedRefs(itemRef, context.setTriggerEl);
 
   return (
@@ -1238,8 +1208,7 @@ function MenuTriggerItem({
           role: "menuitem",
           ...getPopupTriggerProps({
             open: context.open,
-            contentId: context.ids.content,
-            contentMounted: context.contentMounted,
+            contentId: context.contentId,
             haspopup: "menu",
           }),
           ...itemProps,

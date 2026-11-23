@@ -1,21 +1,21 @@
-import { type ComponentProps, type MouseEvent, useId } from "react";
+import { type ComponentProps, useId } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { collapsible } from "#styled-system/recipes";
 
 import { useControllableState } from "../../hooks/useControllableState";
-import { createChangeDetails } from "../../primitives/change";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { emitChange } from "../../primitives/change";
+import { PresenceActivity } from "../../primitives/presence";
+import { mergeProps, renderable } from "../../primitives/render";
 import {
   type CollapsibleChangeDetails,
-  CollapsiblePresence,
   CollapsibleProvider,
+  collapsibleIndicatorProps,
   collapsibleStateAttributes,
-  panelAttributes,
   useCollapsible,
+  useCollapsibleContent,
+  useCollapsibleTriggerProps,
   useCollapsibleContext,
-  useCollapsiblePanel,
 } from "../collapsiblePanel";
 
 export type { CollapsibleChangeDetails as CollapsibleOpenChangeDetails };
@@ -53,9 +53,7 @@ function Root({
     contentId: `collapsible:${id}:content`,
     triggerId: `collapsible:${id}:trigger`,
     onToggle(event) {
-      const details = createChangeDetails("trigger-press", event);
-      onOpenChange?.(!open, details);
-      if (!details.canceled) setOpen(!open);
+      if (emitChange(onOpenChange, !open, "trigger-press", event)) setOpen(!open);
     },
   });
 
@@ -74,23 +72,7 @@ function Trigger(props: TriggerProps) {
   const state = useCollapsibleContext("Collapsible.Trigger");
 
   return (
-    <StyledTrigger
-      {...mergeProps<TriggerProps>(
-        {
-          id: state.triggerId,
-          type: "button",
-          disabled: state.disabled,
-          "aria-controls": state.visible ? state.contentId : undefined,
-          "aria-expanded": state.visible,
-          ...collapsibleStateAttributes(state.open, state.disabled),
-          onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (event.defaultPrevented || state.disabled) return;
-            state.toggle(event.nativeEvent);
-          },
-        },
-        props,
-      )}
-    />
+    <StyledTrigger {...mergeProps<TriggerProps>(useCollapsibleTriggerProps(state, props), props)} />
   );
 }
 
@@ -101,18 +83,15 @@ export interface CollapsibleContentProps extends ComponentProps<typeof StyledCon
 
 function Content({ ref, keepMounted = false, ...props }: CollapsibleContentProps) {
   const state = useCollapsibleContext("Collapsible.Content");
-  const panelRef = useCollapsiblePanel(state, ref);
+  const content = useCollapsibleContent(state, ref, props.id);
 
   return (
-    <CollapsiblePresence
-      state={state}
+    <PresenceActivity
+      mounted={state.visible}
       keepMounted={keepMounted}
     >
-      <StyledContent
-        {...mergeProps<ComponentProps<typeof StyledContent>>(panelAttributes(state), props)}
-        ref={panelRef}
-      />
-    </CollapsiblePresence>
+      <StyledContent {...mergeProps<ComponentProps<typeof StyledContent>>(content, props)} />
+    </PresenceActivity>
   );
 }
 
@@ -121,7 +100,7 @@ function Indicator(props: ComponentProps<typeof StyledIndicator>) {
   return (
     <StyledIndicator
       {...mergeProps<ComponentProps<typeof StyledIndicator>>(
-        collapsibleStateAttributes(state.open, state.disabled),
+        collapsibleIndicatorProps(state),
         props,
       )}
     />

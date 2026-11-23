@@ -1,5 +1,6 @@
-import { isSafari } from "../../foundations/dom";
-import { holdStyle, holdTextSelection } from "../../primitives/drag";
+import { holdStyle } from "../../foundations/holdStyle";
+import { isSafari } from "../../foundations/platform";
+import { holdTextSelection } from "../../foundations/trackPointerMove";
 
 export interface ScrubPoint {
   x: number;

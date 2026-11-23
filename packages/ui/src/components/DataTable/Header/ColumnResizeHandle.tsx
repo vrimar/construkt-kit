@@ -5,6 +5,8 @@ import { styled } from "#styled-system/jsx";
 
 import { isRtl } from "../../../foundations/dom";
 import { usePointerDrag } from "../../../hooks/usePointerDrag";
+import { mirrorArrowKey } from "../../../primitives/composite";
+import { useLocale } from "../../../primitives/locale";
 import { MIN_RESIZED_COLUMN_WIDTH, columnTemplateVar, getColumnTemplate } from "../columnTemplate";
 import { useDataTableContext } from "../context";
 import type { DataTableHeader } from "../types";
@@ -36,6 +38,7 @@ export const ColumnResizeHandle = <TData extends object>({
   const handleRef = useRef<HTMLSpanElement>(null);
   const [renderedWidth, setRenderedWidth] = useState<number>();
   const dragRef = useRef<ResizeDrag | null>(null);
+  const rtl = useLocale().dir === "rtl";
 
   useLayoutEffect(() => {
     const cell = handleRef.current?.parentElement;
@@ -103,13 +106,11 @@ export const ColumnResizeHandle = <TData extends object>({
   const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     const cell = event.currentTarget.parentElement;
     if (!cell) return;
-    const rtl = isRtl(cell);
     const width = cell.offsetWidth;
     const floor = Math.min(minWidth, width);
-    const grow = rtl ? "ArrowLeft" : "ArrowRight";
-    const shrink = rtl ? "ArrowRight" : "ArrowLeft";
-    if (event.key === grow) resizeColumn(column.id, width + KEYBOARD_STEP);
-    else if (event.key === shrink) resizeColumn(column.id, Math.max(floor, width - KEYBOARD_STEP));
+    const key = mirrorArrowKey(event.key, rtl);
+    if (key === "ArrowRight") resizeColumn(column.id, width + KEYBOARD_STEP);
+    else if (key === "ArrowLeft") resizeColumn(column.id, Math.max(floor, width - KEYBOARD_STEP));
     else if (event.key === "Home") resizeColumn(column.id, floor);
     else if (event.key === "Enter") resizeColumn(column.id, undefined);
     else return;
@@ -127,7 +128,7 @@ export const ColumnResizeHandle = <TData extends object>({
       aria-valuemin={currentWidth === undefined ? minWidth : Math.min(minWidth, currentWidth)}
       aria-valuemax={Number.MAX_SAFE_INTEGER}
       aria-valuenow={currentWidth}
-      data-part="column-resize-handle"
+      data-slot="columnResizeHandle"
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
       onDoubleClick={() => resizeColumn(column.id, undefined)}

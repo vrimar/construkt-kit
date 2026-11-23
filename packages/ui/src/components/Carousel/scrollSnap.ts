@@ -1,17 +1,13 @@
-export type ScrollAxis = "x" | "y";
+import { cssLengthToPx } from "../../foundations/cssSize";
 
-const parseLength = (raw: string, size: number): number => {
-  const value = Number.parseFloat(raw);
-  if (Number.isNaN(value)) return 0;
-  return raw.includes("%") ? (value / 100) * size : value;
-};
+export type ScrollAxis = "x" | "y";
 
 function getScrollPadding(element: HTMLElement, axis: ScrollAxis) {
   const style = getComputedStyle(element);
   const size = axis === "x" ? element.offsetWidth : element.offsetHeight;
   const [before, after] = axis === "x" ? ["left", "right"] : ["top", "bottom"];
   const read = (side: string) =>
-    parseLength(style.getPropertyValue(`scroll-padding-${side}`).replace("auto", "0px"), size);
+    cssLengthToPx(style.getPropertyValue(`scroll-padding-${side}`), element, size) ?? 0;
   return { before: read(before), after: read(after) };
 }
 
@@ -80,13 +76,16 @@ export function getScrollSnapPositions(element: HTMLElement, axis: ScrollAxis): 
   return rtl && element.scrollLeft <= 0 ? unique.map((position) => -position) : unique;
 }
 
+export const resolveSlidesPerMove = (slidesPerMove: number | "auto", slidesPerPage: number) =>
+  slidesPerMove === "auto" ? Math.floor(slidesPerPage) : slidesPerMove;
+
 /** One placeholder snap point per page until the carousel can measure its slides. */
 export function getPageSnapPoints(
   slideCount: number,
   slidesPerMove: number | "auto",
   slidesPerPage: number,
 ): number[] {
-  const perMove = slidesPerMove === "auto" ? Math.floor(slidesPerPage) : slidesPerMove;
+  const perMove = resolveSlidesPerMove(slidesPerMove, slidesPerPage);
   if (slidesPerPage <= 0 || perMove <= 0) return [];
   const points: number[] = [];
   for (let index = 0; index + slidesPerPage <= slideCount; index += perMove) points.push(index);

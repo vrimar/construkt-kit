@@ -1,16 +1,12 @@
-import { CheckIcon, SearchIcon } from "lucide-react";
+import { sameItems } from "@construkt-kit/utils";
+import { SearchIcon } from "lucide-react";
 import {
   type ComponentProps,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
-  type Ref,
   type RefObject,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
   useId,
   useLayoutEffect,
   useMemo,
@@ -26,24 +22,30 @@ import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import {
-  type OpenChangeDetails,
-  type OpenChangeReason,
-  createOpenChangeDetails,
-} from "../../primitives/layer";
-import { renderable } from "../../primitives/render";
-import { useStore } from "../../primitives/store";
+  type RenderedParts,
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { CompositeList } from "../../primitives/composite";
+import type { OpenChangeReason } from "../../primitives/layer";
+import {
+  Announcer,
+  type ListEntry,
+  ListboxNode,
+  useListboxActiveDescendant,
+  useListboxContentRef,
+  useListboxInputRef,
+} from "../../primitives/listbox";
+import { dataAttr, renderable } from "../../primitives/render";
 import { CloseButton } from "../Buttons";
-import { Announcer } from "../Combobox/Announcer";
 import { Dialog, type DialogRootOwnProps } from "../Dialog";
+import { useModalContext } from "../dialogParts";
 import { SearchHighlight } from "../Highlight";
 import { useItemSlotIds } from "../itemSlots";
 import { Kbd } from "../Kbd";
-import {
-  type ListEntry,
-  ListboxNode,
-  selectHighlighted,
-  selectIsHighlighted,
-} from "../Listbox/listboxNode";
+import { createListboxParts } from "../listboxParts";
+import { createPartContext } from "../partContext";
 
 /** A sub-page on the palette's stack. `label` is its token in the search field. */
 export interface CommandPalettePage {
@@ -63,18 +65,19 @@ interface RegisteredItem {
   label: string;
   disabled: boolean;
   checked: boolean;
-  node: HTMLElement | null;
   action: Readonly<RefObject<ItemAction>>;
 }
 
 interface ItemRegistry {
   get: (value: string) => RegisteredItem | undefined;
-  register: (item: RegisteredItem) => () => void;
+  register: (element: HTMLElement, item: RegisteredItem) => () => void;
 }
 
 interface PaletteContextValue {
   node: ListboxNode;
   ids: { label: string; input: string; list: string };
+  rendered: RenderedParts<"input" | "list">;
+  reportRendered: ReportRendered<"input" | "list">;
   query: string;
   setQuery: (query: string) => void;
   pages: readonly CommandPalettePage[];
@@ -82,18 +85,12 @@ interface PaletteContextValue {
   close: (reason: OpenChangeReason, event?: Event) => void;
   empty: boolean;
   register: ItemRegistry["register"];
-  pick: (value: string, event: Event) => void;
 }
 
-const PaletteContext = createContext<PaletteContextValue | null>(null);
-
-function usePalette() {
-  const context = useContext(PaletteContext);
-  if (context == null) {
-    throw new Error("CommandPalette parts must be rendered inside CommandPalette.Root");
-  }
-  return context;
-}
+const [PaletteContext, usePalette] = createPartContext<PaletteContextValue>(
+  "<CommandPalette.Root>",
+  "CommandPalette parts",
+);
 
 const { withProvider, withContext } = createSlotRecipeContext(commandPalette);
 
@@ -106,38 +103,42 @@ const StyledContent = withContext(renderable.div, "content");
 const StyledItemGroup = withContext(renderable.div, "itemGroup");
 const ItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
 const ItemGroupCount = withContext(renderable.span, "itemGroupCount");
-const StyledItem = withContext(renderable.div, "item");
 const ItemIcon = withContext(renderable.span, "itemIcon");
 const ItemBody = withContext(renderable.span, "itemBody");
-const ItemText = withContext(renderable.span, "itemText");
 const ItemDescription = withContext(renderable.span, "itemDescription");
 const ItemMeta = withContext(renderable.span, "itemMeta");
-const ItemIndicator = withContext(renderable.div, "itemIndicator");
 const StyledEmpty = withContext(renderable.div, "empty");
 
-const byDocumentOrder = (a: RegisteredItem, b: RegisteredItem) => {
-  if (a.node == null || b.node == null || a.node === b.node) return 0;
-  return a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-};
+const StyledItem = withContext(renderable.div, "item");
+const StyledItemText = withContext(renderable.span, "itemText");
+const StyledItemIndicator = withContext(renderable.div, "itemIndicator");
 
-const isSameList = (current: readonly RegisteredItem[], next: readonly RegisteredItem[]) =>
-  current.length === next.length &&
-  current.every(
-    (item, index) =>
-      item.value === next[index].value &&
-      item.label === next[index].label &&
-      item.disabled === next[index].disabled &&
-      item.checked === next[index].checked,
-  );
+const parts = createListboxParts(
+  {
+    Item: StyledItem,
+    ItemText: StyledItemText,
+    ItemIndicator: StyledItemIndicator,
+    ItemGroup: StyledItemGroup,
+    ItemGroupLabel,
+  },
+  "command-palette-group",
+);
+
+const sameItem = (a: RegisteredItem, b: RegisteredItem) =>
+  a.value === b.value &&
+  a.label === b.label &&
+  a.disabled === b.disabled &&
+  a.checked === b.checked;
 
 type ItemsUpdate = (current: readonly RegisteredItem[]) => readonly RegisteredItem[];
 
 function createItemRegistry(update: (sync: ItemsUpdate) => void): ItemRegistry {
-  const entries = new Map<string, RegisteredItem>();
+  const list = new CompositeList();
+  const records = new Map<string, RegisteredItem>();
   let sorted: readonly RegisteredItem[] | null = null;
   const sync: ItemsUpdate = (current) => {
-    sorted ??= [...entries.values()].sort(byDocumentOrder);
-    return isSameList(current, sorted) ? current : sorted;
+    sorted ??= list.items().flatMap(({ value }) => records.get(value) ?? []);
+    return sameItems(current, sorted, sameItem) ? current : sorted;
   };
   const changed = () => {
     sorted = null;
@@ -145,13 +146,15 @@ function createItemRegistry(update: (sync: ItemsUpdate) => void): ItemRegistry {
   };
 
   return {
-    get: (value) => entries.get(value),
-    register(item) {
-      entries.set(item.value, item);
+    get: (value) => records.get(value),
+    register(element, item) {
+      records.set(item.value, item);
+      const unregister = list.register(element, item.value, item.label);
       changed();
       return () => {
-        if (entries.get(item.value) !== item) return;
-        entries.delete(item.value);
+        unregister();
+        if (records.get(item.value) !== item) return;
+        records.delete(item.value);
         changed();
       };
     },
@@ -176,30 +179,21 @@ interface Navigation {
 interface PaletteListProps {
   label: string;
   navigation: Navigation;
-  close: (reason: OpenChangeReason, event?: Event) => void;
   children?: ReactNode;
 }
 
-function PaletteList({ label, navigation, close, children }: PaletteListProps) {
+function PaletteList({ label, navigation, children }: PaletteListProps) {
+  const { requestOpenChange } = useModalContext();
+  const close = (reason: OpenChangeReason, event?: Event) =>
+    requestOpenChange(false, reason, event);
   const id = useId();
   const [node] = useState(() => new ListboxNode(`command-palette:${id}`, null));
   const { items, registry } = useItemRegistry();
+  const [rendered, reportRendered] = useRenderedParts<"input" | "list">();
   const entries = useMemo<ListEntry[]>(
     () => items.map(({ value, label: text, disabled }) => ({ value, label: text, disabled })),
     [items],
   );
-
-  const highlightScope = JSON.stringify([navigation.query, navigation.pages.map((p) => p.value)]);
-  const [picked, setPicked] = useState<{ scope: string; value: string | null }>({
-    scope: highlightScope,
-    value: null,
-  });
-  const pickedValue = picked.scope === highlightScope ? picked.value : null;
-  const pickedItem = items.find((item) => item.value === pickedValue);
-  const highlightedValue =
-    pickedItem != null && !pickedItem.disabled
-      ? pickedItem.value
-      : (items.find((item) => !item.disabled)?.value ?? null);
 
   const select = (value: string) => {
     const item = registry.get(value);
@@ -221,22 +215,15 @@ function PaletteList({ label, navigation, close, children }: PaletteListProps) {
       loopFocus: true,
       typeahead: false,
       alwaysShowHighlight: true,
+      autoHighlight: true,
       scrollToIndex: undefined,
       onPick: (value) => select(value),
       onNavigate: undefined,
       onSelectAll: undefined,
-      onHighlightChange: (value) => setPicked({ scope: highlightScope, value }),
-      highlightControlled: true,
+      onHighlightChange: undefined,
+      highlightControlled: false,
     });
   });
-
-  useLayoutEffect(() => {
-    node.syncHighlight(highlightedValue);
-  }, [node, highlightedValue]);
-
-  useEffect(() => {
-    if (highlightedValue != null) node.scrollTo(highlightedValue);
-  }, [node, highlightedValue, entries]);
 
   const context: PaletteContextValue = {
     node,
@@ -245,6 +232,8 @@ function PaletteList({ label, navigation, close, children }: PaletteListProps) {
       input: `${node.id}:input`,
       list: `${node.id}:content`,
     },
+    rendered,
+    reportRendered,
     query: navigation.query,
     setQuery: navigation.setQuery,
     pages: navigation.pages,
@@ -252,7 +241,6 @@ function PaletteList({ label, navigation, close, children }: PaletteListProps) {
     close,
     empty: items.length === 0,
     register: registry.register,
-    pick: (value, event) => node.pick(value, event),
   };
 
   return (
@@ -260,7 +248,7 @@ function PaletteList({ label, navigation, close, children }: PaletteListProps) {
       <StyledRoot>
         <Label
           id={context.ids.label}
-          htmlFor={context.ids.input}
+          htmlFor={rendered.input}
         >
           {[label, ...navigation.pages.map((page) => page.label)].join(" › ")}
         </Label>
@@ -270,7 +258,6 @@ function PaletteList({ label, navigation, close, children }: PaletteListProps) {
           entries={entries}
           inputValue={navigation.query}
           loading={false}
-          suggesting
           isSelected={(value) => registry.get(value)?.checked === true}
         />
       </StyledRoot>
@@ -297,6 +284,9 @@ export interface CommandPaletteRootProps extends Omit<
 
 const NO_PAGES: CommandPalettePage[] = [];
 
+const samePages = (a: readonly CommandPalettePage[], b: readonly CommandPalettePage[]) =>
+  sameItems(a, b, (x, y) => x.value === y.value && x.label === y.label);
+
 function Root({
   label = "Command palette",
   query: queryProp,
@@ -305,8 +295,6 @@ function Root({
   pages: pagesProp,
   defaultPages = NO_PAGES,
   onPagesChange,
-  open: openProp,
-  defaultOpen = false,
   onOpenChange,
   onExitComplete,
   children,
@@ -321,14 +309,8 @@ function Root({
     value: pagesProp,
     defaultValue: defaultPages,
     onChange: onPagesChange,
+    isEqual: samePages,
   });
-  const [open, setOpen] = useControllableState({ value: openProp, defaultValue: defaultOpen });
-
-  const changeOpen = (next: boolean, details: OpenChangeDetails) => {
-    onOpenChange?.(next, details);
-    if (!details.canceled) setOpen(next);
-  };
-
   const setPages = (next: CommandPalettePage[]) => {
     changePages(next);
     if (query !== "") setQuery("");
@@ -348,14 +330,13 @@ function Root({
       scrollBehavior="inside"
       aria-label={label}
       {...dialogProps}
-      open={open}
       onOpenChange={(next, details) => {
         if (!next && details.reason === "escape-key" && pages.length > 0) {
           details.cancel();
           navigation.closePage();
           return;
         }
-        changeOpen(next, details);
+        onOpenChange?.(next, details);
       }}
       onExitComplete={() => {
         resetQuery();
@@ -371,7 +352,6 @@ function Root({
         <PaletteList
           label={label}
           navigation={navigation}
-          close={(reason, event) => changeOpen(false, createOpenChangeDetails(reason, event))}
         >
           {children}
         </PaletteList>
@@ -380,18 +360,12 @@ function Root({
   );
 }
 
-function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof StyledInput>) {
+function Input({ ref, id, onKeyDown, onChange, ...props }: ComponentProps<typeof StyledInput>) {
   const context = usePalette();
   const { node, pages, closePage } = context;
-  const highlighted = useStore(node.store, selectHighlighted);
-  const setInput = useCallback(
-    (element: HTMLElement | null) => {
-      node.setInput(element);
-      return () => node.setInput(null);
-    },
-    [node],
-  );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setInput);
+  const inputId = useReportRendered(context.reportRendered, "input", id ?? context.ids.input);
+  const activeDescendant = useListboxActiveDescendant(node);
+  const composedRef = useComposedRefs(ref, useListboxInputRef(node));
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(event);
@@ -404,16 +378,7 @@ function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof Sty
       return;
     }
     if (event.ctrlKey || (event.shiftKey && event.key !== "Enter")) return;
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      node.move(event.key === "ArrowDown" ? "next" : "prev");
-      return;
-    }
-    if (event.key !== "Enter" || node.highlighted == null) return;
-    event.preventDefault();
-    const item = node.elementOf(node.highlighted);
-    if (item?.matches("a[href]")) queueMicrotask(() => item.click());
-    else context.pick(node.highlighted, event.nativeEvent);
+    node.onInputKeyDown(event);
   };
 
   return (
@@ -424,7 +389,7 @@ function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof Sty
         pages.map((page, index) => <Token key={index}>{page.label}</Token>)
       )}
       <StyledInput
-        id={context.ids.input}
+        id={inputId}
         type="text"
         role="combobox"
         autoComplete="off"
@@ -432,14 +397,15 @@ function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof Sty
         autoCapitalize="none"
         spellCheck={false}
         aria-autocomplete="list"
-        aria-controls={context.ids.list}
+        aria-controls={context.rendered.list}
         aria-expanded
-        aria-activedescendant={highlighted == null ? undefined : node.itemId(highlighted)}
+        aria-activedescendant={activeDescendant}
         value={context.query}
         {...props}
         ref={composedRef}
         onChange={(event) => {
           onChange?.(event);
+          node.setSuggesting(true);
           context.setQuery(event.currentTarget.value);
         }}
         onKeyDown={handleKeyDown}
@@ -453,23 +419,17 @@ function Input({ ref, onKeyDown, onChange, ...props }: ComponentProps<typeof Sty
   );
 }
 
-function List({ ref, onMouseDown, ...props }: ComponentProps<typeof StyledContent>) {
+function List({ ref, id, onMouseDown, ...props }: ComponentProps<typeof StyledContent>) {
   const context = usePalette();
-  const setContent = useCallback(
-    (element: HTMLElement | null) => {
-      context.node.setContent(element);
-      return () => context.node.setContent(null);
-    },
-    [context.node],
-  );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setContent);
+  const composedRef = useComposedRefs(ref, useListboxContentRef(context.node));
+  const listId = useReportRendered(context.reportRendered, "list", id ?? context.ids.list);
   return (
     <StyledContent
-      id={context.ids.list}
+      id={listId}
       role="listbox"
       tabIndex={-1}
       aria-labelledby={context.ids.label}
-      data-empty={context.empty ? "" : undefined}
+      data-empty={dataAttr(context.empty)}
       {...props}
       ref={composedRef}
       onMouseDown={(event) => {
@@ -497,29 +457,17 @@ export interface CommandPaletteGroupProps extends ComponentProps<typeof StyledIt
   count?: ReactNode;
 }
 
-function Group({ id, label, count, children, ...props }: CommandPaletteGroupProps) {
-  const generated = useId();
-  const groupId = id ?? `command-palette-group:${generated}`;
-  const labelId = `${groupId}:label`;
-  const labelled = label != null || count != null;
+function Group({ label, count, children, ...props }: CommandPaletteGroupProps) {
   return (
-    <StyledItemGroup
-      id={groupId}
-      role="group"
-      aria-labelledby={labelled ? labelId : undefined}
-      {...props}
-    >
-      {labelled && (
-        <ItemGroupLabel
-          id={labelId}
-          role="presentation"
-        >
+    <parts.ItemGroup {...props}>
+      {(label != null || count != null) && (
+        <parts.ItemGroupLabel>
           {label}
           {count != null && <ItemGroupCount>{count}</ItemGroupCount>}
-        </ItemGroupLabel>
+        </parts.ItemGroupLabel>
       )}
       {children}
-    </StyledItemGroup>
+    </parts.ItemGroup>
   );
 }
 
@@ -570,29 +518,17 @@ function Item({
   onClick,
   ...props
 }: CommandPaletteItemProps) {
-  const context = usePalette();
-  const { node, query, register } = context;
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const registerElement = useCallback(
-    (element: HTMLElement | null) => (element ? node.registerItem(value, element) : undefined),
-    [node, value],
-  );
-  const elementRef = useComposedRefs(nodeRef, registerElement);
+  const { node, query, register } = usePalette();
+  const elementRef = useRef<HTMLDivElement>(null);
   const composedRef = useComposedRefs(elementRef, ref);
   const action = useLatestRef<ItemAction>({ label, opensPage, closeOnSelect, onSelect });
-  const highlighted = useStore(node.store, selectIsHighlighted, value);
 
   // No deps: registering on every commit keeps keyboard order in step with keyed reorders.
-  useLayoutEffect(() =>
-    register({
-      value,
-      label,
-      disabled,
-      checked: checked === true,
-      node: nodeRef.current,
-      action,
-    }),
-  );
+  useLayoutEffect(() => {
+    const element = elementRef.current;
+    if (!element) return;
+    return register(element, { value, label, disabled, checked: checked === true, action });
+  });
 
   const textId = useId();
   const secondLine = disabled && disabledReason != null ? disabledReason : description;
@@ -600,38 +536,33 @@ function Item({
   const { hintId: shortcutId, describedBy } = useItemSlotIds({ hint: shortcut }, slots.describedBy);
 
   return (
-    <StyledItem
-      id={node.itemId(value)}
-      role="option"
+    <parts.Item
+      node={node}
+      value={value}
+      selected={checked === true}
+      disabled={disabled}
       tabIndex={-1}
-      data-value={value}
-      aria-selected={checked === true}
-      aria-disabled={disabled || undefined}
-      data-selected={checked ? "" : undefined}
-      data-highlighted={highlighted ? "" : undefined}
-      data-disabled={disabled ? "" : undefined}
       aria-labelledby={props["aria-label"] === undefined ? textId : undefined}
       {...props}
       aria-describedby={describedBy}
       ref={composedRef}
       onPointerMove={(event: PointerEvent<HTMLDivElement>) => {
         onPointerMove?.(event);
-        if (!disabled && !highlighted) node.highlight(value);
+        if (!disabled && node.highlighted !== value) node.hover(value);
       }}
       onClick={(event: MouseEvent<HTMLDivElement>) => {
         onClick?.(event);
-        if (event.defaultPrevented || disabled || event.button !== 0) return;
-        context.pick(value, event.nativeEvent);
+        node.onItemClick(value, event);
       }}
     >
       {icon != null && <ItemIcon>{icon}</ItemIcon>}
       <ItemBody>
-        <ItemText id={textId}>
+        <parts.ItemText id={textId}>
           <SearchHighlight
             text={label}
             query={query}
           />
-        </ItemText>
+        </parts.ItemText>
         {slots.descriptionId && (
           <ItemDescription
             id={slots.descriptionId}
@@ -659,15 +590,8 @@ function Item({
           {shortcut}
         </Kbd>
       )}
-      {checked != null && (
-        <ItemIndicator
-          aria-hidden
-          {...(checked ? { "data-checked": "" } : { "data-unchecked": "" })}
-        >
-          <CheckIcon />
-        </ItemIndicator>
-      )}
-    </StyledItem>
+      {checked != null && <parts.ItemIndicator />}
+    </parts.Item>
   );
 }
 

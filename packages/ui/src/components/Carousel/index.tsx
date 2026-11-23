@@ -1,30 +1,28 @@
 import {
   type ComponentProps,
-  type ComponentPropsWithRef,
   type CSSProperties,
   type MouseEvent,
-  createContext,
   useCallback,
-  useContext,
-  useLayoutEffect,
-  useRef,
+  useState,
 } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { carousel } from "#styled-system/recipes";
-import { token } from "#styled-system/tokens";
 
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { getTabbables } from "../../primitives/focus";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { useCompositeListItem } from "../../primitives/composite";
+import { noDragProps } from "../../primitives/drag";
+import { useHasTabbable } from "../../primitives/focus";
+import { type RenderProp, dataAttr, mergeProps, renderable } from "../../primitives/render";
+import { IconButton, type IconButtonProps } from "../Buttons";
+import { createPartContext } from "../partContext";
 import {
-  type RenderProp,
-  type StateAttributes,
-  useRender,
-} from "../../primitives/render/useRender";
-import { type CarouselRoot, type CarouselRootOptions, useCarouselRoot } from "./carouselRoot";
-
+  CAROUSEL_ROOT_KEYS,
+  type CarouselRoot,
+  type CarouselRootOptions,
+  useCarouselRoot,
+} from "./carouselRoot";
 export type {
   CarouselOrientation,
   CarouselTranslations,
@@ -38,8 +36,8 @@ const StyledRoot = withProvider(renderable.div, "root");
 const StyledControl = withContext(renderable.div, "control");
 const StyledItemGroup = withContext(renderable.div, "itemGroup");
 const StyledItem = withContext(renderable.div, "item");
-const StyledPrevTrigger = withContext(renderable.button, "prevTrigger");
-const StyledNextTrigger = withContext(renderable.button, "nextTrigger");
+const StyledPrevTrigger = withContext(IconButton, "prevTrigger");
+const StyledNextTrigger = withContext(IconButton, "nextTrigger");
 const StyledIndicatorGroup = withContext(renderable.div, "indicatorGroup");
 const StyledIndicator = withContext(renderable.button, "indicator");
 
@@ -48,87 +46,44 @@ export type CarouselAutoplayTriggerState = {
   playing: boolean;
 };
 
-const NO_STATE_ATTRIBUTES: StateAttributes<CarouselAutoplayTriggerState> = {
-  playing: () => null,
-};
-
-interface AutoplayTriggerElementProps extends ComponentPropsWithRef<"button"> {
+interface AutoplayTriggerElementProps extends Omit<IconButtonProps, "render"> {
   render?: RenderProp<CarouselAutoplayTriggerState> | undefined;
   renderState: CarouselAutoplayTriggerState;
 }
 
 function AutoplayTriggerElement({ render, renderState, ...props }: AutoplayTriggerElementProps) {
-  return useRender({
-    defaultTagName: "button",
-    render,
-    props,
-    state: renderState,
-    stateAttributes: NO_STATE_ATTRIBUTES,
-  });
+  return (
+    <IconButton
+      {...props}
+      render={
+        typeof render === "function" ? (renderProps) => render(renderProps, renderState) : render
+      }
+    />
+  );
 }
 
 const StyledAutoplayTrigger = withContext(AutoplayTriggerElement, "autoplayTrigger");
 
-const SLIDE_SPACING = token.var("spacing.4");
-
-const CarouselContext = createContext<CarouselRoot | null>(null);
-
-function useCarousel(part: string): CarouselRoot {
-  const context = useContext(CarouselContext);
-  if (!context) throw new Error(`Carousel.${part} must be placed inside <Carousel.Root>.`);
-  return context;
-}
+const [CarouselContext, useCarousel] = createPartContext<CarouselRoot>("<Carousel.Root>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
 export interface CarouselRootProps
   extends Omit<StyledRootProps, keyof CarouselRootOptions>, CarouselRootOptions {}
 
-function Root({
-  slideCount,
-  value,
-  defaultValue,
-  onValueChange,
-  orientation = "horizontal",
-  slidesPerPage,
-  slidesPerMove,
-  spacing = SLIDE_SPACING,
-  peek,
-  loop,
-  autoplay,
-  allowMouseDrag,
-  autoSize = false,
-  inViewThreshold,
-  translations,
-  ...props
-}: CarouselRootProps) {
-  const root = useCarouselRoot({
-    slideCount,
-    value,
-    defaultValue,
-    onValueChange,
-    orientation,
-    slidesPerPage,
-    slidesPerMove,
-    spacing,
-    peek,
-    loop,
-    autoplay,
-    allowMouseDrag,
-    autoSize,
-    inViewThreshold,
-    translations,
-  });
+function Root(rootProps: CarouselRootProps) {
+  const [options, props] = splitOptions(rootProps, CAROUSEL_ROOT_KEYS);
+  const root = useCarouselRoot(options);
 
   return (
     <CarouselContext value={root}>
       <StyledRoot
-        autoSize={autoSize}
+        autoSize={options.autoSize ?? false}
         {...mergeProps<StyledRootProps>(
           {
             role: "region",
             "aria-roledescription": "carousel",
-            "data-orientation": orientation,
+            "data-orientation": root.orientation,
             dir: root.dir,
             ...root.rootProps,
           } as StyledRootProps,
@@ -142,7 +97,7 @@ function Root({
 export type CarouselControlProps = ComponentProps<typeof StyledControl>;
 
 function Control(props: CarouselControlProps) {
-  const root = useCarousel("Control");
+  const root = useCarousel("Carousel.Control");
   return (
     <StyledControl
       data-orientation={root.orientation}
@@ -154,32 +109,21 @@ function Control(props: CarouselControlProps) {
 export type CarouselItemGroupProps = ComponentProps<typeof StyledItemGroup>;
 
 function ItemGroup({ ref, ...props }: CarouselItemGroupProps) {
-  const root = useCarousel("ItemGroup");
-  const elementRef = useRef<HTMLDivElement>(null);
-  const ownRef = useComposedRefs<HTMLDivElement>(elementRef, root.setItemGroup);
-  const composedRef = useComposedRefs<HTMLDivElement>(ownRef, ref);
-  const ownTabIndex = props.tabIndex !== undefined;
-
-  useLayoutEffect(() => {
-    const element = elementRef.current;
-    if (!element || ownTabIndex) return;
-    const syncTabIndex = () =>
-      element.setAttribute("tabindex", getTabbables(element).length > 0 ? "-1" : "0");
-    syncTabIndex();
-    const observer = new MutationObserver(syncTabIndex);
-    observer.observe(element, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [ownTabIndex]);
+  const root = useCarousel("Carousel.ItemGroup");
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const composedRef = useComposedRefs(ref, setElement, root.setItemGroup);
+  const hasTabbable = useHasTabbable(element, props.tabIndex === undefined);
 
   return (
     <StyledItemGroup
       {...mergeProps<CarouselItemGroupProps>(
         {
           id: root.itemGroupId,
+          tabIndex: hasTabbable ? -1 : 0,
           "aria-live": root.running ? "off" : "polite",
           "data-orientation": root.orientation,
           "data-dragging": dataAttr(root.dragging),
-          "data-no-drag": "",
+          ...noDragProps,
           style: {
             "--carousel-slides-per-page": String(root.slidesPerPage),
             "--carousel-spacing": root.spacing,
@@ -204,7 +148,7 @@ export interface CarouselItemProps extends StyledItemProps {
 }
 
 function Item({ ref, index, snapAlign = "start", ...props }: CarouselItemProps) {
-  const root = useCarousel("Item");
+  const root = useCarousel("Carousel.Item");
   const composedRef = useComposedRefs<HTMLDivElement>(root.registerItem, ref);
   const inView = root.inView.includes(index);
 
@@ -233,15 +177,16 @@ function Item({ ref, index, snapAlign = "start", ...props }: CarouselItemProps) 
 export type CarouselPrevTriggerProps = ComponentProps<typeof StyledPrevTrigger>;
 
 function PrevTrigger(props: CarouselPrevTriggerProps) {
-  const root = useCarousel("PrevTrigger");
+  const root = useCarousel("Carousel.PrevTrigger");
   return (
     <StyledPrevTrigger
       {...mergeProps<CarouselPrevTriggerProps>(
         {
-          type: "button",
+          variant: "plain",
+          size: "lg",
           disabled: !root.canScrollPrev,
           "aria-label": root.translations.prevTrigger,
-          "aria-controls": root.itemGroupId,
+          "aria-controls": root.mountedItemGroupId,
           "data-orientation": root.orientation,
           onClick(event: MouseEvent<HTMLButtonElement>) {
             if (!event.defaultPrevented) root.prev(event.nativeEvent);
@@ -256,15 +201,16 @@ function PrevTrigger(props: CarouselPrevTriggerProps) {
 export type CarouselNextTriggerProps = ComponentProps<typeof StyledNextTrigger>;
 
 function NextTrigger(props: CarouselNextTriggerProps) {
-  const root = useCarousel("NextTrigger");
+  const root = useCarousel("Carousel.NextTrigger");
   return (
     <StyledNextTrigger
       {...mergeProps<CarouselNextTriggerProps>(
         {
-          type: "button",
+          variant: "plain",
+          size: "lg",
           disabled: !root.canScrollNext,
           "aria-label": root.translations.nextTrigger,
-          "aria-controls": root.itemGroupId,
+          "aria-controls": root.mountedItemGroupId,
           "data-orientation": root.orientation,
           onClick(event: MouseEvent<HTMLButtonElement>) {
             if (!event.defaultPrevented) root.next(event.nativeEvent);
@@ -286,25 +232,15 @@ export interface CarouselIndicatorProps extends StyledIndicatorProps {
 }
 
 function Indicator({ ref, index, readOnly = false, ...props }: CarouselIndicatorProps) {
-  const root = useCarousel("Indicator");
-  const { indicators } = root;
-  const register = useCallback(
-    (element: HTMLButtonElement | null) => {
-      if (!element) return;
-      indicators.set(index, element);
-      return () => {
-        if (indicators.get(index) === element) indicators.delete(index);
-      };
-    },
-    [indicators, index],
-  );
+  const root = useCarousel("Carousel.Indicator");
+  const register = useCompositeListItem(root.indicators, String(index));
   const composedRef = useComposedRefs<HTMLButtonElement>(register, ref);
 
   return (
     <StyledIndicator
       {...mergeProps<StyledIndicatorProps>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           "aria-label": root.translations.indicator(index),
           "data-index": index,
           "data-current": dataAttr(index === root.page),
@@ -329,7 +265,7 @@ export type CarouselIndicatorGroupProps = Omit<
 
 /** Renders an indicator for each page. */
 function IndicatorGroup(props: CarouselIndicatorGroupProps) {
-  const root = useCarousel("IndicatorGroup");
+  const root = useCarousel("Carousel.IndicatorGroup");
   return (
     <StyledIndicatorGroup
       {...mergeProps<CarouselIndicatorGroupProps>(
@@ -362,7 +298,7 @@ export interface CarouselAutoplayTriggerProps extends Omit<
 
 /** Starts and stops `autoplay`; `data-pressed` while the slides advance on their own. */
 function AutoplayTrigger({ ref, ...props }: CarouselAutoplayTriggerProps) {
-  const root = useCarousel("AutoplayTrigger");
+  const root = useCarousel("Carousel.AutoplayTrigger");
   const { autoplayTriggers } = root;
   const register = useCallback(
     (element: HTMLButtonElement | null) => {
@@ -381,7 +317,8 @@ function AutoplayTrigger({ ref, ...props }: CarouselAutoplayTriggerProps) {
       renderState={{ playing: root.playing }}
       {...mergeProps<CarouselAutoplayTriggerProps>(
         {
-          type: "button",
+          variant: "plain",
+          size: "lg",
           "aria-label": root.playing
             ? root.translations.autoplayStop
             : root.translations.autoplayStart,

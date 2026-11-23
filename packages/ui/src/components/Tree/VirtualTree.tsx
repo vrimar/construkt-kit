@@ -1,12 +1,4 @@
-import { ChevronRightIcon } from "lucide-react";
-import {
-  type CSSProperties,
-  type ReactNode,
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type ReactNode, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Box } from "#styled-system/jsx";
 
@@ -17,33 +9,25 @@ import { TreeDndRow, type TreeRowPartProps } from "./TreeRow";
 import { TreeRowIndentGuides } from "./TreeRowIndentGuides";
 import {
   FlatBranchControl,
-  FlatBranchIndicator,
   TreeRowContent,
   TreeView,
-  ariaChecked,
+  depthStyle,
+  treeItemAria,
   useTreeContext,
   useTreeNodeState,
 } from "./TreeView";
-import { type VisibleNode, selectFocused } from "./treeViewNode";
+import { type VisibleNode, parentIndexOf, selectTabStop } from "./treeViewNode";
 
 export interface VirtualTreeEntry<T> {
   node: T;
   indexPath: number[];
 }
 
-// Virtualized rows render flat, so nesting can't carry the depth down to them.
-const depthStyleFor = (indexPath: number[]): CSSProperties & { "--tree-depth": number } => ({
-  "--tree-depth": indexPath.length,
-});
-
 const stickyIndexOf = (
   nodes: readonly VisibleNode<unknown>[],
   { firstVisible, firstUncut }: VisibleItems,
 ) => {
-  const depth = nodes[firstVisible]?.indexPath.length ?? 0;
-  if (depth < 2) return -1;
-  let index = firstVisible - 1;
-  while (index >= 0 && nodes[index].indexPath.length !== depth - 1) index--;
+  const index = parentIndexOf(nodes, firstVisible);
   return index >= 0 && (firstUncut < 0 || index < firstUncut) ? index : -1;
 };
 
@@ -78,15 +62,10 @@ const StickyBranch = ({ indexPath, children, onActivate, onHeightChange }: Stick
         aria-hidden="true"
         data-pinned=""
         data-expanded=""
-        borderBottomWidth="1px"
-        borderColor="border"
-        css={{ "--tree-row-bg": "var(--surface-bg, {colors.bg})" }}
-        style={depthStyleFor(indexPath)}
+        style={depthStyle(indexPath.length)}
         onClick={onActivate}
       >
-        <FlatBranchIndicator data-expanded="">
-          <ChevronRightIcon />
-        </FlatBranchIndicator>
+        <TreeView.BranchIndicator />
         {children}
       </FlatBranchControl>
     </Box>
@@ -121,7 +100,11 @@ export const VirtualTree = <T,>({
   ...scrollAreaProps
 }: VirtualTreeProps<T>) => {
   const { tree, collection, visibleNodes, visibleValues, firstValue } = useTreeContext();
-  const focusedValue = useStore(tree.store, selectFocused);
+  const tabStopArg = useMemo(
+    () => ({ first: firstValue, visible: visibleValues }),
+    [firstValue, visibleValues],
+  );
+  const tabStopValue = useStore(tree.store, selectTabStop, tabStopArg);
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
 
   useLayoutEffect(() => {
@@ -129,8 +112,6 @@ export const VirtualTree = <T,>({
     return () => tree.setScroller(undefined);
   }, [tree]);
 
-  const tabStopValue =
-    focusedValue != null && visibleValues.has(focusedValue) ? focusedValue : firstValue;
   const tabStopIndex =
     tabStopValue == null ? -1 : visibleNodes.findIndex((entry) => entry.value === tabStopValue);
 
@@ -226,23 +207,21 @@ export type VirtualTreeRowProps = Omit<TreeRowPartProps, "isBranch">;
  * as `TreeView.BranchIndicator` and `TreeView.BranchText` for a branch.
  */
 export function VirtualTreeRow({ style, children, ...props }: VirtualTreeRowProps) {
-  const { collection, checkable } = useTreeContext();
+  const { collection, selectable } = useTreeContext();
   const state = useTreeNodeState();
-  const { isBranch, expanded, disabled, indexPath } = state;
+  const { isBranch, indexPath } = state;
 
   return (
     <TreeDndRow
       isBranch={isBranch}
-      role={isBranch ? "treeitem" : undefined}
-      aria-expanded={isBranch ? expanded : undefined}
-      aria-level={isBranch ? indexPath.length : undefined}
-      aria-selected={isBranch && !disabled ? state.selected : undefined}
-      aria-checked={isBranch && checkable ? ariaChecked(state.checked) : undefined}
+      {...(isBranch
+        ? { ...treeItemAria(state, selectable), "aria-expanded": state.expanded }
+        : undefined)}
       aria-setsize={collection.getSiblingNodes(indexPath).length}
       aria-posinset={indexPath[indexPath.length - 1] + 1}
-      aria-disabled={disabled || undefined}
       {...props}
-      style={{ ...depthStyleFor(indexPath), ...style }}
+      // Virtualized rows render flat, so nesting can't carry the depth down to them.
+      style={{ ...depthStyle(state.depth), ...style }}
     >
       <TreeRowIndentGuides indexPath={indexPath} />
       {children}

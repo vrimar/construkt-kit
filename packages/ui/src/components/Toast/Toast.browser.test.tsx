@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 
 import { Dialog } from "../Dialog";
 import { Popover } from "../Popover";
-import { Toaster } from "./Toast";
+import { Toaster, toaster } from "./Toast";
 
 it("keeps the toaster showing when a dialog closes as a popover opens", async () => {
   const { rerender } = render(
@@ -36,4 +36,17 @@ it("keeps the toaster showing when a dialog closes as a popover opens", async ()
   await expect
     .poll(() => screen.getByRole("region", { name: /Notifications/ }).matches(":popover-open"))
     .toBe(true);
+});
+
+it("mounts a new toast in its starting style, then lets it enter", async () => {
+  render(<Toaster />);
+
+  act(() => {
+    toaster.create({ title: "Saved", duration: Infinity });
+  });
+
+  const toast = screen.getByRole("status");
+  expect(toast.hasAttribute("data-starting-style")).toBe(true);
+  await expect.poll(() => toast.hasAttribute("data-starting-style")).toBe(false);
+  act(() => toaster.remove());
 });

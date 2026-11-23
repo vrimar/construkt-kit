@@ -23,6 +23,18 @@ const mockLayout = () => {
   });
 };
 
+const mockScroller = (scrollHeight: number) => {
+  const height = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(scrollHeight);
+  const clientHeight = vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(200);
+  const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
+  onTestFinished(() => {
+    height.mockRestore();
+    clientHeight.mockRestore();
+    scrollTo.mockRestore();
+  });
+  return scrollTo;
+};
+
 const renderRows = (props: Partial<VirtualScrollAreaProps<string>> = {}) => {
   const view = (next: Partial<VirtualScrollAreaProps<string>>) => (
     <VirtualScrollArea
@@ -79,7 +91,7 @@ const mockHeaderHeight = (initial: number) => {
 };
 
 const captureResizeObservers = () => {
-  const callbacks = new Map<Element, () => void>();
+  const callbacks = new Map<Element, (() => void)[]>();
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -88,7 +100,7 @@ const captureResizeObservers = () => {
         this.callback = callback;
       }
       observe(target: Element) {
-        callbacks.set(target, () => this.callback([], this));
+        callbacks.set(target, [...(callbacks.get(target) ?? []), () => this.callback([], this)]);
       }
       unobserve() {}
       disconnect() {}
@@ -97,7 +109,10 @@ const captureResizeObservers = () => {
   onTestFinished(() => {
     vi.unstubAllGlobals();
   });
-  return (target: Element) => act(() => callbacks.get(target)?.());
+  return (target: Element) =>
+    act(() => {
+      for (const callback of callbacks.get(target) ?? []) callback();
+    });
 };
 
 const listBelowHeader = () => screen.getByText("Header").nextElementSibling as HTMLElement;
@@ -145,14 +160,7 @@ describe("VirtualScrollArea", () => {
 
   it("hands out a scrollToIndex function until unmount", () => {
     mockLayout();
-    const scrollHeight = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(2000);
-    const clientHeight = vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(200);
-    const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
-    onTestFinished(() => {
-      scrollHeight.mockRestore();
-      clientHeight.mockRestore();
-      scrollTo.mockRestore();
-    });
+    const scrollTo = mockScroller(2000);
     const scrollToIndexRef = { current: undefined as ((index: number) => void) | undefined };
     const { unmount } = renderRows({ scrollToIndexRef });
 
@@ -195,14 +203,7 @@ describe("VirtualScrollArea", () => {
   it("scrolls to an index past the header above the list", () => {
     mockLayout();
     mockHeaderHeight(120);
-    const scrollHeight = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(2120);
-    const clientHeight = vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(200);
-    const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
-    onTestFinished(() => {
-      scrollHeight.mockRestore();
-      clientHeight.mockRestore();
-      scrollTo.mockRestore();
-    });
+    const scrollTo = mockScroller(2120);
     const scrollToIndexRef = { current: undefined as ((index: number) => void) | undefined };
     renderRows({ header, scrollToIndexRef });
 
@@ -213,14 +214,7 @@ describe("VirtualScrollArea", () => {
   it("scrolls up to an index without hiding it under a sticky header", () => {
     mockLayout();
     mockHeaderHeight(120);
-    const scrollHeight = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(2120);
-    const clientHeight = vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(200);
-    const scrollTo = vi.spyOn(Element.prototype, "scrollTo");
-    onTestFinished(() => {
-      scrollHeight.mockRestore();
-      clientHeight.mockRestore();
-      scrollTo.mockRestore();
-    });
+    const scrollTo = mockScroller(2120);
     const viewportRef = createRef<HTMLDivElement>();
     const scrollToIndexRef = { current: undefined as ((index: number) => void) | undefined };
     renderRows({ header: stickyHeader, scrollToIndexRef, ref: viewportRef });

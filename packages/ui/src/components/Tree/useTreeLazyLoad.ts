@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type { TreeCollection } from "./treeCollection";
-import { locateNode, replaceNodeChildren } from "./treeCollectionUtils";
+import { replaceNodeChildren } from "./treeCollectionUtils";
 
 /** Where the branch `loadChildren` loads sits, and the signal that aborts the load. */
 export interface TreeLoadChildrenDetails {
@@ -39,6 +39,16 @@ interface UseTreeLazyLoadOptions<T> extends TreeLazyLoadProps<T> {
   abortKey: string;
 }
 
+export interface TreeLazyLoad<T> {
+  loadingValues: ReadonlySet<string>;
+  needsLoad: (value: string) => boolean;
+  /** Whether a branch's children are in; `undefined` without a `loadChildren` to know it. */
+  isLoaded: ((value: string) => boolean) | undefined;
+  start: (values: string[], onLoaded: (value: string) => void) => void;
+  /** Keeps the loads of `prev` for `next`, the same nodes rearranged. */
+  carry: (prev: readonly T[], next: readonly T[]) => void;
+}
+
 const NO_VALUES: ReadonlySet<string> = new Set();
 
 interface LoadLineage<T> {
@@ -57,7 +67,7 @@ export function useTreeLazyLoad<T>({
   onLoadChildrenComplete,
   onLoadChildrenError,
   abortKey,
-}: UseTreeLazyLoadOptions<T>) {
+}: UseTreeLazyLoadOptions<T>): TreeLazyLoad<T> & { loadedValues: ReadonlySet<string> } {
   const [loadingValues, setLoadingValues] = useState(NO_VALUES);
 
   const latestRef = useLatestRef({
@@ -128,7 +138,7 @@ export function useTreeLazyLoad<T>({
 
   const handleFailed = (value: string, error: unknown) => {
     const { collection: prop, onLoadChildrenError: onError } = latestRef.current;
-    const located = locateNode(getSource(prop), value);
+    const located = getSource(prop).locate(value);
     if (located) onError?.(error, located);
   };
 
@@ -142,7 +152,7 @@ export function useTreeLazyLoad<T>({
 
     for (const value of values) {
       if (controllersRef.current.has(value) || !needsLoad(value)) continue;
-      const located = locateNode(getSource(collection), value);
+      const located = getSource(collection).locate(value);
       if (!located) continue;
 
       const controller = new AbortController();
@@ -167,6 +177,7 @@ export function useTreeLazyLoad<T>({
     loadingValues,
     loadedValues: getLoaded(lineage, collection.nodes),
     needsLoad,
+    isLoaded: loadChildren ? (value) => !needsLoad(value) : undefined,
     start,
     carry,
   };

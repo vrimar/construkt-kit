@@ -1,6 +1,12 @@
-import type { ComponentType, ReactNode } from "react";
+import { type ComponentType, type ReactNode, useId } from "react";
 
 import { isRenderable } from "./itemSlots";
+
+/** The id a card's description renders with, for its input's `aria-describedby`; none without one. */
+export function useCardDescription(description: ReactNode): string | undefined {
+  const id = useId();
+  return isRenderable(description) ? id : undefined;
+}
 
 export interface CardBodyProps {
   icon?: ReactNode;

@@ -10,7 +10,7 @@
 
 **Layout:** `Box`, `Flex`, `Stack`, `HStack`, `VStack`, `Center`, `Container`, `Grid`, `GridItem`, `Spacer`, `Float`, `Separator`, `Wrap`, `SimpleGrid`, `AspectRatio`, `ScaleToFit`
 
-**Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `SelectButton`, `SplitButton`, `ButtonGroup`
+**Buttons:** `Button`, `IconButton`, `TooltipIconButton`, `DeleteButton`, `EditButton`, `CloseButton`, `ClearButton`, `SelectButton`, `SplitButton`, `ButtonGroup`
 
 **Data Display:** `DataTable`, `DataTableColumnPicker`, `DataList`, `Badge`, `Tag`, `Avatar`, `Image`, `List`, `Table`, `Stat`, `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
 
@@ -37,29 +37,31 @@ cards moved across lists; `getExternalData` also hands native data to `dataTrans
 
 **Navigation & Text:** `Link`, `Tabs`, `Accordion`, `Breadcrumb`, `Menu`, `NavRail`, `Text`, `Heading`, `Span`, `SearchHighlight`, `useHighlight`
 
-**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `formatNumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`, `Toolbar`, `formatShortcut`, `matchesShortcut`, `isComposingEvent`, `isEditableTarget`
+**Misc:** `ActionBar`, `Clipboard`, `Collapsible`, `Icon`, `NumberFilter`, `formatNumberFilter`, `Pagination`, `Portal`, `RatingGroup`, `ScrollArea`, `SegmentGroup`, `Splitter`, `ThemeToggle`, `ToggleGroup`, `Toolbar`, `formatShortcut`, `matchesShortcut`, `isComposingEvent`, `isEditableTarget`, `isWithinNestedControl`
 
 **Chat:** `Chat` — `Message`, `Citation`, `ActionLine`, `TypingIndicator`, `Suggestions`, `Suggestion`, `Composer`; callback-driven, no data fetching. Render `TypingIndicator` inside the message list's `role="log"`: screen readers don't reliably announce a live region that mounts with its text, and the log announces it as new content
 
 ### Hooks
 
-| Hook                                    | Description                                                      |
-| --------------------------------------- | ---------------------------------------------------------------- |
-| `useAnnouncer`                          | Live region + `announce(message)`; `politeness` polite/assertive |
-| `useAutoFocus`                          | Auto-focus + optional select on mount                            |
-| `useComposedRefs`                       | One ref callback that feeds two refs                             |
-| `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes  |
-| `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files   |
-| `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed         |
-| `useHotkeyHandler`                      | `useHotkeys` scoped to an element: returns its `onKeyDown`       |
-| `useLatestRef`                          | Ref to the last committed value, for stable callbacks            |
-| `useMediaQuery`                         | Subscribe to a CSS media query                                   |
-| `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll     |
-| `createEdgeAutoScroll`                  | Scroll a container while the pointer is near or past its edges   |
-| `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint           |
-| `useIsMobile`                           | Whether the viewport is below the `md` breakpoint                |
-| `useHasOpenOverlay` / `hasOpenOverlay`  | Whether a popup, menu or dialog is open; tooltips don't count    |
-| `whenOverlaysSettle`                    | Run once closing overlays have gone and handed focus back        |
+| Hook                                    | Description                                                                                        |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `useAnnouncer`                          | Live region + `announce(message, delay?)` and `cancel()`; `politeness` polite/assertive            |
+| `useAutoFocus`                          | Auto-focus + optional select on mount                                                              |
+| `useComposedRefs`                       | One ref callback that feeds every ref it is given                                                  |
+| `useControlledMirror`                   | Mirror a controlled value into local state, ignoring its echoes                                    |
+| `useFileSelect`                         | Returns a file-picker opener; `onSelect` gets the parsed files                                     |
+| `useHotkeys`                            | Run a handler when a shortcut such as `Mod+K` is pressed                                           |
+| `useHotkeyHandler`                      | `useHotkeys` scoped to an element: returns its `onKeyDown`                                         |
+| `useLatestRef`                          | Ref to the last committed value, for stable callbacks                                              |
+| `useMediaQuery`                         | Subscribe to a CSS media query                                                                     |
+| `usePointerDrag`                        | Pointer drag with threshold, Escape cancel, edge auto-scroll; `onRelease` after any accepted press |
+| `createEdgeAutoScroll`                  | Scroll a container while the pointer is near or past its edges                                     |
+| `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint                                             |
+| `useIsMobile`                           | Whether the viewport is below the `md` breakpoint                                                  |
+| `useHasOpenOverlay` / `hasOpenOverlay`  | Whether a popup, menu or dialog is open; tooltips don't count                                      |
+| `whenOverlaysSettle`                    | Run once closing overlays have gone and handed focus back                                          |
+| `useTooltipDelegate`                    | One tooltip for elements found at run time, such as grid cells; `show`, `showAfterDelay`, `hide`   |
+| `getTabbables` / `isFocusable`          | The elements in a container that Tab reaches; whether an element takes focus                       |
 
 `hasOpenOverlay(except)` leaves out an overlay inside `except` or holding it, such as one opened from a side pane.
 `whenOverlaysSettle(fn)` waits for the overlays closing by the next frame, so a menu's `onSelect` can call it to run
@@ -472,8 +474,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 #### Upgrading from 0.14
 
-- Every component takes `render` in place of `asChild`. Pass the element to render as, and keep the content as the
-  component's children:
+- Every component and part that took `asChild` takes `render` in its place; Panda's layout components (`Box`, `Flex`,
+  `Stack` and the rest) take `as`. Pass the element to render as, and keep the content as the component's children:
 
   ```tsx
   // before
@@ -499,7 +501,9 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `render` also takes a function, `render={(props) => <a {...props} />}`, for an element that needs the props spread by
   hand. The render element's own defined props win over the component's, its handlers run before the component's, and
   its own children replace the component's
-- `Menu.CheckboxItem`, `Menu.RadioItem` and `Menu.TriggerItem` take no `render`, as they took no `asChild`
+- `Menu.CheckboxItem`, `Menu.RadioItem`, `Menu.SwitchItem` and `Menu.TriggerItem` take no `render`, as they took no
+  `asChild`, and neither do `Splitter.Group`, `Splitter.Panel` and `Splitter.Separator`, whose elements the resizable
+  panels library renders
 - `Popover`, `ConfirmPopover`, `PromptPopover`, `Tooltip`, `HoverCard`, `ToggleTip`, `InfoTip` and `ActionBar` no
   longer run on Ark. Their `onOpenChange` takes `(open, details)`; `details` has the `reason`, the `event` and a
   `cancel()` that keeps the overlay as it is:
@@ -551,6 +555,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `ActionBar` takes Escape only while no popup or dialog is open above where it renders, so Escape closes a popover
   opened before the bar, and a bar inside a dialog clears before the dialog closes
 - `Toolbar.Button` and `NavRail.Item` no longer get a generated `id`
+- `Toolbar` takes its arrow-key direction from `LocaleProvider` instead of the computed `dir`, as other components do;
+  an app that sets `dir="rtl"` without a `LocaleProvider` wraps the toolbar in one
 - `Menu` no longer runs on Ark either. `Menu.Root`'s `onOpenChange` takes `(open, details)`, `onSelect` takes the
   selected item's value and `onHighlightChange` the highlighted value or `null`; `Menu.RadioItemGroup` and
   `Menu.SegmentGroup` take `onValueChange(value)`. The `open-change-args` codemod rewrites inline handlers on them:
@@ -1112,7 +1118,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   the transparency grid's `--size`, and `--color-picker-area-bg`, `--color-picker-area-gradient`,
   `--color-picker-area-mask` and `--color-picker-track-bg` on the area, its background and the slider tracks
 - `Field`'s root carries `data-slot`, `data-disabled`, `data-invalid` and `data-read-only` instead of
-  `data-scope="field"`, `data-part="root"` and `data-readonly`; it keeps its `id` and `role="group"`
+  `data-scope="field"`, `data-part="root"` and `data-readonly`; it keeps its `id` and no longer has `role="group"`,
+  since a Field wraps one control its label names; group related fields in a `Fieldset`
 - `Toaster` and `toaster` no longer run on Ark. `toaster` keeps `create`, `success`, `error`, `info`, `warning`,
   `loading`, `promise`, `update`, `dismiss`, `remove`, `pause`, `resume`, `expand`, `collapse`, `isVisible`,
   `isDismissed`, `getVisibleToasts` and `getCount`. It is typed `ToastStore` in place of Ark's `CreateToasterReturn`,
@@ -1206,9 +1213,10 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 - Autoplay pauses while the pointer is over the carousel, focus is inside it (except on the autoplay trigger) or the
   page is hidden, and resumes after; a swipe or wheel on the slides stops it, as a drag or a page move does. Arrow keys
-  on the slides follow `orientation` (Up and Down on a vertical carousel), mirror in right-to-left, and leave inputs
-  inside a slide alone. `autoSize` and `snapType` are recipe variants on `Carousel.Root`, and
-  `Carousel.AutoplayTrigger` is styled like the previous and next triggers
+  on the slides follow `orientation` (Up and Down on a vertical carousel), mirror in right-to-left, and leave text
+  fields, sliders, selects and radios inside a slide alone. `autoSize` and `snapType` are recipe variants on
+  `Carousel.Root`. The previous, next and autoplay triggers render a plain large `IconButton`, so the autoplay trigger
+  shows as pressed while it plays
 - Carousel elements carry `data-slot` instead of `data-scope` and `data-part`, and an indicator carries
   `data-read-only` in place of `data-readonly`. The item group sets `--carousel-slides-per-page`, `--carousel-spacing`
   and `--carousel-peek` in place of the root's `--slides-per-page`, `--slide-spacing` and `--slide-item-size`, and each
@@ -1223,6 +1231,132 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
   where Ark's rendered its children in place on the server. `ActionBar.Content`'s `bottom` bar mounts the same way.
   The codemod renames `container`
 - `Skeleton` no longer reads `--duration` or `--fade-duration`; set `animationDuration` instead
+- `Popover.Root` takes `disabled`, which keeps the popover closed and leaves its trigger plain; `SubmitDialog` takes
+  `destructive`; `PromptPopover` takes `tooltip`; `DeleteDialog` takes the rest of `SubmitDialog`'s props
+- A `Tooltip` stays closed while its trigger has `aria-expanded="true"`, and closes when its trigger expands while it
+  shows, so an open menu's or an expanded accordion's trigger shows no tooltip over its content
+- `Dialog`, `Drawer`, `Sheet`, `CommandPalette` and `ActionBar` don't call `onOpenChange` for a request that would leave
+  them as they are, such as a close pressed during the exit animation. An uncontrolled `CommandPalette` calls
+  `onQueryChange("")` and `onPagesChange` on exit when they changed, and an uncontrolled `Drawer` calls
+  `onSnapPointChange` with its default snap point when it closes away from it
+- A part given `render={<button />}` without a `type` no longer gets `type="button"`, as `Button` already didn't; inside
+  a `<form>` that button submits, so give the render element `type="button"`. The same holds for `NumberInput`'s
+  steppers, `TagsInput`'s clear and delete triggers, `Pagination`'s items and triggers and `Sortable.Handle`, and
+  `Sortable.Root`, `Sortable.Item` and `Sortable.Handle` take `render`
+- `Select.Trigger` uses its `render` element in place of the default button, as the codemod's output expects.
+  `Checkbox.Indicator`, `ColorPicker.HiddenInput`, `Listbox.ItemHint`, `Select.Footer`, `ApplySelect.Footer` and
+  `Table.ScrollArea` take `render`, and the types of `FileUpload.FileText`, `RatingGroup.ItemIndicator`,
+  `HotkeyInput`, `ScrollArea`, `VirtualScrollArea`, `VirtualTree`, `Select.List` and `ApplySelect.List` accept it.
+  `SelectListProps` drops `role`, which the list always sets, and `HotkeyInputProps` drops the root's `ref`
+- `RadioGroup`, `RadioCard`, `SegmentGroup` and `Checkbox.Group` take `disabled`, `readOnly`, `invalid` and `required`
+  from an enclosing `Field`, and a `Combobox` or `PinInput` inside a disabled `Fieldset` is disabled. A radio group or
+  `Checkbox.Group` without a label of its own is named by the Field's label and described by its helper and error
+  text, while each checkbox in the group keeps its own id and label. Read-only radios are no longer `disabled`: they
+  submit their value and stay in the Tab order. A radio group without a `name` submits nothing, where it submitted
+  under a generated name. A `required` Field around a `Checkbox.Group` needs at least one box checked
+- Pressing a Field's label focuses its control when no element carries the label's `for`, without opening or checking
+  anything: a `Select`, `DatePicker` or `ColorPicker` trigger, the checked or first radio of a radio group, the first
+  enabled checkbox of a `Checkbox.Group`, a `Slider`'s first thumb, or an inline `Calendar`'s or `ColorPicker`'s
+  control. A `ColorPicker` or `DatePicker` trigger given its own `id` stays named by the Field's label
+- A part given its own `id` keeps every reference to it: labels, titles, descriptions, legends, helper and error
+  texts, inputs, content, triggers, items and options. An input given its own `id` inside a `Field` is the one the
+  Field's label points at. Put the `id` on the part, not on its `render` element, which no other part sees. A
+  reference is left off while the part it points at isn't rendered, and `htmlFor`, a trigger's `aria-controls` and
+  the `aria-labelledby` of tab and accordion content are set after hydration
+- `HotkeyInput` takes its id, label, description, `disabled` and `invalid` from an enclosing `Field`, so pressing the
+  Field's label starts recording. An open `Select` inside a `Field` is named by the Field's label, and its trigger keeps
+  the selected value in its name when `triggerProps` sets an `id`
+- `Combobox` and `PinInput` go back to their initial value when their form resets, with the reason `"form-reset"`.
+  Leaving a `Combobox` whose list is closed puts the selected item's label back in place of typed text that matches no
+  item, with the reason `"revert"`, unless `allowCustomValue` is set
+- `RatingGroup.HiddenInput` and `TagsInput.HiddenInput` are visually hidden instead of `hidden`, so an empty `required`
+  one blocks submit and focuses the stars or the text input. An unrated `RatingGroup` submits `""` in place of `"-1"`;
+  `RatingGroup.Root` sets `dir` from `LocaleProvider`, and a disabled one is dimmed. `data-checked` marks only the
+  rated item and `data-unchecked` the others, on items and on `RatingGroup.ItemIndicator`
+- `useAnnouncer` returns `cancel()`, and `announce(message, delay?)` lands at least 100 ms later and no sooner than
+  200 ms after the region mounts, so VoiceOver reads it; a message equal to the last one is announced again
+- `usePointerDrag` takes `onRelease(point, { dragged, cancelled })`, called after every press it accepted; a context
+  menu cancels a drag, and a mouse move with no button held ends a drag whose release was lost. On iOS a drag holds
+  text selection off until just after it ends, in every control built on it
+- `Slider`: all four arrow keys step a thumb whatever its orientation, a press on a thumb grabs it where pressed
+  instead of jumping, and a drag cut short by `disabled` still calls `onValueChangeEnd` when the value moved.
+  `ColorPicker`: the alpha slider of an `rgba` picker edits in rgba, and a press on a thumb off its centre no longer
+  moves the color
+- `Collapsible.Trigger` reads `aria-expanded="false"` as soon as it closes, while the content animates out, and
+  `Collapsible.Indicator` is `aria-hidden`
+- `TreeView.Root` takes `isNodeCheckable(node)` and `selectionMode="none"`. Shift+click and Shift+arrows extend from
+  the last row picked and skip disabled rows, and Ctrl+A selects every enabled node, as in `Listbox`. A
+  click on a branch row that isn't a link calls `preventDefault`. A lazy-loading `TreeView` keeps its loaded branches
+  across a drag-and-drop reorder
+- In a `TreeView` or a multiple-selection `Listbox`, with no row pressed yet, or once that row is collapsed away or
+  dropped from `items`, Shift+arrows extend from the focused row and Shift+click acts as a plain click. A plain arrow,
+  Home or End move keeps the anchor, so Shift+Space after one selects from the last row picked. Extending a
+  range drops every row the previous range selected, hidden ones included. Shift+Space extends the selection, and in a
+  `TreeView` Ctrl/⌘+Space toggles a row and Space on a link row no longer scrolls the page
+- Drag and drop hands back a branch it empties with `childrenCount: 0`, so a custom `getChildrenCount` falls back to
+  that field. `TreeViewDndProvider`'s `isBranchLoaded` defaults to whether `loadChildren` has loaded the branch, or,
+  without `loadChildren`, whether it is expanded
+- Drag auto-scroll, in `Sortable` and tree drag and drop, starts within 40 px of an edge and keeps
+  scrolling while the pointer is past it; ui no longer depends on `@atlaskit/pragmatic-drag-and-drop-auto-scroll`
+- `DataTable` takes `defaultParams`, and `params` and `onParamChange` are optional. Its card view's sort list is a
+  radio group that arrow keys move through. The column sorter and resize handle carry `data-slot="columnSorter"` and
+  `data-slot="columnResizeHandle"` in place of `data-part`. Its header, cards and pagination mirror in right-to-left
+- `Calendar` and `DatePicker` join a range with " – " and several dates with ", ", in labels and announcements. Month
+  and year cells set `aria-selected="false"` when unselected, their cell no longer carries `data-selected` (the button
+  inside keeps it), and month names follow the date's calendar in every locale
+- `TagsInput` validates each pasted tag on its own and drops the ones `validate` refuses, refuses a typed tag once
+  the value is over `max`, keeps typed text that `validate` refuses in the input, and no longer announces a duplicate
+  as added. An edited tag goes through `sanitizeValue` and `validate` too, and one they refuse stays open with
+  `onValueInvalid("invalidTag")`. A disabled `TagsInput.Item` can't be deleted or edited from the keyboard, carries
+  `data-disabled` on its parts and is dimmed; clearing keeps disabled tags, and the clear trigger hides once only they
+  are left. Form reset and a disabled `<fieldset>` reach a `TagsInput` without `TagsInput.HiddenInput`
+- `ToggleGroup`: Tab lands on the checked item of a single-select group, and turning `rovingFocus` off puts every item
+  back in the Tab order
+- `Carousel` with `allowMouseDrag`: a mouse drag of more than 10 px no longer clicks the slide it started on, and a
+  press anywhere inside a focusable element on a slide, such as a button's icon, is left to that element. The default
+  slide spacing is in the `carousel` recipe, so the item group sets `--carousel-spacing` inline only for a `spacing`
+  prop. Keys and the previous and next triggers step from the page shown
+- A `Drawer`'s swipe direction follows the drawer's own computed direction, a `dir` on an ancestor included, not
+  `LocaleProvider`
+- `InputGroup`'s start and end boxes let presses through to the field, except on links, buttons, form controls and
+  focusable elements inside them, so `SearchInput`'s icon focuses the input and `FormFileUpload`'s file icon and the
+  empty end of the field open the picker. `FormFileUpload`'s cursor follows the trigger's disabled state, a disabled
+  `Field` or `Fieldset` included
+- `NumberInput` without `formatOptions` writes and reads its value in the locale's number format, without grouping:
+  `value`, `defaultValue`, the strings `onValueChange` and `onValueCommit` pass and the form value use the locale's
+  decimal separator, digits and minus sign (`"2,5"` in `de-DE`), and typed text is read by the locale's rules, so
+  `1,500` in `en-US` is 1500. Under a comma-decimal `LocaleProvider`, pass values formatted with
+  `new NumberFormatter(locale, { useGrouping: false, maximumFractionDigits: 20 })` in place of `String(n)`, and read
+  numbers from `valueAsNumber`. The input no longer has a default `pattern`
+- `NumberInput`: an empty value is valid whatever `min`, PageUp and PageDown step by `largeStep`, and Home and End jump
+  only when `min` or `max` is set. It commits and calls `onFocusChange(false)` when focus leaves the whole root, so
+  tapping away after a stepper commits, and Enter commits without calling `onFocusChange(false)`. A touch on a stepper
+  that turns into a scroll no longer focuses the input, and `data-focus` and `onFocusChange` follow real focus. A
+  disabled one is dimmed once, and its steppers show the not-allowed cursor
+- A `NumberInput` stepper press or scrub that leaves focus outside the control, as with `focusInputOnChange={false}`,
+  calls `onValueCommit` on release
+- `NumberInput` without `min` or `max` sets no `aria-valuemin` or `aria-valuemax`, keeps both steppers enabled while
+  the value is empty, and refuses a typed `-` when `min` is 0 or more and `+` when `max` is 0 or less, unless
+  `allowOverflow`. `NumberInput.Scrubber` scrubs from a mouse or pen only, and a lost release ends it
+- `ColorPicker`'s css channel input keeps a typed alpha, and a color typed without one gets alpha 1; a hex with an
+  alpha digit pair keeps it. The area thumb's `aria-valuemin` and `aria-valuemax` follow its x channel's range, and
+  focus that lands on `ColorPicker.HiddenInput`, as a failed form check sends it, moves to the trigger
+- `Alert.Indicator` shows the icon of the root's `status`. `Skeleton` pulses at the `pulse` token's 2 s and stops
+  animating under reduced motion
+- `Popover.CloseTrigger` lets its click bubble, as the other close triggers do. A `Toolbar` keeps one Tab stop when CSS
+  alone shows or hides its items. `Chat.Composer`'s mic shows `Button`'s pressed style while it listens
+- `FileUpload` treats a file modified at another time as a different file
+- `Textarea` with `preventNewline` and `PinInput` with `autoSubmit` submit a form through its submit button, not at all
+  while that button is disabled, and on their own when the form has none
+- `Combobox` throws when two items share a value, as `Listbox` and `Select` do. Enter on a `Listbox` or
+  `CommandPalette` option that is a link follows the link, and a list keeps the option a user moved to highlighted when
+  its items change
+- A new-tab click (Ctrl, ⌘ or Alt) or Ctrl/⌘+Enter on a link item in a `Combobox` or `CommandPalette` opens the link
+  without picking the item, and a click on a text field inside an item no longer picks it. A list group sets
+  `aria-labelledby` only while its label renders
+- New exports: `ClearButton`, `getTabbables`, `isFocusable`, `isWithinNestedControl`, `useTooltipDelegate`,
+  `useVirtualList` (the windowing behind `VirtualScrollArea`, for a list inside a scroll container of its own) and
+  `SelectionItemSource`
 
 #### Upgrading from 0.13
 
@@ -1591,8 +1725,9 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 ## Testing
 
 - **Runner:** Vitest with jsdom environment
-- **Setup:** `vitest.setup.ts` calls `installDomPolyfills()` from `@construkt-kit/config/vitest`, installs a
-  `matchMedia` that matches nothing, and registers Testing Library's `cleanup` after each test
+- **Setup:** `jsdomSetup` from `@construkt-kit/story-kit/vitest` calls `installDomPolyfills()` from
+  `@construkt-kit/config/vitest`, installs a `matchMedia` that matches nothing, and registers Testing Library's
+  `cleanup` after each test; `browserProjects()` from the same entry runs the `*.browser.test.tsx` files in Chromium
 - **Media queries:** `mockMatchMedia(matches)` from `src/_shared/matchMedia.ts` replaces `matchMedia` for one test;
   pass a boolean, a `(query) => boolean`, or `viewportWidth(px)` to match the breakpoint queries a viewport that wide
   would. Its `setMatches(next)` changes the answer and notifies listeners

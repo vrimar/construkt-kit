@@ -1,6 +1,17 @@
 import type { DataTableLabels } from "./types";
 
-const defaultLabels: Required<DataTableLabels> = {
+type ControlLabel =
+  | "clearSearch"
+  | "clearNumber"
+  | "numberFrom"
+  | "numberTo"
+  | "numberOperators"
+  | "clearDate";
+
+export type ResolvedLabels = Required<Omit<DataTableLabels, ControlLabel>> &
+  Pick<DataTableLabels, ControlLabel>;
+
+const defaultLabels: Required<Omit<DataTableLabels, ControlLabel>> = {
   noResults: "No results available.",
   resetFilters: "Reset filters",
   items: "Items",
@@ -9,12 +20,6 @@ const defaultLabels: Required<DataTableLabels> = {
   outOf: "out of",
   filterBy: "Filter by",
   sortBy: "Sort by",
-  clearSearch: "Clear search",
-  clearNumber: "Clear filter",
-  numberFrom: "From",
-  numberTo: "To",
-  numberOperators: {},
-  clearDate: "Clear date",
   firstPage: "First page",
   previousPage: "Previous page",
   nextPage: "Next page",
@@ -31,7 +36,7 @@ const defaultLabels: Required<DataTableLabels> = {
   resizeColumn: "Resize",
 };
 
-export const resolveLabels = (labels: DataTableLabels | undefined): Required<DataTableLabels> => {
+export const resolveLabels = (labels: DataTableLabels | undefined): ResolvedLabels => {
   const given = Object.fromEntries(
     Object.entries(labels ?? {}).filter(([, value]) => value !== undefined),
   ) as DataTableLabels;

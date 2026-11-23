@@ -29,7 +29,7 @@ export const DatePickerViewControl = ({
     <Parts.ViewControl data-view={view}>
       <HStack>
         <Parts.PrevTrigger
-          {...calendar.getPrevTriggerProps(view)}
+          {...calendar.getStepTriggerProps(-1, view)}
           render={<IconButton />}
         >
           <ChevronLeftIcon />
@@ -48,7 +48,7 @@ export const DatePickerViewControl = ({
       )}
 
       <Parts.NextTrigger
-        {...calendar.getNextTriggerProps(view)}
+        {...calendar.getStepTriggerProps(1, view)}
         render={<IconButton />}
       >
         <ChevronRightIcon />

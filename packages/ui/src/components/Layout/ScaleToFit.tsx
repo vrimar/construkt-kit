@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Box, type BoxProps } from "#styled-system/jsx";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import type { WithRef } from "../../types";
 
 export interface ScaleToFitProps extends BoxProps {
   /** Width of the canvas the children are laid out on, in px. */
@@ -48,7 +47,7 @@ export const ScaleToFit = ({
   children,
   style,
   ...props
-}: WithRef<ScaleToFitProps>) => {
+}: ScaleToFitProps) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const composedRef = useComposedRefs(boxRef, ref);
   const [fit, setFit] = useState<Fit | null>(null);

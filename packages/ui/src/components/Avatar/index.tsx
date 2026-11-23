@@ -1,21 +1,13 @@
 import { UserIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  createContext,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type ComponentProps, useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { avatar } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import { rendersOwnContent } from "../renderContent";
 
 const { withProvider, withContext } = createSlotRecipeContext(avatar);
@@ -36,13 +28,7 @@ interface AvatarContextValue {
   setStatus: (status: AvatarImageStatus, notify?: boolean) => void;
 }
 
-const AvatarContext = createContext<AvatarContextValue | null>(null);
-
-function useAvatarContext(part: string): AvatarContextValue {
-  const context = useContext(AvatarContext);
-  if (!context) throw new Error(`Avatar.${part} must be placed inside <Avatar.Root>.`);
-  return context;
-}
+const [AvatarContext, useAvatarContext] = createPartContext<AvatarContextValue>("<Avatar.Root>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
@@ -87,7 +73,7 @@ const loadingImageStyle = {
 
 /** Shows once it has loaded; until then, or if it fails, the fallback shows. */
 function Image({ ref, ...props }: ImageProps) {
-  const { status, setStatus } = useAvatarContext("Image");
+  const { status, setStatus } = useAvatarContext("Avatar.Image");
   const imageRef = useRef<HTMLImageElement>(null);
   const composedRef = useComposedRefs(imageRef, ref);
   const { src, srcSet } = props;
@@ -130,7 +116,7 @@ export interface AvatarFallbackProps extends ComponentProps<typeof StyledFallbac
 }
 
 function Fallback({ name, children, ...rest }: AvatarFallbackProps) {
-  const { status } = useAvatarContext("Fallback");
+  const { status } = useAvatarContext("Avatar.Fallback");
   const fallbackContent =
     children || rendersOwnContent(rest.render)
       ? children

@@ -52,31 +52,12 @@ const toChunks = (text: string, spans: Span[]): HighlightChunk[] =>
     match: !!span.match,
   }));
 
-function highlightMultiple({ text, query, ignoreCase, exactMatch }: UseHighlightProps) {
-  if (query.length === 0) return [{ text, match: false }];
-  const pattern = (Array.isArray(query) ? query : [query])
-    .filter(Boolean)
-    .map(escapeRegex)
-    .join("|");
-  const flags = `${ignoreCase ? "i" : ""}g`;
-  const regex = exactMatch
-    ? new RegExp(wholeWord(pattern), `${flags}u`)
-    : new RegExp(`(${pattern})`, flags);
-  const spans = [...text.matchAll(regex)].map((match) => ({
-    start: match.index,
-    end: match.index + match[0].length,
-  }));
-  return toChunks(text, spans);
-}
-
-function highlightFirst({ text, query, ignoreCase, exactMatch }: UseHighlightProps) {
-  const pattern = escapeRegex(query as string);
-  const regex = exactMatch
-    ? new RegExp(wholeWord(pattern), ignoreCase ? "iu" : "u")
-    : new RegExp(pattern, ignoreCase ? "i" : "");
-  const match = text.match(regex);
-  if (match?.index === undefined) return [{ text, match: false }];
-  return toChunks(text, [{ start: match.index, end: match.index + match[0].length }]);
+function toRegex({ query, ignoreCase, exactMatch }: UseHighlightProps, global: boolean) {
+  const terms = (Array.isArray(query) ? query : [query]).filter(Boolean);
+  if (terms.length === 0) return null;
+  const pattern = terms.map(escapeRegex).join("|");
+  const flags = `${ignoreCase ? "i" : ""}${global ? "g" : ""}u`;
+  return new RegExp(exactMatch ? wholeWord(pattern) : `(${pattern})`, flags);
 }
 
 /** Splits `text` into the chunks that match `query` and the ones between them. */
@@ -85,7 +66,14 @@ export function highlightWord(props: UseHighlightProps): HighlightChunk[] {
   if (!matchAll && Array.isArray(props.query)) {
     throw new Error("matchAll must be true when using multiple queries");
   }
-  return matchAll ? highlightMultiple(props) : highlightFirst(props);
+  const { text } = props;
+  const regex = toRegex(props, matchAll);
+  if (!regex) return [{ text, match: false }];
+  const matches = matchAll ? [...text.matchAll(regex)] : [regex.exec(text)];
+  const spans = matches.flatMap((match) =>
+    match ? [{ start: match.index, end: match.index + match[0].length }] : [],
+  );
+  return toChunks(text, spans);
 }
 
 /** The chunks of `text` that match `query` and the ones between them, for rendering highlights. */

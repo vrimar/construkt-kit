@@ -1,8 +1,16 @@
-import { NumberParser } from "@internationalized/number";
 import {
+  clampValue,
+  decrementValue,
+  incrementValue,
+  isValueAtMax,
+  isValueAtMin,
+  isValueWithinRange,
+} from "@construkt-kit/utils";
+import { NumberFormatter, NumberParser } from "@internationalized/number";
+import {
+  type FocusEvent,
   type FormEvent,
   type KeyboardEvent,
-  type MouseEvent,
   type PointerEvent,
   useEffect,
   useId,
@@ -12,22 +20,14 @@ import {
   useState,
 } from "react";
 
-import { isComposingEvent } from "../../foundations/dom";
+import { getEventStepValue, isComposingEvent, isModifierKey } from "../../foundations/dom";
+import { trackPointerMove } from "../../foundations/trackPointerMove";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { useFieldContext, useFieldControlState, useFormControl } from "../../primitives/field";
+import { useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { useFieldContext, useFormFieldState } from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import {
-  clampValue,
-  decrementValue,
-  getEventStepValue,
-  incrementValue,
-  isModifierKey,
-  isValueAtMax,
-  isValueAtMin,
-  isValueWithinRange,
-} from "../numberMath";
 import { type InputSelection, recordCursor, restoreCursor, setCaretToEnd } from "./cursor";
 import { type ScrubPoint, getScrubMove, getScrubStart, startScrub } from "./scrubber";
 
@@ -69,12 +69,15 @@ export interface NumberInputTranslations {
 }
 
 export interface NumberInputOptions {
-  /** The value as the input shows it. */
+  /** The value as the input shows it, in the locale's number format: `"2,5"` in `de-DE`. */
   value?: string | undefined;
   /** @default "" */
   defaultValue?: string | undefined;
   onValueChange?: ((value: string, details: NumberInputValueChangeDetails) => void) | undefined;
-  /** Called on blur and Enter with the value as formatted. */
+  /**
+   * Called on Enter, when focus leaves the input and its triggers, and when a trigger press or
+   * scrub that left focus outside them ends, with the value as formatted.
+   */
   onValueCommit?: ((value: string, details: NumberInputValueDetails) => void) | undefined;
   /** Called when the value moves outside `min`–`max` other than by typing, and on a blur that leaves it there. */
   onValueInvalid?: ((value: string, details: NumberInputInvalidDetails) => void) | undefined;
@@ -104,7 +107,7 @@ export interface NumberInputOptions {
   locale?: string | undefined;
   /** @default "decimal" */
   inputMode?: "decimal" | "numeric" | "text" | "tel" | "search" | "email" | "url" | undefined;
-  /** Ignored with `formatOptions`. @default "-?[0-9]*(.[0-9]+)?" */
+  /** Ignored with `formatOptions`. */
   pattern?: string | undefined;
   translations?: NumberInputTranslations | undefined;
   disabled?: boolean | undefined;
@@ -118,10 +121,42 @@ export interface NumberInputOptions {
   id?: string | undefined;
 }
 
-type Phase = "idle" | "focused" | "before-spin" | "spinning" | "scrubbing";
+/** Every `NumberInputOptions` key, to split them off the root's props. */
+export const NUMBER_INPUT_OPTION_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  onValueCommit: true,
+  onValueInvalid: true,
+  onFocusChange: true,
+  min: true,
+  max: true,
+  step: true,
+  largeStep: true,
+  smallStep: true,
+  allowOverflow: true,
+  clampValueOnBlur: true,
+  allowMouseWheel: true,
+  focusInputOnChange: true,
+  spinOnPress: true,
+  formatOptions: true,
+  locale: true,
+  inputMode: true,
+  pattern: true,
+  translations: true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  required: true,
+  name: true,
+  form: true,
+  id: true,
+} as const satisfies Record<keyof NumberInputOptions, true>;
+
+type Phase = "idle" | "before-spin" | "spinning" | "scrubbing";
 type Hint = "increment" | "decrement";
 
-const DEFAULT_PATTERN = "-?[0-9]*(.[0-9]+)?";
+const PLAIN_FORMAT: Intl.NumberFormatOptions = { useGrouping: false, maximumFractionDigits: 20 };
 
 export function useNumberInput(options: NumberInputOptions) {
   const {
@@ -133,7 +168,7 @@ export function useNumberInput(options: NumberInputOptions) {
     allowMouseWheel = false,
     formatOptions,
     inputMode = "decimal",
-    pattern = DEFAULT_PATTERN,
+    pattern,
     translations,
     name,
     form,
@@ -144,11 +179,6 @@ export function useNumberInput(options: NumberInputOptions) {
   const locale = options.locale ?? localeContext.locale;
   const { dir } = localeContext;
   const fieldContext = useFieldContext();
-  const field = useFieldControlState({
-    disabled: options.disabled,
-    readOnly: options.readOnly,
-    required: options.required,
-  });
 
   const step =
     options.step !== undefined && !Number.isNaN(options.step)
@@ -163,22 +193,18 @@ export function useNumberInput(options: NumberInputOptions) {
   const { formatter, parser } = useMemo(() => {
     const parsed = JSON.parse(formatKey) as Intl.NumberFormatOptions | null;
     return {
-      formatter: new Intl.NumberFormat(locale, parsed ?? {}),
+      formatter: new NumberFormatter(locale, parsed ?? PLAIN_FORMAT),
       parser: new NumberParser(locale, parsed ?? {}),
     };
   }, [locale, formatKey]);
-  const parseValue = (text: string) => {
-    if (!formatOptions) return parseFloat(text);
-    return text === "" ? Number.NaN : parser.parse(text);
-  };
-  const formatValue = (number: number) => {
-    if (Number.isNaN(number)) return "";
-    return formatOptions ? formatter.format(number) : number.toString();
-  };
+  const parseValue = (text: string) => (text === "" ? Number.NaN : parser.parse(text));
+  const formatValue = (number: number) =>
+    Number.isNaN(number) ? "" : formatter.format(number || 0);
 
   const [value, setValue] = useControllableState({ value: valueProp, defaultValue });
   const [initialValue] = useState(valueProp ?? defaultValue);
   const [phase, setPhaseState] = useState<Phase>("idle");
+  const [focused, setFocusedState] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRefs = useRef<Record<Hint, HTMLButtonElement | null>>({
     increment: null,
@@ -194,9 +220,10 @@ export function useNumberInput(options: NumberInputOptions) {
   }));
   const valueRef = useRef(value);
   const phaseRef = useRef<Phase>("idle");
+  const focusedRef = useRef(false);
   const hintRef = useRef<Hint | null>(null);
   const pressPointerTypeRef = useRef("");
-  const scrubPointRef = useRef<ScrubPoint | null>(null);
+  const scrubStartRef = useRef<{ pointerId: number; point: ScrubPoint } | null>(null);
   const syncRef = useRef<{ raw: boolean; selection: InputSelection | undefined } | null>(null);
   const lastReasonRef = useRef<NumberInputValueChangeReason | null>(null);
 
@@ -204,27 +231,43 @@ export function useNumberInput(options: NumberInputOptions) {
     valueRef.current = value;
   }, [value]);
 
+  const [rendered, reportRendered] = useRenderedParts<"input">();
+  const field = useFormFieldState(
+    { disabled: options.disabled, readOnly: options.readOnly, required: options.required },
+    { elementRef: inputRef, onReset: () => change(initialValue, "form-reset") },
+  );
+  const isInRange = (number: number) =>
+    Number.isNaN(number) || isValueWithinRange(number, min, max);
   const valueAsNumber = parseValue(value);
-  const readOnly = field.readOnly;
-  const outOfRange = !isValueWithinRange(valueAsNumber, min, max);
+  const { readOnly } = field;
+  const outOfRange = !isInRange(valueAsNumber);
   const invalid = options.invalid ?? fieldContext?.invalid ?? outOfRange;
-  const canIncrement = allowOverflow || !isValueAtMax(valueAsNumber, max);
-  const canDecrement = allowOverflow || !isValueAtMin(valueAsNumber, min);
+  const empty = Number.isNaN(valueAsNumber);
+  const canIncrement = allowOverflow || empty || !isValueAtMax(valueAsNumber, max);
+  const canDecrement = allowOverflow || empty || !isValueAtMin(valueAsNumber, min);
 
-  const latest = useLatestRef({ options, formatValue, parseValue, step, min, max, dir });
+  const latest = useLatestRef({ options, formatValue, parseValue, isInRange, step, min, max, dir });
 
   function setPhase(next: Phase) {
     phaseRef.current = next;
     setPhaseState(next);
   }
 
+  function setFocused(next: boolean) {
+    focusedRef.current = next;
+    setFocusedState(next);
+  }
+
+  function enterFocus() {
+    if (focusedRef.current) return;
+    setFocused(true);
+    latest.current.options.onFocusChange?.(true, focusDetails());
+  }
+
   function change(next: string, reason: NumberInputValueChangeReason, event?: Event) {
     if (next === valueRef.current) return;
-    const details = Object.assign(createChangeDetails(reason, event), {
-      valueAsNumber: latest.current.parseValue(next),
-    });
-    latest.current.options.onValueChange?.(next, details);
-    if (details.canceled) {
+    const extra = { valueAsNumber: latest.current.parseValue(next) };
+    if (!emitChange(latest.current.options.onValueChange, next, reason, event, extra)) {
       if (reason === "input-change") syncInput(true);
       return;
     }
@@ -279,14 +322,14 @@ export function useNumberInput(options: NumberInputOptions) {
     const clampOnBlur =
       latest.current.options.clampValueOnBlur ?? !latest.current.options.allowOverflow;
     const current = parse(valueRef.current);
-    const inRange = isValueWithinRange(current, low, high);
-    const clamp = reason === "blur" && clampOnBlur && valueRef.current !== "" && !inRange;
+    const inRange = latest.current.isInRange(current);
+    const clamp = reason === "blur" && clampOnBlur && !inRange;
     const next = format(clamp ? clampValue(current, low, high) : current);
 
     change(next, reason, event);
     if (!clamp) syncInput(false);
     hintRef.current = null;
-    onFocusChange?.(false, focusDetails(next));
+    if (reason === "blur") onFocusChange?.(false, focusDetails(next));
     if (reason === "blur" && !clamp && !inRange) {
       onValueInvalid?.(next, {
         reason: parse(next) > high ? "rangeOverflow" : "rangeUnderflow",
@@ -297,16 +340,24 @@ export function useNumberInput(options: NumberInputOptions) {
   }
 
   function pressDown(hint: Hint, pointerType: string) {
-    const from = phaseRef.current;
-    if (from !== "idle" && from !== "focused") return;
+    if (phaseRef.current !== "idle") return;
     hintRef.current = hint;
     pressPointerTypeRef.current = pointerType;
-    if (pointerType !== "touch") {
-      focusInput();
-      if (from === "idle") latest.current.options.onFocusChange?.(true, focusDetails());
+    if (pointerType === "touch" || latest.current.options.focusInputOnChange !== false) {
+      enterFocus();
     }
+    if (pointerType !== "touch") focusInput();
     setPhase("before-spin");
     stepValue(hint, pressReason(hint));
+  }
+
+  function endGesture() {
+    setPhase("idle");
+    // With focus inside, the blur commits.
+    if (focusedRef.current) return;
+    const { parseValue: parse, formatValue: format } = latest.current;
+    const next = format(parse(valueRef.current));
+    latest.current.options.onValueCommit?.(next, { valueAsNumber: parse(next) });
   }
 
   function pressUp(pointerType?: string) {
@@ -314,20 +365,25 @@ export function useNumberInput(options: NumberInputOptions) {
     if (from !== "before-spin" && from !== "spinning") return;
     if (from === "spinning" || pointerType !== "touch") focusInput();
     hintRef.current = null;
-    setPhase("focused");
+    endGesture();
   }
 
-  const actions = useLatestRef({ stepValue, pressUp, focusInput, setPhase, syncInput });
+  const actions = useLatestRef({
+    stepValue,
+    pressUp,
+    focusInput,
+    endGesture,
+    setPhase,
+    syncInput,
+  });
 
-  const { fieldsetDisabled } = useFormControl(inputRef, () => change(initialValue, "form-reset"));
-  const disabled = field.disabled || fieldsetDisabled;
+  const { disabled } = field;
 
   useEffect(() => {
     if (phase !== "before-spin") return;
     const timeout = setTimeout(() => {
-      const { parseValue: parse, min: low, max: high } = latest.current;
-      const inRange = isValueWithinRange(parse(valueRef.current), low, high);
-      if (inRange && latest.current.options.spinOnPress !== false) {
+      const { parseValue: parse, isInRange: inRange } = latest.current;
+      if (inRange(parse(valueRef.current)) && latest.current.options.spinOnPress !== false) {
         actions.current.setPhase("spinning");
       }
     }, 300);
@@ -360,7 +416,7 @@ export function useNumberInput(options: NumberInputOptions) {
 
   useEffect(() => {
     const input = inputRef.current;
-    if (phase !== "focused" || !allowMouseWheel || readOnly || !input) return;
+    if (!focused || phase !== "idle" || !allowMouseWheel || readOnly || !input) return;
     if (input.ownerDocument.activeElement !== input) return;
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
@@ -370,33 +426,32 @@ export function useNumberInput(options: NumberInputOptions) {
     };
     input.addEventListener("wheel", onWheel, { passive: false });
     return () => input.removeEventListener("wheel", onWheel);
-  }, [phase, allowMouseWheel, readOnly, actions]);
+  }, [focused, phase, allowMouseWheel, readOnly, actions]);
 
   useEffect(() => {
     const input = inputRef.current;
-    const start = scrubPointRef.current;
+    const start = scrubStartRef.current;
     if (phase !== "scrubbing" || !input || !start) return;
     const doc = input.ownerDocument;
-    const scrub = startScrub(doc, start);
-    const onMouseMove = (event: globalThis.MouseEvent) => {
-      const point = scrubPointRef.current;
-      if (!point) return;
-      const move = getScrubMove(event, point, latest.current.dir === "rtl");
-      if (!move.hint) return;
-      actions.current.stepValue(move.hint, "scrub", undefined, event);
-      scrubPointRef.current = move.point;
-      scrub.move(move.point);
-    };
-    const onMouseUp = () => {
-      actions.current.focusInput();
-      scrubPointRef.current = null;
-      actions.current.setPhase("focused");
-    };
-    doc.addEventListener("mousemove", onMouseMove);
-    doc.addEventListener("mouseup", onMouseUp);
+    let point = start.point;
+    const scrub = startScrub(doc, point);
+    const stopTracking = trackPointerMove(doc, {
+      pointerId: start.pointerId,
+      lockSelection: false,
+      onMove(_, event) {
+        const move = getScrubMove(event, point, latest.current.dir === "rtl");
+        if (!move.hint) return;
+        actions.current.stepValue(move.hint, "scrub", undefined, event);
+        point = move.point;
+        scrub.move(point);
+      },
+      onUp() {
+        actions.current.focusInput();
+        actions.current.endGesture();
+      },
+    });
     return () => {
-      doc.removeEventListener("mousemove", onMouseMove);
-      doc.removeEventListener("mouseup", onMouseUp);
+      stopTracking();
       scrub.stop();
     };
   }, [phase, latest, actions]);
@@ -424,13 +479,12 @@ export function useNumberInput(options: NumberInputOptions) {
     });
   }, [outOfRange, latest]);
 
-  const focused = phase !== "idle";
   const scrubbing = phase === "scrubbing";
   const incrementDisabled = disabled || !canIncrement || readOnly;
   const decrementDisabled = disabled || !canDecrement || readOnly;
   const ids = {
     root: `number-input:${id}`,
-    input: field.id ?? `number-input:${id}:input`,
+    input: `number-input:${id}:input`,
     label: `number-input:${id}:label`,
     scrubber: `number-input:${id}:scrubber`,
   };
@@ -441,16 +495,13 @@ export function useNumberInput(options: NumberInputOptions) {
     return {
       ref: triggerRefSetters[hint],
       id: `number-input:${id}:${hint === "increment" ? "inc" : "dec"}`,
-      type: "button" as const,
       tabIndex: -1,
       disabled: isDisabled,
-      "data-disabled": isDisabled ? ("" as const) : undefined,
       "aria-label":
         hint === "increment"
           ? (translations?.incrementLabel ?? "increment value")
           : (translations?.decrementLabel ?? "decrease value"),
-      "aria-controls": ids.input,
-      "data-scrubbing": scrubbing ? ("" as const) : undefined,
+      "aria-controls": rendered.input,
       onPointerDown(event: PointerEvent<HTMLButtonElement>) {
         if (isDisabled || event.button !== 0) return;
         pressDown(hint, event.pointerType);
@@ -461,19 +512,28 @@ export function useNumberInput(options: NumberInputOptions) {
         pressUp(event.pointerType);
       },
       onPointerLeave(event: PointerEvent<HTMLButtonElement>) {
-        if (hint === "decrement" && isDisabled) return;
-        pressUp(hint === "increment" ? event.pointerType : undefined);
+        pressUp(event.pointerType);
       },
     };
   };
 
   return {
     state: { focused, scrubbing, disabled, readOnly, invalid, required: field.required },
-    value: formattedValue,
-    rootProps: { id: ids.root },
+    reportRendered,
+    rootProps: {
+      id: ids.root,
+      onFocus: enterFocus,
+      onBlur(event: FocusEvent<HTMLElement>) {
+        if (!focusedRef.current) return;
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        commit("blur", event.nativeEvent);
+        setFocused(false);
+        setPhase("idle");
+      },
+    },
     labelProps: {
       id: ids.label,
-      htmlFor: ids.input,
+      htmlFor: rendered.input,
       onClick() {
         requestAnimationFrame(() => setCaretToEnd(inputRef.current));
       },
@@ -502,22 +562,12 @@ export function useNumberInput(options: NumberInputOptions) {
       "aria-invalid": invalid || undefined,
       "aria-describedby": field.describedBy,
       "aria-roledescription": "numberfield",
-      "aria-valuemin": min,
-      "aria-valuemax": max,
-      "aria-valuenow": Number.isNaN(valueAsNumber) ? undefined : valueAsNumber,
+      "aria-valuemin": options.min,
+      "aria-valuemax": options.max,
+      "aria-valuenow": empty ? undefined : valueAsNumber,
       "aria-valuetext": translations?.valueText?.(value),
-      onFocus() {
-        if (phaseRef.current !== "idle") return;
-        setPhase("focused");
-        latest.current.options.onFocusChange?.(true, focusDetails());
-      },
-      onBlur(event: FormEvent<HTMLInputElement>) {
-        if (phaseRef.current !== "focused") return;
-        commit("blur", event.nativeEvent);
-        setPhase("idle");
-      },
       onInput(event: FormEvent<HTMLInputElement>) {
-        if (phaseRef.current !== "focused") return;
+        if (!focusedRef.current || phaseRef.current !== "idle") return;
         const input = event.currentTarget;
         syncRef.current = { raw: true, selection: recordCursor(input) };
         change(input.value, "input-change", event.nativeEvent);
@@ -527,32 +577,37 @@ export function useNumberInput(options: NumberInputOptions) {
           const { selectionStart, selectionEnd, value: text } = event.currentTarget;
           const next =
             text.slice(0, selectionStart ?? 0) + (event.data ?? "") + text.slice(selectionEnd ?? 0);
-          if (!parser.isValidPartialNumber(next)) event.preventDefault();
+          const valid = allowOverflow
+            ? parser.isValidPartialNumber(next)
+            : parser.isValidPartialNumber(next, min, max);
+          if (!valid) event.preventDefault();
         } catch {
           // A selection the input can't report leaves the typed text to the browser.
         }
       },
       onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
         if (event.defaultPrevented || readOnly || isComposingEvent(event)) return;
-        if (phaseRef.current !== "focused") return;
+        if (!focusedRef.current || phaseRef.current !== "idle") return;
         const by = getEventStepValue(event, { step, largeStep, smallStep });
         const native = event.nativeEvent;
         switch (event.key) {
           case "ArrowUp":
+          case "PageUp":
             stepValue("increment", "keyboard", by, native);
             event.preventDefault();
             break;
           case "ArrowDown":
+          case "PageDown":
             stepValue("decrement", "keyboard", by, native);
             event.preventDefault();
             break;
           case "Home":
-            if (isModifierKey(event)) return;
+            if (isModifierKey(event) || options.min === undefined) return;
             change(formatValue(min), "keyboard", native);
             event.preventDefault();
             break;
           case "End":
-            if (isModifierKey(event)) return;
+            if (isModifierKey(event) || options.max === undefined) return;
             change(formatValue(max), "keyboard", native);
             event.preventDefault();
             break;
@@ -567,14 +622,16 @@ export function useNumberInput(options: NumberInputOptions) {
     scrubberProps: {
       id: ids.scrubber,
       role: "presentation",
-      onMouseDown(event: MouseEvent<HTMLElement>) {
-        if (disabled || readOnly || event.button !== 0) return;
-        const from = phaseRef.current;
-        if (from === "idle" || from === "focused") {
-          scrubPointRef.current = getScrubStart(event.nativeEvent);
+      onPointerDown(event: PointerEvent<HTMLElement>) {
+        if (disabled || readOnly || event.button !== 0 || event.pointerType === "touch") return;
+        if (phaseRef.current === "idle") {
+          scrubStartRef.current = {
+            pointerId: event.pointerId,
+            point: getScrubStart(event.nativeEvent),
+          };
           hintRef.current = null;
+          if (latest.current.options.focusInputOnChange !== false) enterFocus();
           focusInput();
-          if (from === "idle") latest.current.options.onFocusChange?.(true, focusDetails());
           setPhase("scrubbing");
         }
         event.preventDefault();

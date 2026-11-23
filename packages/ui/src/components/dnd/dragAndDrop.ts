@@ -33,6 +33,16 @@ export function defineDragType<T>(name: string): DragType<T> {
   return { name };
 }
 
+type DragData = Record<string | symbol, unknown>;
+
+export function readDragData<T>(type: DragType<T>, data: DragData): T | undefined {
+  return data[keyOf(type)] as T | undefined;
+}
+
+export function toDragData<T>(type: DragType<T>, value: T): DragData {
+  return { [keyOf(type)]: value };
+}
+
 export interface UseDraggableOptions<T> {
   type: DragType<T>;
   /** The data drop targets receive, read when the drag starts. */
@@ -56,17 +66,30 @@ export interface UseDraggableReturn {
   preview: ReactNode;
 }
 
-/** Makes an element a drag source carrying `type` data to {@link useDropTarget}s of the same type. */
-export function useDraggable<T>({
+export interface UseDragSourceOptions<T> extends UseDraggableOptions<T> {
+  /** Whether a drag may start now; read on each attempt. */
+  canDrag?: () => boolean;
+  dragHandle?: Element | null | undefined;
+  getExtraData?: () => DragData;
+}
+
+export interface UseDragSourceReturn extends UseDraggableReturn {
+  element: HTMLElement | null;
+}
+
+export function useDragSource<T>({
   type,
   getData,
   getExternalData,
+  getExtraData,
   renderPreview,
+  canDrag,
+  dragHandle,
   disabled = false,
-}: UseDraggableOptions<T>): UseDraggableReturn {
+}: UseDragSourceOptions<T>): UseDragSourceReturn {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const latest = useLatestRef({ getData, getExternalData, renderPreview });
+  const latest = useLatestRef({ getData, getExternalData, getExtraData, renderPreview, canDrag });
   const { preview, onGenerateDragPreview } = useNativeDragPreview(
     () => latest.current.renderPreview?.() ?? null,
   );
@@ -78,7 +101,12 @@ export function useDraggable<T>({
     const key = keyOf(type);
     const cleanup = draggable({
       element,
-      getInitialData: () => ({ [key]: latest.current.getData() }),
+      dragHandle: dragHandle ?? undefined,
+      canDrag: () => latest.current.canDrag?.() ?? true,
+      getInitialData: () => ({
+        ...latest.current.getExtraData?.(),
+        [key]: latest.current.getData(),
+      }),
       getInitialDataForExternal: external
         ? () => latest.current.getExternalData?.() ?? {}
         : undefined,
@@ -90,9 +118,15 @@ export function useDraggable<T>({
       cleanup();
       setIsDragging(false);
     };
-  }, [element, disabled, type, latest, external, customPreview, onGenerateDragPreview]);
+  }, [element, disabled, type, dragHandle, latest, external, customPreview, onGenerateDragPreview]);
 
-  return { ref: setElement, isDragging: isDragging && !disabled, preview };
+  return { ref: setElement, element, isDragging: isDragging && !disabled, preview };
+}
+
+/** Makes an element a drag source carrying `type` data to {@link useDropTarget}s of the same type. */
+export function useDraggable<T>(options: UseDraggableOptions<T>): UseDraggableReturn {
+  const { ref, isDragging, preview } = useDragSource(options);
+  return { ref, isDragging, preview };
 }
 
 export interface UseDropTargetOptions<T> {

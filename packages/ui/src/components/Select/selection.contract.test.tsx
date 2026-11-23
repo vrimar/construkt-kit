@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, type Mock, vi } from "vitest";
 
 import { ApplySelect, Select, TagSelect } from ".";
-import { Listbox } from "../Listbox";
+import { Listbox, type ManagedListOptions } from "../Listbox";
+import { type ManagedSelectionProps, type SelectionMode, encodeSelectionValue } from "../selection";
 import {
   encodedValues,
   groupLabels,
@@ -11,9 +12,7 @@ import {
   optionValues,
   type Produce,
   produceProps,
-} from "../Listbox/selection.fixtures";
-import type { ManagedListOptions, ManagedSelectionProps, SelectionMode } from "../Listbox/types";
-import { encodeSelectionValue } from "../Listbox/useSelectionController";
+} from "../selection/selection.fixtures";
 
 interface ContractProps
   extends

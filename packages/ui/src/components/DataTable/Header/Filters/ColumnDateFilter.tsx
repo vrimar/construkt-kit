@@ -16,7 +16,13 @@ function parseDateValue(dateValue: string | undefined): DateValue[] {
   return range ? range.map((bound) => parseDate(bound)) : [];
 }
 
-export const ColumnDateFilter = ({ placeholder, value, onChange, layout }: ColumnFilterProps) => {
+export const ColumnDateFilter = ({
+  placeholder,
+  value,
+  onChange,
+  size,
+  variant,
+}: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
   const current = value[0];
   const [internalValue, setInternalValue] = useState<DateValue[]>(() => parseDateValue(current));
@@ -41,8 +47,8 @@ export const ColumnDateFilter = ({ placeholder, value, onChange, layout }: Colum
   return (
     <DatePickerSelect
       width="100%"
-      size={layout === "field" ? "md" : "sm"}
-      variant={layout === "field" ? "outline" : "plain"}
+      size={size}
+      variant={variant}
       selectionMode="range"
       placeholder={placeholder}
       clearLabel={labels.clearDate}

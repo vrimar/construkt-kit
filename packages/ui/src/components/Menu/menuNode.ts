@@ -3,11 +3,11 @@ import type { KeyboardEvent } from "react";
 import { isEditableTarget } from "../../foundations/dom";
 import {
   CompositeList,
+  type HighlightItem,
+  HighlightList,
+  type HighlightListOptions,
   Typeahead,
-  elementList,
-  getFirstEnabledIndex,
-  getLastEnabledIndex,
-  getNextIndex,
+  activateItem,
   isCrossOrientationCloseKey,
   isCrossOrientationOpenKey,
   isItemDisabled,
@@ -22,33 +22,20 @@ import {
 } from "../../primitives/focus";
 import type { OpenChangeReason } from "../../primitives/layer";
 import type { Side } from "../../primitives/position";
-import { Store } from "../../primitives/store";
 import { type Point, type Polygon, getSubmenuGracePolygon, isPointInPolygon } from "./pointerGrace";
 
 const SUBMENU_OPEN_DELAY = 200;
 const SUBMENU_CLOSE_DELAY = 100;
 
-export interface HighlightState {
-  highlightedValue: string | null;
-}
-
-export const selectHighlighted = (state: HighlightState): string | null => state.highlightedValue;
-
-export const selectIsHighlighted = (state: HighlightState, value: string): boolean =>
-  state.highlightedValue === value;
-
 type Edge = "first" | "last";
 
-export interface MenuNodeProps {
+export interface MenuNodeProps extends HighlightListOptions {
   open: boolean;
   /** Asks the menu to open or close; returns whether the request stood. */
   setOpen: (open: boolean, reason: OpenChangeReason, event?: Event) => boolean;
   setReturnFocus: (intent: ReturnFocusIntent) => void;
   closeOnSelect: boolean;
-  loopFocus: boolean;
   rtl: boolean;
-  highlightControlled: boolean;
-  onHighlightChange: ((value: string | null) => void) | undefined;
   onSelect: ((value: string) => void) | undefined;
 }
 
@@ -88,8 +75,7 @@ function canTabWithin(content: HTMLElement, backward: boolean) {
  * One menu of a menu tree: its highlight, keyboard and typeahead handling, and the pointer rules
  * that open a submenu on hover and keep it open while the pointer crosses over to it.
  */
-export class MenuNode {
-  readonly store: Store<HighlightState>;
+export class MenuNode extends HighlightList {
   readonly list = new CompositeList();
   readonly children = new Set<MenuNode>();
   readonly contextTriggers = new Set<HTMLElement>();
@@ -99,7 +85,6 @@ export class MenuNode {
 
   private config = CLOSED;
   private pending: boolean | null = null;
-  private readonly typeahead = new Typeahead();
   private pendingEdge: Edge | null = null;
   private routingLocked = false;
   private lastHighlighted: string | null = null;
@@ -113,7 +98,7 @@ export class MenuNode {
     readonly parent: MenuNode | null,
     highlightedValue: string | null,
   ) {
-    this.store = new Store<HighlightState>({ highlightedValue });
+    super({ highlightedValue });
   }
 
   update(config: MenuNodeProps): void {
@@ -122,6 +107,22 @@ export class MenuNode {
 
   get props(): MenuNodeProps {
     return this.config;
+  }
+
+  protected get highlightOptions(): HighlightListOptions {
+    return this.config;
+  }
+
+  protected highlightItems(): HighlightItem[] {
+    return this.list.items().map(({ element, value, label }) => ({
+      value,
+      label: label ?? element.textContent ?? "",
+      disabled: isItemDisabled(element),
+    }));
+  }
+
+  scrollTo(value: string): void {
+    scrollIntoViewIfNeeded(this.content, this.list.find(value)?.element);
   }
 
   get content(): HTMLElement | null {
@@ -161,47 +162,9 @@ export class MenuNode {
     return `${this.id}:item:${value}`;
   }
 
-  get highlighted(): string | null {
-    return this.store.state.highlightedValue;
-  }
-
-  get typingAhead(): boolean {
-    return this.typeahead.typing;
-  }
-
-  highlight(value: string | null, scroll = false): void {
-    if (value !== this.highlighted) {
-      this.config.onHighlightChange?.(value);
-      if (!this.config.highlightControlled) this.store.set("highlightedValue", value);
-    }
-    if (scroll) scrollIntoViewIfNeeded(this.content, this.list.find(value)?.element ?? null);
-  }
-
-  move(target: "next" | "prev" | Edge): void {
-    const items = this.list.items();
-    const elements = elementList(items.map((item) => item.element));
-    const current = items.findIndex((item) => item.value === this.highlighted);
-    let index: number;
-    if (target === "first") index = getFirstEnabledIndex(elements);
-    else if (target === "last") index = getLastEnabledIndex(elements);
-    else {
-      index = getNextIndex(elements, current, {
-        decrement: target === "prev",
-        loop: this.config.loopFocus,
-      });
-    }
-    const item = items[index];
-    if (item) this.highlight(item.value, true);
-  }
-
-  private typeaheadKey(key: string) {
-    const items = this.list.items();
-    const labels = items.map(({ element, label }) =>
-      isItemDisabled(element) ? null : (label ?? element.textContent ?? ""),
-    );
-    const current = items.findIndex((item) => item.value === this.highlighted);
-    const item = items[this.typeahead.match(labels, key, current)];
-    if (item) this.highlight(item.value, true);
+  /** The id item `value` renders with: its own when given one, else `itemId`. */
+  renderedItemId(value: string): string {
+    return this.list.find(value)?.element.id || this.itemId(value);
   }
 
   /** What takes focus in the menu: its first field or other control, else the menu itself. */
@@ -278,15 +241,14 @@ export class MenuNode {
     this.pendingEdge = null;
     this.routingLocked = false;
     this.lastHighlighted = null;
-    this.typeahead.reset();
-    this.highlight(null);
+    this.resetHighlight();
   }
 
   dispose(): void {
     cancelAnimationFrame(this.focusFrame);
     this.cancelHoverOpen();
     this.stopTransit();
-    this.typeahead.reset();
+    this.disposeHighlight();
   }
 
   select(value: string, element: HTMLElement, event: MouseEvent, options: SelectOptions): void {
@@ -427,17 +389,7 @@ export class MenuNode {
 
   private clickHighlighted(event: KeyboardEvent<HTMLElement>) {
     const element = this.list.find(this.highlighted)?.element;
-    if (!element || isItemDisabled(element)) return;
-    const init: MouseEventInit = {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      altKey: event.altKey,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-      shiftKey: event.shiftKey,
-    };
-    queueMicrotask(() => element.dispatchEvent(new MouseEvent("click", init)));
+    if (element && !isItemDisabled(element)) activateItem(element, event);
   }
 
   onContentKeyDown(event: KeyboardEvent<HTMLElement>): void {
@@ -482,8 +434,7 @@ export class MenuNode {
       event.preventDefault();
       return;
     }
-    if (event.key.length !== 1 || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (isEditableTarget(target)) return;
+    if (!Typeahead.accepts(event) || isEditableTarget(target)) return;
     this.typeaheadKey(event.key);
     event.preventDefault();
   }

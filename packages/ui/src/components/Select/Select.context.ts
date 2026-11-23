@@ -1,7 +1,8 @@
-import { createContext, type ReactNode, useContext } from "react";
+import { type ReactNode } from "react";
 
-import type { ManagedListbox } from "../Listbox/managed";
-import type { ManagedListOptions, SelectionValue } from "../Listbox/types";
+import type { ManagedListOptions, ManagedListbox } from "../Listbox/managed";
+import { createPartContext } from "../partContext";
+import type { SelectionValue } from "../selection";
 
 export interface SelectContextValue {
   managed: ManagedListbox<unknown, SelectionValue>;
@@ -15,12 +16,7 @@ export interface SelectContextValue {
   close: (event?: Event) => void;
 }
 
-export const SelectContext = createContext<SelectContextValue | null>(null);
-
-export const useSelectContext = () => {
-  const context = useContext(SelectContext);
-  if (context == null) {
-    throw new Error("Select compound components must be used within Select.Root");
-  }
-  return context;
-};
+export const [SelectContext, useSelectContext] = createPartContext<SelectContextValue>(
+  "<Select.Root>",
+  "Select parts",
+);

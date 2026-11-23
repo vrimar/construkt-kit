@@ -11,17 +11,20 @@ export {
   joinIds,
   useFieldContext,
   useFieldControlId,
+  useFieldFocusControl,
   useFieldLabelId,
-  useFieldMessage,
+  useFieldMessageProps,
   useFieldRoot,
+  useFieldTriggerProps,
   useFieldsetContext,
   useFieldsetRoot,
 } from "./FieldContext";
 export {
   type FieldControlState,
   type FieldControlStateOptions,
+  resolveFieldControlState,
   useFieldControlState,
 } from "./useFieldControlState";
-export { useFieldInputProps } from "./useFieldInputProps";
-export { useFormControl } from "./useFormControl";
-export { dispatchInputValueEvent } from "./inputValueEvent";
+export { fieldInputState, useFieldInputProps } from "./useFieldInputProps";
+export { useFormFieldState } from "./useFormFieldState";
+export { hiddenFormInputProps, hiddenInputClass, useHiddenInputValue } from "./hiddenInput";

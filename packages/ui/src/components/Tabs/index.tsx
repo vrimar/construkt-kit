@@ -2,8 +2,6 @@ import {
   type ComponentProps,
   type KeyboardEvent,
   type MouseEvent,
-  createContext,
-  useContext,
   useId,
   useLayoutEffect,
   useRef,
@@ -13,26 +11,31 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tabs } from "#styled-system/recipes";
 
-import { isComposingEvent, isSafari } from "../../foundations/dom";
+import { isComposingEvent, opensLinkNatively } from "../../foundations/dom";
+import { isSafari } from "../../foundations/platform";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
 import {
-  type CompositeItem,
+  type RenderedParts,
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import {
   CompositeList,
   elementList,
-  getArrowStep,
-  getFirstEnabledIndex,
-  getLastEnabledIndex,
-  getNextIndex,
-  isItemDisabled,
+  getKeyTarget,
+  getTargetIndex,
+  syncRovingTabStop,
   useCompositeListItem,
 } from "../../primitives/composite";
-import { getTabbables } from "../../primitives/focus";
+import { useHasTabbable } from "../../primitives/focus";
 import { useLocale } from "../../primitives/locale";
 import { PresenceActivity, presenceAttributes, usePresence } from "../../primitives/presence";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
+import { useSlidingIndicator } from "../slidingIndicator";
 
 const { withProvider, withContext } = createSlotRecipeContext(tabs);
 
@@ -71,17 +74,15 @@ interface TabsContextValue {
   rtl: boolean;
   triggers: CompositeList;
   syncTabStop: () => void;
-  triggerId: (value: string) => string;
-  contentId: (value: string) => string;
+  /** The ids a tab's trigger and content render with unless given their own. */
+  ids: { trigger: (value: string) => string; content: (value: string) => string };
+  rendered: RenderedParts<TabsPart>;
+  reportRendered: ReportRendered<TabsPart>;
 }
 
-const TabsContext = createContext<TabsContextValue | null>(null);
+type TabsPart = `trigger:${string}` | `content:${string}`;
 
-function useTabs(part: string): TabsContextValue {
-  const context = useContext(TabsContext);
-  if (!context) throw new Error(`Tabs.${part} must be placed inside <Tabs.Root>.`);
-  return context;
-}
+const [TabsContext, useTabs] = createPartContext<TabsContextValue>("<Tabs.Root>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
@@ -100,11 +101,12 @@ function Root({
   const uid = useId();
   const rtl = useLocale().dir === "rtl";
   const [triggers] = useState(() => new CompositeList());
+  const [rendered, reportRendered] = useRenderedParts<TabsPart>();
   const [value, setValue] = useControllableState<string | null>({
     value: valueProp,
     defaultValue: defaultValue ?? null,
   });
-  const syncTabStop = () => setTabStop(triggers.items(), value);
+  const syncTabStop = () => syncRovingTabStop(triggers, value);
 
   useLayoutEffect(syncTabStop);
 
@@ -112,9 +114,7 @@ function Root({
     value,
     select(next, reason, event) {
       if (next === value) return;
-      const details = createChangeDetails(reason, event);
-      onValueChange?.(next, details);
-      if (!details.canceled) setValue(next);
+      if (emitChange(onValueChange, next, reason, event)) setValue(next);
     },
     orientation,
     automatic: activationMode === "automatic",
@@ -122,8 +122,12 @@ function Root({
     rtl,
     triggers,
     syncTabStop,
-    triggerId: (item) => `tabs:${uid}:trigger-${item}`,
-    contentId: (item) => `tabs:${uid}:content-${item}`,
+    ids: {
+      trigger: (item) => `tabs:${uid}:trigger-${item}`,
+      content: (item) => `tabs:${uid}:content-${item}`,
+    },
+    rendered,
+    reportRendered,
   };
 
   return (
@@ -136,16 +140,10 @@ function Root({
   );
 }
 
-function setTabStop(items: CompositeItem[], value: string | null) {
-  const enabled = items.filter((item) => !isItemDisabled(item.element));
-  const stop = enabled.find((item) => item.value === value) ?? enabled[0];
-  for (const item of items) item.element.setAttribute("tabindex", item === stop ? "0" : "-1");
-}
-
 export type TabsListProps = ComponentProps<typeof StyledList>;
 
 function List(props: TabsListProps) {
-  const context = useTabs("List");
+  const context = useTabs("Tabs.List");
 
   return (
     <StyledList
@@ -159,20 +157,11 @@ function List(props: TabsListProps) {
             const items = context.triggers.items();
             const current = items.findIndex((item) => item.element.contains(event.target as Node));
             if (current === -1) return;
-            const list = elementList(items.map((item) => item.element));
-            const step = getArrowStep(event.key, context.orientation, context.rtl);
-            let next: number;
-            if (step !== 0) {
-              next = getNextIndex(list, current, { decrement: step < 0, loop: context.loopFocus });
-            } else if (event.key === "Home") {
-              next = getFirstEnabledIndex(list);
-            } else if (event.key === "End") {
-              next = getLastEnabledIndex(list);
-            } else {
-              return;
-            }
+            const keyTarget = getKeyTarget(event.key, context.orientation, context.rtl);
+            if (!keyTarget) return;
             event.preventDefault();
-            const target = items[next];
+            const list = elementList(items.map((item) => item.element));
+            const target = items[getTargetIndex(list, current, keyTarget, context.loopFocus)];
             if (!target) return;
             target.element.focus();
             if (context.automatic) context.select(target.value, "keyboard", event.nativeEvent);
@@ -192,15 +181,17 @@ export interface TabsTriggerProps extends Omit<StyledTriggerProps, "value"> {
   disabled?: boolean | undefined;
 }
 
-const opensInNewTab = (event: MouseEvent<HTMLElement>) =>
-  event.currentTarget.matches("a[href]") && (event.button === 1 || event.metaKey || event.ctrlKey);
-
 function Trigger({ ref, value, disabled = false, ...props }: TabsTriggerProps) {
-  const context = useTabs("Trigger");
+  const context = useTabs("Tabs.Trigger");
   const selected = context.value === value;
   const register = useCompositeListItem(context.triggers, value);
   const composedRef = useComposedRefs<HTMLButtonElement>(register, ref);
   const { syncTabStop } = context;
+  const triggerId = useReportRendered(
+    context.reportRendered,
+    `trigger:${value}`,
+    props.id ?? context.ids.trigger(value),
+  );
 
   useLayoutEffect(syncTabStop, [disabled, syncTabStop]);
 
@@ -208,19 +199,19 @@ function Trigger({ ref, value, disabled = false, ...props }: TabsTriggerProps) {
     <StyledTrigger
       {...mergeProps<StyledTriggerProps>(
         {
-          id: context.triggerId(value),
+          id: triggerId,
           role: "tab",
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled,
           "aria-disabled": disabled || undefined,
           "aria-selected": selected,
-          "aria-controls": selected ? context.contentId(value) : undefined,
+          "aria-controls": selected ? context.rendered[`content:${value}`] : undefined,
           "data-value": value,
           "data-selected": dataAttr(selected),
           "data-disabled": dataAttr(disabled),
           "data-orientation": context.orientation,
           onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (event.defaultPrevented || disabled || opensInNewTab(event)) return;
+            if (event.defaultPrevented || disabled || opensLinkNatively(event)) return;
             if (isSafari()) event.currentTarget.focus();
             context.select(value, "trigger-press", event.nativeEvent);
           },
@@ -246,20 +237,17 @@ export interface TabsContentProps extends Omit<StyledContentProps, "value"> {
 }
 
 function Content({ ref, value, keepMounted = false, ...props }: TabsContentProps) {
-  const context = useTabs("Content");
+  const context = useTabs("Tabs.Content");
   const selected = context.value === value;
   const presence = usePresence(selected, { immediate: true });
-  const elementRef = useRef<HTMLDivElement>(null);
-  const ownRef = useComposedRefs<HTMLDivElement>(elementRef, presence.setElement);
-  const composedRef = useComposedRefs<HTMLDivElement>(ownRef, ref);
-  const ownTabIndex = props.tabIndex !== undefined;
-
-  useLayoutEffect(() => {
-    const element = elementRef.current;
-    if (!selected || !element || ownTabIndex) return;
-    if (getTabbables(element).length > 0) element.removeAttribute("tabindex");
-    else element.setAttribute("tabindex", "0");
-  }, [selected, ownTabIndex]);
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const composedRef = useComposedRefs(ref, setElement, presence.setElement);
+  const hasTabbable = useHasTabbable(element, selected && props.tabIndex === undefined);
+  const contentId = useReportRendered(
+    context.reportRendered,
+    `content:${value}`,
+    props.id ?? context.ids.content(value),
+  );
 
   return (
     <PresenceActivity
@@ -269,9 +257,10 @@ function Content({ ref, value, keepMounted = false, ...props }: TabsContentProps
       <StyledContent
         {...mergeProps<StyledContentProps>(
           {
-            id: context.contentId(value),
+            id: contentId,
             role: "tabpanel",
-            "aria-labelledby": context.triggerId(value),
+            tabIndex: selected && !hasTabbable ? 0 : undefined,
+            "aria-labelledby": context.rendered[`trigger:${value}`],
             hidden: !presence.mounted,
             "data-selected": dataAttr(selected),
             "data-orientation": context.orientation,
@@ -285,69 +274,32 @@ function Content({ ref, value, keepMounted = false, ...props }: TabsContentProps
   );
 }
 
-interface IndicatorRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-const sameRect = (a: IndicatorRect | null, b: IndicatorRect | null) =>
-  a === b ||
-  (a !== null &&
-    b !== null &&
-    a.left === b.left &&
-    a.top === b.top &&
-    a.width === b.width &&
-    a.height === b.height);
-
-const offsetRect = (element: HTMLElement): IndicatorRect => ({
-  left: element.offsetLeft,
-  top: element.offsetTop,
-  width: element.offsetWidth,
-  height: element.offsetHeight,
-});
-
 export type TabsIndicatorProps = ComponentProps<typeof StyledIndicator>;
 
 /** Slides to the selected tab: it reads the tab's box from `--indicator-left`, `-top`, `-width` and `-height`. */
 function Indicator({ ref, style, ...props }: TabsIndicatorProps) {
-  const context = useTabs("Indicator");
-  const { triggers, value, orientation } = context;
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
-  const [rect, setRect] = useState<IndicatorRect | null>(null);
-  const composedRef = useComposedRefs<HTMLDivElement>(setElement, ref);
-
-  useLayoutEffect(() => {
-    if (!element) return;
-    const observer = new ResizeObserver(() => {
-      const trigger = triggers.find(value)?.element;
-      const next = trigger ? offsetRect(trigger) : null;
-      setRect((previous) => (sameRect(previous, next) ? previous : next));
-    });
-    const list = element.closest<HTMLElement>("[role=tablist]") ?? element.parentElement;
-    if (list) observer.observe(list, { box: "border-box" });
-    for (const item of triggers.items()) observer.observe(item.element, { box: "border-box" });
-    return () => observer.disconnect();
-  }, [element, triggers, value, orientation]);
-
-  const empty =
-    !rect || (rect.left === 0 && rect.top === 0 && rect.width === 0 && rect.height === 0);
+  const { triggers, value, orientation } = useTabs("Tabs.Indicator");
+  const elementRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(elementRef, ref);
+  const indicator = useSlidingIndicator(
+    {
+      selected: () => triggers.find(value)?.element,
+      observed: () => {
+        const element = elementRef.current;
+        const list = element?.closest<HTMLElement>("[role=tablist]") ?? element?.parentElement;
+        return [...(list ? [list] : []), ...triggers.items().map((item) => item.element)];
+      },
+    },
+    value,
+    orientation,
+  );
 
   return (
     <StyledIndicator
-      hidden={empty}
+      hidden={indicator.hidden}
       data-orientation={orientation}
       {...props}
-      style={{
-        ...(rect && {
-          "--indicator-left": `${rect.left}px`,
-          "--indicator-top": `${rect.top}px`,
-          "--indicator-width": `${rect.width}px`,
-          "--indicator-height": `${rect.height}px`,
-        }),
-        ...style,
-      }}
+      style={{ ...indicator.style, ...style }}
       ref={composedRef}
     />
   );

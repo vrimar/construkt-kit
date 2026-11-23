@@ -1,23 +1,20 @@
-import { type ComponentProps, useId } from "react";
+import { type ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { radioCardGroup } from "#styled-system/recipes";
 
-import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { joinIds } from "../../primitives/field";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { mergeProps, renderable } from "../../primitives/render";
 import type { HiddenInputControlProps, WithRef } from "../../types";
-import { type CardBodyProps, createCardBody } from "../cardBody";
-import { isRenderable } from "../itemSlots";
+import { type CardBodyProps, createCardBody, useCardDescription } from "../cardBody";
 import {
   type RadioGroupRootOptions,
   type RadioItemOptions,
   RadioGroupProvider,
+  RadioItemHiddenInput,
   RadioItemProvider,
-  useRadioGroupLabelProps,
+  createRadioGroupParts,
   useRadioGroupRoot,
-  useRadioIndicator,
   useRadioItem,
   useRadioItemContext,
 } from "../radioGroup";
@@ -25,102 +22,35 @@ import {
 const { withProvider, withContext } = createSlotRecipeContext(radioCardGroup);
 
 const StyledRoot = withProvider(renderable.div, "root");
-const StyledIndicator = withContext(renderable.div, "indicator");
 const ItemRoot = withContext(renderable.label, "item");
 const ItemBody = withContext(renderable.div, "itemBody");
-const StyledItemControl = withContext(renderable.div, "itemControl");
 const StyledItemIndicator = withContext(renderable.span, "itemIndicator");
-const StyledItemText = withContext(renderable.span, "itemText");
 const ItemContent = withContext(renderable.div, "itemContent");
 const ItemDescription = withContext(renderable.span, "itemDescription");
 const ItemAddon = withContext(renderable.div, "itemAddon");
-const StyledLabel = withContext(renderable.span, "label");
+
+const { Label, Indicator, ItemControl, ItemText } = createRadioGroupParts(
+  {
+    Label: withContext(renderable.span, "label"),
+    Indicator: withContext(renderable.div, "indicator"),
+    ItemControl: withContext(renderable.div, "itemControl"),
+    ItemText: withContext(renderable.span, "itemText"),
+  },
+  "RadioCard",
+);
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
 export interface RadioCardRootProps
   extends Omit<StyledRootProps, keyof RadioGroupRootOptions>, RadioGroupRootOptions {}
 
-function Root({
-  ref,
-  value,
-  defaultValue,
-  onValueChange,
-  name,
-  form,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  orientation,
-  id,
-  ...props
-}: RadioCardRootProps) {
-  const { context, rootProps } = useRadioGroupRoot({
-    value,
-    defaultValue,
-    onValueChange,
-    name,
-    form,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    orientation,
-    id,
-  });
-  const composedRef = useComposedRefs(rootProps.ref, ref);
+function Root(props: RadioCardRootProps) {
+  const { context, rootProps } = useRadioGroupRoot(props);
 
   return (
     <RadioGroupProvider value={context}>
-      <StyledRoot
-        {...rootProps}
-        {...props}
-        ref={composedRef}
-      />
+      <StyledRoot {...rootProps} />
     </RadioGroupProvider>
-  );
-}
-
-function Label(props: ComponentProps<typeof StyledLabel>) {
-  return (
-    <StyledLabel
-      {...mergeProps<ComponentProps<typeof StyledLabel>>(useRadioGroupLabelProps(), props)}
-    />
-  );
-}
-
-/** Slides to the checked item. */
-function Indicator(props: ComponentProps<typeof StyledIndicator>) {
-  const { style, ...indicator } = useRadioIndicator();
-  return (
-    <StyledIndicator
-      {...indicator}
-      {...props}
-      style={{ ...style, ...props.style }}
-    />
-  );
-}
-
-function ItemControl(props: ComponentProps<typeof StyledItemControl>) {
-  const { attributes } = useRadioItemContext("RadioCard.ItemControl");
-  return (
-    <StyledItemControl
-      aria-hidden
-      {...attributes}
-      {...props}
-    />
-  );
-}
-
-function ItemText(props: ComponentProps<typeof StyledItemText>) {
-  const { attributes, textId } = useRadioItemContext("RadioCard.ItemText");
-  return (
-    <StyledItemText
-      id={textId}
-      {...attributes}
-      {...props}
-    />
   );
 }
 
@@ -169,17 +99,8 @@ function Item({
   invalid,
   ...rest
 }: WithRef<RadioCardItemProps, HTMLInputElement>) {
-  const descriptionId = useId();
-  const described = isRenderable(description);
-  const {
-    item,
-    itemProps,
-    inputProps: itemInputProps,
-  } = useRadioItem({
-    value,
-    disabled,
-    invalid,
-  });
+  const descriptionId = useCardDescription(description);
+  const { item, itemProps } = useRadioItem({ value, disabled, invalid, id: rest.id });
 
   return (
     <RadioItemProvider value={item}>
@@ -187,18 +108,13 @@ function Item({
         ref={rootRef}
         {...mergeProps<ItemRootProps>(itemProps, rest)}
       >
-        <renderable.input
-          {...mergeProps<ComponentProps<typeof renderable.input>>(itemInputProps, {
-            ...inputProps,
-            "aria-describedby": joinIds([
-              described ? descriptionId : undefined,
-              inputProps?.["aria-describedby"],
-            ]),
-          })}
+        <RadioItemHiddenInput
+          {...inputProps}
+          aria-describedby={joinIds([descriptionId, inputProps?.["aria-describedby"]])}
           ref={ref}
         />
         <CardBody
-          descriptionId={described ? descriptionId : undefined}
+          descriptionId={descriptionId}
           icon={icon}
           label={label}
           description={description}

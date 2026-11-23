@@ -5,7 +5,6 @@ import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { list } from "#styled-system/recipes";
 
 import { renderable } from "../../primitives/render";
-import type { WithRef } from "../../types";
 import { isRenderable } from "../itemSlots";
 import { wrapRenderContent } from "../renderContent";
 
@@ -48,7 +47,7 @@ function ListAction({
   chevron = true,
   children,
   ...rest
-}: WithRef<ListActionProps, HTMLButtonElement>) {
+}: ListActionProps) {
   const content = (title: ReactNode) => (
     <>
       {isRenderable(icon) && <ActionIcon>{icon}</ActionIcon>}

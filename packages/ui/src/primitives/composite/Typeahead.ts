@@ -13,6 +13,10 @@ export class Typeahead {
   private search = "";
   private timer: ReturnType<typeof setTimeout> | undefined;
 
+  static accepts(event: { key: string; ctrlKey: boolean; metaKey: boolean; altKey: boolean }) {
+    return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+  }
+
   /** Whether a search is under way, so Space types a space instead of activating. */
   get typing(): boolean {
     return this.search !== "";

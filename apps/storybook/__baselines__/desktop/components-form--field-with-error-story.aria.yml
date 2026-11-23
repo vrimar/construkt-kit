@@ -1,5 +1,4 @@
-- group:
-  - text: Password
-  - textbox "Password" [invalid]:
-    - /placeholder: Enter password
-  - text: Password is required.
+- text: Password
+- textbox "Password" [invalid]:
+  - /placeholder: Enter password
+- text: Password is required.

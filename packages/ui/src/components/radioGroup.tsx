@@ -1,26 +1,47 @@
 import {
   type ChangeEvent,
+  type CSSProperties,
+  type ComponentProps,
+  type ComponentType,
   type FocusEvent,
   type InputHTMLAttributes,
   type MouseEvent,
   type PointerEvent,
-  createContext,
+  type Ref,
   useCallback,
-  useContext,
+  useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
-import { visuallyHidden } from "#styled-system/patterns";
-
-import { isSafari } from "../foundations/dom";
+import { isSafari } from "../foundations/platform";
+import { splitOptions } from "../foundations/props";
+import { useComposedRefs } from "../hooks/useComposedRefs";
 import { useControllableState } from "../hooks/useControllableState";
 import { useLatestRef } from "../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../primitives/change";
-import { useFieldsetContext, useFormControl } from "../primitives/field";
-import { dataAttr } from "../primitives/render";
+import {
+  type RenderedParts,
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../primitives/change";
+import {
+  hiddenInputClass,
+  useFieldFocusControl,
+  useFieldsetContext,
+  useFormFieldState,
+} from "../primitives/field";
+import {
+  checkedStateAttributes,
+  dataAttr,
+  fieldStateAttributes,
+  mergeProps,
+  renderable,
+} from "../primitives/render";
+import { createPartContext } from "./partContext";
+import { useSlidingIndicator } from "./slidingIndicator";
 
 export type RadioValueChangeReason = "input-change" | "form-reset";
 
@@ -46,6 +67,25 @@ export interface RadioGroupRootOptions {
   id?: string | undefined;
 }
 
+/** Every `RadioGroupRootOptions` key, to split them off a group root's props. */
+export const RADIO_GROUP_ROOT_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  name: true,
+  form: true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  required: true,
+  orientation: true,
+  id: true,
+} as const satisfies Record<keyof RadioGroupRootOptions, true>;
+
+type RadioGroupRootProps = RadioGroupRootOptions & { ref?: Ref<HTMLDivElement> | undefined };
+
+type RadioGroupPart = "label" | `item:${string}`;
+
 interface RadioGroupContextValue {
   value: string | null;
   select: (value: string, event: Event) => void;
@@ -58,57 +98,64 @@ interface RadioGroupContextValue {
   orientation: RadioGroupOrientation;
   rootId: string;
   labelId: string;
+  /** The ids an item and its input and text render with unless given their own. */
   itemId: (value: string) => string;
   inputId: (value: string) => string;
   itemTextId: (value: string) => string;
+  rendered: RenderedParts<RadioGroupPart>;
+  reportRendered: ReportRendered<RadioGroupPart>;
   focused: { value: string | null; visible: boolean };
   setFocused: (focused: { value: string | null; visible: boolean }) => void;
-  setLabelRendered: (rendered: boolean) => void;
   focusFirst: () => void;
 }
 
-const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);
-
-function useRadioGroupContext(part: string): RadioGroupContextValue {
-  const context = useContext(RadioGroupContext);
-  if (!context) throw new Error(`${part} must be placed inside its radio group's Root.`);
-  return context;
-}
+const [RadioGroupContext, useRadioGroupContext] =
+  createPartContext<RadioGroupContextValue>("its radio group's Root");
 
 export const RadioGroupProvider = RadioGroupContext.Provider;
 
-/** A radio group on native `<input type="radio">`s sharing a `name`, so arrow keys move between them. */
-export function useRadioGroupRoot({
-  value: valueProp,
-  defaultValue = null,
-  onValueChange,
-  name: nameProp,
-  form,
-  disabled: disabledProp,
-  readOnly = false,
-  invalid: invalidProp,
-  required = false,
-  orientation = "vertical",
-  id: idProp,
-}: RadioGroupRootOptions) {
+/**
+ * A radio group on native `<input type="radio">`s sharing a `name`, so arrow keys move between them.
+ * Takes the root's props; `rootProps` carries the ones that aren't options, over its own.
+ */
+export function useRadioGroupRoot<P extends RadioGroupRootProps>(
+  props: P,
+  defaults: Pick<RadioGroupRootOptions, "orientation"> = {},
+) {
+  const [options, { ref, ...rest }] = splitOptions<
+    RadioGroupRootProps,
+    keyof RadioGroupRootOptions
+  >(props, RADIO_GROUP_ROOT_KEYS);
+  const {
+    value: valueProp,
+    defaultValue = null,
+    onValueChange,
+    name: nameProp,
+    form,
+    disabled: disabledProp,
+    readOnly: readOnlyProp,
+    invalid: invalidProp,
+    required: requiredProp,
+    orientation = defaults.orientation ?? "vertical",
+    id: idProp,
+  } = options;
   const fieldset = useFieldsetContext();
   const uid = useId();
   const id = idProp ?? uid;
   const rootRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(rootRef, ref);
   const [initialValue] = useState(valueProp ?? defaultValue);
   const [value, setValue] = useControllableState({ value: valueProp, defaultValue });
   const [focused, setFocused] = useState<{ value: string | null; visible: boolean }>({
     value: null,
     visible: false,
   });
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<RadioGroupPart>();
   const name = nameProp ?? id;
   const latest = useLatestRef({ value, name });
 
   const requestChange = (next: string | null, reason: RadioValueChangeReason, event?: Event) => {
-    const details = createChangeDetails(reason, event);
-    onValueChange?.(next, details);
-    if (!details.canceled) setValue(next);
+    if (emitChange(onValueChange, next, reason, event)) setValue(next);
   };
 
   const syncInputs = useCallback(() => {
@@ -118,21 +165,53 @@ export function useRadioGroupRoot({
     }
   }, [latest]);
 
-  const { fieldsetDisabled } = useFormControl(
-    rootRef,
-    () => {
-      if (value !== initialValue) requestChange(initialValue, "form-reset");
-      // The form resets its radios after the event, which overwrites the shown value.
-      requestAnimationFrame(syncInputs);
-    },
-    () => rootRef.current?.querySelector("input[type=radio]"),
-  );
+  // The generated name only groups the radios; a group given no `name` submits nothing.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (nameProp !== undefined || !root) return;
+    const scope = root.getRootNode();
+    const dropEntry = (event: Event) => {
+      const owner = root.querySelector<HTMLInputElement>("input[type=radio]")?.form;
+      if (owner && event.target === owner) (event as FormDataEvent).formData.delete(name);
+    };
+    scope.addEventListener("formdata", dropEntry, { capture: true });
+    return () => scope.removeEventListener("formdata", dropEntry, { capture: true });
+  }, [nameProp, name]);
 
-  const disabled = (disabledProp ?? fieldset?.disabled ?? false) || fieldsetDisabled;
-  const invalid = invalidProp ?? fieldset?.invalid ?? false;
+  const {
+    disabled,
+    readOnly,
+    invalid,
+    required,
+    labelId: fieldLabelId,
+    describedBy,
+  } = useFormFieldState(
+    {
+      disabled: disabledProp,
+      readOnly: readOnlyProp,
+      invalid: invalidProp ?? (fieldset?.invalid || undefined),
+      required: requiredProp,
+    },
+    {
+      elementRef: rootRef,
+      onReset() {
+        if (value !== initialValue) requestChange(initialValue, "form-reset");
+      },
+      input: () => rootRef.current?.querySelector("input[type=radio]"),
+      afterReset: syncInputs,
+    },
+  );
   const rootId = `radio-group:${id}`;
   const labelId = `radio-group:${id}:label`;
   const itemId = useCallback((item: string) => `radio-group:${id}:radio:${item}`, [id]);
+  const focusFirst = () => {
+    const root = rootRef.current;
+    const input =
+      root?.querySelector<HTMLInputElement>("input:not(:disabled):checked") ??
+      root?.querySelector<HTMLInputElement>("input:not(:disabled)");
+    input?.focus();
+  };
+  useFieldFocusControl(focusFirst);
 
   const context: RadioGroupContextValue = {
     value,
@@ -149,52 +228,43 @@ export function useRadioGroupRoot({
     itemId,
     inputId: (item) => `radio-group:${id}:radio:input:${item}`,
     itemTextId: (item) => `radio-group:${id}:radio:label:${item}`,
+    rendered,
+    reportRendered,
     focused,
     setFocused,
-    setLabelRendered,
-    focusFirst: () => {
-      const root = rootRef.current;
-      const input =
-        root?.querySelector<HTMLInputElement>("input:not(:disabled):checked") ??
-        root?.querySelector<HTMLInputElement>("input:not(:disabled)");
-      input?.focus();
-    },
+    focusFirst,
   };
 
   return {
     context,
     rootProps: {
-      ref: rootRef,
       id: rootId,
       role: "radiogroup",
-      "aria-labelledby": labelRendered ? labelId : fieldset?.ids.legend,
+      "aria-labelledby": rendered.label ?? fieldLabelId ?? fieldset?.legendId,
+      "aria-describedby": describedBy,
       "aria-required": required || undefined,
       "aria-disabled": disabled || undefined,
       "aria-readonly": readOnly || undefined,
       "aria-orientation": orientation,
       "data-orientation": orientation,
-      "data-disabled": dataAttr(disabled),
-      "data-invalid": dataAttr(invalid),
-      "data-required": dataAttr(required),
+      ...fieldStateAttributes({ disabled, invalid, required }),
+      ...(rest as Omit<P, keyof RadioGroupRootProps>),
+      ref: composedRef,
     },
   };
 }
 
-export function useRadioGroupLabelProps() {
+function useRadioGroupLabelProps(id: string | undefined) {
   const context = useRadioGroupContext("RadioGroup.Label");
-  const { setLabelRendered } = context;
-
-  useLayoutEffect(() => {
-    setLabelRendered(true);
-    return () => setLabelRendered(false);
-  }, [setLabelRendered]);
 
   return {
-    id: context.labelId,
+    id: useReportRendered(context.reportRendered, "label", id ?? context.labelId),
     "data-orientation": context.orientation,
-    "data-disabled": dataAttr(context.disabled),
-    "data-invalid": dataAttr(context.invalid),
-    "data-required": dataAttr(context.required),
+    ...fieldStateAttributes({
+      disabled: context.disabled,
+      invalid: context.invalid,
+      required: context.required,
+    }),
     onClick: context.focusFirst,
   };
 }
@@ -204,6 +274,8 @@ export interface RadioItemOptions {
   disabled?: boolean | undefined;
   invalid?: boolean | undefined;
 }
+
+type RadioItemPart = "input" | "text";
 
 export interface RadioItemState {
   value: string;
@@ -216,7 +288,10 @@ export interface RadioItemState {
 export interface RadioItem {
   state: RadioItemState;
   attributes: RadioItemAttributes;
-  textId: string;
+  /** The ids its input and text render with unless given their own. */
+  ids: Record<RadioItemPart, string>;
+  reportRendered: ReportRendered<RadioItemPart>;
+  inputProps: InputHTMLAttributes<HTMLInputElement>;
 }
 
 type RadioItemAttributes = Record<
@@ -229,25 +304,27 @@ type RadioItemAttributes = Record<
   "" | undefined
 > & { "data-orientation": RadioGroupOrientation };
 
-const RadioItemContext = createContext<RadioItem | null>(null);
+export const [RadioItemContext, useRadioItemContext] = createPartContext<RadioItem>("a radio item");
 
 export const RadioItemProvider = RadioItemContext.Provider;
 
-export function useRadioItemContext(part: string): RadioItem {
-  const context = useContext(RadioItemContext);
-  if (!context) throw new Error(`${part} must be placed inside a radio item.`);
-  return context;
-}
-
-const hiddenInputClass = visuallyHidden();
-
-/** The props of a radio item's parts: the `<label>`, its hidden input, control and text. */
+/**
+ * The props of a radio item's parts: the `<label>`, given its own `id`, its hidden input, control
+ * and text.
+ */
 export function useRadioItem({
   value,
   disabled: disabledProp,
   invalid: invalidProp,
-}: RadioItemOptions) {
+  id,
+}: RadioItemOptions & { id?: string | undefined }) {
   const group = useRadioGroupContext("A radio item");
+  const [rendered, reportRendered] = useRenderedParts<RadioItemPart>();
+  const itemId = useReportRendered(
+    group.reportRendered,
+    `item:${value}`,
+    id ?? group.itemId(value),
+  );
   const state: RadioItemState = {
     value,
     checked: group.value === value,
@@ -256,18 +333,19 @@ export function useRadioItem({
     focusVisible: group.focused.value === value && group.focused.visible,
   };
   const attributes: RadioItemAttributes = {
-    "data-checked": dataAttr(state.checked),
-    "data-unchecked": dataAttr(!state.checked),
-    "data-disabled": dataAttr(state.disabled),
-    "data-read-only": dataAttr(group.readOnly),
-    "data-invalid": dataAttr(state.invalid),
+    ...checkedStateAttributes(state.checked),
+    ...fieldStateAttributes({
+      disabled: state.disabled,
+      readOnly: group.readOnly,
+      invalid: state.invalid,
+    }),
     "data-focus-visible": dataAttr(state.focusVisible),
     "data-orientation": group.orientation,
   };
-  const inputId = group.inputId(value);
+  const ids = { input: group.inputId(value), text: group.itemTextId(value) };
 
   const inputProps: InputHTMLAttributes<HTMLInputElement> = {
-    id: inputId,
+    id: ids.input,
     type: "radio",
     className: hiddenInputClass,
     name: group.name,
@@ -275,8 +353,8 @@ export function useRadioItem({
     value,
     required: group.required,
     checked: state.checked,
-    disabled: state.disabled || group.readOnly,
-    "aria-labelledby": group.itemTextId(value),
+    disabled: state.disabled,
+    "aria-labelledby": rendered.text,
     "aria-invalid": state.invalid || undefined,
     onClick(event: MouseEvent<HTMLInputElement>) {
       if (group.readOnly) event.preventDefault();
@@ -294,85 +372,126 @@ export function useRadioItem({
   };
 
   return {
-    item: { state, attributes, textId: group.itemTextId(value) } satisfies RadioItem,
+    item: { state, attributes, ids, reportRendered, inputProps } satisfies RadioItem,
     itemProps: {
       ...attributes,
-      id: group.itemId(value),
-      htmlFor: inputId,
+      id: itemId,
+      htmlFor: rendered.input,
       onPointerDown(event: PointerEvent<HTMLElement>) {
         if (state.disabled || event.button !== 0) return;
         // A mouse press on the label would blur the focused input to the body.
         if (group.focused.value === value && event.pointerType === "mouse") event.preventDefault();
       },
       onClick() {
-        if (!state.disabled && isSafari()) document.getElementById(inputId)?.focus();
+        if (state.disabled || !isSafari() || !rendered.input) return;
+        document.getElementById(rendered.input)?.focus();
       },
     },
-    inputProps,
   };
 }
 
-export interface RadioIndicatorRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
+type HiddenInputProps = ComponentProps<typeof renderable.input>;
+
+/** The native radio of the item its `RadioItemProvider` gives, with `props` merged over its own. */
+export function RadioItemHiddenInput(props: HiddenInputProps) {
+  const { inputProps, ids, reportRendered } = useRadioItemContext("SegmentGroup.ItemHiddenInput");
+  const id = useReportRendered(reportRendered, "input", props.id ?? ids.input);
+  return <renderable.input {...mergeProps<HiddenInputProps>(inputProps, props, { id })} />;
 }
 
-const sameRect = (a: RadioIndicatorRect | null, b: RadioIndicatorRect | null) =>
-  a === b ||
-  (a !== null &&
-    b !== null &&
-    a.left === b.left &&
-    a.top === b.top &&
-    a.width === b.width &&
-    a.height === b.height);
+/** The id a radio item's text renders with, `id` when given, which names its radio. */
+export function useRadioItemTextId(item: RadioItem, id?: string): string {
+  return useReportRendered(item.reportRendered, "text", id ?? item.ids.text);
+}
 
-const offsetRect = (element: HTMLElement): RadioIndicatorRect => ({
-  left: element.offsetLeft,
-  top: element.offsetTop,
-  width: element.offsetWidth,
-  height: element.offsetHeight,
-});
-
-/** The checked item's offset box, kept current as the items resize, for an indicator that slides to it. */
-export function useRadioIndicator() {
+function useRadioIndicator() {
   const group = useRadioGroupContext("RadioGroup.Indicator");
-  const { rootId, itemId: itemIdOf, orientation } = group;
-  const [rect, setRect] = useState<RadioIndicatorRect | null>(null);
-  const itemId = group.value === null ? null : itemIdOf(group.value);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const item = itemId === null ? null : document.getElementById(itemId);
-      const next = item ? offsetRect(item) : null;
-      setRect((previous) => (sameRect(previous, next) ? previous : next));
-    };
-    measure();
-    const root = document.getElementById(rootId);
-    if (!root) return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(root, { box: "border-box" });
-    for (const radio of root.querySelectorAll<HTMLInputElement>("input[type=radio]")) {
-      const item = document.getElementById(itemIdOf(radio.value));
-      if (item) observer.observe(item, { box: "border-box" });
-    }
-    return () => observer.disconnect();
-  }, [rootId, itemId, itemIdOf, orientation]);
-
-  const empty =
-    !rect || (rect.left === 0 && rect.top === 0 && rect.width === 0 && rect.height === 0);
+  const { rootId, rendered, value } = group;
+  const itemOf = (item: string) => {
+    const id = rendered[`item:${item}`];
+    return id === undefined ? null : document.getElementById(id);
+  };
+  const indicator = useSlidingIndicator(
+    {
+      selected: () => (value === null ? null : itemOf(value)),
+      observed: () => {
+        const root = document.getElementById(rootId);
+        if (!root) return [];
+        const radios = [...root.querySelectorAll<HTMLInputElement>("input[type=radio]")];
+        const items = radios.map((radio) => itemOf(radio.value));
+        return [root, ...items.filter((item) => item !== null)];
+      },
+    },
+    // The items report their ids after the first commit.
+    value === null ? null : (rendered[`item:${value}`] ?? null),
+    group.orientation,
+  );
   return {
-    hidden: group.value === null || empty,
+    ...indicator,
     "data-orientation": group.orientation,
     "data-disabled": dataAttr(group.disabled),
-    style: rect
-      ? {
-          "--indicator-left": `${rect.left}px`,
-          "--indicator-top": `${rect.top}px`,
-          "--indicator-width": `${rect.width}px`,
-          "--indicator-height": `${rect.height}px`,
-        }
-      : undefined,
   };
+}
+
+interface RadioGroupPartSlots<L, I, C, T> {
+  Label: ComponentType<L>;
+  Indicator: ComponentType<I>;
+  ItemControl: ComponentType<C>;
+  ItemText: ComponentType<T>;
+}
+
+/**
+ * A radio group's label, the indicator that slides to its checked item, and an item's control and
+ * text, on the recipe's styled `slots`; `owner` names them in a missing-context error.
+ */
+export function createRadioGroupParts<
+  L extends object,
+  I extends { style?: CSSProperties | undefined },
+  C extends object,
+  T extends object,
+>(slots: RadioGroupPartSlots<L, I, C, T>, owner: string) {
+  const { Label: StyledLabel, Indicator: StyledIndicator } = slots;
+  const { ItemControl: StyledItemControl, ItemText: StyledItemText } = slots;
+
+  function Label(props: L) {
+    const own = useRadioGroupLabelProps((props as { id?: string | undefined }).id);
+    return <StyledLabel {...mergeProps<L>(own as L, props)} />;
+  }
+
+  /** Slides to the checked item. */
+  function Indicator(props: I) {
+    const { style, ...indicator } = useRadioIndicator();
+    return (
+      <StyledIndicator
+        {...indicator}
+        {...props}
+        style={{ ...style, ...props.style }}
+      />
+    );
+  }
+
+  function ItemControl(props: C) {
+    const { attributes } = useRadioItemContext(`${owner}.ItemControl`);
+    return (
+      <StyledItemControl
+        aria-hidden
+        {...attributes}
+        {...props}
+      />
+    );
+  }
+
+  function ItemText(props: T) {
+    const item = useRadioItemContext(`${owner}.ItemText`);
+    const textId = useRadioItemTextId(item, (props as { id?: string | undefined }).id);
+    return (
+      <StyledItemText
+        {...item.attributes}
+        {...props}
+        id={textId}
+      />
+    );
+  }
+
+  return { Label, Indicator, ItemControl, ItemText };
 }

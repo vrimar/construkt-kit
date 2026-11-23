@@ -3,9 +3,9 @@ import { type ReactNode, useRef } from "react";
 
 import { HStack, splitCssProps } from "#styled-system/jsx";
 
-import { isAriaExpanded } from "../../foundations/dom";
+import { isAriaTrue } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import type { WithRef } from "../../types";
+import { dataAttr } from "../../primitives/render";
 import { Text } from "../Text";
 import { Button, type ButtonProps } from "./Button";
 import { ClearButton } from "./ClearButton";
@@ -33,7 +33,7 @@ export const SelectButton = ({
   onClear,
   clearLabel = "Clear selection",
   ...props
-}: WithRef<SelectButtonProps, HTMLButtonElement>) => {
+}: SelectButtonProps) => {
   const mainRef = useRef<HTMLButtonElement>(null);
   const composedRef = useComposedRefs(ref, mainRef);
   const palette = active ? "brand" : "neutral";
@@ -53,7 +53,7 @@ export const SelectButton = ({
         </Text>
       )}
       <TruncatedLabel
-        expanded={isAriaExpanded(props["aria-expanded"])}
+        expanded={isAriaTrue(props["aria-expanded"])}
         flex="1"
         textAlign="left"
         color={hasValue ? undefined : "fg.subtle"}
@@ -70,7 +70,7 @@ export const SelectButton = ({
     { variant: inactiveVariant = "outline", ...buttonProps },
   ] = splitCssProps(props);
   const variant = active ? "subtle" : inactiveVariant;
-  const invalid = buttonProps["aria-invalid"] === true || buttonProps["aria-invalid"] === "true";
+  const invalid = isAriaTrue(buttonProps["aria-invalid"]);
 
   return (
     <SplitButton.Root
@@ -94,7 +94,7 @@ export const SelectButton = ({
         <ClearButton
           variant={variant}
           colorPalette={colorPalette}
-          data-invalid={invalid ? "" : undefined}
+          data-invalid={dataAttr(invalid)}
           borderWidth={active ? "1px" : undefined}
           borderColor={active ? "colorPalette.subtle.border" : undefined}
           size={buttonProps.size}

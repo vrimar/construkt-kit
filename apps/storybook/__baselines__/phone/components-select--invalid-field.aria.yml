@@ -1,4 +1,3 @@
-- group:
-  - text: Fruit
-  - button "Fruit Select fruit"
-  - text: Pick a fruit.
+- text: Fruit
+- button "Fruit Select fruit"
+- text: Pick a fruit.

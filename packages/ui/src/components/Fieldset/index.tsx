@@ -3,15 +3,16 @@ import type { ComponentProps } from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { fieldset } from "#styled-system/recipes";
 
+import { useReportRendered } from "../../hooks/useRenderedParts";
 import {
   type FieldsetContextValue,
   FieldsetContext,
   joinIds,
-  useFieldMessage,
+  useFieldMessageProps,
   useFieldsetContext,
   useFieldsetRoot,
 } from "../../primitives/field";
-import { dataAttr, renderable } from "../../primitives/render";
+import { fieldStateAttributes, renderable } from "../../primitives/render";
 
 const { withProvider, withContext } = createSlotRecipeContext(fieldset);
 
@@ -46,8 +47,7 @@ function Root({
       <StyledRoot
         id={id}
         disabled={context.disabled}
-        data-disabled={dataAttr(context.disabled)}
-        data-invalid={dataAttr(context.invalid)}
+        {...fieldStateAttributes(context)}
         aria-describedby={joinIds([describedBy, context.describedBy])}
         {...props}
       />
@@ -55,36 +55,31 @@ function Root({
   );
 }
 
-function Legend(props: ComponentProps<typeof StyledLegend>) {
+function Legend({ id, ...props }: ComponentProps<typeof StyledLegend>) {
   const context = useFieldset();
+  const legendId = useReportRendered(context.reportRendered, "legend", id ?? context.ids.legend);
   return (
     <StyledLegend
-      id={context.ids.legend}
-      data-disabled={dataAttr(context.disabled)}
-      data-invalid={dataAttr(context.invalid)}
+      id={legendId}
+      {...fieldStateAttributes(context)}
       {...props}
     />
   );
 }
 
-function HelperText(props: ComponentProps<typeof StyledHelperText>) {
-  const context = useFieldset();
-  useFieldMessage(context.setMessageRendered, "helperText");
+function HelperText({ id, ...props }: ComponentProps<typeof StyledHelperText>) {
   return (
     <StyledHelperText
-      id={context.ids.helperText}
+      {...useFieldMessageProps(useFieldset(), "helperText", id)}
       {...props}
     />
   );
 }
 
-function RenderedErrorText(props: ComponentProps<typeof StyledErrorText>) {
-  const context = useFieldset();
-  useFieldMessage(context.setMessageRendered, "errorText");
+function RenderedErrorText({ id, ...props }: ComponentProps<typeof StyledErrorText>) {
   return (
     <StyledErrorText
-      id={context.ids.errorText}
-      aria-live="polite"
+      {...useFieldMessageProps(useFieldset(), "errorText", id)}
       {...props}
     />
   );

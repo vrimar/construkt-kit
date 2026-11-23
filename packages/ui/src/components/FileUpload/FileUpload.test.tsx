@@ -35,6 +35,32 @@ describe("FileUpload", () => {
     expect(rows()).toHaveLength(2);
   });
 
+  it("refuses a file it holds but takes one modified at another time", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const onFileReject = vi.fn();
+    const { container } = render(
+      <FileUpload.Root
+        maxFiles={5}
+        onValueChange={onValueChange}
+        onFileReject={onFileReject}
+      >
+        <FileUpload.HiddenInput />
+      </FileUpload.Root>,
+    );
+
+    await user.upload(hiddenInput(container), new File(["a"], "a.txt", { lastModified: 1 }));
+    await user.upload(hiddenInput(container), [
+      new File(["a"], "a.txt", { lastModified: 1 }),
+      new File(["a"], "a.txt", { lastModified: 2 }),
+    ]);
+
+    expect(onValueChange.mock.lastCall?.[0]).toHaveLength(2);
+    expect(
+      onFileReject.mock.lastCall?.[0].map((rejection: { errors: string[] }) => rejection.errors),
+    ).toEqual([["FILE_EXISTS"]]);
+  });
+
   it("refuses the whole pick when it would go past maxFiles", async () => {
     const user = userEvent.setup();
     const onValueChange = vi.fn();

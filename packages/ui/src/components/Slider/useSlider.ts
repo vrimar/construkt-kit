@@ -1,3 +1,4 @@
+import { getPercentValue, getValuePercent, sameItems } from "@construkt-kit/utils";
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -10,24 +11,35 @@ import {
   useState,
 } from "react";
 
+import { isModifierKey, isRtl } from "../../foundations/dom";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { trackPointerMove } from "../../primitives/drag";
-import { useFieldControlState, useFormControl } from "../../primitives/field";
+import { useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import {
+  useFieldFocusControl,
+  useFormFieldState,
+  useHiddenInputValue,
+} from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
 import { dataAttr } from "../../primitives/render";
-import { clampValue, getEventStepValue, isModifierKey } from "../numberMath";
+import {
+  type Point,
+  getGrabOffset,
+  getPointerPercent,
+  getSliderKeyAction,
+  getThumbPlacement,
+  sliderThumbAria,
+  useValueDrag,
+} from "../sliderCore";
 import {
   type SliderBounds,
   type ThumbCollisionBehavior,
   type ThumbGeometry,
   getClosestIndex,
-  getPercentValue,
   getRangeAtIndex,
   getRangeOffsets,
   getThumbOffset,
-  getValuePercent,
   normalizeValues,
   resolveThumbCollision,
   selectMovableThumb,
@@ -88,15 +100,35 @@ export interface SliderOptions {
   id?: string | undefined;
 }
 
+/** Every `SliderOptions` key, to split them off the root's props. */
+export const SLIDER_OPTION_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  onValueChangeEnd: true,
+  onFocusChange: true,
+  min: true,
+  max: true,
+  step: true,
+  largeStep: true,
+  minStepsBetweenThumbs: true,
+  orientation: true,
+  origin: true,
+  thumbAlignment: true,
+  thumbCollisionBehavior: true,
+  thumbSize: true,
+  getAriaValueText: true,
+  "aria-label": true,
+  "aria-labelledby": true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  name: true,
+  form: true,
+  id: true,
+} as const satisfies Record<keyof SliderOptions, true>;
+
 type Phase = "idle" | "focus" | "dragging";
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-const isSameValue = (a: number[], b: number[]) =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
 
 export function useSlider(options: SliderOptions) {
   const {
@@ -116,11 +148,6 @@ export function useSlider(options: SliderOptions) {
   const uid = useId();
   const id = options.id ?? uid;
   const { dir } = useLocale();
-  const field = useFieldControlState({
-    disabled: options.disabled,
-    readOnly: options.readOnly,
-    invalid: options.invalid,
-  });
 
   const [defaultValue] = useState(() => normalizeValues(options.defaultValue ?? [min], bounds));
   const controlled =
@@ -133,14 +160,13 @@ export function useSlider(options: SliderOptions) {
     width: number;
     height: number;
   } | null>(null);
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<"label">();
 
   const rootRef = useRef<HTMLDivElement>(null);
   const controlRef = useRef<HTMLDivElement>(null);
   const valueRef = useRef(value);
   const phaseRef = useRef<Phase>("idle");
   const focusedIndexRef = useRef(-1);
-  const dragOffsetRef = useRef<Point | null>(null);
   const dragStartRef = useRef<number[] | null>(null);
 
   useLayoutEffect(() => {
@@ -166,7 +192,7 @@ export function useSlider(options: SliderOptions) {
     marker: (markerValue: number) => `slider:${id}:marker:${markerValue}`,
   };
 
-  const latest = useLatestRef({ options, bounds, geometry, dir, vertical, ids });
+  const latest = useLatestRef({ options, bounds, geometry, vertical, ids });
 
   function setPhase(next: Phase) {
     phaseRef.current = next;
@@ -181,17 +207,15 @@ export function useSlider(options: SliderOptions) {
   }
 
   function change(next: number[], reason: SliderValueChangeReason, event?: Event) {
-    if (isSameValue(next, valueRef.current)) return;
-    const details = createChangeDetails(reason, event);
-    latest.current.options.onValueChange?.(next, details);
-    if (details.canceled) return;
+    if (sameItems(next, valueRef.current)) return;
+    if (!emitChange(latest.current.options.onValueChange, next, reason, event)) return;
     if (latest.current.options.value === undefined) valueRef.current = next;
     setValue(next);
   }
 
   function changeEnd(reason: SliderValueChangeEndDetails["reason"], from: number[]) {
     queueMicrotask(() => {
-      if (isSameValue(valueRef.current, from)) return;
+      if (sameItems(valueRef.current, from)) return;
       latest.current.options.onValueChangeEnd?.(valueRef.current, { reason });
     });
   }
@@ -208,24 +232,14 @@ export function useSlider(options: SliderOptions) {
   function getPointValue(point: Point) {
     const control = controlRef.current;
     if (!control) return undefined;
-    const {
-      geometry: current,
-      bounds: range,
-      dir: direction,
-      vertical: isVertical,
-    } = latest.current;
-    const offset = dragOffsetRef.current;
-    const x = point.x - (offset?.x ?? 0);
-    const y = point.y - (offset?.y ?? 0);
+    const { geometry: current, bounds: range, vertical: isVertical } = latest.current;
     const size = current.thumbSize;
     const inset = current.contain ? (isVertical ? (size?.height ?? 0) : (size?.width ?? 0)) / 2 : 0;
-    const rect = control.getBoundingClientRect();
-    const width = rect.width - inset * 2;
-    const height = rect.height - inset * 2;
-    const percentX = width > 0 ? clampValue((x - rect.left - inset) / width, 0, 1) : 0;
-    const percentY = height > 0 ? clampValue((y - rect.top - inset) / height, 0, 1) : 0;
-    const percent = isVertical ? 1 - percentY : direction === "rtl" ? 1 - percentX : percentX;
-    return getPercentValue(percent, range.min, range.max, range.step);
+    const percent = getPointerPercent(point, control.getBoundingClientRect(), {
+      rtl: isRtl(control),
+      inset,
+    });
+    return getPercentValue(isVertical ? percent.y : percent.x, range.min, range.max, range.step);
   }
 
   function setPointerValue(point: Point, event?: Event) {
@@ -244,63 +258,45 @@ export function useSlider(options: SliderOptions) {
     change(result.values, "pointer", event);
   }
 
-  function startDrag() {
-    dragStartRef.current = valueRef.current.slice();
-    setPhase("dragging");
-    focusActiveThumb();
-  }
-
-  function endDrag(cancelled: boolean) {
-    const from = dragStartRef.current ?? valueRef.current;
-    dragOffsetRef.current = null;
-    dragStartRef.current = null;
-    if (cancelled) {
-      setFocusedIndex(-1);
-      setPhase("idle");
-      return;
-    }
-    setPhase("focus");
-    focusActiveThumb();
-    changeEnd("pointer", from);
-  }
-
-  const actions = useLatestRef({ setPointerValue, endDrag });
-
-  const { fieldsetDisabled } = useFormControl(
-    rootRef,
-    () => change(initialValue, "form-reset"),
-    () => rootRef.current?.ownerDocument.getElementById(ids.hiddenInput(0)),
+  const field = useFormFieldState(
+    { disabled: options.disabled, readOnly: options.readOnly, invalid: options.invalid },
+    {
+      elementRef: rootRef,
+      onReset: () => change(initialValue, "form-reset"),
+      input: () => rootRef.current?.ownerDocument.getElementById(ids.hiddenInput(0)),
+    },
   );
-  const disabled = field.disabled || fieldsetDisabled;
+  const { disabled } = field;
   const interactive = !(field.readOnly || disabled);
 
-  useEffect(() => {
-    const doc = rootRef.current?.ownerDocument;
-    if (phase !== "dragging" || !doc) return;
-    return trackPointerMove(doc, {
-      onMove: (point) => actions.current.setPointerValue(point),
-      onUp: () => actions.current.endDrag(false),
-    });
-  }, [phase, actions]);
+  const drag = useValueDrag(rootRef, {
+    disabled,
+    onMove: (point) => setPointerValue(point),
+    onEnd(released) {
+      const from = dragStartRef.current ?? valueRef.current;
+      dragStartRef.current = null;
+      if (released) {
+        setPhase("focus");
+        focusActiveThumb();
+      } else {
+        setFocusedIndex(-1);
+        setPhase("idle");
+      }
+      changeEnd("pointer", from);
+    },
+  });
 
-  useEffect(() => {
-    if (disabled && phaseRef.current === "dragging") actions.current.endDrag(true);
-  }, [disabled, actions]);
+  function startDrag(grab?: Point) {
+    dragStartRef.current = valueRef.current.slice();
+    setPhase("dragging");
+    drag.start(grab);
+    focusActiveThumb();
+  }
 
-  const valueKey = value.join(",");
-  const previousValueKey = useRef(valueKey);
-  useLayoutEffect(() => {
-    if (previousValueKey.current === valueKey) return;
-    previousValueKey.current = valueKey;
-    const doc = rootRef.current?.ownerDocument;
-    valueKey.split(",").forEach((text, index) => {
-      const input = doc?.getElementById(latest.current.ids.hiddenInput(index));
-      if (!(input instanceof HTMLInputElement)) return;
-      input.value = text;
-      input.setAttribute("value", text);
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-  }, [valueKey, latest]);
+  useHiddenInputValue((index) => {
+    const input = rootRef.current?.ownerDocument.getElementById(ids.hiddenInput(index));
+    return input instanceof HTMLInputElement ? input : null;
+  }, value.map(String));
 
   const thumbCount = value.length;
   useEffect(() => {
@@ -332,7 +328,12 @@ export function useSlider(options: SliderOptions) {
   };
   const percents = value.map((entry) => 100 * getValuePercent(entry, min, max));
   const range = getRangeOffsets(percents, origin);
-  const labelledBy = labelRendered ? ids.label : (field.labelId ?? ids.label);
+  const labelledBy = rendered.label ?? field.labelId;
+  const focusFirstThumb = () =>
+    rootRef.current?.ownerDocument.getElementById(ids.thumb(0))?.focus();
+  useFieldFocusControl(() => {
+    if (interactive) focusFirstThumb();
+  });
 
   const thumbProps = (index: number) => {
     const thumbValue = value[index];
@@ -342,8 +343,14 @@ export function useSlider(options: SliderOptions) {
     const offset = getThumbOffset(thumbValue, geometry);
     return {
       id: ids.thumb(index),
-      role: "slider",
-      tabIndex: disabled ? undefined : 0,
+      ...sliderThumbAria({
+        value: thumbValue,
+        min: thumbRange.min,
+        max: thumbRange.max,
+        valueText: options.getAriaValueText?.({ value: thumbValue, index }),
+        orientation,
+        disabled,
+      }),
       draggable: false,
       "data-index": index,
       "data-disabled": dataAttr(disabled),
@@ -351,33 +358,17 @@ export function useSlider(options: SliderOptions) {
       "data-focus": dataAttr(focused && focusedIndex === index),
       "data-dragging": dataAttr(dragging && focusedIndex === index),
       "data-hidden": dataAttr(measuring),
-      "aria-disabled": disabled || undefined,
       "aria-label": Array.isArray(ariaLabel) ? ariaLabel[index] : ariaLabel,
       "aria-labelledby":
         (Array.isArray(ariaLabelledBy) ? ariaLabelledBy[index] : ariaLabelledBy) ?? labelledBy,
-      "aria-orientation": orientation,
-      "aria-valuemax": thumbRange.max,
-      "aria-valuemin": thumbRange.min,
-      "aria-valuenow": thumbValue,
-      "aria-valuetext": options.getAriaValueText?.({ value: thumbValue, index }),
-      style: (vertical
-        ? { bottom: offset, transform: "translateY(50%)" }
-        : {
-            insetInlineStart: offset,
-            transform: rtl ? "translateX(50%)" : "translateX(-50%)",
-          }) satisfies CSSProperties,
+      style: getThumbPlacement(vertical ? { y: offset } : { x: offset }, rtl),
       onPointerDown(event: PointerEvent<HTMLElement>) {
         if (!interactive || event.button !== 0) return;
         event.stopPropagation();
         const from = phaseRef.current;
         if (from !== "idle" && from !== "focus") return;
-        const rect = event.currentTarget.getBoundingClientRect();
-        dragOffsetRef.current = {
-          x: event.clientX - (rect.left + rect.width / 2),
-          y: event.clientY - (rect.top + rect.height / 2),
-        };
         setFocusedIndex(selectMovableThumb(valueRef.current, index, max));
-        startDrag();
+        startDrag(getGrabOffset({ x: event.clientX, y: event.clientY }, event.currentTarget));
       },
       onFocus() {
         if (!interactive || phaseRef.current !== "idle") return;
@@ -392,44 +383,14 @@ export function useSlider(options: SliderOptions) {
       },
       onKeyDown(event: KeyboardEvent<HTMLElement>) {
         if (event.defaultPrevented || !interactive || phaseRef.current !== "focus") return;
-        const by = getEventStepValue(event, { step, largeStep });
-        const key =
-          rtl && (event.key === "ArrowLeft" || event.key === "ArrowRight")
-            ? event.key === "ArrowLeft"
-              ? "ArrowRight"
-              : "ArrowLeft"
-            : event.key;
+        const action = getSliderKeyAction(event, { step, largeStep, orientation, dir });
+        if (action === undefined) return;
         const active = focusedIndexRef.current;
         const current = valueRef.current;
-        let next: number[] | undefined;
-        if (
-          (key === "ArrowUp" && vertical) ||
-          (key === "ArrowRight" && !vertical) ||
-          key === "PageUp"
-        ) {
-          next = stepThumb(current, active, 1, by, bounds);
-        } else if (
-          (key === "ArrowDown" && vertical) ||
-          (key === "ArrowLeft" && !vertical) ||
-          key === "PageDown"
-        ) {
-          next = stepThumb(current, active, -1, by, bounds);
-        } else if (key === "Home") {
-          next = setValueAtIndex(current, active, getRangeAtIndex(current, active, bounds).min);
-        } else if (key === "End") {
-          next = setValueAtIndex(current, active, getRangeAtIndex(current, active, bounds).max);
-        } else if (
-          key === "ArrowUp" ||
-          key === "ArrowDown" ||
-          key === "ArrowLeft" ||
-          key === "ArrowRight"
-        ) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        } else {
-          return;
-        }
+        const next =
+          typeof action === "number"
+            ? stepThumb(current, active, action > 0 ? 1 : -1, Math.abs(action), bounds)
+            : setValueAtIndex(current, active, getRangeAtIndex(current, active, bounds)[action]);
         change(next, "keyboard", event.nativeEvent);
         changeEnd("keyboard", current);
         event.preventDefault();
@@ -440,9 +401,7 @@ export function useSlider(options: SliderOptions) {
 
   return {
     value,
-    state: { disabled, invalid, focused, dragging, orientation },
-    common,
-    setLabelRendered,
+    reportRendered,
     rootProps: {
       ref: rootRef,
       id: ids.root,
@@ -458,7 +417,7 @@ export function useSlider(options: SliderOptions) {
       onClick(event: MouseEvent<HTMLElement>) {
         if (!interactive) return;
         event.preventDefault();
-        rootRef.current?.ownerDocument.getElementById(ids.thumb(0))?.focus();
+        focusFirstThumb();
       },
     },
     controlProps: {
@@ -510,20 +469,15 @@ export function useSlider(options: SliderOptions) {
         "data-value": markerValue,
         "data-disabled": dataAttr(disabled),
         "data-hidden": dataAttr(measuring),
-        style: (vertical
-          ? { bottom: offset, translate: "0% 50%" }
-          : {
-              insetInlineStart: offset,
-              translate: rtl ? "50% 0%" : "-50% 0%",
-            }) satisfies CSSProperties,
+        style: getThumbPlacement(vertical ? { y: offset } : { x: offset }, rtl),
       };
     },
     thumbProps,
-    hiddenInputProps: (index: number, inputName?: string) => ({
+    hiddenInputProps: (index: number) => ({
       id: ids.hiddenInput(index),
       type: "text",
       hidden: true,
-      name: inputName ?? (name ? name + (value.length > 1 ? "[]" : "") : undefined),
+      name: name ? name + (value.length > 1 ? "[]" : "") : undefined,
       form,
       defaultValue: value[index],
     }),

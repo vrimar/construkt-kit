@@ -1,11 +1,10 @@
+import { clampValue } from "@construkt-kit/utils";
 import { EllipsisIcon } from "lucide-react";
 import {
   type ComponentProps,
   type MouseEvent,
   type ReactNode,
   Fragment,
-  createContext,
-  useContext,
   useLayoutEffect,
   useRef,
 } from "react";
@@ -14,9 +13,9 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { pagination } from "#styled-system/recipes";
 
 import { useControllableState } from "../../hooks/useControllableState";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import { type PaginationPage, getPageRange } from "./pageRange";
 
 export type { PaginationPage };
@@ -27,10 +26,6 @@ const StyledRoot = withProvider(renderable.nav, "root");
 const StyledItemButton = withContext(renderable.button, "item");
 const StyledItemLink = withContext(renderable.a, "item");
 const StyledEllipsis = withContext(renderable.div, "ellipsis");
-const StyledPrevButton = withContext(renderable.button, "prevTrigger");
-const StyledPrevLink = withContext(renderable.a, "prevTrigger");
-const StyledNextButton = withContext(renderable.button, "nextTrigger");
-const StyledNextLink = withContext(renderable.a, "nextTrigger");
 
 export type PaginationChangeReason =
   | "item-press"
@@ -68,13 +63,8 @@ interface PaginationContextValue {
   setPage: (page: number, reason: PaginationChangeReason, event?: Event) => void;
 }
 
-const PaginationContext = createContext<PaginationContextValue | null>(null);
-
-function usePaginationContext(part: string): PaginationContextValue {
-  const context = useContext(PaginationContext);
-  if (!context) throw new Error(`Pagination.${part} must be placed inside <Pagination.Root>.`);
-  return context;
-}
+const [PaginationContext, usePaginationContext] =
+  createPartContext<PaginationContextValue>("<Pagination.Root>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
@@ -116,11 +106,9 @@ function Root({
   const totalPages = Math.ceil(count / pageSize);
 
   const setPage = (next: number, reason: PaginationChangeReason, event?: Event) => {
-    const clamped = Math.min(Math.max(next, 1), totalPages);
+    const clamped = clampValue(next, 1, totalPages);
     if (clamped === page) return;
-    const details = Object.assign(createChangeDetails(reason, event), { pageSize });
-    onValueChange?.(clamped, details);
-    if (!details.canceled) setPageState(clamped);
+    if (emitChange(onValueChange, clamped, reason, event, { pageSize })) setPageState(clamped);
   };
 
   const previousPageSize = useRef(pageSize);
@@ -128,9 +116,7 @@ function Root({
     if (previousPageSize.current === pageSize) return;
     previousPageSize.current = pageSize;
     if (page === 1 || (page >= 1 && page <= totalPages)) return;
-    const details = Object.assign(createChangeDetails("page-size-change"), { pageSize });
-    onValueChange?.(1, details);
-    if (!details.canceled) setPageState(1);
+    if (emitChange(onValueChange, 1, "page-size-change", undefined, { pageSize })) setPageState(1);
   });
 
   const context: PaginationContextValue = {
@@ -161,7 +147,7 @@ export interface PaginationItemsProps {
 }
 
 function Items({ render, ellipsis = <EllipsisIcon /> }: PaginationItemsProps) {
-  const context = usePaginationContext("Items");
+  const context = usePaginationContext("Pagination.Items");
 
   return context.pages.map((page, index) => {
     if (page.type === "ellipsis") {
@@ -185,7 +171,7 @@ export interface PaginationItemProps extends Omit<ItemButtonProps, "type" | "val
 }
 
 function Item({ value, type: _type, ...props }: PaginationItemProps) {
-  const context = usePaginationContext("Item");
+  const context = usePaginationContext("Pagination.Item");
   const selected = value === context.page;
   const link = context.type === "link";
   const own = {
@@ -211,73 +197,74 @@ function Item({ value, type: _type, ...props }: PaginationItemProps) {
       />
     );
   }
-  return <StyledItemButton {...mergeProps<ItemButtonProps>({ ...own, type: "button" }, props)} />;
+  return (
+    <StyledItemButton
+      {...mergeProps<ItemButtonProps>({ ...own, type: props.render ? undefined : "button" }, props)}
+    />
+  );
 }
 
-type TriggerButtonProps = ComponentProps<typeof StyledPrevButton>;
+const TRIGGERS = {
+  prev: {
+    part: "Pagination.PrevTrigger",
+    reason: "prev-press",
+    step: -1,
+    disabled: ({ page }: PaginationContextValue) => page === 1,
+    labelKey: "prevTriggerLabel",
+    label: "previous page",
+    Button: withContext(renderable.button, "prevTrigger"),
+    Link: withContext(renderable.a, "prevTrigger"),
+  },
+  next: {
+    part: "Pagination.NextTrigger",
+    reason: "next-press",
+    step: 1,
+    disabled: ({ page, totalPages }: PaginationContextValue) => page >= totalPages,
+    labelKey: "nextTriggerLabel",
+    label: "next page",
+    Button: withContext(renderable.button, "nextTrigger"),
+    Link: withContext(renderable.a, "nextTrigger"),
+  },
+} as const;
 
-function useTriggerProps(direction: "prev" | "next") {
-  const context = usePaginationContext(direction === "prev" ? "PrevTrigger" : "NextTrigger");
-  const target = direction === "prev" ? context.page - 1 : context.page + 1;
-  const disabled = direction === "prev" ? context.page === 1 : context.page >= context.totalPages;
-  const label =
-    direction === "prev"
-      ? (context.translations?.prevTriggerLabel ?? "previous page")
-      : (context.translations?.nextTriggerLabel ?? "next page");
-  const own = {
-    "data-disabled": dataAttr(disabled),
-    "aria-label": label,
-    onClick(event: MouseEvent<HTMLElement>) {
-      if (disabled) return;
-      context.setPage(
-        target,
-        direction === "prev" ? "prev-press" : "next-press",
-        event.nativeEvent,
+type TriggerButtonProps = ComponentProps<typeof TRIGGERS.prev.Button>;
+type TriggerLinkProps = ComponentProps<typeof TRIGGERS.prev.Link>;
+
+function triggerPart(trigger: (typeof TRIGGERS)[keyof typeof TRIGGERS]) {
+  const { part, reason, step, labelKey, label, Button, Link } = trigger;
+  return function Trigger(props: TriggerButtonProps) {
+    const context = usePaginationContext(part);
+    const target = context.page + step;
+    const disabled = trigger.disabled(context);
+    const own = {
+      "data-disabled": dataAttr(disabled),
+      "aria-label": context.translations?.[labelKey] ?? label,
+      onClick(event: MouseEvent<HTMLElement>) {
+        if (!disabled) context.setPage(target, reason, event.nativeEvent);
+      },
+    };
+
+    if (context.type === "button") {
+      return (
+        <Button
+          {...mergeProps<TriggerButtonProps>(
+            { ...own, type: props.render ? undefined : "button", disabled },
+            props,
+          )}
+        />
       );
-    },
-  };
-
-  if (context.type === "button") {
-    return { link: false, props: { ...own, type: "button" as const, disabled } };
-  }
-  if (disabled) {
-    return { link: true, props: { ...own, role: "link", "aria-disabled": true } };
-  }
-  return {
-    link: true,
-    props: { ...own, href: context.getPageUrl?.({ page: target, pageSize: context.pageSize }) },
+    }
+    const link = disabled
+      ? { role: "link", "aria-disabled": true }
+      : { href: context.getPageUrl?.({ page: target, pageSize: context.pageSize }) };
+    return (
+      <Link {...mergeProps<TriggerLinkProps>({ ...own, ...link }, props as TriggerLinkProps)} />
+    );
   };
 }
 
-function PrevTrigger(props: TriggerButtonProps) {
-  const trigger = useTriggerProps("prev");
-  if (trigger.link) {
-    return (
-      <StyledPrevLink
-        {...mergeProps<ComponentProps<typeof StyledPrevLink>>(
-          trigger.props,
-          props as ComponentProps<typeof StyledPrevLink>,
-        )}
-      />
-    );
-  }
-  return <StyledPrevButton {...mergeProps<TriggerButtonProps>(trigger.props, props)} />;
-}
-
-function NextTrigger(props: TriggerButtonProps) {
-  const trigger = useTriggerProps("next");
-  if (trigger.link) {
-    return (
-      <StyledNextLink
-        {...mergeProps<ComponentProps<typeof StyledNextLink>>(
-          trigger.props,
-          props as ComponentProps<typeof StyledNextLink>,
-        )}
-      />
-    );
-  }
-  return <StyledNextButton {...mergeProps<TriggerButtonProps>(trigger.props, props)} />;
-}
+const PrevTrigger = triggerPart(TRIGGERS.prev);
+const NextTrigger = triggerPart(TRIGGERS.next);
 
 export const Pagination = {
   Root,

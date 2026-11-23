@@ -1,6 +1,6 @@
 import preview from "@construkt-kit/story-kit/preview";
 
-import { VirtualScrollArea } from ".";
+import { VirtualScrollArea, type VirtualScrollAreaProps } from ".";
 import { Box } from "../Layout";
 import { Text } from "../Text";
 
@@ -12,43 +12,46 @@ const meta = preview.meta({
 
 const ITEMS = Array.from({ length: 1000 }, (_, i) => `Item ${i + 1}`);
 
+const Frame = <T,>(props: VirtualScrollAreaProps<T>) => (
+  <VirtualScrollArea
+    height="320px"
+    width="320px"
+    border="1px solid"
+    borderColor="border"
+    borderRadius="md"
+    {...props}
+  />
+);
+
+const renderItem = (item: string) => (
+  <Box
+    px="3"
+    height="40px"
+    display="flex"
+    alignItems="center"
+    borderBottom="1px solid"
+    borderColor="border"
+  >
+    <Text>{item}</Text>
+  </Box>
+);
+
 export const Default = meta.story({
   render: () => (
-    <VirtualScrollArea
+    <Frame
       items={ITEMS}
       itemHeight={40}
-      height="320px"
-      width="320px"
-      border="1px solid"
-      borderColor="border"
-      borderRadius="md"
     >
-      {(item) => (
-        <Box
-          px="3"
-          height="40px"
-          display="flex"
-          alignItems="center"
-          borderBottom="1px solid"
-          borderColor="border"
-        >
-          <Text>{item}</Text>
-        </Box>
-      )}
-    </VirtualScrollArea>
+      {renderItem}
+    </Frame>
   ),
 });
 
 export const WithHeader = meta.story({
   render: () => (
-    <VirtualScrollArea
+    <Frame
       items={ITEMS}
       itemHeight={40}
-      height="320px"
-      width="320px"
-      border="1px solid"
-      borderColor="border"
-      borderRadius="md"
       header={
         <Box
           px="3"
@@ -64,19 +67,8 @@ export const WithHeader = meta.story({
         </Box>
       }
     >
-      {(item) => (
-        <Box
-          px="3"
-          height="40px"
-          display="flex"
-          alignItems="center"
-          borderBottom="1px solid"
-          borderColor="border"
-        >
-          <Text>{item}</Text>
-        </Box>
-      )}
-    </VirtualScrollArea>
+      {renderItem}
+    </Frame>
   ),
 });
 
@@ -88,15 +80,10 @@ const VARIABLE_ITEMS = Array.from({ length: 200 }, (_, i) => ({
 
 export const VariableHeight = meta.story({
   render: () => (
-    <VirtualScrollArea
+    <Frame
       items={VARIABLE_ITEMS}
       itemHeight={(index) => (index % 3 === 0 ? 64 : 40)}
       measure
-      height="320px"
-      width="320px"
-      border="1px solid"
-      borderColor="border"
-      borderRadius="md"
       fadeEdges
     >
       {(item) => (
@@ -120,6 +107,6 @@ export const VariableHeight = meta.story({
           )}
         </Box>
       )}
-    </VirtualScrollArea>
+    </Frame>
   ),
 });

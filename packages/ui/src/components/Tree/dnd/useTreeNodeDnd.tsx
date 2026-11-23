@@ -2,24 +2,21 @@ import {
   attachInstruction,
   type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
-import {
-  draggable,
-  dropTargetForElements,
-} from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/utils/combine";
+import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { cssLengthToPx } from "../../../foundations/cssSize";
 import { isRtl } from "../../../foundations/dom";
 import { useLatestRef } from "../../../hooks/useLatestRef";
-import { DragPreview, useNativeDragPreview } from "../../dnd";
-import { useTreeContext, useTreeNodeState } from "../TreeView";
 import {
-  readTreeDragSource,
-  readTreeDropInstruction,
-  TREE_DND_INSTANCE_KEY,
-  useTreeDndContext,
-} from "./TreeDndContext";
+  isCrossOrientationCloseKey,
+  isCrossOrientationOpenKey,
+} from "../../../primitives/composite";
+import { useLocale } from "../../../primitives/locale";
+import { DragPreview, defineDragType, readDragData, toDragData, useDragSource } from "../../dnd";
+import { useTreeContext, useTreeNodeState } from "../TreeView";
+import { readTreeDropInstruction, useTreeDndContext } from "./TreeDndContext";
 import {
   canNestInto,
   getItemMode,
@@ -46,6 +43,8 @@ const FALLBACK_INDENT_PER_LEVEL = 20;
 /** No-op ref used when DnD is disabled so the row doesn't churn state on mount. */
 const NOOP_REF = () => {};
 
+const NO_DRAG_TYPE = defineDragType<string>("tree-node");
+
 /**
  * Whether two instructions render an identical indicator. `extractInstruction` returns a fresh
  * object every `onDrag` (≈ every pointer frame), so without this the row re-renders each frame
@@ -57,21 +56,8 @@ function isSameInstruction(a: TreeDropInstruction | null, b: TreeDropInstruction
   return a.type === b.type && instructionLevel(a) === instructionLevel(b);
 }
 
-/** Resolve a CSS length custom property to px (handles px/rem/em), else `fallback`. */
-function readCssLengthPx(element: Element, varName: string, fallback: number): number {
-  const raw = getComputedStyle(element).getPropertyValue(varName).trim();
-  const value = Number.parseFloat(raw);
-  if (!Number.isFinite(value)) return fallback;
-  if (raw.endsWith("rem")) {
-    const root = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-    return Number.isFinite(root) ? value * root : fallback;
-  }
-  if (raw.endsWith("em")) {
-    const font = Number.parseFloat(getComputedStyle(element).fontSize);
-    return Number.isFinite(font) ? value * font : fallback;
-  }
-  return value; // px or unitless
-}
+const readCssLengthPx = (element: Element, varName: string, fallback: number): number =>
+  cssLengthToPx(getComputedStyle(element).getPropertyValue(varName), element) ?? fallback;
 
 /**
  * The row is full-width with its content indented via `padding-inline-start`, so the row's
@@ -91,14 +77,12 @@ function mirrorForRtl<I extends { clientX: number }>(input: I, element: Element)
   return { ...input, clientX: left + right - input.clientX };
 }
 
-/** Logical keyboard reorder for an arrow key, honoring the element's writing direction. */
-function keyboardMoveForKey(key: string, element: HTMLElement): TreeKeyboardMove | undefined {
+/** Logical keyboard reorder for an arrow key, honoring the writing direction. */
+function keyboardMoveForKey(key: string, rtl: boolean): TreeKeyboardMove | undefined {
   if (key === "ArrowUp") return "up";
   if (key === "ArrowDown") return "down";
-  if (key === "ArrowRight" || key === "ArrowLeft") {
-    const towardStart = isRtl(element) ? "ArrowRight" : "ArrowLeft";
-    return key === towardStart ? "outdent" : "indent";
-  }
+  if (isCrossOrientationCloseKey(key, rtl)) return "outdent";
+  if (isCrossOrientationOpenKey(key, rtl)) return "indent";
   return undefined;
 }
 
@@ -111,23 +95,28 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   const nodeState = useTreeNodeState();
   const { tree } = useTreeContext();
   const dnd = useTreeDndContext();
+  const rtl = useLocale().dir === "rtl";
 
-  const [element, setElement] = useState<HTMLElement | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [instruction, setInstruction] = useState<TreeDropInstruction | null>(null);
 
   const value = nodeState.value;
-  const { preview: dragPreview, onGenerateDragPreview } = useNativeDragPreview(() => {
-    if (!dnd) return null;
-    return (
-      dnd.renderDragPreview(value) ?? (
-        <DragPreview
-          label={dnd.collectionRef.current.stringify(value) ?? ""}
-          count={dnd.getDragValues(value).length}
-        />
-      )
-    );
+  const dragSource = useDragSource({
+    type: dnd?.dragType ?? NO_DRAG_TYPE,
+    getData: () => value,
+    getExtraData: () => dnd?.getExtraDragData(value) ?? {},
+    canDrag: () => dnd?.canDrag(value) ?? false,
+    renderPreview: () =>
+      dnd
+        ? (dnd.renderDragPreview(value) ?? (
+            <DragPreview
+              label={dnd.collectionRef.current.stringify(value) ?? ""}
+              count={dnd.getDragValues(value).length}
+            />
+          ))
+        : null,
+    disabled: !dnd || dnd.disabled,
   });
+  const { element } = dragSource;
 
   const snapshotRef = useLatestRef(nodeState);
   const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,15 +124,13 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
   useEffect(() => {
     if (!element || !dnd || dnd.disabled) return;
     const {
-      instanceId,
+      dragType,
       collectionRef,
       blockReparent,
       autoExpandDelay,
-      canDrag,
       canDrop,
       isBranchLoaded,
       getDragValues,
-      getExtraDragData,
     } = dnd;
 
     const clearExpandTimer = () => {
@@ -155,7 +142,7 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
 
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.target !== element || !(event.ctrlKey || event.metaKey)) return;
-      const move = keyboardMoveForKey(event.key, element);
+      const move = keyboardMoveForKey(event.key, rtl);
       if (!move) return;
       const drop = dnd.moveByKeyboard(value, move);
       if (!drop) return;
@@ -168,97 +155,79 @@ export function useTreeNodeDnd(): UseTreeNodeDndReturn {
     };
     element.addEventListener("keydown", handleKeyDown);
 
-    const cleanup = combine(
-      draggable({
-        element,
-        canDrag: () => canDrag(value),
-        // Reserved keys last so consumer extra data can't clobber the instance id / value.
-        getInitialData: () => ({
-          ...getExtraDragData(value),
-          [TREE_DND_INSTANCE_KEY]: instanceId,
-          value,
-        }),
-        onGenerateDragPreview,
-        onDragStart: () => setIsDragging(true),
-        onDrop: () => setIsDragging(false),
-      }),
-      dropTargetForElements({
-        element,
-        canDrop: ({ source }) => {
-          const sourceValue = readTreeDragSource(source.data, instanceId);
-          return (
-            sourceValue !== null &&
-            isDropTargetValid(collectionRef.current, getDragValues(sourceValue), value)
-          );
-        },
-        getData: ({ input, element: el }) => {
-          const { indexPath, isBranch, expanded } = snapshotRef.current;
-          const mode = getItemMode({
-            isBranch,
-            isExpanded: expanded,
-            isLastChild: isLastChildOfParent(collectionRef.current, indexPath),
-          });
-          const block: Instruction["type"][] = [];
-          if (blockReparent) block.push("reparent");
-          const collection = collectionRef.current;
-          if (!canNestInto(collection, collection.at(indexPath), isBranchLoaded(value))) {
-            block.push("make-child");
-          }
-          const indent = readCssLengthPx(el, "--tree-indent", FALLBACK_INDENT_PER_LEVEL);
-          const baseInset = readCssLengthPx(el, "--tree-padding-inline", 0);
-          return attachInstruction(
-            { [TREE_DND_INSTANCE_KEY]: instanceId, value },
-            {
-              input: mirrorForRtl(input, el),
-              element: contentAlignedTarget(el, baseInset),
-              currentLevel: indexPath.length - 1,
-              indentPerLevel: indent,
-              mode,
-              block,
-            },
-          );
-        },
-        onDragEnter: () => {
-          // Auto-expand a hovered collapsed branch so its children become droppable/visible.
-          const { isBranch, expanded } = snapshotRef.current;
-          if (isBranch && !expanded && autoExpandDelay !== false) {
-            clearExpandTimer();
-            expandTimerRef.current = setTimeout(() => tree.expand([value]), autoExpandDelay);
-          }
-        },
-        onDrag: ({ self, source }) => {
-          const sourceValue = readTreeDragSource(source.data, instanceId);
-          const hovered = readTreeDropInstruction(self.data);
-          const next =
-            hovered &&
-            sourceValue !== null &&
-            canDrop({ sourceValue, targetValue: value, instruction: hovered })
-              ? hovered
-              : null;
-          setInstruction((current) => (isSameInstruction(current, next) ? current : next));
-        },
-        onDragLeave: () => {
+    const cleanup = dropTargetForElements({
+      element,
+      canDrop: ({ source }) => {
+        const sourceValue = readDragData(dragType, source.data);
+        return (
+          sourceValue !== undefined &&
+          isDropTargetValid(collectionRef.current, getDragValues(sourceValue), value)
+        );
+      },
+      getData: ({ input, element: el }) => {
+        const { indexPath, isBranch, expanded } = snapshotRef.current;
+        const mode = getItemMode({
+          isBranch,
+          isExpanded: expanded,
+          isLastChild: isLastChildOfParent(collectionRef.current, indexPath),
+        });
+        const block: Instruction["type"][] = [];
+        if (blockReparent) block.push("reparent");
+        const collection = collectionRef.current;
+        if (!canNestInto(collection, collection.at(indexPath), isBranchLoaded(value))) {
+          block.push("make-child");
+        }
+        const indent = readCssLengthPx(el, "--tree-indent", FALLBACK_INDENT_PER_LEVEL);
+        const baseInset = readCssLengthPx(el, "--tree-padding-inline", 0);
+        return attachInstruction(toDragData(dragType, value), {
+          input: mirrorForRtl(input, el),
+          element: contentAlignedTarget(el, baseInset),
+          currentLevel: indexPath.length - 1,
+          indentPerLevel: indent,
+          mode,
+          block,
+        });
+      },
+      onDragEnter: () => {
+        // Auto-expand a hovered collapsed branch so its children become droppable/visible.
+        const { isBranch, expanded } = snapshotRef.current;
+        if (isBranch && !expanded && autoExpandDelay !== false) {
           clearExpandTimer();
-          setInstruction(null);
-        },
-        onDrop: () => {
-          clearExpandTimer();
-          setInstruction(null);
-        },
-      }),
-    );
+          expandTimerRef.current = setTimeout(() => tree.expand([value]), autoExpandDelay);
+        }
+      },
+      onDrag: ({ self, source }) => {
+        const sourceValue = readDragData(dragType, source.data);
+        const hovered = readTreeDropInstruction(self.data);
+        const next =
+          hovered &&
+          sourceValue !== undefined &&
+          canDrop({ sourceValue, targetValue: value, instruction: hovered })
+            ? hovered
+            : null;
+        setInstruction((current) => (isSameInstruction(current, next) ? current : next));
+      },
+      onDragLeave: () => {
+        clearExpandTimer();
+        setInstruction(null);
+      },
+      onDrop: () => {
+        clearExpandTimer();
+        setInstruction(null);
+      },
+    });
 
     return () => {
       clearExpandTimer();
       element.removeEventListener("keydown", handleKeyDown);
       cleanup();
     };
-  }, [element, dnd, value, tree, snapshotRef, onGenerateDragPreview]);
+  }, [element, dnd, value, tree, rtl, snapshotRef]);
 
   return {
-    ref: dnd && !dnd.disabled ? setElement : NOOP_REF,
-    isDragging,
+    ref: dnd && !dnd.disabled ? dragSource.ref : NOOP_REF,
+    isDragging: dragSource.isDragging,
     instruction,
-    dragPreview,
+    dragPreview: dragSource.preview,
   };
 }

@@ -13,6 +13,18 @@ export const testAccessors = {
 
 export const testTree = (nodes: TestNode[]) => ({ nodes, ...testAccessors });
 
+export const fruitVegNodes: TestNode[] = [
+  {
+    id: "fruits",
+    label: "Fruits",
+    children: [
+      { id: "apple", label: "Apple" },
+      { id: "banana", label: "Banana" },
+    ],
+  },
+  { id: "vegetables", label: "Vegetables", children: [{ id: "carrot", label: "Carrot" }] },
+];
+
 export const findTestNode = (nodes: readonly TestNode[], id: string): TestNode | undefined => {
   for (const node of nodes) {
     if (node.id === id) return node;

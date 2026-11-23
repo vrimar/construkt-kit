@@ -17,7 +17,6 @@ import {
   CommandPalette,
   createDataTableColumnHelper,
   DataTable,
-  type DataTableParams,
   DatePicker,
   Dialog,
   DraggableTreeNode,
@@ -115,21 +114,13 @@ const gridColumns: ColumnDef<Project>[] = [
 ];
 
 function ProjectTableDemo() {
-  const [params, setParams] = useState<DataTableParams>({
-    orderBy: "",
-    orderType: "",
-    page: 1,
-    pageSize: 5,
-    filters: {},
-  });
   return (
     <DataTable
       clientSide
       mobileLayout="cards"
       data={projects}
       columnDefs={tableColumns}
-      params={params}
-      onParamChange={setParams}
+      defaultParams={{ pageSize: 5 }}
     />
   );
 }

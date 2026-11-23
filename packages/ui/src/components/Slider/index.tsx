@@ -1,20 +1,16 @@
-import {
-  type ComponentProps,
-  type ReactNode,
-  createContext,
-  useContext,
-  useLayoutEffect,
-} from "react";
+import { type ComponentProps, type ReactNode } from "react";
 
 import { HStack, createSlotRecipeContext } from "#styled-system/jsx";
 import { slider } from "#styled-system/recipes";
 
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { noDragProps } from "../../primitives/drag";
+import { mergeProps, renderable } from "../../primitives/render";
 import { isRenderable } from "../itemSlots";
-import { type SliderApi, type SliderOptions, useSlider } from "./useSlider";
-
+import { createPartContext } from "../partContext";
+import { SLIDER_OPTION_KEYS, type SliderApi, type SliderOptions, useSlider } from "./useSlider";
 export type {
   SliderValueChangeDetails,
   SliderValueChangeEndDetails,
@@ -23,73 +19,19 @@ export type {
 
 const { withProvider, withContext } = createSlotRecipeContext(slider);
 
-const SliderContext = createContext<SliderApi | null>(null);
-
-function useSliderContext(): SliderApi {
-  const context = useContext(SliderContext);
-  if (!context) throw new Error("A Slider part must be placed inside the Slider.");
-  return context;
-}
+const [SliderContext, useSliderContext] = createPartContext<SliderApi>(
+  "the Slider",
+  "A Slider part",
+);
 
 type DivProps = ComponentProps<typeof renderable.div>;
 type SpanProps = ComponentProps<typeof renderable.span>;
 
 interface RootImplProps extends Omit<DivProps, keyof SliderOptions>, SliderOptions {}
 
-function RootImpl({
-  ref,
-  value,
-  defaultValue,
-  onValueChange,
-  onValueChangeEnd,
-  onFocusChange,
-  min,
-  max,
-  step,
-  largeStep,
-  minStepsBetweenThumbs,
-  orientation,
-  origin,
-  thumbAlignment,
-  thumbCollisionBehavior,
-  thumbSize,
-  getAriaValueText,
-  "aria-label": ariaLabel,
-  "aria-labelledby": ariaLabelledBy,
-  disabled,
-  readOnly,
-  invalid,
-  name,
-  form,
-  id,
-  ...props
-}: RootImplProps) {
-  const api = useSlider({
-    value,
-    defaultValue,
-    onValueChange,
-    onValueChangeEnd,
-    onFocusChange,
-    min,
-    max,
-    step,
-    largeStep,
-    minStepsBetweenThumbs,
-    orientation,
-    origin,
-    thumbAlignment,
-    thumbCollisionBehavior,
-    thumbSize,
-    getAriaValueText,
-    "aria-label": ariaLabel,
-    "aria-labelledby": ariaLabelledBy,
-    disabled,
-    readOnly,
-    invalid,
-    name,
-    form,
-    id,
-  });
+function RootImpl({ ref, ...rest }: RootImplProps) {
+  const [options, props] = splitOptions(rest, SLIDER_OPTION_KEYS);
+  const api = useSlider(options);
   const { ref: rootRef, ...rootProps } = api.rootProps;
   const composedRef = useComposedRefs(rootRef, ref);
 
@@ -106,13 +48,12 @@ function RootImpl({
 const Root = withProvider(RootImpl, "root", { forwardProps: ["orientation"] });
 
 function LabelImpl(props: ComponentProps<typeof renderable.label>) {
-  const { labelProps, setLabelRendered } = useSliderContext();
-  useLayoutEffect(() => {
-    setLabelRendered(true);
-    return () => setLabelRendered(false);
-  }, [setLabelRendered]);
+  const { labelProps, reportRendered } = useSliderContext();
+  const id = useReportRendered(reportRendered, "label", props.id ?? labelProps.id);
   return (
-    <renderable.label {...mergeProps<ComponentProps<typeof renderable.label>>(labelProps, props)} />
+    <renderable.label
+      {...mergeProps<ComponentProps<typeof renderable.label>>(labelProps, props, { id })}
+    />
   );
 }
 
@@ -162,7 +103,7 @@ function HiddenInput({ index }: { index: number }) {
   return <input {...useSliderContext().hiddenInputProps(index)} />;
 }
 
-const Control = withContext(ControlImpl, "control", { defaultProps: { "data-no-drag": "" } });
+const Control = withContext(ControlImpl, "control", { defaultProps: noDragProps });
 const Label = withContext(LabelImpl, "label");
 const Marker = withContext(MarkerImpl, "marker");
 const MarkerIndicator = withContext(renderable.div, "markerIndicator");

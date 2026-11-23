@@ -3,11 +3,10 @@ import type { ReactNode } from "react";
 import { useIsMobile } from "../../hooks";
 import { useFieldControlState } from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr } from "../../primitives/render";
-import { type PickerPopup, PickerPopupProvider, usePickerPopupContext } from "../pickerPopup";
-import { CalendarContent } from "./CalendarContent";
+import type { Popup } from "../../primitives/popup";
+import { dataAttr, fieldStateAttributes } from "../../primitives/render";
+import { PickerPopupProvider } from "../popup";
 import type { DateValue } from "./dateUtils";
-import * as Parts from "./parts";
 import type { CalendarMode, CalendarProps, DateValueChangeDetails } from "./types";
 import { type Calendar, CalendarContext, useCalendar } from "./useCalendar";
 
@@ -41,7 +40,7 @@ function fireValueChange(
 /** A calendar's state for its props, inside the `Field` and `LocaleProvider` around it. */
 export function useCalendarRoot(
   props: CalendarProps<CalendarMode> & { closeOnSelect?: boolean | undefined },
-  popup: PickerPopup,
+  popup: Popup,
 ): Calendar {
   const {
     closeOnSelect = true,
@@ -81,18 +80,13 @@ export function useCalendarRoot(
   });
 }
 
-/** The day, month or year cell the grid's keys move from. */
-export const focusedCell = (content: HTMLElement) =>
-  content.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]');
-
 export const calendarRootAttributes = (calendar: Calendar) => ({
-  "data-disabled": dataAttr(calendar.disabled),
-  "data-read-only": dataAttr(calendar.readOnly),
+  ...fieldStateAttributes({ disabled: calendar.disabled, readOnly: calendar.readOnly }),
   "data-empty": dataAttr(calendar.value.length === 0),
 });
 
 interface CalendarProvidersProps {
-  popup: PickerPopup;
+  popup: Popup;
   calendar: Calendar;
   children: ReactNode;
 }
@@ -102,23 +96,5 @@ export function CalendarProviders({ popup, calendar, children }: CalendarProvide
     <PickerPopupProvider popup={popup}>
       <CalendarContext value={calendar}>{children}</CalendarContext>
     </PickerPopupProvider>
-  );
-}
-
-/** The calendar body every root renders: the grids, the presets and the clear button. */
-export function CalendarBody({ props }: { props: CalendarProps<CalendarMode> }) {
-  const popup = usePickerPopupContext();
-  return (
-    <Parts.Content
-      {...(popup.inline && { role: "application" })}
-      aria-label="calendar"
-    >
-      <CalendarContent
-        presets={"presets" in props ? props.presets : undefined}
-        showPresets={"showPresets" in props ? props.showPresets : undefined}
-        clearable={props.clearable}
-        clearLabel={props.clearLabel}
-      />
-    </Parts.Content>
   );
 }

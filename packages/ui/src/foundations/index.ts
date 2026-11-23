@@ -1,3 +1,3 @@
 export * from "./breakpoints";
-export { isComposingEvent, isEditableTarget } from "./dom";
+export { isComposingEvent, isEditableTarget, isWithinNestedControl } from "./dom";
 export { formatShortcut, matchesShortcut, type ShortcutPlatformOptions } from "./shortcuts";

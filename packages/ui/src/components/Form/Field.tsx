@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, MouseEvent, ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type FieldVariantProps, field as fieldRecipe } from "#styled-system/recipes";
@@ -8,10 +8,10 @@ import {
   FieldContext,
   useFieldContext,
   useFieldLabelId,
-  useFieldMessage,
+  useFieldMessageProps,
   useFieldRoot,
 } from "../../primitives/field";
-import { dataAttr, renderable } from "../../primitives/render";
+import { dataAttr, fieldStateAttributes, mergeProps, renderable } from "../../primitives/render";
 
 const { withProvider, withContext } = createSlotRecipeContext(fieldRecipe);
 
@@ -28,28 +28,35 @@ function useField(): FieldContextValue {
   return field;
 }
 
-function Label({ id, ...props }: ComponentProps<typeof StyledLabel>) {
+type LabelProps = ComponentProps<typeof StyledLabel>;
+
+function Label({ id, ...props }: LabelProps) {
   const field = useField();
   const labelId = useFieldLabelId(id);
+  const { focusControl } = field;
   return (
     <StyledLabel
-      id={labelId}
-      htmlFor={field.ids.control}
-      data-disabled={dataAttr(field.disabled)}
-      data-invalid={dataAttr(field.invalid)}
-      data-read-only={dataAttr(field.readOnly)}
-      data-required={dataAttr(field.required)}
-      {...props}
+      {...mergeProps<LabelProps>(
+        {
+          id: labelId,
+          htmlFor: field.ids.control,
+          ...fieldStateAttributes(field),
+          onClick(event: MouseEvent<HTMLLabelElement>) {
+            if (event.defaultPrevented || event.currentTarget.control) return;
+            focusControl?.();
+          },
+        },
+        props,
+      )}
     />
   );
 }
 
 function HelperText(props: ComponentProps<typeof StyledHelperText>) {
   const field = useField();
-  useFieldMessage(field.setMessageRendered, "helperText");
   return (
     <StyledHelperText
-      id={field.ids.helperText}
+      {...useFieldMessageProps(field, "helperText")}
       data-disabled={dataAttr(field.disabled)}
       {...props}
     />
@@ -57,12 +64,9 @@ function HelperText(props: ComponentProps<typeof StyledHelperText>) {
 }
 
 function ErrorText(props: ComponentProps<typeof StyledErrorText>) {
-  const field = useField();
-  useFieldMessage(field.setMessageRendered, "errorText");
   return (
     <StyledErrorText
-      id={field.ids.errorText}
-      aria-live="polite"
+      {...useFieldMessageProps(useField(), "errorText")}
       {...props}
     />
   );
@@ -123,10 +127,11 @@ export const Field = ({
       <Root
         ref={ref}
         id={ids.root}
-        role="group"
-        data-disabled={dataAttr(field.disabled)}
-        data-invalid={dataAttr(field.invalid)}
-        data-read-only={dataAttr(field.readOnly)}
+        {...fieldStateAttributes({
+          disabled: field.disabled,
+          invalid: field.invalid,
+          readOnly: field.readOnly,
+        })}
         {...rest}
       >
         {label && (

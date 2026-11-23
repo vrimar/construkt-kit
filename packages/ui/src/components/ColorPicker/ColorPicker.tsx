@@ -20,38 +20,51 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
-  type Ref,
-  createContext,
-  useContext,
   useLayoutEffect,
   useRef,
 } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
-import { visuallyHidden } from "#styled-system/patterns";
 import { colorPicker } from "#styled-system/recipes";
 
 import { isComposingEvent } from "../../foundations/dom";
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { dataAttr, openStateAttributes, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import type { WithRef } from "../../types";
-import { useFieldTriggerProps } from "../fieldTrigger";
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { noDragProps } from "../../primitives/drag";
+import {
+  hiddenFormInputProps,
+  useFieldFocusControl,
+  useFieldTriggerProps,
+} from "../../primitives/field";
+import { getTabbables } from "../../primitives/focus";
+import { type Popup, usePopup } from "../../primitives/popup";
+import {
+  checkedStateAttributes,
+  dataAttr,
+  mergeProps,
+  openStateAttributes,
+  renderable,
+} from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import {
   PickerPopupProvider,
   type PickerPopupProps,
-  createPickerContent,
-  getPickerTriggerProps,
-  usePickerPopup,
+  createPopupContent,
+  getPopupToggleProps,
   usePickerPopupContext,
-} from "../pickerPopup";
+} from "../popup";
+import { getThumbPlacement, sliderThumbAria } from "../sliderCore";
 import {
+  COLOR_PICKER_STATE_KEYS,
   ColorPickerContext,
+  type ColorPickerState,
   type ColorPickerStateOptions,
   useColorPickerContext,
   useColorPickerState,
 } from "./colorPickerRoot";
 import {
+  COLOR_FORMATS,
   type ExtendedColorChannel,
   type Orientation,
   getAreaGradient,
@@ -70,7 +83,11 @@ const StyledLabel = withContext(renderable.label, "label");
 const StyledControl = withContext(renderable.div, "control");
 const StyledTrigger = withContext(renderable.button, "trigger");
 const StyledContent = withContext(renderable.div, "content");
-const PickerContent = createPickerContent(withContext(renderable.div, "positioner"), StyledContent);
+const PickerContent = createPopupContent(
+  withContext(renderable.div, "positioner"),
+  StyledContent,
+  usePickerPopupContext,
+);
 const StyledArea = withContext(renderable.div, "area");
 const StyledAreaBackground = withContext(renderable.div, "areaBackground");
 const StyledAreaThumb = withContext(renderable.div, "areaThumb");
@@ -101,10 +118,6 @@ const TriggerSwatch = styled(renderable.div, {
   },
 });
 
-const hiddenInputClass = visuallyHidden();
-
-const FORMATS: ColorFormat[] = ["rgba", "hsla", "hsba"];
-
 type Style = CSSProperties & Record<`--${string}`, string | undefined>;
 
 const stateAttributes = (picker: { disabled: boolean; readOnly: boolean; invalid: boolean }) => ({
@@ -115,6 +128,11 @@ const stateAttributes = (picker: { disabled: boolean; readOnly: boolean; invalid
 
 const normalizeColor = (value: string | Color) =>
   typeof value === "string" ? parseColor(value) : value;
+
+const focusPicker = (popup: Popup, picker: ColorPickerState) => {
+  const root = picker.rootRef.current;
+  (popup.triggerEl ?? (root ? getTabbables(root)[0] : undefined))?.focus();
+};
 
 type RootElementProps = Omit<ComponentProps<typeof StyledRoot>, "defaultValue" | "onChange">;
 
@@ -128,19 +146,6 @@ export interface ColorPickerRootProps
 
 function Root({
   ref,
-  value,
-  defaultValue,
-  onValueChange,
-  onValueChangeEnd,
-  format,
-  defaultFormat,
-  onFormatChange,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  name,
-  closeOnSelect,
   open,
   defaultOpen,
   onOpenChange,
@@ -148,9 +153,11 @@ function Root({
   placement,
   initialFocusEl,
   inline,
-  ...props
+  ...rest
 }: ColorPickerRootProps) {
-  const popup = usePickerPopup({
+  const [stateOptions, props] = splitOptions(rest, COLOR_PICKER_STATE_KEYS);
+  const popup = usePopup({
+    idPrefix: "picker",
     open,
     defaultOpen,
     onOpenChange,
@@ -159,28 +166,12 @@ function Root({
     placement,
     initialFocus: initialFocusEl,
   });
-  const picker = useColorPickerState(
-    {
-      value,
-      defaultValue,
-      onValueChange,
-      onValueChangeEnd,
-      format,
-      defaultFormat,
-      onFormatChange,
-      disabled,
-      readOnly,
-      invalid,
-      required,
-      name,
-      closeOnSelect,
-    },
-    {
-      open: popup.open,
-      requestClose: (event) => popup.requestOpenChange(false, "item-press", event),
-    },
-  );
+  const picker = useColorPickerState(stateOptions, {
+    open: popup.open,
+    requestClose: (event) => popup.requestOpenChange(false, "item-press", event),
+  });
   const composedRef = useComposedRefs(ref, picker.rootRef);
+  useFieldFocusControl(popup.inline ? () => focusPicker(popup, picker) : undefined);
 
   return (
     <PickerPopupProvider popup={popup}>
@@ -204,23 +195,21 @@ function Root({
 
 function Label(props: ComponentProps<typeof StyledLabel>) {
   const picker = useColorPickerContext();
-  const { setLabelRendered } = picker;
-  useLayoutEffect(() => {
-    setLabelRendered(true);
-    return () => setLabelRendered(false);
-  }, [setLabelRendered]);
+  const { control } = picker.rendered;
+  const id = useReportRendered(picker.reportRendered, "label", props.id ?? picker.ids.label);
   return (
     <StyledLabel
       {...mergeProps<ComponentProps<typeof StyledLabel>>(
         {
-          id: picker.ids.label,
-          htmlFor: picker.ids.hiddenInput,
+          id,
+          htmlFor: picker.rendered.hiddenInput,
           ...stateAttributes(picker),
           "data-required": dataAttr(picker.required),
           onClick: (event: MouseEvent<HTMLLabelElement>) => {
             event.preventDefault();
+            if (control === undefined) return;
             event.currentTarget.ownerDocument
-              .getElementById(picker.ids.control)
+              .getElementById(control)
               ?.querySelector<HTMLElement>("[data-channel=hex]")
               ?.focus({ preventScroll: true });
           },
@@ -234,30 +223,33 @@ function Label(props: ComponentProps<typeof StyledLabel>) {
 function Control(props: ComponentProps<typeof StyledControl>) {
   const picker = useColorPickerContext();
   const popup = usePickerPopupContext();
+  const id = useReportRendered(picker.reportRendered, "control", props.id ?? picker.ids.control);
   return (
     <StyledControl
       {...mergeProps<ComponentProps<typeof StyledControl>>(
-        { id: picker.ids.control, ...stateAttributes(picker), ...openStateAttributes(popup.open) },
+        {
+          id,
+          ...stateAttributes(picker),
+          ...openStateAttributes(popup.open),
+        },
         props,
       )}
     />
   );
 }
 
-function Trigger({
-  ref,
-  ...props
-}: WithRef<ComponentProps<typeof StyledTrigger>, HTMLButtonElement>) {
+function Trigger({ ref, ...props }: ComponentProps<typeof StyledTrigger>) {
   const picker = useColorPickerContext();
   const popup = usePickerPopupContext();
-  const fieldProps = useFieldTriggerProps(popup.ids.trigger);
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, popup.setTriggerEl);
-  const labelledBy = picker.labelRendered ? `${picker.ids.label} ${popup.ids.trigger}` : undefined;
+  const fieldProps = useFieldTriggerProps(popup);
+  const composedRef = useComposedRefs(ref, popup.setTriggerEl);
+  const labelId = picker.rendered.label;
+  const labelledBy = labelId ? `${labelId} ${popup.triggerId}` : undefined;
   return (
     <StyledTrigger
       {...mergeProps<ComponentProps<typeof StyledTrigger>>(
         {
-          ...getPickerTriggerProps(popup, { interactive: picker.interactive }),
+          ...getPopupToggleProps(popup, { interactive: picker.interactive }),
           "aria-label": `select color. current color is ${picker.valueAsString}`,
           ...fieldProps,
           "aria-labelledby": fieldProps["aria-labelledby"] ?? labelledBy,
@@ -271,7 +263,7 @@ function Trigger({
   );
 }
 
-export type ColorPickerContentProps = WithRef<ComponentProps<typeof StyledContent>>;
+export type ColorPickerContentProps = ComponentProps<typeof StyledContent>;
 
 function Content(props: ColorPickerContentProps) {
   const popup = usePickerPopupContext();
@@ -290,13 +282,10 @@ interface AreaAxes {
   yChannel: ColorChannel;
 }
 
-const AreaContext = createContext<AreaAxes | null>(null);
-
-function useAreaAxes(): AreaAxes {
-  const axes = useContext(AreaContext);
-  if (!axes) throw new Error("ColorPicker.Area parts must be rendered inside ColorPicker.Area.");
-  return axes;
-}
+const [AreaContext, useAreaAxes] = createPartContext<AreaAxes>(
+  "<ColorPicker.Area>",
+  "ColorPicker.Area parts",
+);
 
 export interface ColorPickerAreaProps extends ComponentProps<typeof StyledArea> {
   /** @default the format's saturation */
@@ -316,7 +305,8 @@ function Area({ xChannel, yChannel, ...props }: ColorPickerAreaProps) {
           {
             id: picker.ids.area,
             role: "group",
-            "data-no-drag": "",
+            dir: picker.dir,
+            ...noDragProps,
             ...stateAttributes(picker),
             "data-dragging": dataAttr(picker.dragging),
             style: { "--color-picker-area-bg": gradient.base } as Style,
@@ -355,29 +345,36 @@ function AreaThumb(props: ComponentProps<typeof StyledAreaThumb>) {
   const axes = useAreaAxes();
   const { areaValue } = picker;
   const xPercent = getColorChannelValuePercent(areaValue, axes.xChannel);
-  const yPercent = 1 - getColorChannelValuePercent(areaValue, axes.yChannel);
+  const yPercent = getColorChannelValuePercent(areaValue, axes.yChannel);
   const xValue = getColorChannelValue(areaValue, axes.xChannel);
   const yValue = getColorChannelValue(areaValue, axes.yChannel);
-  const left = picker.dir === "rtl" ? 1 - xPercent : xPercent;
+  const xRange = getColorChannelRange(areaValue, axes.xChannel);
+  const id = useReportRendered(
+    picker.reportRendered,
+    "areaThumb",
+    props.id ?? picker.ids.areaThumb,
+  );
   return (
     <StyledAreaThumb
       {...mergeProps<ComponentProps<typeof StyledAreaThumb>>(
         {
-          id: picker.ids.areaThumb,
-          role: "slider",
-          tabIndex: picker.disabled ? undefined : 0,
+          id,
+          ...sliderThumbAria({
+            value: xValue,
+            min: xRange.minValue,
+            max: xRange.maxValue,
+            valueText: `${axes.xChannel} ${xValue}, ${axes.yChannel} ${yValue}`,
+            disabled: picker.disabled,
+          }),
           ...stateAttributes(picker),
           "data-dragging": dataAttr(picker.dragging),
-          "aria-disabled": picker.disabled || undefined,
-          "aria-valuemin": 0,
-          "aria-valuemax": 100,
-          "aria-valuenow": xValue,
           "aria-label": `${axes.xChannel} and ${axes.yChannel}`,
           "aria-roledescription": "2d slider",
-          "aria-valuetext": `${axes.xChannel} ${xValue}, ${axes.yChannel} ${yValue}`,
           style: {
-            left: `${left * 100}%`,
-            top: `${yPercent * 100}%`,
+            ...getThumbPlacement(
+              { x: `${xPercent * 100}%`, y: `${yPercent * 100}%` },
+              picker.dir === "rtl",
+            ),
             "--color-picker-color": formatColor(setColorChannelValue(areaValue, "alpha", 1), "css"),
           } as Style,
           onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => picker.onAreaKeyDown(event, axes),
@@ -403,25 +400,15 @@ function ValueText({
   );
 }
 
-const ViewFormatContext = createContext<ColorFormat | undefined>(undefined);
-
 interface ChannelProps {
   channel: ColorChannel;
   orientation: Orientation;
-  format: ColorFormat | undefined;
 }
 
-const ChannelContext = createContext<ChannelProps | null>(null);
-
-function useChannel(): ChannelProps {
-  const channel = useContext(ChannelContext);
-  if (!channel) {
-    throw new Error(
-      "ColorPicker.ChannelSlider parts must be rendered inside ColorPicker.ChannelSlider.",
-    );
-  }
-  return channel;
-}
+const [ChannelContext, useChannel] = createPartContext<ChannelProps>(
+  "<ColorPicker.ChannelSlider>",
+  "ColorPicker.ChannelSlider parts",
+);
 
 export interface ColorPickerChannelSliderProps extends ComponentProps<typeof StyledChannelSlider> {
   channel: ColorChannel;
@@ -435,15 +422,15 @@ function ChannelSlider({
   ...props
 }: ColorPickerChannelSliderProps) {
   const picker = useColorPickerContext();
-  const format = useContext(ViewFormatContext);
-  const value = { channel, orientation, format };
+  const value = { channel, orientation };
   return (
     <ChannelContext value={value}>
       <StyledChannelSlider
         {...mergeProps<ComponentProps<typeof StyledChannelSlider>>(
           {
             role: "presentation",
-            "data-no-drag": "",
+            dir: picker.dir,
+            ...noDragProps,
             "data-channel": channel,
             "data-orientation": orientation,
             onPointerDown: (event: PointerEvent<HTMLDivElement>) =>
@@ -458,13 +445,18 @@ function ChannelSlider({
 
 function ChannelSliderTrack(props: ComponentProps<typeof StyledChannelSliderTrack>) {
   const picker = useColorPickerContext();
-  const { channel, orientation, format } = useChannel();
-  const color = picker.sliderValue(channel, format);
+  const { channel, orientation } = useChannel();
+  const id = useReportRendered(
+    picker.reportRendered,
+    `track:${channel}`,
+    props.id ?? picker.ids.track(channel),
+  );
+  const color = picker.sliderValue(channel);
   return (
     <StyledChannelSliderTrack
       {...mergeProps<ComponentProps<typeof StyledChannelSliderTrack>>(
         {
-          id: picker.ids.track(channel),
+          id,
           role: "group",
           "data-channel": channel,
           "data-orientation": orientation,
@@ -480,42 +472,46 @@ function ChannelSliderTrack(props: ComponentProps<typeof StyledChannelSliderTrac
 
 function ChannelSliderThumb(props: ComponentProps<typeof StyledChannelSliderThumb>) {
   const picker = useColorPickerContext();
-  const { channel, orientation, format } = useChannel();
-  const color = picker.sliderValue(channel, format);
+  const { channel, orientation } = useChannel();
+  const id = useReportRendered(
+    picker.reportRendered,
+    `thumb:${channel}`,
+    props.id ?? picker.ids.thumb(channel),
+  );
+  const color = picker.sliderValue(channel);
   const range = getColorChannelRange(color, channel);
   const channelValue = getColorChannelValue(color, channel);
-  const offset = (channelValue - range.minValue) / (range.maxValue - range.minValue);
-  const horizontal = orientation === "horizontal";
-  const position = horizontal ? (picker.dir === "rtl" ? 1 - offset : offset) : 1 - offset;
+  const position = `${getColorChannelValuePercent(color, channel) * 100}%`;
   return (
     <StyledChannelSliderThumb
       {...mergeProps<ComponentProps<typeof StyledChannelSliderThumb>>(
         {
-          id: picker.ids.thumb(channel),
-          role: "slider",
+          id,
+          ...sliderThumbAria({
+            value: channelValue,
+            min: range.minValue,
+            max: range.maxValue,
+            valueText: `${channel} ${channelValue}`,
+            orientation,
+            disabled: picker.disabled,
+          }),
           "aria-label": channel,
-          tabIndex: picker.disabled ? undefined : 0,
           "data-channel": channel,
           "data-disabled": dataAttr(picker.disabled),
           "data-orientation": orientation,
           "data-dragging": dataAttr(picker.dragging),
-          "aria-disabled": picker.disabled || undefined,
-          "aria-orientation": orientation,
-          "aria-valuemax": range.maxValue,
-          "aria-valuemin": range.minValue,
-          "aria-valuenow": channelValue,
-          "aria-valuetext": `${channel} ${channelValue}`,
           style: {
-            ...(horizontal
-              ? { left: `${position * 100}%`, top: "50%" }
-              : { top: `${position * 100}%`, left: "50%" }),
+            ...getThumbPlacement(
+              orientation === "horizontal" ? { x: position, y: "50%" } : { x: "50%", y: position },
+              picker.dir === "rtl",
+            ),
             "--color-picker-color": formatColor(
               getChannelDisplayColor(picker.areaValue, channel),
               "css",
             ),
           } as Style,
           onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
-            picker.onSliderKeyDown(event, channel, format),
+            picker.onSliderKeyDown(event, channel, orientation),
         } as ComponentProps<typeof StyledChannelSliderThumb>,
         props,
       )}
@@ -526,17 +522,16 @@ function ChannelSliderThumb(props: ComponentProps<typeof StyledChannelSliderThum
 function ChannelSliderLabel(props: ComponentProps<typeof StyledChannelSliderLabel>) {
   const picker = useColorPickerContext();
   const { channel } = useChannel();
+  const thumb = picker.rendered[`thumb:${channel}`];
   return (
     <StyledChannelSliderLabel
       {...mergeProps<ComponentProps<typeof StyledChannelSliderLabel>>(
         {
           "data-channel": channel,
           onClick: (event: MouseEvent<HTMLLabelElement>) => {
-            if (!picker.interactive) return;
+            if (!picker.interactive || thumb === undefined) return;
             event.preventDefault();
-            event.currentTarget.ownerDocument
-              .getElementById(picker.ids.thumb(channel))
-              ?.focus({ preventScroll: true });
+            event.currentTarget.ownerDocument.getElementById(thumb)?.focus({ preventScroll: true });
           },
         } as ComponentProps<typeof StyledChannelSliderLabel>,
         props,
@@ -550,7 +545,7 @@ function ChannelSliderValueText({
   ...props
 }: ComponentProps<typeof StyledChannelSliderValueText>) {
   const picker = useColorPickerContext();
-  const { channel, format } = useChannel();
+  const { channel } = useChannel();
   return (
     <StyledChannelSliderValueText
       {...mergeProps<ComponentProps<typeof StyledChannelSliderValueText>>(
@@ -558,8 +553,7 @@ function ChannelSliderValueText({
         props,
       )}
     >
-      {children ||
-        formatColorChannelValue(picker.sliderValue(channel, format), channel, picker.locale)}
+      {children || formatColorChannelValue(picker.sliderValue(channel), channel, picker.locale)}
     </StyledChannelSliderValueText>
   );
 }
@@ -571,11 +565,7 @@ export interface ColorPickerChannelInputProps extends Omit<
   channel: ExtendedColorChannel;
 }
 
-function ChannelInput({
-  ref,
-  channel,
-  ...props
-}: WithRef<ColorPickerChannelInputProps, HTMLInputElement>) {
+function ChannelInput({ ref, channel, ...props }: ColorPickerChannelInputProps) {
   const picker = useColorPickerContext();
   const inputRef = useRef<HTMLInputElement>(null);
   const composedRef = useComposedRefs(ref, inputRef);
@@ -625,24 +615,30 @@ function ChannelInput({
   );
 }
 
-function HiddenInput({ ref, ...props }: WithRef<ComponentProps<"input">, HTMLInputElement>) {
+type HiddenInputProps = ComponentProps<typeof renderable.input>;
+
+function HiddenInput({ ref, ...props }: HiddenInputProps) {
   const picker = useColorPickerContext();
+  const popup = usePickerPopupContext();
   const composedRef = useComposedRefs(ref, picker.hiddenInputRef);
+  const id = useReportRendered(
+    picker.reportRendered,
+    "hiddenInput",
+    props.id ?? picker.ids.hiddenInput,
+  );
   return (
-    <input
-      {...mergeProps<ComponentProps<"input">>(
+    <renderable.input
+      {...mergeProps<HiddenInputProps>(
         {
+          ...hiddenFormInputProps,
           type: "text",
-          "aria-hidden": true,
-          "aria-describedby": picker.describedBy,
-          className: hiddenInputClass,
-          id: picker.ids.hiddenInput,
+          id,
           name: picker.name,
-          tabIndex: -1,
           disabled: picker.disabled,
           readOnly: picker.readOnly,
           required: picker.required,
           defaultValue: picker.valueAsString,
+          onFocus: () => focusPicker(popup, picker),
         },
         props,
       )}
@@ -688,11 +684,6 @@ function useSwatchState(value: string | Color, disabled?: boolean) {
   };
 }
 
-const checkedAttributes = (checked: boolean) => ({
-  "data-checked": dataAttr(checked),
-  "data-unchecked": dataAttr(!checked),
-});
-
 export interface ColorPickerSwatchTriggerProps extends Omit<
   ComponentProps<typeof StyledSwatchTrigger>,
   "value"
@@ -708,10 +699,10 @@ function SwatchTrigger({ value, disabled, ...props }: ColorPickerSwatchTriggerPr
     <StyledSwatchTrigger
       {...mergeProps<ComponentProps<typeof StyledSwatchTrigger>>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled: swatch.disabled,
           "aria-label": `select ${swatch.hex} as the color`,
-          ...checkedAttributes(swatch.checked),
+          ...checkedStateAttributes(swatch.checked),
           "data-value": swatch.hex,
           "data-disabled": dataAttr(swatch.disabled),
           style: { "--color-picker-color": swatch.hex } as Style,
@@ -731,7 +722,7 @@ interface SwatchProps {
   respectAlpha: boolean;
 }
 
-const SwatchContext = createContext<SwatchProps | null>(null);
+const [SwatchContext, useSwatchProps] = createPartContext<SwatchProps>("<ColorPicker.Swatch>");
 
 export interface ColorPickerSwatchProps extends ComponentProps<typeof StyledSwatch> {
   value: string | Color;
@@ -752,7 +743,7 @@ function SwatchPart({
       <Element
         {...mergeProps<ComponentProps<typeof StyledSwatch>>(
           {
-            ...checkedAttributes(swatch.checked),
+            ...checkedStateAttributes(swatch.checked),
             "data-value": swatch.hex,
             style: { "--color-picker-color": color } as Style,
           } as ComponentProps<typeof StyledSwatch>,
@@ -788,10 +779,7 @@ function ValueSwatch(
 }
 
 function SwatchIndicator(props: ComponentProps<typeof StyledSwatchIndicator>) {
-  const swatchProps = useContext(SwatchContext);
-  if (!swatchProps) {
-    throw new Error("ColorPicker.SwatchIndicator must be rendered inside ColorPicker.Swatch.");
-  }
+  const swatchProps = useSwatchProps("ColorPicker.SwatchIndicator");
   const swatch = useSwatchState(swatchProps.value);
   return (
     <StyledSwatchIndicator
@@ -809,7 +797,7 @@ function EyeDropperTrigger(props: ComponentProps<typeof StyledEyeDropperTrigger>
     <StyledEyeDropperTrigger
       {...mergeProps<ComponentProps<typeof StyledEyeDropperTrigger>>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled: picker.disabled,
           ...stateAttributes(picker),
           "aria-label": "Pick a color from the screen",
@@ -830,7 +818,7 @@ function FormatTrigger(props: ComponentProps<typeof StyledFormatTrigger>) {
     <StyledFormatTrigger
       {...mergeProps<ComponentProps<typeof StyledFormatTrigger>>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           "aria-label": `change color format to ${next}`,
           onClick: (event: MouseEvent<HTMLButtonElement>) => {
             if (event.defaultPrevented || event.currentTarget.disabled) return;
@@ -863,7 +851,7 @@ function FormatSelect(
         props,
       )}
     >
-      {FORMATS.map((format) => (
+      {COLOR_FORMATS.map((format) => (
         <option
           key={format}
           value={format}
@@ -884,12 +872,10 @@ function View({ format, ...props }: ColorPickerViewProps) {
   const picker = useColorPickerContext();
   if (picker.format !== format) return null;
   return (
-    <ViewFormatContext value={format}>
-      <StyledView
-        data-format={format}
-        {...props}
-      />
-    </ViewFormatContext>
+    <StyledView
+      data-format={format}
+      {...props}
+    />
   );
 }
 

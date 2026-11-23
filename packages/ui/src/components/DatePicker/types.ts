@@ -4,7 +4,7 @@ import type { JsxStyleProps } from "#styled-system/types";
 
 import type { ChangeDetails } from "../../primitives/change";
 import type { ButtonProps } from "../Buttons";
-import type { PickerPopupProps } from "../pickerPopup";
+import type { PickerPopupProps } from "../popup";
 import type { DateRangePreset, DateValue, DateView } from "./dateUtils";
 
 export type { DateRangePreset, DateValue, DateView };

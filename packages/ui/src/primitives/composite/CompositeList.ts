@@ -1,5 +1,7 @@
 import { type RefCallback, useCallback } from "react";
 
+import { isItemDisabled } from "./navigation";
+
 export interface CompositeItem {
   element: HTMLElement;
   value: string;
@@ -54,4 +56,11 @@ export function useCompositeListItem(
     (element: HTMLElement | null) => (element ? list.register(element, value, label) : undefined),
     [list, value, label],
   );
+}
+
+export function syncRovingTabStop(list: CompositeList, value: string | null): void {
+  const items = list.items();
+  const enabled = items.filter((item) => !isItemDisabled(item.element));
+  const stop = enabled.find((item) => item.value === value) ?? enabled[0];
+  for (const item of items) item.element.setAttribute("tabindex", item === stop ? "0" : "-1");
 }

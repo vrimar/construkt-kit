@@ -6,25 +6,30 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type SyntheticEvent,
   createContext,
   useCallback,
   useContext,
 } from "react";
 
-import { type HTMLStyledProps, Stack, createSlotRecipeContext } from "#styled-system/jsx";
-import { visuallyHidden } from "#styled-system/patterns";
+import { Stack, createSlotRecipeContext } from "#styled-system/jsx";
 import { fileUpload } from "#styled-system/recipes";
 
+import { isWithinNestedControl } from "../../foundations/dom";
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { hiddenFormInputProps, useFieldControlId } from "../../primitives/field";
 import {
   type RenderProp,
-  type StateAttributes,
+  dataAttr,
+  mergeProps,
+  renderable,
   useRender,
-} from "../../primitives/render/useRender";
-import type { WithRef } from "../../types";
+} from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import {
+  FILE_UPLOAD_OPTION_KEYS,
   type FileItemType,
   type FileUploadOptions,
   type FileUploadRenderState,
@@ -32,8 +37,7 @@ import {
   useFileUploadContext,
   useFileUploadRoot,
 } from "./fileUploadRoot";
-import { formatBytes, getFileEntries, isEventWithFiles } from "./fileUtils";
-
+import { formatBytes, getFileEntries, getFileKey, isEventWithFiles } from "./fileUtils";
 export type { FileAccept, FileError, FileRejection } from "./fileUtils";
 export type {
   FileItemType,
@@ -46,17 +50,6 @@ export type {
 
 const { withProvider, withContext } = createSlotRecipeContext(fileUpload);
 
-const NO_STATE_ATTRIBUTES: StateAttributes<FileUploadRenderState> = {
-  value: () => null,
-  rejectedFiles: () => null,
-  dragging: () => null,
-  disabled: () => null,
-  readOnly: () => null,
-  invalid: () => null,
-  required: () => null,
-  addFiles: () => null,
-};
-
 interface RootElementProps extends ComponentPropsWithRef<"div"> {
   render?: RenderProp<FileUploadRenderState> | undefined;
   renderState: FileUploadRenderState;
@@ -68,7 +61,7 @@ function RootElement({ render, renderState, ...props }: RootElementProps) {
     render,
     props,
     state: renderState,
-    stateAttributes: NO_STATE_ATTRIBUTES,
+    stateAttributes: false,
   });
 }
 
@@ -96,50 +89,9 @@ export interface FileUploadRootProps
   render?: RenderProp<FileUploadRenderState> | undefined;
 }
 
-function Root({
-  ref,
-  value,
-  defaultValue,
-  onValueChange,
-  onFileReject,
-  accept,
-  maxFiles,
-  minFileSize,
-  maxFileSize,
-  validate,
-  transformFiles,
-  allowDrop,
-  preventDocumentDrop,
-  directory,
-  capture,
-  name,
-  disabled,
-  readOnly,
-  required,
-  invalid,
-  ...props
-}: FileUploadRootProps) {
-  const { context, renderState, rootRef, rootProps } = useFileUploadRoot({
-    value,
-    defaultValue,
-    onValueChange,
-    onFileReject,
-    accept,
-    maxFiles,
-    minFileSize,
-    maxFileSize,
-    validate,
-    transformFiles,
-    allowDrop,
-    preventDocumentDrop,
-    directory,
-    capture,
-    name,
-    disabled,
-    readOnly,
-    required,
-    invalid,
-  });
+function Root({ ref, ...rest }: FileUploadRootProps) {
+  const [options, props] = splitOptions(rest, FILE_UPLOAD_OPTION_KEYS);
+  const { context, renderState, rootRef, rootProps } = useFileUploadRoot(options);
   const composedRef = useComposedRefs(rootRef, ref);
 
   return (
@@ -154,24 +106,25 @@ function Root({
   );
 }
 
-const hiddenInputClass = visuallyHidden();
-
 type HiddenInputProps = ComponentProps<typeof renderable.input>;
 
 function HiddenInput({ ref, ...props }: HiddenInputProps) {
-  const context = useFileUploadContext("HiddenInput");
+  const context = useFileUploadContext("FileUpload.HiddenInput");
   const composedRef = useComposedRefs(context.attachInput, ref);
   const directoryProps = context.directory ? { webkitdirectory: "" } : undefined;
+  const inputId = useReportRendered(
+    context.reportRendered,
+    "input",
+    useFieldControlId(props.id) ?? context.ids.input,
+  );
 
   return (
     <renderable.input
       {...mergeProps<HiddenInputProps>(
         {
-          id: context.ids.input,
-          className: hiddenInputClass,
+          ...hiddenFormInputProps,
+          id: inputId,
           type: "file",
-          tabIndex: -1,
-          "aria-hidden": true,
           disabled: !context.interactive,
           required: context.required,
           name: context.name,
@@ -197,14 +150,11 @@ function HiddenInput({ ref, ...props }: HiddenInputProps) {
   );
 }
 
-const INTERACTIVE_SELECTOR =
-  "button, a[href], input:not([type='file']), select, textarea, [tabindex], [contenteditable]";
-
-function isInteractiveTarget(target: EventTarget | null, container: HTMLElement): boolean {
-  if (!(target instanceof Element) || target.getAttribute("type") === "file") return false;
-  const interactive = target.closest(INTERACTIVE_SELECTOR);
-  return interactive !== container && container.contains(interactive);
-}
+const ownsPress = ({ currentTarget, target, defaultPrevented }: SyntheticEvent<HTMLElement>) =>
+  !defaultPrevented &&
+  currentTarget.contains(target as Node) &&
+  ((target instanceof HTMLInputElement && target.type === "file") ||
+    !isWithinNestedControl(target, currentTarget));
 
 type DropzoneProps = ComponentProps<typeof StyledDropzone> & {
   /** Leaves picking to the trigger: a press or Enter on the dropzone doesn't open the picker. */
@@ -213,7 +163,7 @@ type DropzoneProps = ComponentProps<typeof StyledDropzone> & {
 
 /** Takes dropped files, and opens the picker on a press, Enter or Space. */
 function Dropzone({ ref, disableClick = false, ...props }: DropzoneProps) {
-  const context = useFileUploadContext("Dropzone");
+  const context = useFileUploadContext("FileUpload.Dropzone");
   const composedRef = useComposedRefs(context.dropzoneRef, ref);
   const { interactive, allowDrop } = context;
   const pickable = interactive && !disableClick;
@@ -225,26 +175,18 @@ function Dropzone({ ref, disableClick = false, ...props }: DropzoneProps) {
           role: disableClick ? "application" : "button",
           tabIndex: pickable ? 0 : undefined,
           "aria-disabled": interactive ? undefined : true,
-          "data-disabled": dataAttr(context.disabled),
-          "data-read-only": dataAttr(context.readOnly),
-          "data-invalid": dataAttr(context.invalid),
+          ...context.stateAttributes,
           "data-dragging": dataAttr(context.dragging),
           onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-            if (!pickable || event.defaultPrevented) return;
-            const container = event.currentTarget;
-            if (!container.contains(event.target as Node)) return;
-            if (isInteractiveTarget(event.target, container)) return;
+            if (!pickable || !ownsPress(event)) return;
             if (event.key !== "Enter" && event.key !== " ") return;
             event.preventDefault();
             context.openFilePicker();
           },
           onClick(event: MouseEvent<HTMLDivElement>) {
-            if (!pickable || event.defaultPrevented) return;
-            const container = event.currentTarget;
-            if (!container.contains(event.target as Node)) return;
-            if (isInteractiveTarget(event.target, container)) return;
+            if (!pickable || !ownsPress(event)) return;
             // A label would also open the picker through its control, opening it twice.
-            if (container.localName === "label") event.preventDefault();
+            if (event.currentTarget.localName === "label") event.preventDefault();
             context.openFilePicker();
           },
           onDragOver(event: DragEvent<HTMLDivElement>) {
@@ -284,22 +226,20 @@ function Dropzone({ ref, disableClick = false, ...props }: DropzoneProps) {
 type TriggerProps = ComponentProps<typeof StyledTrigger>;
 
 function Trigger(props: TriggerProps) {
-  const context = useFileUploadContext("Trigger");
+  const context = useFileUploadContext("FileUpload.Trigger");
   return (
     <StyledTrigger
       {...mergeProps<TriggerProps>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled: !context.interactive,
-          "data-disabled": dataAttr(context.disabled),
-          "data-read-only": dataAttr(context.readOnly),
-          "data-invalid": dataAttr(context.invalid),
+          ...context.stateAttributes,
           onClick(event: MouseEvent<HTMLButtonElement>) {
             if (!context.interactive) return;
             if (context.dropzoneRef.current?.contains(event.currentTarget)) event.stopPropagation();
             context.openFilePicker();
           },
-        } as TriggerProps,
+        },
         props,
       )}
     />
@@ -310,21 +250,20 @@ type ClearTriggerProps = ComponentProps<typeof StyledClearTrigger>;
 
 /** Removes every file, accepted and refused; hidden while there are none. */
 function ClearTrigger(props: ClearTriggerProps) {
-  const context = useFileUploadContext("ClearTrigger");
+  const context = useFileUploadContext("FileUpload.ClearTrigger");
   return (
     <StyledClearTrigger
       {...mergeProps<ClearTriggerProps>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled: !context.interactive,
           hidden: context.value.length === 0,
-          "data-disabled": dataAttr(context.disabled),
-          "data-read-only": dataAttr(context.readOnly),
+          ...context.stateAttributes,
           onClick(event: MouseEvent<HTMLButtonElement>) {
             if (event.defaultPrevented) return;
             context.clearFiles(event.nativeEvent);
           },
-        } as ClearTriggerProps,
+        },
         props,
       )}
     />
@@ -334,17 +273,15 @@ function ClearTrigger(props: ClearTriggerProps) {
 type LabelProps = ComponentProps<typeof StyledLabel>;
 
 function Label(props: LabelProps) {
-  const context = useFileUploadContext("Label");
+  const context = useFileUploadContext("FileUpload.Label");
   return (
     <StyledLabel
       {...mergeProps<LabelProps>(
         {
           id: context.ids.label,
-          htmlFor: context.ids.input,
-          "data-disabled": dataAttr(context.disabled),
-          "data-invalid": dataAttr(context.invalid),
-          "data-required": dataAttr(context.required),
-        } as LabelProps,
+          htmlFor: context.inputId,
+          ...context.stateAttributes,
+        },
         props,
       )}
     />
@@ -357,13 +294,7 @@ interface ItemContextValue {
 }
 
 const ItemTypeContext = createContext<FileItemType>("accepted");
-const ItemContext = createContext<ItemContextValue | null>(null);
-
-function useItemContext(part: string): ItemContextValue {
-  const item = useContext(ItemContext);
-  if (!item) throw new Error(`FileUpload.${part} must be placed inside <FileUpload.Item>.`);
-  return item;
-}
+const [ItemContext, useItemContext] = createPartContext<ItemContextValue>("<FileUpload.Item>");
 
 type ItemGroupProps = ComponentProps<typeof StyledItemGroup> & {
   /** Which files the items in it show. @default "accepted" */
@@ -371,7 +302,7 @@ type ItemGroupProps = ComponentProps<typeof StyledItemGroup> & {
 };
 
 function ItemGroup({ type = "accepted", ...props }: ItemGroupProps) {
-  const context = useFileUploadContext("ItemGroup");
+  const context = useFileUploadContext("FileUpload.ItemGroup");
   return (
     <ItemTypeContext value={type}>
       <StyledItemGroup
@@ -392,7 +323,7 @@ export interface FileUploadItemProps extends StyledItemProps {
 }
 
 function Item({ file, type, ...props }: FileUploadItemProps) {
-  const context = useFileUploadContext("Item");
+  const context = useFileUploadContext("FileUpload.Item");
   const groupType = useContext(ItemTypeContext);
   const itemType = type ?? groupType;
   return (
@@ -409,8 +340,8 @@ function Item({ file, type, ...props }: FileUploadItemProps) {
 type ItemNameProps = ComponentProps<typeof StyledItemName>;
 
 function ItemName({ children, ...props }: ItemNameProps) {
-  const context = useFileUploadContext("ItemName");
-  const { file, type } = useItemContext("ItemName");
+  const context = useFileUploadContext("FileUpload.ItemName");
+  const { file, type } = useItemContext("FileUpload.ItemName");
   return (
     <StyledItemName
       data-disabled={dataAttr(context.disabled)}
@@ -425,8 +356,8 @@ function ItemName({ children, ...props }: ItemNameProps) {
 type ItemSizeTextProps = ComponentProps<typeof StyledItemSizeText>;
 
 function ItemSizeText({ children, ...props }: ItemSizeTextProps) {
-  const context = useFileUploadContext("ItemSizeText");
-  const { file, type } = useItemContext("ItemSizeText");
+  const context = useFileUploadContext("FileUpload.ItemSizeText");
+  const { file, type } = useItemContext("FileUpload.ItemSizeText");
   return (
     <StyledItemSizeText
       data-disabled={dataAttr(context.disabled)}
@@ -450,8 +381,8 @@ function ItemPreview({
   children = <FileIcon />,
   ...props
 }: FileUploadItemPreviewProps) {
-  const context = useFileUploadContext("ItemPreview");
-  const item = useItemContext("ItemPreview");
+  const context = useFileUploadContext("FileUpload.ItemPreview");
+  const item = useItemContext("FileUpload.ItemPreview");
   if (!item.file.type.match(type)) return null;
   return (
     <StyledItemPreview
@@ -467,8 +398,8 @@ function ItemPreview({
 type ItemPreviewImageProps = ComponentProps<typeof StyledItemPreviewImage>;
 
 function ItemPreviewImage({ ref, ...props }: ItemPreviewImageProps) {
-  const context = useFileUploadContext("ItemPreviewImage");
-  const { file, type } = useItemContext("ItemPreviewImage");
+  const context = useFileUploadContext("FileUpload.ItemPreviewImage");
+  const { file, type } = useItemContext("FileUpload.ItemPreviewImage");
   const attachUrl = useCallback(
     (image: HTMLImageElement | null) => {
       if (!image) return;
@@ -499,17 +430,16 @@ function ItemPreviewImage({ ref, ...props }: ItemPreviewImageProps) {
 type ItemDeleteTriggerProps = ComponentProps<typeof StyledItemDeleteTrigger>;
 
 function ItemDeleteTrigger({ children = <XIcon />, ...props }: ItemDeleteTriggerProps) {
-  const context = useFileUploadContext("ItemDeleteTrigger");
-  const { file, type } = useItemContext("ItemDeleteTrigger");
+  const context = useFileUploadContext("FileUpload.ItemDeleteTrigger");
+  const { file, type } = useItemContext("FileUpload.ItemDeleteTrigger");
   return (
     <StyledItemDeleteTrigger
       {...mergeProps<ItemDeleteTriggerProps>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           disabled: !context.interactive,
           "aria-label": `delete file ${file.name}`,
-          "data-disabled": dataAttr(context.disabled),
-          "data-read-only": dataAttr(context.readOnly),
+          ...context.stateAttributes,
           "data-type": type,
           onClick(event: MouseEvent<HTMLButtonElement>) {
             context.deleteFile(file, type, event.nativeEvent);
@@ -531,12 +461,12 @@ interface ItemsProps extends Omit<FileUploadItemProps, "file"> {
 }
 
 function Items({ showSize, clearable, files, ...rest }: ItemsProps) {
-  const context = useFileUploadContext("Items");
+  const context = useFileUploadContext("FileUpload.Items");
 
   return (files ?? context.value).map((file) => (
     <Item
       file={file}
-      key={`${file.name}|${file.size}|${file.type}|${file.lastModified}`}
+      key={getFileKey(file)}
       {...rest}
     >
       <ItemPreview />
@@ -553,17 +483,15 @@ function Items({ showSize, clearable, files, ...rest }: ItemsProps) {
   ));
 }
 
-export interface FileTextProps extends HTMLStyledProps<"span"> {
+type StyledFileTextProps = ComponentProps<typeof StyledFileText>;
+
+export interface FileTextProps extends StyledFileTextProps {
   fallback?: string | undefined;
 }
 
 /** The chosen file's name, how many files there are, or `fallback` while there are none. */
-function FileText({
-  ref,
-  fallback = "Select file(s)",
-  ...rest
-}: WithRef<FileTextProps, HTMLSpanElement>) {
-  const { value } = useFileUploadContext("FileText");
+function FileText({ ref, fallback = "Select file(s)", ...rest }: FileTextProps) {
+  const { value } = useFileUploadContext("FileUpload.FileText");
   const fileText =
     value.length === 1 ? value[0].name : value.length > 1 ? `${value.length} files` : fallback;
 

@@ -9,15 +9,12 @@ import {
   type MouseEvent,
   type ReactNode,
   type Ref,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
-  useReducer,
   useState,
 } from "react";
 
@@ -26,11 +23,16 @@ import { type TreeViewVariantProps, treeView } from "#styled-system/recipes";
 
 import { isComposingEvent } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { useControllableState } from "../../hooks/useControllableState";
+import { useResyncedControllableState } from "../../hooks/useControllableState";
+import {
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { checkedStateAttributes, dataAttr, mergeProps, renderable } from "../../primitives/render";
 import { useStore } from "../../primitives/store";
+import { createPartContext } from "../partContext";
 import type { StyledRootProps } from "../rootProps";
 import {
   type TreeCheckedState,
@@ -38,14 +40,8 @@ import {
   type TreeNodes,
   getCheckedState,
 } from "./treeCollection";
-import {
-  type PressModifiers,
-  TreeViewNode,
-  type VisibleNode,
-  selectIsRenaming,
-  selectIsTabStop,
-} from "./treeViewNode";
-import { type TreeLazyLoadProps, useTreeLazyLoad } from "./useTreeLazyLoad";
+import { TreeViewNode, type VisibleNode, selectIsRenaming, selectIsTabStop } from "./treeViewNode";
+import { type TreeLazyLoad, type TreeLazyLoadProps, useTreeLazyLoad } from "./useTreeLazyLoad";
 
 const { withProvider, withContext } = createSlotRecipeContext(treeView);
 
@@ -76,8 +72,11 @@ export interface TreeRenameDetails {
 }
 
 interface TreeViewRootOwnProps<T> extends TreeNodes<T>, TreeLazyLoadProps<T> {
-  /** `multiple` lets Ctrl/⌘ and Shift clicks and Shift + arrows select several nodes. @default "single" */
-  selectionMode?: "single" | "multiple" | undefined;
+  /**
+   * `multiple` lets Ctrl/⌘ and Shift clicks and Shift + arrows select several nodes; `none` leaves
+   * rows unselectable, so pressing a branch only toggles it. @default "single"
+   */
+  selectionMode?: "none" | "single" | "multiple" | undefined;
   selectedValue?: string[] | undefined;
   defaultSelectedValue?: string[] | undefined;
   onSelectionChange?:
@@ -97,6 +96,11 @@ interface TreeViewRootOwnProps<T> extends TreeNodes<T>, TreeLazyLoadProps<T> {
    * it, and `NodeCheckbox` is its visual.
    */
   checkable?: boolean | undefined;
+  /**
+   * Which rows carry a check state while `checkable`; a branch reads and toggles only the leaves it
+   * accepts. Defaults to every row. A new function re-renders every row, so keep it stable.
+   */
+  isNodeCheckable?: ((node: T) => boolean) | undefined;
   /** Clicking a branch, or Enter on it, also toggles it. @default true */
   expandOnClick?: boolean | undefined;
   /** Typing moves focus to the next shown node whose label starts with the typed text. @default true */
@@ -122,21 +126,23 @@ interface TreeContextValue {
   firstValue: string | null;
   expanded: ReadonlySet<string>;
   selected: ReadonlySet<string>;
-  checkedValue: readonly string[];
+  checked: ReadonlySet<string>;
   loading: ReadonlySet<string>;
+  /** Whether a branch's children are in: loaded by `loadChildren`, or without one, expanded. */
+  isBranchLoaded: (value: string) => boolean;
+  carryLoads: TreeLazyLoad<unknown>["carry"];
   checkable: boolean;
+  isNodeCheckable: (node: unknown) => boolean;
+  selectable: boolean;
   multiple: boolean;
   labelId: string | undefined;
-  registerLabel: (rendered: boolean) => void;
+  reportRendered: ReportRendered<"label">;
 }
 
-const TreeContext = createContext<TreeContextValue | null>(null);
-
-export function useTreeContext(): TreeContextValue {
-  const context = useContext(TreeContext);
-  if (!context) throw new Error("TreeView parts must be rendered inside TreeView.Root.");
-  return context;
-}
+export const [TreeContext, useTreeContext] = createPartContext<TreeContextValue>(
+  "<TreeView.Root>",
+  "TreeView parts",
+);
 
 export interface TreeNodeState<T = unknown> {
   node: T;
@@ -152,22 +158,88 @@ export interface TreeNodeState<T = unknown> {
   /** Whether the row is the tree's tab stop. */
   tabStop: boolean;
   renaming: boolean;
+  /** Whether the row carries a check state: the root is `checkable` and accepts the node. */
+  checkable: boolean;
   readonly checked: TreeCheckedState;
 }
 
-const NodeContext = createContext<TreeNodeState | null>(null);
+const [NodeContext, useNodeContext] = createPartContext<TreeNodeState>(
+  "<TreeView.NodeProvider>",
+  "TreeView node parts",
+);
 
 export function useTreeNodeState<T = unknown>(): TreeNodeState<T> {
-  const state = useContext(NodeContext);
-  if (!state) throw new Error("TreeView node parts must be rendered inside TreeView.NodeProvider.");
-  return state as TreeNodeState<T>;
+  return useNodeContext() as TreeNodeState<T>;
 }
 
 const NO_VALUES: string[] = [];
 
+const acceptAll = () => true;
+
 type RootElementProps = Omit<TreeViewRootProps, keyof TreeViewVariantProps>;
 
+type TreeRootProps = Omit<RootElementProps, keyof TreeLazyLoadProps<unknown>> & {
+  lazyLoad: TreeLazyLoad<unknown>;
+};
+
+function useTreeCollection({
+  nodes,
+  getNodeValue,
+  getNodeLabel,
+  getChildren,
+  getChildrenCount,
+  isNodeDisabled,
+}: TreeNodes<unknown>) {
+  return useMemo(
+    () =>
+      new TreeCollection(nodes, {
+        getNodeValue,
+        getNodeLabel,
+        getChildren,
+        getChildrenCount,
+        isNodeDisabled,
+      }),
+    [nodes, getNodeValue, getNodeLabel, getChildren, getChildrenCount, isNodeDisabled],
+  );
+}
+
 function RootElement({
+  lazyLoad,
+  ...props
+}: RootElementProps & { lazyLoad?: TreeLazyLoad<unknown> | undefined }) {
+  return lazyLoad ? (
+    <TreeRoot
+      {...props}
+      lazyLoad={lazyLoad}
+    />
+  ) : (
+    <SelfLoadingRoot {...props} />
+  );
+}
+
+function SelfLoadingRoot({
+  loadChildren,
+  onLoadChildrenComplete,
+  onLoadChildrenError,
+  ...props
+}: RootElementProps) {
+  const collection = useTreeCollection(props);
+  const lazyLoad = useTreeLazyLoad({
+    collection,
+    loadChildren,
+    onLoadChildrenComplete,
+    onLoadChildrenError,
+    abortKey: "",
+  });
+  return (
+    <TreeRoot
+      {...props}
+      lazyLoad={lazyLoad}
+    />
+  );
+}
+
+function TreeRoot({
   ref,
   render,
   nodes,
@@ -187,17 +259,16 @@ function RootElement({
   defaultCheckedValue = NO_VALUES,
   onCheckedChange,
   checkable = false,
+  isNodeCheckable = acceptAll,
   expandOnClick = true,
   typeahead = true,
-  loadChildren,
-  onLoadChildrenComplete,
-  onLoadChildrenError,
+  lazyLoad,
   canRename,
   onRenameComplete,
   actionsRef,
   children,
   ...rest
-}: RootElementProps) {
+}: TreeRootProps) {
   const id = useId();
   const [tree] = useState(() => new TreeViewNode(`tree:${id}`));
   useImperativeHandle(
@@ -209,25 +280,23 @@ function RootElement({
     [tree],
   );
   const rtl = useLocale().dir === "rtl";
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<"label">();
   const multiple = selectionMode === "multiple";
+  const selectable = selectionMode !== "none";
 
-  const collection = useMemo(
-    () =>
-      new TreeCollection(nodes, {
-        getNodeValue,
-        getNodeLabel,
-        getChildren,
-        getChildrenCount,
-        isNodeDisabled,
-      }),
-    [nodes, getNodeValue, getNodeLabel, getChildren, getChildrenCount, isNodeDisabled],
-  );
+  const collection = useTreeCollection({
+    nodes,
+    getNodeValue,
+    getNodeLabel,
+    getChildren,
+    getChildrenCount,
+    isNodeDisabled,
+  });
 
   const findNodes = (values: readonly string[]) =>
     values.flatMap((value) => collection.findNode(value) ?? []);
 
-  const [expanded, setExpanded] = useControllableState({
+  const [expanded, setExpanded] = useResyncedControllableState({
     value: expandedValue,
     defaultValue: defaultExpandedValue,
     onChange: (next: string[]) =>
@@ -238,7 +307,7 @@ function RootElement({
         focusedValue: tree.focusedValue,
       }),
   });
-  const [selected, setSelected] = useControllableState({
+  const [selected, setSelected] = useResyncedControllableState({
     value: selectedValue,
     defaultValue: defaultSelectedValue,
     onChange: (next: string[]) =>
@@ -249,29 +318,18 @@ function RootElement({
         focusedValue: tree.focusedValue,
       }),
   });
-  const [checked, setChecked] = useControllableState({
+  const [checked, setChecked] = useResyncedControllableState({
     value: checkedValue,
     defaultValue: defaultCheckedValue,
     onChange: onCheckedChange,
   });
 
-  const lazyLoad = useTreeLazyLoad({
-    collection,
-    loadChildren,
-    onLoadChildrenComplete,
-    onLoadChildrenError,
-    abortKey: "",
-  });
-
-  // A change the owner of a controlled value turns down still re-renders, so the tree re-reads it.
-  const [, rerender] = useReducer((count: number) => count + 1, 0);
-  const rerendering = (set: (next: string[]) => void) => (next: string[]) => {
-    set(next);
-    rerender();
-  };
-
   const expandedSet = useMemo(() => new Set(expanded), [expanded]);
-  const selectedSet = useMemo(() => new Set(selected), [selected]);
+  const selectedSet = useMemo(
+    () => new Set(selectable ? selected : NO_VALUES),
+    [selectable, selected],
+  );
+  const checkedSet = useMemo(() => new Set(checked), [checked]);
 
   const visibleNodes = useMemo(() => {
     const shown: VisibleNode<unknown>[] = [];
@@ -298,14 +356,15 @@ function RootElement({
       expandedValue: expanded,
       selectedValue: selected,
       checkedValue: checked,
-      multiple,
+      selectionMode,
+      isNodeCheckable,
       expandOnClick,
       typeahead,
       rtl,
       canRename,
-      onExpandedChange: rerendering(setExpanded),
-      onSelectionChange: rerendering(setSelected),
-      onCheckedChange: rerendering(setChecked),
+      onExpandedChange: setExpanded,
+      onSelectionChange: setSelected,
+      onCheckedChange: setChecked,
       needsLoad: lazyLoad.needsLoad,
       load: lazyLoad.start,
       onRenameComplete:
@@ -316,8 +375,6 @@ function RootElement({
 
   useEffect(() => () => tree.dispose(), [tree]);
 
-  const registerLabel = useCallback((rendered: boolean) => setLabelRendered(rendered), []);
-
   const context: TreeContextValue = {
     tree,
     collection,
@@ -326,12 +383,16 @@ function RootElement({
     firstValue,
     expanded: expandedSet,
     selected: selectedSet,
-    checkedValue: checked,
+    checked: checkedSet,
     loading: lazyLoad.loadingValues,
+    isBranchLoaded: lazyLoad.isLoaded ?? ((value) => expandedSet.has(value)),
+    carryLoads: lazyLoad.carry,
     checkable,
+    isNodeCheckable,
+    selectable,
     multiple,
-    labelId: labelRendered ? `${tree.id}:label` : undefined,
-    registerLabel,
+    labelId: rendered.label,
+    reportRendered,
   };
 
   return (
@@ -351,6 +412,10 @@ const StyledRoot = withProvider(RootElement as ElementType, "root");
 
 const Root = StyledRoot as unknown as <T>(props: TreeViewRootProps<T>) => JSX.Element;
 
+export const LazyLoadedTreeRoot = StyledRoot as unknown as <T>(
+  props: Omit<TreeViewRootProps<T>, keyof TreeLazyLoadProps<T>> & { lazyLoad: TreeLazyLoad<T> },
+) => JSX.Element;
+
 /** Gives the parts inside it the node they render. */
 function NodeProvider<T>({
   node,
@@ -362,7 +427,7 @@ function NodeProvider<T>({
   children?: ReactNode;
 }) {
   const context = useTreeContext();
-  const { tree, collection, firstValue, visibleValues } = context;
+  const { tree, collection, firstValue, visibleValues, checked, isNodeCheckable } = context;
   const value = collection.getNodeValue(node);
   const tabStopArg = useMemo(
     () => ({ value, first: firstValue, visible: visibleValues }),
@@ -371,7 +436,7 @@ function NodeProvider<T>({
   const tabStop = useStore(tree.store, selectIsTabStop, tabStopArg);
   const renaming = useStore(tree.store, selectIsRenaming, value);
   const isBranch = collection.isBranchNode(node);
-  const { checkedValue } = context;
+  const checkable = context.checkable && isNodeCheckable(node);
 
   const state = useMemo<TreeNodeState>(
     () => ({
@@ -387,8 +452,9 @@ function NodeProvider<T>({
       loading: context.loading.has(value),
       tabStop,
       renaming,
+      checkable,
       get checked() {
-        return getCheckedState(collection, node, checkedValue);
+        return getCheckedState(collection, node, checked, isNodeCheckable);
       },
     }),
     [
@@ -403,34 +469,37 @@ function NodeProvider<T>({
       context.loading,
       tabStop,
       renaming,
-      checkedValue,
+      checkable,
+      checked,
+      isNodeCheckable,
     ],
   );
 
   return <NodeContext value={state}>{children}</NodeContext>;
 }
 
-const checkedAttrs = (checked: TreeCheckedState) =>
-  checked === "indeterminate"
-    ? { "data-indeterminate": "" }
-    : checked
-      ? { "data-checked": "" }
-      : { "data-unchecked": "" };
-
 export const ariaChecked = (checked: TreeCheckedState) =>
   checked === "indeterminate" ? "mixed" : checked ? "true" : "false";
 
-const depthStyle = (depth: number): CSSProperties & { "--tree-depth": number } => ({
+export const depthStyle = (depth: number): CSSProperties & { "--tree-depth": number } => ({
   "--tree-depth": depth,
 });
 
-const isAnchor = (element: Element) => element.matches("a[href]");
+export const treeItemAria = (state: TreeNodeState, selectable: boolean) =>
+  ({
+    role: "treeitem",
+    "aria-level": state.depth,
+    "aria-selected": selectable && !state.disabled ? state.selected : undefined,
+    "aria-disabled": state.disabled || undefined,
+    "aria-checked": state.checkable ? ariaChecked(state.checked) : undefined,
+  }) as const;
 
-const isModified = (event: MouseEvent) => event.ctrlKey || event.altKey || event.metaKey;
-
-const pressModifiers = (event: MouseEvent): PressModifiers => ({
-  toggle: event.metaKey || event.ctrlKey,
-  range: event.shiftKey,
+const nodeDataAttrs = (state: TreeNodeState) => ({
+  "data-value": state.value,
+  "data-path": state.indexPath.join("/"),
+  "data-depth": state.depth,
+  "data-selected": dataAttr(state.selected),
+  "data-disabled": dataAttr(state.disabled),
 });
 
 function useRowRef(ref: Ref<HTMLElement> | undefined) {
@@ -443,14 +512,23 @@ function useRowRef(ref: Ref<HTMLElement> | undefined) {
   return useComposedRefs(ref, register);
 }
 
-function useSpaceToggle() {
-  const { tree, checkable } = useTreeContext();
-  const { value, isBranch, disabled } = useTreeNodeState();
-  return (event: KeyboardEvent<HTMLElement>) => {
-    if (!checkable || event.defaultPrevented || event.key !== " ") return;
-    if (event.target !== event.currentTarget || disabled) return;
-    event.preventDefault();
-    tree.toggleChecked(value, isBranch);
+function useRowProps() {
+  const { tree } = useTreeContext();
+  const state = useTreeNodeState();
+  return {
+    id: state.id,
+    tabIndex: state.tabStop ? 0 : -1,
+    onFocus: (event: FocusEvent<HTMLElement>) => {
+      event.stopPropagation();
+      tree.onRowFocus(state.value);
+    },
+    onClick: (event: MouseEvent<HTMLElement>) => tree.onRowClick(event, state),
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+      if (!state.checkable || event.defaultPrevented || event.key !== " ") return;
+      if (event.target !== event.currentTarget || state.disabled) return;
+      event.preventDefault();
+      tree.toggleChecked(state.node);
+    },
   };
 }
 
@@ -478,15 +556,12 @@ function Tree(props: ComponentProps<typeof StyledTree>) {
 
 const StyledLabel = withContext(renderable.h3, "label");
 
-function Label(props: ComponentProps<typeof StyledLabel>) {
-  const { tree, registerLabel } = useTreeContext();
-  useLayoutEffect(() => {
-    registerLabel(true);
-    return () => registerLabel(false);
-  }, [registerLabel]);
+function Label({ id, ...props }: ComponentProps<typeof StyledLabel>) {
+  const { tree, reportRendered } = useTreeContext();
+  const labelId = useReportRendered(reportRendered, "label", id ?? `${tree.id}:label`);
   return (
     <StyledLabel
-      id={`${tree.id}:label`}
+      id={labelId}
       {...props}
     />
   );
@@ -495,25 +570,17 @@ function Label(props: ComponentProps<typeof StyledLabel>) {
 const StyledBranch = withContext(renderable.div, "branch");
 
 function Branch(props: ComponentProps<typeof StyledBranch>) {
-  const { checkable } = useTreeContext();
+  const { selectable } = useTreeContext();
   const state = useTreeNodeState();
   return (
     <StyledBranch
       {...mergeProps<ComponentProps<typeof StyledBranch>>(
         {
-          role: "treeitem",
-          "aria-level": state.depth,
-          "aria-selected": state.disabled ? undefined : state.selected,
+          ...treeItemAria(state, selectable),
           "aria-expanded": state.expanded,
-          "aria-disabled": state.disabled || undefined,
           "aria-busy": state.loading || undefined,
-          "aria-checked": checkable ? ariaChecked(state.checked) : undefined,
-          "data-value": state.value,
-          "data-path": state.indexPath.join("/"),
-          "data-depth": state.depth,
-          "data-selected": dataAttr(state.selected),
+          ...nodeDataAttrs(state),
           "data-expanded": dataAttr(state.expanded),
-          "data-disabled": dataAttr(state.disabled),
           "data-loading": dataAttr(state.loading),
           style: depthStyle(state.depth),
         } as ComponentProps<typeof StyledBranch>,
@@ -528,38 +595,20 @@ const StyledBranchControl = withContext(renderable.div, "branchControl", {
 });
 
 function BranchControl({ ref, ...props }: ComponentProps<typeof StyledBranchControl>) {
-  const { tree } = useTreeContext();
   const state = useTreeNodeState();
   const rowRef = useRowRef(ref);
-  const onSpace = useSpaceToggle();
-  const { value, disabled, loading } = state;
+  const rowProps = useRowProps();
   return (
     <StyledBranchControl
       {...mergeProps<ComponentProps<typeof StyledBranchControl>>(
         {
-          id: state.id,
+          ...rowProps,
           role: "button",
-          tabIndex: state.tabStop ? 0 : -1,
-          "data-value": value,
-          "data-path": state.indexPath.join("/"),
-          "data-depth": state.depth,
+          ...nodeDataAttrs(state),
           "data-expanded": dataAttr(state.expanded),
-          "data-selected": dataAttr(state.selected),
-          "data-disabled": dataAttr(disabled),
           "data-renaming": dataAttr(state.renaming),
-          "data-loading": dataAttr(loading),
-          "aria-busy": loading || undefined,
-          onFocus: (event: FocusEvent<HTMLDivElement>) => {
-            event.stopPropagation();
-            tree.onRowFocus(value);
-          },
-          onClick: (event: MouseEvent<HTMLDivElement>) => {
-            if (disabled || loading || event.button !== 0) return;
-            if (isAnchor(event.currentTarget) && isModified(event)) return;
-            tree.press(value, true, pressModifiers(event));
-            event.stopPropagation();
-          },
-          onKeyDown: onSpace,
+          "data-loading": dataAttr(state.loading),
+          "aria-busy": state.loading || undefined,
         } as ComponentProps<typeof StyledBranchControl>,
         props,
       )}
@@ -663,43 +712,20 @@ const StyledItem = withContext(renderable.div, "item", {
 });
 
 function Item({ ref, ...props }: ComponentProps<typeof StyledItem>) {
-  const { tree, checkable } = useTreeContext();
+  const { selectable } = useTreeContext();
   const state = useTreeNodeState();
   const rowRef = useRowRef(ref);
-  const onSpace = useSpaceToggle();
-  const { value, disabled, selected } = state;
+  const rowProps = useRowProps();
   return (
     <StyledItem
       {...mergeProps<ComponentProps<typeof StyledItem>>(
         {
-          id: state.id,
-          role: "treeitem",
-          tabIndex: state.tabStop ? 0 : -1,
-          "aria-level": state.depth,
-          "aria-current": selected ? "true" : undefined,
-          "aria-selected": disabled ? undefined : selected,
-          "aria-disabled": disabled || undefined,
-          "aria-checked": checkable ? ariaChecked(state.checked) : undefined,
-          "data-value": value,
-          "data-path": state.indexPath.join("/"),
-          "data-depth": state.depth,
-          "data-selected": dataAttr(selected),
-          "data-disabled": dataAttr(disabled),
+          ...rowProps,
+          ...treeItemAria(state, selectable),
+          "aria-current": state.selected ? "true" : undefined,
+          ...nodeDataAttrs(state),
           "data-renaming": dataAttr(state.renaming),
           style: depthStyle(state.depth),
-          onFocus: (event: FocusEvent<HTMLDivElement>) => {
-            event.stopPropagation();
-            tree.onRowFocus(value);
-          },
-          onClick: (event: MouseEvent<HTMLDivElement>) => {
-            if (disabled || event.button !== 0) return;
-            const anchor = isAnchor(event.currentTarget);
-            if (anchor && isModified(event)) return;
-            tree.press(value, false, pressModifiers(event));
-            event.stopPropagation();
-            if (!anchor) event.preventDefault();
-          },
-          onKeyDown: onSpace,
         } as ComponentProps<typeof StyledItem>,
         props,
       )}
@@ -764,17 +790,18 @@ type NodeCheckboxProps = ComponentProps<typeof StyledNodeCheckbox> & {
 };
 
 function NodeCheckbox({ checked: checkedProp, children, ...props }: NodeCheckboxProps) {
-  const { tree } = useTreeContext();
+  const { tree, isNodeCheckable } = useTreeContext();
   const state = useTreeNodeState();
   const checked = checkedProp ?? state.checked;
   const own: Record<string, unknown> = {
     "aria-hidden": true,
-    ...checkedAttrs(checked),
+    ...checkedStateAttributes(checked),
     "data-disabled": dataAttr(state.disabled),
     onClick: (event: MouseEvent<HTMLSpanElement>) => {
       if (event.defaultPrevented || state.disabled || event.button !== 0) return;
+      if (!isNodeCheckable(state.node)) return;
       event.stopPropagation();
-      tree.toggleChecked(state.value, state.isBranch);
+      tree.toggleChecked(state.node);
       tree.focusRow(state.value);
     },
   };
@@ -839,10 +866,7 @@ function NodeRenameInput({ ref, ...props }: ComponentProps<typeof StyledNodeRena
 const DropIndicator = withContext(renderable.div, "dropIndicator");
 const StyledNodeActions = withContext(renderable.div, "nodeActions");
 const BranchCount = withContext(renderable.span, "branchCount");
-export const FlatIndentGuide = withContext(renderable.div, "branchIndentGuide");
 export const FlatBranchControl = withContext(renderable.div, "branchControl");
-export const FlatBranchIndicator = withContext(renderable.span, "branchIndicator");
-export const FlatNodeCheckbox = withContext(renderable.span, "nodeCheckbox");
 export const TreeRowContent = withContext(renderable.div, "nodeContent");
 
 function NodeActions({ onClick, onKeyDown, ...props }: ComponentProps<typeof StyledNodeActions>) {

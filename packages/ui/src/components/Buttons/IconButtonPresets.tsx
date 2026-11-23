@@ -1,7 +1,6 @@
 import { PencilIcon, Trash2Icon, XIcon } from "lucide-react";
 import { type ReactElement, cloneElement } from "react";
 
-import type { WithRef } from "../../types";
 import { IconButton, type IconButtonProps } from "./IconButton";
 
 type IconButtonPresetProps = Omit<IconButtonProps, "children">;
@@ -12,7 +11,7 @@ export type EditButtonProps = IconButtonPresetProps;
 
 // A preset is a JSX literal, not a props object, so Panda extracts its style props.
 function createIconButtonPreset(preset: ReactElement<IconButtonProps>) {
-  return function IconButtonPreset(props: WithRef<IconButtonPresetProps, HTMLButtonElement>) {
+  return function IconButtonPreset(props: IconButtonPresetProps) {
     return cloneElement(preset, props);
   };
 }

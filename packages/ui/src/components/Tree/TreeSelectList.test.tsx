@@ -1,34 +1,20 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { childIdsOf, findTestNode, testAccessors, type TestNode } from "./tree.fixtures";
+import { virtualScrollAreaProps } from "../../_shared/virtualScrollAreaMock";
+import {
+  childIdsOf,
+  findTestNode,
+  fruitVegNodes,
+  testAccessors,
+  type TestNode,
+} from "./tree.fixtures";
 import { TreeSelectList, type TreeSelectListProps } from "./TreeSelectList";
 import type { TreeLoadChildrenDetails } from "./useTreeLazyLoad";
 import { useTreeSelectList } from "./useTreeSelectList";
 
-const virtualScrollAreaProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
-
-vi.mock("../ScrollArea/VirtualScrollArea", () => ({
-  VirtualScrollArea: ({
-    items,
-    children,
-    header,
-    ...props
-  }: {
-    items: unknown[];
-    children: (item: unknown, index: number) => React.ReactNode;
-    header?: React.ReactNode;
-  }) => {
-    virtualScrollAreaProps.current = props;
-    return (
-      <>
-        {header}
-        {items.map((item, index) => children(item, index))}
-      </>
-    );
-  },
-}));
+vi.mock("../ScrollArea/VirtualScrollArea", () => import("../../_shared/virtualScrollAreaMock"));
 
 const fileTreeCollection: TestNode[] = [
   {
@@ -45,22 +31,6 @@ const fileTreeCollection: TestNode[] = [
       },
       { id: "src/index.ts", label: "index.ts" },
     ],
-  },
-];
-
-const fruitVegCollection: TestNode[] = [
-  {
-    id: "fruits",
-    label: "Fruits",
-    children: [
-      { id: "apple", label: "Apple" },
-      { id: "banana", label: "Banana" },
-    ],
-  },
-  {
-    id: "vegetables",
-    label: "Vegetables",
-    children: [{ id: "carrot", label: "Carrot" }],
   },
 ];
 
@@ -98,7 +68,7 @@ const treeSelectList = ({
   ...overrides
 }: ListProps = {}) => {
   const props = {
-    nodes: fruitVegCollection,
+    nodes: fruitVegNodes,
     ...testAccessors,
     value: [],
     onValueChange: vi.fn(),
@@ -120,222 +90,6 @@ const renderList = (props?: ListProps) => {
   const view = render(treeSelectList(props));
   return { ...view, rerender: (next?: ListProps) => view.rerender(treeSelectList(next)) };
 };
-
-describe("TreeSelectList", () => {
-  // --- Rendering / indent guides (from CheckboxTree tests) ---
-
-  it("renders ancestor indent guides for virtualized descendants", () => {
-    renderList({
-      ...listOnly,
-      nodes: fileTreeCollection,
-      defaultExpandedValue: ["src", "src/components"],
-    });
-
-    const srcRow = screen.getByText("src").closest('[data-slot="branchControl"]');
-    const componentsRow = screen.getByText("components").closest('[data-slot="branchControl"]');
-    const buttonRow = screen.getByText("Button.tsx").closest('[data-slot="item"]');
-
-    expect(srcRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(0);
-    expect(componentsRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(1);
-    expect(buttonRow?.querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(2);
-  });
-
-  it("renders a leaf indicator spacer so item content aligns with branch rows", () => {
-    renderList({ ...listOnly, defaultExpandedValue: ["fruits"] });
-
-    const branchRow = screen.getByText("Fruits").closest('[data-slot="branchControl"]');
-    const leafRow = screen.getByText("Apple").closest('[data-slot="item"]');
-
-    expect(branchRow?.querySelector('[data-slot="branchIndicator"] > svg')).not.toBeNull();
-    expect(leafRow?.querySelector(".tree-view__branchIndicator")).not.toBeNull();
-  });
-
-  it("renders a single check icon for a fully checked branch", () => {
-    renderList({
-      ...listOnly,
-      nodes: fileTreeCollection,
-      value: ["src/components/Button.tsx", "src/components/Input.tsx"],
-      defaultExpandedValue: ["src", "src/components"],
-    });
-
-    const branchRow = screen.getByText("components").closest('[data-slot="branchControl"]');
-
-    expect(branchRow).not.toBeNull();
-    expect(branchRow?.querySelectorAll("svg.lucide-check")).toHaveLength(1);
-    expect(branchRow?.querySelectorAll("svg.lucide-minus")).toHaveLength(0);
-    expect(branchRow?.querySelectorAll("svg")).toHaveLength(2);
-  });
-
-  it("renders an indeterminate icon for a partially checked branch", () => {
-    renderList({
-      ...listOnly,
-      nodes: fileTreeCollection,
-      value: ["src/components/Button.tsx"],
-      defaultExpandedValue: ["src", "src/components"],
-    });
-
-    const branchRow = screen.getByText("components").closest('[data-slot="branchControl"]');
-
-    expect(branchRow).not.toBeNull();
-    expect(branchRow?.querySelectorAll("svg.lucide-check")).toHaveLength(0);
-    expect(branchRow?.querySelectorAll("svg.lucide-minus")).toHaveLength(1);
-    expect(branchRow?.querySelectorAll("svg")).toHaveLength(2);
-  });
-
-  // --- Filtering / selection preservation (from TreeSelect tests) ---
-
-  it("preserves hidden selections when a filtered checkbox changes", async () => {
-    const onValueChange = vi.fn();
-
-    renderList({ value: ["carrot"], onValueChange });
-
-    fireEvent.change(screen.getByPlaceholderText("Search..."), { target: { value: "app" } });
-
-    const appleCheckbox = screen
-      .getByText("Apple")
-      .closest('[data-slot="item"]')
-      ?.querySelector('[data-slot="nodeCheckbox"]');
-    fireEvent.click(appleCheckbox as Element);
-
-    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(["carrot", "apple"]));
-  });
-
-  it("defaults to md size", () => {
-    const { container } = renderList();
-
-    expect(container.querySelector('[class*="tree-view__root--size_md"]')).not.toBeNull();
-  });
-
-  it("hides search and select-all when both are disabled", () => {
-    renderList(listOnly);
-
-    expect(screen.queryByPlaceholderText("Search...")).toBeNull();
-    expect(screen.queryByLabelText("Select all")).toBeNull();
-  });
-
-  // --- Drag and drop ---
-
-  it("makes rows draggable when onNodesChange is provided", () => {
-    renderList({
-      ...listOnly,
-      onNodesChange: vi.fn(),
-      defaultExpandedValue: ["fruits", "vegetables"],
-    });
-
-    expect(screen.getByText("Fruits").closest("[draggable='true']")).not.toBeNull();
-    expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
-  });
-
-  it("leaves rows non-draggable without onNodesChange", () => {
-    renderList({ ...listOnly, defaultExpandedValue: ["fruits", "vegetables"] });
-
-    expect(screen.getByText("Fruits").closest("[draggable='true']")).toBeNull();
-  });
-
-  it("reorders a node via keyboard (Ctrl+ArrowDown) and commits the change", () => {
-    const onNodesChange = vi.fn();
-    renderList({
-      ...listOnly,
-      onNodesChange,
-      defaultExpandedValue: ["fruits", "vegetables"],
-    });
-
-    const apple = screen.getByText("Apple").closest("[draggable='true']");
-    expect(apple).not.toBeNull();
-    fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
-
-    expect(onNodesChange).toHaveBeenCalledTimes(1);
-    const next = onNodesChange.mock.calls[0][0] as TestNode[];
-    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
-  });
-
-  it.each([
-    ["canDrop", { canDrop: () => false }, "Apple", "ArrowDown"],
-    ["blockReparent", { blockReparent: true }, "Carrot", "ArrowLeft"],
-    ["isNodeDraggable", { isNodeDraggable: () => false }, "Apple", "ArrowDown"],
-    [
-      "disabled node",
-      {
-        nodes: [
-          {
-            id: "fruits",
-            label: "Fruits",
-            children: [
-              { id: "apple", label: "Apple", disabled: true },
-              { id: "banana", label: "Banana" },
-            ],
-          },
-        ],
-      },
-      "Apple",
-      "ArrowDown",
-    ],
-  ] satisfies [string, ListProps, string, string][])(
-    "keyboard moves respect the %s veto",
-    (_, veto, label, key) => {
-      const onNodesChange = vi.fn();
-      renderList({
-        ...listOnly,
-        onNodesChange,
-        defaultExpandedValue: ["fruits", "vegetables"],
-        ...veto,
-      });
-      const row = screen.getByText(label).closest("[draggable='true']");
-      fireEvent.keyDown(row as HTMLElement, { key, ctrlKey: true });
-      expect(onNodesChange).not.toHaveBeenCalled();
-    },
-  );
-
-  it("keyboard-moves every getDragValues node, as a pointer drag does", () => {
-    const onNodesChange = vi.fn();
-    renderList({
-      ...listOnly,
-      onNodesChange,
-      getDragValues: (value) => (value === "apple" ? ["apple", "carrot"] : [value]),
-      defaultExpandedValue: ["fruits", "vegetables"],
-    });
-    const apple = screen.getByText("Apple").closest("[draggable='true']");
-    fireEvent.keyDown(apple as HTMLElement, { key: "ArrowDown", ctrlKey: true });
-
-    expect(onNodesChange).toHaveBeenCalledTimes(1);
-    const next = onNodesChange.mock.calls[0][0] as TestNode[];
-    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple", "carrot"]);
-    expect(childIdsOf(next, "vegetables")).toEqual([]);
-  });
-
-  it("expands a collapsed branch on keyboard indent and keeps focus on the moved node", async () => {
-    const onExpandedChange = vi.fn();
-    const ReorderableTree = () => {
-      const [nodes, setNodes] = useState(fruitVegCollection);
-      return treeSelectList({
-        ...listOnly,
-        nodes,
-        onNodesChange: setNodes,
-        defaultExpandedValue: [],
-        onExpandedChange,
-      });
-    };
-    render(<ReorderableTree />);
-    const vegetables = screen.getByText("Vegetables").closest("[draggable='true']") as HTMLElement;
-    vegetables.focus();
-
-    // Flushes the microtask-deferred expansion before the refocus frame, as a real keypress does.
-    await act(async () => {
-      fireEvent.keyDown(vegetables, { key: "ArrowRight", ctrlKey: true });
-    });
-
-    expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]);
-    const moved = screen.getByText("Vegetables").closest("[draggable='true']");
-    expect(moved?.getAttribute("data-depth")).toBe("2");
-    await waitFor(() => expect(document.activeElement).toBe(moved));
-  });
-
-  it("renders an assistive-tech live region when DnD is enabled", async () => {
-    const { container } = renderList({ ...listOnly, onNodesChange: vi.fn() });
-
-    expect(container.querySelector("[aria-live]")).not.toBeNull();
-  });
-});
 
 const rowOf = (label: string) =>
   screen
@@ -365,6 +119,99 @@ const deferred = <T,>() => {
   });
   return { promise, resolve, reject };
 };
+
+describe("TreeSelectList", () => {
+  // --- Rendering / indent guides (from CheckboxTree tests) ---
+
+  it("renders ancestor indent guides for virtualized descendants", () => {
+    renderList({
+      ...listOnly,
+      nodes: fileTreeCollection,
+      defaultExpandedValue: ["src", "src/components"],
+    });
+
+    expect(rowOf("src").querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(0);
+    expect(rowOf("components").querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(1);
+    expect(rowOf("Button.tsx").querySelectorAll(".tree-view__branchIndentGuide")).toHaveLength(2);
+  });
+
+  it("renders a leaf indicator spacer so item content aligns with branch rows", () => {
+    renderList({ ...listOnly, defaultExpandedValue: ["fruits"] });
+
+    expect(rowOf("Fruits").querySelector('[data-slot="branchIndicator"] > svg')).not.toBeNull();
+    expect(rowOf("Apple").querySelector(".tree-view__branchIndicator")).not.toBeNull();
+  });
+
+  it("renders a single check icon for a fully checked branch", () => {
+    renderList({
+      ...listOnly,
+      nodes: fileTreeCollection,
+      value: ["src/components/Button.tsx", "src/components/Input.tsx"],
+      defaultExpandedValue: ["src", "src/components"],
+    });
+
+    const branchRow = rowOf("components");
+
+    expect(branchRow.querySelectorAll("svg.lucide-check")).toHaveLength(1);
+    expect(branchRow.querySelectorAll("svg.lucide-minus")).toHaveLength(0);
+    expect(branchRow.querySelectorAll("svg")).toHaveLength(2);
+  });
+
+  it("renders an indeterminate icon for a partially checked branch", () => {
+    renderList({
+      ...listOnly,
+      nodes: fileTreeCollection,
+      value: ["src/components/Button.tsx"],
+      defaultExpandedValue: ["src", "src/components"],
+    });
+
+    const branchRow = rowOf("components");
+
+    expect(branchRow.querySelectorAll("svg.lucide-check")).toHaveLength(0);
+    expect(branchRow.querySelectorAll("svg.lucide-minus")).toHaveLength(1);
+    expect(branchRow.querySelectorAll("svg")).toHaveLength(2);
+  });
+
+  // --- Filtering / selection preservation (from TreeSelect tests) ---
+
+  it("preserves hidden selections when a filtered checkbox changes", async () => {
+    const onValueChange = vi.fn();
+
+    renderList({ value: ["carrot"], onValueChange });
+
+    fireEvent.change(screen.getByPlaceholderText("Search..."), { target: { value: "app" } });
+
+    fireEvent.click(checkboxOf("Apple") as Element);
+
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(["carrot", "apple"]));
+  });
+
+  it("hides search and select-all when both are disabled", () => {
+    renderList(listOnly);
+
+    expect(screen.queryByPlaceholderText("Search...")).toBeNull();
+    expect(screen.queryByLabelText("Select all")).toBeNull();
+  });
+
+  // --- Drag and drop ---
+
+  it("makes rows draggable when onNodesChange is provided", () => {
+    renderList({
+      ...listOnly,
+      onNodesChange: vi.fn(),
+      defaultExpandedValue: ["fruits", "vegetables"],
+    });
+
+    expect(screen.getByText("Fruits").closest("[draggable='true']")).not.toBeNull();
+    expect(screen.getByText("Apple").closest("[draggable='true']")).not.toBeNull();
+  });
+
+  it("leaves rows non-draggable without onNodesChange", () => {
+    renderList({ ...listOnly, defaultExpandedValue: ["fruits", "vegetables"] });
+
+    expect(screen.getByText("Fruits").closest("[draggable='true']")).toBeNull();
+  });
+});
 
 describe("TreeSelectList sticky branches and rename", () => {
   it("pins the branch of the topmost visible row above the list", async () => {
@@ -415,12 +262,6 @@ describe("TreeSelectList sticky branches and rename", () => {
 });
 
 describe("TreeSelectList search", () => {
-  it("renders the virtual scroll area with vertical scrollbars only", () => {
-    renderList();
-
-    expect(virtualScrollAreaProps.current.scrollbars).toBe("vertical");
-  });
-
   it("filters by a controlled query and only reports typing until the prop changes", () => {
     const onQueryChange = vi.fn();
     const { rerender } = renderList({ search: { query: "app", onQueryChange } });
@@ -575,7 +416,7 @@ describe("TreeSelectList search", () => {
     const { result, rerender } = renderHook(
       ({ query }: { query: string }) =>
         useTreeSelectList({
-          nodes: fruitVegCollection,
+          nodes: fruitVegNodes,
           ...testAccessors,
           value: ["carrot", "stale"],
           onValueChange,
@@ -784,6 +625,12 @@ describe("TreeSelectList checking and keyboard", () => {
     expect(onValueChange).toHaveBeenLastCalledWith(["banana"]);
   });
 
+  it("reads a branch as checked once its checkable leaves are", () => {
+    renderList({ ...bananaLocked, value: ["apple"] });
+
+    expect(rowOf("Fruits").getAttribute("aria-checked")).toBe("true");
+  });
+
   it("gives no checkbox to a branch without checkable leaves", () => {
     renderList({ ...listOnly, isNodeCheckable: ({ node }) => node.id !== "carrot" });
 
@@ -813,22 +660,6 @@ describe("TreeSelectList checking and keyboard", () => {
 
     fireEvent.click(checkboxOf("Fruits") as Element);
     expect(onValueChange).toHaveBeenLastCalledWith(["apple"]);
-  });
-
-  it("leaves locked nodes out of a multi-node move", () => {
-    const onNodesChange = vi.fn();
-    renderList({
-      ...listOnly,
-      onNodesChange,
-      getDragValues: (value) => (value === "apple" ? ["apple", "carrot"] : [value]),
-      isNodeDraggable: (node) => node.id !== "carrot",
-    });
-
-    fireEvent.keyDown(rowOf("Apple"), { key: "ArrowDown", ctrlKey: true });
-
-    const next = onNodesChange.mock.calls[0][0] as TestNode[];
-    expect(childIdsOf(next, "fruits")).toEqual(["banana", "apple"]);
-    expect(childIdsOf(next, "vegetables")).toEqual(["carrot"]);
   });
 });
 
@@ -1176,103 +1007,5 @@ describe("TreeSelectList lazy loading", () => {
     expect(rowOf("Remote").hasAttribute("data-expanded")).toBe(false);
     expect(rowOf("Cloud").hasAttribute("data-expanded")).toBe(false);
     expect(loadChildren).not.toHaveBeenCalled();
-  });
-});
-
-const pearCollection: TestNode[] = [
-  {
-    id: "fruits",
-    label: "Fruits",
-    children: [
-      { id: "apple", label: "Apple" },
-      { id: "banana", label: "Banana" },
-    ],
-  },
-  { id: "pear", label: "Pear" },
-];
-
-const pointerDrag = (
-  source: HTMLElement,
-  target: HTMLElement,
-  clientX: number,
-  clientY: number,
-) => {
-  const dataTransfer = {
-    types: [] as string[],
-    dropEffect: "none",
-    effectAllowed: "all",
-    setData: () => {},
-    getData: () => "",
-    clearData: () => {},
-    setDragImage: () => {},
-  };
-  const init = { dataTransfer, clientX, clientY };
-  fireEvent.dragStart(source, init);
-  fireEvent.dragEnter(target, init);
-  fireEvent.dragOver(target, init);
-  fireEvent.drop(target, init);
-};
-
-describe("TreeSelectList pointer drops", () => {
-  const view = document.defaultView as Window & typeof globalThis;
-  view.DragEvent ??= class DragEvent extends view.MouseEvent {} as typeof view.DragEvent;
-
-  const mockRowRects = () => {
-    const rect = vi
-      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
-      .mockReturnValue(DOMRect.fromRect({ x: 0, y: 0, width: 200, height: 20 }));
-    onTestFinished(() => rect.mockRestore());
-  };
-
-  it("nests a dropped node into a collapsed branch and reveals it", async () => {
-    mockRowRects();
-    const onNodesChange = vi.fn();
-    const onExpandedChange = vi.fn();
-    renderList({
-      ...listOnly,
-      nodes: pearCollection,
-      defaultExpandedValue: [],
-      onNodesChange,
-      onExpandedChange,
-    });
-
-    pointerDrag(rowOf("Pear"), rowOf("Fruits"), 100, 10);
-    await flush();
-
-    const next = onNodesChange.mock.calls[0][0] as TestNode[];
-    expect(childIdsOf(next, "fruits")).toEqual(["pear", "apple", "banana"]);
-    expect(onExpandedChange).toHaveBeenLastCalledWith(["fruits"]);
-  });
-
-  it("leaves a branch collapsed when canDrop vetoes nesting into it", async () => {
-    mockRowRects();
-    const onNodesChange = vi.fn();
-    const onExpandedChange = vi.fn();
-    renderList({
-      ...listOnly,
-      nodes: pearCollection,
-      defaultExpandedValue: [],
-      onNodesChange,
-      onExpandedChange,
-      canDrop: () => false,
-    });
-
-    pointerDrag(rowOf("Pear"), rowOf("Fruits"), 100, 10);
-    await flush();
-
-    expect(onNodesChange).not.toHaveBeenCalled();
-    expect(onExpandedChange).not.toHaveBeenCalled();
-  });
-
-  it("measures reparent levels from the inline start edge in RTL", () => {
-    mockRowRects();
-    const onNodesChange = vi.fn();
-    renderList({ ...listOnly, nodes: pearCollection, onNodesChange });
-    rowOf("Banana").style.direction = "rtl";
-
-    pointerDrag(rowOf("Apple"), rowOf("Banana"), 195, 15);
-
-    const next = onNodesChange.mock.calls[0][0] as TestNode[];
-    expect(childIdsOf(next)).toEqual(["fruits", "apple", "pear"]);
   });
 });

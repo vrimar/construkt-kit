@@ -1,4 +1,5 @@
 import preview from "@construkt-kit/story-kit/preview";
+import { fn } from "storybook/test";
 
 import { numberInput } from "#styled-system/recipes";
 
@@ -25,12 +26,15 @@ export const Default = meta.story({
 });
 
 export const WithMinMax = meta.story({
-  render: () => (
+  args: { onFocusChange: fn(), onValueCommit: fn() },
+  render: ({ onFocusChange, onValueCommit }) => (
     <NumberInput.Root
       defaultValue="5"
       min={0}
       max={10}
       step={1}
+      onFocusChange={onFocusChange}
+      onValueCommit={onValueCommit}
     >
       <NumberInput.Label>Rating (0-10)</NumberInput.Label>
       <NumberInput.Input />

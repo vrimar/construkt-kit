@@ -1,15 +1,26 @@
-import type { KeyboardEvent } from "react";
+import { sameItems } from "@construkt-kit/utils";
+import type { KeyboardEvent, MouseEvent } from "react";
 
-import { isComposingEvent, isEditableTarget } from "../../foundations/dom";
+import {
+  isComposingEvent,
+  isEditableTarget,
+  isModifierKey,
+  opensLinkNatively,
+} from "../../foundations/dom";
 import {
   type NavigableList,
+  RangeSelection,
   Typeahead,
-  getFirstEnabledIndex,
+  entryList,
   getLastEnabledIndex,
   getNextIndex,
+  getTargetIndex,
+  isCrossOrientationCloseKey,
+  isCrossOrientationOpenKey,
 } from "../../primitives/composite";
 import { Store } from "../../primitives/store";
-import { TreeCollection, getToggledLeafValues } from "./treeCollection";
+import { getSelectAllState } from "../selection";
+import { TreeCollection, getToggledLeafValues, isDescendantPath } from "./treeCollection";
 
 /** A row the tree shows: a node whose ancestors are all expanded. */
 export interface VisibleNode<T> {
@@ -25,18 +36,16 @@ export interface TreeViewState {
 }
 
 export interface TabStopArg {
-  value: string;
   /** The row that holds the tab stop while no shown row has focus. */
   first: string | null;
   visible: ReadonlySet<string>;
 }
 
-export const selectFocused = (state: TreeViewState): string | null => state.focusedValue;
+export const selectTabStop = (state: TreeViewState, { first, visible }: TabStopArg) =>
+  state.focusedValue != null && visible.has(state.focusedValue) ? state.focusedValue : first;
 
-export const selectIsTabStop = (state: TreeViewState, { value, first, visible }: TabStopArg) =>
-  state.focusedValue != null && visible.has(state.focusedValue)
-    ? state.focusedValue === value
-    : first === value;
+export const selectIsTabStop = (state: TreeViewState, arg: TabStopArg & { value: string }) =>
+  selectTabStop(state, arg) === arg.value;
 
 export const selectIsRenaming = (state: TreeViewState, value: string): boolean =>
   state.renamingValue === value;
@@ -50,13 +59,27 @@ export interface PressModifiers {
 
 const NO_MODIFIERS: PressModifiers = { toggle: false, range: false };
 
+const pressModifiers = (event: {
+  ctrlKey: boolean;
+  metaKey: boolean;
+  shiftKey: boolean;
+}): PressModifiers => ({ toggle: event.ctrlKey || event.metaKey, range: event.shiftKey });
+
+export interface PressedRow {
+  value: string;
+  isBranch: boolean;
+  disabled: boolean;
+  loading: boolean;
+}
+
 export interface TreeViewNodeConfig {
   collection: TreeCollection<unknown>;
   visibleNodes: readonly VisibleNode<unknown>[];
   expandedValue: readonly string[];
   selectedValue: readonly string[];
   checkedValue: readonly string[];
-  multiple: boolean;
+  selectionMode: "none" | "single" | "multiple";
+  isNodeCheckable: (node: unknown) => boolean;
   expandOnClick: boolean;
   typeahead: boolean;
   rtl: boolean;
@@ -77,7 +100,8 @@ const IDLE: TreeViewNodeConfig = {
   expandedValue: [],
   selectedValue: [],
   checkedValue: [],
-  multiple: false,
+  selectionMode: "single",
+  isNodeCheckable: () => true,
   expandOnClick: true,
   typeahead: true,
   rtl: false,
@@ -90,17 +114,17 @@ const IDLE: TreeViewNodeConfig = {
   onRenameComplete: undefined,
 };
 
-const isModifierKey = (event: KeyboardEvent) => event.ctrlKey || event.altKey || event.metaKey;
-
 const isAnchor = (element: Element) => element.matches("a[href]");
 
 const uniq = (values: readonly string[]) => Array.from(new Set(values));
 
-const sameValues = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((value, i) => value === b[i]);
-
-const isWithin = (ancestor: readonly number[], indexPath: readonly number[]) =>
-  indexPath.length > ancestor.length && ancestor.every((index, i) => indexPath[i] === index);
+export const parentIndexOf = (nodes: readonly VisibleNode<unknown>[], index: number): number => {
+  const depth = nodes[index]?.indexPath.length ?? 0;
+  if (depth < 2) return -1;
+  let parent = index - 1;
+  while (parent >= 0 && nodes[parent].indexPath.length !== depth - 1) parent -= 1;
+  return parent;
+};
 
 /**
  * The focus, keyboard, typeahead, selection and expansion of one tree. Rows register their element
@@ -110,6 +134,7 @@ export class TreeViewNode {
   readonly store = new Store<TreeViewState>({ focusedValue: null, renamingValue: null });
   private config = IDLE;
   private readonly typeaheadSession = new Typeahead();
+  private readonly range = new RangeSelection();
   private readonly rows = new Map<string, HTMLElement>();
   private readonly rowValues = new WeakMap<HTMLElement, string>();
   private scroller: ((index: number) => void) | undefined;
@@ -159,8 +184,7 @@ export class TreeViewNode {
   }
 
   private get list(): NavigableList {
-    const { visibleNodes } = this.config;
-    return { length: visibleNodes.length, isDisabled: (index) => visibleNodes[index].disabled };
+    return entryList(this.config.visibleNodes);
   }
 
   /** Scrolls the row of `value` into view, rendering it first in a virtual list, and focuses it. */
@@ -197,13 +221,13 @@ export class TreeViewNode {
   }
 
   private setExpanded(next: readonly string[]) {
-    if (sameValues(next, this.expanded)) return;
+    if (sameItems(next, this.expanded)) return;
     this.expanded = next;
     this.config.onExpandedChange([...next]);
   }
 
   private setSelected(next: readonly string[]) {
-    if (sameValues(next, this.selected)) return;
+    if (sameItems(next, this.selected)) return;
     this.selected = next;
     this.config.onSelectionChange([...next]);
   }
@@ -242,8 +266,10 @@ export class TreeViewNode {
 
   /** A click, Enter or Space on a node: selects it and, on a branch, toggles it. */
   press(value: string, isBranch: boolean, modifiers: PressModifiers = NO_MODIFIERS): void {
-    const { multiple, expandOnClick } = this.config;
+    const { selectionMode, expandOnClick } = this.config;
+    const multiple = selectionMode === "multiple";
     if (multiple && modifiers.toggle) {
+      this.range.reset(value);
       this.setSelected(
         this.selected.includes(value)
           ? this.selected.filter((entry) => entry !== value)
@@ -251,82 +277,58 @@ export class TreeViewNode {
       );
       return;
     }
-    if (multiple && modifiers.range) {
-      this.extendSelectionTo(value);
-      return;
-    }
-    this.setSelected([value]);
+    if (multiple && modifiers.range && this.extendSelectionTo(value)) return;
+    this.range.reset(value);
+    if (selectionMode !== "none") this.setSelected([value]);
     if (isBranch && expandOnClick) this.toggleExpanded(value);
   }
 
-  private extendSelectionTo(target: string) {
-    const { visibleNodes } = this.config;
-    const anchor = this.selected[0] ?? visibleNodes[getFirstEnabledIndex(this.list)]?.value;
-    if (anchor === undefined) return;
-    const values = [anchor, target];
-    let hits = 0;
-    for (const { value } of visibleNodes) {
-      if (hits === 1) values.push(value);
-      if (value === anchor || value === target) hits += 1;
-    }
-    this.setSelected(uniq(values));
+  onRowClick(event: MouseEvent<HTMLElement>, row: PressedRow): void {
+    if (row.disabled || row.loading || event.button !== 0 || opensLinkNatively(event)) return;
+    this.press(row.value, row.isBranch, pressModifiers(event));
+    event.stopPropagation();
+    if (!isAnchor(event.currentTarget)) event.preventDefault();
   }
 
-  private extendSelectionStep(from: string, to: string) {
-    const values = new Set(this.selected);
-    if (values.has(from) && values.has(to)) values.delete(from);
-    else if (!values.has(to)) values.add(to);
-    this.setSelected(Array.from(values));
+  private extendSelectionTo(target: string, from?: string): boolean {
+    const next = this.range.extendTo(this.config.visibleNodes, this.selected, target, from);
+    if (next === null) return false;
+    this.setSelected(next);
+    return true;
   }
 
-  private extendSelectionToEdge(edge: "first" | "last") {
-    const values = this.config.visibleNodes.map((entry) => entry.value);
-    const anchor = this.selected.length > 0 ? values.indexOf(this.selected[0]) : -1;
-    if (edge === "first") this.setSelected(anchor === -1 ? values : values.slice(0, anchor + 1));
-    else this.setSelected(anchor === -1 ? [] : values.slice(anchor));
+  private navigateTo(from: string, to: string, extend: boolean) {
+    if (extend && this.config.selectionMode === "multiple") this.extendSelectionTo(to, from);
   }
 
   private selectAll() {
-    const values: string[] = [];
-    this.config.collection.visit({
+    const { collection } = this.config;
+    const values = [...this.selected];
+    collection.visit({
       onEnter: (node) => {
-        values.push(this.config.collection.getNodeValue(node));
+        if (!collection.getNodeDisabled(node)) values.push(collection.getNodeValue(node));
       },
     });
-    this.setSelected(values);
+    this.setSelected(uniq(values));
     this.focusIndex(getLastEnabledIndex(this.list));
   }
 
-  toggleChecked(value: string, isBranch: boolean): void {
-    const { collection } = this.config;
-    let next: string[];
-    if (isBranch) {
-      const leaves = getToggledLeafValues(collection, value);
-      const all = leaves.every((leaf) => this.checked.includes(leaf));
-      next = all
-        ? this.checked.filter((entry) => !leaves.includes(entry))
-        : uniq([...this.checked, ...leaves]);
-    } else {
-      next = this.checked.includes(value)
-        ? this.checked.filter((entry) => entry !== value)
-        : [...this.checked, value];
-    }
-    if (sameValues(next, this.checked)) return;
+  toggleChecked(node: unknown): void {
+    const { collection, isNodeCheckable } = this.config;
+    if (collection.getNodeDisabled(node) || !isNodeCheckable(node)) return;
+    const value = collection.getNodeValue(node);
+    const leaves = collection.isBranchNode(node)
+      ? getToggledLeafValues(collection, node, isNodeCheckable)
+      : [value];
+    const next = getSelectAllState(this.checked, leaves).toggle();
+    if (sameItems(next, this.checked)) return;
     this.checked = next;
     this.config.onCheckedChange(next);
   }
 
   private focusParent(index: number) {
-    const { visibleNodes } = this.config;
-    const { indexPath } = visibleNodes[index];
-    if (indexPath.length < 2) return;
-    const parentPath = indexPath.slice(0, -1).join();
-    for (let i = index - 1; i >= 0; i -= 1) {
-      if (visibleNodes[i].indexPath.join() === parentPath) {
-        this.focusIndex(i);
-        return;
-      }
-    }
+    const parent = parentIndexOf(this.config.visibleNodes, index);
+    if (parent !== -1) this.focusIndex(parent);
   }
 
   private focusFirstChild(index: number) {
@@ -334,7 +336,7 @@ export class TreeViewNode {
     const { indexPath } = visibleNodes[index];
     for (
       let i = index + 1;
-      i < visibleNodes.length && isWithin(indexPath, visibleNodes[i].indexPath);
+      i < visibleNodes.length && isDescendantPath(indexPath, visibleNodes[i].indexPath);
       i += 1
     ) {
       if (!visibleNodes[i].disabled) {
@@ -388,66 +390,65 @@ export class TreeViewNode {
     if (isEditableTarget(target)) return;
     const value = this.rowOf(target, event.currentTarget);
     if (value === undefined) return;
-    const { collection, visibleNodes, multiple, rtl } = this.config;
+    const { collection, visibleNodes, selectionMode, rtl } = this.config;
     const index = this.indexOf(value);
     const entry = visibleNodes[index];
     if (!entry) return;
     const isBranch = collection.isBranchNode(entry.node);
     const { disabled } = entry;
 
-    let key = event.key;
-    if (rtl && key === "ArrowLeft") key = "ArrowRight";
-    else if (rtl && key === "ArrowRight") key = "ArrowLeft";
+    if (isCrossOrientationCloseKey(event.key, rtl)) {
+      if (isModifierKey(event) || disabled) return;
+      event.preventDefault();
+      if (isBranch && this.expanded.includes(value)) this.collapse([value]);
+      else this.focusParent(index);
+      return;
+    }
+    if (isCrossOrientationOpenKey(event.key, rtl)) {
+      if (isModifierKey(event) || !isBranch || disabled) return;
+      event.preventDefault();
+      if (this.focusedValue === value && this.expanded.includes(value)) {
+        this.focusFirstChild(index);
+      } else {
+        this.expand([value]);
+      }
+      return;
+    }
 
-    switch (key) {
+    switch (event.key) {
       case "ArrowDown":
       case "ArrowUp": {
         if (isModifierKey(event)) return;
         event.preventDefault();
         const next = getNextIndex(this.list, index, {
-          decrement: key === "ArrowUp",
+          decrement: event.key === "ArrowUp",
           loop: false,
         });
         if (next === index) return;
         this.focusIndex(next);
-        if (event.shiftKey && multiple) {
-          this.extendSelectionStep(value, visibleNodes[next].value);
-        }
+        this.navigateTo(value, visibleNodes[next].value, event.shiftKey);
         return;
       }
-      case "ArrowLeft":
-        if (isModifierKey(event) || disabled) return;
-        event.preventDefault();
-        if (isBranch && this.expanded.includes(value)) this.collapse([value]);
-        else this.focusParent(index);
-        return;
-      case "ArrowRight":
-        if (isModifierKey(event) || !isBranch || disabled) return;
-        event.preventDefault();
-        if (this.focusedValue === value && this.expanded.includes(value)) {
-          this.focusFirstChild(index);
-        } else {
-          this.expand([value]);
-        }
-        return;
       case "Home":
-      case "End":
+      case "End": {
         if (isModifierKey(event)) return;
         event.preventDefault();
-        if (event.shiftKey && multiple)
-          this.extendSelectionToEdge(key === "Home" ? "first" : "last");
-        this.focusIndex(
-          key === "Home" ? getFirstEnabledIndex(this.list) : getLastEnabledIndex(this.list),
+        const edge = getTargetIndex(
+          this.list,
+          index,
+          event.key === "Home" ? "first" : "last",
+          false,
         );
+        if (edge === -1) return;
+        this.focusIndex(edge);
+        this.navigateTo(value, visibleNodes[edge].value, event.shiftKey);
         return;
+      }
       case " ":
         if (disabled) return;
-        if (this.typeaheadSession.typing && this.config.typeahead) {
-          event.preventDefault();
-          this.typeaheadKey(" ", index);
-          return;
-        }
-        this.onEnter(event, value, isBranch);
+        event.preventDefault();
+        if (this.typeaheadSession.typing && this.config.typeahead) this.typeaheadKey(" ", index);
+        else this.press(value, isBranch, pressModifiers(event));
         return;
       case "Enter":
         if (disabled) return;
@@ -470,10 +471,10 @@ export class TreeViewNode {
     if (event.key === "a" && (event.ctrlKey || event.metaKey)) {
       if (disabled) return;
       event.preventDefault();
-      if (multiple) this.selectAll();
+      if (selectionMode === "multiple") this.selectAll();
       return;
     }
-    if (!this.config.typeahead || event.key.length !== 1 || event.ctrlKey || event.metaKey) return;
+    if (!this.config.typeahead || !Typeahead.accepts(event)) return;
     event.preventDefault();
     this.typeaheadKey(event.key, index);
   }

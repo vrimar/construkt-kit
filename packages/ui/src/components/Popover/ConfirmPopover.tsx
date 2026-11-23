@@ -4,8 +4,8 @@ import type { Anchor } from "../../primitives/position";
 import type { WithRef } from "../../types";
 import { renderFormActions } from "../formActions";
 import { isRenderable } from "../itemSlots";
-import { ActionPopoverRoot } from "./ActionPopoverRoot";
-import { Popover, type PopoverRootProps } from "./Popover";
+import { ActionPopoverRoot, type ActionPopoverProps } from "./ActionPopoverRoot";
+import { Popover } from "./Popover";
 
 type ConfirmPopoverTriggerProps =
   | {
@@ -16,10 +16,7 @@ type ConfirmPopoverTriggerProps =
 
 export type ConfirmPopoverProps = ConfirmPopoverOwnProps & ConfirmPopoverTriggerProps;
 
-interface ConfirmPopoverOwnProps extends Omit<PopoverRootProps, "children"> {
-  /** Shown on hover over the trigger, and hidden while the popover is open. */
-  tooltip?: ReactNode;
-  title: ReactNode;
+interface ConfirmPopoverOwnProps extends ActionPopoverProps {
   description?: ReactNode;
   /**
    * Runs on confirm, then the popover closes. Return a promise to keep it open, with the confirm
@@ -27,14 +24,8 @@ interface ConfirmPopoverOwnProps extends Omit<PopoverRootProps, "children"> {
    */
   onConfirm: () => unknown;
   confirmLabel?: string;
-  cancelLabel?: string;
   /** Paints the confirm button in the `danger` palette and opens with focus on Cancel instead of it. */
   destructive?: boolean;
-  /**
-   * Spins the confirm button and keeps the popover open: Cancel, Esc and outside clicks do nothing.
-   * It doesn't hold the popover open after a confirm; return a promise from `onConfirm` for that.
-   */
-  loading?: boolean;
 }
 
 export const ConfirmPopover = ({
@@ -61,9 +52,9 @@ export const ConfirmPopover = ({
         cancelLabel,
         submitLabel: confirmLabel,
         loading: action.busy,
+        destructive,
         submitButtonProps: {
           type: "button",
-          colorPalette: destructive ? "danger" : "brand",
           "data-autofocus": destructive ? undefined : true,
           onClick: (event) => action.run(onConfirm, event),
         },

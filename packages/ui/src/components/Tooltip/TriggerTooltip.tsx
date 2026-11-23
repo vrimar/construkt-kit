@@ -13,19 +13,14 @@ export type TooltipTriggerComponent<T extends ElementType> = (
 ) => ReactElement;
 
 /** Wraps a floating-surface trigger so `tooltip` shows on it while its surface is closed. */
-export function withTriggerTooltip<T extends ElementType>(
-  Trigger: T,
-  useExpanded: (props: { value?: string }) => boolean,
-): TooltipTriggerComponent<T> {
+export function withTriggerTooltip<T extends ElementType>(Trigger: T): TooltipTriggerComponent<T> {
   const TriggerElement: ElementType = Trigger;
 
   return function TooltipTrigger({ tooltip, tooltipProps, ...rest }) {
-    const expanded = useExpanded(rest as { value?: string });
     return (
       <Tooltip
         label={tooltip}
         {...tooltipProps}
-        disabled={expanded || tooltipProps?.disabled}
       >
         <TriggerElement {...rest} />
       </Tooltip>

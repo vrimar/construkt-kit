@@ -3,8 +3,7 @@ import type { ReactNode } from "react";
 import { cx } from "#styled-system/css";
 import { splitButton } from "#styled-system/recipes";
 
-import { isAriaExpanded } from "../../foundations/dom";
-import type { WithRef } from "../../types";
+import { isAriaTrue } from "../../foundations/dom";
 import { wrapRenderContent } from "../renderContent";
 import { Button, ButtonGroup, type ButtonGroupProps, type ButtonProps } from "./Button";
 import { useButtonPropsContext } from "./buttonPropsContext";
@@ -12,7 +11,7 @@ import { TruncatedLabel } from "./TruncatedLabel";
 
 export type SplitButtonRootProps = Omit<ButtonGroupProps, "attached" | "orientation" | "grow">;
 
-function SplitButtonRoot({ className, ...props }: WithRef<SplitButtonRootProps>) {
+function SplitButtonRoot({ className, ...props }: SplitButtonRootProps) {
   const inherited = useButtonPropsContext();
   const variant = props.variant ?? inherited?.variant;
   return (
@@ -26,12 +25,8 @@ function SplitButtonRoot({ className, ...props }: WithRef<SplitButtonRootProps>)
 
 export type SplitButtonActionProps = ButtonProps;
 
-function SplitButtonAction({
-  ref,
-  children,
-  ...props
-}: WithRef<SplitButtonActionProps, HTMLButtonElement>) {
-  const expanded = isAriaExpanded(props["aria-expanded"]);
+function SplitButtonAction({ ref, children, ...props }: SplitButtonActionProps) {
+  const expanded = isAriaTrue(props["aria-expanded"]);
   const label = (content: ReactNode) => (
     <TruncatedLabel expanded={expanded}>{content}</TruncatedLabel>
   );

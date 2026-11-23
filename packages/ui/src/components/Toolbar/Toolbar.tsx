@@ -13,10 +13,12 @@ import {
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { toolbar } from "#styled-system/recipes";
 
-import { isAriaExpanded, isRtl } from "../../foundations/dom";
+import { isEditingControl, isModifierKey } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import type { WithRef } from "../../types";
+import { getKeyTarget, getTargetIndex } from "../../primitives/composite";
+import { getFocusables } from "../../primitives/focus";
+import { useLocale } from "../../primitives/locale";
+import { dataAttr, renderable } from "../../primitives/render";
 import { Button, type ButtonProps } from "../Buttons";
 import { Tooltip } from "../Tooltip";
 import {
@@ -30,22 +32,11 @@ const { withProvider, withContext } = createSlotRecipeContext(toolbar);
 const StyledRoot = withProvider(renderable.div, "root");
 const StyledSeparator = withContext(renderable.div, "separator");
 
-const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex], [contenteditable]";
-const OWNS_ARROW_KEYS =
-  "textarea, select, [contenteditable]:not([contenteditable=false]), input:not([type=button], [type=checkbox], [type=radio], [type=reset], [type=submit], [type=image])";
-const STEPS: Record<Orientation, Partial<Record<string, number>>> = {
-  horizontal: { ArrowRight: 1, ArrowLeft: -1 },
-  vertical: { ArrowDown: 1, ArrowUp: -1 },
-};
-
 function getItems(root: HTMLElement, demoted: ReadonlyMap<HTMLElement, string | null>) {
-  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+  return getFocusables(root).filter(
     (el) =>
       (el.tabIndex >= 0 || demoted.has(el)) &&
-      !el.matches(":disabled, [type=hidden]") &&
-      el.closest("[hidden], [inert]") === null &&
-      el.closest("[role=toolbar], [popover], dialog") === root &&
-      (typeof el.checkVisibility !== "function" || el.checkVisibility()),
+      el.closest("[role=toolbar], [popover], dialog") === root,
   );
 }
 
@@ -68,7 +59,6 @@ function restoreTabIndex(element: HTMLElement, original: string | null) {
 
 function useRovingTabStop(rootRef: RefObject<HTMLElement | null>) {
   const stopRef = useRef<HTMLElement | null>(null);
-  const watchedRef = useRef<HTMLElement | null>(null);
   const demotedRef = useRef(new Map<HTMLElement, string | null>());
   const syncRef = useRef<() => void>(() => {});
 
@@ -76,10 +66,11 @@ function useRovingTabStop(rootRef: RefObject<HTMLElement | null>) {
     const root = rootRef.current;
     if (!root) return;
     const demoted = demotedRef.current;
-
-    // A stop hidden by CSS alone mutates nothing, so its resize is what moves the stop.
-    const resizeObserver = new ResizeObserver(() => sync());
     const mutationObserver = new MutationObserver(() => sync());
+    // CSS alone can hide or show an item without a mutation, so Tab re-syncs before it moves focus.
+    const syncBeforeTab = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Tab") sync();
+    };
 
     function sync() {
       if (!root) return;
@@ -99,11 +90,6 @@ function useRovingTabStop(rootRef: RefObject<HTMLElement | null>) {
         if (!demoted.has(element)) demoted.set(element, element.getAttribute("tabindex"));
         if (element.getAttribute("tabindex") !== "-1") element.setAttribute("tabindex", "-1");
       }
-      const watched = watchedRef.current;
-      if (stop === watched) return;
-      if (watched) resizeObserver.unobserve(watched);
-      watchedRef.current = stop;
-      if (stop) resizeObserver.observe(stop);
     }
 
     syncRef.current = sync;
@@ -113,13 +99,13 @@ function useRovingTabStop(rootRef: RefObject<HTMLElement | null>) {
       attributes: true,
       attributeFilter: ["disabled", "hidden", "inert", "tabindex"],
     });
+    root.ownerDocument.addEventListener("keydown", syncBeforeTab, true);
     sync();
 
     return () => {
       syncRef.current = () => {};
       mutationObserver.disconnect();
-      resizeObserver.disconnect();
-      watchedRef.current = null;
+      root.ownerDocument.removeEventListener("keydown", syncBeforeTab, true);
       for (const [element, original] of demoted) restoreTabIndex(element, original);
       demoted.clear();
     };
@@ -135,21 +121,6 @@ function useRovingTabStop(rootRef: RefObject<HTMLElement | null>) {
       syncRef.current();
     },
   };
-}
-
-function targetIndex(
-  root: HTMLElement,
-  key: string,
-  index: number,
-  count: number,
-  orientation: Orientation,
-): number | undefined {
-  if (key === "Home") return 0;
-  if (key === "End") return count - 1;
-  const step = STEPS[orientation][key];
-  if (step === undefined) return undefined;
-  const flip = orientation === "horizontal" && isRtl(root);
-  return (index + (flip ? -step : step) + count) % count;
 }
 
 function minContentWidth(node: HTMLElement): number {
@@ -207,22 +178,26 @@ function Root({
   onKeyDown,
   onFocus,
   ...rest
-}: WithRef<ToolbarRootProps>) {
+}: ToolbarRootProps) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const composedRef = useComposedRefs(ref, nodeRef);
   const tabStop = useRovingTabStop(nodeRef);
   const collapsed = useCollapsed(nodeRef, collapseBelow);
+  const rtl = useLocale().dir === "rtl";
 
   const navigate = (event: KeyboardEvent<HTMLElement>) => {
     const root = nodeRef.current;
     const target = event.target as HTMLElement;
     if (!root || event.defaultPrevented || !root.contains(target)) return;
-    if (event.altKey || event.ctrlKey || event.metaKey || target.matches(OWNS_ARROW_KEYS)) return;
+    // A toolbar's arrows step through its radios too, so only editing controls keep them.
+    if (isModifierKey(event) || isEditingControl(target)) return;
+    const keyTarget = getKeyTarget(event.key, orientation, rtl);
+    if (!keyTarget) return;
     const items = tabStop.items(root);
     const index = items.indexOf(target);
     if (index === -1) return;
-    const next = targetIndex(root, event.key, index, items.length, orientation);
-    const nextItem = next === undefined ? undefined : items[next];
+    const list = { length: items.length, isDisabled: () => false };
+    const nextItem = items[getTargetIndex(list, index, keyTarget, true)];
     if (!nextItem) return;
     event.preventDefault();
     if (nextItem !== target) nextItem.focus();
@@ -246,8 +221,8 @@ function Root({
         role="toolbar"
         aria-orientation={orientation}
         data-orientation={orientation}
-        data-collapsed={collapsed ? "" : undefined}
-        data-collapsible={collapseBelow === undefined ? undefined : ""}
+        data-collapsed={dataAttr(collapsed)}
+        data-collapsible={dataAttr(collapseBelow !== undefined)}
         {...rest}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
@@ -263,25 +238,16 @@ export interface ToolbarButtonProps extends Omit<ButtonProps, "children"> {
   tooltip?: ReactNode;
 }
 
-function ToolbarButton({
-  ref,
-  icon,
-  label,
-  tooltip,
-  id,
-  ...rest
-}: WithRef<ToolbarButtonProps, HTMLButtonElement>) {
+function ToolbarButton({ ref, icon, label, tooltip, ...rest }: ToolbarButtonProps) {
   const collapsed = useToolbarContext()?.collapsed ?? false;
-  const expanded = isAriaExpanded(rest["aria-expanded"]);
 
   return (
     <Tooltip
       label={tooltip ?? label}
-      disabled={(tooltip == null && !collapsed) || expanded}
+      disabled={tooltip == null && !collapsed}
     >
       <Button
         ref={ref}
-        id={id}
         aria-label={collapsed ? label : undefined}
         {...rest}
         px={collapsed ? "0" : rest.px}
@@ -296,7 +262,7 @@ function ToolbarButton({
 
 export type ToolbarSeparatorProps = ComponentProps<typeof StyledSeparator>;
 
-function Separator(props: WithRef<ToolbarSeparatorProps>) {
+function Separator(props: ToolbarSeparatorProps) {
   const orientation = useToolbarContext()?.orientation ?? "horizontal";
   const own = orientation === "horizontal" ? "vertical" : "horizontal";
   return (

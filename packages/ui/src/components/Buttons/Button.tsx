@@ -3,9 +3,7 @@ import type { ComponentProps } from "react";
 import { styled } from "#styled-system/jsx";
 import { type ButtonVariantProps, button } from "#styled-system/recipes";
 
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import type { WithRef } from "../../types";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
 import { wrapRenderContent } from "../renderContent";
 import {
   type ButtonGroupContextProps,
@@ -68,7 +66,7 @@ const softDisabledProps = {
   onPointerUp: undefined,
 };
 
-export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement>) => {
+export const Button = ({ ref, ...props }: ButtonProps) => {
   const propsContext = useButtonPropsContext();
   const buttonProps = mergeProps<ButtonProps>(propsContext, props);
 
@@ -111,7 +109,7 @@ export const Button = ({ ref, ...props }: WithRef<ButtonProps, HTMLButtonElement
         ? {}
         : { "aria-pressed": pressed, "data-pressed": dataAttr(pressed) })}
       {...(softDisabled ? softDisabledProps : {})}
-      data-loading={isLoading ? "" : undefined}
+      data-loading={dataAttr(isLoading)}
       disabled={!softDisabled && rest.disabled}
       render={rendered.render}
     >
@@ -134,7 +132,7 @@ const wrapIcons = (
 
 export interface ButtonGroupProps extends GroupProps, ButtonVariantProps {}
 
-export const ButtonGroup = ({ ref, colorPalette, ...props }: WithRef<ButtonGroupProps>) => {
+export const ButtonGroup = ({ ref, colorPalette, ...props }: ButtonGroupProps) => {
   const parent = useButtonPropsContext();
   const [variantProps, otherProps] = button.splitVariantProps(props);
   return (

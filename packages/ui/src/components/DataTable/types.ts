@@ -135,13 +135,14 @@ export type DataTableLabels = {
 export type ColumnFilterLayout = "cell" | "field";
 
 export interface ColumnFilterProps {
+  column: Pick<DataTableColumn<any, any>, "id" | "columnDef" | "getFacetedUniqueValues">;
   placeholder: string;
-  meta: ResolvedColumnMeta;
   value: string[];
   onChange: (value: string[] | undefined) => void;
   layout: ColumnFilterLayout;
+  size: "sm" | "md";
+  variant: "plain" | "outline";
   debounceMs: number;
-  options?: string[];
 }
 
 /**

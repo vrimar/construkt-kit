@@ -12,7 +12,7 @@ import {
   Undo2Icon,
   UsersIcon,
 } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { CommandPalette, type CommandPalettePage } from ".";
 import { formatShortcut } from "../../foundations/shortcuts";
@@ -72,23 +72,21 @@ export const Default = meta.story({
     const [theme, setTheme] = useState(THEMES[0]);
     const [lastRun, setLastRun] = useState<string | null>(null);
 
-    const openPalette = () => {
+    const openPalette = useCallback(() => {
       setQuery("");
       setPages([]);
       setOpen(true);
-    };
+    }, []);
 
     useEffect(() => {
       const onKeyDown = (event: KeyboardEvent) => {
         if (event.key.toLowerCase() !== "k" || !(event.metaKey || event.ctrlKey)) return;
         event.preventDefault();
-        setQuery("");
-        setPages([]);
-        setOpen(true);
+        openPalette();
       };
       window.addEventListener("keydown", onKeyDown);
       return () => window.removeEventListener("keydown", onKeyDown);
-    }, []);
+    }, [openPalette]);
 
     const actions: Command[] = [
       { value: "add-task", label: "Add task", icon: <PlusIcon />, shortcut: "T" },

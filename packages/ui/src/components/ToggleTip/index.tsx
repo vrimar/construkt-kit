@@ -4,12 +4,8 @@ import type { ComponentProps, ReactNode } from "react";
 import type { WithRef } from "../../types";
 import { IconButton } from "../Buttons";
 import { isRenderable } from "../itemSlots";
-import {
-  Popover,
-  PopoverRootWithGutter,
-  type PopoverRootProps,
-  usePopoverContext,
-} from "../Popover/Popover";
+import { Popover, type PopoverRootProps } from "../Popover";
+import { PopoverRootWithGutter, usePopoverContext } from "../Popover/internal";
 import { asRender } from "../renderContent";
 
 const TRIGGER_GUTTER = 4;
@@ -31,19 +27,11 @@ function ToggleTipContent(props: ComponentProps<typeof Popover.Content>) {
   );
 }
 
-const BARE_TRIGGER = {
-  "aria-haspopup": undefined,
-  "aria-expanded": undefined,
-  "data-closed": undefined,
-} as const;
-
 export const ToggleTip = ({
   ref,
   showArrow,
   children,
   label,
-  open,
-  onOpenChange,
   ...rest
 }: WithRef<ToggleTipProps>) => {
   // An empty label keeps the same trigger tree, so toggling it never remounts the child.
@@ -52,15 +40,11 @@ export const ToggleTip = ({
   return (
     <PopoverRootWithGutter
       {...rest}
-      open={bare ? false : open}
-      onOpenChange={bare ? undefined : onOpenChange}
+      disabled={bare || rest.disabled}
       mobileLayout="popover"
       gutter={TRIGGER_GUTTER}
     >
-      <Popover.Trigger
-        {...asRender(children)}
-        {...(bare && BARE_TRIGGER)}
-      />
+      <Popover.Trigger {...asRender(children)} />
       {!bare && (
         <ToggleTipContent
           width="auto"

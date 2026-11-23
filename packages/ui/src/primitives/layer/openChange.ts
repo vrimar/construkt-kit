@@ -1,4 +1,4 @@
-import { type ChangeDetails, createChangeDetails } from "../change";
+import type { ChangeDetails } from "../change";
 
 export type OpenChangeReason =
   | "trigger-press"
@@ -20,7 +20,17 @@ export type OpenChangeReason =
 /** Why an overlay asked to open or close, and a way to refuse. */
 export type OpenChangeDetails = ChangeDetails<OpenChangeReason>;
 
-export const createOpenChangeDetails = (
+export interface DismissOptions {
+  closeOnEscape?: boolean | undefined;
+  closeOnInteractOutside?: boolean | undefined;
+}
+
+/** Whether an overlay's `closeOn*` options let it close for `reason`; both default to `true`. */
+export function allowsDismiss(
   reason: OpenChangeReason,
-  event?: Event,
-): OpenChangeDetails => createChangeDetails(reason, event);
+  { closeOnEscape = true, closeOnInteractOutside = true }: DismissOptions,
+): boolean {
+  if (reason === "escape-key") return closeOnEscape;
+  if (reason === "outside-press" || reason === "focus-out") return closeOnInteractOutside;
+  return true;
+}

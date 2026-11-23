@@ -2,20 +2,17 @@ import type { JSX } from "react";
 
 import { splitCssProps } from "#styled-system/jsx";
 
+import { useFieldTriggerProps } from "../../primitives/field";
+import { usePopup } from "../../primitives/popup";
 import { SelectButton } from "../Buttons";
-import { useFieldTriggerProps } from "../fieldTrigger";
-import { getPickerTriggerProps, usePickerPopup } from "../pickerPopup";
+import { getPopupToggleProps } from "../popup";
 import { asRender } from "../renderContent";
-import {
-  CalendarBody,
-  CalendarProviders,
-  calendarRootAttributes,
-  focusedCell,
-  useCalendarRoot,
-} from "./calendarRoot";
+import { CalendarContent } from "./CalendarContent";
+import { CalendarProviders, calendarRootAttributes, useCalendarRoot } from "./calendarRoot";
 import { getDisplayLabel } from "./format";
 import * as Parts from "./parts";
 import type { CalendarMode, DatePickerProps } from "./types";
+import { focusedCell } from "./useCalendar";
 
 export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
   const [styleProps, pickerProps] = splitCssProps(props);
@@ -30,7 +27,8 @@ export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
     placement,
   } = pickerProps;
 
-  const popup = usePickerPopup({
+  const popup = usePopup({
+    idPrefix: "picker",
     open,
     defaultOpen,
     onOpenChange,
@@ -39,7 +37,7 @@ export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
     initialFocus: focusedCell,
   });
   const calendar = useCalendarRoot(pickerProps, popup);
-  const fieldProps = useFieldTriggerProps(popup.ids.trigger);
+  const fieldProps = useFieldTriggerProps(popup);
 
   return (
     <CalendarProviders
@@ -52,7 +50,7 @@ export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
       >
         <Parts.Control>
           <Parts.Trigger
-            {...getPickerTriggerProps(popup, { interactive: calendar.interactive })}
+            {...getPopupToggleProps(popup, { interactive: calendar.interactive })}
             disabled={calendar.disabled}
             {...fieldProps}
             {...asRender(
@@ -73,7 +71,7 @@ export function DatePickerBase(props: DatePickerProps<CalendarMode>) {
           />
         </Parts.Control>
 
-        <CalendarBody props={pickerProps} />
+        <CalendarContent props={pickerProps} />
         {calendar.liveRegion}
       </Parts.Root>
     </CalendarProviders>

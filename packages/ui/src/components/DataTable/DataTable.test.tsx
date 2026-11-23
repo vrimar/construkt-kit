@@ -1,7 +1,6 @@
 import { formatDateDefault } from "@construkt-kit/utils";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { PointerEventsCheckLevel, type UserEvent } from "@testing-library/user-event";
-import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDataTableColumnHelper, DataTable, type DataTableProps } from ".";
@@ -53,9 +52,8 @@ const renderTable = (
   return { onParamChange, container };
 };
 
-// The ScrollArea viewport is itself focusable, so a row tab stop is the nearer one.
 const focusableRow = (text: string) =>
-  screen.getByText(text).closest<HTMLElement>("[tabindex]:not(.scroll-area__viewport)");
+  screen.getByText(text).closest<HTMLElement>('[role="row"][tabindex]');
 
 const rows = () => screen.getAllByRole("row");
 
@@ -81,16 +79,10 @@ const renderSubRow = (row: DataTableRow<Person>) => <div>{`Sub-row of ${row.orig
 
 const datedColumns = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
 
-const dateTrigger = (container: HTMLElement) => {
-  const trigger = container.querySelector<HTMLElement>(".date-picker__trigger");
-  if (!trigger) throw new Error("No date picker trigger");
-  return trigger;
-};
+const dateTrigger = () => screen.getByRole("button", { expanded: false });
 
 const dayCell = (iso: string) => {
-  const day = document.querySelector<HTMLElement>(
-    `.date-picker__tableCellTrigger[data-value="${iso}"]`,
-  );
+  const day = document.querySelector<HTMLElement>(`[role="gridcell"] [data-value="${iso}"]`);
   if (!day) throw new Error(`No day cell for ${iso}`);
   return day;
 };
@@ -221,27 +213,20 @@ describe("DataTable", () => {
     const dated = [columnHelper.accessor("name", { header: "Name", meta: { type: "date" } })];
     renderTable({ columnDefs: dated });
 
-    const root = document.querySelector(".date-picker__root");
-    expect(root?.parentElement?.getAttribute("role")).toBe("cell");
+    const root = dateTrigger().closest('[role="cell"]')?.firstElementChild;
     expect(root?.className.split(" ")).toContain("w_100%");
   });
 
   it("cycles a sortable column through asc, desc and cleared", async () => {
-    const StatefulTable = () => {
-      const [current, setCurrent] = useState(params);
-      return (
-        <DataTable
-          data={data}
-          totalItems={25}
-          columnDefs={columns}
-          params={current}
-          onParamChange={setCurrent}
-        />
-      );
-    };
-    render(<StatefulTable />);
+    render(
+      <DataTable
+        data={data}
+        totalItems={25}
+        columnDefs={columns}
+      />,
+    );
 
-    const sorter = () => document.querySelector('[data-part="column-sorter"]') as Element;
+    const sorter = () => screen.getByRole("button", { name: "Sort by Name" });
     const nameHeader = () => screen.getByRole("columnheader", { name: "Name" });
 
     expect(nameHeader().getAttribute("aria-sort")).toBe("none");
@@ -476,10 +461,10 @@ describe("DataTable", () => {
 
     const labelBox = (text: string) => screen.getByText(text).parentElement as HTMLElement;
     const sorterOf = (text: string) =>
-      labelBox(text).querySelector<HTMLElement>('[data-part="column-sorter"]');
+      within(labelBox(text)).queryByRole("button", { name: `Sort by ${text}` });
 
     expect(labelBox("Name").style.maxWidth).toBe("calc(100% - 22px)");
-    expect(sorterOf("Name")?.style.marginLeft).toBe("4px");
+    expect(sorterOf("Name")?.style.marginInlineStart).toBe("4px");
 
     expect(labelBox("Role").style.maxWidth).toBe("100%");
     expect(sorterOf("Role")).toBeNull();
@@ -491,22 +476,14 @@ describe("DataTable", () => {
       columnHelper.accessor("id", { header: "ID", meta: { type: "number" } }),
     ];
     const onParamChange = vi.fn();
-    const StatefulTable = () => {
-      const [current, setCurrent] = useState(params);
-      return (
-        <DataTable
-          data={data}
-          totalItems={25}
-          columnDefs={numeric}
-          params={current}
-          onParamChange={(next: DataTableParams) => {
-            onParamChange(next);
-            setCurrent(next);
-          }}
-        />
-      );
-    };
-    render(<StatefulTable />);
+    render(
+      <DataTable
+        data={data}
+        totalItems={25}
+        columnDefs={numeric}
+        onParamChange={onParamChange}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Equals" }));
     await user.click(await screen.findByText("Greater or equal", { exact: false }));
@@ -829,26 +806,26 @@ describe("DataTable", () => {
   });
 
   it("keeps the applied date range when the picker closes mid-selection", async () => {
-    const { onParamChange, container } = renderTable({
+    const { onParamChange } = renderTable({
       columnDefs: datedColumns,
       params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
     });
 
-    await user.click(dateTrigger(container));
+    await user.click(dateTrigger());
     await user.click(dayCell("2024-01-10"));
     await user.keyboard("{Escape}");
 
     expect(onParamChange).not.toHaveBeenCalled();
-    expect(dateTrigger(container).textContent).toBe("2024-01-01 – 2024-01-31");
+    expect(dateTrigger().textContent).toBe("2024-01-01 – 2024-01-31");
   });
 
   it("applies a date range picked in the filter", async () => {
-    const { onParamChange, container } = renderTable({
+    const { onParamChange } = renderTable({
       columnDefs: datedColumns,
       params: { ...params, filters: { name: ["2024-01-01<>2024-01-31"] } },
     });
 
-    await user.click(dateTrigger(container));
+    await user.click(dateTrigger());
     await user.click(dayCell("2024-01-10"));
     await user.click(dayCell("2024-01-12"));
 
@@ -1099,6 +1076,19 @@ describe("DataTable", () => {
       expect(screen.getByText("12")).toBeTruthy();
     });
 
+    it("starts without params from defaultParams merged over the defaults", () => {
+      render(
+        <DataTable
+          clientSide
+          data={roster}
+          columnDefs={columns}
+          defaultParams={{ page: 2, filters: { role: ["Admin"] } }}
+        />,
+      );
+
+      expect(shownNames()).toEqual(["Person 11", "Person 12"]);
+    });
+
     it("keeps the page when the data is replaced", async () => {
       const onParamChange = vi.fn();
       const table = (people: Person[]) => (
@@ -1152,20 +1142,14 @@ describe("DataTable", () => {
 
     it("filters mobile cards from the drawer's listed values", async () => {
       mockMatchMedia(viewportWidth(375));
-      const StatefulTable = () => {
-        const [current, setCurrent] = useState(params);
-        return (
-          <DataTable
-            clientSide
-            data={spells}
-            columnDefs={spellColumns}
-            params={current}
-            onParamChange={setCurrent}
-            mobileLayout="cards"
-          />
-        );
-      };
-      render(<StatefulTable />);
+      render(
+        <DataTable
+          clientSide
+          data={spells}
+          columnDefs={spellColumns}
+          mobileLayout="cards"
+        />,
+      );
       user = setupUser({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
       await user.click(screen.getByRole("button", { name: "Filters" }));

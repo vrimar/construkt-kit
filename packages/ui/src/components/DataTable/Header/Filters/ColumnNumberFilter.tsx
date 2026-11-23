@@ -13,7 +13,8 @@ export const ColumnNumberFilter = ({
   placeholder,
   value,
   onChange,
-  layout,
+  size,
+  variant,
   debounceMs,
 }: ColumnFilterProps) => {
   const { labels } = useDataTableContext();
@@ -25,8 +26,8 @@ export const ColumnNumberFilter = ({
 
   return (
     <NumberFilter
-      size={layout === "field" ? "md" : "sm"}
-      variant={layout === "field" ? "outline" : "plain"}
+      size={size}
+      variant={variant}
       debounceMs={debounceMs}
       placeholder={placeholder}
       clearLabel={labels.clearNumber}

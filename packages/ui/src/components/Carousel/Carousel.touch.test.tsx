@@ -33,7 +33,7 @@ it("leaves the slides under a finger that holds still mid-swipe, and settles onc
     { capture: true, once: true },
   );
 
-  await commands.touchSwipe("text=One", -130, 400);
+  await commands.touchDrag("text=One", 0, -130, 400);
 
   expect(changesAtLift).toBe(0);
   await expect.poll(() => onValueChange.mock.lastCall?.[0]).toBe(1);

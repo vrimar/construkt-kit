@@ -35,10 +35,10 @@ function ItemCount({ totalItems, compact }: { totalItems: number; compact: boole
 }
 
 const steps = {
-  first: { Icon: ChevronsLeftIcon, label: "firstPage", forward: false },
-  previous: { Icon: ChevronLeftIcon, label: "previousPage", forward: false },
-  next: { Icon: ChevronRightIcon, label: "nextPage", forward: true },
-  last: { Icon: ChevronsRightIcon, label: "lastPage", forward: true },
+  first: { Icon: ChevronsLeftIcon, move: "firstPage", forward: false },
+  previous: { Icon: ChevronLeftIcon, move: "previousPage", forward: false },
+  next: { Icon: ChevronRightIcon, move: "nextPage", forward: true },
+  last: { Icon: ChevronsRightIcon, move: "lastPage", forward: true },
 } as const;
 
 interface StepButtonProps<TData extends object> {
@@ -49,20 +49,13 @@ interface StepButtonProps<TData extends object> {
 
 function StepButton<TData extends object>({ table, size, step }: StepButtonProps<TData>) {
   const { labels } = useDataTableContext();
-  const { Icon, label, forward } = steps[step];
-  const page = table.state.pagination.pageIndex;
-  const target = {
-    first: 0,
-    previous: page - 1,
-    next: page + 1,
-    last: table.getPageCount() - 1,
-  }[step];
+  const { Icon, move, forward } = steps[step];
 
   return (
     <IconButton
       variant="outline"
-      aria-label={labels[label]}
-      onClick={() => table.setPageIndex(target)}
+      aria-label={labels[move]}
+      onClick={() => table[move]()}
       disabled={forward ? !table.getCanNextPage() : !table.getCanPreviousPage()}
       size={size}
     >
@@ -86,8 +79,8 @@ export const DataTablePagination = <TData extends object>({
       <HStack
         borderTopWidth="1px"
         justifyContent="space-between"
-        pl="4"
-        pr="2"
+        ps="4"
+        pe="2"
         py="1.5"
       >
         <ItemCount

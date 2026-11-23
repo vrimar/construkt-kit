@@ -6,7 +6,7 @@
   - button "Switch to previous month"
   - button /March \d+/
   - button "Switch to next month"
-  - grid /March \d+ - March \d+/:
+  - grid /March \d+ – March \d+/:
     - rowgroup:
       - row /Choose Monday, February \d+, \d+ Choose Tuesday, February \d+, \d+ Choose Wednesday, February \d+, \d+ Choose Thursday, February \d+, \d+ Choose Friday, February \d+, \d+ Choose Saturday, February \d+, \d+ Choose Sunday, March 1, \d+/:
         - gridcell /Choose Monday, February \d+, \d+/ [disabled]:

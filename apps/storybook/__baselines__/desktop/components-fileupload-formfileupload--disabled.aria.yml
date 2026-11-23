@@ -1,3 +1,2 @@
-- group:
-  - text: Report
-  - button "Select file..." [disabled]
+- text: Report
+- button "Select file..." [disabled]

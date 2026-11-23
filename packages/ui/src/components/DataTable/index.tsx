@@ -1,3 +1,4 @@
+import { sameItems } from "@construkt-kit/utils";
 import type {
   ColumnFiltersState,
   PaginationState,
@@ -10,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Stack } from "#styled-system/jsx";
 import type { JsxStyleProps } from "#styled-system/types";
 
+import { isWithinNestedControl } from "../../foundations/dom";
 import { useIsMobile, useMediaQuery } from "../../hooks";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
@@ -60,8 +62,15 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
   data: TData[];
   columnDefs: DataTableColumnDef<TData, any>[];
   loading?: boolean;
-  params: DataTableParams;
-  onParamChange: (params: DataTableParams) => unknown;
+  /** The paging, sort and filters. Leave out to keep them in the table, from `defaultParams`. */
+  params?: DataTableParams;
+  /**
+   * Where the table's own params start while `params` is left out; a key left out starts at page
+   * 1 of 10 rows, unsorted and unfiltered.
+   */
+  defaultParams?: Partial<DataTableParams>;
+  /** Called with the next params on every page, sort and filter change, whoever holds them. */
+  onParamChange?: (params: DataTableParams) => unknown;
   onRowClick?: (row: DataTableRow<TData>) => unknown;
   onReset?: () => unknown;
   getRowProps?: (row: DataTableRow<TData>) => DataTableRowProps;
@@ -111,40 +120,23 @@ export type DataTableProps<TData extends object> = JsxStyleProps & {
       }
   );
 
-const INTERACTIVE_SELECTOR = [
-  "a",
-  "button",
-  "input",
-  "select",
-  "textarea",
-  "label",
-  "summary",
-  "[contenteditable]:not([contenteditable='false'])",
-  "[role=button]",
-  "[role=checkbox]",
-  "[role=combobox]",
-  "[role=link]",
-  "[role=radio]",
-  "[role=slider]",
-  "[role=spinbutton]",
-  "[role=switch]",
-  "[role=tab]",
-  "[role=textbox]",
-].join(", ");
-
 const SHORT_TOUCH_SCREEN_QUERY = "(pointer: coarse) and (height < 32rem)";
 
 const NO_HIDDEN_COLUMNS: DataTableColumnVisibility = {};
 const NO_COLUMN_SIZING: DataTableColumnSizing = {};
+const DEFAULT_PARAMS: DataTableParams = {
+  page: 1,
+  pageSize: 10,
+  orderBy: "",
+  orderType: "",
+  filters: {},
+};
 
 const withoutKey = <V,>(record: Record<string, V>, key: string) =>
   Object.fromEntries(Object.entries(record).filter(([entryKey]) => entryKey !== key));
 
-const isSameFilterValue = (a: string[] = [], b: string[] = []) =>
-  a.length === b.length && a.every((item, index) => item === b[index]);
-
 const isSameFilters = (a: DataTableFilters, b: DataTableFilters) =>
-  [...Object.keys(a), ...Object.keys(b)].every((key) => isSameFilterValue(a[key], b[key]));
+  [...Object.keys(a), ...Object.keys(b)].every((key) => sameItems(a[key] ?? [], b[key] ?? []));
 
 const withoutMalformedFilters = <TData extends object>(
   filters: DataTableFilters,
@@ -158,15 +150,14 @@ const withoutMalformedFilters = <TData extends object>(
     .reduce((rest, column) => withoutKey(rest, column.id), filters);
 
 // Portalled overlays re-dispatch React events through the row without being inside it.
-const isNestedControl = ({ currentTarget, target }: React.SyntheticEvent<HTMLDivElement>) => {
-  if (!(target instanceof Element && currentTarget.contains(target))) return true;
-  const control = target.closest(INTERACTIVE_SELECTOR);
-  return !!control && control !== currentTarget && currentTarget.contains(control);
-};
+const isNestedControl = ({ currentTarget, target }: React.SyntheticEvent<HTMLDivElement>) =>
+  !(target instanceof Element && currentTarget.contains(target)) ||
+  isWithinNestedControl(target, currentTarget);
 
 export const DataTable = <TData extends object>({
   data,
-  params,
+  params: paramsProp,
+  defaultParams,
   onParamChange,
   columnDefs,
   loading,
@@ -193,6 +184,12 @@ export const DataTable = <TData extends object>({
   const isShortTouchScreen = useMediaQuery(SHORT_TOUCH_SCREEN_QUERY);
   const showCards = mobileLayout === "cards" && (isMobile || isShortTouchScreen);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const [params, setParams] = useControllableState({
+    value: paramsProp,
+    defaultValue: { ...DEFAULT_PARAMS, ...defaultParams },
+    onChange: onParamChange,
+  });
 
   const [resolvedColumnSizing, setColumnSizing] = useControllableState({
     value: columnSizing,
@@ -246,7 +243,6 @@ export const DataTable = <TData extends object>({
 
   const latestRef = useLatestRef({
     params,
-    onParamChange,
     sortingState,
     paginationState,
     filtersState,
@@ -256,13 +252,13 @@ export const DataTable = <TData extends object>({
     (updateFn: Updater<PaginationState>) => {
       const latest = latestRef.current;
       const state = functionalUpdate(updateFn, latest.paginationState);
-      latest.onParamChange({
+      setParams({
         ...latest.params,
         page: state.pageIndex + 1,
         pageSize: state.pageSize,
       });
     },
-    [latestRef],
+    [latestRef, setParams],
   );
 
   const handleSort = useCallback(
@@ -275,14 +271,14 @@ export const DataTable = <TData extends object>({
       const orderType = hasSort ? (columnSorts[0].desc ? "desc" : "asc") : "";
       if (orderBy === latest.params.orderBy && orderType === latest.params.orderType) return;
 
-      latest.onParamChange({
+      setParams({
         ...latest.params,
         page: 1,
         orderBy,
         orderType,
       });
     },
-    [latestRef],
+    [latestRef, setParams],
   );
 
   const handleFilterChange = useCallback(
@@ -296,13 +292,13 @@ export const DataTable = <TData extends object>({
       );
       if (isSameFilters(filters, latest.params.filters)) return;
 
-      latest.onParamChange({
+      setParams({
         ...latest.params,
         page: 1,
         filters,
       });
     },
-    [latestRef],
+    [latestRef, setParams],
   );
 
   const table = useTable({
@@ -338,9 +334,9 @@ export const DataTable = <TData extends object>({
     if (!(page >= 1)) page = 1;
     else if (!loading && pageCount > 0 && page > pageCount) page = pageCount;
     if (page !== latest.params.page || filters !== latest.params.filters) {
-      latest.onParamChange({ ...latest.params, page, filters });
+      setParams({ ...latest.params, page, filters });
     }
-  }, [latestRef, leafColumns, loading, pageCount, params.page, filtersKey]);
+  }, [latestRef, setParams, leafColumns, loading, pageCount, params.page, filtersKey]);
 
   const getRowInteractionProps = useCallback(
     (row: DataTableRow<TData>): DataTableRowProps => ({

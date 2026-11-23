@@ -15,7 +15,6 @@ import { IconButton } from "../Buttons";
 import { Box, HStack, Stack } from "../Layout";
 import { Menu } from "../Menu";
 import { Text } from "../Text";
-import type { DataTableParams } from "./types";
 
 const meta = preview.meta({
   title: "Components/DataTable",
@@ -257,14 +256,6 @@ const data: Person[] = [
   },
 ];
 
-const defaultParams: DataTableParams = {
-  orderBy: "",
-  orderType: "",
-  page: 1,
-  pageSize: 10,
-  filters: {},
-};
-
 function DataTableStory(props: {
   data: Person[];
   loading?: boolean;
@@ -272,15 +263,11 @@ function DataTableStory(props: {
   columnDefs?: DataTableProps<Person>["columnDefs"];
   mobileLayout?: DataTableProps<Person>["mobileLayout"];
 }) {
-  const [params, setParams] = useState<DataTableParams>(defaultParams);
-
   return (
     <DataTable
       clientSide
       columnDefs={props.columnDefs ?? columns}
       data={props.data}
-      params={params}
-      onParamChange={setParams}
       loading={props.loading}
       variant={props.variant}
       onRowClick={onRowClick}
@@ -399,7 +386,6 @@ const resizableColumns = [
 ];
 
 function ColumnResizingStory() {
-  const [params, setParams] = useState<DataTableParams>(defaultParams);
   const [columnSizing, setColumnSizing] = useState<DataTableColumnSizing>({});
 
   return (
@@ -423,8 +409,6 @@ function ColumnResizingStory() {
         onColumnSizingChange={setColumnSizing}
         columnDefs={resizableColumns}
         data={data}
-        params={params}
-        onParamChange={setParams}
       />
     </Stack>
   );
@@ -464,7 +448,6 @@ const groupedColumns = [
 ];
 
 function ColumnVisibilityStory() {
-  const [params, setParams] = useState<DataTableParams>(defaultParams);
   const [columnVisibility, setColumnVisibility] = useState<DataTableColumnVisibility>({
     createdAt: false,
   });
@@ -489,8 +472,6 @@ function ColumnVisibilityStory() {
         columnVisibility={columnVisibility}
         columnDefs={groupedColumns}
         data={data}
-        params={params}
-        onParamChange={setParams}
       />
     </Stack>
   );

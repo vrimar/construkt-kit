@@ -2,7 +2,12 @@ import preview from "@construkt-kit/story-kit/preview";
 import { EllipsisIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { type TreeLoadChildrenDetails, TreeSelectList, useTreeSelectList } from ".";
+import {
+  type TreeLoadChildrenDetails,
+  TreeSelectList,
+  type TreeSelectListProps,
+  useTreeSelectList,
+} from ".";
 import { useDebounce } from "../../hooks/useDebounce";
 import { Button, IconButton } from "../Buttons";
 import { Box, HStack, Stack } from "../Layout";
@@ -54,29 +59,44 @@ const nodes: DemoNode[] = [
   },
 ];
 
-function TreeSelectListDemo() {
-  const [selected, setSelected] = useState<string[]>(["apple", "lemon"]);
+type ListDemoProps = Omit<
+  TreeSelectListProps<DemoNode>,
+  | "value"
+  | "onValueChange"
+  | keyof typeof accessors
+  | "loadChildren"
+  | "onLoadChildrenComplete"
+  | "onLoadChildrenError"
+> & { defaultValue?: string[] };
+
+function ListDemo({ defaultValue = [], ...props }: ListDemoProps) {
+  const [selected, setSelected] = useState(defaultValue);
 
   return (
+    <TreeSelectList
+      {...props}
+      {...accessors}
+      value={selected}
+      onValueChange={setSelected}
+    />
+  );
+}
+
+export const Default = meta.story({
+  render: () => (
     <Box
       maxW="400px"
       borderWidth="1px"
       borderColor="border"
       borderRadius="lg"
     >
-      <TreeSelectList
+      <ListDemo
         nodes={nodes}
-        {...accessors}
-        value={selected}
-        onValueChange={setSelected}
+        defaultValue={["apple", "lemon"]}
         listHeight="320px"
       />
     </Box>
-  );
-}
-
-export const Default = meta.story({
-  render: () => <TreeSelectListDemo />,
+  ),
 });
 
 function CustomHeaderDemo() {
@@ -159,31 +179,22 @@ export const CustomHeader = meta.story({
   render: () => <CustomHeaderDemo />,
 });
 
-function BareTreeDemo() {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  return (
+export const WithoutToolbar = meta.story({
+  render: () => (
     <Box
       maxW="400px"
       borderWidth="1px"
       borderColor="border"
       borderRadius="lg"
     >
-      <TreeSelectList
+      <ListDemo
         nodes={nodes}
-        {...accessors}
-        value={selected}
-        onValueChange={setSelected}
         search={{ showInput: false }}
         showSelectAll={false}
         listHeight="320px"
       />
     </Box>
-  );
-}
-
-export const WithoutToolbar = meta.story({
-  render: () => <BareTreeDemo />,
+  ),
 });
 
 const longLabelNodes: DemoNode[] = [
@@ -198,21 +209,17 @@ const longLabelNodes: DemoNode[] = [
   },
 ];
 
-function HoverActionsDemo() {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  return (
+/** Row actions cover the end of long labels only while the row is hovered or focused. */
+export const HoverActions = meta.story({
+  render: () => (
     <Box
       maxW="320px"
       borderWidth="1px"
       borderColor="border"
       borderRadius="lg"
     >
-      <TreeSelectList
+      <ListDemo
         nodes={longLabelNodes}
-        {...accessors}
-        value={selected}
-        onValueChange={setSelected}
         search={{ showInput: false }}
         showSelectAll={false}
         listHeight="200px"
@@ -239,12 +246,7 @@ function HoverActionsDemo() {
         )}
       />
     </Box>
-  );
-}
-
-/** Row actions cover the end of long labels only while the row is hovered or focused. */
-export const HoverActions = meta.story({
-  render: () => <HoverActionsDemo />,
+  ),
 });
 
 // --- Long list for virtual scroll testing ---
@@ -275,46 +277,28 @@ function generateLargeTree(): DemoNode[] {
 
 const largeNodes = generateLargeTree();
 
-function LongListDemo() {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  return (
+export const LongList = meta.story({
+  render: () => (
     <Box maxW="400px">
-      <TreeSelectList
+      <ListDemo
         nodes={largeNodes}
-        {...accessors}
-        value={selected}
-        onValueChange={setSelected}
         listHeight="480px"
       />
     </Box>
-  );
-}
-
-export const LongList = meta.story({
-  render: () => <LongListDemo />,
+  ),
 });
 
-function StickyBranchesDemo() {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  return (
+/** The branch of the topmost visible row stays pinned above the list; click it to jump back. */
+export const StickyBranches = meta.story({
+  render: () => (
     <Box maxW="400px">
-      <TreeSelectList
+      <ListDemo
         nodes={largeNodes}
-        {...accessors}
-        value={selected}
-        onValueChange={setSelected}
         listHeight="360px"
         stickyBranches
       />
     </Box>
-  );
-}
-
-/** The branch of the topmost visible row stays pinned above the list; click it to jump back. */
-export const StickyBranches = meta.story({
-  render: () => <StickyBranchesDemo />,
+  ),
 });
 
 const renameNode = (list: DemoNode[], id: string, label: string): DemoNode[] =>

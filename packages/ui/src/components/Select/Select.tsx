@@ -5,7 +5,7 @@ import type {
   SelectionMode,
   SelectionValue,
   SingleSelectionProps,
-} from "../Listbox/types";
+} from "../selection";
 import {
   SelectContent,
   SelectSimpleBody,

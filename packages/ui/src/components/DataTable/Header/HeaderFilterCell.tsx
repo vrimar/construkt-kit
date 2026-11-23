@@ -14,8 +14,8 @@ export const DataTableHeaderFilterCell = <TData extends object>({
     role="cell"
     display="flex"
     p="0"
-    borderRightWidth="1px"
-    borderRightColor="border"
+    borderInlineEndWidth="1px"
+    borderInlineEndColor="border"
     overflow="hidden"
   >
     {header.column.getCanFilter() && (

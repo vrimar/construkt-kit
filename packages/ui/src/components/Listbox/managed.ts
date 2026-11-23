@@ -1,15 +1,10 @@
 export {
+  Listbox,
   ListboxRootImpl,
   ListboxSearchField,
   ManagedList,
-  SelectionSearchField,
   useListboxContext,
 } from "./Listbox";
+export type { ManagedItemProps, ManagedListOptions, SelectionIndicatorPosition } from "./types";
 export { type ManagedListbox, useManagedListbox } from "./useManagedListbox";
-export {
-  encodeSelectionValue,
-  getSelectAllState,
-  splitKeys,
-  splitManagedListOptions,
-} from "./useSelectionController";
-export { matchesQuery, useSelectionSearch } from "./useSelectionSearch";
+export { useRevealSelection } from "./useRevealSelection";

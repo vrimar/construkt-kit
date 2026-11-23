@@ -2,7 +2,7 @@ import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { ApplySelect } from ".";
-import { Box } from "../Layout";
+import { fieldWidthDecorator } from "../../_shared/fieldWidthDecorator";
 
 const frameworks = [
   { id: 1, name: "React" },
@@ -14,16 +14,7 @@ const frameworks = [
 const meta = preview.meta({
   title: "Components/ApplySelect",
   component: ApplySelect,
-  decorators: [
-    (Story) => (
-      <Box
-        w="full"
-        maxW="320px"
-      >
-        <Story />
-      </Box>
-    ),
-  ],
+  decorators: [fieldWidthDecorator],
 });
 
 export const Default = meta.story({

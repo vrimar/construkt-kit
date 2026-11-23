@@ -1,11 +1,12 @@
 import { CheckIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode, useId } from "react";
 
-import { createSlotRecipeContext } from "#styled-system/jsx";
-import { chat, tag } from "#styled-system/recipes";
+import { type SlotRecipeProviderProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { type tag, chat } from "#styled-system/recipes";
 
-import { renderable } from "../../primitives/render";
+import { type RenderProps, dataAttr, renderable } from "../../primitives/render";
 import { Spinner } from "../Spinner";
+import { Tag } from "../Tag";
 import { Composer } from "./Composer";
 
 const { withProvider, withContext } = createSlotRecipeContext(chat);
@@ -56,9 +57,18 @@ function Message({ sender, name, icon, meta, children, ...props }: ChatMessagePr
   );
 }
 
-const Citation = withProvider(renderable.button, "citation", { defaultProps: { type: "button" } });
+const StyledCitation = withProvider(renderable.button, "citation");
 
-export type ChatCitationProps = ComponentProps<typeof Citation>;
+export type ChatCitationProps = ComponentProps<typeof StyledCitation>;
+
+function Citation(props: ChatCitationProps) {
+  return (
+    <StyledCitation
+      type={props.render ? undefined : "button"}
+      {...props}
+    />
+  );
+}
 
 const ActionLineRoot = withProvider(renderable.div, "actionLine");
 const ActionLineIndicator = withContext(renderable.span, "actionLineIndicator");
@@ -98,7 +108,7 @@ function ActionLine({
 
   return (
     <ActionLineRoot
-      data-undone={undone ? "" : undefined}
+      data-undone={dataAttr(undone)}
       {...props}
     >
       <ActionLineIndicator>{icon ?? <CheckIcon />}</ActionLineIndicator>
@@ -148,11 +158,27 @@ function Suggestions({ label, children, ...props }: ChatSuggestionsProps) {
   );
 }
 
-const Suggestion = createSlotRecipeContext(tag).withProvider(renderable.button, "root", {
-  defaultProps: { type: "button" },
-});
+export type ChatSuggestionProps = SlotRecipeProviderProps<
+  typeof renderable.button,
+  typeof tag,
+  never
+>;
 
-export type ChatSuggestionProps = ComponentProps<typeof Suggestion>;
+const suggestionButton = (props: RenderProps) => (
+  <button
+    type="button"
+    {...props}
+  />
+);
+
+function Suggestion(props: ChatSuggestionProps) {
+  return (
+    <Tag.Root
+      render={suggestionButton}
+      {...props}
+    />
+  );
+}
 
 export type { ChatComposerProps } from "./Composer";
 

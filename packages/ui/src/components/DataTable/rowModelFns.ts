@@ -1,4 +1,4 @@
-import { formatIsoDate, matchesNumberFilter, type NumberFilterValue } from "@construkt-kit/utils";
+import { matchesNumberFilter, type NumberFilterValue, toIsoDay } from "@construkt-kit/utils";
 import {
   constructFilterFn,
   constructSortFn,
@@ -22,22 +22,6 @@ const toText = (value: unknown, label: (item: string) => string = (item) => item
     : typeof value === "string" || typeof value === "number" || typeof value === "boolean"
       ? label(String(value))
       : "";
-
-const toIsoDay = (value: unknown) => {
-  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  const date =
-    value instanceof Date
-      ? value
-      : typeof value === "string" || typeof value === "number"
-        ? new Date(value)
-        : null;
-  if (!date || Number.isNaN(date.getTime())) return undefined;
-  return formatIsoDate({
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate(),
-  });
-};
 
 const inputFilter = constructFilterFn({
   resolveFilterValue: (value) =>
@@ -66,7 +50,10 @@ const dateFilter = constructFilterFn({
   resolveFilterValue: (value) => parseValues(value, filterKinds.date.parse),
   filter: (cell, ranges: [start: string, end: string][]) => {
     if (ranges.length === 0) return true;
-    const day = toIsoDay(cell);
+    const day =
+      typeof cell === "string" || typeof cell === "number" || cell instanceof Date
+        ? toIsoDay(cell)
+        : undefined;
     return day !== undefined && ranges.some(([start, end]) => day >= start && day <= end);
   },
 });

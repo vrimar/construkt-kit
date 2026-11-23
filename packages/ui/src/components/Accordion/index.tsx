@@ -1,43 +1,34 @@
 import { ChevronDownIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  type KeyboardEvent,
-  type MouseEvent,
-  createContext,
-  useContext,
-  useId,
-  useState,
-} from "react";
+import { type ComponentProps, type KeyboardEvent, useId, useState } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { accordion } from "#styled-system/recipes";
 
-import { isSafari } from "../../foundations/dom";
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
 import {
   CompositeList,
   elementList,
-  getArrowStep,
-  getFirstEnabledIndex,
-  getLastEnabledIndex,
-  getNextIndex,
+  getKeyTarget,
+  getTargetIndex,
   useCompositeListItem,
 } from "../../primitives/composite";
 import { useLocale } from "../../primitives/locale";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import { useMergedRefs } from "../../primitives/render/useMergedRefs";
+import { PresenceActivity } from "../../primitives/presence";
+import { mergeProps, renderable } from "../../primitives/render";
 import {
   type CollapsibleChangeReason,
-  CollapsiblePresence,
   CollapsibleProvider,
+  collapsibleIndicatorProps,
   collapsibleStateAttributes,
-  panelAttributes,
   useCollapsible,
+  useCollapsibleContent,
+  useCollapsibleTriggerProps,
   useCollapsibleContext,
-  useCollapsiblePanel,
 } from "../collapsiblePanel";
+import { createPartContext } from "../partContext";
+import { toggleMember } from "../toggleMember";
 
 /** Why `onValueChange` was called, and a way to keep the open items as they are. */
 export type AccordionValueChangeDetails = ChangeDetails<CollapsibleChangeReason>;
@@ -65,25 +56,14 @@ interface AccordionContextValue {
   triggers: CompositeList;
 }
 
-const AccordionContext = createContext<AccordionContextValue | null>(null);
-
-function useAccordionContext(part: string): AccordionContextValue {
-  const context = useContext(AccordionContext);
-  if (!context) throw new Error(`Accordion.${part} must be placed inside <Accordion.Root>.`);
-  return context;
-}
+const [AccordionContext, useAccordionContext] =
+  createPartContext<AccordionContextValue>("<Accordion.Root>");
 
 const orientationAttribute = (orientation: AccordionOrientation) => ({
   "data-orientation": orientation,
 });
 
-const ItemValueContext = createContext<string | null>(null);
-
-function useItemValue(part: string): string {
-  const value = useContext(ItemValueContext);
-  if (value === null) throw new Error(`Accordion.${part} must be placed inside <Accordion.Item>.`);
-  return value;
-}
+const [ItemValueContext, useItemValue] = createPartContext<string>("<Accordion.Item>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
@@ -120,16 +100,9 @@ function Root({
   const [value, setValue] = useControllableState({ value: valueProp, defaultValue });
 
   const toggle = (item: string, event: Event) => {
-    const open = value.includes(item);
-    if (open && !collapsible && !multiple) return;
-    const next = open
-      ? value.filter((entry) => entry !== item)
-      : multiple
-        ? [...value, item]
-        : [item];
-    const details = createChangeDetails<CollapsibleChangeReason>("trigger-press", event);
-    onValueChange?.(next, details);
-    if (!details.canceled) setValue(next);
+    const next = toggleMember(value, item, { multiple, removable: collapsible });
+    if (next === value) return;
+    if (emitChange(onValueChange, next, "trigger-press", event)) setValue(next);
   };
 
   return (
@@ -153,7 +126,7 @@ export interface AccordionItemProps extends StyledItemProps {
 }
 
 function Item({ value, disabled, ...props }: AccordionItemProps) {
-  const root = useAccordionContext("Item");
+  const root = useAccordionContext("Accordion.Item");
   const open = root.value.includes(value);
   const itemDisabled = disabled ?? root.disabled;
   const state = useCollapsible({
@@ -185,46 +158,28 @@ function Item({ value, disabled, ...props }: AccordionItemProps) {
 type ItemTriggerProps = ComponentProps<typeof StyledItemTrigger>;
 
 function ItemTrigger({ ref, ...props }: ItemTriggerProps) {
-  const root = useAccordionContext("ItemTrigger");
-  const value = useItemValue("ItemTrigger");
+  const root = useAccordionContext("Accordion.ItemTrigger");
+  const value = useItemValue("Accordion.ItemTrigger");
   const state = useCollapsibleContext("Accordion.ItemTrigger");
   const register = useCompositeListItem(root.triggers, value);
-  const triggerRef = useMergedRefs(register, ref);
+  const triggerRef = useComposedRefs(register, ref);
+  const triggerProps = useCollapsibleTriggerProps(state, props);
 
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const elements = root.triggers.items().map((item) => item.element);
-    const list = elementList(elements);
-    const current = elements.indexOf(event.currentTarget);
-    const step = getArrowStep(event.key, root.orientation, root.rtl);
-    let index: number | undefined;
-    if (step !== 0) {
-      index = getNextIndex(list, current, { decrement: step < 0, loop: true });
-    } else if (event.key === "Home") {
-      index = getFirstEnabledIndex(list);
-    } else if (event.key === "End") {
-      index = getLastEnabledIndex(list);
-    }
-    if (index === undefined) return;
+    const target = getKeyTarget(event.key, root.orientation, root.rtl);
+    if (!target) return;
     event.preventDefault();
-    elements[index]?.focus();
+    const elements = root.triggers.items().map((item) => item.element);
+    const current = elements.indexOf(event.currentTarget);
+    elements[getTargetIndex(elementList(elements), current, target, true)]?.focus();
   };
 
   return (
     <StyledItemTrigger
       {...mergeProps<ItemTriggerProps>(
         {
-          id: state.triggerId,
-          type: "button",
-          disabled: state.disabled,
-          "aria-controls": state.visible ? state.contentId : undefined,
-          "aria-expanded": state.open,
+          ...triggerProps,
           ...orientationAttribute(root.orientation),
-          ...collapsibleStateAttributes(state.open, state.disabled),
-          onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (state.disabled) return;
-            if (isSafari()) event.currentTarget.focus();
-            state.toggle(event.nativeEvent);
-          },
           onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
             if (event.defaultPrevented || state.disabled) return;
             moveFocus(event);
@@ -243,42 +198,37 @@ export interface AccordionItemContentProps extends ComponentProps<typeof StyledI
 }
 
 function ItemContent({ ref, keepMounted = false, ...props }: AccordionItemContentProps) {
-  const root = useAccordionContext("ItemContent");
+  const root = useAccordionContext("Accordion.ItemContent");
   const state = useCollapsibleContext("Accordion.ItemContent");
-  const panelRef = useCollapsiblePanel(state, ref);
+  const content = useCollapsibleContent(state, ref, props.id);
 
   return (
-    <CollapsiblePresence
-      state={state}
+    <PresenceActivity
+      mounted={state.visible}
       keepMounted={keepMounted}
     >
       <StyledItemContent
         {...mergeProps<ComponentProps<typeof StyledItemContent>>(
           {
-            ...panelAttributes(state),
+            ...content,
             role: "region",
             "aria-labelledby": state.triggerId,
             ...orientationAttribute(root.orientation),
           },
           props,
         )}
-        ref={panelRef}
       />
-    </CollapsiblePresence>
+    </PresenceActivity>
   );
 }
 
 function ItemIndicator(props: ComponentProps<typeof StyledItemIndicator>) {
-  const root = useAccordionContext("ItemIndicator");
+  const root = useAccordionContext("Accordion.ItemIndicator");
   const state = useCollapsibleContext("Accordion.ItemIndicator");
   return (
     <StyledItemIndicator
       {...mergeProps<ComponentProps<typeof StyledItemIndicator>>(
-        {
-          "aria-hidden": true,
-          ...orientationAttribute(root.orientation),
-          ...collapsibleStateAttributes(state.open, state.disabled),
-        },
+        { ...collapsibleIndicatorProps(state), ...orientationAttribute(root.orientation) },
         props,
       )}
     />

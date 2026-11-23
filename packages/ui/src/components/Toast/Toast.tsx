@@ -18,10 +18,16 @@ import { toast as toastRecipe } from "#styled-system/recipes";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { usePointerDrag } from "../../hooks/usePointerDrag";
-import { subscribeLayers, useLayerBranch } from "../../primitives/layer";
+import {
+  type SwipeDirection,
+  isNoDragTarget,
+  rubberBand,
+  swipeDisplacement,
+} from "../../primitives/drag";
+import { subscribeLayers, useLayerBranch, useTopLayerPopover } from "../../primitives/layer";
 import { useLocale } from "../../primitives/locale";
 import { usePresence } from "../../primitives/presence";
-import { dataAttr, renderable } from "../../primitives/render";
+import { dataAttr, openStateAttributes, renderable } from "../../primitives/render";
 import { createCloseTrigger } from "../closeTrigger";
 import { Icon } from "../Icon";
 import { Portal } from "../Portal";
@@ -31,6 +37,7 @@ import { type ToastEntry, type ToastStore, createToastStore, getToastDuration } 
 
 const { withProvider, withContext } = createSlotRecipeContext(toastRecipe);
 
+const Group = withProvider(renderable.div, "group");
 const Root = withProvider(renderable.div, "root");
 const Indicator = withContext(Icon, "indicator");
 const Title = withContext(renderable.div, "title");
@@ -46,9 +53,7 @@ export const toaster: ToastStore = store;
 const REGION_LABEL = "Notifications, top-end (alt+T)";
 const SWIPE_THRESHOLD = 40;
 const REVERSE_CANCEL_THRESHOLD = 10;
-const SWIPE_IGNORE = 'button, a, input, textarea, [role="button"], [data-no-drag]';
-
-type SwipeDirection = "up" | "down" | "left" | "right";
+const SWIPE_IGNORE = 'button, a, input, textarea, [role="button"]';
 
 interface Countdown {
   key: string;
@@ -93,19 +98,9 @@ export function Toaster() {
   );
   const { dir } = useLocale();
 
-  const [group, setGroup] = useState<HTMLDivElement | null>(null);
+  const [group, showGroup] = useTopLayerPopover<HTMLDivElement>();
   const groupRef = useRef<HTMLDivElement | null>(null);
-  const showGroup = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
-    node.showPopover();
-    groupRef.current = node;
-    setGroup(node);
-    return () => {
-      if (node.isConnected) node.hidePopover();
-      groupRef.current = null;
-      setGroup(null);
-    };
-  }, []);
+  const groupRefs = useComposedRefs(showGroup, groupRef);
   useLayerBranch(group);
 
   const [heights, setHeights] = useState<ReadonlyMap<number, number>>(() => new Map());
@@ -283,11 +278,9 @@ export function Toaster() {
 
   return (
     <Portal>
-      <div
-        ref={showGroup}
+      <Group
+        ref={groupRefs}
         popover="manual"
-        className={toastRecipe().group}
-        data-slot="group"
         role="region"
         aria-label={REGION_LABEL}
         aria-live="polite"
@@ -318,7 +311,7 @@ export function Toaster() {
             group={api.group}
           />
         ))}
-      </div>
+      </Group>
     </Portal>
   );
 }
@@ -343,21 +336,17 @@ function ToastItem({
   group,
 }: ToastItemProps) {
   const open = !toast.closing;
-  const presence = usePresence(open);
+  const presence = usePresence(open, { enterOnMount: !group.entered.has(toast.instance) });
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const attachRoot = useCallback((node: HTMLDivElement | null) => setRoot(node), []);
   const rootRef = useComposedRefs<HTMLDivElement>(attachRoot, presence.setElement);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>();
-  const [entering, setEntering] = useState(() => !group.entered.has(toast.instance));
   const titleId = useId();
   const descriptionId = useId();
 
   useLayoutEffect(() => {
     group.entered.add(toast.instance);
-    if (!entering) return;
-    const frame = requestAnimationFrame(() => setEntering(false));
-    return () => cancelAnimationFrame(frame);
-  }, [group, toast.instance, entering]);
+  }, [group, toast.instance]);
 
   useDismissTimer(toast, group.countdowns);
   useMeasuredHeight(root, open, toast.instance, group.setHeight);
@@ -397,10 +386,11 @@ function ToastItem({
       aria-describedby={toast.description ? descriptionId : undefined}
       tabIndex={0}
       data-type={toast.type}
-      {...(open ? { "data-open": "" } : { "data-closed": "" })}
-      {...(expanded ? { "data-expanded": "" } : { "data-collapsed": "" })}
+      {...openStateAttributes(open)}
+      data-expanded={dataAttr(expanded)}
+      data-collapsed={dataAttr(!expanded)}
       data-paused={dataAttr(toast.paused)}
-      data-starting-style={dataAttr(entering && open)}
+      data-starting-style={dataAttr(presence.status === "starting")}
       data-swipe-direction={swipeDirection}
       style={
         {
@@ -514,14 +504,6 @@ function useMeasuredHeight(
   }, [root, instance, setHeight, openRef]);
 }
 
-const displacement = (direction: SwipeDirection, x: number, y: number) =>
-  ({ up: -y, down: y, left: -x, right: x })[direction];
-
-const damp = (delta: number, towardsPositive: boolean, towardsNegative: boolean) => {
-  if (delta > 0) return towardsPositive ? delta : Math.sqrt(delta);
-  return towardsNegative ? delta : -Math.sqrt(-delta);
-};
-
 function useSwipeToDismiss(
   root: HTMLElement | null,
   directions: readonly SwipeDirection[],
@@ -548,7 +530,8 @@ function useSwipeToDismiss(
     disabled: !open,
     threshold: 1,
     activeAttribute: "data-swiping",
-    onPress: (event) => !(event.target as Element).closest(SWIPE_IGNORE),
+    onPress: (event) =>
+      !isNoDragTarget(event.target) && !(event.target as Element).closest(SWIPE_IGNORE),
     onStart: () => {
       swipe.current = {
         lock: null,
@@ -584,18 +567,18 @@ function useSwipeToDismiss(
             : "up";
         if (directions.includes(candidate)) {
           state.direction = candidate;
-          state.furthest = displacement(candidate, deltaX, deltaY);
+          state.furthest = swipeDisplacement(candidate, deltaX, deltaY);
         }
       } else {
-        const current = displacement(state.direction, deltaX, deltaY);
+        const current = swipeDisplacement(state.direction, deltaX, deltaY);
         state.furthest = Math.max(state.furthest, current);
         if (current > SWIPE_THRESHOLD) state.reversed = false;
         else if (state.furthest - current >= REVERSE_CANCEL_THRESHOLD) state.reversed = true;
       }
 
       setMovement(
-        state.lock === "y" || !horizontal ? 0 : damp(deltaX, right, left),
-        state.lock === "x" || !vertical ? 0 : damp(deltaY, down, up),
+        state.lock === "y" || !horizontal ? 0 : rubberBand(deltaX, right, left),
+        state.lock === "x" || !vertical ? 0 : rubberBand(deltaY, down, up),
       );
     },
     onEnd: (_, { cancelled }) => {
@@ -603,7 +586,7 @@ function useSwipeToDismiss(
       const direction =
         cancelled || state.reversed
           ? undefined
-          : directions.find((each) => displacement(each, state.x, state.y) > SWIPE_THRESHOLD);
+          : directions.find((each) => swipeDisplacement(each, state.x, state.y) > SWIPE_THRESHOLD);
       if (direction) onSwipe(direction);
       else setMovement(0, 0);
       onRelease();

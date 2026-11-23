@@ -5,8 +5,6 @@ import {
   type FocusEvent,
   type MouseEvent,
   type ReactNode,
-  createContext,
-  useContext,
   useEffect,
   useId,
   useState,
@@ -16,9 +14,14 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { clipboard } from "#styled-system/recipes";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import {
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import { copyText } from "./copyText";
 
 const { withProvider, withContext } = createSlotRecipeContext(clipboard);
@@ -51,19 +54,16 @@ const defaultTriggerLabel = (copied: boolean) =>
 interface ClipboardContextValue {
   value: string;
   copied: boolean;
-  inputId: string;
-  labelId: string;
+  ids: { input: string; label: string };
+  /** The rendered input's id. */
+  inputId: string | undefined;
+  reportRendered: ReportRendered<"input">;
   translations: ClipboardTranslations | undefined;
   copy: (reason: CopyRequest, event: Event, trigger?: HTMLElement) => boolean;
 }
 
-const ClipboardContext = createContext<ClipboardContextValue | null>(null);
-
-function useClipboardContext(part: string): ClipboardContextValue {
-  const context = useContext(ClipboardContext);
-  if (!context) throw new Error(`Clipboard.${part} must be placed inside <Clipboard.Root>.`);
-  return context;
-}
+const [ClipboardContext, useClipboardContext] =
+  createPartContext<ClipboardContextValue>("<Clipboard.Root>");
 
 type StyledRootProps = ComponentProps<typeof StyledRoot>;
 
@@ -89,6 +89,7 @@ function Root({
 }: ClipboardRootProps) {
   const uid = useId();
   const [copies, setCopies] = useState(0);
+  const [rendered, reportRendered] = useRenderedParts<"input">();
   const onStatusChangeRef = useLatestRef(onStatusChange);
 
   useEffect(() => {
@@ -101,13 +102,12 @@ function Root({
   const context: ClipboardContextValue = {
     value,
     copied,
-    inputId: `clip:${uid}:input`,
-    labelId: `clip:${uid}:label`,
+    ids: { input: `clip:${uid}:input`, label: `clip:${uid}:label` },
+    inputId: rendered.input,
+    reportRendered,
     translations,
     copy(reason, event, trigger) {
-      const details = createChangeDetails(reason, event);
-      onStatusChange?.(true, details);
-      if (details.canceled) return false;
+      if (!emitChange(onStatusChange, true, reason, event)) return false;
       const markCopied = () => setCopies((count) => count + 1);
       if (!trigger) {
         markCopied();
@@ -116,7 +116,7 @@ function Root({
       // Beside the trigger, not in <body>: an open modal makes everything outside it inert.
       copyText(trigger.parentElement ?? trigger, value).then(markCopied, () => {
         setCopies(0);
-        onStatusChangeRef.current?.(false, createChangeDetails("copy-error", event));
+        emitChange(onStatusChangeRef.current, false, "copy-error", event);
       });
       return true;
     },
@@ -135,10 +135,10 @@ function Root({
 type LabelProps = ComponentProps<typeof StyledLabel>;
 
 function Label(props: LabelProps) {
-  const context = useClipboardContext("Label");
+  const context = useClipboardContext("Clipboard.Label");
   return (
     <StyledLabel
-      id={context.labelId}
+      id={context.ids.label}
       htmlFor={context.inputId}
       data-copied={dataAttr(context.copied)}
       {...props}
@@ -147,7 +147,7 @@ function Label(props: LabelProps) {
 }
 
 function Control(props: ComponentProps<typeof StyledControl>) {
-  const context = useClipboardContext("Control");
+  const context = useClipboardContext("Clipboard.Control");
   return (
     <StyledControl
       data-copied={dataAttr(context.copied)}
@@ -160,12 +160,13 @@ type InputProps = ComponentProps<typeof StyledInput>;
 
 /** Shows the value read-only, selected as it gets focus; copying from it counts as a copy. */
 function Input(props: InputProps) {
-  const context = useClipboardContext("Input");
+  const context = useClipboardContext("Clipboard.Input");
+  const id = useReportRendered(context.reportRendered, "input", props.id ?? context.ids.input);
   return (
     <StyledInput
       {...mergeProps<InputProps>(
         {
-          id: context.inputId,
+          id,
           value: context.value,
           readOnly: true,
           "data-read-only": "",
@@ -186,13 +187,13 @@ function Input(props: InputProps) {
 type TriggerProps = ComponentProps<typeof StyledTrigger>;
 
 function Trigger(props: TriggerProps) {
-  const context = useClipboardContext("Trigger");
+  const context = useClipboardContext("Clipboard.Trigger");
   const label = context.translations?.triggerLabel ?? defaultTriggerLabel;
   return (
     <StyledTrigger
       {...mergeProps<TriggerProps>(
         {
-          type: "button",
+          type: props.render ? undefined : "button",
           "aria-label": label(context.copied),
           "data-copied": dataAttr(context.copied),
           onClick(event: MouseEvent<HTMLButtonElement>) {
@@ -216,7 +217,7 @@ function createIndicator(defaults: { children: ReactNode; copied: ReactNode }) {
     copied = defaults.copied,
     ...props
   }: ClipboardIndicatorProps) {
-    const context = useClipboardContext("Indicator");
+    const context = useClipboardContext("Clipboard.Indicator");
     return <StyledIndicator {...props}>{context.copied ? copied : children}</StyledIndicator>;
   };
 }

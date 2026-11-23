@@ -3,8 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { Float, createSlotRecipeContext } from "#styled-system/jsx";
 import { navRail } from "#styled-system/recipes";
 
-import { renderable } from "../../primitives/render";
-import type { WithRef } from "../../types";
+import { dataAttr, renderable } from "../../primitives/render";
 import { Badge } from "../Badge";
 import { wrapRenderContent } from "../renderContent";
 import { Tooltip } from "../Tooltip";
@@ -40,10 +39,9 @@ function Item({
   tucked,
   dot,
   tooltip,
-  id,
   render,
   ...rest
-}: WithRef<NavRailItemProps, HTMLButtonElement>) {
+}: NavRailItemProps) {
   const content = (
     <>
       <ItemIcon>
@@ -74,10 +72,9 @@ function Item({
     >
       <StyledItem
         ref={ref}
-        id={id}
         type={render ? undefined : "button"}
         aria-current={active ? "page" : undefined}
-        data-tucked={tucked ? "" : undefined}
+        data-tucked={dataAttr(tucked)}
         render={rendered.render}
         {...rest}
       >

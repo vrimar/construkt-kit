@@ -1,4 +1,4 @@
-import { type ReactElement, type ReactNode, cloneElement, isValidElement } from "react";
+import { Fragment, type ReactElement, type ReactNode, cloneElement, isValidElement } from "react";
 
 import type { RenderProp } from "../primitives/render";
 
@@ -29,5 +29,5 @@ export function rendersOwnContent(
 }
 
 export function asRender(node: ReactNode): { render?: ReactElement; children?: ReactNode } {
-  return isValidElement(node) ? { render: node } : { children: node };
+  return isValidElement(node) && node.type !== Fragment ? { render: node } : { children: node };
 }

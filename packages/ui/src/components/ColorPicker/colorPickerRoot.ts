@@ -5,10 +5,10 @@ import {
   convertColor,
   decrementColorChannel,
   formatColor,
+  getColorAxes,
   getColorChannelPercentValue,
   getColorChannelRange,
   getColorChannelValue,
-  getColorChannels,
   incrementColorChannel,
   isColorEqual,
   parseColor,
@@ -17,33 +17,44 @@ import {
 import {
   type KeyboardEvent,
   type PointerEvent,
-  createContext,
-  useContext,
-  useEffect,
   useId,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
+import { getEventStepValue, isModifierKey, isRtl } from "../../foundations/dom";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { trackPointerMove } from "../../primitives/drag";
-import {
-  dispatchInputValueEvent,
-  useFieldControlState,
-  useFormControl,
-} from "../../primitives/field";
+import { useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { mirrorArrowKey } from "../../primitives/composite";
+import { useFormFieldState, useHiddenInputValue } from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import { getEventStepValue, isModifierKey } from "../numberMath";
+import { createPartContext } from "../partContext";
+import {
+  type Point,
+  getGrabOffset,
+  getPointerPercent,
+  getSliderKeyAction,
+  useValueDrag,
+} from "../sliderCore";
 import {
   type ExtendedColorChannel,
   type Orientation,
   getChannelInputValue,
   getChannelSpace,
+  hexHasAlpha,
   prefixHex,
 } from "./pickerColors";
+
+type ColorPickerPart =
+  | "label"
+  | "control"
+  | "hiddenInput"
+  | "areaThumb"
+  | `track:${ColorChannel}`
+  | `thumb:${ColorChannel}`;
 
 export type ColorPickerValueChangeReason =
   | "pointer"
@@ -92,6 +103,23 @@ export interface ColorPickerStateOptions {
   closeOnSelect?: boolean | undefined;
 }
 
+/** Every `ColorPickerStateOptions` key, to split them off the root's props. */
+export const COLOR_PICKER_STATE_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  onValueChangeEnd: true,
+  format: true,
+  defaultFormat: true,
+  onFormatChange: true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  required: true,
+  name: true,
+  closeOnSelect: true,
+} as const satisfies Record<keyof ColorPickerStateOptions, true>;
+
 interface AreaDrag {
   kind: "area";
   element: HTMLElement;
@@ -103,16 +131,10 @@ interface SliderDrag {
   kind: "slider";
   element: HTMLElement;
   channel: ColorChannel;
-  format: ColorFormat | undefined;
   orientation: Orientation;
 }
 
 type Drag = AreaDrag | SliderDrag;
-
-interface Point {
-  x: number;
-  y: number;
-}
 
 interface EyeDropperConstructor {
   new (): { open: () => Promise<{ sRGBHex: string }> };
@@ -123,15 +145,6 @@ const DEFAULT_COLOR: Color = { format: "rgba", red: 0, green: 0, blue: 0, alpha:
 const areaFormatOf = (format: ColorFormat): ColorFormat =>
   format.startsWith("hsl") ? "hsla" : "hsba";
 
-const clampPercent = (value: number) => Math.min(Math.max(value, 0), 1);
-
-function rtlKey(key: string, rtl: boolean) {
-  if (!rtl) return key;
-  if (key === "ArrowLeft") return "ArrowRight";
-  if (key === "ArrowRight") return "ArrowLeft";
-  return key;
-}
-
 /** The value, format and handlers a color picker's parts share. */
 export function useColorPickerState(
   options: ColorPickerStateOptions,
@@ -139,13 +152,6 @@ export function useColorPickerState(
 ) {
   const uid = useId();
   const { dir, locale } = useLocale();
-  const field = useFieldControlState({
-    disabled: options.disabled,
-    readOnly: options.readOnly,
-    invalid: options.invalid,
-    required: options.required,
-  });
-
   const initialColor = options.value ?? options.defaultValue ?? DEFAULT_COLOR;
   const [format, setFormatState] = useControllableState<ColorFormat>({
     value: options.format,
@@ -159,8 +165,7 @@ export function useColorPickerState(
   );
   const [value, setValue] = useControllableState({ value: options.value, defaultValue });
   const [initialValue] = useState(options.value ?? defaultValue);
-  const [dragging, setDragging] = useState(false);
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<ColorPickerPart>();
 
   const rootRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
@@ -184,7 +189,13 @@ export function useColorPickerState(
     thumb: (channel: ColorChannel) => `color-picker:${uid}:slider-thumb:${channel}`,
   };
 
-  const latest = useLatestRef({ options, format, dir, requestClose: popup.requestClose, ids });
+  const latest = useLatestRef({
+    options,
+    format,
+    dir,
+    requestClose: popup.requestClose,
+    rendered,
+  });
 
   function change(
     next: Color,
@@ -193,11 +204,10 @@ export function useColorPickerState(
     nextFormat = latest.current.format,
   ): boolean {
     if (isColorEqual(next, valueRef.current)) return false;
-    const details = Object.assign(createChangeDetails(reason, event), {
-      valueAsString: formatColor(next, nextFormat),
-    });
-    latest.current.options.onValueChange?.(next, details);
-    if (details.canceled) return false;
+    const valueAsString = formatColor(next, nextFormat);
+    if (!emitChange(latest.current.options.onValueChange, next, reason, event, { valueAsString })) {
+      return false;
+    }
     valueRef.current = next;
     setValue(next);
     return true;
@@ -219,12 +229,20 @@ export function useColorPickerState(
     if (change(next, reason, event)) changeEnd(reason, from);
   }
 
-  const { fieldsetDisabled } = useFormControl(
-    rootRef,
-    () => change(initialValue, "form-reset"),
-    () => hiddenInputRef.current,
+  const field = useFormFieldState(
+    {
+      disabled: options.disabled,
+      readOnly: options.readOnly,
+      invalid: options.invalid,
+      required: options.required,
+    },
+    {
+      elementRef: rootRef,
+      onReset: () => change(initialValue, "form-reset"),
+      input: () => hiddenInputRef.current,
+    },
   );
-  const disabled = field.disabled || fieldsetDisabled;
+  const { disabled } = field;
   const interactive = !(disabled || field.readOnly);
   const valueAsString = formatColor(value, format);
   const areaValue = convertColor(value, areaFormatOf(format));
@@ -233,10 +251,8 @@ export function useColorPickerState(
     return convertColor(current, areaFormatOf(latest.current.format));
   }
 
-  function sliderValue(current: Color, channel: ColorChannel, viewFormat: ColorFormat | undefined) {
-    const color = convertColor(current, viewFormat ?? areaFormatOf(latest.current.format));
-    if (channel === "alpha" || getColorChannels(color).includes(channel)) return color;
-    return convertColor(current, getChannelSpace(color.format, channel));
+  function sliderValue(current: Color, channel: ColorChannel) {
+    return convertColor(current, getChannelSpace(latest.current.format, channel));
   }
 
   function colorFromPoint(point: Point): Color | undefined {
@@ -244,80 +260,69 @@ export function useColorPickerState(
     if (!drag) return undefined;
     const rect = drag.element.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return undefined;
-    const px = rect.width > 0 ? clampPercent((point.x - rect.left) / rect.width) : 0;
-    const py = rect.height > 0 ? clampPercent((point.y - rect.top) / rect.height) : 0;
-    const x = latest.current.dir === "rtl" ? 1 - px : px;
+    const percent = getPointerPercent(point, rect, { rtl: isRtl(drag.element) });
     if (drag.kind === "area") {
       const color = areaColor(valueRef.current);
-      const xValue = getColorChannelPercentValue(color, drag.xChannel, x);
-      const yValue = getColorChannelPercentValue(color, drag.yChannel, 1 - py);
+      const xValue = getColorChannelPercentValue(color, drag.xChannel, percent.x);
+      const yValue = getColorChannelPercentValue(color, drag.yChannel, percent.y);
       return setColorChannelValue(
         setColorChannelValue(color, drag.xChannel, xValue),
         drag.yChannel,
         yValue,
       );
     }
-    const color = sliderValue(valueRef.current, drag.channel, drag.format);
-    const percent = drag.orientation === "horizontal" ? x : 1 - py;
+    const color = sliderValue(valueRef.current, drag.channel);
     return setColorChannelValue(
       color,
       drag.channel,
-      getColorChannelPercentValue(color, drag.channel, percent),
+      getColorChannelPercentValue(
+        color,
+        drag.channel,
+        drag.orientation === "horizontal" ? percent.x : percent.y,
+      ),
     );
   }
+
+  const thumbOf = (drag: Drag) => {
+    const part: ColorPickerPart = drag.kind === "area" ? "areaThumb" : `thumb:${drag.channel}`;
+    const id = latest.current.rendered[part];
+    return id === undefined ? null : drag.element.ownerDocument.getElementById(id);
+  };
 
   function focusDragThumb() {
     const drag = dragRef.current;
     if (!drag) return;
-    const { ids: current } = latest.current;
-    const id = drag.kind === "area" ? current.areaThumb : current.thumb(drag.channel);
-    const doc = drag.element.ownerDocument;
-    requestAnimationFrame(() => doc.getElementById(id)?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => thumbOf(drag)?.focus({ preventScroll: true }));
   }
+
+  const valueDrag = useValueDrag(rootRef, {
+    disabled: disabled || !popup.open,
+    onMove(point) {
+      const next = colorFromPoint(point);
+      if (next) change(next, "pointer");
+    },
+    onEnd(released) {
+      if (released) focusDragThumb();
+      dragRef.current = null;
+      changeEnd("pointer", dragStartRef.current);
+    },
+  });
 
   function startDrag(drag: Drag, event: PointerEvent<HTMLElement>) {
     if (!interactive || event.button !== 0 || isModifierKey(event)) return;
     event.preventDefault();
     dragRef.current = drag;
     dragStartRef.current = valueRef.current;
-    setDragging(true);
-    const next = colorFromPoint({ x: event.clientX, y: event.clientY });
+    const point = { x: event.clientX, y: event.clientY };
+    const thumb = thumbOf(drag);
+    const grabbed = thumb && event.target instanceof Node && thumb.contains(event.target);
+    valueDrag.start(grabbed ? getGrabOffset(point, thumb) : undefined);
+    const next = grabbed ? undefined : colorFromPoint(point);
     if (next) change(next, "pointer", event.nativeEvent);
     focusDragThumb();
   }
 
-  function endDrag(refocus: boolean) {
-    if (!dragRef.current) return;
-    if (refocus) focusDragThumb();
-    dragRef.current = null;
-    setDragging(false);
-    changeEnd("pointer", dragStartRef.current);
-  }
-
-  const actions = useLatestRef({ colorFromPoint, change, endDrag });
-
-  useEffect(() => {
-    const doc = rootRef.current?.ownerDocument;
-    if (!dragging || !doc) return;
-    return trackPointerMove(doc, {
-      onMove: (point) => {
-        const next = actions.current.colorFromPoint(point);
-        if (next) actions.current.change(next, "pointer");
-      },
-      onUp: () => actions.current.endDrag(true),
-    });
-  }, [dragging, actions]);
-
-  useEffect(() => {
-    if (disabled || !popup.open) actions.current.endDrag(false);
-  }, [disabled, popup.open, actions]);
-
-  const previousValueAsString = useRef(valueAsString);
-  useLayoutEffect(() => {
-    if (previousValueAsString.current === valueAsString) return;
-    previousValueAsString.current = valueAsString;
-    dispatchInputValueEvent(hiddenInputRef.current, valueAsString);
-  }, [valueAsString]);
+  useHiddenInputValue(() => hiddenInputRef.current, valueAsString);
 
   function setFormat(next: ColorFormat) {
     if (next === latest.current.format) return;
@@ -334,7 +339,7 @@ export function useColorPickerState(
     const step = getEventStepValue(event, { step: 1, largeStep: 10 });
     const color = areaColor(valueRef.current);
     let next: Color;
-    switch (rtlKey(event.key, latest.current.dir === "rtl")) {
+    switch (mirrorArrowKey(event.key, latest.current.dir === "rtl")) {
       case "ArrowLeft":
       case "PageDown":
         next = decrementColorChannel(color, axes.xChannel, step);
@@ -359,34 +364,23 @@ export function useColorPickerState(
   function onSliderKeyDown(
     event: KeyboardEvent<HTMLElement>,
     channel: ColorChannel,
-    viewFormat: ColorFormat | undefined,
+    orientation: Orientation,
   ) {
     if (event.defaultPrevented || !interactive) return;
-    const color = sliderValue(valueRef.current, channel, viewFormat);
+    const color = sliderValue(valueRef.current, channel);
     const range = getColorChannelRange(color, channel);
-    const step = getEventStepValue(event, { step: range.step, largeStep: range.step * 10 });
-    let next: Color;
-    switch (rtlKey(event.key, latest.current.dir === "rtl")) {
-      case "ArrowUp":
-      case "ArrowRight":
-      case "PageUp":
-        next = incrementColorChannel(color, channel, step);
-        break;
-      case "ArrowDown":
-      case "ArrowLeft":
-      case "PageDown":
-        next = decrementColorChannel(color, channel, step);
-        break;
-      case "Home":
-        next = setColorChannelValue(color, channel, range.minValue);
-        break;
-      case "End":
-        next = setColorChannelValue(color, channel, range.maxValue);
-        break;
-      default:
-        return;
-    }
+    const action = getSliderKeyAction(event, {
+      step: range.step,
+      largeStep: range.step * 10,
+      orientation,
+      dir: latest.current.dir,
+    });
+    if (action === undefined) return;
     event.preventDefault();
+    const next =
+      typeof action === "number"
+        ? incrementColorChannel(color, channel, action)
+        : setColorChannelValue(color, channel, action === "min" ? range.minValue : range.maxValue);
     commit(next, "keyboard", event.nativeEvent);
   }
 
@@ -399,12 +393,15 @@ export function useColorPickerState(
     } else if (channel === "hex" || channel === "css") {
       try {
         const parsed = parseColor(channel === "hex" ? prefixHex(input.value) : input.value);
-        next = setColorChannelValue(parsed, "alpha", current.alpha);
+        next =
+          channel === "hex" && !hexHasAlpha(input.value)
+            ? setColorChannelValue(parsed, "alpha", current.alpha)
+            : parsed;
       } catch {
         next = current;
       }
     } else {
-      const color = convertColor(current, getChannelSpace(latest.current.format, channel));
+      const color = sliderValue(current, channel);
       const typed = input.valueAsNumber;
       next = setColorChannelValue(
         color,
@@ -448,26 +445,27 @@ export function useColorPickerState(
     invalid: field.invalid,
     required: field.required,
     interactive,
-    dragging,
+    dragging: valueDrag.dragging,
     name: options.name,
     describedBy: field.describedBy,
-    labelRendered,
-    setLabelRendered,
+    rendered,
+    reportRendered,
     rootRef,
     hiddenInputRef,
     getAreaChannels: (xChannel?: ColorChannel, yChannel?: ColorChannel) => {
-      const channels = getColorChannels(areaValue);
-      return { xChannel: xChannel ?? channels[1], yChannel: yChannel ?? channels[2] };
+      const axes = getColorAxes(areaValue, { xChannel, yChannel });
+      return { xChannel: axes.xChannel, yChannel: axes.yChannel };
     },
-    sliderValue: (channel: ColorChannel, viewFormat: ColorFormat | undefined) =>
-      sliderValue(value, channel, viewFormat),
+    sliderValue: (channel: ColorChannel) => convertColor(value, getChannelSpace(format, channel)),
     startAreaDrag: (event: PointerEvent<HTMLElement>, axes: Omit<AreaDrag, "kind" | "element">) =>
       startDrag({ kind: "area", element: event.currentTarget, ...axes }, event),
     startSliderDrag: (
       event: PointerEvent<HTMLElement>,
       drag: Omit<SliderDrag, "kind" | "element">,
     ) => {
-      const track = event.currentTarget.ownerDocument.getElementById(ids.track(drag.channel));
+      const trackId = rendered[`track:${drag.channel}`];
+      const track =
+        trackId === undefined ? null : event.currentTarget.ownerDocument.getElementById(trackId);
       startDrag({ kind: "slider", element: track ?? event.currentTarget, ...drag }, event);
     },
     onAreaKeyDown,
@@ -480,10 +478,7 @@ export function useColorPickerState(
 
 export type ColorPickerState = ReturnType<typeof useColorPickerState>;
 
-export const ColorPickerContext = createContext<ColorPickerState | null>(null);
-
-export function useColorPickerContext(): ColorPickerState {
-  const context = useContext(ColorPickerContext);
-  if (!context) throw new Error("ColorPicker parts must be rendered inside ColorPicker.Root.");
-  return context;
-}
+export const [ColorPickerContext, useColorPickerContext] = createPartContext<ColorPickerState>(
+  "<ColorPicker.Root>",
+  "ColorPicker parts",
+);

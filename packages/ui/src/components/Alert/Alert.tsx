@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, createContext, useContext } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { alert } from "#styled-system/recipes";
@@ -9,17 +9,31 @@ import { statusIcons } from "../statusIcons";
 
 const { withProvider, withContext } = createSlotRecipeContext(alert);
 
-export type AlertRootProps = ComponentProps<typeof Root>;
-const Root = withProvider(renderable.div, "root");
+const StyledRoot = withProvider(renderable.div, "root");
 const Title = withContext(renderable.h3, "title");
 const Description = withContext(renderable.div, "description");
 const Content = withContext(renderable.div, "content");
-const Indicator = withContext(renderable.span, "indicator", {
-  defaultProps: { children: <statusIcons.info /> },
-});
-const CloseTrigger = createCloseTrigger(
-  withContext(renderable.button, "closeTrigger", { defaultProps: { type: "button" } }),
-);
+const StyledIndicator = withContext(renderable.span, "indicator");
+const CloseTrigger = createCloseTrigger(withContext(renderable.button, "closeTrigger"));
+
+export type AlertRootProps = ComponentProps<typeof StyledRoot>;
+
+const AlertStatusContext = createContext<AlertRootProps["status"]>(undefined);
+
+function Root(props: AlertRootProps) {
+  return (
+    <AlertStatusContext.Provider value={props.status}>
+      <StyledRoot {...props} />
+    </AlertStatusContext.Provider>
+  );
+}
+
+/** The root status's icon unless given children; the info icon for a status without one. */
+function Indicator({ children, ...props }: ComponentProps<typeof StyledIndicator>) {
+  const status = useContext(AlertStatusContext);
+  const StatusIcon = (typeof status === "string" && statusIcons[status]) || statusIcons.info;
+  return <StyledIndicator {...props}>{children ?? <StatusIcon />}</StyledIndicator>;
+}
 
 export interface AlertProps extends Omit<AlertRootProps, "title"> {
   title?: React.ReactNode;
@@ -41,17 +55,12 @@ function AlertComponent({
   endElement,
   ...rest
 }: AlertProps) {
-  const StatusIcon = typeof rest.status === "string" ? statusIcons[rest.status] : undefined;
-
   return (
     <Root
       ref={ref}
       {...rest}
     >
-      {startElement ||
-        (indicator !== null && (
-          <Indicator>{indicator ?? (StatusIcon && <StatusIcon />)}</Indicator>
-        ))}
+      {startElement || (indicator !== null && <Indicator>{indicator}</Indicator>)}
       {title && !children ? (
         <Title flex="1">{title}</Title>
       ) : (

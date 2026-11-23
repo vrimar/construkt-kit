@@ -9,6 +9,14 @@ import {
   useState,
 } from "react";
 
+import { useLatestRef } from "../../hooks/useLatestRef";
+import {
+  type RenderedParts,
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+
 export interface FieldState {
   disabled: boolean;
   invalid: boolean;
@@ -17,6 +25,10 @@ export interface FieldState {
 }
 
 export type FieldMessage = "helperText" | "errorText";
+
+type FieldPart = "label" | FieldMessage;
+
+type FieldsetPart = "legend" | FieldMessage;
 
 export interface FieldIds {
   root: string;
@@ -33,10 +45,13 @@ export interface FieldContextValue extends FieldState {
   labelId: string | undefined;
   /** The rendered messages' ids, the error first, as a control's `aria-describedby`. */
   describedBy: string | undefined;
+  /** Focuses the control for a label whose `htmlFor` reaches no element. */
+  focusControl: (() => void) | undefined;
+  /** Sets `focusControl` until the returned function is called. */
+  registerFocusControl: (focus: () => void) => () => void;
   registerControlId: (source: symbol, id: string | undefined) => void;
   resetControlId: () => void;
-  setLabelId: (id: string | undefined) => void;
-  setMessageRendered: (message: FieldMessage, rendered: boolean) => void;
+  reportRendered: ReportRendered<FieldPart>;
 }
 
 export const FieldContext = createContext<FieldContextValue | null>(null);
@@ -47,9 +62,11 @@ export interface FieldsetContextValue {
   disabled: boolean;
   invalid: boolean;
   ids: { legend: string; helperText: string; errorText: string };
+  /** The rendered legend's id. */
+  legendId: string | undefined;
   /** The rendered messages' ids, the error first, as the fieldset's `aria-describedby`. */
   describedBy: string | undefined;
-  setMessageRendered: (message: FieldMessage, rendered: boolean) => void;
+  reportRendered: ReportRendered<FieldsetPart>;
 }
 
 export const FieldsetContext = createContext<FieldsetContextValue | null>(null);
@@ -73,8 +90,14 @@ export function useFieldRoot({
   const id = idProp ?? uid;
   const defaultControlId = id;
   const [controlId, setControlId] = useState<string | undefined>(undefined);
-  const [labelId, setLabelId] = useState<string | undefined>(undefined);
+  const [rendered, reportRendered] = useRenderedParts<FieldPart>();
+  const [focusControl, setFocusControl] = useState<(() => void) | undefined>(undefined);
   const registrations = useRef<Map<symbol, string> | null>(null);
+
+  const registerFocusControl = useCallback((focus: () => void) => {
+    setFocusControl(() => focus);
+    return () => setFocusControl((current) => (current === focus ? undefined : current));
+  }, []);
 
   const registerControlId = useCallback((source: symbol, nextId: string | undefined) => {
     registrations.current ??= new Map();
@@ -104,33 +127,37 @@ export function useFieldRoot({
     }),
     [id, controlId, defaultControlId],
   );
-  const { describedBy, setMessageRendered } = useMessages(ids, invalid);
+  const labelId = rendered.label;
+  const describedBy = messagesDescribedBy(rendered, invalid);
 
   return useMemo(
     () => ({
       ids,
       labelId,
       describedBy,
+      focusControl,
+      registerFocusControl,
       disabled: resolvedDisabled,
       invalid,
       readOnly,
       required,
       registerControlId,
       resetControlId,
-      setLabelId,
-      setMessageRendered,
+      reportRendered,
     }),
     [
       ids,
       labelId,
       describedBy,
+      focusControl,
+      registerFocusControl,
       resolvedDisabled,
       invalid,
       readOnly,
       required,
       registerControlId,
       resetControlId,
-      setMessageRendered,
+      reportRendered,
     ],
   );
 }
@@ -149,6 +176,7 @@ export function useFieldsetRoot({
 }: UseFieldsetRootOptions): FieldsetContextValue {
   const uid = useId();
   const id = idProp ?? uid;
+  const [rendered, reportRendered] = useRenderedParts<FieldsetPart>();
   const ids = useMemo(
     () => ({
       legend: `fieldset::${id}::legend`,
@@ -157,23 +185,16 @@ export function useFieldsetRoot({
     }),
     [id],
   );
-  const { describedBy, setMessageRendered } = useMessages(ids, invalid);
+  const legendId = rendered.legend;
+  const describedBy = messagesDescribedBy(rendered, invalid);
   return useMemo(
-    () => ({ disabled, invalid, ids, describedBy, setMessageRendered }),
-    [disabled, invalid, ids, describedBy, setMessageRendered],
+    () => ({ disabled, invalid, ids, legendId, describedBy, reportRendered }),
+    [disabled, invalid, ids, legendId, describedBy, reportRendered],
   );
 }
 
-function useMessages(ids: { helperText: string; errorText: string }, invalid: boolean) {
-  const [messages, setMessages] = useState({ helperText: false, errorText: false });
-  const setMessageRendered = useCallback((message: FieldMessage, rendered: boolean) => {
-    setMessages((prev) => (prev[message] === rendered ? prev : { ...prev, [message]: rendered }));
-  }, []);
-  const describedBy = joinIds([
-    messages.errorText && invalid ? ids.errorText : undefined,
-    messages.helperText ? ids.helperText : undefined,
-  ]);
-  return { describedBy, setMessageRendered };
+function messagesDescribedBy(rendered: RenderedParts<FieldMessage>, invalid: boolean) {
+  return joinIds([invalid ? rendered.errorText : undefined, rendered.helperText]);
 }
 
 /**
@@ -199,31 +220,64 @@ export function useFieldControlId(id: string | undefined): string | undefined {
   return id ?? field?.ids.control;
 }
 
-/** Registers a rendered label with the enclosing `Field` and returns the id it renders. */
+/** Registers a rendered label, `id` when given, with the enclosing `Field` and returns its id. */
 export function useFieldLabelId(id: string | undefined): string | undefined {
   const field = useFieldContext();
-  const labelId = id ?? field?.ids.label;
-  const setLabelId = field?.setLabelId;
-
-  useLayoutEffect(() => {
-    if (!setLabelId) return;
-    setLabelId(labelId);
-    return () => setLabelId(undefined);
-  }, [setLabelId, labelId]);
-
-  return labelId;
+  return useReportRendered(field?.reportRendered, "label", id ?? field?.ids.label);
 }
 
-/** Registers a rendered helper or error text, so the field's control is described by it. */
-export function useFieldMessage(
-  register: ((message: FieldMessage, rendered: boolean) => void) | undefined,
-  message: FieldMessage,
-) {
+interface FieldMessageOwner {
+  ids: Record<FieldMessage, string>;
+  reportRendered: ReportRendered<FieldMessage>;
+}
+
+/**
+ * A `Field`'s or `Fieldset`'s helper or error text's props, registering it, `id` when given, as
+ * rendered so the owner is described by it.
+ */
+export function useFieldMessageProps(owner: FieldMessageOwner, message: FieldMessage, id?: string) {
+  const messageId = useReportRendered(owner.reportRendered, message, id ?? owner.ids[message]);
+  return message === "errorText"
+    ? { id: messageId, "aria-live": "polite" as const }
+    : { id: messageId };
+}
+
+/**
+ * Has the enclosing `Field`'s label call `focus` for a control its `htmlFor` can't point at, such as
+ * a group or a popup trigger. `undefined` registers nothing.
+ */
+export function useFieldFocusControl(focus: (() => void) | undefined) {
+  const register = useFieldContext()?.registerFocusControl;
+  const latest = useLatestRef(focus);
+  const registered = focus !== undefined;
+
   useLayoutEffect(() => {
-    if (!register) return;
-    register(message, true);
-    return () => register(message, false);
-  }, [register, message]);
+    if (!register || !registered) return;
+    return register(() => latest.current?.());
+  }, [register, registered, latest]);
+}
+
+interface FieldTrigger {
+  /** The id the trigger renders, a consumer's included. */
+  triggerId: string;
+  triggerEl: HTMLElement | null;
+}
+
+/**
+ * A popup trigger's props for the enclosing `Field`'s label, messages and `invalid`; the label
+ * focuses the trigger.
+ */
+export function useFieldTriggerProps({ triggerId, triggerEl }: FieldTrigger) {
+  const field = useFieldContext();
+  useFieldFocusControl(() => triggerEl?.focus());
+  if (!field) return {};
+
+  return {
+    // The trigger's own id keeps its value in the name, after the label.
+    "aria-labelledby": field.labelId ? `${field.labelId} ${triggerId}` : undefined,
+    "aria-describedby": field.describedBy,
+    "aria-invalid": field.invalid || undefined,
+  };
 }
 
 /** Joins `aria-describedby` ids, dropping blanks and repeats. */

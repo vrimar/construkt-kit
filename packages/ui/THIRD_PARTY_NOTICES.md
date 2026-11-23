@@ -77,17 +77,18 @@ SOFTWARE.
 - Ported from `packages/utilities/dom-query/src/typeahead.ts` and `searchable.ts`
 - Into `src/primitives/composite/Typeahead.ts`
 - Ported from `packages/machines/menu/src/menu.machine.ts`, `menu.connect.ts`, `menu.dom.ts` and `menu.utils.ts`
-- Into `src/components/Menu/menuNode.ts` and `src/components/Menu/Menu.tsx`
+- Into `src/components/Menu/menuNode.ts`, `src/components/Menu/Menu.tsx` and
+  `src/primitives/composite/HighlightList.ts`
 - Ported from `packages/utilities/rect-utils/src/polygon.ts`
 - Into `src/components/Menu/pointerGrace.ts`
 - Ported from `packages/machines/listbox/src/listbox.machine.ts`, `listbox.connect.ts` and
   `packages/utilities/collection/src/selection.ts` and `list-collection.ts` (range selection, group order)
-- Into `src/components/Listbox/listboxNode.ts`, `src/components/Listbox/Listbox.tsx` and
-  `src/components/Listbox/useSelectionController.ts`
+- Into `src/primitives/listbox/listboxNode.ts`, `src/primitives/composite/HighlightList.ts`,
+  `src/components/Listbox/Listbox.tsx` and `src/components/selection/useSelectionController.ts`
 - Ported from `packages/machines/combobox/src/combobox.machine.ts`, `combobox.connect.ts` and
   `packages/utilities/live-region/src/index.ts`
-- Into `src/components/Combobox/Combobox.tsx`, `src/components/Combobox/Announcer.tsx` and
-  `src/hooks/useLiveRegion.tsx`
+- Into `src/components/Combobox/Combobox.tsx`, `src/primitives/listbox/Announcer.tsx` and
+  `src/hooks/useAnnouncer.tsx`
 - Ported from `packages/machines/tree-view/src/tree-view.machine.ts`, `tree-view.connect.ts`,
   `utils/checked-state.ts`, `utils/expand-branch.ts` and `packages/utilities/collection/src/tree-collection.ts`
   and `tree-visit.ts`
@@ -110,12 +111,14 @@ SOFTWARE.
 - Ported from `packages/machines/number-input/src/number-input.machine.ts`, `number-input.connect.ts`,
   `number-input.dom.ts`, `number-input.utils.ts`, `cursor.ts` and `packages/utilities/core/src/number.ts`
 - Into `src/components/NumberInput/useNumberInput.ts`, `src/components/NumberInput/cursor.ts`,
-  `src/components/NumberInput/scrubber.ts` and `src/components/numberMath.ts`
+  `src/components/NumberInput/scrubber.ts` and `src/foundations/dom.ts`; the `number.ts` math moved to
+  `@construkt-kit/utils`
 - Ported from `packages/machines/slider/src/slider.machine.ts`, `slider.connect.ts`, `slider.dom.ts`,
   `slider.style.ts`, `slider.utils.ts` and `packages/utilities/dom-query/src/event.ts` (`getEventStepValue`)
-- Into `src/components/Slider/useSlider.ts`, `src/components/Slider/sliderMath.ts` and `src/components/numberMath.ts`
+- Into `src/components/Slider/useSlider.ts`, `src/components/Slider/sliderMath.ts`, `src/components/sliderCore.ts` and
+  `src/foundations/dom.ts`
 - Ported from `packages/utilities/dom-query/src/pointer-move.ts` and `text-selection.ts`
-- Into `src/primitives/drag/trackPointerMove.ts`
+- Into `src/foundations/trackPointerMove.ts`
 - Ported from `packages/machines/pin-input/src/pin-input.machine.ts`, `pin-input.connect.ts` and `pin-input.utils.ts`
 - Into `src/components/PinInput/usePinInput.ts`
 - Ported from `packages/machines/tags-input/src/tags-input.machine.ts`, `tags-input.connect.ts`, `tags-input.utils.ts`
@@ -167,8 +170,8 @@ SOFTWARE.
   `color-picker.dom.ts`, `utils/get-channel-display-color.ts`, `utils/get-channel-input-value.ts`,
   `utils/get-slider-background.ts` and `utils/is-valid-hex.ts`, and `packages/utilities/color-utils/src/area-gradient.ts`
   and `color-format-gradient.ts`
-- Into `src/components/ColorPicker/ColorPicker.tsx`, `src/components/ColorPicker/colorPickerRoot.ts` and
-  `src/components/ColorPicker/pickerColors.ts`
+- Into `src/components/ColorPicker/ColorPicker.tsx`, `src/components/ColorPicker/colorPickerRoot.ts`,
+  `src/components/ColorPicker/pickerColors.ts` and `src/components/sliderCore.ts`
 - Ported from `packages/machines/scroll-area/src/scroll-area.machine.ts`, `scroll-area.connect.ts`,
   `utils/scroll-sides.ts` and `utils/scroll-offset.ts` (thumb size and offset, corner size, overflow and edge state,
   the overflow variables)
@@ -216,7 +219,8 @@ SOFTWARE.
 - Ported from `packages/react-aria/src/overlays/usePreventScroll.ts` and `utils/platform.ts`, `utils/isScrollable.ts`,
   `utils/getScrollParent.ts`, `utils/domHelpers.ts` and `utils/getMetaValue.ts`, without the `focus()` override and
   the keyboard blur handling
-- Into `src/primitives/scroll-lock/useScrollLock.ts`, which carries a notice that it was changed
+- Into `src/primitives/scroll-lock/useScrollLock.ts` and `src/foundations/platform.ts`, which carry a notice that
+  they were changed
 
 ```
 Copyright 2020 Adobe. All rights reserved.

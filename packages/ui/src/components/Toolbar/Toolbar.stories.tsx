@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 
 import { Toolbar } from ".";
+import { ResizableFrame } from "../../_shared/ResizableFrame";
 import { Button, IconButton } from "../Buttons";
 import { Input } from "../Input";
-import { Box, HStack } from "../Layout";
+import { HStack } from "../Layout";
 import { Menu } from "../Menu";
 import { Popover } from "../Popover";
 import { Text } from "../Text";
@@ -107,16 +108,9 @@ export const Default = meta.story({
 
 export const CollapsingLabels = meta.story({
   render: () => (
-    <Box
-      resize="horizontal"
-      overflow="auto"
+    <ResizableFrame
       w="3xl"
-      maxW="full"
-      minW="xs"
       p="3"
-      borderWidth="1px"
-      borderColor="border"
-      borderRadius="md"
     >
       <HStack gap="4">
         <Text
@@ -127,7 +121,7 @@ export const CollapsingLabels = meta.story({
         </Text>
         <TableActions collapseBelow={480} />
       </HStack>
-    </Box>
+    </ResizableFrame>
   ),
 });
 

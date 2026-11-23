@@ -1,4 +1,9 @@
-import { clampValue, isValueWithinRange, snapValueToStep } from "../numberMath";
+import {
+  clampValue,
+  getValuePercent,
+  isValueWithinRange,
+  snapValueToStep,
+} from "@construkt-kit/utils";
 
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
@@ -27,21 +32,12 @@ export const getValueRanges = (
     value,
   }));
 
-export const getValuePercent = (value: number, min: number, max: number) =>
-  max === min ? 0 : ((Number.isNaN(value) ? 0 : value) - min) / (max - min);
-
-const roundValue = (value: number, min: number, step: number) =>
-  Math.round(((Number.isNaN(value) ? 0 : value) - min) / step) * step + min;
-
-export const getPercentValue = (percent: number, min: number, max: number, step: number) =>
-  clampValue(roundValue(percent * (max - min) + min, min, step), min, max);
+const thumbGap = (bounds: SliderBounds) => bounds.step * bounds.minStepsBetweenThumbs;
 
 /** Snaps and clamps each value to its step and its neighbours, as a controlled or default value is read. */
-export function normalizeValues(
-  values: number[],
-  { min, max, step, minStepsBetweenThumbs }: SliderBounds,
-) {
-  return getValueRanges(values, min, max, minStepsBetweenThumbs * step).map((range) => {
+export function normalizeValues(values: number[], bounds: SliderBounds) {
+  const { min, max, step } = bounds;
+  return getValueRanges(values, min, max, thumbGap(bounds)).map((range) => {
     const snapped = clampValue(
       snapValueToStep(range.value, range.min, range.max, step),
       range.min,
@@ -57,7 +53,7 @@ export function normalizeValues(
 }
 
 export const getRangeAtIndex = (values: number[], index: number, bounds: SliderBounds) =>
-  getValueRanges(values, bounds.min, bounds.max, bounds.step * bounds.minStepsBetweenThumbs)[index];
+  getValueRanges(values, bounds.min, bounds.max, thumbGap(bounds))[index];
 
 export const setValueAtIndex = (values: number[], index: number, value: number) =>
   values[index] === value ? values : [...values.slice(0, index), value, ...values.slice(index + 1)];
@@ -85,28 +81,19 @@ interface Collision {
   index: number;
   value: number;
   values: number[];
-  min: number;
-  max: number;
-  gap: number;
+  bounds: SliderBounds;
 }
 
-function thumbBounds({ index, values, min, max, gap }: Collision) {
-  const previous = values[index - 1];
-  const next = values[index + 1];
-  return {
-    min: previous != null ? previous + gap : min,
-    max: next != null ? next - gap : max,
-  };
+function collideNone({ index, value, values: current, bounds }: Collision) {
+  const range = getRangeAtIndex(current, index, bounds);
+  const values = current.slice();
+  values[index] = round(clampValue(value, range.min, range.max));
+  return { values, index, swapped: false };
 }
 
-function collideNone(collision: Collision) {
-  const bounds = thumbBounds(collision);
-  const values = collision.values.slice();
-  values[collision.index] = round(clampValue(collision.value, bounds.min, bounds.max));
-  return { values, index: collision.index, swapped: false };
-}
-
-function collidePush({ index, value, values: current, min, max, gap }: Collision) {
+function collidePush({ index, value, values: current, bounds }: Collision) {
+  const { min, max } = bounds;
+  const gap = thumbGap(bounds);
   const values = current.slice();
   const absoluteMin = min + index * gap;
   const absoluteMax = max - (current.length - 1 - index) * gap;
@@ -123,7 +110,8 @@ function collidePush({ index, value, values: current, min, max, gap }: Collision
 }
 
 function collideSwap(collision: Collision, startValue: number) {
-  const { index, value, values: current, gap } = collision;
+  const { index, value, values: current, bounds } = collision;
+  const gap = thumbGap(bounds);
   const previous = current[index - 1];
   const next = current[index + 1];
   const crossingNext = next != null && value >= next && value > startValue;
@@ -132,8 +120,8 @@ function collideSwap(collision: Collision, startValue: number) {
 
   const swapIndex = crossingNext ? index + 1 : index - 1;
   const values = current.slice();
-  const bounds = thumbBounds({ ...collision, index: swapIndex });
-  values[swapIndex] = round(clampValue(value, bounds.min, bounds.max));
+  const range = getRangeAtIndex(current, swapIndex, bounds);
+  values[swapIndex] = round(clampValue(value, range.min, range.max));
   values[index] = current[swapIndex];
   if (crossingNext && values[index] > values[swapIndex] - gap) {
     values[index] = round(values[swapIndex] - gap);
@@ -152,11 +140,10 @@ export function resolveThumbCollision(
   bounds: SliderBounds,
   startValue?: number,
 ) {
-  const { min, max, step, minStepsBetweenThumbs } = bounds;
   if (values.length === 1) {
-    return { values: [round(clampValue(value, min, max))], index: 0, swapped: false };
+    return { values: [round(clampValue(value, bounds.min, bounds.max))], index: 0, swapped: false };
   }
-  const collision = { index, value, values, min, max, gap: step * minStepsBetweenThumbs };
+  const collision = { index, value, values, bounds };
   if (behavior === "push") return collidePush(collision);
   if (behavior === "swap") return collideSwap(collision, startValue ?? values[index]);
   return collideNone(collision);

@@ -36,3 +36,15 @@ it("leaves out a hidden element with a positive tabindex", () => {
 
   expect(labels(getTabbables(container))).toEqual(["save"]);
 });
+
+it("leaves out controls a disabled fieldset disables", () => {
+  const container = mount(`
+    <fieldset disabled>
+      <input aria-label="name" />
+      <button aria-label="save">Save</button>
+    </fieldset>
+    <button aria-label="cancel">Cancel</button>
+  `);
+
+  expect(labels(getTabbables(container))).toEqual(["cancel"]);
+});

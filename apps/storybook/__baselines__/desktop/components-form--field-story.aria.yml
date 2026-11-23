@@ -1,5 +1,4 @@
-- group:
-  - text: Email
-  - textbox "Email":
-    - /placeholder: Enter your email
-  - text: We'll never share your email.
+- text: Email
+- textbox "Email":
+  - /placeholder: Enter your email
+- text: We'll never share your email.

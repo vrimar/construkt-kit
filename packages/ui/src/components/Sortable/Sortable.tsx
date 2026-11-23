@@ -1,32 +1,38 @@
 import {
-  draggable,
   dropTargetForElements,
   monitorForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/utils/combine";
 import { GripHorizontalIcon, GripVerticalIcon } from "lucide-react";
 import {
   type CSSProperties,
+  type ComponentProps,
   type ReactNode,
   type RefObject,
-  createContext,
-  useContext,
   useEffect,
-  useId,
   useMemo,
   useState,
 } from "react";
 
-import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { type SortableVariantProps, sortable as sortableRecipe } from "#styled-system/recipes";
 
 import { isRtl } from "../../foundations/dom";
 import { useAnnouncer } from "../../hooks/useAnnouncer";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { getArrowStep } from "../../primitives/composite";
+import { useLocale } from "../../primitives/locale";
 import { renderable } from "../../primitives/render";
-import type { WithRef } from "../../types";
-import { DragPreview, useDragAutoScroll, useNativeDragPreview } from "../dnd";
+import {
+  type DragType,
+  DragPreview,
+  defineDragType,
+  readDragData,
+  toDragData,
+  useDragAutoScroll,
+  useDragSource,
+} from "../dnd";
+import { createPartContext } from "../partContext";
 import { Tooltip } from "../Tooltip";
 import {
   type SortableAxis,
@@ -46,21 +52,15 @@ const StyledItem = withContext(renderable.div, "item");
 const StyledHandle = withContext(renderable.button, "handle");
 const StyledIndicator = withContext(renderable.div, "indicator");
 
-const SORTABLE_INSTANCE_KEY = "construkt-sortable-instance";
+interface SortableDragData {
+  value: string;
+  label: string;
+}
 
 type DragData = Record<string | symbol, unknown>;
 
-function readSource(data: DragData, instanceId: string) {
-  return data[SORTABLE_INSTANCE_KEY] === instanceId && typeof data.value === "string"
-    ? { value: data.value, label: String(data.label) }
-    : null;
-}
-
-function readTarget(data: DragData, instanceId: string) {
-  return data[SORTABLE_INSTANCE_KEY] === instanceId && typeof data.value === "string"
-    ? { value: data.value, instruction: data.instruction as SortableInstruction | null }
-    : null;
-}
+const readInstruction = (data: DragData) =>
+  (data.instruction as SortableInstruction | null | undefined) ?? null;
 
 const instructionKind = (instruction: SortableInstruction) =>
   instruction.type === "onto" ? "onto" : instruction.edge;
@@ -70,15 +70,8 @@ const STEP_KEYS: Record<SortableAxis, [back: string, forward: string]> = {
   horizontal: ["ArrowLeft", "ArrowRight"],
 };
 
-function keyboardStep(key: string, axis: SortableAxis, element: Element): -1 | 0 | 1 {
-  const [back, forward] = STEP_KEYS[axis];
-  if (key !== back && key !== forward) return 0;
-  const mirrored = axis === "horizontal" && isRtl(element);
-  return (key === forward) !== mirrored ? 1 : -1;
-}
-
 interface SortableContextValue {
-  instanceId: string;
+  dragType: DragType<SortableDragData>;
   axis: SortableAxis;
   disabled: boolean;
   valuesRef: Readonly<RefObject<readonly string[]>>;
@@ -87,13 +80,10 @@ interface SortableContextValue {
   moveByKeyboard: (value: string, label: string, step: -1 | 1) => boolean;
 }
 
-const SortableContext = createContext<SortableContextValue | null>(null);
-
-function useSortableContext(): SortableContextValue {
-  const context = useContext(SortableContext);
-  if (!context) throw new Error("Sortable parts must be rendered inside Sortable.Root.");
-  return context;
-}
+const [SortableContext, useSortableContext] = createPartContext<SortableContextValue>(
+  "<Sortable.Root>",
+  "Sortable parts",
+);
 
 interface SortableItemContextValue {
   value: string;
@@ -102,15 +92,15 @@ interface SortableItemContextValue {
   setHandle: (element: HTMLElement | null) => void;
 }
 
-const SortableItemContext = createContext<SortableItemContextValue | null>(null);
+const [SortableItemContext, useSortableItemContext] = createPartContext<SortableItemContextValue>(
+  "<Sortable.Item>",
+  "Sortable.Handle",
+);
 
-function useSortableItemContext(): SortableItemContextValue {
-  const context = useContext(SortableItemContext);
-  if (!context) throw new Error("Sortable.Handle must be rendered inside Sortable.Item.");
-  return context;
-}
-
-export interface SortableRootProps extends HTMLStyledProps<"div"> {
+export interface SortableRootProps extends Omit<
+  ComponentProps<typeof StyledRoot>,
+  "axis" | "handleVisibility"
+> {
   /** Item values in display order. */
   values: readonly string[];
   /** Direction the items run and are dragged along. @default "vertical" */
@@ -159,8 +149,8 @@ function Root({
   disabled = false,
   children,
   ...props
-}: WithRef<SortableRootProps>) {
-  const instanceId = useId();
+}: SortableRootProps) {
+  const [dragType] = useState(() => defineDragType<SortableDragData>("sortable-item"));
   const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
   const composedRef = useComposedRefs(ref, setRootElement);
   const { announce, liveRegion } = useAnnouncer();
@@ -187,7 +177,7 @@ function Root({
     };
 
     const value: SortableContextValue = {
-      instanceId,
+      dragType,
       axis,
       disabled,
       valuesRef,
@@ -207,43 +197,41 @@ function Root({
       },
     };
     return [value, commitReorder] as const;
-  }, [instanceId, axis, disabled, valuesRef, handlers, announce]);
+  }, [dragType, axis, disabled, valuesRef, handlers, announce]);
 
   useEffect(() => {
     if (disabled) return;
     return monitorForElements({
-      canMonitor: ({ source }) => readSource(source.data, instanceId) !== null,
+      canMonitor: ({ source }) => readDragData(dragType, source.data) !== undefined,
       onDrop: ({ source, location }) => {
-        const dragged = readSource(source.data, instanceId);
+        const dragged = readDragData(dragType, source.data);
         const target = location.current.dropTargets[0];
-        const drop = target ? readTarget(target.data, instanceId) : null;
-        if (!dragged || !drop?.instruction) return;
-        if (drop.instruction.type === "onto") {
-          handlers.current.onDropOnto?.({ sourceValue: dragged.value, targetValue: drop.value });
+        const targetValue = target && readDragData(dragType, target.data)?.value;
+        const instruction = target && readInstruction(target.data);
+        if (!dragged || targetValue === undefined || !instruction) return;
+        if (instruction.type === "onto") {
+          handlers.current.onDropOnto?.({ sourceValue: dragged.value, targetValue });
           return;
         }
-        reorder(
-          { sourceValue: dragged.value, targetValue: drop.value, edge: drop.instruction.edge },
-          dragged.label,
-        );
+        reorder({ sourceValue: dragged.value, targetValue, edge: instruction.edge }, dragged.label);
       },
     });
-  }, [disabled, instanceId, handlers, reorder]);
+  }, [disabled, dragType, handlers, reorder]);
 
   // Items stick as drop targets only while the pointer stays over the root, as in their gaps.
   useEffect(() => {
     if (disabled || !rootElement) return;
     return dropTargetForElements({
       element: rootElement,
-      canDrop: ({ source }) => readSource(source.data, instanceId) !== null,
+      canDrop: ({ source }) => readDragData(dragType, source.data) !== undefined,
     });
-  }, [disabled, rootElement, instanceId]);
+  }, [disabled, rootElement, dragType]);
 
   useDragAutoScroll({
     element: scrollElement,
     axis,
     disabled,
-    canScroll: ({ source }) => readSource(source.data, instanceId) !== null,
+    canScroll: ({ source }) => readDragData(dragType, source.data) !== undefined,
   });
 
   return (
@@ -261,7 +249,7 @@ function Root({
   );
 }
 
-export interface SortableItemProps extends HTMLStyledProps<"div"> {
+export interface SortableItemProps extends ComponentProps<typeof StyledItem> {
   /** The item's entry in the root's `values`. */
   value: string;
   /** Names the item in the drag preview, the reorder announcement and its handle's name. */
@@ -275,28 +263,24 @@ interface ItemDrop {
   offset: number;
 }
 
-function Item({
-  ref,
-  value,
-  label,
-  disabled = false,
-  children,
-  ...props
-}: WithRef<SortableItemProps>) {
+function Item({ ref, value, label, disabled = false, children, ...props }: SortableItemProps) {
   const sortable = useSortableContext();
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [handle, setHandle] = useState<HTMLElement | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [drop, setDrop] = useState<ItemDrop | null>(null);
-  const { preview, onGenerateDragPreview } = useNativeDragPreview(
-    () => sortable.renderDragPreview(value) ?? <DragPreview label={label} />,
-  );
-  const composedRef = useComposedRefs(ref, setElement);
-  const labelRef = useLatestRef(label);
+  const source = useDragSource({
+    type: sortable.dragType,
+    getData: () => ({ value, label }),
+    canDrag: () => !disabled,
+    dragHandle: handle,
+    renderPreview: () => sortable.renderDragPreview(value) ?? <DragPreview label={label} />,
+    disabled: sortable.disabled,
+  });
+  const { element } = source;
+  const composedRef = useComposedRefs(ref, source.ref);
 
   useEffect(() => {
     if (!element || sortable.disabled) return;
-    const { instanceId, axis, valuesRef, canDrop } = sortable;
+    const { dragType, axis, valuesRef, canDrop } = sortable;
 
     const instructionFor = (
       sourceValue: string,
@@ -331,7 +315,7 @@ function Item({
     };
 
     const show = (data: DragData, target: Element) => {
-      const instruction = (data.instruction as SortableInstruction | null | undefined) ?? null;
+      const instruction = readInstruction(data);
       setDrop((current) => {
         if (!instruction) return null;
         if (current && instructionKind(current.instruction) === instructionKind(instruction)) {
@@ -344,43 +328,27 @@ function Item({
       });
     };
 
-    return combine(
-      draggable({
-        element,
-        dragHandle: handle ?? undefined,
-        canDrag: () => !disabled,
-        getInitialData: () => ({
-          [SORTABLE_INSTANCE_KEY]: instanceId,
-          value,
-          label: labelRef.current,
-        }),
-        onGenerateDragPreview,
-        onDragStart: () => setIsDragging(true),
-        onDrop: () => setIsDragging(false),
+    return dropTargetForElements({
+      element,
+      canDrop: ({ source: dragged }) => {
+        const data = readDragData(dragType, dragged.data);
+        return data !== undefined && data.value !== value;
+      },
+      getIsSticky: () => true,
+      getData: ({ input, element: target, source: dragged }) => ({
+        ...toDragData(dragType, { value, label }),
+        instruction: instructionFor(
+          readDragData(dragType, dragged.data)?.value ?? "",
+          { x: input.clientX, y: input.clientY },
+          target,
+        ),
       }),
-      dropTargetForElements({
-        element,
-        canDrop: ({ source }) => {
-          const dragged = readSource(source.data, instanceId);
-          return dragged !== null && dragged.value !== value;
-        },
-        getIsSticky: () => true,
-        getData: ({ input, element: target, source }) => ({
-          [SORTABLE_INSTANCE_KEY]: instanceId,
-          value,
-          instruction: instructionFor(
-            readSource(source.data, instanceId)?.value ?? "",
-            { x: input.clientX, y: input.clientY },
-            target,
-          ),
-        }),
-        onDragEnter: ({ self }) => show(self.data, self.element),
-        onDrag: ({ self }) => show(self.data, self.element),
-        onDragLeave: () => setDrop(null),
-        onDrop: () => setDrop(null),
-      }),
-    );
-  }, [element, handle, sortable, value, disabled, labelRef, onGenerateDragPreview]);
+      onDragEnter: ({ self }) => show(self.data, self.element),
+      onDrag: ({ self }) => show(self.data, self.element),
+      onDragLeave: () => setDrop(null),
+      onDrop: () => setDrop(null),
+    });
+  }, [element, sortable, value, label]);
 
   const itemContext = useMemo(
     () => ({ value, label, disabled, setHandle }),
@@ -395,7 +363,7 @@ function Item({
     <SortableItemContext.Provider value={itemContext}>
       <StyledItem
         data-reveal-group=""
-        data-dragging={isDragging || undefined}
+        data-dragging={source.isDragging || undefined}
         {...props}
         ref={composedRef}
       >
@@ -407,13 +375,13 @@ function Item({
             style={indicatorStyle}
           />
         )}
-        {preview}
+        {source.preview}
       </StyledItem>
     </SortableItemContext.Provider>
   );
 }
 
-export interface SortableHandleProps extends HTMLStyledProps<"button"> {
+export interface SortableHandleProps extends ComponentProps<typeof StyledHandle> {
   /** Tooltip, and with the item's `label` after it the accessible name. @default "Drag to move" */
   label?: string;
 }
@@ -425,16 +393,17 @@ function Handle({
   onKeyDown,
   children,
   ...props
-}: WithRef<SortableHandleProps, HTMLButtonElement>) {
+}: SortableHandleProps) {
   const sortable = useSortableContext();
   const item = useSortableItemContext();
   const composedRef = useComposedRefs<HTMLButtonElement>(ref, item.setHandle);
+  const rtl = useLocale().dir === "rtl";
   const vertical = sortable.axis === "vertical";
 
   return (
     <Tooltip label={label}>
       <StyledHandle
-        type="button"
+        type={props.render ? undefined : "button"}
         aria-label={`${label} ${item.label}`}
         aria-keyshortcuts={STEP_KEYS[sortable.axis].join(" ")}
         {...props}
@@ -443,7 +412,7 @@ function Handle({
         onKeyDown={(event) => {
           onKeyDown?.(event);
           if (event.defaultPrevented) return;
-          const step = keyboardStep(event.key, sortable.axis, event.currentTarget);
+          const step = getArrowStep(event.key, sortable.axis, rtl);
           if (step === 0 || !sortable.moveByKeyboard(item.value, item.label, step)) return;
           event.preventDefault();
           const handle = event.currentTarget;

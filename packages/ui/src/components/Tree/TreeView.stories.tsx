@@ -1,10 +1,16 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { FileIcon, FolderIcon } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { treeView } from "#styled-system/recipes";
 
-import { DraggableTreeNode, type TreeNodeRenderDetails, TreeView, TreeViewDndProvider } from ".";
+import {
+  DraggableTreeNode,
+  type TreeNodeRenderDetails,
+  TreeView,
+  TreeViewDndProvider,
+  type TreeViewRootProps,
+} from ".";
 import { SizePreviewTable } from "../../_shared/SizePreviewTable";
 import { Box } from "../Layout";
 
@@ -83,6 +89,39 @@ const renderWithCheckbox = ({ node, isBranch }: TreeNodeRenderDetails<Node>) => 
   </>
 );
 
+type FileTreeProps = Omit<TreeViewRootProps<Node>, keyof typeof accessors | "children"> & {
+  renderNode?: (details: TreeNodeRenderDetails<Node>) => ReactNode;
+  onNodesChange?: (nodes: Node[]) => void;
+};
+
+function FileTree({ renderNode, onNodesChange, ...props }: FileTreeProps) {
+  const tree = (
+    <TreeView.Tree>
+      {props.nodes.map((node, index) => (
+        <DraggableTreeNode
+          key={node.id}
+          node={node}
+          indexPath={[index]}
+          renderNode={renderNode}
+        />
+      ))}
+    </TreeView.Tree>
+  );
+
+  return (
+    <TreeView.Root
+      {...props}
+      {...accessors}
+    >
+      {onNodesChange ? (
+        <TreeViewDndProvider onNodesChange={onNodesChange}>{tree}</TreeViewDndProvider>
+      ) : (
+        tree
+      )}
+    </TreeView.Root>
+  );
+}
+
 const meta = preview.meta({
   title: "Components/TreeView",
   tags: ["autodocs"],
@@ -97,21 +136,10 @@ export const Basic = meta.story({
       rounded="md"
       p="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={nodes}
-        {...accessors}
         defaultExpandedValue={["src", "components"]}
-      >
-        <TreeView.Tree>
-          {nodes.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>
+      />
     </Box>
   ),
 });
@@ -125,22 +153,11 @@ export const WithCustomRender = meta.story({
       rounded="md"
       p="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={nodes}
-        {...accessors}
         defaultExpandedValue={["src"]}
-      >
-        <TreeView.Tree>
-          {nodes.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-              renderNode={renderWithIcons}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>
+        renderNode={renderWithIcons}
+      />
     </Box>
   ),
 });
@@ -154,23 +171,30 @@ export const WithCheckboxes = meta.story({
       rounded="md"
       p="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={nodes}
-        {...accessors}
         defaultExpandedValue={["src", "components"]}
         checkable
-      >
-        <TreeView.Tree>
-          {nodes.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-              renderNode={renderWithCheckbox}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>
+        renderNode={renderWithCheckbox}
+      />
+    </Box>
+  ),
+});
+
+export const MultipleSelection = meta.story({
+  render: () => (
+    <Box
+      maxW="320px"
+      border="1px solid"
+      borderColor="border"
+      rounded="md"
+      p="2"
+    >
+      <FileTree
+        nodes={nodes}
+        defaultExpandedValue={["src", "components"]}
+        selectionMode="multiple"
+      />
     </Box>
   ),
 });
@@ -186,24 +210,12 @@ function DragAndDropExample() {
       rounded="md"
       p="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={treeNodes}
-        {...accessors}
         defaultExpandedValue={["src", "components"]}
-      >
-        <TreeViewDndProvider onNodesChange={setTreeNodes}>
-          <TreeView.Tree>
-            {treeNodes.map((node, index) => (
-              <DraggableTreeNode
-                key={node.id}
-                node={node}
-                indexPath={[index]}
-                renderNode={renderWithIcons}
-              />
-            ))}
-          </TreeView.Tree>
-        </TreeViewDndProvider>
-      </TreeView.Root>
+        renderNode={renderWithIcons}
+        onNodesChange={setTreeNodes}
+      />
     </Box>
   );
 }
@@ -244,23 +256,12 @@ export const StickyBranches = meta.story({
       px="2"
       pb="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={sectionNodes}
-        {...accessors}
         defaultExpandedValue={["Design", "Engineering", "Marketing", "Sales"]}
         stickyBranches
-      >
-        <TreeView.Tree>
-          {sectionNodes.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-              renderNode={renderWithCount}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>
+        renderNode={renderWithCount}
+      />
     </Box>
   ),
 });
@@ -287,23 +288,12 @@ export const ClampedText = meta.story({
       rounded="md"
       p="2"
     >
-      <TreeView.Root
+      <FileTree
         nodes={longNameNodes}
-        {...accessors}
         defaultExpandedValue={["redesign"]}
         clampText
-      >
-        <TreeView.Tree>
-          {longNameNodes.map((node, index) => (
-            <DraggableTreeNode
-              key={node.id}
-              node={node}
-              indexPath={[index]}
-              renderNode={renderWithIcons}
-            />
-          ))}
-        </TreeView.Tree>
-      </TreeView.Root>
+        renderNode={renderWithIcons}
+      />
     </Box>
   ),
 });
@@ -320,22 +310,11 @@ export const Sizes = meta.story({
           rounded="md"
           p="2"
         >
-          <TreeView.Root
+          <FileTree
             nodes={nodes}
-            {...accessors}
             defaultExpandedValue={["src"]}
             size={size}
-          >
-            <TreeView.Tree>
-              {nodes.map((node, index) => (
-                <DraggableTreeNode
-                  key={node.id}
-                  node={node}
-                  indexPath={[index]}
-                />
-              ))}
-            </TreeView.Tree>
-          </TreeView.Root>
+          />
         </Box>
       )}
     />

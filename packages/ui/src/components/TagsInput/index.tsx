@@ -1,20 +1,23 @@
 import { XIcon } from "lucide-react";
-import { type ComponentProps, createContext, useContext, useLayoutEffect, useRef } from "react";
+import { type ComponentProps, useLayoutEffect } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tagsInput } from "#styled-system/recipes";
 
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { useFieldControlId } from "../../primitives/field";
+import { mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import {
+  TAGS_INPUT_OPTION_KEYS,
   type TagsInputApi,
   type TagsInputOptions,
   TagsInputProvider,
   useTagsInput,
   useTagsInputContext,
 } from "./useTagsInput";
-
 export type {
   TagsInputInputValueChangeDetails,
   TagsInputInputValueChangeReason,
@@ -46,72 +49,18 @@ type StyledRootProps = ComponentProps<typeof StyledRoot>;
 export interface TagsInputRootProps
   extends Omit<StyledRootProps, keyof TagsInputOptions>, TagsInputOptions {}
 
-function Root({
-  value,
-  defaultValue,
-  onValueChange,
-  inputValue,
-  defaultInputValue,
-  onInputValueChange,
-  onHighlightChange,
-  onValueInvalid,
-  validate,
-  sanitizeValue,
-  allowDuplicates,
-  max,
-  allowOverflow,
-  delimiter,
-  addOnPaste,
-  blurBehavior,
-  editable,
-  maxLength,
-  placeholder,
-  autoFocus,
-  translations,
-  name,
-  form,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  id,
-  children,
-  ...props
-}: TagsInputRootProps) {
-  const api = useTagsInput({
-    value,
-    defaultValue,
-    onValueChange,
-    inputValue,
-    defaultInputValue,
-    onInputValueChange,
-    onHighlightChange,
-    onValueInvalid,
-    validate,
-    sanitizeValue,
-    allowDuplicates,
-    max,
-    allowOverflow,
-    delimiter,
-    addOnPaste,
-    blurBehavior,
-    editable,
-    maxLength,
-    placeholder,
-    autoFocus,
-    translations,
-    name,
-    form,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    id,
-  });
+function Root({ ref, children, ...rest }: TagsInputRootProps) {
+  const [options, props] = splitOptions(rest, TAGS_INPUT_OPTION_KEYS);
+  const api = useTagsInput(options);
+  const { ref: rootRef, ...rootProps } = api.rootProps;
+  const composedRef = useComposedRefs(rootRef, ref);
 
   return (
     <TagsInputProvider value={api}>
-      <StyledRoot {...mergeProps<StyledRootProps>(api.rootProps, props)}>
+      <StyledRoot
+        {...mergeProps<StyledRootProps>(rootProps, props)}
+        ref={composedRef}
+      >
         {children}
         {api.liveRegion}
       </StyledRoot>
@@ -136,11 +85,16 @@ function Control(props: ControlProps) {
 type InputProps = ComponentProps<typeof StyledInput>;
 
 function Input({ ref, ...props }: InputProps) {
-  const { inputProps } = useTagsInputContext("TagsInput.Input");
+  const { inputProps, reportRendered } = useTagsInputContext("TagsInput.Input");
   const composedRef = useComposedRefs(inputProps.ref, ref);
+  const id = useReportRendered(
+    reportRendered,
+    "input",
+    useFieldControlId(props.id) ?? inputProps.id,
+  );
   return (
     <StyledInput
-      {...mergeProps<InputProps>(inputProps, props)}
+      {...mergeProps<InputProps>(inputProps, props, { id })}
       ref={composedRef}
     />
   );
@@ -163,18 +117,19 @@ type ClearTriggerProps = ComponentProps<typeof StyledClearTrigger>;
 
 function ClearTrigger(props: ClearTriggerProps) {
   const { clearTriggerProps } = useTagsInputContext("TagsInput.ClearTrigger");
-  return <StyledClearTrigger {...mergeProps<ClearTriggerProps>(clearTriggerProps, props)} />;
+  return (
+    <StyledClearTrigger
+      {...mergeProps<ClearTriggerProps>(
+        { ...clearTriggerProps, type: props.render ? undefined : "button" },
+        props,
+      )}
+    />
+  );
 }
 
 type ItemParts = ReturnType<TagsInputApi["getItemParts"]>;
 
-const ItemContext = createContext<ItemParts | null>(null);
-
-function useItemParts(part: string): ItemParts {
-  const parts = useContext(ItemContext);
-  if (!parts) throw new Error(`${part} must be placed inside <TagsInput.Item>.`);
-  return parts;
-}
+const [ItemContext, useItemParts] = createPartContext<ItemParts>("<TagsInput.Item>");
 
 type StyledItemProps = ComponentProps<typeof StyledItem>;
 
@@ -187,15 +142,14 @@ export interface TagsInputItemProps extends StyledItemProps {
 }
 
 function Item({ ref, index, value, disabled, ...props }: TagsInputItemProps) {
-  const { getItemParts, registerItem } = useTagsInputContext("TagsInput.Item");
+  const { getItemParts, registerItem, registerDisabledItem } =
+    useTagsInputContext("TagsInput.Item");
   const parts = getItemParts(value, index, disabled);
-  const itemRef = useRef<HTMLDivElement>(null);
-  const composedRef = useComposedRefs(itemRef, ref);
+  const composedRef = useComposedRefs<HTMLDivElement>(registerItem, ref);
 
   useLayoutEffect(() => {
-    const item = itemRef.current;
-    if (item) return registerItem(item);
-  }, [registerItem]);
+    if (disabled) return registerDisabledItem(index);
+  }, [disabled, index, registerDisabledItem]);
 
   return (
     <ItemContext value={parts}>
@@ -223,9 +177,15 @@ function ItemText(props: ItemTextProps) {
 
 type ItemInputProps = ComponentProps<typeof StyledItemInput>;
 
-function ItemInput(props: ItemInputProps) {
+function ItemInput({ ref, ...props }: ItemInputProps) {
   const { inputProps } = useItemParts("TagsInput.ItemInput");
-  return <StyledItemInput {...mergeProps<ItemInputProps>(inputProps, props)} />;
+  const composedRef = useComposedRefs(inputProps.ref, ref);
+  return (
+    <StyledItemInput
+      {...mergeProps<ItemInputProps>(inputProps, props)}
+      ref={composedRef}
+    />
+  );
 }
 
 type ItemDeleteTriggerProps = ComponentProps<typeof StyledItemDeleteTrigger>;
@@ -233,7 +193,12 @@ type ItemDeleteTriggerProps = ComponentProps<typeof StyledItemDeleteTrigger>;
 function ItemDeleteTrigger(props: ItemDeleteTriggerProps) {
   const { deleteTriggerProps } = useItemParts("TagsInput.ItemDeleteTrigger");
   return (
-    <StyledItemDeleteTrigger {...mergeProps<ItemDeleteTriggerProps>(deleteTriggerProps, props)} />
+    <StyledItemDeleteTrigger
+      {...mergeProps<ItemDeleteTriggerProps>(
+        { ...deleteTriggerProps, type: props.render ? undefined : "button" },
+        props,
+      )}
+    />
   );
 }
 

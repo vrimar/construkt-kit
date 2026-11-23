@@ -5,7 +5,10 @@ import { Progress } from ".";
 
 const renderBar = (value: number) =>
   render(
-    <Progress.Root value={value}>
+    <Progress.Root
+      value={value}
+      data-testid="root"
+    >
       <Progress.Track>
         <Progress.Range data-testid="range" />
       </Progress.Track>
@@ -16,12 +19,12 @@ describe("Progress", () => {
   it("holds a value outside min–max to the nearest end", () => {
     const { unmount } = renderBar(-20);
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("0");
-    expect(screen.getByTestId("range").style.width).toBe("0%");
+    expect(screen.getByTestId("root").style.getPropertyValue("--progress-percent")).toBe("0");
     unmount();
 
     renderBar(150);
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("100");
-    expect(screen.getByTestId("range").style.width).toBe("100%");
+    expect(screen.getByTestId("root").style.getPropertyValue("--progress-percent")).toBe("100");
     expect(screen.getByTestId("range").hasAttribute("data-complete")).toBe(true);
   });
 

@@ -4,14 +4,15 @@ import { splitCssProps } from "#styled-system/jsx";
 
 import {
   ListboxRootImpl,
+  type ManagedListOptions,
   type ManagedListbox,
-  splitManagedListOptions,
   useListboxContext,
   useManagedListbox,
+  useRevealSelection,
 } from "../Listbox/managed";
-import type { ManagedListOptions, SelectionMode, SelectionValue } from "../Listbox/types";
-import { useRevealSelection } from "../Listbox/useRevealSelection";
-import { Popover, usePopoverContext } from "../Popover/Popover";
+import { Popover } from "../Popover";
+import { usePopoverContext } from "../Popover/internal";
+import type { SelectionMode, SelectionValue } from "../selection";
 import { SelectContext, type SelectContextValue } from "./Select.context";
 import type { SelectRootProps } from "./Select.types";
 
@@ -31,8 +32,8 @@ function getSelectionLabel<T>(
 // The list outlives the content, which mounts per open, so each open starts without a highlight.
 function SelectHighlightSync({ query }: { query: string }) {
   const { node, firstSelected } = useListboxContext();
-  const { open, contentMounted } = usePopoverContext();
-  const shown = open && contentMounted;
+  const { open, contentEl } = usePopoverContext();
+  const shown = open && contentEl !== null;
 
   useEffect(() => {
     if (shown) node.reset();
@@ -69,9 +70,9 @@ function SelectRootBody<T, V extends SelectionValue>(props: SelectRootImplProps<
   const {
     managed,
     rootProps: listboxRootProps,
-    rest,
+    listOptions,
+    rest: rootProps,
   } = useManagedListbox<T, V, typeof selectProps>(selectProps);
-  const [listOptions, rootProps] = splitManagedListOptions<T, V, typeof rest>(rest);
   const {
     actionsVisibility,
     appliedValue,

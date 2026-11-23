@@ -1,11 +1,11 @@
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import type { ReactNode, RefObject } from "react";
-import { createContext, useContext, useEffect, useId, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { useAnnouncer } from "../../../hooks/useAnnouncer";
 import { useLatestRef } from "../../../hooks/useLatestRef";
-import { useDragAutoScroll } from "../../dnd";
+import { type DragType, defineDragType, readDragData, useDragAutoScroll } from "../../dnd";
 import type { TreeCollection } from "../treeCollection";
 import { useTreeContext } from "../TreeView";
 import {
@@ -15,16 +15,7 @@ import {
   type TreeKeyboardMove,
 } from "./treeDropLogic";
 
-/** Data key stamping each draggable/drop-target with its owning tree's instance id. */
-export const TREE_DND_INSTANCE_KEY = "construkt-tree-dnd-instance";
-
 type DragData = Record<string | symbol, unknown>;
-
-export function readTreeDragSource(data: DragData, instanceId: string): string | null {
-  return data[TREE_DND_INSTANCE_KEY] === instanceId && typeof data.value === "string"
-    ? data.value
-    : null;
-}
 
 export function readTreeDropInstruction(data: DragData): TreeDropInstruction | null {
   const instruction = extractInstruction(data);
@@ -54,7 +45,7 @@ export interface TreeDropDetails<T = unknown> {
 }
 
 export interface TreeDndContextValue<T = unknown> {
-  instanceId: string;
+  dragType: DragType<string>;
   /** Whether drag-and-drop is currently off. */
   disabled: boolean;
   /** Latest collection, read at drag time so registration needn't re-run on every change. */
@@ -122,7 +113,8 @@ export interface TreeViewDndProviderProps<T> {
   blockReparent?: boolean;
   /**
    * Whether a branch with a non-zero `childrenCount` but no `children` has loaded them, so drops
-   * may nest into it. @default whether the branch is expanded
+   * may nest into it. @default whether the tree's `loadChildren` has loaded it, or without
+   * `loadChildren`, whether the branch is expanded
    */
   isBranchLoaded?: (value: string) => boolean;
   /**
@@ -175,11 +167,15 @@ export function TreeViewDndProvider<T>({
   autoScrollSpeed = "standard",
   children,
 }: TreeViewDndProviderProps<T>) {
-  const instanceId = useId();
+  const [dragType] = useState(() => defineDragType<string>("tree-node"));
   const { announce, liveRegion } = useAnnouncer();
 
-  const { tree, collection: treeCollection, expanded } = useTreeContext();
-  const expandedRef = useLatestRef(expanded);
+  const {
+    tree,
+    collection: treeCollection,
+    isBranchLoaded: treeLoaded,
+    carryLoads,
+  } = useTreeContext();
   const collectionRef = useLatestRef(treeCollection as TreeCollection<T>);
   const handlers = useLatestRef({
     onNodesChange,
@@ -193,6 +189,8 @@ export function TreeViewDndProvider<T>({
     getDropAnnouncement,
     isNodeDraggable,
     isBranchLoaded,
+    treeLoaded,
+    carryLoads,
   });
 
   const [contextValue, commitDrop] = useMemo(() => {
@@ -207,7 +205,7 @@ export function TreeViewDndProvider<T>({
     const allowsDrop = (details: TreeCanDropDetails) => handlers.current.canDrop?.(details) ?? true;
 
     const branchLoaded = (value: string) =>
-      handlers.current.isBranchLoaded?.(value) ?? expandedRef.current.has(value);
+      handlers.current.isBranchLoaded?.(value) ?? handlers.current.treeLoaded(value);
 
     const dragValuesOf = (value: string) =>
       (handlers.current.getDragValues?.(value) ?? [value]).filter(canDrag);
@@ -229,6 +227,7 @@ export function TreeViewDndProvider<T>({
       const previousNodes = previous.nodes as T[];
       const drop = { sourceValues, targetValue, instruction, nextNodes, previousNodes };
       const h = handlers.current;
+      h.carryLoads(previousNodes, nextNodes);
       h.onNodesChange(nextNodes);
       if (instruction.type === "make-child") tree.expand([targetValue]);
       announce(
@@ -240,6 +239,7 @@ export function TreeViewDndProvider<T>({
         .catch(() => {
           // Revert only if no later move has committed since.
           if (collectionRef.current.nodes === nextNodes) {
+            h.carryLoads(nextNodes, previousNodes);
             h.onNodesChange(previousNodes);
           }
         });
@@ -247,7 +247,7 @@ export function TreeViewDndProvider<T>({
     };
 
     const context: TreeDndContextValue<T> = {
-      instanceId,
+      dragType,
       disabled,
       collectionRef,
       blockReparent,
@@ -267,25 +267,15 @@ export function TreeViewDndProvider<T>({
     };
 
     return [context, commit] as const;
-  }, [
-    instanceId,
-    disabled,
-    collectionRef,
-    expandedRef,
-    tree,
-    blockReparent,
-    autoExpandDelay,
-    handlers,
-    announce,
-  ]);
+  }, [dragType, disabled, collectionRef, tree, blockReparent, autoExpandDelay, handlers, announce]);
 
   useEffect(() => {
     if (disabled) return;
     return monitorForElements({
-      canMonitor: ({ source }) => readTreeDragSource(source.data, instanceId) !== null,
+      canMonitor: ({ source }) => readDragData(dragType, source.data) !== undefined,
       onDragStart: ({ source }) => {
-        const sourceValue = readTreeDragSource(source.data, instanceId);
-        if (sourceValue === null) return;
+        const sourceValue = readDragData(dragType, source.data);
+        if (sourceValue === undefined) return;
         handlers.current.onDragStart?.({
           sourceValue,
           sourceValues: contextValue.getDragValues(sourceValue),
@@ -295,20 +285,21 @@ export function TreeViewDndProvider<T>({
         handlers.current.onDragEnd?.();
         const target = location.current.dropTargets[0];
         if (!target) return;
-        const sourceValue = readTreeDragSource(source.data, instanceId);
+        const sourceValue = readDragData(dragType, source.data);
+        const targetValue = readDragData(dragType, target.data);
         const instruction = readTreeDropInstruction(target.data);
-        if (sourceValue === null || !instruction) return;
-        commitDrop({ sourceValue, targetValue: String(target.data.value), instruction });
+        if (sourceValue === undefined || targetValue === undefined || !instruction) return;
+        commitDrop({ sourceValue, targetValue, instruction });
       },
     });
-  }, [instanceId, disabled, contextValue, commitDrop, handlers]);
+  }, [dragType, disabled, contextValue, commitDrop, handlers]);
 
   useDragAutoScroll({
     element: scrollElement,
     axis: "vertical",
     disabled,
     maxScrollSpeed: autoScrollSpeed,
-    canScroll: ({ source }) => readTreeDragSource(source.data, instanceId) !== null,
+    canScroll: ({ source }) => readDragData(dragType, source.data) !== undefined,
   });
 
   return (

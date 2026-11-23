@@ -6,32 +6,29 @@ import { Box } from "../Layout";
 const meta = preview.meta({
   title: "Components/ColorPicker",
   tags: ["autodocs"],
+  decorators: [
+    (Story) => (
+      <Box maxW="320px">
+        <Story />
+      </Box>
+    ),
+  ],
 });
 
 export const Default = meta.story({
-  render: () => (
-    <Box maxW="320px">
-      <ColorPicker />
-    </Box>
-  ),
+  render: () => <ColorPicker />,
 });
 
 export const WithSwatches = meta.story({
   render: () => (
-    <Box maxW="320px">
-      <ColorPicker
-        swatches={["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899"]}
-      />
-    </Box>
+    <ColorPicker
+      swatches={["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899"]}
+    />
   ),
 });
 
 export const WithAlpha = meta.story({
-  render: () => (
-    <Box maxW="320px">
-      <ColorPicker withAlpha />
-    </Box>
-  ),
+  render: () => <ColorPicker withAlpha />,
 });
 
 export const Phone = meta.story({
@@ -43,11 +40,9 @@ export const Phone = meta.story({
 export const Open = meta.story({
   tags: ["open-state"],
   render: () => (
-    <Box maxW="320px">
-      <ColorPicker
-        defaultOpen
-        withAlpha
-      />
-    </Box>
+    <ColorPicker
+      defaultOpen
+      withAlpha
+    />
   ),
 });

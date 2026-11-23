@@ -1,11 +1,9 @@
-import type { WithRef } from "../../types";
-import type { TooltipProps } from "../Tooltip";
 import { Tooltip } from "../Tooltip";
-import type { ButtonProps } from "./Button";
-import { IconButton } from "./IconButton";
+import type { WithTooltipProps } from "../Tooltip/TriggerTooltip";
+import { IconButton, type IconButtonProps } from "./IconButton";
 
-export interface TooltipIconButtonProps extends ButtonProps {
-  tooltipProps?: Omit<TooltipProps, "children" | "label">;
+export interface TooltipIconButtonProps
+  extends IconButtonProps, Pick<WithTooltipProps, "tooltipProps"> {
   label: string;
 }
 
@@ -15,7 +13,7 @@ export const TooltipIconButton = ({
   children,
   tooltipProps,
   ...props
-}: WithRef<TooltipIconButtonProps, HTMLButtonElement>) => {
+}: TooltipIconButtonProps) => {
   return (
     <Tooltip
       label={label}

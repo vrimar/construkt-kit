@@ -1,3 +1,4 @@
+import { NumberFormatter } from "@internationalized/number";
 import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
@@ -50,7 +51,7 @@ function StatValueText({ ref, value, formatOptions, children, ...rest }: StatVal
       {...rest}
       ref={ref}
     >
-      {children || (value != null && new Intl.NumberFormat(locale, formatOptions).format(value))}
+      {children || (value != null && new NumberFormatter(locale, formatOptions).format(value))}
     </StatValueTextRoot>
   );
 }

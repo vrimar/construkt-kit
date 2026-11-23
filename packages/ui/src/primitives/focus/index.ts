@@ -1,11 +1,12 @@
 export {
-  findInitialFocus,
-  getInitialFocus,
+  NO_AUTOFOCUS_ATTRIBUTE,
+  findMarkedFocus,
+  getFocusables,
   getTabbables,
   isFocusable,
-  isTabbable,
   isWithinFocusable,
 } from "./tabbable";
+export { useHasTabbable } from "./useHasTabbable";
 export { type ModalFocus, type UseModalFocusOptions, useModalFocus } from "./useModalFocus";
 export {
   KEEP_FOCUS,

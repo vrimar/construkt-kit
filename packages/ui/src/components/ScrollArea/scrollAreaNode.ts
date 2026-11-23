@@ -1,5 +1,7 @@
+import { clampValue } from "@construkt-kit/utils";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { trackPointerMove } from "../../foundations/trackPointerMove";
 import { Store } from "../../primitives/store";
 
 export type ScrollbarOrientation = "vertical" | "horizontal";
@@ -41,8 +43,6 @@ const INITIAL_STATE: ScrollAreaState = {
   dragging: null,
 };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
 function getOffset(element: HTMLElement | null, prop: "margin" | "padding", axis: "x" | "y") {
   if (!element) return 0;
   const styles = getComputedStyle(element);
@@ -53,16 +53,34 @@ function getOffset(element: HTMLElement | null, prop: "margin" | "padding", axis
   return start + Number.parseFloat(styles[`${key}End`]);
 }
 
+const scrollRange = (viewport: HTMLElement, orientation: ScrollbarOrientation) =>
+  orientation === "vertical"
+    ? viewport.scrollHeight - viewport.clientHeight
+    : viewport.scrollWidth - viewport.clientWidth;
+
+function trackGeometry(scrollbar: HTMLElement, thumb: HTMLElement, vertical: boolean) {
+  const padding = getOffset(scrollbar, "padding", vertical ? "y" : "x");
+  const margin = getOffset(thumb, "margin", vertical ? "y" : "x");
+  const length = vertical ? scrollbar.offsetHeight : scrollbar.offsetWidth;
+  return {
+    padding,
+    margin,
+    length,
+    thumbSize: vertical ? thumb.offsetHeight : thumb.offsetWidth,
+    travel: (thumbSize: number) => length - thumbSize - padding - margin,
+  };
+}
+
 function getEdges(viewport: HTMLElement, rtl: boolean): ScrollEdges {
-  const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = viewport;
-  const maxScrollTop = scrollHeight - clientHeight;
-  const maxScrollLeft = scrollWidth - clientWidth;
+  const { scrollTop, scrollLeft } = viewport;
+  const maxScrollTop = scrollRange(viewport, "vertical");
+  const maxScrollLeft = scrollRange(viewport, "horizontal");
   const scrollsY = maxScrollTop > EDGE_THRESHOLD;
   const scrollsX = maxScrollLeft > EDGE_THRESHOLD;
   const fromLeft = rtl ? maxScrollLeft + scrollLeft : scrollLeft;
   return {
-    overflowX: clientWidth < scrollWidth,
-    overflowY: clientHeight < scrollHeight,
+    overflowX: maxScrollLeft > 0,
+    overflowY: maxScrollTop > 0,
     atTop: scrollsY && scrollTop <= EDGE_THRESHOLD,
     atBottom: scrollsY && scrollTop >= maxScrollTop - EDGE_THRESHOLD,
     atLeft: scrollsX && fromLeft <= EDGE_THRESHOLD,
@@ -85,6 +103,7 @@ interface Drag {
   startY: number;
   startScrollTop: number;
   startScrollLeft: number;
+  stopTracking: () => void;
 }
 
 type Parts<T> = Record<ScrollbarOrientation, T>;
@@ -190,8 +209,8 @@ export class ScrollAreaNode {
     if (scrollHeight === 0 || scrollWidth === 0) return;
 
     const edges = getEdges(viewport, this.rtl);
-    const maxScrollTop = Math.max(0, scrollHeight - clientHeight);
-    const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
+    const maxScrollTop = Math.max(0, scrollRange(viewport, "vertical"));
+    const maxScrollLeft = Math.max(0, scrollRange(viewport, "horizontal"));
 
     this.placeThumb("vertical", {
       track: edges.overflowY ? clientHeight : 0,
@@ -215,9 +234,9 @@ export class ScrollAreaNode {
     }
 
     const fromStartX = edges.overflowX
-      ? clamp(this.rtl ? -scrollLeft : scrollLeft, 0, maxScrollLeft)
+      ? clampValue(this.rtl ? -scrollLeft : scrollLeft, 0, maxScrollLeft)
       : 0;
-    const fromStartY = edges.overflowY ? clamp(scrollTop, 0, maxScrollTop) : 0;
+    const fromStartY = edges.overflowY ? clampValue(scrollTop, 0, maxScrollTop) : 0;
     const overflow = {
       "--scroll-area-overflow-x-start": fromStartX,
       "--scroll-area-overflow-x-end": edges.overflowX ? maxScrollLeft - fromStartX : 0,
@@ -240,19 +259,17 @@ export class ScrollAreaNode {
     const thumb = this.thumbs[orientation];
     if (!scrollbar || !thumb) return;
     const vertical = orientation === "vertical";
-    const scrollbarOffset = getOffset(scrollbar, "padding", vertical ? "y" : "x");
-    const thumbOffset = getOffset(thumb, "margin", vertical ? "y" : "x");
-    const trackLength = vertical ? scrollbar.offsetHeight : scrollbar.offsetWidth;
+    const track = trackGeometry(scrollbar, thumb, vertical);
     const size = Math.max(
       MIN_THUMB_SIZE,
-      Math.min(trackLength, axis.track - scrollbarOffset - thumbOffset) * axis.ratio,
+      Math.min(track.length, axis.track - track.padding - track.margin) * axis.ratio,
     );
-    const maxOffset = trackLength - size - scrollbarOffset - thumbOffset;
+    const maxOffset = track.travel(size);
     // Clamped because Safari's rubber band scrolls past both ends.
     const offset =
       !vertical && this.rtl
-        ? clamp(axis.progress * maxOffset, -maxOffset, 0)
-        : clamp(axis.progress * maxOffset, 0, maxOffset);
+        ? clampValue(axis.progress * maxOffset, -maxOffset, 0)
+        : clampValue(axis.progress * maxOffset, 0, maxOffset);
     thumb.style.setProperty(
       vertical ? "--scroll-area-thumb-height" : "--scroll-area-thumb-width",
       `${size}px`,
@@ -314,23 +331,17 @@ export class ScrollAreaNode {
     if (!thumb || !scrollbar || !viewport || thumb.contains(event.target as Node)) return;
 
     const vertical = orientation === "vertical";
-    const thumbOffset = getOffset(thumb, "margin", vertical ? "y" : "x");
-    const scrollbarOffset = getOffset(scrollbar, "padding", vertical ? "y" : "x");
-    const thumbSize = vertical ? thumb.offsetHeight : thumb.offsetWidth;
+    const track = trackGeometry(scrollbar, thumb, vertical);
     const trackRect = scrollbar.getBoundingClientRect();
     const pressed = vertical ? event.clientY - trackRect.top : event.clientX - trackRect.left;
-    const position = pressed - thumbSize / 2 - scrollbarOffset + thumbOffset / 2;
-    const trackLength = vertical ? scrollbar.offsetHeight : scrollbar.offsetWidth;
-    const maxThumbOffset = trackLength - thumbSize - scrollbarOffset - thumbOffset;
+    const position = pressed - track.thumbSize / 2 - track.padding + track.margin / 2;
+    const maxThumbOffset = track.travel(track.thumbSize);
     if (maxThumbOffset <= 0) return;
 
     const ratio = position / maxThumbOffset;
-    if (vertical) {
-      viewport.scrollTop = ratio * (viewport.scrollHeight - viewport.clientHeight);
-    } else {
-      const range = viewport.scrollWidth - viewport.clientWidth;
-      viewport.scrollLeft = this.rtl ? -(1 - ratio) * range : ratio * range;
-    }
+    const range = scrollRange(viewport, orientation);
+    if (vertical) viewport.scrollTop = ratio * range;
+    else viewport.scrollLeft = this.rtl ? -(1 - ratio) * range : ratio * range;
     this.startDrag(event, orientation);
   };
 
@@ -348,55 +359,51 @@ export class ScrollAreaNode {
     if (active && activeThumb?.hasPointerCapture(active.pointerId)) return;
     const viewport = this.viewport;
     if (!viewport) return;
+    this.endDrag();
+    const { pointerId } = event;
     this.drag = {
-      pointerId: event.pointerId,
+      pointerId,
       orientation,
       startX: event.clientX,
       startY: event.clientY,
       startScrollTop: viewport.scrollTop,
       startScrollLeft: viewport.scrollLeft,
+      stopTracking: trackPointerMove(event.currentTarget.ownerDocument, {
+        pointerId,
+        onMove: (point, move) => this.dragTo(point, move),
+        onUp: () => this.endDrag(),
+      }),
     };
-    this.thumbs[orientation]?.setPointerCapture(event.pointerId);
+    this.thumbs[orientation]?.setPointerCapture(pointerId);
     this.store.set("dragging", orientation);
   }
 
-  onThumbPointerMove = (event: ReactPointerEvent<HTMLElement>): void => {
+  private dragTo(point: { x: number; y: number }, event: PointerEvent) {
     const drag = this.drag;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    // A capture the browser dropped can lose the release; a move without the button is that release.
-    if (event.buttons % 2 === 0) {
-      this.onPointerUp(event);
-      return;
-    }
     const viewport = this.viewport;
+    if (!drag || !viewport) return;
     const vertical = drag.orientation === "vertical";
     const thumb = this.thumbs[drag.orientation];
     const scrollbar = this.scrollbars[drag.orientation];
-    if (!viewport || !thumb || !scrollbar) return;
+    if (!thumb || !scrollbar) return;
 
-    const scrollbarOffset = getOffset(scrollbar, "padding", vertical ? "y" : "x");
-    const thumbOffset = getOffset(thumb, "margin", vertical ? "y" : "x");
-    const thumbSize = vertical ? thumb.offsetHeight : thumb.offsetWidth;
-    const trackLength = vertical ? scrollbar.offsetHeight : scrollbar.offsetWidth;
-    const maxThumbOffset = trackLength - thumbSize - scrollbarOffset - thumbOffset;
-    const delta = vertical ? event.clientY - drag.startY : event.clientX - drag.startX;
+    const track = trackGeometry(scrollbar, thumb, vertical);
+    const maxThumbOffset = track.travel(track.thumbSize);
+    const delta = vertical ? point.y - drag.startY : point.x - drag.startX;
     const ratio = maxThumbOffset <= 0 ? 0 : delta / maxThumbOffset;
+    const scrolled = ratio * scrollRange(viewport, drag.orientation);
 
-    if (vertical) {
-      viewport.scrollTop =
-        drag.startScrollTop + ratio * (viewport.scrollHeight - viewport.clientHeight);
-    } else {
-      viewport.scrollLeft =
-        drag.startScrollLeft + ratio * (viewport.scrollWidth - viewport.clientWidth);
-    }
+    if (vertical) viewport.scrollTop = drag.startScrollTop + scrolled;
+    else viewport.scrollLeft = drag.startScrollLeft + scrolled;
     event.preventDefault();
     this.startScrolling(vertical ? "y" : "x");
-  };
+  }
 
-  onPointerUp = (event: ReactPointerEvent<HTMLElement>): void => {
+  private endDrag() {
     const drag = this.drag;
-    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (!drag) return;
     this.drag = null;
+    drag.stopTracking();
     const vertical = drag.orientation === "vertical";
     clearTimeout(this.timers[vertical ? "y" : "x"]);
     this.store.setState({
@@ -405,8 +412,8 @@ export class ScrollAreaNode {
       ...(vertical ? { scrollingY: false } : { scrollingX: false }),
     });
     const thumb = this.thumbs[drag.orientation];
-    if (thumb?.hasPointerCapture(event.pointerId)) thumb.releasePointerCapture(event.pointerId);
-  };
+    if (thumb?.hasPointerCapture(drag.pointerId)) thumb.releasePointerCapture(drag.pointerId);
+  }
 
   private onScrollbarWheel(event: WheelEvent, orientation: ScrollbarOrientation) {
     const viewport = this.viewport;
@@ -414,9 +421,7 @@ export class ScrollAreaNode {
     const horizontal = orientation === "horizontal";
     const delta = horizontal ? event.deltaX : event.deltaY;
     if (delta === 0) return;
-    const maxScroll = horizontal
-      ? viewport.scrollWidth - viewport.clientWidth
-      : viewport.scrollHeight - viewport.clientHeight;
+    const maxScroll = scrollRange(viewport, orientation);
     const min = horizontal && this.rtl ? -maxScroll : 0;
     const max = horizontal && this.rtl ? 0 : maxScroll;
     const current = horizontal ? viewport.scrollLeft : viewport.scrollTop;
@@ -424,12 +429,14 @@ export class ScrollAreaNode {
     if ((current <= min && delta < 0) || (current >= max && delta > 0)) return;
     event.preventDefault();
     this.onUserInteraction();
-    const next = clamp(current + delta, min, max);
+    const next = clampValue(current + delta, min, max);
     if (horizontal) viewport.scrollLeft = next;
     else viewport.scrollTop = next;
   }
 
-  clearTimers(): void {
+  dispose(): void {
+    this.drag?.stopTracking();
+    this.drag = null;
     for (const timer of Object.values(this.timers)) clearTimeout(timer);
   }
 }

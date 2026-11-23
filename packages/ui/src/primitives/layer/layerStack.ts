@@ -1,3 +1,5 @@
+import { isComposingEvent } from "../../foundations/dom";
+
 export type DismissReason = "escape-key" | "outside-press" | "focus-out";
 
 export interface Layer {
@@ -165,7 +167,7 @@ function isUnderPageModal(layer: Layer, target: Node | null) {
 }
 
 function onKeyDown(event: KeyboardEvent) {
-  if (event.key !== "Escape" || event.isComposing || event.defaultPrevented) return;
+  if (event.key !== "Escape" || isComposingEvent(event) || event.defaultPrevented) return;
   const target = eventTarget(event);
   const topmost = stack.at(-1) ?? null;
   if (topmost && isUnderPageModal(topmost, target)) return;

@@ -1,3 +1,4 @@
+import { sameItems } from "@construkt-kit/utils";
 import {
   type DateDuration,
   endOfMonth,
@@ -10,22 +11,23 @@ import {
   startOfMonth,
   startOfYear,
   toCalendarDate,
+  today,
 } from "@internationalized/date";
 import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
-  createContext,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
-import { useLiveRegion } from "../../hooks/useLiveRegion";
-import { createChangeDetails } from "../../primitives/change";
+import { useAnnouncer } from "../../hooks/useAnnouncer";
+import { emitChange } from "../../primitives/change";
+import { mirrorArrowKey } from "../../primitives/composite";
 import { dataAttr } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import {
   type DateRangePreset,
   type DateUnavailableFn,
@@ -42,13 +44,10 @@ import {
   getEndDate,
   getMonthDays,
   getMonthNames,
-  getNextPage,
   getNextView,
-  getPreviousPage,
+  getPage,
   getPreviousView,
   getSection,
-  getTodayDate,
-  getUnitDuration,
   getViewRange,
   getVisibleRangeText,
   getWeekDays,
@@ -60,6 +59,7 @@ import {
   isDateWithinRange,
   isNextRangeInvalid,
   isPreviousRangeInvalid,
+  joinDates,
   overlapsRange,
   preserveTime,
   sortDates,
@@ -73,7 +73,7 @@ export interface CalendarOptions {
   defaultValue: DateValue[] | undefined;
   onValueChange: ((value: DateValue[], details: DateValueChangeDetails) => void) | undefined;
   numOfMonths: number;
-  startOfWeek: number | undefined;
+  startOfWeek: number;
   locale: string;
   dir: "ltr" | "rtl";
   timeZone: string;
@@ -125,9 +125,6 @@ interface Navigation {
   start: DateValue;
 }
 
-const isDateArrayEqual = (a: readonly DateValue[], b: readonly DateValue[]) =>
-  a.length === b.length && a.every((date, index) => isDateEqual(date, b[index]));
-
 const dayCellLabel = (state: DayCellState) => {
   if (state.unavailable) return `Not available. ${state.valueText}`;
   if (state.firstInRange) return `Starting range from ${state.valueText}`;
@@ -154,7 +151,9 @@ const chunk = <T>(items: T[], size: number): T[][] =>
     items.slice(row * size, row * size + size),
   );
 
-const TAB_STOP = '[role="grid"] [tabindex="0"]';
+/** The day, month or year cell the grid's keys move from. */
+export const focusedCell = (content: HTMLElement) =>
+  content.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]');
 
 /**
  * The state and behaviour of a calendar's day, month and year grids: selection in one of three
@@ -184,7 +183,6 @@ export function useCalendar(options: CalendarOptions) {
   const range = selectionMode === "range";
   const multiple = selectionMode === "multiple";
   const interactive = !disabled && !readOnly;
-  const duration: DateDuration = { months: numOfMonths };
 
   const normalize = (dates: readonly DateValue[]) =>
     sortDates(dates).map((date) => constrainValue(date, min, max));
@@ -194,8 +192,8 @@ export function useCalendar(options: CalendarOptions) {
   const value = controlled ? normalize(options.value ?? []) : localValue;
 
   const [nav, setNav] = useState<Navigation>(() => {
-    const focused = toCalendarDate(constrainValue(value[0] ?? getTodayDate(timeZone), min, max));
-    return { focused, start: alignStart(focused, duration, locale) };
+    const focused = toCalendarDate(constrainValue(value[0] ?? today(timeZone), min, max));
+    return { focused, start: alignStart(focused, numOfMonths) };
   });
   const [view, setView] = useState<DateView>(defaultView);
   const [activeIndex, setActiveIndex] = useState<0 | 1>(() =>
@@ -205,11 +203,11 @@ export function useCalendar(options: CalendarOptions) {
   const [wasOpen, setWasOpen] = useState(open);
   const [focusRequest, setFocusRequest] = useState(0);
   const handledFocusRequestRef = useRef(focusRequest);
-  const [liveRegion, announce] = useLiveRegion("assertive");
+  const { liveRegion, announce } = useAnnouncer({ politeness: "assertive" });
 
   const realign = ({ focused, start }: Navigation): Navigation => {
-    const outside = isDateOutsideRange(focused, start, getEndDate(start, duration));
-    return outside ? { focused, start: alignStart(focused, duration, locale) } : { focused, start };
+    const outside = isDateOutsideRange(focused, start, getEndDate(start, numOfMonths));
+    return outside ? { focused, start: alignStart(focused, numOfMonths) } : { focused, start };
   };
 
   const navigateTo = (from: Navigation, target: DateValue): Navigation => {
@@ -217,8 +215,7 @@ export function useCalendar(options: CalendarOptions) {
     if (isDateEqual(from.focused, date)) return from;
     const adjusted = adjustFocusedDate(
       { startDate: from.start, focusedDate: date },
-      duration,
-      locale,
+      numOfMonths,
       min,
       max,
     );
@@ -239,23 +236,16 @@ export function useCalendar(options: CalendarOptions) {
 
   const focused = nav.focused;
   const start = nav.start;
-  const visibleRangeText = getVisibleRangeText(
-    view,
-    getViewRange(view, nav, duration),
-    locale,
-    timeZone,
-    range,
-  );
+  const rangeTextFor = (at: Navigation) =>
+    getVisibleRangeText(view, getViewRange(view, at, numOfMonths), locale, timeZone, range);
+  const visibleRangeText = rangeTextFor(nav);
   const hoveredRange = hovered && value[0] ? adjustStartAndEndDate([value[0], hovered]) : [];
   const isMaxSelected = multiple && maxSelectedDates != null && value.length >= maxSelectedDates;
 
   const [first, second] = value;
   const valueText = range
-    ? formatSelectedDate(first ?? second, first ? (second ?? null) : null, locale, timeZone)
-    : value
-        .map((date) => formatSelectedDate(date, null, locale, timeZone))
-        .filter(Boolean)
-        .join(",");
+    ? formatSelectedDate(first, second ?? null, locale, timeZone)
+    : joinDates(value.map((date) => formatSelectedDate(date, null, locale, timeZone)));
   const [mountedText] = useState(valueText);
   const announcedRef = useRef(false);
   useEffect(() => {
@@ -267,7 +257,8 @@ export function useCalendar(options: CalendarOptions) {
   useLayoutEffect(() => {
     if (handledFocusRequestRef.current === focusRequest) return;
     handledFocusRequestRef.current = focusRequest;
-    getContainer()?.querySelector<HTMLElement>(TAB_STOP)?.focus({ preventScroll: true });
+    const container = getContainer();
+    if (container) focusedCell(container)?.focus({ preventScroll: true });
   });
 
   const requestCellFocus = () => setFocusRequest((count) => count + 1);
@@ -291,10 +282,8 @@ export function useCalendar(options: CalendarOptions) {
   };
 
   const commit = (next: DateValue[], reason: DateValueChangeReason, event?: Event): boolean => {
-    if (isDateArrayEqual(next, value)) return true;
-    const details = createChangeDetails(reason, event);
-    onValueChange?.(next, details);
-    if (details.canceled) return false;
+    if (sameItems(next, value, isDateEqual)) return true;
+    if (!emitChange(onValueChange, next, reason, event)) return false;
     if (!controlled) setLocalValue(next);
     return true;
   };
@@ -330,8 +319,8 @@ export function useCalendar(options: CalendarOptions) {
       showHoverAt(next.focused, 1);
     };
 
+    if (!keyboard) focusDate(date);
     if (range && value.length === 2) {
-      if (!keyboard) focusDate(date);
       if (commit([preserveTime(value[0], date)], "item-press", event)) {
         setActiveIndex(1);
         advance();
@@ -339,7 +328,6 @@ export function useCalendar(options: CalendarOptions) {
       return;
     }
     if (range && activeIndex === 1 && value[0]) {
-      if (!keyboard) focusDate(date);
       if (!commit(setAt(1, date), "item-press", event)) return;
       setActiveIndex(0);
       setHovered(null);
@@ -347,18 +335,15 @@ export function useCalendar(options: CalendarOptions) {
       return;
     }
     if (range) {
-      if (!keyboard) focusDate(date);
       if (!commit(setAt(0, date), "item-press", event)) return;
       setActiveIndex(1);
       advance();
       return;
     }
     if (multiple) {
-      if (!keyboard) focusDate(date);
       if (canSelect(date)) toggle(date, event);
       return;
     }
-    if (!keyboard) focusDate(date);
     if (!commit(setAt(0, date), "item-press", event)) return;
     if (closeOnSelect) requestClose(event);
   };
@@ -369,34 +354,15 @@ export function useCalendar(options: CalendarOptions) {
     setView(getPreviousView(view));
   };
 
-  const announceRange = (next: Navigation) => {
-    const text = getVisibleRangeText(
-      view,
-      getViewRange(view, next, duration),
-      locale,
-      timeZone,
-      range,
-    );
-    announce(text.formatted);
-  };
-
   const goTo = (direction: 1 | -1) => {
     if (view === "day") {
-      const page = (direction === 1 ? getNextPage : getPreviousPage)(
-        nav.focused,
-        nav.start,
-        duration,
-        locale,
-        min,
-        max,
-      );
-      focusPage(page, false);
+      focusPage(getPage(direction, nav.focused, nav.start, numOfMonths, min, max), false);
       return;
     }
     const years = view === "year" ? 10 : 1;
     const next = navigateTo(nav, nav.focused.add({ years: direction * years }));
     moveFocus(next, { focus: false });
-    announceRange(next);
+    announce(rangeTextFor(next).formatted);
   };
 
   const dayFormatter = getDayFormatter(locale, timeZone, focused);
@@ -404,15 +370,26 @@ export function useCalendar(options: CalendarOptions) {
   let monthLabels: string[] | undefined;
   const getMonthLabels = () => (monthLabels ??= getMonthNames(locale, "short", focused));
 
+  function rangeState(date: DateValue, same: (a: DateValue, b: DateValue) => boolean) {
+    const inHoveredRange =
+      range && hoveredRange.length > 0 && isDateWithinRange(date, hoveredRange);
+    return {
+      inRange: range && (isDateWithinRange(date, value) || inHoveredRange),
+      firstInRange: range && value[0] != null && same(date, value[0]),
+      lastInRange: range && value[1] != null && same(date, value[1]),
+      inHoveredRange,
+      firstInHoveredRange: inHoveredRange && hoveredRange[0] != null && same(date, hoveredRange[0]),
+      lastInHoveredRange: inHoveredRange && hoveredRange[1] != null && same(date, hoveredRange[1]),
+    };
+  }
+
   function getDayCell(date: DateValue, visibleStart: DateValue): DayCellState {
-    const monthEnd = visibleStart.add(getUnitDuration(duration)).subtract({ days: 1 });
+    const monthEnd = visibleStart.add({ months: 1 }).subtract({ days: 1 });
     const outsideRange = isDateOutsideRange(date, visibleStart, monthEnd);
     const invalid = isDateOutsideRange(date, min, max);
     const selected = value.some((selectedDate) => isSameDay(date, selectedDate));
     const cellDisabled = outsideRange || invalid || (isMaxSelected && !selected);
     const unavailable = isDateUnavailable(date, options.isDateUnavailable, locale, min, max);
-    const inHoveredRange =
-      range && hoveredRange.length > 0 && isDateWithinRange(date, hoveredRange);
     return {
       value: date,
       valueText: dayFormatter.format(date.toDate(timeZone)),
@@ -424,22 +401,12 @@ export function useCalendar(options: CalendarOptions) {
       unavailable,
       today: isToday(date, timeZone),
       weekend: isWeekend(date, locale),
-      inRange: range && (isDateWithinRange(date, value) || inHoveredRange),
-      firstInRange: range && value[0] != null && isSameDay(date, value[0]),
-      lastInRange: range && value[1] != null && isSameDay(date, value[1]),
-      inHoveredRange,
-      firstInHoveredRange:
-        inHoveredRange && hoveredRange[0] != null && isSameDay(date, hoveredRange[0]),
-      lastInHoveredRange:
-        inHoveredRange && hoveredRange[1] != null && isSameDay(date, hoveredRange[1]),
+      ...rangeState(date, isSameDay),
     };
   }
 
   function getGridCell(gridView: "month" | "year", cellValue: number): CellState {
     const date = focused.set({ [gridView]: cellValue });
-    const same = gridView === "month" ? isEqualMonth : isEqualYear;
-    const inHoveredRange =
-      range && hoveredRange.length > 0 && isDateWithinRange(date, hoveredRange);
     const selectable =
       gridView === "month"
         ? overlapsRange(startOfMonth(date), endOfMonth(date), min, max)
@@ -457,12 +424,7 @@ export function useCalendar(options: CalendarOptions) {
           ? value.some((d) => d.month === cellValue && d.year === focused.year)
           : value.some((d) => d.year === cellValue),
       outsideRange: gridView === "year" && !getDecadeRange(focused.year).includes(cellValue),
-      inRange: range && (isDateWithinRange(date, value) || inHoveredRange),
-      firstInRange: range && value[0] != null && same(date, value[0]),
-      lastInRange: range && value[1] != null && same(date, value[1]),
-      inHoveredRange,
-      firstInHoveredRange: inHoveredRange && hoveredRange[0] != null && same(date, hoveredRange[0]),
-      lastInHoveredRange: inHoveredRange && hoveredRange[1] != null && same(date, hoveredRange[1]),
+      ...rangeState(date, gridView === "month" ? isEqualMonth : isEqualYear),
     };
   }
 
@@ -475,13 +437,7 @@ export function useCalendar(options: CalendarOptions) {
 
   const onTableKeyDown = (tableView: DateView, columns: number, event: KeyboardEvent) => {
     if (event.defaultPrevented || disabled) return;
-    const rtl = dir === "rtl";
-    const key =
-      rtl && event.key === "ArrowLeft"
-        ? "ArrowRight"
-        : rtl && event.key === "ArrowRight"
-          ? "ArrowLeft"
-          : event.key;
+    const key = mirrorArrowKey(event.key, dir === "rtl");
 
     const step = (by: DateDuration, sign: 1 | -1) => {
       const next = navigateTo(nav, sign === 1 ? nav.focused.add(by) : nav.focused.subtract(by));
@@ -529,8 +485,7 @@ export function useCalendar(options: CalendarOptions) {
           event.shiftKey,
           nav.focused,
           nav.start,
-          duration,
-          locale,
+          numOfMonths,
           min,
           max,
         );
@@ -617,10 +572,14 @@ export function useCalendar(options: CalendarOptions) {
       : undefined,
   });
 
-  const getDayCellProps = (state: DayCellState) => ({
+  const getGridCellProps = (state: CellState) => ({
     role: "gridcell",
     "aria-disabled": !state.selectable || undefined,
     "aria-selected": state.selected || state.inRange,
+  });
+
+  const getDayCellProps = (state: DayCellState) => ({
+    ...getGridCellProps(state),
     "aria-invalid": state.invalid || undefined,
     "aria-current": state.today ? ("date" as const) : undefined,
   });
@@ -633,15 +592,24 @@ export function useCalendar(options: CalendarOptions) {
     "data-weekend": dataAttr(state.weekend),
   });
 
-  const getGridCellProps = (state: CellState) => ({
-    role: "gridcell",
-    "aria-selected": state.selected || state.inRange || undefined,
-    "aria-disabled": !state.selectable || undefined,
-    "data-selected": dataAttr(state.selected),
-  });
-
   const getGridTriggerProps = (state: CellState, cellView: "month" | "year") =>
     triggerProps(state, cellView, state.valueText);
+
+  const getStepTriggerProps = (direction: 1 | -1, triggerView: DateView) => {
+    const shown = getViewRange(triggerView, nav, numOfMonths);
+    const invalid =
+      direction === 1
+        ? isNextRangeInvalid(shown.end, min, max)
+        : isPreviousRangeInvalid(shown.start, min, max);
+    return {
+      type: "button" as const,
+      "aria-label": (direction === 1 ? NEXT_LABELS : PREV_LABELS)[triggerView],
+      disabled: disabled || invalid,
+      onClick: (event: MouseEvent) => {
+        if (!event.defaultPrevented) goTo(direction);
+      },
+    };
+  };
 
   const getMonths = (offset: number) => {
     const from = start.add({ months: offset });
@@ -665,7 +633,7 @@ export function useCalendar(options: CalendarOptions) {
   const clear = (event: Event | undefined, { focusCell }: { focusCell: boolean }) => {
     if (!commit([], "clear-press", event)) return;
     if (focusCell) requestCellFocus();
-    setNav(navigateTo(nav, getTodayDate(timeZone)));
+    setNav(navigateTo(nav, today(timeZone)));
     setActiveIndex(0);
     setHovered(null);
   };
@@ -708,25 +676,7 @@ export function useCalendar(options: CalendarOptions) {
     getDayTriggerProps,
     getGridCellProps,
     getGridTriggerProps,
-    getPrevTriggerProps: (triggerView: DateView) => ({
-      type: "button" as const,
-      "aria-label": PREV_LABELS[triggerView],
-      disabled:
-        disabled ||
-        isPreviousRangeInvalid(getViewRange(triggerView, nav, duration).start, min, max),
-      onClick: (event: MouseEvent) => {
-        if (!event.defaultPrevented) goTo(-1);
-      },
-    }),
-    getNextTriggerProps: (triggerView: DateView) => ({
-      type: "button" as const,
-      "aria-label": NEXT_LABELS[triggerView],
-      disabled:
-        disabled || isNextRangeInvalid(getViewRange(triggerView, nav, duration).end, min, max),
-      onClick: (event: MouseEvent) => {
-        if (!event.defaultPrevented) goTo(1);
-      },
-    }),
+    getStepTriggerProps,
     getViewTriggerProps: (triggerView: DateView) => ({
       type: "button" as const,
       disabled: disabled || getNextView(triggerView) === triggerView,
@@ -743,11 +693,7 @@ export function useCalendar(options: CalendarOptions) {
 
 export type Calendar = ReturnType<typeof useCalendar>;
 
-export const CalendarContext = createContext<Calendar | null>(null);
-
-export function useCalendarContext(): Calendar {
-  const calendar = useContext(CalendarContext);
-  if (!calendar)
-    throw new Error("Calendar parts must be rendered inside a Calendar or DatePicker.");
-  return calendar;
-}
+export const [CalendarContext, useCalendarContext] = createPartContext<Calendar>(
+  "a Calendar or DatePicker",
+  "Calendar parts",
+);

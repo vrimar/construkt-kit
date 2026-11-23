@@ -1,7 +1,8 @@
 import type { AriaAttributes } from "react";
 
 import { dataAttr } from "../render";
-import { joinIds, useFieldContext, useFieldControlId } from "./FieldContext";
+import { joinIds, useFieldContext } from "./FieldContext";
+import { type FieldControlState, useFieldControlState } from "./useFieldControlState";
 
 interface NativeControlProps {
   id?: string | undefined;
@@ -12,19 +13,31 @@ interface NativeControlProps {
   "aria-invalid"?: AriaAttributes["aria-invalid"] | undefined;
 }
 
+/** A native text control's props with `state`'s id, description and states. */
+export function fieldInputState<P extends NativeControlProps>(
+  state: FieldControlState,
+  props: P,
+): P {
+  return {
+    ...props,
+    id: state.id,
+    "aria-describedby": joinIds([props["aria-describedby"], state.describedBy]),
+    "aria-invalid": props["aria-invalid"] ?? (state.invalid || undefined),
+    "data-invalid": dataAttr(state.invalid),
+    disabled: state.disabled,
+    readOnly: state.readOnly,
+    required: state.required,
+  };
+}
+
 /** A native text control's props, with the enclosing `Field`'s id, description and states. */
 export function useFieldInputProps<P extends NativeControlProps>(props: P): P {
   const field = useFieldContext();
-  const id = useFieldControlId(props.id);
-  if (!field) return props;
-  return {
-    ...props,
-    id,
-    "aria-describedby": joinIds([props["aria-describedby"], field.describedBy]),
-    "aria-invalid": props["aria-invalid"] ?? (field.invalid || undefined),
-    "data-invalid": dataAttr(field.invalid),
-    disabled: props.disabled ?? field.disabled,
-    readOnly: props.readOnly ?? field.readOnly,
-    required: props.required ?? field.required,
-  };
+  const state = useFieldControlState({
+    id: props.id,
+    disabled: props.disabled,
+    readOnly: props.readOnly,
+    required: props.required,
+  });
+  return field ? fieldInputState(state, props) : props;
 }

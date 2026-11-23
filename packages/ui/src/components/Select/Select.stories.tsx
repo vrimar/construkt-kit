@@ -2,8 +2,8 @@ import preview from "@construkt-kit/story-kit/preview";
 import { useState } from "react";
 
 import { Select } from ".";
+import { fieldWidthDecorator } from "../../_shared/fieldWidthDecorator";
 import { Field } from "../Form";
-import { Box } from "../Layout";
 
 const fruits = [
   { id: 1, name: "Apple" },
@@ -21,16 +21,7 @@ const produce = [
 const meta = preview.meta({
   title: "Components/Select",
   component: Select,
-  decorators: [
-    (Story) => (
-      <Box
-        w="full"
-        maxW="320px"
-      >
-        <Story />
-      </Box>
-    ),
-  ],
+  decorators: [fieldWidthDecorator],
 });
 
 export const Default = meta.story({

@@ -1,43 +1,13 @@
 // Modified from React Aria's overlays/usePreventScroll.ts (Apache-2.0, Copyright 2020 Adobe); see THIRD_PARTY_NOTICES.md.
 import { useLayoutEffect } from "react";
 
+import { holdStyle } from "../../foundations/holdStyle";
+import { isIOS, isWebKit } from "../../foundations/platform";
+
 type Restore = () => void;
 
 let lockCount = 0;
 let restoreLock: Restore | null = null;
-
-function testUserAgent(pattern: RegExp) {
-  const { userAgentData } = navigator as Navigator & {
-    userAgentData?: { brands?: { brand: string }[] };
-  };
-  return (
-    (userAgentData?.brands?.some((brand) => pattern.test(brand.brand)) ?? false) ||
-    pattern.test(navigator.userAgent)
-  );
-}
-
-function testPlatform(pattern: RegExp) {
-  const { userAgentData } = navigator as Navigator & { userAgentData?: { platform?: string } };
-  return pattern.test(userAgentData?.platform || navigator.platform);
-}
-
-const isIOS = () =>
-  testPlatform(/^iPhone/i) ||
-  testPlatform(/^iPad/i) ||
-  (testPlatform(/^Mac/i) && navigator.maxTouchPoints > 1);
-
-const isWebKit = () =>
-  testUserAgent(/AppleWebKit/i) && (isIOS() || !testUserAgent(/Chrome|CriOS|CrMo/i));
-
-function setStyle(element: HTMLElement, property: string, value: string): Restore {
-  const initialValue = element.style.getPropertyValue(property);
-  const initialPriority = element.style.getPropertyPriority(property);
-  element.style.setProperty(property, value);
-  return () => {
-    if (initialValue) element.style.setProperty(property, initialValue, initialPriority);
-    else element.style.removeProperty(property);
-  };
-}
 
 function addEvent<K extends keyof DocumentEventMap>(
   target: Document,
@@ -90,15 +60,15 @@ function preventScrollStandard(): Restore {
   return chain(
     scrollbarWidth > 0 &&
       ("scrollbarGutter" in html.style
-        ? setStyle(html, "scrollbar-gutter", "stable")
-        : setStyle(html, "padding-right", `${scrollbarWidth}px`)),
-    setStyle(html, "overflow", "hidden"),
+        ? holdStyle(html, "scrollbar-gutter", "stable")
+        : holdStyle(html, "padding-right", `${scrollbarWidth}px`)),
+    holdStyle(html, "overflow", "hidden"),
   );
 }
 
 // Mobile Safari scrolls the page through `overflow: hidden`; only cancelling the touch moves stops it.
 function preventScrollMobileWebKit(): Restore {
-  const restoreOverflow = setStyle(document.documentElement, "overflow", "hidden");
+  const restoreOverflow = holdStyle(document.documentElement, "overflow", "hidden");
 
   let scrollable: Element | undefined;
   let allowTouchMove = false;

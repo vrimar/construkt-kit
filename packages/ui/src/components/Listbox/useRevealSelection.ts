@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
-import type { ListboxNode } from "./listboxNode";
+import type { ListboxNode } from "../../primitives/listbox";
 
 /**
  * Reveals `selected`, the first selected option in list order, once it is there to reveal: on
@@ -43,19 +43,4 @@ export function useRevealSelection(
     });
     return () => cancelAnimationFrame(frame);
   }, [node, query, revealRef, shown]);
-}
-
-// Unlike scrollIntoView, never scrolls the page or any other ancestor.
-export function scrollWithinContainer(container: HTMLElement, item: Element): void {
-  const box = container.getBoundingClientRect();
-  const rect = item.getBoundingClientRect();
-  // Rects carry an opening animation's transform; scrollTop doesn't.
-  const scale = container.offsetHeight ? box.height / container.offsetHeight : 1;
-  const style = getComputedStyle(container);
-  const paddingTop = parseFloat(style.paddingTop) || 0;
-  const paddingBottom = parseFloat(style.paddingBottom) || 0;
-  const above = (rect.top - box.top) / scale - container.clientTop - paddingTop;
-  const below = above + rect.height / scale - (container.clientHeight - paddingTop - paddingBottom);
-  if (above < 0) container.scrollTop += above;
-  else if (below > 0) container.scrollTop += Math.min(below, above);
 }

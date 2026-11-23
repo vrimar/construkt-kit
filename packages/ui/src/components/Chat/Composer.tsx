@@ -5,7 +5,7 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { chat } from "#styled-system/recipes";
 
 import { useControllableState } from "../../hooks/useControllableState";
-import { renderable } from "../../primitives/render";
+import { dataAttr, renderable } from "../../primitives/render";
 import { IconButton } from "../Buttons";
 import { Textarea } from "../Input";
 
@@ -104,7 +104,7 @@ export function Composer({
       }}
     >
       {context ? <Context>{context}</Context> : null}
-      <Box data-disabled={disabled ? "" : undefined}>
+      <Box data-disabled={dataAttr(disabled)}>
         <Textarea
           ref={inputRef}
           autoresize
@@ -129,7 +129,7 @@ export function Composer({
             size="sm"
             colorPalette={listening ? "red" : undefined}
             aria-label={micLabel}
-            aria-pressed={listening}
+            pressed={listening}
             disabled={disabled}
             loading={micLoading}
             icon={<MicIcon />}

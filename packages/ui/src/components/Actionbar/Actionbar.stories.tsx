@@ -3,6 +3,7 @@ import { EyeOffIcon, LayersIcon, ListPlusIcon, MoreHorizontalIcon, Trash2Icon } 
 import { useState } from "react";
 
 import { ActionBar } from ".";
+import { ResizableFrame } from "../../_shared/ResizableFrame";
 import { Button, IconButton } from "../Buttons";
 import { Checkbox } from "../Checkbox";
 import { Box, HStack, Stack } from "../Layout";
@@ -67,16 +68,7 @@ function InlineActionBarStory() {
     setSelected((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
 
   return (
-    <Box
-      resize="horizontal"
-      overflow="auto"
-      w="2xl"
-      maxW="full"
-      minW="xs"
-      borderWidth="1px"
-      borderColor="border"
-      borderRadius="md"
-    >
+    <ResizableFrame w="2xl">
       <Box position="relative">
         <HStack
           h="11"
@@ -184,7 +176,7 @@ function InlineActionBarStory() {
           </Checkbox>
         ))}
       </Stack>
-    </Box>
+    </ResizableFrame>
   );
 }
 

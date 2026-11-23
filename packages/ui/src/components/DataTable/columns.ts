@@ -14,8 +14,9 @@ export const listedColumns = <TData extends object>(defs: DataTableColumnDef<TDa
   defs.filter((def) => def.meta?.isVisible !== false);
 
 // The cast holds only for column defs whose `meta.type` was already resolved.
-export const columnMeta = <TData extends object>(column: DataTableColumn<TData, any>) =>
-  column.columnDef.meta as ResolvedColumnMeta;
+export const columnMeta = <TData extends object>(
+  column: Pick<DataTableColumn<TData, any>, "columnDef">,
+) => column.columnDef.meta as ResolvedColumnMeta;
 
 export const selectItemLabel = (meta: DataTableColumnMeta | undefined) =>
   meta?.selectProps?.getItemLabel ?? identity;

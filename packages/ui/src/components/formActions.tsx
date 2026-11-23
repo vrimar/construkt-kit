@@ -14,6 +14,7 @@ export interface FormActionsOptions {
   submitLabel?: string;
   loading?: boolean;
   submitDisabled?: boolean;
+  destructive?: boolean;
   size?: ButtonProps["size"];
   submitButtonProps?: Unstyled<ButtonProps>;
 }
@@ -24,6 +25,7 @@ export const renderFormActions = ({
   submitLabel = "Submit",
   loading,
   submitDisabled,
+  destructive,
   size,
   submitButtonProps,
 }: FormActionsOptions): FormActions => ({
@@ -43,7 +45,7 @@ export const renderFormActions = ({
       size={size}
       disabled={submitDisabled}
       loading={loading}
-      colorPalette="brand"
+      colorPalette={destructive ? "danger" : "brand"}
       {...submitButtonProps}
     >
       {submitLabel}

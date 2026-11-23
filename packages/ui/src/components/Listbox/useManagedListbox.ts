@@ -1,13 +1,17 @@
 import { type RefObject, useRef } from "react";
 
-import type { ScrollToIndexRef } from "../ScrollArea/VirtualRows";
-import type { SelectionMode, SelectionValue } from "./types";
+import type { DistributiveOmit } from "#styled-system/types";
+
+import { splitKeys } from "../../foundations/props";
+import type { ScrollToIndexRef } from "../ScrollArea";
 import {
   type SelectionController,
   type SelectionControllerOptions,
-  splitKeys,
+  type SelectionMode,
+  type SelectionValue,
   useSelectionController,
-} from "./useSelectionController";
+} from "../selection";
+import type { ManagedListOptions } from "./types";
 
 export interface ManagedListbox<T, V extends SelectionValue> {
   controller: SelectionController<T, V>;
@@ -17,9 +21,11 @@ export interface ManagedListbox<T, V extends SelectionValue> {
   inputRef: RefObject<HTMLInputElement | null>;
 }
 
-type ManagedListboxProps<T, V extends SelectionValue> = SelectionControllerOptions<T, V> & {
+type ManagedSelectionOptions<T, V extends SelectionValue> = SelectionControllerOptions<T, V> & {
   virtual?: boolean;
 };
+
+type ListOptions<T, V extends SelectionValue> = Omit<ManagedListOptions<T, V>, "virtual">;
 
 const MANAGED_LISTBOX_KEYS = {
   items: true,
@@ -33,13 +39,36 @@ const MANAGED_LISTBOX_KEYS = {
   value: true,
   onValueChange: true,
   virtual: true,
-} as const satisfies Record<keyof ManagedListboxProps<unknown, SelectionValue>, true>;
+} as const satisfies Record<keyof ManagedSelectionOptions<unknown, SelectionValue>, true>;
 
-export function useManagedListbox<T, V extends SelectionValue, P extends ManagedListboxProps<T, V>>(
-  props: P,
-) {
-  const [picked, rest] = splitKeys(props, MANAGED_LISTBOX_KEYS);
-  const options = picked as ManagedListboxProps<T, V>;
+const MANAGED_LIST_OPTIONS = {
+  loading: true,
+  emptyMessage: true,
+  emptyState: true,
+  indicatorPosition: true,
+  renderItem: true,
+  renderItemActions: true,
+  renderItemHint: true,
+  renderGroupLabel: true,
+  getItemProps: true,
+  listMaxHeight: true,
+} as const satisfies Record<keyof ListOptions<unknown, SelectionValue>, true>;
+
+type ManagedKey = keyof typeof MANAGED_LISTBOX_KEYS | keyof typeof MANAGED_LIST_OPTIONS;
+
+/**
+ * The selection controller, list options and listbox root props of a managed list, split from
+ * `props`; `rest` holds the props the managed list doesn't read.
+ */
+export function useManagedListbox<
+  T,
+  V extends SelectionValue,
+  P extends ManagedSelectionOptions<T, V> & Partial<Record<keyof ListOptions<T, V>, unknown>>,
+>(props: P) {
+  const [picked, others] = splitKeys(props, MANAGED_LISTBOX_KEYS);
+  const [listPicked, rest] = splitKeys(others, MANAGED_LIST_OPTIONS);
+  const options = picked as ManagedSelectionOptions<T, V>;
+  const listOptions = listPicked as ListOptions<T, V>;
   const controller = useSelectionController<T, V>(options);
   const scrollToIndexRef = useRef<((index: number) => void) | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +84,8 @@ export function useManagedListbox<T, V extends SelectionValue, P extends Managed
 
   return {
     managed,
-    rest,
+    listOptions,
+    rest: rest as DistributiveOmit<P, ManagedKey>,
     rootProps: {
       items: controller.items,
       getItemValue: options.getItemValue,

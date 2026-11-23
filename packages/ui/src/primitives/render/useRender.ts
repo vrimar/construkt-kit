@@ -10,8 +10,8 @@ import {
   isValidElement,
 } from "react";
 
+import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { mergeProps } from "./mergeProps";
-import { useMergedRefs } from "./useMergedRefs";
 
 export type RenderProps = HTMLAttributes<HTMLElement> & {
   ref?: RefCallback<HTMLElement> | null | undefined;
@@ -35,7 +35,7 @@ export interface UseRenderParameters<State> {
   props?: Record<string, unknown> | undefined;
   ref?: Ref<Element> | undefined;
   state?: State | undefined;
-  stateAttributes?: StateAttributes<State> | undefined;
+  stateAttributes?: StateAttributes<State> | false | undefined;
 }
 
 const EMPTY_STATE = {};
@@ -51,13 +51,13 @@ export function useRender<State extends Record<string, unknown>>({
 }: UseRenderParameters<State>): ReactElement {
   const renderProp = unwrapLazy(render);
   const outProps: Record<string, unknown> = {
-    ...getStateAttributes(state, stateAttributes),
+    ...(stateAttributes !== false && getStateAttributes(state, stateAttributes)),
     ...props,
   };
-  outProps.ref = useMergedRefs(
-    outProps.ref as Ref<unknown> | undefined,
-    isValidElement<{ ref?: Ref<unknown> }>(renderProp) ? renderProp.props.ref : undefined,
-    ref as Ref<unknown> | undefined,
+  outProps.ref = useComposedRefs(
+    outProps.ref as Ref<Element> | undefined,
+    isValidElement<{ ref?: Ref<Element> }>(renderProp) ? renderProp.props.ref : undefined,
+    ref,
   );
 
   if (typeof renderProp === "function") return renderProp(outProps, state);

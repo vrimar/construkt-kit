@@ -1,3 +1,5 @@
+import { isMacPlatform } from "./platform";
+
 type Modifier = "ctrl" | "meta" | "alt" | "shift";
 
 interface ParsedShortcut extends Record<Modifier, boolean> {
@@ -56,16 +58,6 @@ export const MODIFIER_KEYS: ReadonlySet<string> = new Set([
   "AltGraph",
   "CapsLock",
 ]);
-
-const MAC_PLATFORM = /mac|iphone|ipad|ipod/i;
-
-export const isMacPlatform = (): boolean => {
-  if (typeof navigator === "undefined") return false;
-  const { userAgentData, platform } = navigator as Navigator & {
-    userAgentData?: { platform?: string };
-  };
-  return MAC_PLATFORM.test(userAgentData?.platform || platform);
-};
 
 const splitShortcut = (shortcut: string) => {
   const parts = shortcut.split(/\+(?!$)/);

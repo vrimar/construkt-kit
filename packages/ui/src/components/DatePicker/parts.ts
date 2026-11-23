@@ -2,16 +2,17 @@ import { createSlotRecipeContext } from "#styled-system/jsx";
 import { datePicker } from "#styled-system/recipes";
 
 import { renderable } from "../../primitives/render";
-import { createPickerContent } from "../pickerPopup";
+import { createPopupContent, usePickerPopupContext } from "../popup";
 
 const { withProvider, withContext } = createSlotRecipeContext(datePicker);
 
 export const Root = withProvider(renderable.div, "root");
 export const Control = withContext(renderable.div, "control");
 export const Trigger = withContext(renderable.button, "trigger");
-export const Content = createPickerContent(
+export const Content = createPopupContent(
   withContext(renderable.div, "positioner"),
   withContext(renderable.div, "content"),
+  usePickerPopupContext,
 );
 export const View = withContext(renderable.div, "view");
 export const ViewControl = withContext(renderable.div, "viewControl");

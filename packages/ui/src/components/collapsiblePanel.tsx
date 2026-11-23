@@ -1,23 +1,16 @@
-import {
-  type ReactNode,
-  type Ref,
-  type RefCallback,
-  createContext,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type MouseEvent, type Ref, useLayoutEffect, useRef, useState } from "react";
 
-import { type ChangeDetails } from "../primitives/change";
+import { isSafari } from "../foundations/platform";
+import { useComposedRefs } from "../hooks/useComposedRefs";
 import {
-  PresenceActivity,
-  type TransitionStatus,
-  presenceAttributes,
-  usePresence,
-} from "../primitives/presence";
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../hooks/useRenderedParts";
+import { type ChangeDetails } from "../primitives/change";
+import { type TransitionStatus, presenceAttributes, usePresence } from "../primitives/presence";
 import { dataAttr, openStateAttributes } from "../primitives/render";
-import { useMergedRefs } from "../primitives/render/useMergedRefs";
+import { createPartContext } from "./partContext";
 
 export type CollapsibleChangeReason = "trigger-press";
 
@@ -32,22 +25,23 @@ export interface CollapsibleState {
   /** Whether `open` has changed since mount; a panel that mounted open doesn't animate until then. */
   toggled: boolean;
   status: TransitionStatus;
-  contentId: string;
-  triggerId: string;
+  /** The ids the trigger and content render with unless given their own. */
+  ids: { content: string; trigger: string };
+  /** The rendered trigger's id. */
+  triggerId: string | undefined;
+  /** The rendered content's id. */
+  contentId: string | undefined;
+  reportRendered: ReportRendered<"trigger" | "content">;
   setContentElement: (node: HTMLElement | null) => void;
   /** Asks to flip `open`, as a press on the trigger does. */
   toggle: (event: Event) => void;
 }
 
-const CollapsibleContext = createContext<CollapsibleState | null>(null);
+export const [CollapsibleContext, useCollapsibleContext] = createPartContext<CollapsibleState>(
+  "its collapsible's Root or Item",
+);
 
 export const CollapsibleProvider = CollapsibleContext.Provider;
-
-export function useCollapsibleContext(part: string): CollapsibleState {
-  const context = useContext(CollapsibleContext);
-  if (!context) throw new Error(`${part} must be placed inside its collapsible's Root or Item.`);
-  return context;
-}
 
 export interface UseCollapsibleOptions {
   open: boolean;
@@ -66,6 +60,7 @@ export function useCollapsible({
   onToggle,
 }: UseCollapsibleOptions): CollapsibleState {
   const presence = usePresence(open);
+  const [rendered, reportRendered] = useRenderedParts<"trigger" | "content">();
   const [initialOpen] = useState(open);
   const [toggled, setToggled] = useState(false);
   if (!toggled && open !== initialOpen) setToggled(true);
@@ -76,8 +71,10 @@ export function useCollapsible({
     disabled,
     toggled,
     status: presence.status,
-    contentId,
-    triggerId,
+    ids: { content: contentId, trigger: triggerId },
+    triggerId: rendered.trigger,
+    contentId: rendered.content,
+    reportRendered,
     setContentElement: presence.setElement,
     toggle: onToggle,
   };
@@ -88,21 +85,51 @@ export const collapsibleStateAttributes = (open: boolean, disabled: boolean) => 
   "data-disabled": dataAttr(disabled),
 });
 
+/**
+ * The trigger's props, with `id` when given: it names and controls the panel, and a press toggles it
+ * unless prevented.
+ */
+export const useCollapsibleTriggerProps = (
+  state: CollapsibleState,
+  { id, render }: { id?: string | undefined; render?: unknown },
+) => ({
+  id: useReportRendered(state.reportRendered, "trigger", id ?? state.ids.trigger),
+  type: render ? undefined : ("button" as const),
+  disabled: state.disabled,
+  "aria-controls": state.visible ? state.contentId : undefined,
+  "aria-expanded": state.open,
+  ...collapsibleStateAttributes(state.open, state.disabled),
+  onClick(event: MouseEvent<HTMLElement>) {
+    if (event.defaultPrevented || state.disabled) return;
+    if (isSafari()) event.currentTarget.focus();
+    state.toggle(event.nativeEvent);
+  },
+});
+
+export const collapsibleIndicatorProps = (state: CollapsibleState) => ({
+  "aria-hidden": true,
+  ...collapsibleStateAttributes(state.open, state.disabled),
+});
+
 const finiteAnimations = (element: HTMLElement) =>
   element
     .getAnimations()
     .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
 
 /**
- * The panel element's ref. Opening and closing measure the panel into
+ * The panel element's ref, id, `id` when given, and state attributes. Opening and closing measure the panel into
  * `--collapsible-height` and `--collapsible-width`, which the recipe's keyframes run to and from;
  * a panel at rest open has its animation turned off, so mounting open or being shown again by a
  * hidden ancestor doesn't replay it.
  */
-export function useCollapsiblePanel(state: CollapsibleState, ref: Ref<HTMLDivElement> | undefined) {
+export function useCollapsibleContent(
+  state: CollapsibleState,
+  ref: Ref<HTMLDivElement> | undefined,
+  id: string | undefined,
+) {
   const elementRef = useRef<HTMLDivElement | null>(null);
   const handledRef = useRef<boolean | undefined>(undefined);
-  const panelRef = useMergedRefs<HTMLDivElement>(elementRef, state.setContentElement, ref);
+  const panelRef = useComposedRefs(elementRef, state.setContentElement, ref);
   const { open, toggled } = state;
 
   useLayoutEffect(() => {
@@ -139,28 +166,12 @@ export function useCollapsiblePanel(state: CollapsibleState, ref: Ref<HTMLDivEle
     };
   }, [open, toggled]);
 
-  return panelRef as RefCallback<HTMLDivElement>;
+  const contentId = useReportRendered(state.reportRendered, "content", id ?? state.ids.content);
+
+  return {
+    ref: panelRef,
+    id: contentId,
+    ...collapsibleStateAttributes(state.open, state.disabled),
+    ...presenceAttributes(state.status),
+  };
 }
-
-/** The panel element's id and state attributes. */
-export const panelAttributes = (state: CollapsibleState) => ({
-  id: state.contentId,
-  ...collapsibleStateAttributes(state.open, state.disabled),
-  ...presenceAttributes(state.status),
-});
-
-export interface CollapsiblePresenceProps {
-  state: CollapsibleState;
-  keepMounted: boolean;
-  children: ReactNode;
-}
-
-/** Renders a panel while it is open or animating closed, or keeps it hidden with `keepMounted`. */
-export const CollapsiblePresence = ({ state, keepMounted, children }: CollapsiblePresenceProps) => (
-  <PresenceActivity
-    mounted={state.visible}
-    keepMounted={keepMounted}
-  >
-    {children}
-  </PresenceActivity>
-);

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { Tooltip, TooltipGroup } from ".";
+import { Tooltip, TooltipGroup, useTooltipDelegate } from ".";
 import { Menu } from "../Menu";
 import { Popover } from "../Popover";
 
@@ -112,6 +112,23 @@ it("moves a group's one tooltip to the hovered trigger", async () => {
   );
 });
 
+it("shows a group trigger's new label while its tooltip is open", async () => {
+  const group = (label: string) => (
+    <TooltipGroup>
+      <Tooltip label={label}>
+        <button type="button">Copy link</button>
+      </Tooltip>
+    </TooltipGroup>
+  );
+  const { rerender } = render(group("Copy"));
+  await userEvent.hover(screen.getByRole("button", { name: "Copy link" }));
+  await screen.findByText("Copy");
+
+  rerender(group("Copied"));
+
+  await expect.poll(() => screen.queryByRole("tooltip")?.textContent).toBe("Copied");
+});
+
 it.each([
   {
     surface: "Popover",
@@ -144,4 +161,92 @@ it.each([
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   expect(screen.queryByRole("tooltip")).toBeNull();
+});
+
+it("lets a press on its trigger close a menu open elsewhere", async () => {
+  render(
+    <>
+      <Menu.Root>
+        <Menu.Trigger>Actions</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item value="edit">Edit</Menu.Item>
+        </Menu.Content>
+      </Menu.Root>
+      <Tooltip label="Jane Doe">Jane D.</Tooltip>
+    </>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+  await screen.findByRole("menu");
+  const name = screen.getByText("Jane D.");
+  await userEvent.hover(name);
+  await screen.findByRole("tooltip");
+
+  await userEvent.click(name);
+
+  await expect.poll(() => screen.queryByRole("menu")).toBeNull();
+});
+
+it("closes when its trigger expands while it shows", async () => {
+  const filter = (expanded: boolean) => (
+    <Tooltip label="Filters">
+      <button
+        type="button"
+        aria-expanded={expanded}
+      >
+        Filter
+      </button>
+    </Tooltip>
+  );
+  const { rerender } = render(filter(false));
+  await userEvent.hover(screen.getByRole("button", { name: "Filter" }));
+  await screen.findByRole("tooltip");
+
+  rerender(filter(true));
+
+  await expect.poll(() => screen.queryByRole("tooltip")).toBeNull();
+});
+
+function DelegatedTriggers() {
+  const { show, showAfterDelay, tooltip } = useTooltipDelegate({
+    openDelay: 60_000,
+    placement: "bottom",
+  });
+  return (
+    <>
+      <button
+        type="button"
+        onFocus={(event) => show(event.currentTarget, "First tip")}
+      >
+        First
+      </button>
+      <button
+        type="button"
+        style={{ marginLeft: 400 }}
+        onPointerEnter={(event) => showAfterDelay(event.currentTarget, "Second tip")}
+      >
+        Second
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
+it("moves a delegated tooltip that shows to the next trigger without the delay", async () => {
+  render(<DelegatedTriggers />);
+  screen.getByRole("button", { name: "First" }).focus();
+  await screen.findByText("First tip");
+  const second = screen.getByRole("button", { name: "Second" });
+
+  await userEvent.hover(second);
+
+  await expect.poll(() => screen.queryByRole("tooltip")?.textContent).toBe("Second tip");
+  const centerX = (box: DOMRect) => box.left + box.width / 2;
+  await expect
+    .poll(() =>
+      Math.abs(
+        centerX(screen.getByRole("tooltip").getBoundingClientRect()) -
+          centerX(second.getBoundingClientRect()),
+      ),
+    )
+    .toBeLessThan(1);
 });

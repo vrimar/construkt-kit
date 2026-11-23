@@ -1,15 +1,10 @@
-import type { WithRef } from "../../types";
 import { CloseButton, type CloseButtonProps } from "./IconButtonPresets";
 
 export interface ClearButtonProps extends CloseButtonProps {
   field: () => HTMLElement | null | undefined;
 }
 
-export function ClearButton({
-  field,
-  onClick,
-  ...props
-}: WithRef<ClearButtonProps, HTMLButtonElement>) {
+export function ClearButton({ field, onClick, ...props }: ClearButtonProps) {
   return (
     <CloseButton
       {...props}

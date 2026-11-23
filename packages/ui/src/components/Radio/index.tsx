@@ -1,19 +1,21 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { radioGroup } from "#styled-system/recipes";
 
-import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { mergeProps, renderable } from "../../primitives/render";
 import type { HiddenInputControlProps, WithRef } from "../../types";
 import {
   type RadioGroupRootOptions,
+  type RadioItem,
   type RadioItemOptions,
   type RadioValueChangeDetails,
   RadioGroupProvider,
+  RadioItemHiddenInput,
+  RadioItemProvider,
   useRadioGroupRoot,
   useRadioItem,
+  useRadioItemTextId,
 } from "../radioGroup";
 
 export type { RadioValueChangeDetails };
@@ -30,43 +32,12 @@ type StyledRootProps = ComponentProps<typeof StyledRoot>;
 export interface RadioGroupProps
   extends Omit<StyledRootProps, keyof RadioGroupRootOptions>, RadioGroupRootOptions {}
 
-function RadioGroup({
-  ref,
-  value,
-  defaultValue,
-  onValueChange,
-  name,
-  form,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  orientation,
-  id,
-  ...props
-}: RadioGroupProps) {
-  const { context, rootProps } = useRadioGroupRoot({
-    value,
-    defaultValue,
-    onValueChange,
-    name,
-    form,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    orientation,
-    id,
-  });
-  const composedRef = useComposedRefs(rootProps.ref, ref);
+function RadioGroup(props: RadioGroupProps) {
+  const { context, rootProps } = useRadioGroupRoot(props);
 
   return (
     <RadioGroupProvider value={context}>
-      <StyledRoot
-        {...rootProps}
-        {...props}
-        ref={composedRef}
-      />
+      <StyledRoot {...rootProps} />
     </RadioGroupProvider>
   );
 }
@@ -89,35 +60,37 @@ export const Radio = ({
   invalid,
   ...rest
 }: WithRef<RadioProps, HTMLInputElement>) => {
-  const {
-    item,
-    itemProps,
-    inputProps: itemInputProps,
-  } = useRadioItem({ value, disabled, invalid });
+  const { item, itemProps } = useRadioItem({ value, disabled, invalid, id: rest.id });
 
   return (
-    <StyledItem
-      ref={rootRef}
-      {...mergeProps<ItemProps>(itemProps, rest)}
-    >
-      <renderable.input
-        {...mergeProps<ComponentProps<typeof renderable.input>>(itemInputProps, inputProps)}
-        ref={ref}
-      />
-      <StyledItemControl
-        aria-hidden
-        {...item.attributes}
-      />
-      {children != null && (
-        <StyledItemText
-          id={item.textId}
+    <RadioItemProvider value={item}>
+      <StyledItem
+        ref={rootRef}
+        {...mergeProps<ItemProps>(itemProps, rest)}
+      >
+        <RadioItemHiddenInput
+          {...inputProps}
+          ref={ref}
+        />
+        <StyledItemControl
+          aria-hidden
           {...item.attributes}
-        >
-          {children}
-        </StyledItemText>
-      )}
-    </StyledItem>
+        />
+        {children != null && <RadioText item={item}>{children}</RadioText>}
+      </StyledItem>
+    </RadioItemProvider>
   );
 };
+
+function RadioText({ item, children }: { item: RadioItem; children: ReactNode }) {
+  return (
+    <StyledItemText
+      id={useRadioItemTextId(item)}
+      {...item.attributes}
+    >
+      {children}
+    </StyledItemText>
+  );
+}
 
 export { RadioGroup };

@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { flushSync } from "react-dom";
 
+import { dataAttr } from "../render";
+
 export type TransitionStatus = "starting" | "ending" | undefined;
 
 export interface Presence {
@@ -14,12 +16,14 @@ export interface Presence {
 export interface PresenceOptions {
   /** Unmounts in the frame `open` turns false when nothing animates out, instead of a frame later. */
   immediate?: boolean | undefined;
+  /** Starts `starting` when it mounts open, so it animates in on its first render too. */
+  enterOnMount?: boolean | undefined;
 }
 
 /** `data-starting-style` and `data-ending-style` for `status`. */
 export const presenceAttributes = (status: TransitionStatus) => ({
-  "data-starting-style": status === "starting" ? ("" as const) : undefined,
-  "data-ending-style": status === "ending" ? ("" as const) : undefined,
+  "data-starting-style": dataAttr(status === "starting"),
+  "data-ending-style": dataAttr(status === "ending"),
 });
 
 const finiteAnimations = (element: HTMLElement) =>
@@ -32,9 +36,14 @@ const finiteAnimations = (element: HTMLElement) =>
  * `starting` for the first frame after it mounts and `ending` while it animates out, for
  * `data-starting-style` and `data-ending-style`.
  */
-export function usePresence(open: boolean, { immediate = false }: PresenceOptions = {}): Presence {
+export function usePresence(
+  open: boolean,
+  { immediate = false, enterOnMount = false }: PresenceOptions = {},
+): Presence {
   const [mounted, setMounted] = useState(open);
-  const [status, setStatus] = useState<TransitionStatus>(undefined);
+  const [status, setStatus] = useState<TransitionStatus>(() =>
+    enterOnMount && open ? "starting" : undefined,
+  );
   const [element, setElement] = useState<HTMLElement | null>(null);
 
   if (open && !mounted) {

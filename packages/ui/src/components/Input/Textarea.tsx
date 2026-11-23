@@ -3,7 +3,7 @@ import { type ComponentProps, type KeyboardEvent, useEffect, useRef } from "reac
 import { styled } from "#styled-system/jsx";
 import { textarea } from "#styled-system/recipes";
 
-import { isComposingEvent } from "../../foundations/dom";
+import { isComposingEvent, submitImplicitly } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useFieldInputProps } from "../../primitives/field";
 import { renderable } from "../../primitives/render";
@@ -50,23 +50,6 @@ export interface TextareaProps extends BaseTextareaProps {
   preventNewline?: boolean;
 }
 
-function submitForm(field: HTMLTextAreaElement) {
-  const form = field.form;
-  const submitter = Array.from(form?.elements ?? []).find(
-    (element): element is HTMLButtonElement | HTMLInputElement =>
-      (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
-      element.type === "submit",
-  );
-  if (
-    form &&
-    submitter &&
-    !submitter.disabled &&
-    submitter.getAttribute("aria-disabled") !== "true"
-  ) {
-    form.requestSubmit(submitter);
-  }
-}
-
 export const Textarea = ({
   ref,
   onEnter,
@@ -83,7 +66,7 @@ export const Textarea = ({
       onEnter(e);
     } else if (preventNewline) {
       e.preventDefault();
-      if (!onEnter) submitForm(e.currentTarget);
+      if (!onEnter) submitImplicitly(e.currentTarget.form);
     }
   };
 

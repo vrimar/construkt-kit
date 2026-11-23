@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 
-import { getSelectAllState } from "../Listbox/managed";
-import type { TreeCheckedState, TreeCollection } from "./treeCollection";
+import { getSelectAllState } from "../selection";
+import type { TreeCollection } from "./treeCollection";
 import { collectCheckableBranches } from "./treeCollectionUtils";
 import type { TreeNodeRenderDetails } from "./TreeRow";
+import type { UseTreeSelectListReturn } from "./useTreeSelectList";
 
 interface UseTreeCheckSelectionOptions<TNode> {
   collection: TreeCollection<TNode>;
@@ -14,23 +15,22 @@ interface UseTreeCheckSelectionOptions<TNode> {
   toSourceIndexPath: (indexPath: number[]) => number[];
 }
 
-const getSelectableLeafValues = <TNode>(
+/** The leaves `accepts` takes, and those of them that are enabled, in tree order. */
+const collectCheckableLeaves = <TNode>(
   collection: TreeCollection<TNode>,
-  isLeafCheckable: (node: TNode, indexPath: number[]) => boolean,
+  accepts: (node: TNode, indexPath: number[]) => boolean,
 ) => {
-  const values: string[] = [];
+  const checkable = new Set<string>();
+  const selectable: string[] = [];
   collection.visit({
     onEnter: (node, indexPath) => {
-      if (
-        !collection.isBranchNode(node) &&
-        !collection.getNodeDisabled(node) &&
-        isLeafCheckable(node, indexPath)
-      ) {
-        values.push(collection.getNodeValue(node));
-      }
+      if (collection.isBranchNode(node) || !accepts(node, indexPath)) return;
+      const value = collection.getNodeValue(node);
+      checkable.add(value);
+      if (!collection.getNodeDisabled(node)) selectable.push(value);
     },
   });
-  return values;
+  return { checkable, selectable };
 };
 
 export function useTreeCheckSelection<TNode>({
@@ -40,32 +40,45 @@ export function useTreeCheckSelection<TNode>({
   onValueChange,
   isNodeCheckable,
   toSourceIndexPath,
-}: UseTreeCheckSelectionOptions<TNode>) {
+}: UseTreeCheckSelectionOptions<TNode>): UseTreeSelectListReturn & {
+  isCheckable: (node: TNode) => boolean;
+} {
   // Filtering keeps a matching branch with no children, which then reads as a leaf.
   const leafValueSet = useMemo(() => new Set(collection.getDescendantValues([])), [collection]);
   const valueSet = useMemo(() => new Set(value), [value]);
 
-  const isLeafCheckable = useCallback(
-    (node: TNode, indexPath: number[]) =>
-      leafValueSet.has(displayedCollection.getNodeValue(node)) &&
-      (isNodeCheckable?.({ node, indexPath: toSourceIndexPath(indexPath), isBranch: false }) ??
-        true),
-    [displayedCollection, isNodeCheckable, leafValueSet, toSourceIndexPath],
-  );
-
-  const selectableLeafValues = useMemo(
-    () => getSelectableLeafValues(displayedCollection, isLeafCheckable),
-    [displayedCollection, isLeafCheckable],
-  );
+  const { checkableValues, selectableLeafValues } = useMemo(() => {
+    const accepts = (node: TNode, indexPath: number[], isBranch: boolean) =>
+      isNodeCheckable?.({ node, indexPath: toSourceIndexPath(indexPath), isBranch }) ?? true;
+    const leaves = collectCheckableLeaves(
+      displayedCollection,
+      (node, indexPath) =>
+        leafValueSet.has(displayedCollection.getNodeValue(node)) && accepts(node, indexPath, false),
+    );
+    const branches = collectCheckableBranches(
+      displayedCollection,
+      leafValueSet,
+      new Set(leaves.selectable),
+    );
+    displayedCollection.visit({
+      onEnter: (node, indexPath) => {
+        const nodeValue = displayedCollection.getNodeValue(node);
+        if (branches.has(nodeValue) && accepts(node, indexPath, true)) {
+          leaves.checkable.add(nodeValue);
+        }
+      },
+    });
+    return { checkableValues: leaves.checkable, selectableLeafValues: leaves.selectable };
+  }, [displayedCollection, isNodeCheckable, leafValueSet, toSourceIndexPath]);
 
   const treeSelectableLeafValues = useMemo(
     () =>
       displayedCollection === collection
         ? selectableLeafValues
-        : getSelectableLeafValues(
+        : collectCheckableLeaves(
             collection,
             (node, indexPath) => isNodeCheckable?.({ node, indexPath, isBranch: false }) ?? true,
-          ),
+          ).selectable,
     [collection, displayedCollection, isNodeCheckable, selectableLeafValues],
   );
 
@@ -74,49 +87,32 @@ export function useTreeCheckSelection<TNode>({
     [treeSelectableLeafValues, valueSet],
   );
 
-  const selectableLeafSet = useMemo(() => new Set(selectableLeafValues), [selectableLeafValues]);
-
-  const checkableBranches = useMemo(
-    () => collectCheckableBranches(displayedCollection, leafValueSet, selectableLeafSet),
-    [displayedCollection, leafValueSet, selectableLeafSet],
-  );
-
-  const selectAll = useMemo(
+  const selectAllState = useMemo(
     () => getSelectAllState(value, selectableLeafValues),
     [selectableLeafValues, value],
   );
+  const { allSelected, someSelected } = selectAllState;
+  const canSelectAll = !allSelected && selectableLeafValues.length > 0;
+  const canDeselectAll = allSelected || someSelected;
 
-  const isCheckable = ({ node, indexPath, isBranch }: TreeNodeRenderDetails<TNode>) => {
-    if (!isBranch) return isLeafCheckable(node, indexPath);
-    if (!checkableBranches.has(displayedCollection.getNodeValue(node))) return false;
-    return isNodeCheckable?.({ node, indexPath: toSourceIndexPath(indexPath), isBranch }) ?? true;
-  };
-
-  const selectableLeavesOf = (node: TNode, isBranch: boolean) => {
-    const nodeValue = displayedCollection.getNodeValue(node);
-    const leafValues = isBranch ? displayedCollection.getDescendantValues(nodeValue) : [nodeValue];
-    return leafValues.filter((leafValue) => selectableLeafSet.has(leafValue));
-  };
-
-  const checkedState = (node: TNode, isBranch: boolean): TreeCheckedState => {
-    if (!isBranch) return valueSet.has(displayedCollection.getNodeValue(node));
-    const { allSelected, someSelected } = getSelectAllState(value, selectableLeavesOf(node, true));
-    return allSelected ? true : someSelected ? "indeterminate" : false;
-  };
-
-  const toggle = (node: TNode, isBranch: boolean) => {
-    if (displayedCollection.getNodeDisabled(node)) return;
-    const selectable = selectableLeavesOf(node, isBranch);
-    if (selectable.length) onValueChange(getSelectAllState(value, selectable).toggle());
-  };
+  const isCheckable = useCallback(
+    (node: TNode) => checkableValues.has(displayedCollection.getNodeValue(node)),
+    [checkableValues, displayedCollection],
+  );
 
   return {
-    selectAll,
-    hasDisplayedSelectable: selectableLeafValues.length > 0,
+    allSelected,
+    someSelected,
+    canSelectAll,
+    canDeselectAll,
+    selectAll: () => {
+      if (canSelectAll) onValueChange(selectAllState.select());
+    },
+    deselectAll: () => {
+      if (canDeselectAll) onValueChange(selectAllState.clear());
+    },
     selectableCount: treeSelectableLeafValues.length,
     selectedCount,
     isCheckable,
-    checkedState,
-    toggle,
   };
 }

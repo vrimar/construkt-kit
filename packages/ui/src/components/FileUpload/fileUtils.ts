@@ -1,3 +1,5 @@
+import { NumberFormatter } from "@internationalized/number";
+
 /** Why a file was refused; `validate` may return codes of its own. */
 export type FileError =
   | "TOO_MANY_FILES"
@@ -106,10 +108,10 @@ export function getFileSizeError(file: File, minSize: number, maxSize: number): 
   return null;
 }
 
-export const isFileEqual = (a: File, b: File): boolean =>
-  a.name === b.name && a.size === b.size && a.type === b.type;
+export const getFileKey = (file: File): string =>
+  `${file.name}|${file.size}|${file.type}|${file.lastModified}`;
 
-export const getFileKey = (file: File): string => `${file.name}|${file.size}|${file.type}`;
+export const isFileEqual = (a: File, b: File): boolean => getFileKey(a) === getFileKey(b);
 
 const getItemEntry = (item: DataTransferItem): FileSystemEntry | null => {
   const withEntry = item as DataTransferItem & { getAsEntry?: () => FileSystemEntry | null };
@@ -215,7 +217,7 @@ export function formatBytes(bytes: number, locale: string): string {
     index++;
   }
   const rounded = Number.parseFloat(value.toPrecision(3));
-  return new Intl.NumberFormat(locale, {
+  return new NumberFormatter(locale, {
     style: "unit",
     unit: `${BYTE_PREFIXES[index]}byte`,
     unitDisplay: "short",

@@ -1,3 +1,4 @@
+import { sameItems } from "@construkt-kit/utils";
 import {
   type ChangeEvent,
   type ClipboardEvent,
@@ -5,27 +6,33 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
-import { isComposingEvent } from "../../foundations/dom";
+import { isComposingEvent, isModifierKey, submitImplicitly } from "../../foundations/dom";
 import { useControllableState } from "../../hooks/useControllableState";
+import { useFocusOnMount } from "../../hooks/useFocusOnMount";
+import { useFrameQueue } from "../../hooks/useFrameQueue";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { dispatchInputValueEvent, useFieldControlState } from "../../primitives/field";
+import { useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
+import { mirrorArrowKey } from "../../primitives/composite";
+import {
+  hiddenFormInputProps,
+  useFormFieldState,
+  useHiddenInputValue,
+} from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr } from "../../primitives/render";
+import { dataAttr, fieldStateAttributes } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 
 export type PinInputType = "numeric" | "alphabetic" | "alphanumeric";
 
-export type PinInputValueChangeReason = "input-change" | "paste" | "delete";
+export type PinInputValueChangeReason = "input-change" | "paste" | "delete" | "form-reset";
 
 /** Why `onValueChange` was called, the value as one string, and a way to keep the value as it is. */
 export type PinInputValueChangeDetails = ChangeDetails<PinInputValueChangeReason> & {
@@ -79,6 +86,34 @@ export interface PinInputOptions {
   id?: string | undefined;
 }
 
+/** Every `PinInputOptions` key, to split them off the root's props. */
+export const PIN_INPUT_OPTION_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  onValueComplete: true,
+  onValueInvalid: true,
+  count: true,
+  type: true,
+  pattern: true,
+  placeholder: true,
+  masked: true,
+  otp: true,
+  autoFocus: true,
+  autoSubmit: true,
+  blurOnComplete: true,
+  selectOnFocus: true,
+  sanitizeValue: true,
+  translations: true,
+  name: true,
+  form: true,
+  disabled: true,
+  readOnly: true,
+  invalid: true,
+  required: true,
+  id: true,
+} as const satisfies Record<keyof PinInputOptions, true>;
+
 const TYPE_REGEX: Record<PinInputType, RegExp> = {
   numeric: /^[0-9]+$/,
   alphabetic: /^[A-Za-z]+$/,
@@ -105,9 +140,6 @@ function nextSlotValue(current: string, next: string) {
   else if (current[0] === next[1]) value = next[0] ?? "";
   return value.split("").at(-1) ?? "";
 }
-
-const isEqual = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((entry, index) => entry === b[index]);
 
 const defaultInputLabel = (index: number, length: number) => `pin code ${index + 1} of ${length}`;
 
@@ -139,24 +171,36 @@ export function usePinInput({
 }: PinInputOptions) {
   const uid = useId();
   const id = idProp ?? uid;
-  const field = useFieldControlState({ disabled, readOnly, invalid, required });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const [rendered, reportRendered] = useRenderedParts<"label" | "hiddenInput">();
+  const field = useFormFieldState(
+    { disabled, readOnly, invalid, required },
+    {
+      elementRef: rootRef,
+      onReset: () => setValue(fill(initialValue, count), "form-reset"),
+      input: () => hiddenInputRef.current,
+    },
+  );
   const { dir } = useLocale();
   const rootId = `pin-input:${id}`;
   const ids = {
     root: rootId,
     label: `pin-input:${id}:label`,
-    hiddenInput: field.id ?? `pin-input:${id}:hidden`,
+    hiddenInput: `pin-input:${id}:hidden`,
     control: `pin-input:${id}:control`,
     input: (index: number) => `pin-input:${id}:${index}`,
   };
 
   const inputsRef = useRef(new Map<number, HTMLInputElement>());
-  const hiddenInputRef = useRef<HTMLInputElement>(null);
   const [renderedCount, setRenderedCount] = useState(0);
   const count = countProp ?? renderedCount;
+  const [initialValue] = useState(
+    () => valueProp ?? defaultValue ?? (countProp ? fill([], countProp) : []),
+  );
   const [rawValue, setRawValue] = useControllableState({
     value: valueProp,
-    defaultValue: defaultValue ?? (countProp ? fill([], countProp) : []),
+    defaultValue: initialValue,
   });
   const [focusedIndex, setFocusedIndex] = useState(autoFocus ? 0 : -1);
 
@@ -170,14 +214,7 @@ export function usePinInput({
     focusedIndex !== -1 ? focusedIndex : Math.min(filledLength, valueLength - 1);
 
   const latest = useLatestRef({ value, valueLength, filledLength, focusedIndex });
-  const frames = useRef<number[]>([]);
-  const nextFrame = (callback: () => void) => {
-    frames.current.push(requestAnimationFrame(callback));
-  };
-  useEffect(() => {
-    const pending = frames.current;
-    return () => pending.forEach(cancelAnimationFrame);
-  }, []);
+  const frames = useFrameQueue();
 
   const inputAt = (index: number) =>
     [...inputsRef.current.entries()].sort(([a], [b]) => a - b)[index]?.[1];
@@ -192,12 +229,10 @@ export function usePinInput({
   }, []);
 
   const setValue = (next: string[], reason: PinInputValueChangeReason, event?: Event) => {
-    if (isEqual(next, value)) return;
-    const details = Object.assign(createChangeDetails(reason, event), {
-      valueAsString: next.join(""),
-    });
-    onValueChange?.(next, details);
-    if (!details.canceled) setRawValue(next);
+    if (sameItems(next, value)) return;
+    if (emitChange(onValueChange, next, reason, event, { valueAsString: next.join("") })) {
+      setRawValue(next);
+    }
   };
 
   const focusInput = (index: number) => {
@@ -208,7 +243,7 @@ export function usePinInput({
   const moveFocus = (index: number) => {
     setFocusedIndex(index);
     focusInput(index);
-    if (selectOnFocus && index !== -1) nextFrame(() => inputAt(index)?.select());
+    if (selectOnFocus && index !== -1) frames.request("select", () => inputAt(index)?.select());
   };
 
   const clearFocusedValue = (index: number, event: Event) => {
@@ -221,7 +256,7 @@ export function usePinInput({
 
   const paste = (text: string, event: Event) => {
     const from = focusedIndex;
-    nextFrame(() => {
+    frames.request("paste", () => {
       const current = latest.current;
       const startIndex = Math.min(from, current.filledLength);
       const left = startIndex > 0 ? current.value.join("").substring(0, from) : "";
@@ -235,19 +270,9 @@ export function usePinInput({
 
   const reportInvalid = (text: string) => onValueInvalid?.(text, { index: focusedIndex });
 
-  const [focusOnMount] = useState(autoFocus);
-  useLayoutEffect(() => {
-    if (!focusOnMount) return;
-    const first = [...inputsRef.current.entries()].sort(([a], [b]) => a - b)[0]?.[1];
-    queueMicrotask(() => first?.focus({ preventScroll: true }));
-  }, [focusOnMount]);
+  useFocusOnMount(autoFocus, () => inputAt(0)?.focus({ preventScroll: true }));
 
-  const mountedValue = useRef(valueAsString);
-  useEffect(() => {
-    if (mountedValue.current === valueAsString) return;
-    mountedValue.current = valueAsString;
-    dispatchInputValueEvent(hiddenInputRef.current, valueAsString);
-  }, [valueAsString]);
+  useHiddenInputValue(() => hiddenInputRef.current, valueAsString);
 
   const wasComplete = useRef(complete);
   useEffect(() => {
@@ -255,8 +280,8 @@ export function usePinInput({
     wasComplete.current = complete;
     if (!complete) return;
     onValueComplete?.(value, { valueAsString });
-    if (blurOnComplete) nextFrame(() => inputAt(latest.current.focusedIndex)?.blur());
-    if (autoSubmit) hiddenInputRef.current?.form?.requestSubmit();
+    if (blurOnComplete) frames.request("blur", () => inputAt(latest.current.focusedIndex)?.blur());
+    if (autoSubmit) submitImplicitly(hiddenInputRef.current?.form);
   });
 
   const resolvedDisabled = field.disabled;
@@ -264,13 +289,6 @@ export function usePinInput({
   const resolvedInvalid = field.invalid;
   const resolvedRequired = field.required;
   const inputLabel = translations?.inputLabel ?? defaultInputLabel;
-  const step = (key: string) =>
-    dir === "rtl" && key === "ArrowLeft"
-      ? "ArrowRight"
-      : dir === "rtl" && key === "ArrowRight"
-        ? "ArrowLeft"
-        : key;
-
   const getInputProps = (index: number) => ({
     id: ids.input(index),
     disabled: resolvedDisabled,
@@ -341,7 +359,7 @@ export function usePinInput({
     },
     onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
       if (event.defaultPrevented || isComposingEvent(event) || focusedIndex === -1) return;
-      const key = step(event.key);
+      const key = mirrorArrowKey(event.key, dir === "rtl");
       const native = event.nativeEvent;
 
       if ((event.ctrlKey || event.metaKey) && !event.altKey) {
@@ -351,7 +369,7 @@ export function usePinInput({
           return;
         }
       }
-      if (event.ctrlKey || event.altKey || event.metaKey) return;
+      if (isModifierKey(event)) return;
 
       if (event.key.length === 1 && focusedValue === event.key) {
         event.preventDefault();
@@ -370,7 +388,7 @@ export function usePinInput({
         ArrowLeft: () => moveFocus(Math.max(focusedIndex - 1, 0)),
         ArrowRight: () =>
           moveFocus(Math.min(focusedIndex + 1, Math.min(filledLength, valueLength - 1))),
-        Enter: () => (hiddenInputRef.current?.form ?? inputAt(0)?.form)?.requestSubmit(),
+        Enter: () => submitImplicitly(hiddenInputRef.current?.form ?? inputAt(0)?.form),
         Home: () => moveFocus(0),
         End: () => moveFocus(lastFilled),
         ArrowUp: () => moveFocus(0),
@@ -386,7 +404,7 @@ export function usePinInput({
       if (focusedIndex === -1) {
         setFocusedIndex(index_);
         if (index_ !== index) focusInput(index_);
-        if (selectOnFocus) nextFrame(() => inputAt(index_)?.select());
+        if (selectOnFocus) frames.request("select", () => inputAt(index_)?.select());
         return;
       }
       moveFocus(index_);
@@ -413,17 +431,20 @@ export function usePinInput({
 
   const focusFirst = () => inputAt(0)?.focus();
   const stateAttributes = {
-    "data-invalid": dataAttr(resolvedInvalid),
-    "data-disabled": dataAttr(resolvedDisabled),
+    ...fieldStateAttributes({
+      disabled: resolvedDisabled,
+      invalid: resolvedInvalid,
+      readOnly: resolvedReadOnly,
+    }),
     "data-complete": dataAttr(complete),
-    "data-read-only": dataAttr(resolvedReadOnly),
   };
 
   return {
-    rootProps: { id: rootId, ...stateAttributes },
+    reportRendered,
+    rootProps: { ref: rootRef, id: rootId, ...stateAttributes },
     labelProps: {
       id: ids.label,
-      htmlFor: ids.hiddenInput,
+      htmlFor: rendered.hiddenInput,
       ...stateAttributes,
       "data-required": dataAttr(resolvedRequired),
       onClick(event: MouseEvent<HTMLLabelElement>) {
@@ -434,15 +455,13 @@ export function usePinInput({
     controlProps: {
       id: ids.control,
       role: "group",
-      "aria-labelledby": field.labelId ?? ids.label,
+      "aria-labelledby": field.labelId ?? rendered.label,
       "aria-describedby": field.describedBy,
     },
     hiddenInputProps: {
+      ...hiddenFormInputProps,
       ref: hiddenInputRef,
-      "aria-hidden": true,
-      "aria-describedby": field.describedBy,
       type: "text",
-      tabIndex: -1,
       id: ids.hiddenInput,
       readOnly: resolvedReadOnly,
       disabled: resolvedDisabled,
@@ -465,12 +484,7 @@ export function usePinInput({
 
 export type PinInputApi = ReturnType<typeof usePinInput>;
 
-const PinInputContext = createContext<PinInputApi | null>(null);
+export const [PinInputContext, usePinInputContext] =
+  createPartContext<PinInputApi>("<PinInput.Root>");
 
 export const PinInputProvider = PinInputContext.Provider;
-
-export function usePinInputContext(part: string): PinInputApi {
-  const context = useContext(PinInputContext);
-  if (!context) throw new Error(`${part} must be placed inside <PinInput.Root>.`);
-  return context;
-}

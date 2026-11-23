@@ -1,5 +1,3 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { CheckIcon } from "lucide-react";
 import {
   type ComponentProps,
   type FormEvent,
@@ -9,66 +7,94 @@ import {
   type PointerEvent,
   type ReactNode,
   type Ref,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
-import {
-  HStack,
-  type HTMLStyledProps,
-  VisuallyHidden,
-  createSlotRecipeContext,
-} from "#styled-system/jsx";
+import { type HTMLStyledProps, VisuallyHidden, createSlotRecipeContext } from "#styled-system/jsx";
 import { type ListboxVariantProps, listbox } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { isEditableTarget } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import { useStore } from "../../primitives/store";
-import type { CssProp, Unstyled } from "../../types";
-import { EmptyState } from "../EmptyState";
-import { SearchInput, type SearchInputProps } from "../Input";
-import { useItemSlotIds } from "../itemSlots";
-import type { StyledRootProps } from "../rootProps";
-import { ScrollArea, type ScrollAreaProps } from "../ScrollArea";
-import { type ScrollToIndexRef, VirtualRows, useScrollToIndexRef } from "../ScrollArea/VirtualRows";
 import {
-  type ListEntry,
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { RangeSelection } from "../../primitives/composite";
+import {
   ListboxNode,
   type PickModifiers,
-  selectHighlighted,
-  selectIsHighlighted,
-} from "./listboxNode";
-import type {
-  ManagedListOptions,
-  ManagedSelectionProps,
-  MultipleSelectionProps,
-  SelectionMode,
-  SelectionProps,
-  SelectionValue,
-  SingleSelectionProps,
-} from "./types";
+  useListboxActiveDescendant,
+  useListboxContentRef,
+  useListboxInputRef,
+} from "../../primitives/listbox";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
+import type { CssProp, Unstyled } from "../../types";
+import { EmptyState } from "../EmptyState";
+import { useItemSlotIds } from "../itemSlots";
+import { ListboxGridContext, createListboxParts } from "../listboxParts";
+import { createPartContext } from "../partContext";
+import type { StyledRootProps } from "../rootProps";
+import {
+  ScrollArea,
+  type ScrollAreaProps,
+  type ScrollToIndexRef,
+  useVirtualList,
+} from "../ScrollArea";
+import {
+  type ManagedSelectionProps,
+  type MultipleSelectionProps,
+  type SelectionItemSource,
+  type SelectionMode,
+  type SelectionProps,
+  SelectionSearchField,
+  type SelectionSearchFieldProps,
+  type SelectionValue,
+  type SingleSelectionProps,
+  decodeSelection,
+  emitSelection,
+  encodeSelectionValue,
+  toSelectionArray,
+  useListEntries,
+} from "../selection";
+import type { ManagedListOptions } from "./types";
 import { type ManagedListbox, useManagedListbox } from "./useManagedListbox";
-import { scrollWithinContainer, useRevealSelection } from "./useRevealSelection";
-import { encodeSelectionValue, splitManagedListOptions } from "./useSelectionController";
-import type { SelectionSearch } from "./useSelectionSearch";
+import { useRevealSelection } from "./useRevealSelection";
 
 const { withProvider, withContext } = createSlotRecipeContext(listbox);
 
+const StyledItem = withContext(renderable.div, "item", {
+  defaultProps: { "data-reveal-group": "" },
+});
+const StyledItemText = withContext(renderable.span, "itemText");
+const StyledItemIndicator = withContext(renderable.div, "itemIndicator");
+const StyledItemGroup = withContext(renderable.div, "itemGroup");
+const StyledItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
+
+const parts = createListboxParts(
+  {
+    Item: StyledItem,
+    ItemText: StyledItemText,
+    ItemIndicator: StyledItemIndicator,
+    ItemGroup: StyledItemGroup,
+    ItemGroupLabel: StyledItemGroupLabel,
+  },
+  "listbox-group",
+);
+
 interface ListboxContextValue {
   node: ListboxNode;
-  contentId: string;
+  /** The rendered content's id. */
+  contentId: string | undefined;
+  /** The rendered label's id. */
   labelId: string | undefined;
-  registerLabel: (rendered: boolean) => void;
+  reportRendered: ReportRendered<"label" | "content">;
   multiple: boolean;
   disabled: boolean;
   empty: boolean;
@@ -80,22 +106,12 @@ interface ListboxContextValue {
   isSelected: (value: string) => boolean;
 }
 
-const ListboxContext = createContext<ListboxContextValue | null>(null);
+export const [ListboxContext, useListboxContext] = createPartContext<ListboxContextValue>(
+  "<Listbox.Root>",
+  "Listbox parts",
+);
 
-export function useListboxContext(): ListboxContextValue {
-  const context = useContext(ListboxContext);
-  if (!context) throw new Error("Listbox parts must be rendered inside Listbox.Root.");
-  return context;
-}
-
-const GridContext = createContext(false);
-
-interface ListboxRootOwnProps<T, V extends SelectionValue> {
-  items: readonly T[];
-  /** Compared by identity, as are `getItemLabel` and `isItemDisabled`: a new one re-reads every item. */
-  getItemValue: (item: T) => V;
-  getItemLabel: (item: T) => string;
-  isItemDisabled?: ((item: T) => boolean) | undefined;
+interface ListboxRootOwnProps<T, V extends SelectionValue> extends SelectionItemSource<T, V> {
   /** Disables every option. */
   disabled?: boolean | undefined;
   /** Arrow keys wrap from the last option to the first and back. @default false */
@@ -131,42 +147,6 @@ type ListboxRootImplProps<T, V extends SelectionValue> = Omit<
   SelectionProps<V, SelectionMode> &
   ListboxRootInternalProps<V>;
 
-function useListEntries<T, V extends SelectionValue>(
-  items: readonly T[],
-  getItemValue: (item: T) => V,
-  getItemLabel: (item: T) => string,
-  isItemDisabled: ((item: T) => boolean) | undefined,
-) {
-  return useMemo(() => {
-    const values = new Map<string, V>();
-    const entries: ListEntry[] = items.map((item) => {
-      const value = getItemValue(item);
-      const encoded = encodeSelectionValue(value);
-      if (values.has(encoded)) {
-        throw new Error(
-          `Selection items must have unique values. Duplicate value: ${String(value)}`,
-        );
-      }
-      values.set(encoded, value);
-      return {
-        value: encoded,
-        label: getItemLabel(item),
-        disabled: isItemDisabled?.(item) ?? false,
-      };
-    });
-    return { entries, values };
-  }, [items, getItemValue, getItemLabel, isItemDisabled]);
-}
-
-/** The entries between `from` and `to` in list order, both included, or none when either is missing. */
-function entryRange(entries: readonly ListEntry[], from: string, to: string): ListEntry[] {
-  const start = entries.findIndex((entry) => entry.value === from);
-  const end = entries.findIndex((entry) => entry.value === to);
-  if (start === -1 || end === -1) return [];
-  const [low, high] = start <= end ? [start, end] : [end, start];
-  return entries.slice(low, high + 1);
-}
-
 function RootElement<T, V extends SelectionValue>({
   ref,
   render,
@@ -189,54 +169,31 @@ function RootElement<T, V extends SelectionValue>({
 }: ListboxRootImplProps<T, V>) {
   const id = useId();
   const [node] = useState(() => new ListboxNode(`listbox:${id}`, null));
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<"label" | "content">();
   const multiple = selectionMode === "multiple";
-  const { entries, values } = useListEntries(items, getItemValue, getItemLabel, isItemDisabled);
+  const { entries, values } = useListEntries({ items, getItemValue, getItemLabel, isItemDisabled });
 
-  const selectedValues = useMemo<V[]>(
-    () => (value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V]),
-    [value],
-  );
+  const selectedValues = useMemo(() => toSelectionArray<V>(value), [value]);
   const selected = useMemo(
     () => new Set(selectedValues.map(encodeSelectionValue)),
     [selectedValues],
   );
-  const anchorRef = useRef<{ anchor: string | null; end: string | null }>({
-    anchor: null,
-    end: null,
-  });
+  const [rangeSelection] = useState(() => new RangeSelection());
 
-  const decode = (encoded: string): V | undefined =>
-    values.get(encoded) ?? selectedValues.find((entry) => encodeSelectionValue(entry) === encoded);
+  const emit = (next: readonly string[]) =>
+    emitSelection(selectionMode, onValueChange, decodeSelection(next, values, selectedValues));
 
-  const emit = (next: readonly string[]) => {
-    const decoded = next.map(decode).filter((entry): entry is V => entry !== undefined);
-    if (multiple) (onValueChange as MultipleSelectionProps<V>["onValueChange"])(decoded);
-    else if (decoded.length > 0)
-      (onValueChange as SingleSelectionProps<V>["onValueChange"])(decoded[0]);
-  };
-
-  const extendTo = (target: string) => {
-    const { anchor, end } = anchorRef.current;
-    if (anchor == null) return false;
-    const next = new Set(selected);
-    const rangeEnd = end ?? [...selected].at(-1) ?? target;
-    for (const entry of entryRange(entries, anchor, rangeEnd)) {
-      if (!entry.disabled) next.delete(entry.value);
-    }
-    for (const entry of entryRange(entries, target, anchor)) {
-      if (!entry.disabled) next.add(entry.value);
-    }
-    anchorRef.current.end = target;
-    if (next.size !== selected.size || [...next].some((entry) => !selected.has(entry))) {
-      emit([...next]);
-    }
+  const extendTo = (target: string, from?: string) => {
+    const next = rangeSelection.extendTo(entries, selected, target, from);
+    if (next === null) return false;
+    if (next.length !== selected.size || next.some((entry) => !selected.has(entry))) emit(next);
     return true;
   };
 
   const handlePick = (picked: string, { range }: PickModifiers, event: Event) => {
+    node.highlight(picked);
     if (multiple && range && extendTo(picked)) return;
-    anchorRef.current = { anchor: picked, end: picked };
+    rangeSelection.reset(picked);
     if (!multiple) {
       if (!selected.has(picked)) emit([picked]);
     } else {
@@ -246,13 +203,12 @@ function RootElement<T, V extends SelectionValue>({
           : [...selected, picked],
       );
     }
-    const native = decode(picked);
+    const [native] = decodeSelection([picked], values, selectedValues);
     if (native !== undefined) onPick?.(native, event);
   };
 
-  const handleNavigate = (target: string, { range }: PickModifiers) => {
-    if (multiple && range && extendTo(target)) return;
-    anchorRef.current = { anchor: target, end: target };
+  const handleNavigate = (target: string, { range }: PickModifiers, from: string | null) => {
+    if (range) extendTo(target, from ?? target);
   };
 
   const handleSelectAll = () => {
@@ -267,9 +223,10 @@ function RootElement<T, V extends SelectionValue>({
       loopFocus,
       typeahead,
       alwaysShowHighlight: false,
+      autoHighlight: false,
       scrollToIndex,
       onPick: handlePick,
-      onNavigate: handleNavigate,
+      onNavigate: multiple ? handleNavigate : undefined,
       onSelectAll: multiple ? handleSelectAll : undefined,
       onHighlightChange: undefined,
       highlightControlled: false,
@@ -278,15 +235,14 @@ function RootElement<T, V extends SelectionValue>({
 
   useEffect(() => () => node.dispose(), [node]);
 
-  const registerLabel = useCallback((rendered: boolean) => setLabelRendered(rendered), []);
   const selectedLabels = entries.filter((entry) => selected.has(entry.value));
   const firstSelected = selectedLabels[0]?.value;
 
   const context: ListboxContextValue = {
     node,
-    contentId: `${node.id}:content`,
-    labelId: labelRendered ? `${node.id}:label` : undefined,
-    registerLabel,
+    contentId: rendered.content,
+    labelId: rendered.label,
+    reportRendered,
     multiple,
     disabled,
     empty: entries.length === 0,
@@ -302,7 +258,7 @@ function RootElement<T, V extends SelectionValue>({
       <renderable.div
         ref={ref}
         render={render}
-        data-disabled={disabled ? "" : undefined}
+        data-disabled={dataAttr(disabled)}
         {...(rest as ComponentProps<"div">)}
         onPointerDownCapture={(event: PointerEvent<HTMLDivElement>) => {
           onPointerDownCapture?.(event);
@@ -336,27 +292,18 @@ const Root = StyledRoot as unknown as ListboxRootComponent;
 const StyledContent = withContext(renderable.div, "content");
 const StyledEmpty = withContext(renderable.div, "empty");
 const StyledInput = withContext(renderable.input, "input");
-const StyledItem = withContext(renderable.div, "item", {
-  defaultProps: { "data-reveal-group": "" },
-});
-const StyledItemGroup = withContext(renderable.div, "itemGroup");
-const StyledItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
-const ItemHint = withContext("span", "itemHint");
-const StyledItemText = withContext(renderable.span, "itemText");
+const ItemHint = withContext(renderable.span, "itemHint");
 const StyledLabel = withContext(renderable.span, "label");
 const StyledValueText = withContext(renderable.span, "valueText");
-const StyledItemIndicator = withContext(renderable.div, "itemIndicator");
 const StyledItemActions = withContext(renderable.div, "itemActions");
+const { ItemText, ItemIndicator, ItemGroup, ItemGroupLabel } = parts;
 
-function Label(props: ComponentProps<typeof StyledLabel>) {
-  const { node, registerLabel } = useListboxContext();
-  useLayoutEffect(() => {
-    registerLabel(true);
-    return () => registerLabel(false);
-  }, [registerLabel]);
+function Label({ id, ...props }: ComponentProps<typeof StyledLabel>) {
+  const { node, reportRendered } = useListboxContext();
+  const labelId = useReportRendered(reportRendered, "label", id ?? `${node.id}:label`);
   return (
     <StyledLabel
-      id={`${node.id}:label`}
+      id={labelId}
       {...props}
     />
   );
@@ -382,122 +329,37 @@ function Empty(props: ComponentProps<typeof StyledEmpty>) {
   );
 }
 
-const isDownloading = (event: MouseEvent) =>
-  event.altKey && event.currentTarget.matches("a[href], button[type='submit']");
-
-const opensInNewTab = (event: MouseEvent) =>
-  event.currentTarget.matches("a[href]") && (event.button === 1 || event.metaKey || event.ctrlKey);
-
-interface ItemContextValue {
-  selected: boolean;
-}
-
-const ItemContext = createContext<ItemContextValue>({ selected: false });
-
 export interface ListboxItemProps extends ComponentProps<typeof StyledItem> {
   /** One of the root's `items`. */
   item: unknown;
 }
 
-function Item({ ref, item, onClick, onMouseDown, ...props }: ListboxItemProps) {
+function Item({ item, onClick, onMouseDown, ...props }: ListboxItemProps) {
   const context = useListboxContext();
   const { node } = context;
   const value = context.valueOf(item);
-  const highlighted = useStore(node.store, selectIsHighlighted, value);
-  const selected = context.isSelected(value);
   const disabled = context.disabled || context.isItemDisabled(item);
-  const grid = useContext(GridContext);
-  const register = useCallback(
-    (element: HTMLElement | null) => (element ? node.registerItem(value, element) : undefined),
-    [node, value],
-  );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
-  const itemContext = useMemo(() => ({ selected }), [selected]);
 
   return (
-    <ItemContext value={itemContext}>
-      <StyledItem
-        id={node.itemId(value)}
-        role={grid ? "row" : "option"}
-        data-value={value}
-        aria-selected={selected}
-        aria-disabled={disabled || undefined}
-        data-selected={selected ? "" : undefined}
-        data-highlighted={highlighted ? "" : undefined}
-        data-disabled={disabled ? "" : undefined}
-        {...props}
-        ref={composedRef}
-        onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
-          onMouseDown?.(event);
-          if (isEditableTarget(event.target)) return;
-          event.preventDefault();
-          const active = event.currentTarget.ownerDocument.activeElement;
-          if (node.input == null || active !== node.input)
-            node.content?.focus({ preventScroll: true });
-        }}
-        onClick={(event: MouseEvent<HTMLDivElement>) => {
-          onClick?.(event);
-          if (event.defaultPrevented || disabled || event.button !== 0) return;
-          if (isEditableTarget(event.target)) return;
-          if (isDownloading(event) || opensInNewTab(event)) return;
-          node.highlight(value);
-          node.pick(value, event.nativeEvent, { range: event.shiftKey });
-        }}
-      />
-    </ItemContext>
-  );
-}
-
-function ItemText(props: ComponentProps<typeof StyledItemText>) {
-  return (
-    <StyledItemText
-      role={useContext(GridContext) ? "gridcell" : undefined}
+    <parts.Item
+      node={node}
+      value={value}
+      selected={context.isSelected(value)}
+      disabled={disabled}
       {...props}
+      onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
+        onMouseDown?.(event);
+        if (isEditableTarget(event.target)) return;
+        event.preventDefault();
+        const active = event.currentTarget.ownerDocument.activeElement;
+        if (node.input == null || active !== node.input)
+          node.content?.focus({ preventScroll: true });
+      }}
+      onClick={(event: MouseEvent<HTMLDivElement>) => {
+        onClick?.(event);
+        node.onItemClick(value, event);
+      }}
     />
-  );
-}
-
-const GroupLabelIdContext = createContext<string | undefined>(undefined);
-
-function ItemGroup({ id, ...props }: ComponentProps<typeof StyledItemGroup>) {
-  const generated = useId();
-  const groupId = id ?? `listbox-group:${generated}`;
-  const labelId = `${groupId}:label`;
-  return (
-    <GroupLabelIdContext value={labelId}>
-      <StyledItemGroup
-        id={groupId}
-        role={useContext(GridContext) ? "rowgroup" : "group"}
-        aria-labelledby={labelId}
-        {...props}
-      />
-    </GroupLabelIdContext>
-  );
-}
-
-function ItemGroupLabel({ children, ...props }: ComponentProps<typeof StyledItemGroupLabel>) {
-  const grid = useContext(GridContext);
-  return (
-    <StyledItemGroupLabel
-      id={useContext(GroupLabelIdContext)}
-      role={grid ? "row" : "presentation"}
-      {...props}
-    >
-      {grid ? <span role="rowheader">{children}</span> : children}
-    </StyledItemGroupLabel>
-  );
-}
-
-function ItemIndicator({ children, ...props }: ComponentProps<typeof StyledItemIndicator>) {
-  const { selected } = useContext(ItemContext);
-  return (
-    <StyledItemIndicator
-      aria-hidden
-      {...(selected ? { "data-checked": "" } : { "data-unchecked": "" })}
-      {...props}
-    >
-      {children ?? <CheckIcon />}
-    </StyledItemIndicator>
   );
 }
 
@@ -512,6 +374,7 @@ type ContentProps = Omit<ComponentProps<typeof StyledContent>, "role"> & {
 
 function Content({
   ref,
+  id,
   children,
   role = "listbox",
   scrollAreaProps,
@@ -524,16 +387,14 @@ function Content({
 }: ContentProps) {
   const context = useListboxContext();
   const { node } = context;
-  const highlighted = useStore(node.store, selectHighlighted);
-  const [sizeStyle, sizedProps] = splitInlineSizes(props, ["height", "maxHeight"]);
-  const setContent = useCallback(
-    (element: HTMLElement | null) => {
-      node.setContent(element);
-      return () => node.setContent(null);
-    },
-    [node],
+  const contentId = useReportRendered(
+    context.reportRendered,
+    "content",
+    id ?? `${node.id}:content`,
   );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setContent);
+  const activeDescendant = useListboxActiveDescendant(node);
+  const [sizeStyle, sizedProps] = splitInlineSizes(props, ["height", "maxHeight"]);
+  const composedRef = useComposedRefs(ref, useListboxContentRef(node));
 
   return (
     <ScrollArea.Root
@@ -544,11 +405,11 @@ function Content({
       <ScrollArea.Viewport
         render={
           <StyledContent
-            id={context.contentId}
+            id={contentId}
             tabIndex={0}
             aria-labelledby={context.labelId}
             aria-multiselectable={context.multiple || undefined}
-            aria-activedescendant={highlighted == null ? undefined : node.itemId(highlighted)}
+            aria-activedescendant={activeDescendant}
             {...sizedProps}
             ref={composedRef}
             style={{ ...sizeStyle, ...style }}
@@ -578,9 +439,9 @@ function Content({
         }
         role={role}
       >
-        <GridContext value={role === "grid"}>
+        <ListboxGridContext value={role === "grid"}>
           <ScrollArea.Content>{children}</ScrollArea.Content>
-        </GridContext>
+        </ListboxGridContext>
       </ScrollArea.Viewport>
       <ScrollArea.Scrollbar orientation="vertical">
         <ScrollArea.Thumb />
@@ -601,14 +462,8 @@ export function useListboxInputProps({ autoHighlight = false }: ListboxInputOpti
 > & { ref: (element: HTMLElement | null) => () => void } {
   const context = useListboxContext();
   const { node } = context;
-  const highlighted = useStore(node.store, selectHighlighted);
-  const ref = useCallback(
-    (element: HTMLElement | null) => {
-      node.setInput(element);
-      return () => node.setInput(null);
-    },
-    [node],
-  );
+  const activeDescendant = useListboxActiveDescendant(node);
+  const ref = useListboxInputRef(node);
   return {
     ref,
     autoComplete: "off",
@@ -616,14 +471,15 @@ export function useListboxInputProps({ autoHighlight = false }: ListboxInputOpti
     spellCheck: false,
     enterKeyHint: "go",
     disabled: context.disabled || undefined,
-    "data-disabled": context.disabled ? "" : undefined,
+    "data-disabled": dataAttr(context.disabled),
     "aria-haspopup": "listbox",
     "aria-controls": context.contentId,
     "aria-autocomplete": "list",
-    "aria-activedescendant": highlighted == null ? undefined : node.itemId(highlighted),
+    "aria-activedescendant": activeDescendant,
     onFocus: () => node.onInputFocus(autoHighlight),
     onBlur: () => node.onInputBlur(),
     onInput: (event: FormEvent<HTMLInputElement>) => {
+      node.setSuggesting(true);
       if (!autoHighlight || event.currentTarget.value.trim()) return;
       queueMicrotask(() => node.highlight(null));
     },
@@ -639,7 +495,7 @@ function Input({
   ...props
 }: ComponentProps<typeof StyledInput> & ListboxInputOptions) {
   const { ref: inputRef, ...inputProps } = useListboxInputProps({ autoHighlight });
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, inputRef);
+  const composedRef = useComposedRefs(ref, inputRef);
   return (
     <StyledInput
       {...mergeProps<ComponentProps<typeof StyledInput>>(
@@ -728,53 +584,13 @@ function ListboxEmptyState({ children = DEFAULT_EMPTY_MESSAGE }: { children?: Re
   );
 }
 
-interface SelectionSearchFieldProps extends Omit<SearchInputProps, "value" | "onClear"> {
-  search: SelectionSearch;
-  endElement?: ReactNode;
-}
-
-export function SelectionSearchField({
-  search,
-  endElement = search.endElement,
-  placeholder = search.placeholder,
-  autoFocus = search.autoFocus,
-  onChange,
-  size = "sm",
-  variant = "outline",
-  ...props
-}: SelectionSearchFieldProps) {
-  return (
-    <HStack
-      gap="1"
-      px="1"
-      _first={{ pt: "1" }}
-    >
-      <SearchInput
-        aria-label={placeholder}
-        {...props}
-        autoFocus={autoFocus}
-        placeholder={placeholder}
-        value={search.query}
-        onChange={(event) => {
-          search.setQuery(event.target.value);
-          onChange?.(event);
-        }}
-        onClear={() => search.setQuery("")}
-        size={size}
-        variant={variant}
-      />
-      {endElement}
-    </HStack>
-  );
-}
-
 interface ListboxSearchFieldProps extends SelectionSearchFieldProps {
   inputRef: Ref<HTMLInputElement>;
 }
 
 function SearchFieldInput({ inputRef, ...props }: ListboxSearchFieldProps) {
   const { ref, ...inputProps } = useListboxInputProps({ autoHighlight: true });
-  const composedRef = useComposedRefs(inputRef as Ref<HTMLElement>, ref);
+  const composedRef = useComposedRefs(inputRef, ref);
   return (
     <SelectionSearchField
       {...mergeProps<SelectionSearchFieldProps>(
@@ -823,7 +639,7 @@ export type ListboxProps<
   M extends SelectionMode = "single",
 > = ListboxBaseProps<T, V> & SelectionProps<V, M>;
 
-// Mounted only in virtual mode, so `useVirtualizer` never runs for plain lists.
+// Mounted only in virtual mode, so the virtualizer never runs for plain lists.
 function VirtualListRows<T>({
   items,
   renderRow,
@@ -837,37 +653,15 @@ function VirtualListRows<T>({
   getItemKey: (index: number) => string | number;
   scrollToIndexRef: ScrollToIndexRef;
 }) {
-  const [inset, setInset] = useState({ start: 0, end: 0 });
-  useLayoutEffect(() => {
-    if (!scrollElement) return;
-    const style = getComputedStyle(scrollElement);
-    setInset({
-      start: parseFloat(style.paddingTop) || 0,
-      end: parseFloat(style.paddingBottom) || 0,
-    });
-  }, [scrollElement]);
-
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => scrollElement,
+  const getScrollElement = useCallback(() => scrollElement, [scrollElement]);
+  return useVirtualList({
+    items,
+    getScrollElement,
     estimateSize: () => VIRTUAL_ITEM_HEIGHT,
-    overscan: 10,
     getItemKey,
-    scrollMargin: inset.start,
-    scrollPaddingStart: inset.start,
-    scrollPaddingEnd: inset.end,
-  });
-
-  useScrollToIndexRef(virtualizer, scrollToIndexRef);
-
-  return (
-    <VirtualRows
-      virtualizer={virtualizer}
-      items={items}
-    >
-      {renderRow}
-    </VirtualRows>
-  );
+    scrollToIndexRef,
+    renderItem: renderRow,
+  }).rows;
 }
 
 interface ManagedListProps<T, V extends SelectionValue> extends Omit<
@@ -875,7 +669,7 @@ interface ManagedListProps<T, V extends SelectionValue> extends Omit<
   "indicatorPosition" | "virtual"
 > {
   managed: ManagedListbox<T, V>;
-  contentProps?: HTMLStyledProps<"div">;
+  contentProps?: Omit<ContentProps, "role">;
 }
 
 export function ManagedList<T, V extends SelectionValue>({
@@ -971,16 +765,10 @@ function RevealSelection<T, V extends SelectionValue>({
   managed: ManagedListbox<T, V>;
 }) {
   const { node, firstSelected } = useListboxContext();
-  const { controller, virtual } = managed;
 
-  useRevealSelection(node, true, controller.search.query, firstSelected, (value) => {
+  useRevealSelection(node, true, managed.controller.search.query, firstSelected, (value) => {
+    node.scrollTo(value);
     const content = node.content;
-    if (virtual) {
-      node.scrollTo(value);
-    } else {
-      const item = node.elementOf(value);
-      if (content && item) scrollWithinContainer(content, item);
-    }
     const active = content?.ownerDocument.activeElement;
     // Unfocused, a highlight would read as a second selection.
     if (active != null && (content?.contains(active) || active === node.input)) {
@@ -999,15 +787,16 @@ function ListboxSimple<T, V extends SelectionValue>(
 ): JSX.Element;
 function ListboxSimple<T, V extends SelectionValue>(props: ListboxProps<T, V, SelectionMode>) {
   const listboxProps = { ...props, search: props.search ?? true };
-  const { managed, rootProps, rest } = useManagedListbox<T, V, typeof listboxProps>(listboxProps);
+  const { managed, rootProps, listOptions, rest } = useManagedListbox<T, V, typeof listboxProps>(
+    listboxProps,
+  );
   const {
     label,
     contentCss,
     "aria-label": ariaLabel,
     "aria-labelledby": ariaLabelledBy,
-    ...restProps
+    ...rootRest
   } = rest;
-  const [listOptions, rootRest] = splitManagedListOptions<T, V, typeof restProps>(restProps);
   const contentProps: HTMLStyledProps<"div"> = { css: contentCss };
   if (ariaLabel !== undefined) contentProps["aria-label"] = ariaLabel;
   if (ariaLabelledBy !== undefined) contentProps["aria-labelledby"] = ariaLabelledBy;

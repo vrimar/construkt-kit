@@ -1,11 +1,31 @@
-import { useMemo } from "react";
+import type { ComponentType } from "react";
 
-import { columnMeta, facetOptions, filterValues } from "../../columns";
+import { columnMeta, filterValues } from "../../columns";
 import { useDataTableContext } from "../../context";
-import type { ColumnFilterLayout, DataTableHeader } from "../../types";
+import type {
+  ColumnFilterLayout,
+  ColumnFilterProps,
+  ColumnFilterType,
+  DataTableHeader,
+} from "../../types";
 import { getColumnLabel } from "../columnLabel";
+import { ColumnDateFilter } from "./ColumnDateFilter";
+import { ColumnNumberFilter } from "./ColumnNumberFilter";
+import { ColumnSearchInput } from "./ColumnSearchInput";
+import { ColumnSelectFilter } from "./ColumnSelectFilter";
 import { FILTER_DEBOUNCE_MS } from "./constants";
-import { filterKinds } from "./filterKinds";
+
+const filterControls: Record<ColumnFilterType, ComponentType<ColumnFilterProps>> = {
+  input: ColumnSearchInput,
+  select: ColumnSelectFilter,
+  date: ColumnDateFilter,
+  number: ColumnNumberFilter,
+};
+
+const filterLooks = {
+  cell: { size: "sm", variant: "plain" },
+  field: { size: "md", variant: "outline" },
+} as const satisfies Record<ColumnFilterLayout, Pick<ColumnFilterProps, "size" | "variant">>;
 
 export const filterPlaceholder = <TData extends object>(
   filterBy: string,
@@ -28,27 +48,20 @@ export const ColumnFilter = <TData extends object>({
   layout,
   draft,
 }: ColumnFilterControlProps<TData>) => {
-  const { labels, clientSide, selections } = useDataTableContext();
+  const { labels } = useDataTableContext();
   const column = header.column;
-  const meta = columnMeta(column);
-  const { Control } = filterKinds[meta.type];
-  const isSelect = meta.type === "select";
-  const selection = selections?.[column.id];
-  const facets = isSelect && clientSide && !selection ? column.getFacetedUniqueValues() : undefined;
-  const options = useMemo(
-    () => (!isSelect ? undefined : facets ? facetOptions(facets) : [...new Set(selection)]),
-    [isSelect, facets, selection],
-  );
+  const Control = filterControls[columnMeta(column).type];
 
   return (
     <Control
+      column={column}
       placeholder={filterPlaceholder(labels.filterBy, header)}
-      meta={meta}
       value={filterValues(draft ? draft.value : column.getFilterValue())}
       onChange={draft?.onChange ?? ((value) => column.setFilterValue(value))}
       layout={layout}
+      size={filterLooks[layout].size}
+      variant={filterLooks[layout].variant}
       debounceMs={draft ? 0 : FILTER_DEBOUNCE_MS}
-      options={options}
     />
   );
 };

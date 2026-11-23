@@ -35,7 +35,6 @@ export const SearchInput = ({
         hasValue &&
         onClear && (
           <InputGroupClearButton
-            size={size}
             aria-label={clearLabel}
             onClick={onClear}
           />

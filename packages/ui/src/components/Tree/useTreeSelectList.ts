@@ -1,18 +1,16 @@
 import { useCallback, useMemo } from "react";
 
-import { useSelectionSearch } from "../Listbox/managed";
-import type { SelectionSearchOptions } from "../Listbox/types";
-import type { SelectionSearch } from "../Listbox/useSelectionSearch";
 import {
-  type TreeCheckedState,
-  TreeCollection,
-  type TreeNodeAccessors,
-  type TreeNodes,
-} from "./treeCollection";
+  type SelectionSearch,
+  type SelectionSearchOptions,
+  useSelectionSearch,
+} from "../selection";
+import { TreeCollection, type TreeNodeAccessors, type TreeNodes } from "./treeCollection";
 import { filterTreeCollection } from "./treeCollectionUtils";
 import type { TreeNodeRenderDetails } from "./TreeRow";
 import { useTreeCheckSelection } from "./useTreeCheckSelection";
 import {
+  type TreeLazyLoad,
   type TreeLoadChildrenDetails,
   type TreeLoadChildrenErrorDetails,
   useTreeLazyLoad,
@@ -99,15 +97,13 @@ export interface TreeSelectListState<TNode> extends UseTreeSelectListReturn {
   search: SelectionSearch;
   displayedCollection: TreeCollection<TNode>;
   dndAllowed: boolean;
+  checkedValue: string[];
+  onCheckedChange: (value: string[]) => void;
+  isNodeCheckable: (node: TNode) => boolean;
   expandedValue: string[];
   onExpandedChange: (expandedValue: string[]) => void;
   toSourceIndexPath: (indexPath: number[]) => number[];
-  isCheckable: (details: TreeNodeRenderDetails<TNode>) => boolean;
-  checkedState: (node: TNode, isBranch: boolean) => TreeCheckedState;
-  toggle: (node: TNode, isBranch: boolean) => void;
-  loadingValues: ReadonlySet<string>;
-  isBranchLoaded: (value: string) => boolean;
-  carryLoads: (nextNodes: readonly TNode[]) => void;
+  lazyLoad: TreeLazyLoad<TNode>;
 }
 
 /**
@@ -172,14 +168,6 @@ export function useTreeSelectList<TNode>(
     loadedValues: lazyLoad.loadedValues,
   });
 
-  const handleExpandedChange = (nextExpandedValue: string[]) => {
-    const deferredValues = expansion.getOpenedValues(nextExpandedValue).filter(lazyLoad.needsLoad);
-    lazyLoad.start(deferredValues, expansion.expand);
-    expansion.setExpandedValue(
-      nextExpandedValue.filter((treeValue) => !deferredValues.includes(treeValue)),
-    );
-  };
-
   const toSourceIndexPath = useCallback(
     (indexPath: number[]) =>
       displayedCollection === collection
@@ -188,7 +176,7 @@ export function useTreeSelectList<TNode>(
     [collection, displayedCollection],
   );
 
-  const checks = useTreeCheckSelection({
+  const { isCheckable, ...checks } = useTreeCheckSelection({
     collection,
     displayedCollection,
     value,
@@ -196,35 +184,20 @@ export function useTreeSelectList<TNode>(
     isNodeCheckable,
     toSourceIndexPath,
   });
-  const { allSelected, someSelected } = checks.selectAll;
-  const canSelectAll = !allSelected && checks.hasDisplayedSelectable;
-  const canDeselectAll = allSelected || someSelected;
 
   const state: TreeSelectListState<TNode> = {
-    allSelected,
-    someSelected,
-    canSelectAll,
-    canDeselectAll,
-    selectAll: () => {
-      if (canSelectAll) onValueChange(checks.selectAll.select());
-    },
-    deselectAll: () => {
-      if (canDeselectAll) onValueChange(checks.selectAll.clear());
-    },
-    selectableCount: checks.selectableCount,
-    selectedCount: checks.selectedCount,
+    ...checks,
     search,
     displayedCollection,
     dndAllowed: normalizedQuery === "" && nodeFilter == null,
+    checkedValue: value,
+    onCheckedChange: onValueChange,
+    isNodeCheckable: isCheckable,
     expandedValue: expansion.visibleExpandedValue,
-    onExpandedChange: handleExpandedChange,
+    onExpandedChange: expansion.setExpandedValue,
     toSourceIndexPath,
-    isCheckable: checks.isCheckable,
-    checkedState: checks.checkedState,
-    toggle: checks.toggle,
-    loadingValues: lazyLoad.loadingValues,
-    isBranchLoaded: (treeValue) => !lazyLoad.needsLoad(treeValue),
-    carryLoads: (nextNodes) => lazyLoad.carry(nodes, nextNodes),
+    // A loaded branch opens in the stored expansion, which outlasts a query.
+    lazyLoad: { ...lazyLoad, start: (values) => lazyLoad.start(values, expansion.expand) },
   };
   return state;
 }

@@ -76,8 +76,6 @@ export const InvalidField = meta.story({
 
 export const Open = meta.story({
   tags: ["open-state"],
-  // The phone sheet traps focus, so the trigger behind its aria-hidden page is unreachable.
-  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
   render: () => (
     <Box maxW="320px">
       <DatePicker

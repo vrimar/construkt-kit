@@ -3,19 +3,14 @@ import {
   type Virtualizer,
   defaultRangeExtractor,
   observeElementOffset,
-  useVirtualizer,
 } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { ScrollArea, type ScrollAreaProps } from "./ScrollArea";
-import {
-  type RenderVirtualItem,
-  type ScrollToIndexRef,
-  VirtualRows,
-  useScrollToIndexRef,
-} from "./VirtualRows";
+import { useVirtualList } from "./useVirtualList";
+import type { RenderVirtualItem, ScrollToIndexRef } from "./VirtualRows";
 
 export interface VirtualScrollAreaProps<T> extends Omit<ScrollAreaProps, "children"> {
   /** The list of items to virtualize. */
@@ -96,36 +91,8 @@ export const VirtualScrollArea = <T,>({
 }: VirtualScrollAreaProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const setViewport = useComposedRefs(parentRef, ref);
-
-  const [listElement, setListElement] = useState<HTMLDivElement | null>(null);
-  const [scrollMargin, setScrollMargin] = useState(0);
+  const getScrollElement = useCallback(() => parentRef.current, []);
   const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
-
-  // Measures the list's offset instead of wrapping `header`: a wrapper would confine a sticky header.
-  useLayoutEffect(() => {
-    const viewport = parentRef.current;
-    const content = listElement?.parentElement;
-    if (!viewport || !listElement || !content) return;
-    const measureHeader = () => {
-      setScrollMargin(
-        listElement.getBoundingClientRect().top -
-          viewport.getBoundingClientRect().top -
-          viewport.clientTop +
-          viewport.scrollTop,
-      );
-      let stickyHeight = 0;
-      for (let el = listElement.previousElementSibling; el; el = el.previousElementSibling) {
-        if (getComputedStyle(el).position === "sticky") {
-          stickyHeight += el.getBoundingClientRect().height;
-        }
-      }
-      setStickyHeaderHeight(stickyHeight);
-    };
-    measureHeader();
-    const observer = new ResizeObserver(measureHeader);
-    observer.observe(content);
-    return () => observer.disconnect();
-  }, [listElement]);
 
   const rangeExtractor = useCallback(
     (range: Range) => {
@@ -148,14 +115,16 @@ export const VirtualScrollArea = <T,>({
   const coveredStart = stickyHeaderHeight + scrollPaddingStart;
   const visibleItemsRef = useLatestRef({ onVisibleItemsChange, coveredStart });
 
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => parentRef.current,
+  const { virtualizer, rows, listElement } = useVirtualList({
+    items,
+    getScrollElement,
     estimateSize: typeof itemHeight === "function" ? itemHeight : () => itemHeight,
     overscan,
     getItemKey,
+    measure,
+    scrollToIndexRef,
+    renderItem: children,
     rangeExtractor,
-    scrollMargin,
     scrollPaddingStart: coveredStart,
     // onChange only fires when the rendered range changes; firstVisible moves with every offset.
     observeElementOffset: (instance, onOffset) =>
@@ -166,6 +135,24 @@ export const VirtualScrollArea = <T,>({
       }),
     onChange: (instance) => onVisibleItemsChange?.(findVisibleItems(instance, coveredStart)),
   });
+
+  useLayoutEffect(() => {
+    const content = listElement?.parentElement;
+    if (!listElement || !content) return;
+    const measureHeader = () => {
+      let stickyHeight = 0;
+      for (let el = listElement.previousElementSibling; el; el = el.previousElementSibling) {
+        if (getComputedStyle(el).position === "sticky") {
+          stickyHeight += el.getBoundingClientRect().height;
+        }
+      }
+      setStickyHeaderHeight(stickyHeight);
+    };
+    measureHeader();
+    const observer = new ResizeObserver(measureHeader);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [listElement]);
 
   useLayoutEffect(() => {
     onVisibleItemsChange?.(findVisibleItems(virtualizer, coveredStart));
@@ -188,22 +175,13 @@ export const VirtualScrollArea = <T,>({
     virtualizer.elementsCache.forEach((element) => virtualizer.measureElement(element));
   }, [virtualizer, fixedItemHeight]);
 
-  useScrollToIndexRef(virtualizer, scrollToIndexRef);
-
   return (
     <ScrollArea
       ref={setViewport}
       {...scrollAreaProps}
     >
       {header}
-      <VirtualRows
-        ref={setListElement}
-        virtualizer={virtualizer}
-        items={items}
-        measure={measure}
-      >
-        {children}
-      </VirtualRows>
+      {rows}
     </ScrollArea>
   );
 };

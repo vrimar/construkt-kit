@@ -1,69 +1,22 @@
-import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
-import { type RefObject, useEffect } from "react";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
+import { useEffect } from "react";
 
+import { createEdgeAutoScroll } from "../../hooks/edgeAutoScroll";
 import { useLatestRef } from "../../hooks/useLatestRef";
 
-type AutoScrollArgs = Parameters<typeof autoScrollForElements>[0];
-type CanScroll = NonNullable<AutoScrollArgs["canScroll"]>;
-type FeedbackArgs = Parameters<CanScroll>[0];
-type Axis = "vertical" | "horizontal";
+type CanScroll = NonNullable<Parameters<typeof monitorForElements>[0]["canMonitor"]>;
 type MaxScrollSpeed = "standard" | "fast";
+
+const MAX_SPEED: Record<MaxScrollSpeed, number> = { standard: 15, fast: 25 };
 
 interface DragAutoScrollOptions {
   /** Scroll container to auto-scroll near its edges during a drag. */
   element: Element | null | undefined;
-  axis: Axis;
+  axis: "vertical" | "horizontal";
   disabled: boolean;
   maxScrollSpeed?: MaxScrollSpeed;
-  /** Whether a drag scrolls `element`. The first claim that accepts a drag sets its axis and speed. */
+  /** Whether a drag scrolls `element`. */
   canScroll: CanScroll;
-}
-
-interface Claim {
-  axis: Axis;
-  options: Readonly<RefObject<{ maxScrollSpeed: MaxScrollSpeed; canScroll: CanScroll }>>;
-}
-
-interface SharedRegistration {
-  claims: Set<Claim>;
-  cleanup: () => void;
-}
-
-// pdnd keeps one registration per element, so instances sharing a scroll container share it too.
-const registrations = new WeakMap<Element, SharedRegistration>();
-
-const claimFor = (claims: Set<Claim>, args: FeedbackArgs) => {
-  for (const claim of claims) {
-    if (claim.options.current.canScroll(args)) return claim;
-  }
-  return undefined;
-};
-
-function claimAutoScroll(element: Element, claim: Claim) {
-  let shared = registrations.get(element);
-  if (!shared) {
-    const claims = new Set<Claim>();
-    shared = {
-      claims,
-      cleanup: autoScrollForElements({
-        element,
-        canScroll: (args) => claimFor(claims, args) !== undefined,
-        getAllowedAxis: (args) => claimFor(claims, args)?.axis ?? "all",
-        getConfiguration: (args) => ({
-          maxScrollSpeed: claimFor(claims, args)?.options.current.maxScrollSpeed ?? "standard",
-        }),
-      }),
-    };
-    registrations.set(element, shared);
-  }
-  const { claims, cleanup } = shared;
-  claims.add(claim);
-  return () => {
-    claims.delete(claim);
-    if (claims.size > 0) return;
-    cleanup();
-    registrations.delete(element);
-  };
 }
 
 /** Edge auto-scroll; re-binds when the scroll element mounts or changes. */
@@ -78,6 +31,22 @@ export function useDragAutoScroll({
 
   useEffect(() => {
     if (disabled || !element) return;
-    return claimAutoScroll(element, { axis, options });
+    const edgeScroll = createEdgeAutoScroll(() => ({
+      element: element as HTMLElement,
+      axis: axis === "vertical" ? "y" : "x",
+      maxSpeed: MAX_SPEED[options.current.maxScrollSpeed],
+    }));
+    const stopMonitoring = monitorForElements({
+      canMonitor: (args) => options.current.canScroll(args),
+      onDrag: ({ location }) => {
+        const { clientX, clientY } = location.current.input;
+        edgeScroll.update(clientX, clientY);
+      },
+      onDrop: () => edgeScroll.stop(),
+    });
+    return () => {
+      stopMonitoring();
+      edgeScroll.stop();
+    };
   }, [disabled, element, axis, options]);
 }

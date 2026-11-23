@@ -7,8 +7,8 @@ import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
 import { sheetOf } from "../../_shared/sheet";
 import { Field } from "../Form";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
-import { groupLabels, highlightedValue, produceProps } from "../Listbox/selection.fixtures";
-import { encodeSelectionValue } from "../Listbox/useSelectionController";
+import { encodeSelectionValue } from "../selection";
+import { groupLabels, highlightedValue, produceProps } from "../selection/selection.fixtures";
 import { Select, type SelectProps } from "./Select";
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
@@ -81,7 +81,7 @@ describe("Select", () => {
     );
   });
 
-  it("names the trigger after its Field's label, invalid and described by its error", () => {
+  it("names the trigger and its list after its Field's label, invalid and described by its error", async () => {
     render(
       <Field
         label="Fruit"
@@ -90,17 +90,21 @@ describe("Select", () => {
       >
         <Select
           {...optionProps}
-          value={null}
+          value={1}
           onValueChange={vi.fn()}
+          triggerProps={{ id: "fruit" }}
         />
       </Field>,
     );
 
-    const trigger = screen.getByRole("button", { name: "Fruit Select item" });
+    const trigger = screen.getByRole("button", { name: "Fruit Alpha" });
     expect(trigger.getAttribute("aria-invalid")).toBe("true");
     expect(
       document.getElementById(trigger.getAttribute("aria-describedby") ?? "")?.textContent,
     ).toBe("Pick a fruit.");
+
+    await userEvent.click(trigger);
+    expect(screen.getByRole("listbox", { name: "Fruit" })).not.toBeNull();
   });
 
   it("uses trigger width by default", () => {
@@ -404,20 +408,28 @@ describe("Select", () => {
   });
 
   describe("highlight scrolling", () => {
-    const scrollIntoView = vi.fn();
+    const ROW = 60;
+    const placeOptionsInRows = () =>
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
+        this: Element,
+      ) {
+        const content = this.closest(".listbox__content");
+        if (this === content) return DOMRect.fromRect({ height: 100 });
+        const index = Number(this.getAttribute("data-value")?.replace(/\D/g, "") || 1) - 1;
+        return DOMRect.fromRect({ y: index * ROW - (content?.scrollTop ?? 0), height: ROW });
+      });
 
     beforeEach(() => {
-      vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(scrollIntoView);
       vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(400);
       vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(100);
     });
 
     afterEach(() => {
-      scrollIntoView.mockReset();
       vi.restoreAllMocks();
     });
 
     it("scrolls the keyboard-highlighted option into view after opening", async () => {
+      placeOptionsInRows();
       renderSelect({ search: true });
 
       await nextFrame();
@@ -425,9 +437,7 @@ describe("Select", () => {
       await nextFrame();
       await userEvent.click(screen.getByRole("textbox"));
       await userEvent.keyboard("{ArrowUp}");
-      expect(scrollIntoView.mock.contexts.at(-1)).toBe(
-        screen.getByRole("option", { name: "Gamma" }),
-      );
+      expect(screen.getByRole("listbox").scrollTop).toBe(2 * ROW + ROW - 100);
     });
 
     it("scrolls a virtual list to the keyboard-highlighted index", async () => {
@@ -448,6 +458,7 @@ describe("Select", () => {
     });
 
     it("does not scroll when an option is pressed", async () => {
+      placeOptionsInRows();
       render(
         <Select
           {...optionProps}
@@ -462,7 +473,7 @@ describe("Select", () => {
       await nextFrame();
       await userEvent.click(screen.getByRole("option", { name: "Beta" }));
       expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).not.toBeNull();
-      expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(screen.getByRole("listbox").scrollTop).toBe(0);
     });
   });
 

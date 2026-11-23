@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { Store } from "../../primitives/store";
+
 export type ToastType = "success" | "error" | "loading" | "info" | "warning";
 
 /** Where a toast is in its life: shown, animating out after a dismiss, or gone. */
@@ -99,7 +101,6 @@ export interface ToastEntry extends Toast {
   priority: ToastPriority;
   paused: boolean;
   closing: boolean;
-  promise?: unknown;
 }
 
 export interface ToastSnapshot {
@@ -147,15 +148,13 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
   let paused = false;
   let nextId = 0;
   let nextInstance = 0;
-  let snapshot: ToastSnapshot = { toasts, expanded: false };
+  const store = new Store<ToastSnapshot>({ toasts, expanded: false });
   const dismissed = new Set<string>();
   const promiseTokens = new Map<string, symbol>();
-  const listeners = new Set<() => void>();
 
-  const commit = (expanded = snapshot.expanded) => {
-    if (snapshot.toasts === toasts && snapshot.expanded === expanded) return;
-    snapshot = { toasts, expanded };
-    for (const listener of [...listeners]) listener();
+  const commit = (expanded = store.state.expanded) => {
+    if (store.state.toasts === toasts && store.state.expanded === expanded) return;
+    store.setState({ toasts, expanded });
   };
 
   const find = (id: string) =>
@@ -174,11 +173,10 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
     return shown;
   };
 
-  const create = (options: ToastOptions & { promise?: unknown }): string => {
+  const create = (options: ToastOptions): string => {
     const id = options.id ?? `toast:${++nextId}`;
     const existing = find(id);
     if (existing?.closing) return id;
-    if ("promise" in options && options.promise !== existing?.promise) promiseTokens.delete(id);
     dismissed.delete(id);
 
     if (existing) {
@@ -212,12 +210,16 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
     return id;
   };
 
-  const remove = (id?: string) => {
-    const removed = [...toasts, ...queue].filter((toast) => id == null || toast.id === id);
-    for (const toast of removed) {
+  const forget = (entries: readonly ToastEntry[]) => {
+    for (const toast of entries) {
       dismissed.add(toast.id);
       promiseTokens.delete(toast.id);
     }
+  };
+
+  const remove = (id?: string) => {
+    const removed = [...toasts, ...queue].filter((toast) => id == null || toast.id === id);
+    forget(removed);
     if (id != null) dismissed.add(id);
     toasts = toasts.filter((toast) => id != null && toast.id !== id);
     queue = queue.filter((toast) => id != null && toast.id !== id);
@@ -230,10 +232,7 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
   const dismiss = (id?: string) => {
     const dropped = queue.filter((toast) => id == null || toast.id === id);
     queue = queue.filter((toast) => id != null && toast.id !== id);
-    for (const toast of dropped) {
-      dismissed.add(toast.id);
-      promiseTokens.delete(toast.id);
-    }
+    forget(dropped);
     const leaving = toasts.filter((toast) => (id == null || toast.id === id) && !toast.closing);
     if (leaving.length === 0) return;
     toasts = toasts.map((toast) => (leaving.includes(toast) ? { ...toast, closing: true } : toast));
@@ -268,10 +267,9 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
     options: ToastPromiseOptions<T>,
     shared: UntypedToastOptions = {},
   ) {
-    const id = create({ ...shared, ...options.loading, promise: task, type: "loading" });
+    const id = create({ ...shared, ...options.loading, type: "loading" });
     const token = Symbol(id);
-    const current = find(id);
-    if (current?.promise === task && !current.closing) promiseTokens.set(id, token);
+    if (find(id)?.closing === false) promiseTokens.set(id, token);
     const isCurrent = () => promiseTokens.get(id) === token && !find(id)?.closing;
 
     let removable = true;
@@ -329,12 +327,7 @@ export function createToastStore({ max }: { max: number }): ToastStoreInternal {
     isDismissed: (id) => dismissed.has(id),
     getVisibleToasts: () => toasts.filter((toast) => !dismissed.has(toast.id)),
     getCount: () => toasts.length,
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    getSnapshot: () => snapshot,
+    subscribe: store.subscribe,
+    getSnapshot: store.getSnapshot,
   };
 }

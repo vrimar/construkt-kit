@@ -1,16 +1,19 @@
+import { sameItems } from "@construkt-kit/utils";
 import { CheckIcon, MinusIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode, useRef, useState } from "react";
 
 import { createSlotRecipeContext, styled } from "#styled-system/jsx";
 import { checkbox } from "#styled-system/recipes";
-import type { HTMLStyledProps } from "#styled-system/types";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
-import { createChangeDetails } from "../../primitives/change";
-import { useFieldsetContext, useFormControl } from "../../primitives/field";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { emitChange } from "../../primitives/change";
+import {
+  useFieldFocusControl,
+  useFieldsetContext,
+  useFormFieldState,
+} from "../../primitives/field";
+import { mergeProps, renderable } from "../../primitives/render";
 import type { HiddenInputControlProps, WithRef } from "../../types";
 import {
   type CheckableProps,
@@ -18,10 +21,13 @@ import {
   type CheckedChangeReason,
   type CheckedState,
   CheckableContext,
+  CheckableHiddenInput,
   CheckboxGroupContext,
+  splitCheckableProps,
   useCheckable,
   useCheckableContext,
 } from "../checkable";
+import { toggleMember } from "../toggleMember";
 
 export type { CheckedChangeDetails as CheckboxCheckedChangeDetails };
 export type CheckboxCheckedState = CheckedState;
@@ -38,33 +44,9 @@ type StyledRootProps = ComponentProps<typeof StyledRoot>;
 export interface CheckboxRootProps
   extends Omit<StyledRootProps, keyof CheckableProps>, CheckableProps {}
 
-function Root({
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  name,
-  value,
-  form,
-  id,
-  ...props
-}: CheckboxRootProps) {
-  const checkable = useCheckable({
-    checked,
-    defaultChecked,
-    onCheckedChange,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    name,
-    value,
-    form,
-    id,
-  });
+function Root(rootProps: CheckboxRootProps) {
+  const [checkableProps, props] = splitCheckableProps(rootProps);
+  const checkable = useCheckable(checkableProps);
 
   return (
     <CheckableContext value={checkable}>
@@ -97,34 +79,20 @@ function Label(props: ComponentProps<typeof StyledLabel>) {
   );
 }
 
-type HiddenInputProps = ComponentProps<typeof renderable.input>;
-
-function HiddenInput({ ref, ...props }: HiddenInputProps) {
-  const { inputProps } = useCheckableContext("Checkbox.HiddenInput");
-  const composedRef = useComposedRefs(inputProps.ref, ref);
-  return (
-    <renderable.input
-      {...mergeProps<HiddenInputProps>(inputProps, props)}
-      ref={composedRef}
-    />
-  );
-}
-
-const CheckGlyph = styled(CheckIcon);
-const MinusGlyph = styled(MinusIcon);
+const StyledIndicator = styled(renderable.svg);
 
 /** The tick, or a dash while indeterminate; nothing while unchecked. */
-const Indicator = ({ ref, ...props }: WithRef<HTMLStyledProps<"svg">, SVGSVGElement>) => {
+const Indicator = ({ render, ...props }: ComponentProps<typeof StyledIndicator>) => {
   const { state, stateAttributes } = useCheckableContext("Checkbox.Indicator");
   if (!state.checked && !state.indeterminate) return null;
-  const Glyph = state.indeterminate ? MinusGlyph : CheckGlyph;
+  const Glyph = state.indeterminate ? MinusIcon : CheckIcon;
 
   return (
-    <Glyph
-      ref={ref}
+    <StyledIndicator
       strokeWidth={3}
       {...stateAttributes}
       {...props}
+      render={render ?? <Glyph />}
     />
   );
 };
@@ -145,9 +113,6 @@ export interface CheckboxGroupProps extends Omit<StyledGroupProps, "defaultValue
   maxSelectedValues?: number | undefined;
 }
 
-const sameValues = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((item, index) => item === b[index]);
-
 function Group({
   ref,
   value: valueProp,
@@ -155,7 +120,7 @@ function Group({
   onValueChange,
   name,
   disabled,
-  readOnly = false,
+  readOnly,
   invalid,
   maxSelectedValues,
   ...props
@@ -165,32 +130,34 @@ function Group({
   const composedRef = useComposedRefs(groupRef, ref);
   const [initialValue] = useState(valueProp ?? defaultValue);
   const [value, setValue] = useControllableState({ value: valueProp, defaultValue });
-  const groupDisabled = disabled ?? fieldset?.disabled ?? false;
   const isChecked = (item: string) => value.includes(item);
   const isAtMax = maxSelectedValues != null && value.length >= maxSelectedValues;
 
   const requestChange = (next: string[], reason: CheckedChangeReason, event?: Event) => {
-    const details = createChangeDetails(reason, event);
-    onValueChange?.(next, details);
-    if (!details.canceled) setValue(next);
+    if (emitChange(onValueChange, next, reason, event)) setValue(next);
   };
 
-  const toggle = (item: string, { reason, event }: CheckedChangeDetails) => {
-    if (groupDisabled || readOnly) return;
-    if (!isChecked(item) && isAtMax) return;
-    requestChange(
-      isChecked(item) ? value.filter((entry) => entry !== item) : [...value, item],
-      reason,
-      event,
-    );
-  };
-
-  useFormControl(
-    groupRef,
-    () => {
-      if (!sameValues(value, initialValue)) requestChange(initialValue, "form-reset");
+  const field = useFormFieldState(
+    { disabled, readOnly, invalid: invalid ?? (fieldset?.invalid || undefined) },
+    {
+      elementRef: groupRef,
+      onReset() {
+        if (!sameItems(value, initialValue)) requestChange(initialValue, "form-reset");
+      },
+      input: () => groupRef.current?.querySelector("input[type=checkbox]"),
     },
-    () => groupRef.current?.querySelector("input[type=checkbox]"),
+  );
+
+  const toggle = (item: string, reason: CheckedChangeReason, event: Event | undefined) => {
+    if (field.disabled || field.readOnly) return;
+    if (!isChecked(item) && isAtMax) return;
+    requestChange(toggleMember(value, item, { multiple: true }), reason, event);
+  };
+
+  useFieldFocusControl(() =>
+    groupRef.current
+      ?.querySelector<HTMLInputElement>("input[type=checkbox]:not(:disabled)")
+      ?.focus(),
   );
 
   return (
@@ -199,14 +166,17 @@ function Group({
         isChecked,
         toggle,
         name,
-        disabled: groupDisabled,
-        readOnly,
-        invalid: invalid ?? fieldset?.invalid ?? false,
+        disabled: field.disabled,
+        readOnly: field.readOnly,
+        invalid: field.invalid,
+        required: field.required && value.length === 0,
         isAtMax,
       }}
     >
       <StyledGroup
         role="group"
+        aria-labelledby={field.labelId}
+        aria-describedby={field.describedBy}
         {...props}
         ref={composedRef}
       />
@@ -232,7 +202,7 @@ function CheckboxSimple({
       ref={rootRef}
       {...rest}
     >
-      <HiddenInput
+      <CheckableHiddenInput
         ref={ref}
         {...inputProps}
       />
@@ -247,6 +217,6 @@ export const Checkbox = Object.assign(CheckboxSimple, {
   Control,
   Group,
   Label,
-  HiddenInput,
+  HiddenInput: CheckableHiddenInput,
   Indicator,
 });

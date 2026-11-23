@@ -18,6 +18,8 @@ export interface SubmitDialogProps {
   /** Spins the submit button and keeps the dialog open: Cancel, the close button and Esc do nothing. */
   loading?: boolean;
   submitDisabled?: boolean;
+  /** Paints the submit button in the `danger` palette. */
+  destructive?: boolean;
   onClose?: () => unknown;
   cancelLabel?: string;
   children: ReactNode;
@@ -48,6 +50,7 @@ export const SubmitDialog = ({
   submitButtonProps,
   loading,
   submitDisabled,
+  destructive,
   onClose,
   open = true,
   cancelLabel,
@@ -62,6 +65,7 @@ export const SubmitDialog = ({
     submitLabel,
     loading,
     submitDisabled,
+    destructive,
     submitButtonProps: { "data-autofocus": autoFocusButton || undefined, ...submitButtonProps },
   });
 

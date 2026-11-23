@@ -169,27 +169,33 @@ export function getChannelInputValue(
   ).toString();
 }
 
-/** A numeric channel input's bounds in a picker showing `format`; none for the css input. */
+/** A numeric channel input's bounds in a picker showing `format`; none for the hex and css text inputs. */
 export function getChannelInputRange(
   color: Color,
   channel: ExtendedColorChannel,
   format: ColorFormat,
 ): ColorChannelRange | undefined {
-  if (channel === "hex") return { minValue: 0, maxValue: 0xffffff, step: 1, pageSize: 10 };
-  if (channel === "css") return undefined;
+  if (channel === "hex" || channel === "css") return undefined;
   return getColorChannelRange(convertColor(color, getChannelSpace(format, channel)), channel);
 }
 
 const HEX_DIGITS = /^[0-9a-fA-F]{3,8}$/;
 
+const HEX_WITH_ALPHA = /^#?(?:[0-9a-fA-F]{4}|[0-9a-fA-F]{8})$/;
+
 /** `value` with a leading `#` when it is bare hex digits. */
 export const prefixHex = (value: string): string =>
   value.startsWith("#") || !HEX_DIGITS.test(value) ? value : `#${value}`;
 
-const FORMATS: ColorFormat[] = ["hsba", "hsla", "rgba"];
+/** Whether `value` is hex with an alpha digit or byte, such as `#RGBA` or `RRGGBBAA`. */
+export const hexHasAlpha = (value: string): boolean => HEX_WITH_ALPHA.test(value.trim());
 
+/** The formats a picker switches between, in the order its format select lists them. */
+export const COLOR_FORMATS: readonly ColorFormat[] = ["rgba", "hsla", "hsba"];
+
+/** The format the format trigger switches to: the one listed before `format`, wrapping round. */
 export const getNextFormat = (format: ColorFormat): ColorFormat =>
-  FORMATS[FORMATS.indexOf(format) + 1] ?? FORMATS[0];
+  COLOR_FORMATS.at(COLOR_FORMATS.indexOf(format) - 1) ?? format;
 
 export const isColorFormat = (value: string): value is ColorFormat =>
-  (FORMATS as string[]).includes(value);
+  (COLOR_FORMATS as readonly string[]).includes(value);

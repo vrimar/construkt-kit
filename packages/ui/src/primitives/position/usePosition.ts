@@ -27,8 +27,6 @@ export interface UsePositionOptions {
   anchor: Anchor | null;
   /** Distance from the anchor in px, plus half the arrow when there is one. @default 8 */
   gutter?: number | undefined;
-  /** Sizes the popup to the anchor's width. */
-  sameWidth?: boolean | undefined;
 }
 
 export interface Position {
@@ -112,13 +110,7 @@ function createMiddleware(inputs: PositionInputs) {
  * writes `--anchor-width`, `--anchor-height`, `--available-width`, `--available-height` and
  * `--transform-origin` on the floating element.
  */
-export function usePosition({
-  open,
-  placement,
-  anchor,
-  gutter = 8,
-  sameWidth = false,
-}: UsePositionOptions): Position {
+export function usePosition({ open, placement, anchor, gutter = 8 }: UsePositionOptions): Position {
   const [floating, setFloating] = useState<HTMLElement | null>(null);
   const [preferred, ...fallbacks] = typeof placement === "string" ? [placement] : placement;
   const fallbackKey = fallbacks.join(" ");
@@ -162,7 +154,6 @@ export function usePosition({
     position: "fixed",
     top: 0,
     left: 0,
-    width: sameWidth ? "var(--anchor-width)" : undefined,
     transform: isPositioned
       ? `translate3d(${roundByDpr(x)}px, ${roundByDpr(y)}px, 0)`
       : "translate3d(0, -100vh, 0)",

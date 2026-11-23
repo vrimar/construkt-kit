@@ -11,8 +11,12 @@ import { HStack } from "#styled-system/jsx";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControlledMirror } from "../../hooks/useControlledMirror";
 import { useDebounce } from "../../hooks/useDebounce";
-import { FieldContext, joinIds, useFieldContext } from "../../primitives/field";
-import { dataAttr } from "../../primitives/render";
+import {
+  FieldContext,
+  fieldInputState,
+  resolveFieldControlState,
+  useFieldContext,
+} from "../../primitives/field";
 import type { Unstyled } from "../../types";
 import { IconButton } from "../Buttons";
 import {
@@ -174,7 +178,6 @@ export const NumberFilter = ({
 
   const clearButton = (fromText !== "" || toText !== "") && !disabled && (
     <InputGroupClearButton
-      size={size}
       aria-label={clearLabel}
       field={() => fromInputRef.current}
       onClick={handleClear}
@@ -227,6 +230,12 @@ export const NumberFilter = ({
 
   const isBetween = operator === "between";
 
+  const ownToInputProps = { ...sharedInputProps, ...managedInputProps, id: toInputId };
+  // Resolved here, not by registering with the Field, so its label keeps pointing at the first input.
+  const toInputProps = field
+    ? fieldInputState(resolveFieldControlState(field, null, ownToInputProps), ownToInputProps)
+    : ownToInputProps;
+
   const fromInput = (
     <InputGroup
       size={size}
@@ -266,16 +275,8 @@ export const NumberFilter = ({
             endElement={clearButton}
           >
             <Input
-              {...sharedInputProps}
-              {...managedInputProps}
-              id={toInputId}
+              {...toInputProps}
               aria-label={toLabel}
-              aria-describedby={joinIds([sharedInputProps["aria-describedby"], field?.describedBy])}
-              aria-invalid={sharedInputProps["aria-invalid"] ?? (field?.invalid || undefined)}
-              data-invalid={dataAttr(field?.invalid)}
-              disabled={disabled ?? field?.disabled}
-              readOnly={sharedInputProps.readOnly ?? field?.readOnly}
-              required={sharedInputProps.required ?? field?.required}
               placeholder={toLabel}
               value={toText}
               onChange={(e) => handleTextChange(setToText, e.target.value)}

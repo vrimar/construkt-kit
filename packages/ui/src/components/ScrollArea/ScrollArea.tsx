@@ -1,16 +1,13 @@
 import {
   type ComponentProps,
   type PointerEvent,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useState,
-  useSyncExternalStore,
 } from "react";
 
-import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import {
   type ScrollAreaVariant,
   type ScrollAreaVariantProps,
@@ -19,11 +16,13 @@ import {
 
 import { splitInlineSizes } from "../../foundations/cssSize";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { noDragProps } from "../../primitives/drag";
+import { useHasTabbable } from "../../primitives/focus";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
 import { useStore } from "../../primitives/store";
 import type { CssProp } from "../../types";
+import { createPartContext } from "../partContext";
 import {
   type ScrollAreaState,
   ScrollAreaNode,
@@ -40,14 +39,9 @@ const StyledScrollbar = withContext(renderable.div, "scrollbar");
 const StyledThumb = withContext(renderable.div, "thumb");
 const StyledCorner = withContext(renderable.div, "corner");
 
-const ScrollAreaContext = createContext<ScrollAreaNode | null>(null);
-const ScrollbarContext = createContext<ScrollbarOrientation | null>(null);
-
-function useScrollArea(part: string): ScrollAreaNode {
-  const node = useContext(ScrollAreaContext);
-  if (!node) throw new Error(`ScrollArea.${part} must be placed inside <ScrollArea.Root>.`);
-  return node;
-}
+const [ScrollAreaContext, useScrollArea] = createPartContext<ScrollAreaNode>("<ScrollArea.Root>");
+const [ScrollbarContext, useScrollbarOrientation] =
+  createPartContext<ScrollbarOrientation>("<ScrollArea.Scrollbar>");
 
 const selectEdges = (state: ScrollAreaState) => state.edges;
 const selectHovering = (state: ScrollAreaState) => state.hovering;
@@ -81,7 +75,7 @@ const pointerAttributes = (
 
 const trackAttributes = (scrolling: boolean) => ({
   "data-scrolling": dataAttr(scrolling),
-  "data-no-drag": "",
+  ...noDragProps,
 });
 
 type RootProps = ComponentProps<typeof StyledRoot>;
@@ -97,7 +91,7 @@ function Root({ ref, ...props }: RootProps) {
   }, [node, dir, edges.overflowX, edges.overflowY]);
 
   useLayoutEffect(() => node.checkHovering(), [node]);
-  useEffect(() => () => node.clearTimers(), [node]);
+  useEffect(() => () => node.dispose(), [node]);
 
   return (
     <ScrollAreaContext value={node}>
@@ -120,36 +114,10 @@ function Root({ ref, ...props }: RootProps) {
   );
 }
 
-const TABBABLE =
-  'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
-
-function useHasTabbable(node: HTMLElement | null, watch: boolean) {
-  const subscribe = useCallback(
-    (onChange: () => void) => {
-      if (!node || !watch) return () => {};
-      const observer = new MutationObserver(onChange);
-      observer.observe(node, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["tabindex", "disabled", "href", "contenteditable"],
-      });
-      return () => observer.disconnect();
-    },
-    [node, watch],
-  );
-
-  return useSyncExternalStore(
-    subscribe,
-    () => !node || !watch || node.querySelector(TABBABLE) !== null,
-    () => true,
-  );
-}
-
 type ViewportProps = ComponentProps<typeof StyledViewport>;
 
 function Viewport({ ref, ...props }: ViewportProps) {
-  const node = useScrollArea("Viewport");
+  const node = useScrollArea("ScrollArea.Viewport");
   const edges = useStore(node.store, selectEdges);
   const overflows = edges.overflowX || edges.overflowY;
   const [element, setElement] = useState<HTMLElement | null>(null);
@@ -187,7 +155,7 @@ function Viewport({ ref, ...props }: ViewportProps) {
 type ContentProps = ComponentProps<typeof StyledContent>;
 
 function Content({ ref, ...props }: ContentProps) {
-  const node = useScrollArea("Content");
+  const node = useScrollArea("ScrollArea.Content");
   const edges = useStore(node.store, selectEdges);
 
   return (
@@ -204,7 +172,7 @@ export type ScrollAreaScrollbarProps = ComponentProps<typeof StyledScrollbar> & 
 };
 
 function Scrollbar({ ref, orientation = "vertical", ...props }: ScrollAreaScrollbarProps) {
-  const node = useScrollArea("Scrollbar");
+  const node = useScrollArea("ScrollArea.Scrollbar");
   const edges = useStore(node.store, selectEdges);
   const hovering = useStore(node.store, selectHovering);
   const scrolling = useStore(node.store, selectScrolling, orientation);
@@ -223,8 +191,6 @@ function Scrollbar({ ref, orientation = "vertical", ...props }: ScrollAreaScroll
             ...trackAttributes(scrolling),
             onPointerDown: (event: PointerEvent<HTMLElement>) =>
               node.onTrackPointerDown(event, orientation),
-            onPointerUp: node.onPointerUp,
-            onPointerCancel: node.onPointerUp,
             // A native scrollbar doesn't take focus from the page when pressed.
             onMouseDown: (event) => event.preventDefault(),
           },
@@ -239,10 +205,8 @@ function Scrollbar({ ref, orientation = "vertical", ...props }: ScrollAreaScroll
 type ThumbProps = ComponentProps<typeof StyledThumb>;
 
 function Thumb({ ref, ...props }: ThumbProps) {
-  const node = useScrollArea("Thumb");
-  const orientation = useContext(ScrollbarContext);
-  if (!orientation)
-    throw new Error("ScrollArea.Thumb must be placed inside <ScrollArea.Scrollbar>.");
+  const node = useScrollArea("ScrollArea.Thumb");
+  const orientation = useScrollbarOrientation("ScrollArea.Thumb");
   const hovering = useStore(node.store, selectHovering);
   const dragging = useStore(node.store, selectDragging, orientation);
 
@@ -253,9 +217,6 @@ function Thumb({ ref, ...props }: ThumbProps) {
           ...pointerAttributes(orientation, hovering, dragging),
           onPointerDown: (event: PointerEvent<HTMLElement>) =>
             node.onThumbPointerDown(event, orientation),
-          onPointerMove: node.onThumbPointerMove,
-          onPointerUp: node.onPointerUp,
-          onPointerCancel: node.onPointerUp,
         },
         props,
       )}
@@ -267,7 +228,7 @@ function Thumb({ ref, ...props }: ThumbProps) {
 type CornerProps = ComponentProps<typeof StyledCorner>;
 
 function Corner({ ref, ...props }: CornerProps) {
-  const node = useScrollArea("Corner");
+  const node = useScrollArea("ScrollArea.Corner");
   const edges = useStore(node.store, selectEdges);
   const hovering = useStore(node.store, selectHovering);
 
@@ -287,7 +248,7 @@ function Corner({ ref, ...props }: CornerProps) {
   );
 }
 
-export type ScrollAreaProps = Omit<HTMLStyledProps<"div">, "scrollbar"> &
+export type ScrollAreaProps = Omit<RootProps, "scrollbar" | "scrollbars"> &
   Omit<ScrollAreaVariantProps, "scrollbars"> & {
     /**
      * @default 'both'

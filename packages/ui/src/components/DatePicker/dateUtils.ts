@@ -3,11 +3,11 @@ import {
   type CalendarDateTime,
   DateFormatter,
   type DateDuration,
+  type DateValue,
   type ZonedDateTime,
   endOfMonth,
   endOfWeek,
   endOfYear,
-  getLocalTimeZone,
   getWeeksInMonth,
   isSameDay,
   maxDate,
@@ -22,7 +22,11 @@ import {
   today,
 } from "@internationalized/date";
 
-export type DateValue = CalendarDate | CalendarDateTime | ZonedDateTime;
+import { joinRange } from "../../foundations/rangeText";
+
+export type { DateValue };
+
+export const joinDates = (dates: readonly string[]) => dates.join(", ");
 
 export type DateView = "day" | "month" | "year";
 
@@ -86,48 +90,36 @@ export function isNextRangeInvalid(end: DateValue, min?: DateValue, max?: DateVa
 
 export function alignStart(
   date: DateValue,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): DateValue {
-  let aligned = date;
-  if (duration.years) aligned = startOfYear(date);
-  else if (duration.months) aligned = startOfMonth(date);
-  else if (duration.weeks) aligned = startOfWeek(date, locale);
-  return constrainStart(date, aligned, duration, locale, min, max);
+  return constrainStart(date, startOfMonth(date), months, min, max);
 }
 
 export function alignEnd(
   date: DateValue,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): DateValue {
-  const shift = { ...duration };
-  if (shift.days) shift.days--;
-  else if (shift.weeks) shift.weeks--;
-  else if (shift.months) shift.months--;
-  else if (shift.years) shift.years--;
-  const aligned = alignStart(date, duration, locale).subtract(shift);
-  return constrainStart(date, aligned, duration, locale, min, max);
+  const aligned = startOfMonth(date).subtract({ months: months - 1 });
+  return constrainStart(date, aligned, months, min, max);
 }
 
 function constrainStart(
   date: DateValue,
   aligned: DateValue,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): DateValue {
   let start = aligned;
   if (min && date.compare(min) >= 0) {
-    start = maxDate(start, alignStart(toCalendarDate(min), duration, locale)) ?? start;
+    start = maxDate(start, alignStart(toCalendarDate(min), months)) ?? start;
   }
   if (max && date.compare(max) <= 0) {
-    start = minDate(start, alignEnd(toCalendarDate(max), duration, locale)) ?? start;
+    start = minDate(start, alignEnd(toCalendarDate(max), months)) ?? start;
   }
   return start;
 }
@@ -151,17 +143,14 @@ export function constrainValue(date: DateValue, min?: DateValue, max?: DateValue
 
 const WEEK_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
-const firstDayOf = (startOfWeekIndex: number | undefined) =>
-  startOfWeekIndex == null ? undefined : WEEK_DAYS[startOfWeekIndex];
-
 function getDaysInWeek(
   weekIndex: number,
   from: DateValue,
   locale: string,
-  startOfWeekIndex?: number,
+  startOfWeekIndex: number,
 ): DateValue[] {
   const days: DateValue[] = [];
-  let date = startOfWeek(from.add({ weeks: weekIndex }), locale, firstDayOf(startOfWeekIndex));
+  let date = startOfWeek(from.add({ weeks: weekIndex }), locale, WEEK_DAYS[startOfWeekIndex]);
   while (days.length < 7) {
     days.push(date);
     const next = date.add({ days: 1 });
@@ -171,14 +160,14 @@ function getDaysInWeek(
   return days;
 }
 
-/** The weeks of `from`'s month, each a row of days from the locale's or the given first weekday. */
+/** The weeks of `from`'s month, each a row of days from the given first weekday. */
 export function getMonthDays(
   from: DateValue,
   locale: string,
   numOfWeeks: number | undefined,
-  startOfWeekIndex?: number,
+  startOfWeekIndex: number,
 ): DateValue[][] {
-  const count = numOfWeeks ?? getWeeksInMonth(from, locale, firstDayOf(startOfWeekIndex));
+  const count = numOfWeeks ?? getWeeksInMonth(from, locale, WEEK_DAYS[startOfWeekIndex]);
   return Array.from({ length: count }, (_, week) =>
     getDaysInWeek(week, from, locale, startOfWeekIndex),
   );
@@ -187,19 +176,19 @@ export function getMonthDays(
 export function getWeekEdges(
   date: DateValue,
   locale: string,
-  startOfWeekIndex?: number,
+  startOfWeekIndex: number,
 ): [DateValue, DateValue] {
-  const firstDay = firstDayOf(startOfWeekIndex);
+  const firstDay = WEEK_DAYS[startOfWeekIndex];
   return [startOfWeek(date, locale, firstDay), endOfWeek(date, locale, firstDay)];
 }
 
 export function getWeekDays(
   date: DateValue,
-  startOfWeekIndex: number | undefined,
+  startOfWeekIndex: number,
   timeZone: string,
   locale: string,
 ): { value: DateValue; short: string; long: string }[] {
-  const first = startOfWeek(date, locale, firstDayOf(startOfWeekIndex));
+  const first = startOfWeek(date, locale, WEEK_DAYS[startOfWeekIndex]);
   const short = new DateFormatter(locale, { weekday: "short", timeZone });
   const long = new DateFormatter(locale, { weekday: "long", timeZone });
   return Array.from({ length: 7 }, (_, index) => {
@@ -214,15 +203,11 @@ export function getMonthNames(
   format: "long" | "short",
   reference: DateValue,
 ): string[] {
-  const id = reference.calendar.identifier;
-  if (id === "gregory" || id === "iso8601") {
-    const date = new Date(2021, 0, 1);
-    return Array.from({ length: 12 }, (_, month) => {
-      date.setMonth(month);
-      return date.toLocaleString(locale, { month: format });
-    });
-  }
-  const formatter = new DateFormatter(locale, { month: format, calendar: id, timeZone: "UTC" });
+  const formatter = new DateFormatter(locale, {
+    month: format,
+    calendar: reference.calendar.identifier,
+    timeZone: "UTC",
+  });
   return Array.from({ length: reference.calendar.getMonthsInYear(reference) }, (_, index) =>
     formatter.format(reference.set({ month: index + 1 }).toDate("UTC")),
   );
@@ -233,17 +218,8 @@ export function getDecadeRange(year: number): number[] {
   return Array.from({ length: 10 }, (_, index) => start + index);
 }
 
-export function getEndDate(start: DateValue, duration: DateDuration): DateValue {
-  const shift = { ...duration };
-  if (shift.days) shift.days--;
-  else shift.days = -1;
-  return start.add(shift);
-}
-
-export function getUnitDuration(duration: DateDuration): DateDuration {
-  const unit: DateDuration = {};
-  for (const key in duration) unit[key as keyof DateDuration] = 1;
-  return unit;
+export function getEndDate(start: DateValue, months: number): DateValue {
+  return start.add({ months, days: -1 });
 }
 
 function getEraFormat(date: DateValue): "short" | undefined {
@@ -288,7 +264,7 @@ function formatRange(start: DateValue, end: DateValue, formatter: DateFormatter,
     if (index < separator) startText += part.value;
     else if (index > separator) endText += part.value;
   }
-  return `${startText} – ${endText}`;
+  return joinRange(startText, endText);
 }
 
 export function formatSelectedDate(
@@ -304,10 +280,6 @@ export function formatSelectedDate(
   return formatRange(start, last, formatter, timeZone);
 }
 
-export function getTodayDate(timeZone: string | undefined): CalendarDate {
-  return today(timeZone ?? getLocalTimeZone());
-}
-
 interface AdjustedDates {
   startDate: DateValue;
   focusedDate: DateValue;
@@ -316,51 +288,41 @@ interface AdjustedDates {
 /** Keeps `focusedDate` within `min`–`max` and moves `startDate` so the visible range shows it. */
 export function adjustFocusedDate(
   { startDate, focusedDate }: AdjustedDates,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): AdjustedDates {
   const focused = constrainValue(focusedDate, min, max);
   if (isDateOutsideRange(focusedDate, min, max)) return { startDate, focusedDate: focused };
   if (focusedDate.compare(startDate) < 0) {
-    return { startDate: alignEnd(focusedDate, duration, locale, min, max), focusedDate: focused };
+    return { startDate: alignEnd(focusedDate, months, min, max), focusedDate: focused };
   }
-  if (focusedDate.compare(getEndDate(startDate, duration)) > 0) {
-    return { startDate: alignStart(focusedDate, duration, locale, min, max), focusedDate: focused };
+  if (focusedDate.compare(getEndDate(startDate, months)) > 0) {
+    return { startDate: alignStart(focusedDate, months, min, max), focusedDate: focused };
   }
   return { startDate, focusedDate: focused };
 }
 
-function getPage(
+export function getPage(
   direction: 1 | -1,
   focusedDate: DateValue,
   startDate: DateValue,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): AdjustedDates {
-  const move = (date: DateValue) =>
-    direction === 1 ? date.add(duration) : date.subtract(duration);
+  const by = { months };
+  const move = (date: DateValue) => (direction === 1 ? date.add(by) : date.subtract(by));
   return adjustFocusedDate(
     {
       focusedDate: move(focusedDate),
-      startDate: alignStart(
-        constrainStart(focusedDate, move(startDate), duration, locale, min, max),
-        duration,
-        locale,
-      ),
+      startDate: alignStart(constrainStart(focusedDate, move(startDate), months, min, max), months),
     },
-    duration,
-    locale,
+    months,
     min,
     max,
   );
 }
-
-export const getNextPage = getPage.bind(null, 1);
-export const getPreviousPage = getPage.bind(null, -1);
 
 /** Page Up and Down: a month at a time in the day view, a year with Shift. */
 export function getSection(
@@ -368,30 +330,14 @@ export function getSection(
   larger: boolean,
   focusedDate: DateValue,
   startDate: DateValue,
-  duration: DateDuration,
-  locale: string,
+  months: number,
   min?: DateValue,
   max?: DateValue,
 ): AdjustedDates {
-  const move = (date: DateValue, by: DateDuration) =>
-    direction === 1 ? date.add(by) : date.subtract(by);
-  if (!larger && !duration.days) {
-    return adjustFocusedDate(
-      { focusedDate: move(focusedDate, getUnitDuration(duration)), startDate },
-      duration,
-      locale,
-      min,
-      max,
-    );
-  }
-  if (duration.days) {
-    return getPage(direction, focusedDate, startDate, duration, locale, min, max);
-  }
-  const by = duration.weeks ? { months: 1 } : { years: 1 };
+  const by: DateDuration = larger ? { years: 1 } : { months: 1 };
   return adjustFocusedDate(
-    { focusedDate: move(focusedDate, by), startDate },
-    duration,
-    locale,
+    { focusedDate: direction === 1 ? focusedDate.add(by) : focusedDate.subtract(by), startDate },
+    months,
     min,
     max,
   );
@@ -401,7 +347,7 @@ export function getDateRangePreset(
   preset: DateRangePreset,
   locale: string,
   timeZone: string,
-  startOfWeekIndex?: number,
+  startOfWeekIndex: number,
 ): [DateValue, DateValue] {
   const day = toCalendarDate(now(timeZone));
   switch (preset) {
@@ -485,9 +431,9 @@ export interface VisibleRangeText {
 export function getViewRange(
   view: DateView,
   { focused, start }: { focused: DateValue; start: DateValue },
-  duration: DateDuration,
+  months: number,
 ): DateRange {
-  if (view === "day") return { start, end: getEndDate(start, duration) };
+  if (view === "day") return { start, end: getEndDate(start, months) };
   const years = view === "year" ? getDecadeRange(focused.year) : [focused.year];
   return {
     start: startOfYear(focused.set({ year: years[0] })),
@@ -506,7 +452,7 @@ export function getVisibleRangeText(
     const years = getDecadeRange(start.year);
     const first = String(years[0]);
     const last = String(years[years.length - 1]);
-    return { start: first, end: last, formatted: `${first} - ${last}` };
+    return { start: first, end: last, formatted: joinRange(first, last) };
   }
   const formatter = new DateFormatter(locale, {
     ...(view === "day" ? { month: "long" } : {}),
@@ -519,6 +465,6 @@ export function getVisibleRangeText(
   return {
     start: startText,
     end: endText,
-    formatted: range && view === "day" ? `${startText} - ${endText}` : startText,
+    formatted: range && view === "day" ? joinRange(startText, endText) : startText,
   };
 }

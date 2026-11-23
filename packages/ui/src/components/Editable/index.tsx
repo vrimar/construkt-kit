@@ -5,9 +5,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type RefObject,
-  createContext,
   createRef,
-  useContext,
   useId,
   useLayoutEffect,
   useRef,
@@ -22,12 +20,17 @@ import { matchesShortcut } from "../../foundations/shortcuts";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
-import { useFieldControlState } from "../../primitives/field";
+import {
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { type ChangeDetails, createChangeDetails, emitChange } from "../../primitives/change";
+import { useFieldControlId, useFieldControlState } from "../../primitives/field";
 import { isWithinFocusable } from "../../primitives/focus";
 import { type DismissReason, useLayer } from "../../primitives/layer";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { dataAttr, fieldStateAttributes, mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 
 export type EditableChangeReason =
   | "input-change"
@@ -118,8 +121,10 @@ interface EditableContextValue {
   translations: EditableTranslations;
   describedBy: string | undefined;
   ids: { label: string; input: string; preview: string; area: string; control: string };
+  /** The rendered input's id. */
+  inputId: string | undefined;
   labelledBy: string | undefined;
-  setLabelRendered: (rendered: boolean) => void;
+  reportRendered: ReportRendered<"label" | "input">;
   refs: {
     input: RefObject<HTMLInputElement | null>;
     preview: RefObject<HTMLElement | null>;
@@ -134,13 +139,7 @@ interface EditableContextValue {
   cancel: (reason: EditableChangeReason, event?: Event) => void;
 }
 
-const EditableContext = createContext<EditableContextValue | null>(null);
-
-function useEditable(part: string): EditableContextValue {
-  const context = useContext(EditableContext);
-  if (!context) throw new Error(`Editable.${part} must be placed inside <Editable.Root>.`);
-  return context;
-}
+const [EditableContext, useEditable] = createPartContext<EditableContextValue>("<Editable.Root>");
 
 interface Leave {
   submit: boolean;
@@ -190,7 +189,7 @@ function RootImpl({
     value: editingProp,
     defaultValue: defaultEditing,
   });
-  const [labelRendered, setLabelRendered] = useState(false);
+  const [rendered, reportRendered] = useRenderedParts<"label" | "input">();
   const [refs] = useState(() => ({
     input: createRef<HTMLInputElement>(),
     preview: createRef<HTMLElement>(),
@@ -210,9 +209,7 @@ function RootImpl({
   const setValue = (next: string, reason: EditableChangeReason, event?: Event) => {
     const limited = maxLength != null ? next.slice(0, maxLength) : next;
     if (limited === latest.current.value) return;
-    const details = createChangeDetails(reason, event);
-    onValueChange?.(limited, details);
-    if (!details.canceled) setValueState(limited);
+    if (emitChange(onValueChange, limited, reason, event)) setValueState(limited);
   };
 
   const requestEditing = (
@@ -222,10 +219,8 @@ function RootImpl({
     ending?: { submit: boolean; focusable: boolean },
   ) => {
     if (next === latest.current.editing) return false;
-    const details = createChangeDetails(reason, event);
-    onEditingChange?.(next, details);
-    if (details.canceled) return false;
-    leave.current = ending ? { ...ending, details } : null;
+    if (!emitChange(onEditingChange, next, reason, event)) return false;
+    leave.current = ending ? { ...ending, details: createChangeDetails(reason, event) } : null;
     setEditingState(next);
     return true;
   };
@@ -318,13 +313,14 @@ function RootImpl({
     describedBy: field.describedBy,
     ids: {
       label: `editable:${id}:label`,
-      input: field.id ?? `editable:${id}:input`,
+      input: `editable:${id}:input`,
       preview: `editable:${id}:preview`,
       area: `editable:${id}:area`,
       control: `editable:${id}:control`,
     },
-    labelledBy: field.labelId ?? (labelRendered ? `editable:${id}:label` : undefined),
-    setLabelRendered,
+    inputId: rendered.input,
+    labelledBy: field.labelId ?? rendered.label,
+    reportRendered,
     refs,
     returningFocus,
     setValue,
@@ -366,7 +362,7 @@ export type EditableRootProps = ComponentProps<typeof Root>;
 type AreaProps = ComponentProps<typeof StyledArea>;
 
 function Area(props: AreaProps) {
-  const context = useEditable("Area");
+  const context = useEditable("Editable.Area");
   return (
     <StyledArea
       {...mergeProps<AreaProps>(
@@ -385,23 +381,17 @@ function Area(props: AreaProps) {
 type LabelProps = ComponentProps<typeof StyledLabel>;
 
 function Label(props: LabelProps) {
-  const context = useEditable("Label");
-  const { setLabelRendered } = context;
-
-  useLayoutEffect(() => {
-    setLabelRendered(true);
-    return () => setLabelRendered(false);
-  }, [setLabelRendered]);
+  const context = useEditable("Editable.Label");
+  const labelId = useReportRendered(context.reportRendered, "label", props.id ?? context.ids.label);
 
   return (
     <StyledLabel
       {...mergeProps<LabelProps>(
         {
-          id: context.ids.label,
-          htmlFor: context.ids.input,
+          id: labelId,
+          htmlFor: context.inputId,
           "data-focus": dataAttr(context.editing),
-          "data-invalid": dataAttr(context.invalid),
-          "data-required": dataAttr(context.required),
+          ...fieldStateAttributes({ invalid: context.invalid, required: context.required }),
           onClick() {
             if (!context.editing) context.refs.preview.current?.focus({ preventScroll: true });
           },
@@ -415,15 +405,20 @@ function Label(props: LabelProps) {
 type InputProps = ComponentProps<typeof StyledInput>;
 
 function Input({ ref, ...props }: InputProps) {
-  const context = useEditable("Input");
+  const context = useEditable("Editable.Input");
   const composedRef = useComposedRefs(context.refs.input, ref);
+  const inputId = useReportRendered(
+    context.reportRendered,
+    "input",
+    useFieldControlId(props.id) ?? context.ids.input,
+  );
   const hidden = !context.editing;
 
   return (
     <StyledInput
       {...mergeProps<InputProps>(
         {
-          id: context.ids.input,
+          id: inputId,
           "aria-label": context.translations.input,
           "aria-labelledby": context.labelledBy,
           "aria-describedby": context.describedBy,
@@ -437,9 +432,11 @@ function Input({ ref, ...props }: InputProps) {
           disabled: context.disabled,
           readOnly: context.readOnly,
           "aria-invalid": context.invalid || undefined,
-          "data-disabled": dataAttr(context.disabled),
-          "data-read-only": dataAttr(context.readOnly),
-          "data-invalid": dataAttr(context.invalid),
+          ...fieldStateAttributes({
+            disabled: context.disabled,
+            invalid: context.invalid,
+            readOnly: context.readOnly,
+          }),
           size: context.autoResize ? 1 : undefined,
           value: context.value,
           onChange(event: ChangeEvent<HTMLInputElement>) {
@@ -473,7 +470,7 @@ type PreviewProps = ComponentProps<typeof StyledPreview>;
 
 /** Shows the value, or the placeholder while it is empty; Enter or F2 on it starts editing. */
 function Preview({ ref, children, ...props }: PreviewProps) {
-  const context = useEditable("Preview");
+  const context = useEditable("Editable.Preview");
   const composedRef = useComposedRefs(context.refs.preview, ref);
   const { editing, interactive, activationMode } = context;
 
@@ -484,11 +481,13 @@ function Preview({ ref, children, ...props }: PreviewProps) {
           id: context.ids.preview,
           "data-placeholder-shown": dataAttr(context.empty),
           "aria-readonly": context.readOnly || undefined,
-          "data-read-only": dataAttr(context.readOnly),
-          "data-disabled": dataAttr(context.disabled),
           "aria-disabled": context.disabled || undefined,
           "aria-invalid": context.invalid || undefined,
-          "data-invalid": dataAttr(context.invalid),
+          ...fieldStateAttributes({
+            disabled: context.disabled,
+            invalid: context.invalid,
+            readOnly: context.readOnly,
+          }),
           "aria-label": context.translations.edit,
           hidden: context.autoResize ? undefined : editing,
           "data-hidden": dataAttr(context.autoResize && editing),
@@ -531,76 +530,53 @@ function Preview({ ref, children, ...props }: PreviewProps) {
 
 type TriggerProps = ComponentProps<typeof StyledEditTrigger>;
 
-function EditTrigger({ ref, ...props }: TriggerProps) {
-  const context = useEditable("EditTrigger");
-  const composedRef = useComposedRefs(context.refs.editTrigger, ref);
-  return (
-    <StyledEditTrigger
-      {...mergeProps<TriggerProps>(
-        {
-          "aria-label": context.translations.edit,
-          hidden: context.editing,
-          type: "button",
-          disabled: context.disabled,
-          onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (!event.defaultPrevented) context.edit("trigger-press", event.nativeEvent);
+function triggerPart(
+  action: "edit" | "submit" | "cancel",
+  StyledTrigger: typeof StyledEditTrigger,
+  part: string,
+  reason: EditableChangeReason,
+) {
+  return function Trigger({ ref, ...props }: TriggerProps) {
+    const context = useEditable(part);
+    const composedRef = useComposedRefs(context.refs[`${action}Trigger` as const], ref);
+    return (
+      <StyledTrigger
+        {...mergeProps<TriggerProps>(
+          {
+            "aria-label": context.translations[action],
+            hidden: action === "edit" ? context.editing : !context.editing,
+            type: props.render ? undefined : "button",
+            disabled: context.disabled,
+            onClick(event: MouseEvent<HTMLButtonElement>) {
+              if (!event.defaultPrevented) context[action](reason, event.nativeEvent);
+            },
           },
-        },
-        props,
-      )}
-      ref={composedRef}
-    />
-  );
+          props,
+        )}
+        ref={composedRef}
+      />
+    );
+  };
 }
 
-function SubmitTrigger({ ref, ...props }: TriggerProps) {
-  const context = useEditable("SubmitTrigger");
-  const composedRef = useComposedRefs(context.refs.submitTrigger, ref);
-  return (
-    <StyledSubmitTrigger
-      {...mergeProps<TriggerProps>(
-        {
-          "aria-label": context.translations.submit,
-          hidden: !context.editing,
-          type: "button",
-          disabled: context.disabled,
-          onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (!event.defaultPrevented) context.submit("submit-press", event.nativeEvent);
-          },
-        },
-        props,
-      )}
-      ref={composedRef}
-    />
-  );
-}
-
-function CancelTrigger({ ref, ...props }: TriggerProps) {
-  const context = useEditable("CancelTrigger");
-  const composedRef = useComposedRefs(context.refs.cancelTrigger, ref);
-  return (
-    <StyledCancelTrigger
-      {...mergeProps<TriggerProps>(
-        {
-          "aria-label": context.translations.cancel,
-          hidden: !context.editing,
-          type: "button",
-          disabled: context.disabled,
-          onClick(event: MouseEvent<HTMLButtonElement>) {
-            if (!event.defaultPrevented) context.cancel("cancel-press", event.nativeEvent);
-          },
-        },
-        props,
-      )}
-      ref={composedRef}
-    />
-  );
-}
+const EditTrigger = triggerPart("edit", StyledEditTrigger, "Editable.EditTrigger", "trigger-press");
+const SubmitTrigger = triggerPart(
+  "submit",
+  StyledSubmitTrigger,
+  "Editable.SubmitTrigger",
+  "submit-press",
+);
+const CancelTrigger = triggerPart(
+  "cancel",
+  StyledCancelTrigger,
+  "Editable.CancelTrigger",
+  "cancel-press",
+);
 
 type ControlProps = ComponentProps<typeof StyledControl>;
 
 function Control(props: ControlProps) {
-  const context = useEditable("Control");
+  const context = useEditable("Editable.Control");
   return (
     <StyledControl
       id={context.ids.control}

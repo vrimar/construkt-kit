@@ -1,9 +1,8 @@
+import { sameItems } from "@construkt-kit/utils";
 import {
   type RefCallback,
   type RefObject,
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useRef,
@@ -12,10 +11,12 @@ import {
 
 import { useControllableState } from "../../hooks/useControllableState";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { type ChangeDetails, createChangeDetails } from "../../primitives/change";
+import { type ReportRendered, useRenderedParts } from "../../hooks/useRenderedParts";
+import { type ChangeDetails, emitChange } from "../../primitives/change";
 import { useFieldControlState } from "../../primitives/field";
 import { useLocale } from "../../primitives/locale";
-import { dataAttr } from "../../primitives/render";
+import { dataAttr, fieldStateAttributes } from "../../primitives/render";
+import { createPartContext } from "../partContext";
 import {
   type FileAccept,
   type FileError,
@@ -87,6 +88,29 @@ export interface FileUploadOptions {
   invalid?: boolean | undefined;
 }
 
+/** Every `FileUploadOptions` key, to split them off the root's props. */
+export const FILE_UPLOAD_OPTION_KEYS = {
+  value: true,
+  defaultValue: true,
+  onValueChange: true,
+  onFileReject: true,
+  accept: true,
+  maxFiles: true,
+  minFileSize: true,
+  maxFileSize: true,
+  validate: true,
+  transformFiles: true,
+  allowDrop: true,
+  preventDocumentDrop: true,
+  directory: true,
+  capture: true,
+  name: true,
+  disabled: true,
+  readOnly: true,
+  required: true,
+  invalid: true,
+} as const satisfies Record<keyof FileUploadOptions, true>;
+
 /** What the root's `render` function receives besides its props. */
 export type FileUploadRenderState = {
   value: File[];
@@ -111,6 +135,8 @@ interface FileUploadContextValue {
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  /** The field-state attributes the root and its controls carry. */
+  stateAttributes: ReturnType<typeof fieldStateAttributes>;
   interactive: boolean;
   allowDrop: boolean;
   directory: boolean | undefined;
@@ -120,6 +146,9 @@ interface FileUploadContextValue {
   acceptAttribute: string | undefined;
   locale: string;
   ids: { input: string; label: string };
+  /** The rendered input's id. */
+  inputId: string | undefined;
+  reportRendered: ReportRendered<"input">;
   attachInput: RefCallback<HTMLInputElement>;
   dropzoneRef: RefObject<HTMLElement | null>;
   setDragging: (dragging: boolean) => void;
@@ -130,15 +159,10 @@ interface FileUploadContextValue {
   clearFiles: (event?: Event) => void;
 }
 
-const FileUploadContext = createContext<FileUploadContextValue | null>(null);
+export const [FileUploadContext, useFileUploadContext] =
+  createPartContext<FileUploadContextValue>("<FileUpload.Root>");
 
 export const FileUploadProvider = FileUploadContext.Provider;
-
-export function useFileUploadContext(part: string): FileUploadContextValue {
-  const context = useContext(FileUploadContext);
-  if (!context) throw new Error(`FileUpload.${part} must be placed inside <FileUpload.Root>.`);
-  return context;
-}
 
 const EMPTY_FILES: File[] = [];
 const EMPTY_REJECTIONS: FileRejection[] = [];
@@ -147,12 +171,6 @@ interface FileState {
   value: File[];
   rejectedFiles: FileRejection[];
 }
-
-const sameFiles = (a: File[], b: File[]) =>
-  a.length === b.length && a.every((file, index) => isFileEqual(file, b[index]));
-
-const sameRejections = (a: FileRejection[], b: FileRejection[]) =>
-  a.length === b.length && a.every((entry, index) => isFileEqual(entry.file, b[index].file));
 
 /** A file upload's files, validation, drag state and the parts' shared ids and refs. */
 export function useFileUploadRoot({
@@ -184,6 +202,7 @@ export function useFileUploadRoot({
   });
   const { locale } = useLocale();
   const uid = useId();
+  const [rendered, reportRendered] = useRenderedParts<"input">();
   const [value, setValue] = useControllableState({ value: valueProp, defaultValue });
   const [rejectedFiles, setRejectedFiles] = useState(EMPTY_REJECTIONS);
   const [dragging, setDragging] = useState(false);
@@ -209,20 +228,19 @@ export function useFileUploadRoot({
     const state = currentFiles();
     const pending: FileState = { value: state.value, rejectedFiles: state.rejectedFiles };
     const rejected = next.rejected ?? state.rejectedFiles;
-    if (next.value && !sameFiles(next.value, state.value)) {
-      const details = Object.assign(createChangeDetails(reason, event), {
-        rejectedFiles: rejected,
-      });
-      callbacks.onValueChange?.(next.value, details);
-      if (!details.canceled) {
+    if (next.value && !sameItems(next.value, state.value, isFileEqual)) {
+      if (
+        emitChange(callbacks.onValueChange, next.value, reason, event, { rejectedFiles: rejected })
+      ) {
         setValue(next.value);
         pending.value = next.value;
       }
     }
-    if (next.rejected && !sameRejections(next.rejected, state.rejectedFiles)) {
-      const details = createChangeDetails(reason, event);
-      callbacks.onFileReject?.(next.rejected, details);
-      if (!details.canceled) {
+    if (
+      next.rejected &&
+      !sameItems(next.rejected, state.rejectedFiles, (x, y) => isFileEqual(x.file, y.file))
+    ) {
+      if (emitChange(callbacks.onFileReject, next.rejected, reason, event)) {
         setRejectedFiles(next.rejected);
         pending.rejectedFiles = next.rejected;
       }
@@ -296,7 +314,7 @@ export function useFileUploadRoot({
     };
   }, [preventDocumentDrop, allowDrop, disabled]);
 
-  const valueKey = value.map((file) => `${file.name}-${file.size}`).join(",");
+  const valueKey = value.map(getFileKey).join(",");
   const syncedKeyRef = useRef<string | null>(null);
   useEffect(() => {
     const input = inputRef.current;
@@ -325,6 +343,8 @@ export function useFileUploadRoot({
     [syncInputFiles],
   );
 
+  const stateAttributes = fieldStateAttributes({ disabled, readOnly, invalid, required });
+
   const context: FileUploadContextValue = {
     value,
     rejectedFiles,
@@ -333,6 +353,7 @@ export function useFileUploadRoot({
     readOnly,
     invalid,
     required,
+    stateAttributes,
     interactive,
     allowDrop,
     directory,
@@ -341,7 +362,9 @@ export function useFileUploadRoot({
     multiple,
     acceptAttribute,
     locale,
-    ids: { input: field.id ?? `file:${uid}:input`, label: `file:${uid}:label` },
+    ids: { input: `file:${uid}:input`, label: `file:${uid}:label` },
+    inputId: rendered.input,
+    reportRendered,
     attachInput,
     dropzoneRef,
     setDragging,
@@ -385,9 +408,7 @@ export function useFileUploadRoot({
     renderState,
     rootRef,
     rootProps: {
-      "data-disabled": dataAttr(disabled),
-      "data-read-only": dataAttr(readOnly),
-      "data-invalid": dataAttr(invalid),
+      ...stateAttributes,
       "data-dragging": dataAttr(dragging),
     },
   };

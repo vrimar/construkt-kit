@@ -1,15 +1,18 @@
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { Box } from "#styled-system/jsx";
+import { styled } from "#styled-system/jsx";
 
 import { toCssSize } from "../../foundations/cssSize";
+import { splitKeys } from "../../foundations/props";
+import { useFieldContext, useFieldTriggerProps } from "../../primitives/field";
+import { NO_AUTOFOCUS_ATTRIBUTE } from "../../primitives/focus";
+import { useOverlayMode } from "../../primitives/popup";
+import { dataAttr, renderable } from "../../primitives/render";
 import { SelectButton } from "../Buttons";
-import { useFieldTriggerProps } from "../fieldTrigger";
-import { Listbox } from "../Listbox/Listbox";
-import { ListboxSearchField, ManagedList, splitKeys } from "../Listbox/managed";
-import type { SelectionValue } from "../Listbox/types";
-import { useOverlayMode } from "../overlayPresentation";
-import { Popover, usePopoverContext } from "../Popover/Popover";
+import { Listbox, ListboxSearchField, ManagedList } from "../Listbox/managed";
+import { Popover } from "../Popover";
+import { usePopoverContext } from "../Popover/internal";
+import type { SelectionValue } from "../selection";
 import { useSelectContext } from "./Select.context";
 import type {
   SelectContentProps,
@@ -23,6 +26,7 @@ const MIN_CONTENT_WIDTH = 140;
 const WIDE_MIN_CONTENT_WIDTH = 256;
 
 export function SelectTrigger({
+  render,
   children,
   buttonProps,
   onKeyDown,
@@ -30,7 +34,7 @@ export function SelectTrigger({
 }: SelectTriggerProps) {
   const { hasValue, triggerValue } = useSelectContext();
   const popover = usePopoverContext();
-  const fieldProps = useFieldTriggerProps(popover.ids.trigger);
+  const fieldProps = useFieldTriggerProps(popover);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     onKeyDown?.(event);
@@ -45,6 +49,7 @@ export function SelectTrigger({
       {...triggerProps}
       onKeyDown={handleKeyDown}
       render={
+        render ??
         children ?? (
           <SelectButton
             {...buttonProps}
@@ -57,15 +62,21 @@ export function SelectTrigger({
   );
 }
 
+function useListLabelledBy() {
+  const field = useFieldContext();
+  const popover = usePopoverContext();
+  return field?.labelId ?? popover.triggerId;
+}
+
 export function SelectContent({ children, style, ...props }: SelectContentProps) {
   const { contentWidth, sameWidth, wideContent } = useSelectContext();
-  const popover = usePopoverContext();
+  const labelledBy = useListLabelledBy();
   const anchored = useOverlayMode() !== "sheet";
   const minContentWidth = wideContent ? WIDE_MIN_CONTENT_WIDTH : MIN_CONTENT_WIDTH;
 
   return (
     <Popover.Content
-      aria-labelledby={popover.triggerId}
+      aria-labelledby={labelledBy}
       layerStyle={anchored ? "dropdown.surface" : undefined}
       minW={anchored && contentWidth == null ? minContentWidth : undefined}
       width={anchored && sameWidth ? "var(--anchor-width)" : undefined}
@@ -89,7 +100,7 @@ export function SelectSearch({ children, autoFocus, ...props }: SelectSearchProp
     <ListboxSearchField
       {...props}
       autoFocus={false}
-      data-no-autofocus={skipped ? "" : undefined}
+      {...{ [NO_AUTOFOCUS_ATTRIBUTE]: dataAttr(skipped) }}
       search={managed.controller.search}
       inputRef={managed.inputRef}
       endElement={children}
@@ -97,15 +108,17 @@ export function SelectSearch({ children, autoFocus, ...props }: SelectSearchProp
   );
 }
 
+const SelectFooter = styled(renderable.div);
+
 export function SelectList(props: SelectListProps) {
   const { managed, list } = useSelectContext();
-  const popover = usePopoverContext();
+  const labelledBy = useListLabelledBy();
 
   return (
     <ManagedList
       managed={managed}
       {...list}
-      contentProps={{ "aria-labelledby": popover.triggerId, ...props }}
+      contentProps={{ "aria-labelledby": labelledBy, ...props }}
     />
   );
 }
@@ -140,7 +153,7 @@ export function SelectSimpleBody({
       <SelectContent css={contentCss}>
         <SelectSearch />
         <SelectList css={listCss} />
-        {footer != null && <Box>{footer}</Box>}
+        {footer != null && <SelectFooter>{footer}</SelectFooter>}
         {children}
       </SelectContent>
     </>
@@ -156,5 +169,5 @@ export const selectListParts = {
   ItemActions: Listbox.ItemActions,
   ItemGroup: Listbox.ItemGroup,
   ItemGroupLabel: Listbox.ItemGroupLabel,
-  Footer: Box,
+  Footer: SelectFooter,
 };

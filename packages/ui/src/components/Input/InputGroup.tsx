@@ -12,8 +12,12 @@ import { type InputGroupVariant, inputGroup } from "#styled-system/recipes";
 
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { renderable } from "../../primitives/render";
-import type { ButtonProps, CloseButtonProps } from "../Buttons";
-import { ClearButton, type ClearButtonProps } from "../Buttons/ClearButton";
+import {
+  type ButtonProps,
+  ClearButton,
+  type ClearButtonProps,
+  type CloseButtonProps,
+} from "../Buttons";
 import type { InputProps } from "./Input";
 
 const { withProvider, withContext } = createSlotRecipeContext(inputGroup);
@@ -34,11 +38,17 @@ const inputGroupButtonSize: Record<InputGroupSize, ButtonProps["size"]> = {
 export const inputGroupButtonSizeFor = (size: InputProps["size"] = "md"): ButtonProps["size"] =>
   inputGroupButtonSize[size as InputGroupSize];
 
-const InputGroupRootContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+interface InputGroupRootContextValue {
+  rootRef: RefObject<HTMLDivElement | null>;
+  size: InputGroupProps["size"];
+}
+
+const InputGroupRootContext = createContext<InputGroupRootContextValue | null>(null);
 
 const GROUP_FIELD = "input:not([type=hidden]), textarea";
 
 export interface InputGroupClearButtonProps extends Omit<CloseButtonProps, "size" | "children"> {
+  /** The input size to fit. Defaults to the group's. */
   size?: InputProps["size"];
   /** The field that takes focus once a clear removes the button. Defaults to the group's field. */
   field?: ClearButtonProps["field"];
@@ -46,11 +56,11 @@ export interface InputGroupClearButtonProps extends Omit<CloseButtonProps, "size
 
 /** A clear button sized for the group; once a clear removes it, the group's field takes focus. */
 export const InputGroupClearButton = ({ size, field, ...props }: InputGroupClearButtonProps) => {
-  const rootRef = useContext(InputGroupRootContext);
+  const group = useContext(InputGroupRootContext);
   return (
     <ClearButton
-      size={inputGroupButtonSizeFor(size)}
-      field={field ?? (() => rootRef?.current?.querySelector<HTMLElement>(GROUP_FIELD))}
+      size={inputGroupButtonSizeFor(size ?? group?.size)}
+      field={field ?? (() => group?.rootRef.current?.querySelector<HTMLElement>(GROUP_FIELD))}
       {...props}
     />
   );
@@ -76,7 +86,7 @@ export const InputGroup = ({
   const composedRef = useComposedRefs(ref, rootRef);
 
   return (
-    <InputGroupRootContext.Provider value={rootRef}>
+    <InputGroupRootContext.Provider value={{ rootRef, size: rest.size }}>
       <Root
         ref={composedRef}
         {...rest}

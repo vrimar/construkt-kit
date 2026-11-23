@@ -1,48 +1,47 @@
-import { expect, selectStories, storyTags, test } from "@construkt-kit/story-kit/test";
+import { TIMER_SLACK_MS, expect, storyTest } from "@construkt-kit/story-kit/test";
 
-for (const id of selectStories(["components-hovercard--default"])) {
-  test(
-    `${id} a press inside the card keeps it open after its trigger took focus`,
-    { tag: [...storyTags(id), "@desktop-only"] },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      const trigger = page.getByRole("button", { name: "Hover me" });
-      await trigger.click();
-      await expect(trigger).toBeFocused();
-      const body = page.getByText("This card appears on hover.");
-      await expect(body).toBeVisible();
+import { HOVER_CARD_OPEN_DELAY } from "./hoverCardDelays";
 
-      await body.click();
+storyTest(
+  ["components-hovercard--default"],
+  "a press inside the card keeps it open after its trigger took focus",
+  async ({ page }) => {
+    const trigger = page.getByRole("button", { name: "Hover me" });
+    await trigger.click();
+    await expect(trigger).toBeFocused();
+    const body = page.getByText("This card appears on hover.");
+    await expect(body).toBeVisible();
 
-      await expect(trigger).toHaveAttribute("data-open");
-    },
-  );
+    await body.click();
 
-  test(
-    `${id} keyboard focus on the trigger opens the card`,
-    { tag: [...storyTags(id), "@desktop-only"] },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
+    await expect(trigger).toHaveAttribute("data-open");
+  },
+  { only: "desktop" },
+);
 
-      await page.keyboard.press("Tab");
+storyTest(
+  ["components-hovercard--default"],
+  "keyboard focus on the trigger opens the card",
+  async ({ page }) => {
+    await page.keyboard.press("Tab");
 
-      await expect(page.getByRole("button", { name: "Hover me" })).toBeFocused();
-      await expect(page.getByText("This card appears on hover.")).toBeVisible();
-    },
-  );
+    await expect(page.getByRole("button", { name: "Hover me" })).toBeFocused();
+    await expect(page.getByText("This card appears on hover.")).toBeVisible();
+  },
+  { only: "desktop" },
+);
 
-  test(
-    `${id} a tap on the trigger leaves the card closed`,
-    { tag: [...storyTags(id), "@phone-only"] },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      const trigger = page.getByRole("button", { name: "Hover me" });
+storyTest(
+  ["components-hovercard--default"],
+  "a tap on the trigger leaves the card closed",
+  async ({ gallery, page }) => {
+    const trigger = page.getByRole("button", { name: "Hover me" });
 
-      await gallery.press(trigger);
-      await page.waitForTimeout(900);
+    await gallery.press(trigger);
+    await page.waitForTimeout(HOVER_CARD_OPEN_DELAY + TIMER_SLACK_MS);
 
-      await expect(trigger).toHaveAttribute("data-closed");
-      await expect(page.getByText("This card appears on hover.")).toBeHidden();
-    },
-  );
-}
+    await expect(trigger).toHaveAttribute("data-closed");
+    await expect(page.getByText("This card appears on hover.")).toBeHidden();
+  },
+  { only: "phone" },
+);

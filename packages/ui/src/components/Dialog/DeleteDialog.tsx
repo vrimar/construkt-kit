@@ -1,32 +1,22 @@
 import { Text } from "../Text";
-import { SubmitDialog } from "./SubmitDialog";
+import { SubmitDialog, type SubmitDialogProps } from "./SubmitDialog";
 
-export interface DeleteDialogProps {
+export interface DeleteDialogProps extends Omit<SubmitDialogProps, "children"> {
   title: string;
   name: string;
   onClose: () => unknown;
   onSubmit: () => unknown;
-  loading?: boolean;
   confirmMessage?: string;
 }
 
-export const DeleteDialog = ({
-  name,
-  title,
-  onClose,
-  onSubmit,
-  loading,
-  confirmMessage,
-}: DeleteDialogProps) => {
+export const DeleteDialog = ({ name, title, confirmMessage, ...props }: DeleteDialogProps) => {
   return (
     <SubmitDialog
-      title={`Delete ${title}`}
-      onClose={onClose}
-      onSubmit={onSubmit}
-      loading={loading}
       submitLabel="Delete"
-      submitButtonProps={{ colorPalette: "danger" }}
       size="sm"
+      destructive
+      {...props}
+      title={`Delete ${title}`}
     >
       <Text>
         {confirmMessage ?? (

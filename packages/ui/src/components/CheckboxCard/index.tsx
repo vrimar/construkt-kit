@@ -1,22 +1,21 @@
-import { type ComponentProps, useId } from "react";
+import { type ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { checkboxCard } from "#styled-system/recipes";
 
-import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { joinIds } from "../../primitives/field";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { mergeProps, renderable } from "../../primitives/render";
 import type { HiddenInputControlProps, WithRef } from "../../types";
-import { type CardBodyProps, createCardBody } from "../cardBody";
+import { type CardBodyProps, createCardBody, useCardDescription } from "../cardBody";
 import {
   type CheckableProps,
   CheckableContext,
+  CheckableHiddenInput,
+  splitCheckableProps,
   useCheckable,
   useCheckableContext,
 } from "../checkable";
 import { Checkbox } from "../Checkbox";
-import { isRenderable } from "../itemSlots";
 
 const { withProvider, withContext } = createSlotRecipeContext(checkboxCard);
 
@@ -67,35 +66,11 @@ export const CheckboxCard = ({
   addon,
   indicator = <Checkbox.Indicator />,
   indicatorPlacement,
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  name,
-  value,
-  form,
-  id,
-  ...rest
+  ...props
 }: WithRef<CheckboxCardProps, HTMLInputElement>) => {
-  const descriptionId = useId();
-  const described = isRenderable(description);
-  const checkable = useCheckable({
-    checked,
-    defaultChecked,
-    onCheckedChange,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    name,
-    value,
-    form,
-    id,
-  });
-  const inputRef = useComposedRefs(checkable.inputProps.ref, ref);
+  const descriptionId = useCardDescription(description);
+  const [checkableProps, rest] = splitCheckableProps(props);
+  const checkable = useCheckable(checkableProps);
 
   return (
     <CheckableContext value={checkable}>
@@ -104,19 +79,17 @@ export const CheckboxCard = ({
         {...checkable.stateAttributes}
         {...mergeProps<CardRootProps>(checkable.rootProps, rest)}
       >
-        <renderable.input
-          {...mergeProps<ComponentProps<typeof renderable.input>>(checkable.inputProps, {
-            ...inputProps,
-            "aria-describedby": joinIds([
-              checkable.inputProps["aria-describedby"],
-              described ? descriptionId : undefined,
-              inputProps?.["aria-describedby"],
-            ]),
-          })}
-          ref={inputRef}
+        <CheckableHiddenInput
+          ref={ref}
+          {...inputProps}
+          aria-describedby={joinIds([
+            checkable.inputProps["aria-describedby"],
+            descriptionId,
+            inputProps?.["aria-describedby"],
+          ])}
         />
         <CardBody
-          descriptionId={described ? descriptionId : undefined}
+          descriptionId={descriptionId}
           icon={icon}
           label={label}
           description={description}

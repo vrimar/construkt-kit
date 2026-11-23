@@ -1,3 +1,7 @@
+import { sameItems } from "@construkt-kit/utils";
+
+import type { CheckedState } from "../../primitives/render";
+
 /**
  * How a tree reads its nodes. The tree re-reads every node when one changes identity, so define
  * them outside render or memoize them.
@@ -14,7 +18,8 @@ export interface TreeNodeAccessors<T> {
   getChildren?: ((node: T) => readonly T[] | undefined) | undefined;
   /**
    * How many children a node has before they load. A node with a count is a branch even without
-   * children. Defaults to its `childrenCount`.
+   * children. Defaults to its `childrenCount`. Drag and drop hands back a branch it empties with
+   * `childrenCount: 0` to keep it a branch; a custom accessor should fall back to that field.
    */
   getChildrenCount?: ((node: T) => number | undefined) | undefined;
   /** Defaults to the node's `disabled`. */
@@ -22,7 +27,7 @@ export interface TreeNodeAccessors<T> {
 }
 
 /** A row's check state: a branch is mixed while only some of its leaves are checked. */
-export type TreeCheckedState = boolean | "indeterminate";
+export type TreeCheckedState = CheckedState;
 
 /** A tree's top-level nodes and how to read them. */
 export interface TreeNodes<T> extends TreeNodeAccessors<T> {
@@ -38,12 +43,20 @@ interface DefaultFields<T> {
 type VisitResult = "skip" | "stop" | undefined | void;
 
 export interface TreeVisitOptions<T> {
-  /** Leaves a node and its descendants out of the walk. */
-  skip?: ((node: T, indexPath: number[]) => boolean) | undefined;
   onEnter: (node: T, indexPath: number[]) => VisitResult;
 }
 
+export interface LocatedTreeNode<T> {
+  node: T;
+  indexPath: number[];
+  valuePath: string[];
+}
+
 const NO_NODES: readonly never[] = [];
+
+/** Whether `indexPath` lies strictly under `ancestor`. */
+export const isDescendantPath = (ancestor: readonly number[], indexPath: readonly number[]) =>
+  indexPath.length > ancestor.length && ancestor.every((index, i) => indexPath[i] === index);
 
 /**
  * A tree's nodes read through its accessors, with the walks and immutable edits the tree runs on.
@@ -89,12 +102,11 @@ export class TreeCollection<T> {
   }
 
   /** Walks the nodes depth first, entering each before its children. */
-  visit({ skip, onEnter }: TreeVisitOptions<T>): void {
+  visit({ onEnter }: TreeVisitOptions<T>): void {
     const walk = (children: readonly T[], parentPath: number[]): boolean => {
       for (let index = 0; index < children.length; index += 1) {
         const node = children[index];
         const indexPath = [...parentPath, index];
-        if (skip?.(node, indexPath)) continue;
         const result = onEnter(node, indexPath);
         if (result === "stop") return false;
         if (result !== "skip" && !walk(this.getNodeChildren(node), indexPath)) return false;
@@ -140,9 +152,17 @@ export class TreeCollection<T> {
     return found;
   }
 
-  findNode(value: string): T | undefined {
+  locate(value: string): LocatedTreeNode<T> | undefined {
     const indexPath = this.getIndexPath(value);
-    return indexPath ? this.at(indexPath) : undefined;
+    if (!indexPath) return undefined;
+    const node = this.at(indexPath);
+    return node === undefined
+      ? undefined
+      : { node, indexPath, valuePath: this.getValuePath(indexPath) };
+  }
+
+  findNode(value: string): T | undefined {
+    return this.locate(value)?.node;
   }
 
   /** The values from the top of the tree down to the node at `indexPath`. */
@@ -172,7 +192,11 @@ export class TreeCollection<T> {
   getDescendantLeaves(valueOrIndexPath: string | readonly number[]): T[] {
     const indexPath =
       typeof valueOrIndexPath === "string" ? this.getIndexPath(valueOrIndexPath) : valueOrIndexPath;
-    if (!indexPath) return [];
+    return indexPath ? this.leavesOf(this.childrenAt(indexPath)) : [];
+  }
+
+  /** The leaves among `nodes` and under them. */
+  leavesOf(nodes: readonly T[]): T[] {
     const leaves: T[] = [];
     const collect = (children: readonly T[]) => {
       for (const child of children) {
@@ -180,7 +204,7 @@ export class TreeCollection<T> {
         else leaves.push(child);
       }
     };
-    collect(this.childrenAt(indexPath));
+    collect(nodes);
     return leaves;
   }
 
@@ -189,25 +213,15 @@ export class TreeCollection<T> {
     return this.getDescendantLeaves(valueOrIndexPath).map((leaf) => this.getNodeValue(leaf));
   }
 
-  /** The values of every branch. */
-  getBranchValues(): string[] {
-    const values: string[] = [];
-    this.visit({
-      onEnter: (node) => {
-        if (this.isBranchNode(node)) values.push(this.getNodeValue(node));
-      },
-    });
-    return values;
-  }
-
   /** Whether `other` holds the same values in the same places. */
   isEqual(other: TreeCollection<T>): boolean {
     const same = (a: readonly T[], b: readonly T[]): boolean =>
-      a.length === b.length &&
-      a.every(
-        (node, index) =>
-          this.getNodeValue(node) === other.getNodeValue(b[index]) &&
-          same(this.getNodeChildren(node), other.getNodeChildren(b[index])),
+      sameItems(
+        a,
+        b,
+        (node, otherNode) =>
+          this.getNodeValue(node) === other.getNodeValue(otherNode) &&
+          same(this.getNodeChildren(node), other.getNodeChildren(otherNode)),
       );
     return same(this.nodes, other.nodes);
   }
@@ -217,11 +231,7 @@ export class TreeCollection<T> {
   }
 
   private create(node: T, children: readonly T[]): T {
-    const current = this.getNodeChildren(node);
-    if (current.length === children.length && current.every((child, i) => child === children[i])) {
-      return node;
-    }
-    return { ...node, children };
+    return sameItems(this.getNodeChildren(node), children) ? node : { ...node, children };
   }
 
   /** Rebuilds the path to `parentPath`, giving the children there to `edit`. */
@@ -313,25 +323,33 @@ export class TreeCollection<T> {
   }
 }
 
-export function getToggledLeafValues<T>(collection: TreeCollection<T>, value: string): string[] {
+export function getToggledLeafValues<T>(
+  collection: TreeCollection<T>,
+  branch: T,
+  isCheckable: (node: T) => boolean,
+): string[] {
   return collection
-    .getDescendantLeaves(value)
-    .filter((leaf) => !collection.getNodeDisabled(leaf))
+    .leavesOf(collection.getNodeChildren(branch))
+    .filter((leaf) => !collection.getNodeDisabled(leaf) && isCheckable(leaf))
     .map((leaf) => collection.getNodeValue(leaf));
 }
 
-/** A leaf is checked when `checkedValue` holds it; a branch by its enabled leaves, or all if none are. */
+/**
+ * A leaf is checked when `checked` holds it; a branch by its enabled checkable leaves, or all its
+ * checkable leaves if none are enabled.
+ */
 export function getCheckedState<T>(
   collection: TreeCollection<T>,
   node: T,
-  checkedValue: readonly string[],
+  checked: ReadonlySet<string>,
+  isCheckable: (node: T) => boolean,
 ): TreeCheckedState {
-  const value = collection.getNodeValue(node);
-  if (!collection.isBranchNode(node)) return checkedValue.includes(value);
-  const leaves = collection.getDescendantLeaves(value);
+  const isChecked = (leaf: T) => checked.has(collection.getNodeValue(leaf));
+  if (!collection.isBranchNode(node)) return isChecked(node);
+  const leaves = collection.leavesOf(collection.getNodeChildren(node)).filter(isCheckable);
   const enabled = leaves.filter((leaf) => !collection.getNodeDisabled(leaf));
   const counted = enabled.length > 0 ? enabled : leaves;
-  const checked = counted.filter((leaf) => checkedValue.includes(collection.getNodeValue(leaf)));
-  if (checked.length === 0) return false;
-  return checked.length === counted.length ? true : "indeterminate";
+  const checkedCount = counted.filter(isChecked).length;
+  if (checkedCount === 0) return false;
+  return checkedCount === counted.length ? true : "indeterminate";
 }

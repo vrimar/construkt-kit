@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { describe, expectTypeOf, it } from "vitest";
 
 import { Select, type SelectProps, type SelectRootProps, type SelectValue } from ".";
-import type { SingleSelectionProps } from "../Listbox/types";
+import type { SingleSelectionProps } from "../selection";
 
 type WrapperProps<T, V extends SelectValue> = Omit<
   SelectProps<T, V>,

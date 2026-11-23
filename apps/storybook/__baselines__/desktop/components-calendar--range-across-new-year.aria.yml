@@ -3,7 +3,7 @@
   - button /December \d+/
   - button /January \d+/
   - button "Switch to next month"
-  - grid /December \d+ - January \d+/:
+  - grid /December \d+ – January \d+/:
     - rowgroup:
       - row /Choose Monday, November \d+, \d+ Choose Tuesday, November \d+, \d+ Choose Wednesday, November \d+, \d+ Choose Thursday, November \d+, \d+ Choose Friday, November \d+, \d+ Choose Saturday, December 1, \d+ Choose Sunday, December 2, \d+/:
         - gridcell /Choose Monday, November \d+, \d+/ [disabled]:
@@ -95,7 +95,7 @@
           - button /Choose Saturday, January 5, \d+/ [disabled]
         - gridcell /Choose Sunday, January 6, \d+/ [disabled]:
           - button /Choose Sunday, January 6, \d+/ [disabled]
-  - grid /December \d+ - January \d+/:
+  - grid /December \d+ – January \d+/:
     - rowgroup:
       - row /Choose Monday, December \d+, \d+ Choose Tuesday, January 1, \d+ Choose Wednesday, January 2, \d+ Choose Thursday, January 3, \d+ Choose Friday, January 4, \d+ Choose Saturday, January 5, \d+ Choose Sunday, January 6, \d+/:
         - gridcell /Choose Monday, December \d+, \d+/ [disabled]:

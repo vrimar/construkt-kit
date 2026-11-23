@@ -20,6 +20,11 @@ const produce = [
   { id: 4, name: "Spinach", kind: "Vegetable" },
 ];
 
+const idAndName = {
+  getItemValue: (item: { id: number }) => item.id,
+  getItemLabel: (item: { name: string }) => item.name,
+};
+
 const meta = preview.meta({
   title: "Components/Listbox",
   component: Listbox,
@@ -31,8 +36,7 @@ export const Default = meta.story({
     return (
       <Listbox
         items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...idAndName}
         value={value}
         onValueChange={setValue}
         label="Fruit"
@@ -48,8 +52,7 @@ export const Multiple = meta.story({
     return (
       <Listbox
         items={items}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...idAndName}
         selectionMode="multiple"
         value={value}
         onValueChange={setValue}
@@ -68,8 +71,7 @@ export const CustomRendering = meta.story({
   render: () => (
     <Listbox
       items={items}
-      getItemValue={(item) => item.id}
-      getItemLabel={(item) => item.name}
+      {...idAndName}
       value={1}
       onValueChange={() => {}}
       renderItem={(item, state) => `${item.name}${state.selected ? " (selected)" : ""}`}
@@ -84,8 +86,7 @@ export const OverlayActions = meta.story({
   render: () => (
     <Listbox
       items={items}
-      getItemValue={(item) => item.id}
-      getItemLabel={(item) => item.name}
+      {...idAndName}
       value={4}
       onValueChange={() => {}}
       selection="tint"
@@ -123,8 +124,7 @@ export const Hints = meta.story({
     return (
       <Listbox
         items={teamMembers}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...idAndName}
         isItemDisabled={(item) => item.unavailable != null}
         renderItemHint={(item, state) =>
           state.disabled ? item.unavailable : `${item.count} tasks`
@@ -148,8 +148,7 @@ export const IndicatorPositions = meta.story({
         <Listbox
           key={indicatorPosition}
           items={items}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
+          {...idAndName}
           value={1}
           onValueChange={() => {}}
           label={indicatorPosition}
@@ -169,8 +168,7 @@ export const Selections = meta.story({
         <Listbox
           key={selection}
           items={items}
-          getItemValue={(item) => item.id}
-          getItemLabel={(item) => item.name}
+          {...idAndName}
           value={2}
           onValueChange={() => {}}
           label={selection}
@@ -189,8 +187,7 @@ export const Grouped = meta.story({
     return (
       <Listbox
         items={produce}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...idAndName}
         groupBy={(item) => item.kind}
         groupSort="asc"
         value={value}
@@ -213,8 +210,7 @@ export const Virtualized = meta.story({
     return (
       <Listbox
         items={manyItems}
-        getItemValue={(item) => item.id}
-        getItemLabel={(item) => item.name}
+        {...idAndName}
         value={value}
         onValueChange={setValue}
         virtual
@@ -239,8 +235,7 @@ export const InPopover = meta.story({
           <Popover.Body>
             <Listbox
               items={produce}
-              getItemValue={(item) => item.id}
-              getItemLabel={(item) => item.name}
+              {...idAndName}
               groupBy={(item) => item.kind}
               groupSort="asc"
               value={value}

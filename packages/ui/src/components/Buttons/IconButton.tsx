@@ -1,4 +1,3 @@
-import type { WithRef } from "../../types";
 import { rendersOwnContent } from "../renderContent";
 import { Button, type ButtonProps } from "./Button";
 
@@ -6,13 +5,7 @@ export interface IconButtonProps extends ButtonProps {
   icon?: React.ReactNode | undefined;
 }
 
-export const IconButton = ({
-  ref,
-  icon,
-  leftIcon,
-  children,
-  ...props
-}: WithRef<IconButtonProps, HTMLButtonElement>) => {
+export const IconButton = ({ ref, icon, leftIcon, children, ...props }: IconButtonProps) => {
   const ownContent = rendersOwnContent(props.render);
   return (
     <Button

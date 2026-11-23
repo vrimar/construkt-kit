@@ -5,6 +5,14 @@ import { Box, HStack, Stack, styled } from "#styled-system/jsx";
 
 import { Badge } from "../Badge";
 import { Button, IconButton } from "../Buttons";
+import {
+  RadioGroupProvider,
+  RadioItemHiddenInput,
+  RadioItemProvider,
+  useRadioGroupRoot,
+  useRadioItem,
+  useRadioItemTextId,
+} from "../radioGroup";
 import { SegmentGroup } from "../SegmentGroup";
 import { Sheet } from "../Sheet";
 import { Text } from "../Text";
@@ -30,47 +38,77 @@ const describeFilter = <TData extends object>(
   return filterKinds[meta.type].describe(values, meta);
 };
 
-interface SheetOptionProps {
-  active: boolean;
-  onSelect: () => void;
+interface SheetOptionsProps {
+  label: string;
+  value: string | null;
+  onValueChange: (value: string) => void;
   children: ReactNode;
 }
 
-const SheetOption = ({ active, onSelect, children }: SheetOptionProps) => (
-  <styled.button
-    type="button"
-    role="radio"
-    aria-checked={active}
-    display="flex"
-    alignItems="center"
-    gap="3"
-    minHeight="12"
-    px="4"
-    width="100%"
-    textAlign="left"
-    cursor="pointer"
-    fontWeight={active ? "semibold" : undefined}
-    borderBottomWidth="1px"
-    borderBottomColor="border.muted"
-    onClick={onSelect}
-  >
-    <Box
-      flex="1"
-      minWidth="0"
-      truncate
-    >
-      {children}
-    </Box>
-    {active && (
-      <Box
-        color="colorPalette.fg"
-        flexShrink="0"
+const SheetOptions = ({ label, value, onValueChange, children }: SheetOptionsProps) => {
+  const { context, rootProps } = useRadioGroupRoot({
+    value,
+    onValueChange: (next: string | null) => {
+      if (next !== null) onValueChange(next);
+    },
+    "aria-label": label,
+  });
+
+  return (
+    <RadioGroupProvider value={context}>
+      <Stack
+        {...rootProps}
+        gap="0"
       >
-        <CheckIcon size={18} />
-      </Box>
-    )}
-  </styled.button>
-);
+        {children}
+      </Stack>
+    </RadioGroupProvider>
+  );
+};
+
+const SheetOption = ({ value, children }: { value: string; children: ReactNode }) => {
+  const { item, itemProps } = useRadioItem({ value });
+  const textId = useRadioItemTextId(item);
+  const active = item.state.checked;
+
+  return (
+    <RadioItemProvider value={item}>
+      <styled.label
+        {...itemProps}
+        display="flex"
+        alignItems="center"
+        gap="3"
+        minHeight="12"
+        px="4"
+        width="100%"
+        textAlign="start"
+        cursor="pointer"
+        fontWeight={active ? "semibold" : undefined}
+        borderBottomWidth="1px"
+        borderBottomColor="border.muted"
+        focusVisibleRing="inside"
+      >
+        <RadioItemHiddenInput />
+        <Box
+          id={textId}
+          flex="1"
+          minWidth="0"
+          truncate
+        >
+          {children}
+        </Box>
+        {active && (
+          <Box
+            color="colorPalette.fg"
+            flexShrink="0"
+          >
+            <CheckIcon size={18} />
+          </Box>
+        )}
+      </styled.label>
+    </RadioItemProvider>
+  );
+};
 
 interface DraftSheetProps {
   open: boolean;
@@ -285,7 +323,7 @@ export const DataTableCardsToolbar = <TData extends object>({
                   colorPalette="brand"
                   position="absolute"
                   top="-1.5"
-                  right="-1.5"
+                  insetInlineEnd="-1.5"
                   minWidth="4.5"
                   justifyContent="center"
                   borderRadius="full"
@@ -330,26 +368,20 @@ export const DataTableCardsToolbar = <TData extends object>({
           onClear={sortDraft ? () => setSortDraft(null) : undefined}
           onDone={applySort}
         >
-          <Stack
-            role="radiogroup"
-            aria-label={labels.sortBy}
-            gap="0"
+          <SheetOptions
+            label={labels.sortBy}
+            value={sortDraft?.id ?? null}
+            onValueChange={(id) => setSortDraft((draft) => ({ id, desc: draft?.desc ?? false }))}
           >
             {sortHeaders.map((header) => (
               <SheetOption
                 key={header.id}
-                active={sortDraft?.id === header.column.id}
-                onSelect={() =>
-                  setSortDraft((draft) => ({
-                    id: header.column.id,
-                    desc: draft?.desc ?? false,
-                  }))
-                }
+                value={header.column.id}
               >
                 {getColumnLabel(header)}
               </SheetOption>
             ))}
-          </Stack>
+          </SheetOptions>
           <Box
             px="4"
             pt="4"

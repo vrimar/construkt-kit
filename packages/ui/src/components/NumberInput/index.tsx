@@ -1,14 +1,21 @@
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { type ComponentProps, createContext, useContext } from "react";
+import { type ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { numberInput } from "#styled-system/recipes";
 
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { dataAttr, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import { type NumberInputApi, type NumberInputOptions, useNumberInput } from "./useNumberInput";
-
+import { useReportRendered } from "../../hooks/useRenderedParts";
+import { useFieldControlId } from "../../primitives/field";
+import { dataAttr, mergeProps, renderable } from "../../primitives/render";
+import { createPartContext } from "../partContext";
+import {
+  NUMBER_INPUT_OPTION_KEYS,
+  type NumberInputApi,
+  type NumberInputOptions,
+  useNumberInput,
+} from "./useNumberInput";
 export type {
   NumberInputFocusDetails,
   NumberInputInvalidDetails,
@@ -20,13 +27,8 @@ export type {
 
 const { withProvider, withContext } = createSlotRecipeContext(numberInput);
 
-const NumberInputContext = createContext<NumberInputApi | null>(null);
-
-function useNumberInputContext(part: string): NumberInputApi {
-  const context = useContext(NumberInputContext);
-  if (!context) throw new Error(`NumberInput.${part} must be placed inside <NumberInput.Root>.`);
-  return context;
-}
+const [NumberInputContext, useNumberInputContext] =
+  createPartContext<NumberInputApi>("<NumberInput.Root>");
 
 const stateAttributes = ({ state }: NumberInputApi) => ({
   "data-disabled": dataAttr(state.disabled),
@@ -42,67 +44,9 @@ type StyledRootProps = ComponentProps<typeof StyledRoot>;
 export interface NumberInputRootProps
   extends Omit<StyledRootProps, keyof NumberInputOptions>, NumberInputOptions {}
 
-function Root({
-  value,
-  defaultValue,
-  onValueChange,
-  onValueCommit,
-  onValueInvalid,
-  onFocusChange,
-  min,
-  max,
-  step,
-  largeStep,
-  smallStep,
-  allowOverflow,
-  clampValueOnBlur,
-  allowMouseWheel,
-  focusInputOnChange,
-  spinOnPress,
-  formatOptions,
-  locale,
-  inputMode,
-  pattern,
-  translations,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  name,
-  form,
-  id,
-  ...props
-}: NumberInputRootProps) {
-  const api = useNumberInput({
-    value,
-    defaultValue,
-    onValueChange,
-    onValueCommit,
-    onValueInvalid,
-    onFocusChange,
-    min,
-    max,
-    step,
-    largeStep,
-    smallStep,
-    allowOverflow,
-    clampValueOnBlur,
-    allowMouseWheel,
-    focusInputOnChange,
-    spinOnPress,
-    formatOptions,
-    locale,
-    inputMode,
-    pattern,
-    translations,
-    disabled,
-    readOnly,
-    invalid,
-    required,
-    name,
-    form,
-    id,
-  });
+function Root(rootProps: NumberInputRootProps) {
+  const [options, props] = splitOptions(rootProps, NUMBER_INPUT_OPTION_KEYS);
+  const api = useNumberInput(options);
 
   return (
     <NumberInputContext value={api}>
@@ -117,7 +61,7 @@ function Root({
 const StyledLabel = withContext(renderable.label, "label");
 
 function LabelPart(props: ComponentProps<typeof StyledLabel>) {
-  const api = useNumberInputContext("Label");
+  const api = useNumberInputContext("NumberInput.Label");
   return (
     <StyledLabel
       {...stateAttributes(api)}
@@ -130,15 +74,20 @@ function LabelPart(props: ComponentProps<typeof StyledLabel>) {
 const StyledInput = withContext(renderable.input, "input");
 
 function InputPart({ ref, ...props }: ComponentProps<typeof StyledInput>) {
-  const api = useNumberInputContext("Input");
+  const api = useNumberInputContext("NumberInput.Input");
   const { ref: inputRef, ...inputProps } = api.inputProps;
   const composedRef = useComposedRefs(inputRef, ref);
+  const id = useReportRendered(
+    api.reportRendered,
+    "input",
+    useFieldControlId(props.id) ?? inputProps.id,
+  );
   return (
     <StyledInput
       data-invalid={dataAttr(api.state.invalid)}
       data-disabled={dataAttr(api.state.disabled)}
       data-scrubbing={dataAttr(api.state.scrubbing)}
-      {...mergeProps<ComponentProps<typeof StyledInput>>(inputProps, props)}
+      {...mergeProps<ComponentProps<typeof StyledInput>>(inputProps, props, { id })}
       ref={composedRef}
     />
   );
@@ -146,39 +95,34 @@ function InputPart({ ref, ...props }: ComponentProps<typeof StyledInput>) {
 
 type TriggerProps = ComponentProps<typeof renderable.button>;
 
-function IncrementTriggerImpl({ ref, ...props }: TriggerProps) {
-  const { ref: triggerRef, ...triggerProps } =
-    useNumberInputContext("Control").incrementTriggerProps;
-  const composedRef = useComposedRefs(triggerRef, ref);
-  return (
-    <renderable.button
-      {...mergeProps<TriggerProps>(triggerProps, props)}
-      ref={composedRef}
-    />
-  );
-}
+const createTrigger = (hint: "increment" | "decrement") =>
+  function TriggerImpl({ ref, ...props }: TriggerProps) {
+    const api = useNumberInputContext("NumberInput.Control");
+    const { ref: triggerRef, ...triggerProps } =
+      hint === "increment" ? api.incrementTriggerProps : api.decrementTriggerProps;
+    const composedRef = useComposedRefs(triggerRef, ref);
+    return (
+      <renderable.button
+        data-disabled={dataAttr(triggerProps.disabled)}
+        data-scrubbing={dataAttr(api.state.scrubbing)}
+        {...mergeProps<TriggerProps>(
+          { ...triggerProps, type: props.render ? undefined : "button" },
+          props,
+        )}
+        ref={composedRef}
+      />
+    );
+  };
 
-function DecrementTriggerImpl({ ref, ...props }: TriggerProps) {
-  const { ref: triggerRef, ...triggerProps } =
-    useNumberInputContext("Control").decrementTriggerProps;
-  const composedRef = useComposedRefs(triggerRef, ref);
-  return (
-    <renderable.button
-      {...mergeProps<TriggerProps>(triggerProps, props)}
-      ref={composedRef}
-    />
-  );
-}
-
-const DecrementTrigger = withContext(DecrementTriggerImpl, "decrementTrigger", {
+const DecrementTrigger = withContext(createTrigger("decrement"), "decrementTrigger", {
   defaultProps: { children: <ChevronDownIcon /> },
 });
-const IncrementTrigger = withContext(IncrementTriggerImpl, "incrementTrigger", {
+const IncrementTrigger = withContext(createTrigger("increment"), "incrementTrigger", {
   defaultProps: { children: <ChevronUpIcon /> },
 });
 
 function ControlImpl(props: ComponentProps<typeof renderable.div>) {
-  const api = useNumberInputContext("Control");
+  const api = useNumberInputContext("NumberInput.Control");
   return (
     <renderable.div
       {...stateAttributes(api)}
@@ -199,7 +143,7 @@ const Control = withContext(ControlImpl, "control", {
 });
 
 function ScrubberImpl(props: ComponentProps<typeof renderable.div>) {
-  const api = useNumberInputContext("Scrubber");
+  const api = useNumberInputContext("NumberInput.Scrubber");
   return (
     <renderable.div
       data-disabled={dataAttr(api.state.disabled)}

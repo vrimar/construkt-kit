@@ -20,11 +20,14 @@ export const Default = meta.story();
 export const Variants = meta.story({
   render: () => (
     <Wrap gap="2">
-      <Code variant="solid">solid</Code>
-      <Code variant="surface">surface</Code>
-      <Code variant="subtle">subtle</Code>
-      <Code variant="outline">outline</Code>
-      <Code variant="plain">plain</Code>
+      {code.variantMap.variant.map((variant) => (
+        <Code
+          key={variant}
+          variant={variant}
+        >
+          {variant}
+        </Code>
+      ))}
     </Wrap>
   ),
 });

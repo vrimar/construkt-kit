@@ -3,11 +3,16 @@ import type { ComponentProps, ReactNode } from "react";
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { switchRecipe } from "#styled-system/recipes";
 
-import { useComposedRefs } from "../../hooks/useComposedRefs";
-import { renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
+import { mergeProps, renderable } from "../../primitives/render";
 import type { HiddenInputControlProps, WithRef } from "../../types";
-import { type CheckableProps, type CheckedChangeDetails, useCheckable } from "../checkable";
+import {
+  type CheckableProps,
+  type CheckedChangeDetails,
+  CheckableContext,
+  CheckableHiddenInput,
+  splitCheckableProps,
+  useCheckable,
+} from "../checkable";
 
 export type { CheckedChangeDetails as SwitchCheckedChangeDetails };
 
@@ -42,67 +47,42 @@ export const Switch = ({
   rootRef,
   trackLabel,
   thumbLabel,
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-  readOnly,
-  invalid,
-  required,
-  name,
-  value,
-  form,
-  id,
-  ...rest
+  ...props
 }: WithRef<SwitchProps, HTMLInputElement>) => {
-  const {
-    state,
-    stateAttributes,
-    rootProps,
-    inputProps: checkableInputProps,
-  } = useCheckable(
-    {
-      checked,
-      defaultChecked,
-      onCheckedChange:
-        onCheckedChange && ((next, details) => onCheckedChange(next === true, details)),
-      disabled,
-      readOnly,
-      invalid,
-      required,
-      name,
-      value,
-      form,
-      id,
-    },
-    { focusOnPress: true },
-  );
-  const inputRef = useComposedRefs(checkableInputProps.ref, ref);
+  const [{ onCheckedChange, ...checkableProps }, rest] = splitCheckableProps(props);
+  const checkable = useCheckable({
+    ...checkableProps,
+    onCheckedChange:
+      onCheckedChange && ((next, details) => onCheckedChange(next === true, details)),
+  });
+  const { state, stateAttributes, rootProps } = checkable;
   const pick = (label: SwitchLabel) => (state.checked ? label.on : label.off);
 
   return (
-    <Root
-      ref={rootRef}
-      {...stateAttributes}
-      {...mergeProps<RootProps>(rootProps, rest)}
-    >
-      <renderable.input
-        {...mergeProps<ComponentProps<typeof renderable.input>>(checkableInputProps, inputProps)}
-        ref={inputRef}
-      />
-      <Control
-        aria-hidden
+    <CheckableContext value={checkable}>
+      <Root
+        ref={rootRef}
         {...stateAttributes}
+        {...mergeProps<RootProps>(rootProps, rest)}
       >
-        <Thumb
+        <CheckableHiddenInput
+          ref={ref}
+          {...inputProps}
+        />
+        <Control
           aria-hidden
           {...stateAttributes}
         >
-          {thumbLabel && pick(thumbLabel)}
-        </Thumb>
-        {trackLabel && <Indicator {...stateAttributes}>{pick(trackLabel)}</Indicator>}
-      </Control>
-      {children != null && <Label {...stateAttributes}>{children}</Label>}
-    </Root>
+          <Thumb
+            aria-hidden
+            {...stateAttributes}
+          >
+            {thumbLabel && pick(thumbLabel)}
+          </Thumb>
+          {trackLabel && <Indicator {...stateAttributes}>{pick(trackLabel)}</Indicator>}
+        </Control>
+        {children != null && <Label {...stateAttributes}>{children}</Label>}
+      </Root>
+    </CheckableContext>
   );
 };

@@ -1,4 +1,5 @@
-import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { sameItems } from "@construkt-kit/utils";
+import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 import {
   type ChangeEvent,
   type ComponentProps,
@@ -27,46 +28,79 @@ import { type ComboboxVariantProps, combobox } from "#styled-system/recipes";
 import { isComposingEvent } from "../../foundations/dom";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useControllableState } from "../../hooks/useControllableState";
+import { useFocusOnMount } from "../../hooks/useFocusOnMount";
+import { useFrameQueue } from "../../hooks/useFrameQueue";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import {
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
+import { joinIds, useFieldControlId, useFormFieldState } from "../../primitives/field";
+import {
   type DismissReason,
-  type OpenChangeDetails,
   type OpenChangeReason,
+  type UseOpenStateOptions,
   useOpenState,
   useOverlayExit,
 } from "../../primitives/layer";
-import type { PlacementOption } from "../../primitives/position";
-import { type TransitionStatus, presenceAttributes } from "../../primitives/presence";
-import { openStateAttributes, renderable } from "../../primitives/render";
-import { mergeProps } from "../../primitives/render/mergeProps";
-import { useStore } from "../../primitives/store";
-import { useFieldControl } from "../fieldTrigger";
-import { createAnchoredPositioner, useAnchoredPopup } from "../floating";
 import {
+  Announcer,
+  type AnnouncerProps,
   ListboxNode,
-  sameEntries,
-  selectHighlighted,
-  selectIsHighlighted,
-} from "../Listbox/listboxNode";
-import { encodeSelectionValue } from "../Listbox/managed";
-import type { SelectionMode, SelectionValue } from "../Listbox/types";
+  useListboxActiveDescendant,
+  useListboxContentRef,
+  useListboxInputRef,
+} from "../../primitives/listbox";
 import {
   type MobileLayoutProps,
   OverlayPresentationContext,
   useOverlayMode,
   useOverlayPresentation,
-} from "../overlayPresentation";
+} from "../../primitives/popup";
+import type { PlacementOption } from "../../primitives/position";
+import { type TransitionStatus, presenceAttributes } from "../../primitives/presence";
+import { dataAttr, mergeProps, openStateAttributes, renderable } from "../../primitives/render";
+import { createAnchoredPositioner, getPopupTriggerProps, useAnchoredPopup } from "../floating";
+import { createListboxParts } from "../listboxParts";
+import { createPartContext } from "../partContext";
 import type { StyledRootProps } from "../rootProps";
-import { type SheetCloseReason, SheetOverlayContent } from "../sheetFrame";
-import { Announcer, type AnnouncerProps } from "./Announcer";
+import {
+  type SelectionItemSource,
+  type SelectionMode,
+  type SelectionValue,
+  decodeSelection,
+  encodeSelectionValue,
+  toSelectionArray,
+  useListEntries,
+} from "../selection";
+import { type SheetCloseReason, SheetOverlayContent } from "../Sheet/sheetFrame";
 
 const { withProvider, withContext } = createSlotRecipeContext(combobox);
+
+const StyledItem = withContext(renderable.div, "item");
+const StyledItemText = withContext(renderable.span, "itemText");
+const StyledItemIndicator = withContext(renderable.div, "itemIndicator");
+const StyledItemGroup = withContext(renderable.div, "itemGroup");
+const StyledItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
+
+const parts = createListboxParts(
+  {
+    Item: StyledItem,
+    ItemText: StyledItemText,
+    ItemIndicator: StyledItemIndicator,
+    ItemGroup: StyledItemGroup,
+    ItemGroupLabel: StyledItemGroupLabel,
+  },
+  "combobox-group",
+);
 
 export type ComboboxInputValueChangeReason =
   | "input-change"
   | "item-select"
   | "clear-trigger"
-  | "revert";
+  | "revert"
+  | "form-reset";
 
 export interface ComboboxInputValueChangeDetails {
   reason: ComboboxInputValueChangeReason;
@@ -91,21 +125,15 @@ interface ComboboxSelectionPropsByMode<V extends SelectionValue> {
   multiple: ComboboxMultipleSelectionProps<V>;
 }
 
-interface ComboboxRootOwnProps<T, V extends SelectionValue> extends MobileLayoutProps {
+interface ComboboxRootOwnProps<T, V extends SelectionValue>
+  extends SelectionItemSource<T, V>, MobileLayoutProps, UseOpenStateOptions {
   /** The options to show; filter them yourself from `onInputValueChange`. */
   items: readonly T[];
-  /** Compared by identity, as are `getItemLabel` and `isItemDisabled`: a new one re-reads every item. */
-  getItemValue: (item: T) => V;
-  getItemLabel: (item: T) => string;
-  isItemDisabled?: ((item: T) => boolean) | undefined;
   inputValue?: string | undefined;
   defaultInputValue?: string | undefined;
   onInputValueChange?:
     | ((inputValue: string, details: ComboboxInputValueChangeDetails) => void)
     | undefined;
-  open?: boolean | undefined;
-  defaultOpen?: boolean | undefined;
-  onOpenChange?: ((open: boolean, details: OpenChangeDetails) => void) | undefined;
   /** The value of the highlighted option, or `null` for none. */
   highlightedValue?: V | null | undefined;
   defaultHighlightedValue?: V | null | undefined;
@@ -168,6 +196,8 @@ type ComboboxRootImplProps<T, V extends SelectionValue> = Omit<
 > &
   ComboboxSelectionPropsByMode<V>[SelectionMode];
 
+type ComboboxPart = "label" | "input" | "content";
+
 interface ComboboxContextValue {
   node: ListboxNode;
   ids: {
@@ -179,6 +209,13 @@ interface ComboboxContextValue {
     trigger: string;
     clearTrigger: string;
   };
+  /** The `Field`'s or the rendered label's id. */
+  labelId: string | undefined;
+  /** The rendered input's id. */
+  inputId: string | undefined;
+  /** The rendered content's id. */
+  contentId: string | undefined;
+  reportRendered: ReportRendered<ComboboxPart>;
   open: boolean;
   focused: boolean;
   disabled: boolean;
@@ -202,10 +239,10 @@ interface ComboboxContextValue {
   isSelected: (value: string) => boolean;
   controlEl: HTMLElement | null;
   setControlEl: (element: HTMLElement | null) => void;
-  setInputEl: (element: HTMLElement | null) => void;
   triggerEl: HTMLElement | null;
   setTriggerEl: (element: HTMLElement | null) => void;
   setClearTriggerEl: (element: HTMLElement | null) => void;
+  setSheetFormInput: (element: HTMLInputElement | null) => void;
   contains: (target: Node) => boolean;
   dismiss: (reason: DismissReason | SheetCloseReason, event?: Event) => boolean;
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -215,24 +252,12 @@ interface ComboboxContextValue {
   onInputBlur: () => void;
   onTriggerClick: (event: MouseEvent<HTMLElement>) => void;
   onClear: (event: MouseEvent<HTMLElement>) => void;
-  onItemPointerMove: (value: string) => void;
-  onItemPointerLeave: () => void;
-  onItemClick: (value: string, event: MouseEvent<HTMLElement>) => void;
 }
 
-const ComboboxContext = createContext<ComboboxContextValue | null>(null);
-
-function useComboboxContext(): ComboboxContextValue {
-  const context = useContext(ComboboxContext);
-  if (!context) throw new Error("Combobox parts must be rendered inside Combobox.Root.");
-  return context;
-}
-
-const toArray = <V,>(value: V | readonly V[] | null | undefined): V[] =>
-  value == null ? [] : Array.isArray(value) ? [...(value as readonly V[])] : [value as V];
-
-const sameValues = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((entry, index) => entry === b[index]);
+const [ComboboxContext, useComboboxContext] = createPartContext<ComboboxContextValue>(
+  "<Combobox.Root>",
+  "Combobox parts",
+);
 
 const focusField = (element: HTMLElement | null) => {
   if (!element) return;
@@ -287,17 +312,30 @@ function RootElement<T, V extends SelectionValue>({
   children,
   ...rest
 }: ComboboxRootImplProps<T, V>) {
-  const field = useFieldControl();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const composedRootRef = useComposedRefs(ref, rootRef);
+  const sheetFormInputRef = useRef<HTMLInputElement>(null);
+  const [rendered, reportRendered] = useRenderedParts<ComboboxPart>();
+  const field = useFormFieldState(
+    {
+      disabled: disabledProp,
+      readOnly: readOnlyProp,
+      invalid: invalidProp,
+      required: requiredProp,
+    },
+    {
+      elementRef: rootRef,
+      onReset: () => resetToInitial(),
+      input: () => (presentation.mode === "sheet" ? sheetFormInputRef.current : node.input),
+    },
+  );
   const id = useId();
   const multiple = selectionMode === "multiple";
   const selectionBehavior = selectionBehaviorProp ?? (multiple ? "clear" : "replace");
   const closeOnSelect = closeOnSelectProp ?? !multiple;
   const autoComplete = inputBehavior === "autocomplete" && !multiple;
   const autoHighlight = inputBehavior === "autohighlight";
-  const disabled = disabledProp ?? field?.disabled ?? false;
-  const readOnly = readOnlyProp ?? field?.readOnly ?? false;
-  const invalid = invalidProp ?? field?.invalid ?? false;
-  const required = requiredProp ?? field?.required ?? false;
+  const { disabled, readOnly, invalid, required } = field;
   const interactive = !disabled && !readOnly;
 
   const [node] = useState(
@@ -307,26 +345,15 @@ function RootElement<T, V extends SelectionValue>({
         (highlightedProp ?? defaultHighlightedValue) == null
           ? null
           : encodeSelectionValue((highlightedProp ?? defaultHighlightedValue) as V),
+        defaultOpen || openProp === true,
       ),
   );
 
-  const { entries, values } = useMemo(() => {
-    const byValue = new Map<string, V>();
-    const list = items.map((item) => {
-      const native = getItemValue(item);
-      const encoded = encodeSelectionValue(native);
-      byValue.set(encoded, native);
-      return {
-        value: encoded,
-        label: getItemLabel(item),
-        disabled: isItemDisabled?.(item) ?? false,
-      };
-    });
-    return { entries: list, values: byValue };
-  }, [items, getItemValue, getItemLabel, isItemDisabled]);
+  const { entries, values } = useListEntries({ items, getItemValue, getItemLabel, isItemDisabled });
 
-  const [localValue, setLocalValue] = useState<V[]>(() => toArray(defaultValue));
-  const selectedValues = valueProp !== undefined ? toArray(valueProp) : localValue;
+  const [localValue, setLocalValue] = useState<V[]>(() => toSelectionArray(defaultValue));
+  const selectedValues = valueProp !== undefined ? toSelectionArray(valueProp) : localValue;
+  const [initialValues] = useState(selectedValues);
   const selected = useMemo(() => selectedValues.map(encodeSelectionValue), [selectedValues]);
   const selectedSet = useMemo(() => new Set(selected), [selected]);
   const labelCache = useRef(new Map<string, string>());
@@ -371,52 +398,27 @@ function RootElement<T, V extends SelectionValue>({
   const presentation = useOverlayPresentation({ mobileLayout, open });
   if (!open && autofill !== null) setAutofill(null);
   const [focused, setFocused] = useState(false);
-  const initiallySuggesting = defaultOpen || openProp === true;
-  const suggestingRef = useRef(initiallySuggesting);
-  const [suggesting, setSuggesting] = useState(initiallySuggesting);
-  const setMode = (next: boolean) => {
-    suggestingRef.current = next;
-    setSuggesting(next);
-  };
 
   const [controlEl, setControlEl] = useState<HTMLElement | null>(null);
   const [triggerEl, setTriggerEl] = useState<HTMLElement | null>(null);
-  const inputRef = useRef<HTMLElement | null>(null);
   const clearTriggerRef = useRef<HTMLElement | null>(null);
-  const setInputEl = useCallback(
-    (element: HTMLElement | null) => {
-      inputRef.current = element;
-      node.setInput(element);
-    },
-    [node],
-  );
   const setClearTriggerEl = useCallback((element: HTMLElement | null) => {
     clearTriggerRef.current = element;
   }, []);
-
-  const frames = useRef({ focus: 0, highlight: 0 });
-  useEffect(() => {
-    const pending = frames.current;
-    return () => {
-      cancelAnimationFrame(pending.focus);
-      cancelAnimationFrame(pending.highlight);
-    };
+  const setSheetFormInput = useCallback((element: HTMLInputElement | null) => {
+    sheetFormInputRef.current = element;
   }, []);
 
-  const focusInput = () => {
-    cancelAnimationFrame(frames.current.focus);
-    frames.current.focus = requestAnimationFrame(() => focusField(inputRef.current));
-  };
+  const frames = useFrameQueue();
+
+  const focusInput = () => frames.request("focus", () => focusField(node.input));
 
   const focusFinal = () => {
-    if (presentation.mode === "sheet") return;
-    cancelAnimationFrame(frames.current.focus);
-    frames.current.focus = requestAnimationFrame(() => focusField(inputRef.current));
+    if (presentation.mode !== "sheet") focusInput();
   };
 
   const highlightLater = (pick: () => string | null | undefined) => {
-    cancelAnimationFrame(frames.current.highlight);
-    frames.current.highlight = requestAnimationFrame(() => {
+    frames.request("highlight", () => {
       const value = pick();
       if (value) node.highlight(value, true);
     });
@@ -433,7 +435,7 @@ function RootElement<T, V extends SelectionValue>({
     }: { suggest?: boolean; highlight?: () => string | null | undefined } = {},
   ) => {
     if (!requestOpenChange(true, reason, event)) return false;
-    setMode(suggest);
+    node.setSuggesting(suggest);
     if (highlight) highlightLater(highlight);
     return true;
   };
@@ -451,25 +453,19 @@ function RootElement<T, V extends SelectionValue>({
   const valueText = () => labelsOf(selected);
   const isCustomValue = () => inputValue !== valueText();
 
-  const revertedInputValue = () =>
-    selectionBehavior === "replace"
-      ? valueText()
-      : selectionBehavior === "preserve"
-        ? inputValue
-        : "";
+  const revertedInputValue = (selection: readonly string[] = selected) =>
+    selectionText(selectionBehavior, labelsOf(selection), inputValue);
   const revertInputValue = () => setInputValue(revertedInputValue(), "revert");
 
+  const emitValue = (next: V[]) => {
+    if (valueProp === undefined) setLocalValue(next);
+    if (multiple) (onValueChange as ((value: V[]) => void) | undefined)?.(next);
+    else (onValueChange as ((value: V | null) => void) | undefined)?.(next[0] ?? null);
+  };
+
   const commitValue = (next: string[]) => {
-    if (sameValues(next, selected)) return;
-    const decoded = next
-      .map(
-        (entry) =>
-          values.get(entry) ?? selectedValues.find((own) => encodeSelectionValue(own) === entry),
-      )
-      .filter((entry): entry is V => entry !== undefined);
-    if (valueProp === undefined) setLocalValue(decoded);
-    if (multiple) (onValueChange as ((value: V[]) => void) | undefined)?.(decoded);
-    else (onValueChange as ((value: V | null) => void) | undefined)?.(decoded[0] ?? null);
+    if (sameItems(next, selected)) return;
+    emitValue(decodeSelection(next, values, selectedValues));
   };
 
   const selectValue = (picked: string) => {
@@ -479,7 +475,7 @@ function RootElement<T, V extends SelectionValue>({
         : [...selected, picked]
       : [picked];
     commitValue(next);
-    setInputValue(selectionText(selectionBehavior, labelsOf(next), inputValue), "item-select");
+    setInputValue(revertedInputValue(next), "item-select");
   };
 
   const pick = (value: string, event: Event) => {
@@ -492,7 +488,7 @@ function RootElement<T, V extends SelectionValue>({
   const syncedKey = useRef(selectedKey);
   const syncInputToValue = useLatestRef(() => {
     if (selectionBehavior === "preserve") return;
-    setInputValue(selectionText(selectionBehavior, labelsOf(selected), inputValue), "item-select");
+    setInputValue(revertedInputValue(), "item-select");
   });
   useEffect(() => {
     if (syncedKey.current === selectedKey) return;
@@ -500,27 +496,32 @@ function RootElement<T, V extends SelectionValue>({
     queueMicrotask(() => syncInputToValue.current());
   }, [selectedKey, syncInputToValue]);
 
+  const resetToInitial = () => {
+    const initial = initialValues.map(encodeSelectionValue);
+    if (!sameItems(initial, selected)) {
+      // Stops the value sync from overwriting the restored input text.
+      syncedKey.current = initial.join("\n");
+      emitValue(initialValues);
+    }
+    setInputValue(initialInputValue, "form-reset");
+  };
+
   const wasOpen = useRef(open);
   useLayoutEffect(() => {
     if (wasOpen.current === open) return;
     wasOpen.current = open;
     if (open) {
-      const input = inputRef.current;
+      const input = node.input;
       // Refocusing moves the caret to the end, away from where the user is typing.
       if (input?.ownerDocument.activeElement !== input) focusInput();
       return;
     }
-    cancelAnimationFrame(frames.current.highlight);
+    frames.cancel("highlight");
     node.reset();
     node.scrollToTop();
   });
 
-  const [focusOnMount] = useState(autoFocus);
-  useEffect(() => {
-    if (!focusOnMount) return;
-    const frame = requestAnimationFrame(() => focusField(inputRef.current));
-    return () => cancelAnimationFrame(frame);
-  }, [focusOnMount]);
+  useFocusOnMount(autoFocus, () => focusField(node.input));
 
   const highlightControlled = highlightedProp !== undefined;
   useLayoutEffect(() => {
@@ -539,6 +540,7 @@ function RootElement<T, V extends SelectionValue>({
       loopFocus,
       typeahead: false,
       alwaysShowHighlight: true,
+      autoHighlight: autoHighlight && open,
       scrollToIndex: undefined,
       onPick: (value, _modifiers, event) => pick(value, event),
       onNavigate: undefined,
@@ -547,20 +549,6 @@ function RootElement<T, V extends SelectionValue>({
         onHighlightChange && ((value) => onHighlightChange(decodeHighlight(value))),
       highlightControlled,
     });
-  });
-
-  const prevEntries = useRef(entries);
-  useLayoutEffect(() => {
-    if (sameEntries(prevEntries.current, entries)) return;
-    prevEntries.current = entries;
-    if (!open) return;
-    const highlighted = node.highlighted;
-    const removed = highlighted != null && !entries.some((entry) => entry.value === highlighted);
-    if (autoHighlight && entries.length > 0 && (removed || suggestingRef.current)) {
-      queueMicrotask(() => node.highlight(node.firstEnabled(), true));
-    } else if (!removed && highlighted != null && !suggestingRef.current) {
-      queueMicrotask(() => node.scrollTo(highlighted));
-    }
   });
 
   const moveHighlight = (target: "next" | "prev") => {
@@ -601,7 +589,7 @@ function RootElement<T, V extends SelectionValue>({
           openList("list-navigation", native, autoComplete ? {} : { highlight: edge });
           return;
         }
-        setMode(false);
+        node.setSuggesting(false);
         moveHighlight(down ? "next" : "prev");
         return;
       }
@@ -621,13 +609,7 @@ function RootElement<T, V extends SelectionValue>({
           }
           return;
         }
-        const item = node.elementOf(highlighted);
-        if (item?.matches("a[href]")) {
-          event.preventDefault();
-          queueMicrotask(() => item.click());
-          return;
-        }
-        pick(highlighted, native);
+        node.pickHighlighted(event);
         return;
       }
       case "Escape":
@@ -654,8 +636,8 @@ function RootElement<T, V extends SelectionValue>({
       }
       return;
     }
-    if (!suggestingRef.current && !autoComplete) node.highlight(null);
-    setMode(true);
+    if (!node.suggesting && !autoComplete) node.highlight(null);
+    node.setSuggesting(true);
     setInputValue(next, "input-change");
     node.scrollToTop();
   };
@@ -677,31 +659,36 @@ function RootElement<T, V extends SelectionValue>({
   const onClear = (event: MouseEvent<HTMLElement>) => {
     if (event.defaultPrevented || !interactive) return;
     commitValue([]);
-    setInputValue(selectionBehavior === "preserve" ? inputValue : "", "clear-trigger");
+    setInputValue(revertedInputValue([]), "clear-trigger");
     if (open) closeList("close-press", event.nativeEvent);
     else focusInput();
   };
 
   const contains = (target: Node) =>
-    [controlEl, inputRef.current, triggerEl, clearTriggerRef.current].some(
+    [controlEl, node.input, triggerEl, clearTriggerRef.current].some(
       (element) => element?.contains(target) ?? false,
     );
 
   const dismiss = (reason: DismissReason | SheetCloseReason, event?: Event) => {
     if (reason === "escape-key") {
       setAutofill(null);
-      return closeList("escape-key", event, { refocus: !suggestingRef.current && !autoComplete });
+      return closeList("escape-key", event, { refocus: !node.suggesting && !autoComplete });
     }
     if (reason === "close-press") return closeList("close-press", event);
     if (isCustomValue() && !allowCustomValue) revertInputValue();
     return closeList(reason, event, { refocus: false });
   };
 
+  const onInputBlur = () => {
+    setFocused(false);
+    if (!open && interactive && isCustomValue() && !allowCustomValue) revertInputValue();
+  };
+
   const ids = {
     root: `combobox:${id}`,
-    label: field?.labelId ?? `combobox:${id}:label`,
+    label: `combobox:${id}:label`,
     control: `combobox:${id}:control`,
-    input: field?.id ?? `combobox:${id}:input`,
+    input: `combobox:${id}:input`,
     content: `combobox:${id}:content`,
     trigger: `combobox:${id}:toggle-btn`,
     clearTrigger: `combobox:${id}:clear-btn`,
@@ -710,6 +697,10 @@ function RootElement<T, V extends SelectionValue>({
   const context: ComboboxContextValue = {
     node,
     ids,
+    labelId: field.labelId ?? rendered.label,
+    inputId: rendered.input,
+    contentId: rendered.content,
+    reportRendered,
     open,
     focused: focused || open,
     disabled,
@@ -718,7 +709,7 @@ function RootElement<T, V extends SelectionValue>({
     required,
     name,
     form,
-    describedBy: field?.describedBy,
+    describedBy: field.describedBy,
     multiple,
     inputValue,
     displayValue: autofill ?? inputValue,
@@ -732,36 +723,30 @@ function RootElement<T, V extends SelectionValue>({
     isSelected: (value) => selectedSet.has(value),
     controlEl,
     setControlEl,
-    setInputEl,
     triggerEl,
     setTriggerEl,
     setClearTriggerEl,
+    setSheetFormInput,
     contains,
     dismiss,
     onInputChange,
     onInputKeyDown,
     onInputClick,
     onInputFocus: () => setFocused(true),
-    onInputBlur: () => setFocused(false),
+    onInputBlur,
     onTriggerClick,
     onClear,
-    onItemPointerMove: (value) => {
-      setMode(false);
-      node.highlight(value);
-    },
-    onItemPointerLeave: () => node.highlight(null),
-    onItemClick: (value, event) => node.pick(value, event.nativeEvent),
   };
 
   return (
     <OverlayPresentationContext value={presentation}>
       <ComboboxContext value={context}>
         <renderable.div
-          ref={ref}
+          ref={composedRootRef}
           render={render}
           id={ids.root}
-          data-invalid={invalid ? "" : undefined}
-          data-readonly={readOnly ? "" : undefined}
+          data-invalid={dataAttr(invalid)}
+          data-readonly={dataAttr(readOnly)}
           {...(rest as ComponentProps<"div">)}
         >
           <SheetInputHostProvider>
@@ -772,7 +757,6 @@ function RootElement<T, V extends SelectionValue>({
                 entries={entries}
                 inputValue={inputValue}
                 loading={loading}
-                suggesting={suggesting}
                 isSelected={context.isSelected}
               />
             )}
@@ -823,22 +807,18 @@ const StyledContent = withContext(renderable.div, "content");
 const Positioner = createAnchoredPositioner(withContext(renderable.div, "positioner"));
 const StyledList = withContext(renderable.div, "list");
 const StyledEmpty = withContext(renderable.div, "empty");
-const StyledItem = withContext(renderable.div, "item");
-const StyledItemText = withContext(renderable.span, "itemText");
-const StyledItemIndicator = withContext(renderable.div, "itemIndicator");
-const StyledItemGroup = withContext(renderable.div, "itemGroup");
-const StyledItemGroupLabel = withContext(renderable.div, "itemGroupLabel");
 
-function Label(props: ComponentProps<typeof StyledLabel>) {
+function Label({ id, ...props }: ComponentProps<typeof StyledLabel>) {
   const context = useComboboxContext();
+  const labelId = useReportRendered(context.reportRendered, "label", id ?? context.ids.label);
   return (
     <StyledLabel
-      id={context.ids.label}
-      htmlFor={context.ids.input}
-      data-disabled={context.disabled ? "" : undefined}
-      data-invalid={context.invalid ? "" : undefined}
-      data-readonly={context.readOnly ? "" : undefined}
-      data-required={context.required ? "" : undefined}
+      id={labelId}
+      htmlFor={context.inputId}
+      data-disabled={dataAttr(context.disabled)}
+      data-invalid={dataAttr(context.invalid)}
+      data-readonly={dataAttr(context.readOnly)}
+      data-required={dataAttr(context.required)}
       {...props}
     />
   );
@@ -846,13 +826,13 @@ function Label(props: ComponentProps<typeof StyledLabel>) {
 
 function Control({ ref, ...props }: ComponentProps<typeof StyledControl>) {
   const context = useComboboxContext();
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setControlEl);
+  const composedRef = useComposedRefs(ref, context.setControlEl);
   return (
     <StyledControl
       id={context.ids.control}
-      data-focus={context.focused ? "" : undefined}
-      data-disabled={context.disabled ? "" : undefined}
-      data-invalid={context.invalid ? "" : undefined}
+      data-focus={dataAttr(context.focused)}
+      data-disabled={dataAttr(context.disabled)}
+      data-invalid={dataAttr(context.invalid)}
       {...openStateAttributes(context.open)}
       {...props}
       ref={composedRef}
@@ -862,12 +842,16 @@ function Control({ ref, ...props }: ComponentProps<typeof StyledControl>) {
 
 type InputProps = ComponentProps<typeof StyledInput>;
 
-function useInputProps(): InputProps {
+function useInputProps(id: string | undefined): InputProps {
   const context = useComboboxContext();
-  const { node } = context;
-  const highlighted = useStore(node.store, selectHighlighted);
+  const activeDescendant = useListboxActiveDescendant(context.node);
+  const inputId = useReportRendered(
+    context.reportRendered,
+    "input",
+    useFieldControlId(id) ?? context.ids.input,
+  );
   const props: Record<string, unknown> = {
-    id: context.ids.input,
+    id: inputId,
     type: "text",
     role: "combobox",
     autoComplete: "off",
@@ -883,10 +867,10 @@ function useInputProps(): InputProps {
     "aria-invalid": context.invalid || undefined,
     "aria-describedby": context.describedBy,
     "aria-autocomplete": context.autoComplete ? "both" : "list",
-    "aria-controls": context.ids.content,
+    "aria-controls": context.contentId,
     "aria-expanded": context.open,
-    "aria-activedescendant": highlighted == null ? undefined : node.itemId(highlighted),
-    "data-invalid": context.invalid ? "" : undefined,
+    "aria-activedescendant": activeDescendant,
+    "data-invalid": dataAttr(context.invalid),
     ...openStateAttributes(context.open),
     onChange: context.onInputChange,
     onKeyDown: context.onInputKeyDown,
@@ -903,10 +887,10 @@ function useInputProps(): InputProps {
 
 function InputElement({ ref, ...props }: InputProps) {
   const context = useComboboxContext();
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setInputEl);
+  const composedRef = useComposedRefs(ref, useListboxInputRef(context.node));
   return (
     <StyledInput
-      {...mergeProps<InputProps>(useInputProps(), props)}
+      {...mergeProps<InputProps>(useInputProps(props.id), props)}
       ref={composedRef}
     />
   );
@@ -919,6 +903,7 @@ function SheetInputProxy(props: InputProps) {
   const proxyRef = useRef<HTMLButtonElement>(null);
   const keyboardHolderRef = useRef<HTMLInputElement>(null);
   const composedRef = useComposedRefs(proxyRef, context.setTriggerEl);
+  const { setSheetFormInput } = context;
   const [styleProps, { className, ...inputProps }] = splitCssProps(props);
   const fieldAttributes = Object.fromEntries(
     Object.entries(inputProps).filter(([key]) => isFieldAttribute(key)),
@@ -933,7 +918,7 @@ function SheetInputProxy(props: InputProps) {
   // A self-reference names the button by its own aria-label, followed by the value.
   const labelledBy =
     props["aria-labelledby"] ??
-    (props["aria-label"] == null ? context.ids.label : context.ids.trigger);
+    (props["aria-label"] == null ? context.labelId : context.ids.trigger);
 
   return (
     <>
@@ -941,19 +926,20 @@ function SheetInputProxy(props: InputProps) {
         ref={composedRef}
         type="button"
         id={context.ids.trigger}
-        aria-haspopup="listbox"
-        aria-expanded={context.open}
-        aria-controls={context.open ? context.ids.content : undefined}
+        {...getPopupTriggerProps({
+          open: context.open,
+          contentId: context.contentId,
+          haspopup: "listbox",
+        })}
         disabled={disabled}
         textAlign="start"
-        {...openStateAttributes(context.open)}
         aria-invalid={context.invalid || undefined}
         aria-describedby={context.describedBy}
-        data-invalid={context.invalid ? "" : undefined}
+        data-invalid={dataAttr(context.invalid)}
         {...styleProps}
         className={className}
         {...fieldAttributes}
-        aria-labelledby={`${labelledBy} ${valueId}`}
+        aria-labelledby={joinIds([labelledBy, valueId])}
         color={context.inputValue ? styleProps.color : "fg.subtle"}
         onFocus={() => context.onInputFocus()}
         onBlur={() => context.onInputBlur()}
@@ -982,6 +968,7 @@ function SheetInputProxy(props: InputProps) {
       {(name != null || required) && (
         // Submits and validates like the desktop input; a hidden-type input can't be required.
         <input
+          ref={setSheetFormInput}
           aria-hidden
           tabIndex={-1}
           name={name}
@@ -1035,21 +1022,22 @@ function TriggerElement({
   ...props
 }: ComponentProps<typeof StyledTrigger>) {
   const context = useComboboxContext();
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context.setTriggerEl);
+  const composedRef = useComposedRefs(ref, context.setTriggerEl);
   return (
     <StyledTrigger
-      type="button"
+      type={props.render ? undefined : "button"}
       id={context.ids.trigger}
       tabIndex={-1}
       aria-label="Toggle suggestions"
-      aria-haspopup="listbox"
-      aria-expanded={context.open}
-      aria-controls={context.open ? context.ids.content : undefined}
+      {...getPopupTriggerProps({
+        open: context.open,
+        contentId: context.contentId,
+        haspopup: "listbox",
+      })}
       disabled={context.disabled}
-      data-invalid={context.invalid ? "" : undefined}
-      data-readonly={context.readOnly ? "" : undefined}
-      data-disabled={context.disabled ? "" : undefined}
-      {...openStateAttributes(context.open)}
+      data-invalid={dataAttr(context.invalid)}
+      data-readonly={dataAttr(context.readOnly)}
+      data-disabled={dataAttr(context.disabled)}
       {...props}
       ref={composedRef}
       onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
@@ -1083,20 +1071,17 @@ function ClearTrigger({
   ...props
 }: ComponentProps<typeof StyledClearTrigger>) {
   const context = useComboboxContext();
-  const composedRef = useComposedRefs(
-    ref as Ref<HTMLElement> | undefined,
-    context.setClearTriggerEl,
-  );
+  const composedRef = useComposedRefs(ref, context.setClearTriggerEl);
   return (
     <StyledClearTrigger
-      type="button"
+      type={props.render ? undefined : "button"}
       id={context.ids.clearTrigger}
       tabIndex={-1}
       aria-label="Clear selection"
-      aria-controls={context.ids.input}
+      aria-controls={context.inputId}
       disabled={context.disabled}
       hidden={!context.hasValue}
-      data-invalid={context.invalid ? "" : undefined}
+      data-invalid={dataAttr(context.invalid)}
       {...props}
       ref={composedRef}
       onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
@@ -1117,25 +1102,19 @@ type ContentElementProps = ComponentProps<typeof StyledContent> & {
   status?: TransitionStatus;
 };
 
-function ContentElement({ ref, status, onPointerDown, ...props }: ContentElementProps) {
+function ContentElement({ ref, id, status, onPointerDown, ...props }: ContentElementProps) {
   const context = useComboboxContext();
-  const setContent = useCallback(
-    (element: HTMLElement | null) => {
-      context.node.setContent(element);
-      return () => context.node.setContent(null);
-    },
-    [context.node],
-  );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, setContent);
+  const composedRef = useComposedRefs(ref, useListboxContentRef(context.node));
+  const contentId = useReportRendered(context.reportRendered, "content", id ?? context.ids.content);
   return (
     <StyledContent
-      id={context.ids.content}
+      id={contentId}
       role="listbox"
       tabIndex={-1}
-      aria-labelledby={context.ids.label}
+      aria-labelledby={context.labelId}
       aria-multiselectable={context.multiple || undefined}
       aria-busy={context.loading || undefined}
-      data-empty={context.empty ? "" : undefined}
+      data-empty={dataAttr(context.empty)}
       {...presenceAttributes(status)}
       {...openStateAttributes(context.open)}
       {...props}
@@ -1161,7 +1140,7 @@ function AnchoredContent({ ref, ...props }: ComboboxContentProps) {
     contains: context.contains,
     dismiss: context.dismiss,
   });
-  const elementRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, popup.setElement);
+  const elementRef = useComposedRefs(ref, popup.setElement);
   useOverlayExit(open, !popup.mounted);
 
   if (!popup.mounted) return null;
@@ -1187,7 +1166,7 @@ function SheetContent(props: ComboboxContentProps) {
     dismiss: context.dismiss,
     restoreFocus: true,
     returnFocusTo: () => context.triggerEl,
-    label: { "aria-labelledby": context.ids.label },
+    label: { "aria-labelledby": context.labelId },
   };
 
   return (
@@ -1216,7 +1195,7 @@ function List(props: ComponentProps<typeof StyledList>) {
   const { empty } = useComboboxContext();
   return (
     <StyledList
-      data-empty={empty ? "" : undefined}
+      data-empty={dataAttr(empty)}
       {...props}
     />
   );
@@ -1233,8 +1212,6 @@ function Empty(props: ComponentProps<typeof StyledEmpty>) {
   );
 }
 
-const ItemSelectedContext = createContext(false);
-
 export interface ComboboxItemProps extends ComponentProps<typeof StyledItem> {
   /** One of the root's `items`. */
   item: unknown;
@@ -1243,7 +1220,6 @@ export interface ComboboxItemProps extends ComponentProps<typeof StyledItem> {
 }
 
 function Item({
-  ref,
   item,
   persistFocus = false,
   onPointerMove,
@@ -1254,86 +1230,30 @@ function Item({
   const context = useComboboxContext();
   const { node } = context;
   const value = context.valueOf(item);
-  const highlighted = useStore(node.store, selectIsHighlighted, value);
-  const selected = context.isSelected(value);
   const disabled = context.disabled || context.isItemDisabled(item);
-  const register = useCallback(
-    (element: HTMLElement | null) => (element ? node.registerItem(value, element) : undefined),
-    [node, value],
-  );
-  const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, register);
 
   return (
-    <ItemSelectedContext value={selected}>
-      <StyledItem
-        id={node.itemId(value)}
-        role="option"
-        tabIndex={-1}
-        data-value={value}
-        aria-selected={selected}
-        aria-disabled={disabled || undefined}
-        data-selected={selected ? "" : undefined}
-        data-highlighted={highlighted ? "" : undefined}
-        data-disabled={disabled ? "" : undefined}
-        {...props}
-        ref={composedRef}
-        onPointerMove={(event: PointerEvent<HTMLDivElement>) => {
-          onPointerMove?.(event);
-          if (disabled || highlighted) return;
-          context.onItemPointerMove(value);
-        }}
-        onPointerLeave={(event: PointerEvent<HTMLDivElement>) => {
-          onPointerLeave?.(event);
-          if (persistFocus || disabled) return;
-          context.onItemPointerLeave();
-        }}
-        onClick={(event: MouseEvent<HTMLDivElement>) => {
-          onClick?.(event);
-          if (event.defaultPrevented || disabled || event.button !== 0) return;
-          context.onItemClick(value, event);
-        }}
-      />
-    </ItemSelectedContext>
-  );
-}
-
-function ItemIndicator({ children, ...props }: ComponentProps<typeof StyledItemIndicator>) {
-  const selected = useContext(ItemSelectedContext);
-  return (
-    <StyledItemIndicator
-      aria-hidden
-      {...(selected ? { "data-checked": "" } : { "data-unchecked": "" })}
+    <parts.Item
+      node={node}
+      value={value}
+      selected={context.isSelected(value)}
+      disabled={disabled}
+      tabIndex={-1}
       {...props}
-    >
-      {children ?? <CheckIcon />}
-    </StyledItemIndicator>
-  );
-}
-
-const GroupLabelIdContext = createContext<string | undefined>(undefined);
-
-function ItemGroup({ id, ...props }: ComponentProps<typeof StyledItemGroup>) {
-  const generated = useId();
-  const groupId = id ?? `combobox-group:${generated}`;
-  const labelId = `${groupId}:label`;
-  return (
-    <GroupLabelIdContext value={labelId}>
-      <StyledItemGroup
-        id={groupId}
-        role="group"
-        aria-labelledby={labelId}
-        {...props}
-      />
-    </GroupLabelIdContext>
-  );
-}
-
-function ItemGroupLabel(props: ComponentProps<typeof StyledItemGroupLabel>) {
-  return (
-    <StyledItemGroupLabel
-      id={useContext(GroupLabelIdContext)}
-      role="presentation"
-      {...props}
+      onPointerMove={(event: PointerEvent<HTMLDivElement>) => {
+        onPointerMove?.(event);
+        if (disabled || node.highlighted === value) return;
+        node.hover(value);
+      }}
+      onPointerLeave={(event: PointerEvent<HTMLDivElement>) => {
+        onPointerLeave?.(event);
+        if (persistFocus || disabled) return;
+        node.highlight(null);
+      }}
+      onClick={(event: MouseEvent<HTMLDivElement>) => {
+        onClick?.(event);
+        node.onItemClick(value, event);
+      }}
     />
   );
 }
@@ -1347,10 +1267,10 @@ export const Combobox = {
   IndicatorGroup,
   Input: ComboboxInput,
   Item,
-  ItemGroup,
-  ItemGroupLabel,
-  ItemIndicator,
-  ItemText: StyledItemText,
+  ItemGroup: parts.ItemGroup,
+  ItemGroupLabel: parts.ItemGroupLabel,
+  ItemIndicator: parts.ItemIndicator,
+  ItemText: parts.ItemText,
   Label,
   List,
   Trigger,

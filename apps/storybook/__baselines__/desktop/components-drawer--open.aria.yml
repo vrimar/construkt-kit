@@ -1,15 +1,12 @@
 - dialog "Edit task":
   - heading "Edit task" [level=2]
-  - group:
-    - text: Title
-    - textbox "Title": Draft the Q3 roadmap
-  - group:
-    - text: Assignee
-    - textbox "Assignee": Grace Hopper
-  - group:
-    - text: Notes
-    - textbox "Notes": Collect input from design and sales before Friday.
-    - text: Visible to everyone on the project.
+  - text: Title
+  - textbox "Title": Draft the Q3 roadmap
+  - text: Assignee
+  - textbox "Assignee": Grace Hopper
+  - text: Notes
+  - textbox "Notes": Collect input from design and sales before Friday.
+  - text: Visible to everyone on the project.
   - button "Cancel"
   - button "Save"
   - button "Close"

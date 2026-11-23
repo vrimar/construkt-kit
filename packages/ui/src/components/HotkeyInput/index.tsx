@@ -1,18 +1,23 @@
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
-import { type HTMLStyledProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { createSlotRecipeContext } from "#styled-system/jsx";
 import { hotkeyInput } from "#styled-system/recipes";
 
 import { isComposingEvent } from "../../foundations/dom";
-import {
-  MODIFIER_KEYS,
-  formatShortcut,
-  isMacPlatform,
-  shortcutFromEvent,
-} from "../../foundations/shortcuts";
+import { isMacPlatform } from "../../foundations/platform";
+import { MODIFIER_KEYS, formatShortcut, shortcutFromEvent } from "../../foundations/shortcuts";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
 import { useLatestRef } from "../../hooks/useLatestRef";
-import { renderable } from "../../primitives/render";
+import { joinIds, useFieldControlState } from "../../primitives/field";
+import { dataAttr, renderable } from "../../primitives/render";
 import type { WithRef } from "../../types";
 
 const { withProvider, withContext } = createSlotRecipeContext(hotkeyInput);
@@ -25,8 +30,8 @@ const subscribeToNothing = () => () => {};
 const useIsMac = () => useSyncExternalStore(subscribeToNothing, isMacPlatform, () => false);
 
 export interface HotkeyInputProps extends Omit<
-  HTMLStyledProps<"div">,
-  "children" | "defaultValue" | "onChange" | "placeholder"
+  ComponentProps<typeof Root>,
+  "children" | "defaultValue" | "onChange" | "placeholder" | "ref"
 > {
   /** The shortcut, such as `"Mod+K"`; `null` or `""` while none is set. */
   value: string | null | undefined;
@@ -56,13 +61,15 @@ export function HotkeyInput({
   validate,
   placeholder = "Not set",
   recordingLabel = "Press keys…",
-  disabled,
-  id,
+  disabled: disabledProp,
+  id: idProp,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
   ...rootProps
 }: WithRef<HotkeyInputProps, HTMLButtonElement>) {
+  const field = useFieldControlState({ id: idProp, disabled: disabledProp });
+  const { disabled } = field;
   const controlRef = useRef<HTMLButtonElement>(null);
   const composedRef = useComposedRefs(controlRef, ref);
   const mac = useIsMac();
@@ -107,11 +114,9 @@ export function HotkeyInput({
   }, [latestRef, recording, stop]);
 
   const label = recording ? recordingLabel : value ? formatShortcut(value, { mac }) : placeholder;
-  const describedBy = [ariaDescribedBy, recording && error ? errorId : undefined]
-    .filter(Boolean)
-    .join(" ");
+  const describedBy = joinIds([ariaDescribedBy, field.describedBy, recording && error && errorId]);
   const ownLabel = !ariaLabelledBy && ariaLabel ? ariaLabel : undefined;
-  const labelledBy = ariaLabelledBy ?? (ownLabel ? labelId : undefined);
+  const labelledBy = ariaLabelledBy ?? (ownLabel ? labelId : field.labelId);
 
   return (
     <Root {...rootProps}>
@@ -125,12 +130,13 @@ export function HotkeyInput({
       )}
       <Control
         ref={composedRef}
-        id={id}
+        id={field.id}
         type="button"
         disabled={disabled}
         aria-labelledby={labelledBy ? `${labelledBy} ${valueId}` : undefined}
-        aria-describedby={describedBy || undefined}
-        data-recording={recording ? "" : undefined}
+        aria-describedby={describedBy}
+        aria-invalid={field.invalid || undefined}
+        data-recording={dataAttr(recording)}
         onClick={() => {
           if (recording) {
             stop();

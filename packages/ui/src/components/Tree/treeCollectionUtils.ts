@@ -1,4 +1,4 @@
-import { matchesQuery } from "../Listbox/managed";
+import { matchesQuery } from "../selection";
 import type { TreeCollection } from "./treeCollection";
 
 /** The nodes that match the query and pass `rowFilter`, with their ancestors. */
@@ -37,22 +37,12 @@ export const getExpandableBranchValues = <T>(
   return values;
 };
 
-export const locateNode = <T>(
-  collection: TreeCollection<T>,
-  value: string,
-): { node: T; indexPath: number[]; valuePath: string[] } | null => {
-  const indexPath = collection.getIndexPath(value);
-  const node = indexPath ? collection.at(indexPath) : undefined;
-  if (!indexPath || node === undefined) return null;
-  return { node, indexPath, valuePath: collection.getValuePath(indexPath) };
-};
-
 export const replaceNodeChildren = <T>(
   collection: TreeCollection<T>,
   value: string,
   children: T[],
 ) => {
-  const located = locateNode(collection, value);
+  const located = collection.locate(value);
 
   if (!located || collection.getNodeChildren(located.node).length > 0) return null;
 

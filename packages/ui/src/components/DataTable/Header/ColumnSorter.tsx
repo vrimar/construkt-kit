@@ -39,18 +39,18 @@ export const ColumnSorter = <TData extends object>({ header }: ColumnSorterProps
   return (
     <styled.button
       type="button"
-      data-part="column-sorter"
+      data-slot="columnSorter"
       data-sorted={sort || undefined}
       aria-label={`${labels.sortBy} ${getColumnLabel(header)}`}
       onClick={handleSort}
       cursor="pointer"
       position="absolute"
-      left="100%"
+      insetInlineStart="100%"
       top="0"
       bottom="0"
       display="flex"
       alignItems="center"
-      style={{ marginLeft: `${iconGap}px` }}
+      style={{ marginInlineStart: `${iconGap}px` }}
       css={{
         color: "fg.subtle",
         focusVisibleRing: "outside",

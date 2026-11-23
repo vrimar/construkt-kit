@@ -2,7 +2,7 @@
   - button "Switch to previous month"
   - button /December \d+/
   - button "Switch to next month"
-  - grid /December \d+ - December \d+/:
+  - grid /December \d+ – December \d+/:
     - rowgroup:
       - row /Choose Monday, November \d+, \d+ Choose Tuesday, November \d+, \d+ Choose Wednesday, November \d+, \d+ Choose Thursday, November \d+, \d+ Choose Friday, November \d+, \d+ Choose Saturday, December 1, \d+ Choose Sunday, December 2, \d+/:
         - gridcell /Choose Monday, November \d+, \d+/ [disabled]:

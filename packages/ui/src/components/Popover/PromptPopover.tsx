@@ -5,14 +5,16 @@ import { styled } from "#styled-system/jsx";
 import type { WithRef } from "../../types";
 import { formSubmitProps, renderFormActions } from "../formActions";
 import { Input } from "../Input";
-import { type ActionPopover, ActionPopoverRoot } from "./ActionPopoverRoot";
-import { Popover, type PopoverRootProps, usePopoverContext } from "./Popover";
+import {
+  type ActionPopover,
+  ActionPopoverRoot,
+  type ActionPopoverProps,
+} from "./ActionPopoverRoot";
+import { Popover, usePopoverLabels } from "./Popover";
 
-export interface PromptPopoverProps extends Omit<PopoverRootProps, "children"> {
+export interface PromptPopoverProps extends ActionPopoverProps {
   /** The trigger: an element becomes the trigger itself, anything else is wrapped in a button. */
   children: ReactNode;
-  /** Heads the popover and labels the input. */
-  title: ReactNode;
   /** Fills the input, selected, each time the popover opens. */
   defaultValue?: string;
   placeholder?: string;
@@ -23,12 +25,6 @@ export interface PromptPopoverProps extends Omit<PopoverRootProps, "children"> {
    */
   onSubmit: (value: string) => unknown;
   submitLabel?: string;
-  cancelLabel?: string;
-  /**
-   * Spins the submit button and keeps the popover open: Cancel, Esc and outside clicks do nothing.
-   * It doesn't hold the popover open after a submit; return a promise from `onSubmit` for that.
-   */
-  loading?: boolean;
 }
 
 interface PromptFormProps {
@@ -50,7 +46,7 @@ function PromptForm({
   onSubmit,
   action,
 }: PromptFormProps) {
-  const titleId = usePopoverContext().ids.title;
+  const titleId = usePopoverLabels().labelledBy;
   const [value, setValue] = useState(defaultValue);
   const selectedRef = useRef(false);
   const submit = (event?: SyntheticEvent) => {

@@ -32,6 +32,21 @@ function Hideable() {
   );
 }
 
+it("reports its trigger collapsed as soon as it closes, while the content animates out", async () => {
+  render(
+    <Collapsible.Root defaultOpen>
+      <Collapsible.Trigger>Details</Collapsible.Trigger>
+      <Collapsible.Content>Shipping takes three days.</Collapsible.Content>
+    </Collapsible.Root>,
+  );
+  const trigger = screen.getByRole("button", { name: "Details" });
+
+  await userEvent.click(trigger);
+
+  expect(content()).not.toBeNull();
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+});
+
 it("animates only when it opens or closes, not when it mounts open or an ancestor shows it again", async () => {
   render(<Hideable />);
   const trigger = screen.getByRole("button", { name: "Details" });

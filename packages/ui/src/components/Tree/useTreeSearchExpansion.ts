@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useLatestRef } from "../../hooks/useLatestRef";
+import { useResyncedControllableState } from "../../hooks/useControllableState";
 import type { TreeCollection } from "./treeCollection";
 import { getExpandableBranchValues } from "./treeCollectionUtils";
 
@@ -32,10 +32,14 @@ export function useTreeSearchExpansion<TNode>({
   expandOnSearch,
   loadedValues,
 }: UseTreeSearchExpansionOptions<TNode>) {
-  const [uncontrolledExpandedValue, setUncontrolledExpandedValue] = useState<string[]>(
+  const [initialExpandedValue] = useState(
     () => defaultExpandedValue ?? getExpandableBranchValues(collection),
   );
-  const storedExpandedValue = expandedValue ?? uncontrolledExpandedValue;
+  const [storedExpandedValue, setStoredExpandedValue] = useResyncedControllableState({
+    value: expandedValue,
+    defaultValue: initialExpandedValue,
+    onChange: onExpandedChange,
+  });
 
   const [collapsedDuringQuery, setCollapsedDuringQuery] = useState<CollapsedDuringQuery>({
     query: normalizedQuery,
@@ -63,10 +67,8 @@ export function useTreeSearchExpansion<TNode>({
     return storedExpandedValue.filter((treeValue) => expandableValueSet.has(treeValue));
   }, [collapsedValues, expandableValueSet, expandableValues, searchExpanding, storedExpandedValue]);
 
-  const latestRef = useLatestRef({ expandedValue, onExpandedChange });
   // Written through on commit so updates landing in the same tick build on each other.
   const storedRef = useRef(storedExpandedValue);
-  const [, rerender] = useReducer((count: number) => count + 1, 0);
 
   useEffect(() => {
     storedRef.current = storedExpandedValue;
@@ -75,15 +77,9 @@ export function useTreeSearchExpansion<TNode>({
   const commitStored = useCallback(
     (nextExpandedValue: string[]) => {
       storedRef.current = nextExpandedValue;
-      if (latestRef.current.expandedValue === undefined) {
-        setUncontrolledExpandedValue(nextExpandedValue);
-      } else {
-        // An owner keeping its value won't re-render this, leaving the write-through stale.
-        rerender();
-      }
-      latestRef.current.onExpandedChange?.(nextExpandedValue);
+      setStoredExpandedValue(nextExpandedValue);
     },
-    [latestRef],
+    [setStoredExpandedValue],
   );
 
   const getOpenedValues = (nextVisibleExpandedValue: string[]) => {
@@ -120,5 +116,5 @@ export function useTreeSearchExpansion<TNode>({
     [commitStored],
   );
 
-  return { visibleExpandedValue, getOpenedValues, setExpandedValue, expand };
+  return { visibleExpandedValue, setExpandedValue, expand };
 }

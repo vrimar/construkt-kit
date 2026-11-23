@@ -1,3 +1,4 @@
+import { clampValue } from "@construkt-kit/utils";
 import {
   type PointerEvent as ReactPointerEvent,
   type TouchEvent as ReactTouchEvent,
@@ -8,11 +9,19 @@ import {
   useState,
 } from "react";
 
+import { cssLengthToPx } from "../../foundations/cssSize";
+import { isEditingControl } from "../../foundations/dom";
 import { useLatestRef } from "../../hooks/useLatestRef";
 import { usePointerDrag } from "../../hooks/usePointerDrag";
+import {
+  type SwipeDirection,
+  isNoDragTarget,
+  isVerticalSwipe,
+  rubberBand,
+  swipeDisplacement,
+  swipeSign,
+} from "../../primitives/drag";
 import type { ModalSurface } from "../dialogParts";
-
-export type SwipeDirection = "up" | "down" | "left" | "right";
 
 /** A height a top or bottom drawer rests at: a fraction of the viewport up to 1, or px and rem. */
 export type DrawerSnapPoint = number | `${number}px` | `${number}rem`;
@@ -28,16 +37,9 @@ const MOUSE_DRAG_MAIN_OVER_CROSS = 1.35;
 const TOUCH_CROSS_AXIS_BIAS = 0.58;
 const SCROLL_EPSILON = 1;
 
-const isVertical = (direction: SwipeDirection) => direction === "up" || direction === "down";
-const signOf = (direction: SwipeDirection) =>
-  direction === "down" || direction === "right" ? 1 : -1;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
-function resolveSnapHeight(point: DrawerSnapPoint, viewport: number, rootFontSize: number) {
-  if (typeof point === "number") return point <= 1 ? clamp(point, 0, 1) * viewport : point;
-  const value = Number.parseFloat(point);
-  if (!Number.isFinite(value)) return null;
-  return point.endsWith("rem") ? value * rootFontSize : value;
+function resolveSnapHeight(point: DrawerSnapPoint, viewport: number, html: Element) {
+  if (typeof point === "number") return point <= 1 ? clampValue(point, 0, 1) * viewport : point;
+  return cssLengthToPx(point, html);
 }
 
 interface ResolvedSnapPoint {
@@ -49,11 +51,12 @@ interface ResolvedSnapPoint {
 function resolveSnapPoints(points: readonly DrawerSnapPoint[], size: number): ResolvedSnapPoint[] {
   const html = document.documentElement;
   const viewport = html.clientHeight;
-  const rootFontSize = Number.parseFloat(getComputedStyle(html).fontSize) || 16;
   const max = Math.min(size, viewport);
   return points.flatMap((value) => {
-    const height = resolveSnapHeight(value, viewport, rootFontSize);
-    return height === null ? [] : [{ value, offset: Math.max(0, size - clamp(height, 0, max)) }];
+    const height = resolveSnapHeight(value, viewport, html);
+    return height === null
+      ? []
+      : [{ value, offset: Math.max(0, size - clampValue(height, 0, max)) }];
   });
 }
 
@@ -66,22 +69,14 @@ const closestTo = (points: ResolvedSnapPoint[], offset: number) =>
     null,
   );
 
-const isEditable = (element: Element) =>
-  element instanceof HTMLElement &&
-  (element.isContentEditable ||
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLSelectElement ||
-    (element instanceof HTMLInputElement &&
-      !["checkbox", "radio", "button", "submit", "reset", "image"].includes(element.type)));
-
 /** Presses on fields, `[data-no-drag]` elements and nested popups never swipe the drawer. */
 function isSwipeExempt(target: EventTarget | null, content: HTMLElement) {
   if (!(target instanceof Element) || !content.contains(target)) return true;
-  if (target.closest("[data-no-drag]")) return true;
+  if (isNoDragTarget(target)) return true;
   const popup = target.closest("[popover]");
   if (popup && content.contains(popup)) return true;
   for (let node: Element | null = target; node && node !== content; node = node.parentElement) {
-    if (isEditable(node)) return true;
+    if (isEditingControl(node)) return true;
   }
   return false;
 }
@@ -117,7 +112,7 @@ function touchDragsDrawer(
   direction: SwipeDirection,
   main: number,
 ) {
-  const vertical = isVertical(direction);
+  const vertical = isVerticalSwipe(direction);
   for (let node: Element | null = target; node && node !== content; node = node.parentElement) {
     const style = getComputedStyle(node);
     if (!canScrollOnAxis(node, vertical, style)) continue;
@@ -138,7 +133,7 @@ function touchDragsDrawer(
 
 function crossAxisScrolls(target: Element, content: HTMLElement, direction: SwipeDirection) {
   for (let node: Element | null = target; node && node !== content; node = node.parentElement) {
-    if (canScrollOnAxis(node, !isVertical(direction))) return true;
+    if (canScrollOnAxis(node, !isVerticalSwipe(direction))) return true;
   }
   return false;
 }
@@ -191,12 +186,12 @@ export function useDrawerSwipe(options: UseDrawerSwipeOptions): DrawerSwipe {
   const gestureRef = useRef<Gesture | null>(null);
   const restRef = useRef(0);
   const sizeRef = useRef(0);
-  const vertical = isVertical(direction);
+  const vertical = isVerticalSwipe(direction);
   const snapKey = snapPoints?.join("|") ?? "";
 
   const resolved = useCallback(() => {
     const points = latest.current.snapPoints;
-    if (!points?.length || !isVertical(latest.current.direction)) return [];
+    if (!points?.length || !isVerticalSwipe(latest.current.direction)) return [];
     return resolveSnapPoints(points, sizeRef.current);
   }, [latest]);
 
@@ -204,10 +199,10 @@ export function useDrawerSwipe(options: UseDrawerSwipeOptions): DrawerSwipe {
     (offset: number) => {
       const element = latest.current.surface.content;
       if (!element) return;
-      const travel = signOf(latest.current.direction) * offset;
+      const travel = swipeSign(latest.current.direction) * offset;
       element.style.setProperty(
         "transform",
-        isVertical(latest.current.direction)
+        isVerticalSwipe(latest.current.direction)
           ? `translate3d(0px, ${travel}px, 0)`
           : `translate3d(${travel}px, 0px, 0)`,
       );
@@ -291,12 +286,11 @@ export function useDrawerSwipe(options: UseDrawerSwipeOptions): DrawerSwipe {
   const move = (x: number, y: number, time: number) => {
     const gesture = gestureRef.current;
     if (!gesture) return;
-    const displacement = signOf(direction) * (vertical ? y - gesture.startY : x - gesture.startX);
-    const raw = gesture.rest + displacement;
-    gesture.offset = raw < 0 ? -Math.sqrt(-raw) : raw;
+    const displacement = swipeDisplacement(direction, x - gesture.startX, y - gesture.startY);
+    gesture.offset = rubberBand(gesture.rest + displacement, true, false);
     applyOffset(gesture.offset);
     const travel = sizeRef.current - gesture.rest;
-    applyProgress(travel > 0 ? clamp((gesture.offset - gesture.rest) / travel, 0, 1) : 0);
+    applyProgress(travel > 0 ? clampValue((gesture.offset - gesture.rest) / travel, 0, 1) : 0);
     gesture.samples.push({ displacement, time });
     while (
       gesture.samples.length > 2 &&
@@ -331,7 +325,7 @@ export function useDrawerSwipe(options: UseDrawerSwipeOptions): DrawerSwipe {
     let target = offset;
     if (Math.abs(velocity) >= SNAP_VELOCITY_THRESHOLD) {
       const fling =
-        clamp(velocity, -MAX_SNAP_VELOCITY, MAX_SNAP_VELOCITY) * SNAP_VELOCITY_MULTIPLIER;
+        clampValue(velocity, -MAX_SNAP_VELOCITY, MAX_SNAP_VELOCITY) * SNAP_VELOCITY_MULTIPLIER;
       target = Math.max(0, target + fling);
     }
     const points = resolved();
@@ -430,8 +424,11 @@ export function useDrawerSwipe(options: UseDrawerSwipeOptions): DrawerSwipe {
       }
       if (!gestureRef.current) {
         if (!tracking) return;
-        const sign = signOf(direction);
-        const main = sign * (vertical ? current.clientY - startY : current.clientX - startX);
+        const main = swipeDisplacement(
+          direction,
+          current.clientX - startX,
+          current.clientY - startY,
+        );
         const cross = vertical ? current.clientX - startX : current.clientY - startY;
         if (Math.abs(main) < SCROLL_EPSILON && Math.abs(cross) < SCROLL_EPSILON) return;
         if (

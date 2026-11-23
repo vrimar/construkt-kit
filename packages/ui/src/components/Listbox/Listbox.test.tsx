@@ -4,6 +4,7 @@ import { type MouseEvent as ReactMouseEvent, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Listbox, type ListboxProps, type SingleSelectionProps } from ".";
+import { encodeSelectionValue } from "../selection";
 import {
   encodedValues,
   groupLabels,
@@ -12,8 +13,7 @@ import {
   type Produce,
   produce,
   produceProps,
-} from "./selection.fixtures";
-import { encodeSelectionValue } from "./useSelectionController";
+} from "../selection/selection.fixtures";
 
 type ListboxOverrides = Partial<ListboxProps<Produce, number> & SingleSelectionProps<number>>;
 
@@ -330,6 +330,32 @@ describe("Listbox", () => {
     expect(scrollArea?.className).toContain("scroll-area__root--scrollbar_thumb");
   });
 
+  it("points aria-activedescendant at an option given its own id", async () => {
+    const regions = [{ label: "North", value: "north" }];
+    render(
+      <Listbox.Root
+        items={regions}
+        getItemValue={(item) => item.value}
+        getItemLabel={(item) => item.label}
+        value={null}
+        onValueChange={vi.fn()}
+      >
+        <Listbox.Content>
+          <Listbox.Item
+            id="north-option"
+            item={regions[0]}
+          >
+            <Listbox.ItemText>North</Listbox.ItemText>
+          </Listbox.Item>
+        </Listbox.Content>
+      </Listbox.Root>,
+    );
+
+    await userEvent.tab();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).toBe("north-option");
+  });
+
   it("points the search input at the listbox it controls", () => {
     renderListbox({ search: true });
 
@@ -464,9 +490,11 @@ describe("Listbox", () => {
       vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
         this: Element,
       ) {
-        const index = Number(this.getAttribute("data-value")?.replace(/\D/g, "") || 0);
         const listbox = this.matches(".listbox__content");
-        const top = listbox ? 0 : index * ROW - (this.closest(".listbox__content")?.scrollTop ?? 0);
+        const content = this.closest(".listbox__content");
+        const items = [...(content?.querySelectorAll(".listbox__item") ?? [])];
+        const index = Math.max(items.indexOf(this), 0);
+        const top = listbox ? 0 : index * ROW - (content?.scrollTop ?? 0);
         return DOMRect.fromRect({ y: top, height: listbox ? 100 : ROW });
       });
     });

@@ -13,7 +13,9 @@ import { type HTMLStyledProps, createSlotRecipeContext, splitCssProps } from "#s
 import { type SplitterVariantProps, splitter } from "#styled-system/recipes";
 
 import { splitInlineSizes } from "../../foundations/cssSize";
+import { splitOptions } from "../../foundations/props";
 import { useComposedRefs } from "../../hooks/useComposedRefs";
+import { noDragProps } from "../../primitives/drag";
 import { renderable } from "../../primitives/render";
 
 export type { PanelImperativeHandle as SplitterPanelHandle } from "react-resizable-panels";
@@ -100,55 +102,32 @@ function SplitterGroup({ ref, style, elementRef, onLayoutChanged, ...props }: Sp
   );
 }
 
-export type SplitterPanelProps = Pick<
-  PanelProps,
-  | "collapsedSize"
-  | "collapsible"
-  | "defaultSize"
-  | "disabled"
-  | "elementRef"
-  | "groupResizeBehavior"
-  | "id"
-  | "maxSize"
-  | "minSize"
-  | "onResize"
-  | "panelRef"
-> &
-  BoxProps;
+const PANEL_KEYS = {
+  collapsedSize: true,
+  collapsible: true,
+  defaultSize: true,
+  disabled: true,
+  elementRef: true,
+  groupResizeBehavior: true,
+  id: true,
+  maxSize: true,
+  minSize: true,
+  onResize: true,
+  panelRef: true,
+} as const satisfies Partial<Record<keyof PanelProps, true>>;
 
-function SplitterPanel({
-  ref,
-  children,
-  collapsedSize,
-  collapsible,
-  defaultSize,
-  disabled,
-  elementRef,
-  groupResizeBehavior,
-  id,
-  maxSize,
-  minSize,
-  onResize,
-  panelRef,
-  ...boxProps
-}: SplitterPanelProps) {
+export type SplitterPanelProps = Pick<PanelProps, keyof typeof PANEL_KEYS> & BoxProps;
+
+function SplitterPanel({ ref, children, ...props }: SplitterPanelProps) {
+  const [{ elementRef, ...panelProps }, boxProps] = splitOptions(props, PANEL_KEYS);
   const composedElementRef = useComposedRefs(elementRef, ref);
 
   return (
     <StyledPanel
       render={
         <Panel
-          collapsedSize={collapsedSize}
-          collapsible={collapsible}
-          defaultSize={defaultSize}
-          disabled={disabled}
+          {...panelProps}
           elementRef={composedElementRef}
-          groupResizeBehavior={groupResizeBehavior}
-          id={id}
-          maxSize={maxSize}
-          minSize={minSize}
-          onResize={onResize}
-          panelRef={panelRef}
           // Unset the library's inline overflow so the recipe and style props own it.
           style={{ overflow: undefined }}
         />
@@ -160,33 +139,28 @@ function SplitterPanel({
   );
 }
 
-export type SplitterSeparatorProps = Pick<
-  SeparatorProps,
-  "disabled" | "disableDoubleClick" | "elementRef" | "id"
-> &
-  BoxProps;
+const SEPARATOR_KEYS = {
+  disabled: true,
+  disableDoubleClick: true,
+  elementRef: true,
+  id: true,
+} as const satisfies Partial<Record<keyof SeparatorProps, true>>;
 
-function SplitterSeparator({
-  ref,
-  disabled,
-  disableDoubleClick,
-  elementRef,
-  id,
-  ...boxProps
-}: SplitterSeparatorProps) {
+export type SplitterSeparatorProps = Pick<SeparatorProps, keyof typeof SEPARATOR_KEYS> & BoxProps;
+
+function SplitterSeparator({ ref, ...props }: SplitterSeparatorProps) {
+  const [{ elementRef, ...separatorProps }, boxProps] = splitOptions(props, SEPARATOR_KEYS);
   const composedElementRef = useComposedRefs(elementRef, ref);
 
   return (
     <StyledResizeTrigger
       render={
         <Separator
-          disabled={disabled}
-          disableDoubleClick={disableDoubleClick}
+          {...separatorProps}
           elementRef={composedElementRef}
-          id={id}
         />
       }
-      data-no-drag=""
+      {...noDragProps}
       {...boxProps}
     />
   );

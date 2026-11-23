@@ -1,11 +1,13 @@
-import { type ComponentProps, createContext, useContext } from "react";
+import { clampValue } from "@construkt-kit/utils";
+import { NumberFormatter } from "@internationalized/number";
+import { type ComponentProps } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { progress } from "#styled-system/recipes";
 
 import { useLocale } from "../../primitives/locale";
 import { dataAttr, renderable } from "../../primitives/render";
-import { clampValue } from "../numberMath";
+import { createPartContext } from "../partContext";
 
 const { withProvider, withContext } = createSlotRecipeContext(progress);
 
@@ -56,13 +58,8 @@ type ProgressStateAttributes = Record<
   "" | undefined
 > & { "data-orientation": ProgressOrientation };
 
-const ProgressContext = createContext<ProgressContextValue | null>(null);
-
-function useProgressContext(part: string): ProgressContextValue {
-  const context = useContext(ProgressContext);
-  if (!context) throw new Error(`Progress.${part} must be placed inside <Progress.Root>.`);
-  return context;
-}
+const [ProgressContext, useProgressContext] =
+  createPartContext<ProgressContextValue>("<Progress.Root>");
 
 const formatValue = (value: number, percent: number, formatter: Intl.NumberFormat) =>
   formatter.format(formatter.resolvedOptions().style === "percent" ? percent / 100 : value);
@@ -103,7 +100,7 @@ function Root({
   const { locale } = useLocale();
   const given = valueProp === undefined ? min + (max - min) / 2 : valueProp;
   const value = given === null ? null : clampValue(given, min, max);
-  const formatter = new Intl.NumberFormat(locale, { style: "percent", ...formatOptions });
+  const formatter = new NumberFormatter(locale, { style: "percent", ...formatOptions });
   const percent = value === null ? -1 : max === min ? 100 : ((value - min) / (max - min)) * 100;
   const state: ProgressState =
     value === null ? "indeterminate" : value === max ? "complete" : "loading";
@@ -155,7 +152,7 @@ function Root({
 }
 
 function Label(props: ComponentProps<typeof StyledLabel>) {
-  const context = useProgressContext("Label");
+  const context = useProgressContext("Progress.Label");
   return (
     <StyledLabel
       data-orientation={context.orientation}
@@ -166,7 +163,7 @@ function Label(props: ComponentProps<typeof StyledLabel>) {
 
 /** The value formatted by `formatOptions`, a percentage by default, unless children replace it. */
 function ValueText({ children, ...props }: ComponentProps<typeof StyledValueText>) {
-  const context = useProgressContext("ValueText");
+  const context = useProgressContext("Progress.ValueText");
   return (
     <StyledValueText
       aria-live="polite"
@@ -179,7 +176,7 @@ function ValueText({ children, ...props }: ComponentProps<typeof StyledValueText
 
 /** The bar's progressbar. */
 function Track(props: ComponentProps<typeof StyledTrack>) {
-  const context = useProgressContext("Track");
+  const context = useProgressContext("Progress.Track");
   return (
     <StyledTrack
       {...context.progressbarProps}
@@ -188,73 +185,44 @@ function Track(props: ComponentProps<typeof StyledTrack>) {
   );
 }
 
-function Range({ style, ...props }: ComponentProps<typeof StyledRange>) {
-  const context = useProgressContext("Range");
-  const size = context.value === null ? undefined : `${context.percent}%`;
+function Range(props: ComponentProps<typeof StyledRange>) {
+  const context = useProgressContext("Progress.Range");
   return (
     <StyledRange
       {...context.stateAttributes}
       {...props}
-      style={{
-        [context.orientation === "horizontal" ? "width" : "height"]: size,
-        ...style,
-      }}
     />
   );
 }
 
-const circleRangeGeometry = {
-  "--progress-circumference": "calc(2 * 3.14159 * var(--progress-radius))",
-  strokeDashoffset: "calc(var(--progress-circumference) * ((100 - var(--progress-percent)) / 100))",
-  transformOrigin: "center",
-  transform: "rotate(-90deg)",
-};
-
-const circleGeometry = {
-  "--progress-radius": "calc(var(--size) / 2 - var(--thickness) / 2)",
-  cx: "calc(var(--size) / 2)",
-  cy: "calc(var(--size) / 2)",
-  r: "var(--progress-radius)",
-  strokeWidth: "var(--thickness)",
-};
-
 /** The circle's progressbar, sized by the recipe's `--size` and `--thickness`. */
-function Circle({ style, ...props }: ComponentProps<typeof StyledCircle>) {
-  const context = useProgressContext("Circle");
+function Circle(props: ComponentProps<typeof StyledCircle>) {
+  const context = useProgressContext("Progress.Circle");
   return (
     <StyledCircle
       {...context.progressbarProps}
       {...props}
-      style={{ width: "var(--size)", height: "var(--size)", ...style }}
     />
   );
 }
 
-function CircleTrack({ style, ...props }: ComponentProps<typeof StyledCircleTrack>) {
-  const context = useProgressContext("CircleTrack");
+function CircleTrack(props: ComponentProps<typeof StyledCircleTrack>) {
+  const context = useProgressContext("Progress.CircleTrack");
   return (
     <StyledCircleTrack
       data-orientation={context.orientation}
       {...props}
-      style={{ ...circleGeometry, ...style }}
     />
   );
 }
 
-function CircleRange({ style, ...props }: ComponentProps<typeof StyledCircleRange>) {
-  const context = useProgressContext("CircleRange");
-  const indeterminate = context.value === null;
+function CircleRange(props: ComponentProps<typeof StyledCircleRange>) {
+  const context = useProgressContext("Progress.CircleRange");
   return (
     <StyledCircleRange
       opacity={context.value === 0 ? 0 : undefined}
       {...context.stateAttributes}
       {...props}
-      style={{
-        ...circleGeometry,
-        ...circleRangeGeometry,
-        strokeDasharray: indeterminate ? undefined : "var(--progress-circumference)",
-        ...style,
-      }}
     />
   );
 }
@@ -266,7 +234,7 @@ export interface ProgressViewProps extends ComponentProps<typeof StyledView> {
 
 /** Content shown only in one state, such as a message once the progress is complete. */
 function View({ state, ...props }: ProgressViewProps) {
-  const context = useProgressContext("View");
+  const context = useProgressContext("Progress.View");
   return (
     <StyledView
       hidden={state !== context.state}
@@ -279,7 +247,7 @@ export type ProgressSegmentsProps = Omit<ComponentProps<typeof SegmentsTrack>, "
 
 /** A track split into one segment per step from `min` to `max`, with the first `value - min` filled. */
 function Segments(props: ProgressSegmentsProps) {
-  const context = useProgressContext("Segments");
+  const context = useProgressContext("Progress.Segments");
   const filled = context.value == null ? 0 : context.value - context.min;
 
   return (

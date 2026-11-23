@@ -15,6 +15,11 @@ export const elementList = (elements: readonly Element[]): NavigableList => ({
   isDisabled: (index) => isItemDisabled(elements[index]),
 });
 
+export const entryList = (entries: readonly { disabled: boolean }[]): NavigableList => ({
+  length: entries.length,
+  isDisabled: (index) => entries[index].disabled,
+});
+
 function findEnabledIndex(list: NavigableList, startingIndex: number, decrement: boolean): number {
   let index = startingIndex;
   do {
@@ -54,6 +59,20 @@ export function getNextIndex(
   return decrement ? getLastEnabledIndex(list) : getFirstEnabledIndex(list);
 }
 
+export type ListTarget = "next" | "prev" | "first" | "last";
+
+/** The index a move to `target` lands on, skipping disabled items; -1 when every item is disabled. */
+export function getTargetIndex(
+  list: NavigableList,
+  current: number,
+  target: ListTarget,
+  loop: boolean,
+): number {
+  if (target === "first") return getFirstEnabledIndex(list);
+  if (target === "last") return getLastEnabledIndex(list);
+  return getNextIndex(list, current, { decrement: target === "prev", loop });
+}
+
 export type ListOrientation = "horizontal" | "vertical";
 
 /**
@@ -67,6 +86,25 @@ export function getArrowStep(key: string, orientation: ListOrientation, rtl: boo
   return 0;
 }
 
+export function getKeyTarget(
+  key: string,
+  orientation: ListOrientation,
+  rtl: boolean,
+): ListTarget | null {
+  if (key === "Home") return "first";
+  if (key === "End") return "last";
+  const step = getArrowStep(key, orientation, rtl);
+  if (step === 0) return null;
+  return step > 0 ? "next" : "prev";
+}
+
+export function mirrorArrowKey(key: string, rtl: boolean): string {
+  if (!rtl) return key;
+  if (key === "ArrowLeft") return "ArrowRight";
+  if (key === "ArrowRight") return "ArrowLeft";
+  return key;
+}
+
 /** Whether `key` opens a nested list from an item of a vertical one. */
 export const isCrossOrientationOpenKey = (key: string, rtl: boolean): boolean =>
   key === (rtl ? "ArrowLeft" : "ArrowRight");
@@ -75,35 +113,51 @@ export const isCrossOrientationOpenKey = (key: string, rtl: boolean): boolean =>
 export const isCrossOrientationCloseKey = (key: string, rtl: boolean): boolean =>
   key === (rtl ? "ArrowRight" : "ArrowLeft");
 
-function offsetWithin(ancestor: HTMLElement, element: HTMLElement) {
-  let offset = 0;
-  for (let node = element; node.offsetParent; node = node.offsetParent as HTMLElement) {
-    offset += node.offsetTop;
-    if (node.offsetParent === ancestor) break;
-  }
-  return offset;
-}
+const px = (value: string) => Number.parseFloat(value) || 0;
 
-/** Scrolls `container` the least distance that shows all of `element`, honouring scroll margins and padding. */
+/**
+ * Scrolls `container` the least distance that shows all of `element` inside its padding, scroll
+ * padding and the element's scroll margins. Unlike `scrollIntoView`, it never scrolls the page or
+ * any other ancestor.
+ */
 export function scrollIntoViewIfNeeded(
   container: HTMLElement | null,
-  element: HTMLElement | null,
+  element: Element | null | undefined,
 ): void {
-  if (!container || !element || container.clientHeight >= container.scrollHeight) return;
-  const top = offsetWithin(container, element);
-  const containerStyles = getComputedStyle(container);
-  const elementStyles = getComputedStyle(element);
-  const paddingTop = parseFloat(containerStyles.scrollPaddingTop) || 0;
-  const paddingBottom = parseFloat(containerStyles.scrollPaddingBottom) || 0;
-  const marginTop = parseFloat(elementStyles.scrollMarginTop) || 0;
-  const marginBottom = parseFloat(elementStyles.scrollMarginBottom) || 0;
-  const bottom = top + element.offsetHeight + marginBottom;
+  if (!container || !element) return;
+  const box = container.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
+  // Rects carry an opening animation's transform; scrollTop doesn't.
+  const scale = container.offsetHeight ? box.height / container.offsetHeight : 1;
+  const containerStyle = getComputedStyle(container);
+  const elementStyle = getComputedStyle(element);
+  const insetTop =
+    px(containerStyle.paddingTop) +
+    px(containerStyle.scrollPaddingTop) +
+    px(elementStyle.scrollMarginTop);
+  const insetBottom =
+    px(containerStyle.paddingBottom) +
+    px(containerStyle.scrollPaddingBottom) +
+    px(elementStyle.scrollMarginBottom);
+  const above = (rect.top - box.top) / scale - container.clientTop - insetTop;
+  const below = above + rect.height / scale - (container.clientHeight - insetTop - insetBottom);
+  if (above < 0) container.scrollTop += above;
+  else if (below > 0) container.scrollTop += Math.min(below, above);
+}
 
-  let targetY = container.scrollTop;
-  if (top - marginTop < container.scrollTop + paddingTop) {
-    targetY = top - marginTop - paddingTop;
-  } else if (bottom > container.scrollTop + container.clientHeight - paddingBottom) {
-    targetY = bottom - container.clientHeight + paddingBottom;
-  }
-  container.scrollTo({ top: targetY, behavior: "auto" });
+/** Clicks `element` with the activating key's modifiers, so a link opens where Ctrl, ⌘ or Shift ask. */
+export function activateItem(
+  element: HTMLElement,
+  event: { altKey: boolean; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean },
+): void {
+  const init: MouseEventInit = {
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+    altKey: event.altKey,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+  };
+  queueMicrotask(() => element.dispatchEvent(new MouseEvent("click", init)));
 }

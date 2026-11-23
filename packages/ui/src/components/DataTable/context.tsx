@@ -1,8 +1,9 @@
-import { createContext, type RefObject, useContext } from "react";
+import { type RefObject } from "react";
 
+import { createPartContext } from "../partContext";
+import type { ResolvedLabels } from "./labels";
 import type {
   DataTableColumnSizing,
-  DataTableLabels,
   DataTableRow,
   DataTableRowProps,
   TableFilterSelections,
@@ -12,7 +13,7 @@ export interface DataTableContextValue<TData extends object = any> {
   loading: boolean;
   getRowInteractionProps: (row: DataTableRow<TData>) => DataTableRowProps;
   onReset?: () => unknown;
-  labels: Required<DataTableLabels>;
+  labels: ResolvedLabels;
   selections: TableFilterSelections | undefined;
   clientSide: boolean;
   columnSizing: DataTableColumnSizing;
@@ -20,12 +21,13 @@ export interface DataTableContextValue<TData extends object = any> {
   gridRef: RefObject<HTMLDivElement | null>;
 }
 
-const DataTableContext = createContext<DataTableContextValue | null>(null);
+const [DataTableContext, useDataTablePart] = createPartContext<DataTableContextValue>(
+  "<DataTable>",
+  "DataTable parts",
+);
 
 export const DataTableProvider = DataTableContext.Provider;
 
 export function useDataTableContext<TData extends object = any>(): DataTableContextValue<TData> {
-  const context = useContext(DataTableContext);
-  if (!context) throw new Error("DataTable parts must be rendered inside <DataTable>");
-  return context;
+  return useDataTablePart();
 }

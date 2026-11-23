@@ -55,7 +55,7 @@ for (const overlay of sheetOverlayCases) {
 
     test(
       "the sheet is one named dialog",
-      { tag: [...storyTags(overlay.story), "@phone-only"] },
+      { tag: storyTags(overlay.story, "phone") },
       async ({ gallery, page }) => {
         await gallery.open(overlay.story);
         const trigger = await pinTrigger(page, overlay.trigger.phone);
@@ -69,7 +69,7 @@ for (const overlay of sheetOverlayCases) {
 
     test(
       "tapping outside closes the sheet",
-      { tag: [...storyTags(overlay.story), "@phone-only"] },
+      { tag: storyTags(overlay.story, "phone") },
       async ({ gallery, page }) => {
         await gallery.open(overlay.story);
         const trigger = await pinTrigger(page, overlay.trigger.phone);

@@ -1,11 +1,12 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import { HStack } from "#styled-system/jsx";
 
 import type { OpenChangeDetails } from "../../primitives/layer";
+import { useOverlayMode } from "../../primitives/popup";
 import { Button } from "../Buttons";
-import type { SelectionValue } from "../Listbox/types";
-import { useOverlayMode } from "../overlayPresentation";
+import { createPartContext } from "../partContext";
+import type { SelectionValue } from "../selection";
 import { Select } from "./Select";
 import { useSelectContext } from "./Select.context";
 import { SelectSimpleBody, selectListParts, splitSelectBodyProps } from "./Select.parts";
@@ -22,15 +23,10 @@ interface ApplySelectContextValue {
   isDirty: boolean;
 }
 
-const ApplySelectContext = createContext<ApplySelectContextValue | null>(null);
-
-const useApplySelectContext = () => {
-  const context = useContext(ApplySelectContext);
-  if (context == null) {
-    throw new Error("ApplySelect compound components must be used within ApplySelect.Root");
-  }
-  return context;
-};
+const [ApplySelectContext, useApplySelectContext] = createPartContext<ApplySelectContextValue>(
+  "<ApplySelect.Root>",
+  "ApplySelect parts",
+);
 
 function sameValueSet<V extends SelectionValue>(left: readonly V[], right: readonly V[]) {
   if (left.length !== right.length) return false;

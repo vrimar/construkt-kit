@@ -1,5 +1,5 @@
 const FOCUSABLE =
-  "input:not([type='hidden']):not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], button:not([disabled]), [tabindex], iframe, object, embed, area[href], audio[controls], video[controls], [contenteditable]:not([contenteditable='false']), details > summary:first-of-type";
+  "input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], button:not(:disabled), [tabindex], iframe, object, embed, area[href], audio[controls], video[controls], [contenteditable]:not([contenteditable='false']), details > summary:first-of-type";
 
 const HIDDEN_VISIBILITY = new Set(["hidden", "collapse"]);
 
@@ -15,6 +15,7 @@ function isRendered(element: HTMLElement) {
   return true;
 }
 
+/** Whether `element` takes focus: a focusable kind, enabled, rendered and outside an `inert` subtree. */
 export function isFocusable(element: Element): element is HTMLElement {
   if (!(element instanceof HTMLElement) || element.closest("[inert]")) return false;
   return element.matches(FOCUSABLE) && isRendered(element);
@@ -53,18 +54,34 @@ export function isTabbable(element: Element): element is HTMLElement {
   return element.tabIndex > 0 || isTabbableRadio(element);
 }
 
+const candidates = (container: Element) => Array.from(container.querySelectorAll(FOCUSABLE));
+
+export const getFocusables = (container: Element): HTMLElement[] =>
+  candidates(container).filter(isFocusable);
+
+/** The elements inside `container` that Tab reaches, in document order. */
 export const getTabbables = (container: Element): HTMLElement[] =>
-  Array.from(container.querySelectorAll(FOCUSABLE)).filter(isTabbable);
+  candidates(container).filter(isTabbable);
+
+export const hasTabbable = (container: Element): boolean => candidates(container).some(isTabbable);
+
+export const NO_AUTOFOCUS_ATTRIBUTE = "data-no-autofocus";
+
+const AUTOFOCUS_MARK = "[data-autofocus],[autofocus]";
+
+export const findMarkedFocus = (root: HTMLElement): HTMLElement | null =>
+  root.matches(AUTOFOCUS_MARK) ? root : root.querySelector<HTMLElement>(AUTOFOCUS_MARK);
 
 /**
  * The `[data-autofocus]` or `[autofocus]` element in `root`, else its first tabbable that isn't
  * `[data-no-autofocus]`, or `null` when it has neither.
  */
 export function findInitialFocus(root: HTMLElement): HTMLElement | null {
-  const marked = root.matches("[data-autofocus],[autofocus]")
-    ? root
-    : root.querySelector<HTMLElement>("[data-autofocus],[autofocus]");
-  return marked ?? getTabbables(root).find((el) => !el.hasAttribute("data-no-autofocus")) ?? null;
+  return (
+    findMarkedFocus(root) ??
+    getTabbables(root).find((el) => !el.hasAttribute(NO_AUTOFOCUS_ATTRIBUTE)) ??
+    null
+  );
 }
 
 /** What a popup focuses when it opens: its `findInitialFocus` element, else the popup itself. */

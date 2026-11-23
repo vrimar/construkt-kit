@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 
-import { type OpenChangeDetails, useOpenState } from "../../primitives/layer";
+import type { OpenChangeDetails } from "../../primitives/layer";
 import { isRenderable } from "../itemSlots";
 import { asRender } from "../renderContent";
 import { Popover, type PopoverRootProps, usePopoverContext } from "./Popover";
@@ -20,6 +20,20 @@ export interface ActionPopover {
   run: (task: () => unknown, event?: SyntheticEvent) => void;
 }
 
+/** The props `ConfirmPopover` and `PromptPopover` share. */
+export interface ActionPopoverProps extends Omit<PopoverRootProps, "children"> {
+  /** Shown on hover over the trigger, and hidden while the popover is open. */
+  tooltip?: ReactNode;
+  /** Heads the popover. */
+  title: ReactNode;
+  cancelLabel?: string;
+  /**
+   * Spins the action button and keeps the popover open: Cancel, Esc and outside clicks do nothing.
+   * It doesn't hold the popover open after the action; return a promise from its handler for that.
+   */
+  loading?: boolean;
+}
+
 interface ActionPopoverRootProps extends Omit<PopoverRootProps, "children"> {
   trigger: ReactNode;
   tooltip?: ReactNode;
@@ -31,28 +45,19 @@ export function ActionPopoverRoot({
   trigger,
   tooltip,
   loading,
-  open,
-  defaultOpen,
   onOpenChange,
   children,
   ...rest
 }: ActionPopoverRootProps) {
-  const { open: resolvedOpen, requestOpenChange } = useOpenState({
-    open,
-    defaultOpen,
-    onOpenChange,
-  });
   const [pending, setPending] = useState(false);
   const busy = loading === true || pending;
 
   return (
     <Popover.Root
       {...rest}
-      open={resolvedOpen}
       onOpenChange={(next: boolean, details: OpenChangeDetails) => {
-        if ((!next && busy) || !requestOpenChange(next, details.reason, details.event)) {
-          details.cancel();
-        }
+        if (!next && busy) details.cancel();
+        else onOpenChange?.(next, details);
       }}
     >
       {isRenderable(trigger) && (

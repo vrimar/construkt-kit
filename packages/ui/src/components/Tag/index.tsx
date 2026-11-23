@@ -1,17 +1,14 @@
 import { XIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  createContext,
-  useContext,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-} from "react";
+import { type ComponentProps, createContext, useContext, useId, useMemo } from "react";
 
 import { createSlotRecipeContext } from "#styled-system/jsx";
 import { tag } from "#styled-system/recipes";
 
+import {
+  type ReportRendered,
+  useRenderedParts,
+  useReportRendered,
+} from "../../hooks/useRenderedParts";
 import { renderable } from "../../primitives/render";
 
 const { withProvider, withContext } = createSlotRecipeContext(tag);
@@ -21,57 +18,52 @@ const StyledLabel = withContext(renderable.span, "label");
 const StartElement = withContext(renderable.span, "startElement");
 const EndElement = withContext(renderable.span, "endElement");
 const StyledCloseTrigger = withContext(renderable.button, "closeTrigger", {
-  defaultProps: { type: "button", children: <XIcon /> },
+  defaultProps: { children: <XIcon /> },
 });
 
-interface LabelIds {
+interface TagLabel {
   generatedId: string;
-  labelId: string;
-  setOwnLabelId: (id: string | undefined) => void;
+  /** The rendered label's id. */
+  labelId: string | undefined;
+  reportRendered: ReportRendered<"label">;
 }
 
-const LabelIdContext = createContext<LabelIds | undefined>(undefined);
+const TagLabelContext = createContext<TagLabel | undefined>(undefined);
 
 function Root(props: ComponentProps<typeof StyledRoot>) {
   const generatedId = useId();
-  const [ownLabelId, setOwnLabelId] = useState<string>();
-  const labelIds = useMemo(
-    () => ({ generatedId, labelId: ownLabelId ?? generatedId, setOwnLabelId }),
-    [generatedId, ownLabelId],
+  const [rendered, reportRendered] = useRenderedParts<"label">();
+  const label = useMemo(
+    () => ({ generatedId, labelId: rendered.label, reportRendered }),
+    [generatedId, rendered.label, reportRendered],
   );
   return (
-    <LabelIdContext.Provider value={labelIds}>
+    <TagLabelContext.Provider value={label}>
       <StyledRoot {...props} />
-    </LabelIdContext.Provider>
+    </TagLabelContext.Provider>
   );
 }
 
 function Label({ id, ...props }: ComponentProps<typeof StyledLabel>) {
-  const labelIds = useContext(LabelIdContext);
-  const setOwnLabelId = labelIds?.setOwnLabelId;
-
-  useEffect(() => {
-    if (!setOwnLabelId || id === undefined) return;
-    setOwnLabelId(id);
-    return () => setOwnLabelId(undefined);
-  }, [id, setOwnLabelId]);
-
+  const label = useContext(TagLabelContext);
+  const labelId = useReportRendered(label?.reportRendered, "label", id ?? label?.generatedId);
   return (
     <StyledLabel
-      id={id ?? labelIds?.generatedId}
+      id={labelId}
       {...props}
     />
   );
 }
 
 function CloseTrigger({ id, ...props }: ComponentProps<typeof StyledCloseTrigger>) {
-  const labelId = useContext(LabelIdContext)?.labelId;
+  const labelId = useContext(TagLabelContext)?.labelId;
   const ownId = useId();
   const triggerId = id ?? ownId;
   const named = props["aria-label"] !== undefined || props["aria-labelledby"] !== undefined;
 
   return (
     <StyledCloseTrigger
+      type={props.render ? undefined : "button"}
       id={triggerId}
       aria-label="Remove"
       aria-labelledby={named || !labelId ? undefined : `${triggerId} ${labelId}`}

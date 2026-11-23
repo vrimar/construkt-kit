@@ -4,19 +4,22 @@ import {
   type ElementType,
   type ReactElement,
   type ReactNode,
-  type Ref,
   createContext,
-  useCallback,
   useContext,
   useRef,
-  useState,
 } from "react";
 
 import { cx } from "#styled-system/css";
 
 import { useDocumentScheme } from "../color-mode/useDocumentScheme";
 import { useComposedRefs } from "../hooks/useComposedRefs";
-import { type DismissReason, type Layer, LayerContext, useLayer } from "../primitives/layer";
+import {
+  type DismissReason,
+  type Layer,
+  LayerContext,
+  useLayer,
+  useTopLayerPopover,
+} from "../primitives/layer";
 import {
   type Align,
   type Anchor,
@@ -52,18 +55,9 @@ export function createTopLayerPositioner<C extends ElementType>(Positioner: C) {
     children,
     ...props
   }: WithRef<ComponentProps<C>> & { className?: string | undefined }): ReactElement {
-    const [element, setElement] = useState<HTMLElement | null>(null);
+    const [element, showRef] = useTopLayerPopover<HTMLElement>();
     const scheme = useDocumentScheme(element);
-    const showRef = useCallback((node: HTMLElement | null) => {
-      if (!node) return;
-      node.showPopover();
-      setElement(node);
-      return () => {
-        if (node.isConnected) node.hidePopover();
-        setElement(null);
-      };
-    }, []);
-    const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, showRef);
+    const composedRef = useComposedRefs(ref, showRef);
     const shown = element !== null;
     return (
       <PositionerElement
@@ -85,9 +79,17 @@ export interface UseAnchoredPopupOptions {
   gutter?: number | undefined;
   /** The trigger, which counts as part of the popup's layer, as does the anchor when an element. */
   trigger: HTMLElement | null;
-  /** Whether `target` is part of the popup beyond its positioner, trigger and anchor. */
-  contains?: ((target: Node) => boolean) | undefined;
+  /**
+   * Whether `target` is part of the popup beyond its positioner, trigger and anchor; `false` for a
+   * layer that holds nothing, such as a tooltip's, so a press on its trigger reaches the layers below.
+   */
+  contains?: ((target: Node) => boolean) | false | undefined;
   dismiss: (reason: DismissReason, event: Event) => boolean;
+  /**
+   * Makes the popup an overlay, which counts toward `hasOpenOverlay` and takes a press outside it
+   * from the layers it is nested in; a tooltip or hover card isn't one. @default true
+   */
+  overlay?: boolean | undefined;
 }
 
 export interface AnchoredPopup {
@@ -112,6 +114,7 @@ export function useAnchoredPopup({
   trigger,
   contains,
   dismiss,
+  overlay = true,
 }: UseAnchoredPopupOptions): AnchoredPopup {
   const positionerRef = useRef<HTMLElement | null>(null);
   const position = usePosition({ open, placement, anchor, gutter });
@@ -120,12 +123,13 @@ export function useAnchoredPopup({
 
   const layer = useLayer(open, {
     contains: (target) =>
-      (positionerRef.current?.contains(target) ?? false) ||
-      (trigger?.contains(target) ?? false) ||
-      (anchor instanceof Element && anchor.contains(target)) ||
-      (contains?.(target) ?? false),
+      contains !== false &&
+      ((positionerRef.current?.contains(target) ?? false) ||
+        (trigger?.contains(target) ?? false) ||
+        (anchor instanceof Element && anchor.contains(target)) ||
+        (contains?.(target) ?? false)),
     dismiss,
-    overlay: () => positionerRef.current,
+    overlay: overlay ? () => positionerRef.current : undefined,
   });
 
   return {
@@ -180,17 +184,16 @@ export function createAnchoredPositioner<C extends ElementType>(Positioner: C) {
 export const getPopupTriggerProps = ({
   open,
   contentId,
-  contentMounted,
   haspopup,
 }: {
   open: boolean;
-  contentId: string;
-  contentMounted: boolean;
-  haspopup: "dialog" | "menu" | undefined;
+  /** The id the mounted content renders with; none while it is unmounted. */
+  contentId: string | undefined;
+  haspopup: "dialog" | "menu" | "listbox" | undefined;
 }) => ({
   "aria-haspopup": haspopup,
   "aria-expanded": open,
-  "aria-controls": contentMounted ? contentId : undefined,
+  "aria-controls": contentId,
   ...openStateAttributes(open),
 });
 
@@ -211,7 +214,7 @@ export function createArrow<C extends ElementType, T extends ElementType>(Arrow:
   // A phone sheet has no anchor to point at, so it renders no arrow.
   function FloatingArrow({ ref, style, children, ...props }: WithRef<ComponentProps<C>>) {
     const context = useContext(FloatingContext);
-    const composedRef = useComposedRefs(ref as Ref<HTMLElement> | undefined, context?.setArrow);
+    const composedRef = useComposedRefs(ref, context?.setArrow);
     if (!context) return null;
     const { side, arrowStyle } = context;
     return (
