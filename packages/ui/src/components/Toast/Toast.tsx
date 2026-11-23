@@ -33,6 +33,7 @@ import { Icon } from "../Icon";
 import { Portal } from "../Portal";
 import { Spinner } from "../Spinner";
 import { statusIcons } from "../statusIcons";
+import { TOAST_REGION_LABEL } from "./toastRegion";
 import { type ToastEntry, type ToastStore, createToastStore, getToastDuration } from "./toastStore";
 
 const { withProvider, withContext } = createSlotRecipeContext(toastRecipe);
@@ -50,7 +51,6 @@ const store = createToastStore({ max: 5 });
 /** Shows, updates and dismisses the toasts that `<Toaster />` renders. */
 export const toaster: ToastStore = store;
 
-const REGION_LABEL = "Notifications, top-end (alt+T)";
 const SWIPE_THRESHOLD = 40;
 const REVERSE_CANCEL_THRESHOLD = 10;
 const SWIPE_IGNORE = 'button, a, input, textarea, [role="button"]';
@@ -282,7 +282,7 @@ export function Toaster() {
         ref={groupRefs}
         popover="manual"
         role="region"
-        aria-label={REGION_LABEL}
+        aria-label={TOAST_REGION_LABEL}
         aria-live="polite"
         aria-relevant="additions text"
         aria-atomic="false"

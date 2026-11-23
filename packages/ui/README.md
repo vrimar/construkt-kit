@@ -86,6 +86,35 @@ import type { HTMLStyledProps, SystemStyleObject } from "@construkt-kit/styled-s
 `CssProp` — the value of a `*Css` prop, typed with ui's theme. `Unstyled<P>` — `P` without style props or `*Css`
 props, plus `data-*`, for objects of props an app forwards to ui.
 
+### Testing helpers
+
+`@construkt-kit/ui/testing` drives ui components from an app's Playwright tests without re-spelling their markup. It
+needs `@playwright/test` (an optional peer); `src/testing/*.spec.ts` keeps each helper working against the stories.
+
+| Export                                     | Locates or does                                                                                    |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `popupFor(trigger)`                        | The open popup a trigger controls (Popover, Menu, Select, Dialog), through its `aria-controls`     |
+| `openPopup(trigger)`                       | Presses the trigger unless its popup is open, and returns the popup; phone sheets included         |
+| `menuItem(menu, name)`                     | A menu item of any kind: action, submenu, checkbox, switch, radio, segment (`toBeChecked()` reads) |
+| `pickMenuItem(trigger, path)`              | Opens the menu and picks an item, through submenus: `["Owner", "Mine"]`                            |
+| `dialog(scope, name)`                      | A dialog or alertdialog by name: Dialog, SubmitDialog, Drawer, Popover, ConfirmPopover, sheets     |
+| `listbox(scope, name?)`                    | A Listbox's or Select's list, a `listbox` or, once items have actions, a `grid`                    |
+| `listOption(list, name)`                   | An option, or a `row` in a list whose items have actions                                           |
+| `selectedOptions(list)`                    | The selected options, in list order                                                                |
+| `openSelect(trigger)`                      | Opens a Select, ApplySelect or TagSelect and returns its list                                      |
+| `pickOption(trigger, name)`                | Opens a select and picks an option                                                                 |
+| `selectSegment(scope, name)`               | Presses the SegmentGroup item holding the radio named `name`                                       |
+| `setChecked(input, checked)`               | Checks or unchecks a Switch or Checkbox through the label holding its input                        |
+| `hotkeyInput(scope, label)`                | A HotkeyInput by its label (its name is the label, then the value)                                 |
+| `hotkeyError(input)`                       | The refusal message a HotkeyInput shows while recording                                            |
+| `toastRegion(page)` / `toast(page, title)` | The Toaster's region; a toast by its title                                                         |
+| `dismissToast(toast)`                      | Dismisses a toast with Escape and waits for it to leave                                            |
+| `hoverTooltip(trigger)`                    | Hovers a trigger and returns the tooltip that describes it, past any open delay                    |
+| `dropFiles(target, files)`                 | Drops files on a FileUpload dropzone through a synthetic `DataTransfer`                            |
+
+Tabs need no helper: `getByRole("tab", { name })` presses one and `getByRole("tab", { selected: true })` finds the
+selected one.
+
 ## Variant Vocabulary
 
 `solid` > `surface` > `subtle` > `outline` > `plain`. See `../preset/src/theme/recipes/README.md` for full reference.

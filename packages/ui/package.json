@@ -33,6 +33,10 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
+    "./testing": {
+      "types": "./dist/testing.d.mts",
+      "default": "./dist/testing.mjs"
+    },
     "./panda/*": "./panda/*",
     "./css": {
       "types": "./styled-system/css/index.d.ts",
@@ -103,9 +107,11 @@
     "@construkt-kit/config": "workspace:*",
     "@construkt-kit/preset": "workspace:*",
     "@construkt-kit/story-kit": "workspace:*",
+    "@construkt-kit/testing": "workspace:*",
     "@pandacss/dev": "^2.5.0",
     "@pandacss/eslint-plugin": "^2.5.0",
     "@pandacss/preset-base": "^2.5.0",
+    "@playwright/test": "catalog:",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.12",
     "@types/jscodeshift": "^17.3.0",
@@ -122,11 +128,15 @@
   },
   "peerDependencies": {
     "@pandacss/dev": "^2.3.0",
+    "@playwright/test": "^1.62.1",
     "inter-ui": "^4.1.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    },
     "inter-ui": {
       "optional": true
     }
