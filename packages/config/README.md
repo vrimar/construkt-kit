@@ -10,7 +10,7 @@ Shared tool configuration for Construkt Kit frontend projects.
 | `@construkt-kit/config/oxlint`     | `import baseConfig from "@construkt-kit/config/oxlint"` in `oxlint.config.ts` |
 | `@construkt-kit/config/oxfmt`      | `export { default } from "@construkt-kit/config/oxfmt"` in `oxfmt.config.ts`  |
 | `@construkt-kit/config/vite`       | `createViteConfig(overrides?)` factory                                        |
-| `@construkt-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                                  |
+| `@construkt-kit/config/playwright` | `createPlaywrightConfig(options?)`: engine and device projects, tag routing   |
 | `@construkt-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen                       |
 | `@construkt-kit/config/tsdown`     | `createTsdownConfig(options?)` factory; a given `entry` replaces the default  |
 | `@construkt-kit/config/vitest`     | `installDomPolyfills()` and `createMatchMedia()` for jsdom Vitest setup files |
@@ -50,8 +50,22 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 
 ## Playwright Config
 
-`createPlaywrightConfig(overrides?)` starts `pnpm dev` as its web server and tests `http://localhost:5173`. With
-`PLAYWRIGHT_BASE_URL` set it tests that URL instead and starts no server, unless `overrides.webServer` names one.
+`createPlaywrightConfig(options?)` returns a config over the preset's projects (`PRESET_PROJECTS`): `chromium`,
+`firefox` and `webkit` on desktop, `mac` (Chromium reporting macOS), `phone-ios` (WebKit), `phone-android` (Chromium)
+and `tablet` (WebKit). `options.projects` picks them; the three desktop engines run by default. Tags route tests:
+
+| Tag                                        | Runs on                                    |
+| ------------------------------------------ | ------------------------------------------ |
+| none                                       | the desktop engines                        |
+| `@mac`, `@phone`, `@tablet`                | also `mac`, the phones, `tablet`           |
+| `@mac-only`, `@phone-only`, `@tablet-only` | only there                                 |
+| `@chromium-only`                           | desktop Chromium, not Firefox or WebKit    |
+
+`mac`, `phone-ios` and `tablet` set the `platform` option, which `@construkt-kit/testing`'s `test` turns into
+`navigator.platform` and `userAgentData`; a device preset alone leaves them at the host's. Traces are kept on failure
+locally and on the first retry in CI, which retries once. `options.reporters` run after the console reporter, such as
+`["@construkt-kit/testing/reporter", { cells }]`. The preset starts no server: pass `webServer`, or start one per worker
+with `@construkt-kit/testing`'s `startServer`.
 
 ## Vitest Setup
 
