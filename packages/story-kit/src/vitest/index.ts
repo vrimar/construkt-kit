@@ -56,6 +56,8 @@ function browserProject(
       name,
       include: [`src/**/*.${name}.test.{ts,tsx}`],
       setupFiles: [browserSetup],
+      // WebKit's frames run slowly under CI load, past expect.poll's 1s default; Playwright waits 5s.
+      expect: { poll: { timeout: 5_000 } },
       browser: {
         enabled: true,
         headless: true,
