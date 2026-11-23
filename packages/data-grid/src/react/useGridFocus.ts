@@ -1,32 +1,17 @@
-import {
-  type FocusEvent,
-  type MouseEvent,
-  type RefObject,
-  useCallback,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { type FocusEvent, type MouseEvent, useCallback, useLayoutEffect, useRef } from "react";
 
 import { GRID_CHANNELS } from "../core/grid";
-import { FOCUSABLE, cellAt, cellSelector, localPoint } from "./dom";
+import { cellAt, cellElement, controlAt, localPoint } from "./dom";
 import type { AnyGridCore } from "./useGridCore";
 
-export function useGridFocus(
-  core: AnyGridCore,
-  scroller: HTMLElement | null,
-  rootRef: RefObject<HTMLElement | null>,
-) {
+export function useGridFocus(core: AnyGridCore, scroller: HTMLElement | null) {
   const focusWithin = useRef(false);
   const wasEditing = useRef(false);
   const keyboardInput = useRef(false);
 
   const activeCellElement = useCallback(() => {
     const active = core.activePosition();
-    if (!active || !scroller) return null;
-    return (
-      scroller.querySelector<HTMLElement>(cellSelector(active.row, active.column)) ??
-      scroller.querySelector<HTMLElement>(`[data-row-index="${active.row}"] [data-full-width]`)
-    );
+    return active && cellElement(scroller, active);
   }, [core, scroller]);
 
   const focusActiveCell = useCallback(
@@ -56,12 +41,12 @@ export function useGridFocus(
     const editing = core.editing.state !== null;
     if (wasEditing.current && !editing) {
       const focused = document.activeElement;
-      if (!focused || focused === document.body || rootRef.current?.contains(focused)) {
+      if (!focused || focused === document.body || scroller?.contains(focused)) {
         focusActiveCell();
       }
     }
     wasEditing.current = editing;
-  }, [core, editingVersion, focusActiveCell, rootRef]);
+  }, [core, editingVersion, focusActiveCell, scroller]);
 
   const onFocus = (event: FocusEvent<HTMLElement>) => {
     focusWithin.current = true;
@@ -92,10 +77,7 @@ export function useGridFocus(
       const { x, y } = localPoint(currentTarget, event.clientX, event.clientY);
       if (x >= currentTarget.clientWidth || y >= currentTarget.clientHeight) return;
     }
-    const control = target.closest<HTMLElement>(FOCUSABLE);
-    if (control && currentTarget.contains(control) && !control.hasAttribute("data-col-index")) {
-      return;
-    }
+    if (controlAt(target, currentTarget)) return;
     event.preventDefault();
     const cell = cellAt(target);
     if (cell && !event.shiftKey) core.setActiveCell(cell, { reveal: false });

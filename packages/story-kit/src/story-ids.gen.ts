@@ -2423,6 +2423,12 @@ export const stories = {
     title: "Components/TreeView",
     tags: [],
   },
+  "components-treeview--multiple-selection": {
+    file: "packages/ui/src/components/Tree/TreeView.stories.tsx",
+    exportName: "MultipleSelection",
+    title: "Components/TreeView",
+    tags: [],
+  },
   "components-treeview--sizes": {
     file: "packages/ui/src/components/Tree/TreeView.stories.tsx",
     exportName: "Sizes",
@@ -2486,18 +2492,6 @@ export const stories = {
   "data-datagrid--cell-tooltips": {
     file: "packages/data-grid/src/react/DataGrid.stories.tsx",
     exportName: "CellTooltips",
-    title: "Data/DataGrid",
-    tags: [],
-  },
-  "data-datagrid--column-groups": {
-    file: "packages/data-grid/src/react/DataGrid.stories.tsx",
-    exportName: "ColumnGroups",
-    title: "Data/DataGrid",
-    tags: [],
-  },
-  "data-datagrid--column-groups-drop-onto": {
-    file: "packages/data-grid/src/react/DataGrid.stories.tsx",
-    exportName: "ColumnGroupsDropOnto",
     title: "Data/DataGrid",
     tags: [],
   },

@@ -34,6 +34,11 @@ export interface EditingOptions<TRow> {
   onHeaderRename?: (rename: HeaderRename) => void;
 }
 
+export const EDITING_OPTION_KEYS = {
+  onCellsChange: true,
+  onHeaderRename: true,
+} as const satisfies Record<keyof EditingOptions<unknown>, true>;
+
 export interface EditingHost<TRow, TNode> {
   readonly channels: Channels;
   readonly rowModel: RowModel<TRow>;

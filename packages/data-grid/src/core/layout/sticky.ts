@@ -16,10 +16,9 @@ export function stickyParents(
   let slot = 0;
   for (;;) {
     const y = contentTop + slot;
-    let ancestor = offsets.indexAt(y);
-    if (ancestor < 0) break;
-    while (ancestor >= 0 && rows.depthOf(ancestor) > stack.length)
-      ancestor = rows.parentOf(ancestor);
+    const under = offsets.indexAt(y);
+    if (under < 0) break;
+    const ancestor = rows.ancestorAt(under, stack.length);
     if (ancestor < 0 || rows.depthOf(ancestor) !== stack.length || !rows.isExpanded(ancestor))
       break;
     if (offsets.offsetOf(ancestor) >= y) break;

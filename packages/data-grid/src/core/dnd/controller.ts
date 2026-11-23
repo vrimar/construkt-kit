@@ -1,7 +1,7 @@
 import type { ColumnModel } from "../columns/columnModel";
 import type { ColumnDef } from "../columns/types";
-import type { CoreHit } from "../layout/hit";
-import type { OffsetIndex } from "../layout/offsetIndex";
+import type { CoreHit, RowGeometry } from "../layout/hit";
+import type { StickyRow } from "../layout/sticky";
 import type { RowModel } from "../rows/rowModel";
 import type { RowId, RowNode } from "../rows/rowNode";
 import type { CellPosition } from "../selection/navigation";
@@ -13,6 +13,7 @@ import {
   isContiguous,
   lastChild,
   listAxis,
+  neighbour,
   rowAxis,
   settleGap,
 } from "./reorder";
@@ -40,8 +41,8 @@ export interface DndOptions<TRow> {
    */
   canDropBetween?: (source: DragSource) => boolean;
   /**
-   * Whether a grip drag may land on the other axis at `hit`: a column over the body, or a row over the header.
-   * Without it a drag stays on its own axis.
+   * Whether a grip drag may land on the other axis at `hit`: a column over a row header (the gutter or a
+   * `rowHeader` column's cell), or a row over the header. Without it a drag stays on its own axis.
    */
   canDropAcross?: (source: DragSource, hit: CoreHit) => boolean;
   /** Called on release over the other axis where `canDropAcross` allowed it, in place of a reorder drop. */
@@ -54,20 +55,28 @@ export interface DndOptions<TRow> {
   onKeyboardMove?: (source: DragSource) => void;
 }
 
-export interface RowGeometry {
-  bodyTop: number;
-  bodyBottom: number;
-  contentTop: number;
-  offsets: OffsetIndex;
-}
+export const DND_OPTION_KEYS = {
+  onRowsDrop: true,
+  onColumnsDrop: true,
+  canDropOnto: true,
+  canDropBetween: true,
+  canDropAcross: true,
+  onDropAcross: true,
+  isRowReorderable: true,
+  indicator: true,
+  dragHandles: true,
+  onKeyboardMove: true,
+} as const satisfies Record<keyof DndOptions<unknown>, true>;
 
 export interface DndHost<TRow, TNode> {
   readonly channels: Channels;
   readonly rowModel: RowModel<TRow>;
   readonly columns: ColumnModel<TRow, TNode>;
   readonly selection: { readonly selection: EntitySelection | null };
+  readonly stickyRows: readonly StickyRow[];
   activePosition(): CellPosition | null;
   rowGeometry(): RowGeometry;
+  bodyContentY(y: number): number;
   columnIndexAtX(x: number): number;
   columnSpanX(first: number, last: number): { left: number; right: number };
   hitTest(x: number, y: number): CoreHit | null;
@@ -93,15 +102,19 @@ export class GridDnd<TRow, TNode> {
     private readonly options: () => DndOptions<TRow>,
   ) {}
 
-  sync(next: DndOptions<TRow>, previous: DndOptions<TRow>): void {
+  sync(next: DndOptions<TRow>, previous: DndOptions<TRow>): { rows: boolean; columns: boolean } {
     if (next.indicator !== previous.indicator) this.host.channels.notify(DND_CHANNELS.indicator);
-    if (
-      (next.onRowsDrop === undefined) !== (previous.onRowsDrop === undefined) ||
-      (next.dragHandles === undefined) !== (previous.dragHandles === undefined) ||
-      next.isRowReorderable !== previous.isRowReorderable
-    ) {
-      this.host.channels.notify(SHARED_CHANNELS.cells);
-    }
+    const handles = next.dragHandles !== previous.dragHandles;
+    const changed = {
+      rows:
+        handles ||
+        (next.onRowsDrop === undefined) !== (previous.onRowsDrop === undefined) ||
+        next.isRowReorderable !== previous.isRowReorderable,
+      columns:
+        handles || (next.onColumnsDrop === undefined) !== (previous.onColumnsDrop === undefined),
+    };
+    if (changed.rows) this.host.channels.notify(SHARED_CHANNELS.cells);
+    return changed;
   }
 
   get source(): DragSource | null {
@@ -207,8 +220,7 @@ export class GridDnd<TRow, TNode> {
   move(kind: DragSource["kind"], step: -1 | 1): boolean {
     const source = kind === "rows" ? this.activeRowSource() : this.activeColumnSource();
     if (!source || source.ids.length === 0) return false;
-    const target =
-      source.kind === "rows" ? this.rowNeighbour(source, step) : this.columnNeighbour(source, step);
+    const target = this.neighbourOf(source, step);
     if (target === undefined || !this.canDropBetween(source)) return false;
     this.emit(source, { targetId: target, position: step < 0 ? "before" : "after" });
     this.options().onKeyboardMove?.(source);
@@ -332,22 +344,31 @@ export class GridDnd<TRow, TNode> {
     );
   }
 
-  private rowNeighbour(source: DragSource, step: -1 | 1): RowId | undefined {
-    const model = this.host.rowModel;
-    const axis = rowAxis(model);
-    const edge = model.indexOf(step < 0 ? source.ids[0] : source.ids[source.ids.length - 1]);
-    const neighbour = step < 0 ? axis.prev(edge) : axis.next(edge);
-    if (neighbour === undefined) return undefined;
-    const node = model.nodeAt(neighbour);
-    return this.rowReorderable(node) ? node.id : undefined;
+  private neighbourOf(source: DragSource, step: -1 | 1): RowId | undefined {
+    const edge = step < 0 ? source.ids[0] : source.ids[source.ids.length - 1];
+    if (source.kind === "rows") {
+      const model = this.host.rowModel;
+      const next = neighbour(rowAxis(model), model.indexOf(edge), step);
+      const node = next === undefined ? undefined : model.nodeAt(next);
+      return node && this.rowReorderable(node) ? node.id : undefined;
+    }
+    const { columns } = this.host;
+    const siblings = columns.siblingsOf(source.ids[0]).map((cell) => cell.id);
+    const next = neighbour(listAxis(siblings), String(edge), step);
+    const cell = next === undefined ? undefined : columns.headerCell(next);
+    return cell && this.columnReorderable(cell.def) ? cell.id : undefined;
   }
 
-  private columnNeighbour(source: DragSource, step: -1 | 1): string | undefined {
-    const siblings = this.host.columns.siblingsOf(String(source.ids[0]));
-    const edge = String(step < 0 ? source.ids[0] : source.ids[source.ids.length - 1]);
-    const index = siblings.findIndex((cell) => cell.id === edge);
-    const neighbour = siblings[index + step];
-    return neighbour && this.columnReorderable(neighbour.def) ? neighbour.id : undefined;
+  private rowContentY(y: number): number {
+    const { contentTop, offsets } = this.host.rowGeometry();
+    const content = this.host.bodyContentY(y);
+    const local = content - contentTop;
+    for (const { index, top } of this.host.stickyRows) {
+      if (local >= top && local < top + offsets.heightOf(index)) {
+        return offsets.offsetOf(index) + local - top;
+      }
+    }
+    return content;
   }
 
   private rowPlacement(drag: ActiveDrag, y: number): Placement<RowId> | null {
@@ -359,17 +380,15 @@ export class GridDnd<TRow, TNode> {
     const start = parent + 1;
     const end = parent < 0 ? model.rowCount : model.subtreeEnd(parent);
     if (end <= start) return null;
-    const { bodyTop, bodyBottom, contentTop, offsets } = this.host.rowGeometry();
-    const clamped = Math.min(Math.max(y, bodyTop), bodyBottom - 1);
-    const content = clamped - bodyTop + contentTop;
-    const row = content >= offsets.total ? model.rowCount : offsets.indexAt(content);
+    const { offsets } = this.host.rowGeometry();
+    const content = this.rowContentY(y);
+    const row = offsets.indexAt(content);
 
     let placement: Placement<number>;
     if (row < start) placement = { targetId: start, position: "before" };
     else if (row >= end) placement = { targetId: lastChild(model, parent), position: "after" };
     else {
-      let target = row;
-      while (model.depthOf(target) > depth) target = model.parentOf(target);
+      const target = model.ancestorAt(row, depth);
       const top = offsets.offsetOf(target);
       const height = offsets.heightOf(target);
       const offset = content - top;
@@ -398,9 +417,7 @@ export class GridDnd<TRow, TNode> {
     const leaf = columns.leaves[index];
     if (!sourceCell || !leaf) return null;
     const target = sourceCell.isGroup
-      ? columns.headerRows[sourceCell.level]?.find(
-          (cell) => index >= cell.first && index <= cell.last,
-        )
+      ? columns.headerCellAt(sourceCell.level, index)
       : columns.headerCell(leaf.id);
     if (!target || !this.columnReorderable(target.def)) return null;
     return this.canDropOnto(source, target.id) ? { targetId: target.id, position: "onto" } : null;
@@ -421,7 +438,7 @@ export class GridDnd<TRow, TNode> {
     if (index < first.first) placement = { targetId: first.id, position: "before" };
     else if (index > last.last) placement = { targetId: last.id, position: "after" };
     else {
-      const cell = siblings.find((sibling) => index >= sibling.first && index <= sibling.last);
+      const cell = columns.headerCellAt(first.level, index);
       if (cell) {
         const { left, right } = this.host.columnSpanX(cell.first, cell.last);
         const position = this.slot(drag.source, cell.id, (x - left) / Math.max(1, right - left));

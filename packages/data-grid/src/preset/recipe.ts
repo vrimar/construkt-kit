@@ -2,7 +2,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import type { SlotRecipeConfig, SystemStyleObject } from "@pandacss/types";
 
 import { TONES } from "../core/columns/types";
-import { FLASH_MS } from "../core/selection/types";
+import { FLASH_MS } from "../core/flash";
 
 const ROW_H =
   "var(--control-base-row-h, calc(var(--control-base-h, 2.25rem) - var(--control-step, 0.25rem)))";

@@ -260,6 +260,10 @@ recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is 
 ## Upgrading from 0.2
 
 - Apps need `@construkt-kit/ui` 0.15 or later and React 19.3 or later; follow ui's "Upgrading from 0.14"
+- A row dragged over a stuck parent's heading targets that parent, not the row scrolled beneath it
+- Tab in the inline editor commits, then runs whatever the keymap binds to Tab, as it does on a cell. Where nothing
+  runs, past the last or first cell or with `keymap={{ Tab: null }}`, Tab leaves the grid instead of staying in it
+- A second pointer pressing another drag grip no longer takes over a press already running
 
 ## Rules for grid code
 
@@ -288,8 +292,18 @@ recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is 
 | `touch`   | Chromium with touch, 390×844, `pointer: coarse` | `src/**/*.touch.test.{ts,tsx}`                            |
 
 `pnpm test` runs `core` and `unit`; `pnpm test:browser` runs `browser` and `touch` and needs Playwright's Chromium
-(`pnpm --filter @construkt-kit/data-grid exec playwright install chromium`).
+(`pnpm --filter @construkt-kit/story-kit exec playwright install chromium`). The `browser` and `touch` projects and the
+`unit` setup come from `@construkt-kit/story-kit/vitest`; `test/commands.ts` adds the mouse commands, and
+`mountGrid` in `test/dom.ts` renders a grid and waits for its layout.
 
 The stories in `src/react/DataGrid.stories.tsx` also run under `pnpm test:stories` (axe, accessibility tree and
 screenshot at desktop and phone width; see `packages/story-kit/README.md`). They load `@construkt-kit/ui` as a built
 package, so a ui change reaches them after `pnpm build`.
+
+Where a test goes:
+
+- Where a drag, key or command lands (indicator, drop target, range, selection) is a `core` test that drives
+  `GridCore` with grid coordinates.
+- What the DOM draws and where, and real pointer, touch or scroll input, is a `browser` or `touch` test.
+- A behaviour spec (`*.spec.ts`) is only for what needs a story in the gallery with ui around it: focus, tooltips,
+  menus and dismissal. A story exists to hold a state, never only to host a spec.

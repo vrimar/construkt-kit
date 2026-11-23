@@ -52,6 +52,18 @@ export interface SelectionOptions<TRow> {
   checkboxSelection?: boolean;
 }
 
+export const SELECTION_OPTION_KEYS = {
+  selection: true,
+  defaultSelection: true,
+  onSelectionChange: true,
+  isRowSelectable: true,
+  selectionMode: true,
+  cellSelection: true,
+  onCellSelectionChange: true,
+  onSelectionEnd: true,
+  checkboxSelection: true,
+} as const satisfies Record<keyof SelectionOptions<unknown>, true>;
+
 export interface SelectionHost<TRow, TNode> {
   readonly rowModel: RowModel<TRow>;
   readonly columns: ColumnModel<TRow, TNode>;
@@ -195,6 +207,7 @@ export class GridSelection<TRow, TNode> {
     }
     if (mode !== "range") this.anchors.set(kind, id);
     this.setSelection(ids.length === 0 ? null : ({ kind, ids } as EntitySelection));
+    this.end();
   }
 
   setSelection(next: EntitySelection | null): void {
@@ -215,6 +228,7 @@ export class GridSelection<TRow, TNode> {
     if (this.mode !== "multiple") return;
     const ids = on ? this.selectableRowIds() : [];
     this.setSelection(ids.length === 0 ? null : { kind: "rows", ids });
+    this.end();
   }
 
   allRowsState(): RowSelectionState {
@@ -316,9 +330,7 @@ export class GridSelection<TRow, TNode> {
         columnIds = selected.map((index) => this.host.columns.leaves[index].id);
       }
     }
-    const inRange = this.rangeRects().some((rect) =>
-      rectContains(rect, { row: ctx.rowIndex, column: ctx.columnIndex }),
-    );
+    const inRange = this.inRange({ row: ctx.rowIndex, column: ctx.columnIndex });
     const cell = { rowId: ctx.rowId, columnId: ctx.columnId };
     return { rowIds, columnIds, ranges: inRange ? this.ranges : [{ start: cell, end: cell }] };
   }
@@ -337,10 +349,12 @@ export class GridSelection<TRow, TNode> {
     return rects;
   }
 
+  inRange(position: CellPosition, ranges: readonly CellRange[] = this.ranges): boolean {
+    return this.rangeRects(ranges).some((rect) => rectContains(rect, position));
+  }
+
   inCommittedRange(row: number, column: number): boolean {
-    return this.rangeRects(this.committed.value).some((rect) =>
-      rectContains(rect, { row, column }),
-    );
+    return this.inRange({ row, column }, this.committed.value);
   }
 
   rangeColumnsKey(row: number): string {
@@ -486,7 +500,6 @@ export class GridSelection<TRow, TNode> {
     const node = this.host.rowModel.nodeAt(active.row);
     if (!this.isRowSelectable(node)) return false;
     this.select("rows", node.id, "toggle");
-    this.end();
     return true;
   }
 

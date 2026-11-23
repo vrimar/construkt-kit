@@ -32,15 +32,30 @@ const RENDER_CHANNELS = [
   GRID_CHANNELS.drag,
 ];
 
-export function splitGridOptions<P extends object>(
+export function splitGridOptions<P extends object, K extends PropertyKey>(
   props: P,
-): [Pick<P, Extract<keyof P, GridOptionKey>>, Omit<P, GridOptionKey>] {
+  ownKeys: Readonly<Record<K, true>>,
+): [
+  Pick<P, Extract<keyof P, GridOptionKey>>,
+  Pick<P, Extract<keyof P, K>>,
+  Omit<P, GridOptionKey | K>,
+] {
   const options: Record<string, unknown> = {};
+  const own: Record<string, unknown> = {};
   const rest: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    (Object.hasOwn(GRID_OPTION_KEYS, key) ? options : rest)[key] = value;
+    const bucket = Object.hasOwn(GRID_OPTION_KEYS, key)
+      ? options
+      : Object.hasOwn(ownKeys, key)
+        ? own
+        : rest;
+    bucket[key] = value;
   }
-  return [options as Pick<P, Extract<keyof P, GridOptionKey>>, rest as Omit<P, GridOptionKey>];
+  return [
+    options as Pick<P, Extract<keyof P, GridOptionKey>>,
+    own as Pick<P, Extract<keyof P, K>>,
+    rest as Omit<P, GridOptionKey | K>,
+  ];
 }
 
 export function useChannels(core: AnyGridCore, channels: readonly string[]): void {
@@ -58,9 +73,16 @@ export function useChannels(core: AnyGridCore, channels: readonly string[]): voi
 }
 
 export function useGridCore<TRow>(
-  options: GridOptions<TRow, ReactNode>,
+  initialOptions: GridOptions<TRow, ReactNode>,
 ): GridCore<TRow, ReactNode> {
-  const [core] = useState(() => new GridCore<TRow, ReactNode>(options));
+  const [core] = useState(() => new GridCore<TRow, ReactNode>(initialOptions));
+  return core;
+}
+
+export function useGridOptions<TRow>(
+  core: GridCore<TRow, ReactNode>,
+  options: GridOptions<TRow, ReactNode>,
+): void {
   const [deferred] = useState<(() => void)[]>(() => []);
   // setOptions can collapse ranges mid-render; the app must hear of that only after the commit.
   let rendering = true;
@@ -81,7 +103,6 @@ export function useGridCore<TRow>(
     for (const call of deferred.splice(0)) call();
   });
   useChannels(core, RENDER_CHANNELS);
-  return core;
 }
 
 export function useGridScroll(

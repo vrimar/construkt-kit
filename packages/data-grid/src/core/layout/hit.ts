@@ -1,6 +1,14 @@
 import type { RowId } from "../rows/rowNode";
+import type { OffsetIndex } from "./offsetIndex";
 
 export type HitRegion = "header" | "top" | "body" | "bottom";
+
+export interface RowGeometry {
+  bodyTop: number;
+  bodyBottom: number;
+  contentTop: number;
+  offsets: OffsetIndex;
+}
 
 export interface HitBox {
   left: number;

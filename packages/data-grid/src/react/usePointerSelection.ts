@@ -1,22 +1,14 @@
 import { usePointerDrag } from "@construkt-kit/ui";
-import { type MouseEvent, type PointerEvent, type ReactNode, useRef } from "react";
+import { type MouseEvent, type ReactNode, useRef } from "react";
 
 import type { GridCore } from "../core/grid";
 import type { SelectMode } from "../core/selection/entities";
 import type { CellPosition } from "../core/selection/navigation";
 import type { EntitySelection } from "../core/selection/types";
-import { cellAt, localPoint } from "./dom";
+import { cellAt, controlAt, gridPoint } from "./dom";
 import type { DataGridOwnProps } from "./types";
 
-const INTERACTIVE =
-  "button, a[href], input, select, textarea, label, [role=button], [contenteditable]";
-
 const HANDLES = "[data-resize-handle], [data-row-resize-handle], [data-drag-handle]";
-
-const interactiveWithin = (target: EventTarget | null, boundary: Element) => {
-  const element = target instanceof Element ? target.closest(INTERACTIVE) : null;
-  return element !== null && boundary.contains(element) && element !== boundary;
-};
 
 interface Modifiers {
   shiftKey: boolean;
@@ -48,46 +40,38 @@ export function usePointerSelection<TRow>({
 }: PointerSelectionOptions<TRow>) {
   const adds = pointerSelection === "add";
   const beforeRename = useRef<{ id: string; selection: EntitySelection | null } | null>(null);
-  const { onPointerDown: startDrag } = usePointerDrag<HTMLDivElement>({
-    threshold: 4,
-    onMove: ({ clientX, clientY }) => {
-      if (!scroller) return;
-      core.setScroll(scroller.scrollTop, scroller.scrollLeft);
-      const { x, y } = localPoint(scroller, clientX, clientY);
-      const cell = core.bodyCellNear(x, y);
-      if (cell) core.selection.dragTo(cell);
-    },
-    onEnd: (_, { cancelled }) => core.selection.releaseDrag(cancelled),
-    autoScroll: { element: scroller, inset: () => core.scrollInset },
-  });
 
   const selectsRowAt = ({ row, column }: CellPosition) =>
     core.columns.leaves[column]?.def.selectsRow === true &&
     core.selection.isRowSelectable(core.nodeAt(row));
+
+  const { onPointerDown } = usePointerDrag<HTMLDivElement>({
+    threshold: 4,
+    onPress: (event) => {
+      if (event.pointerType !== "mouse") return false;
+      const cell = cellAt(event.target);
+      if (!cell || cell.fullWidth || controlAt(event.target, cell.element)) return false;
+      if (selectsRowAt(cell)) return false;
+      core.selection.pressCell(cell, { extend: event.shiftKey, add: modKey(event) });
+    },
+    onMove: ({ clientX, clientY }) => {
+      if (!scroller) return;
+      const { x, y } = gridPoint(core, scroller, clientX, clientY);
+      const cell = core.bodyCellNear(x, y);
+      if (cell) core.selection.dragTo(cell);
+    },
+    // Escape ends the drag while the button is still down; reverting must not wait for the release.
+    onEnd: (_, { cancelled }) => core.selection.releaseDrag(cancelled),
+    onRelease: (_, { cancelled }) => core.selection.releaseDrag(cancelled),
+    autoScroll: { element: scroller, inset: () => core.scrollInset },
+  });
 
   const selectRow = (row: number, column: number, event: Modifiers) => {
     core.setActiveCell({ row, column }, { reveal: false });
     const node = core.nodeAt(row);
     if (core.selection.isRowSelectable(node)) {
       core.selection.select("rows", node.id, modeOf(event, adds));
-      core.selection.end();
     }
-  };
-
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "mouse" || event.button !== 0) return;
-    const cell = cellAt(event.target);
-    if (!cell || cell.fullWidth || interactiveWithin(event.target, cell.element)) return;
-    if (selectsRowAt(cell)) return;
-    core.selection.pressCell(cell, { extend: event.shiftKey, add: modKey(event) });
-    const release = (up: globalThis.PointerEvent) => {
-      document.removeEventListener("pointerup", release);
-      document.removeEventListener("pointercancel", release);
-      core.selection.releaseDrag(up.type === "pointercancel");
-    };
-    document.addEventListener("pointerup", release);
-    document.addEventListener("pointercancel", release);
-    startDrag(event);
   };
 
   const onClick = (event: MouseEvent<HTMLDivElement>): boolean => {
@@ -95,7 +79,7 @@ export function usePointerSelection<TRow>({
     if (!target) return false;
     const header = target.closest<HTMLElement>("[data-header-id]");
     if (header) {
-      if (interactiveWithin(target, header) || target.closest(HANDLES)) return false;
+      if (controlAt(target, header) || target.closest(HANDLES)) return false;
       const ctx = core.headerContext(header.dataset.headerId ?? "");
       const first = core.columns.headerCell(ctx?.columnId ?? "")?.first;
       if (!ctx || first === undefined) return false;
@@ -113,7 +97,6 @@ export function usePointerSelection<TRow>({
           ctx.columnId,
           modeOf(event, adds),
         );
-        core.selection.end();
       }
       onHeaderClick?.(ctx, event);
       return true;
@@ -124,7 +107,7 @@ export function usePointerSelection<TRow>({
       return true;
     }
     const cell = cellAt(target);
-    if (!cell || cell.fullWidth || interactiveWithin(target, cell.element)) return false;
+    if (!cell || cell.fullWidth || controlAt(target, cell.element)) return false;
     const selectsRow = selectsRowAt(cell);
     if (selectsRow) selectRow(cell.row, cell.column, event);
     onCellClick?.(core.resolveCell(cell.row, cell.column).ctx, event);
@@ -136,7 +119,7 @@ export function usePointerSelection<TRow>({
     if (!target || target.closest(HANDLES)) return;
     const header = target.closest<HTMLElement>("[data-header-id]");
     if (header) {
-      if (interactiveWithin(target, header)) return;
+      if (controlAt(target, header)) return;
       const id = header.dataset.headerId ?? "";
       const before = beforeRename.current;
       if (!core.editing.startHeader(id)) return;
@@ -144,7 +127,7 @@ export function usePointerSelection<TRow>({
       return;
     }
     const cell = cellAt(target);
-    if (cell && !interactiveWithin(target, cell.element)) core.editing.startCell(cell);
+    if (cell && !controlAt(target, cell.element)) core.editing.startCell(cell);
   };
 
   const selectHeaderForMenu = (columnId: string) => {
@@ -152,7 +135,6 @@ export function usePointerSelection<TRow>({
     if (!ctx || !core.selection.isHeaderSelectable(ctx.def)) return;
     if (core.selection.isHeaderSelected(columnId, ctx.isGroup)) return;
     core.selection.select(ctx.isGroup ? "groups" : "columns", columnId, "replace");
-    core.selection.end();
   };
 
   const selectRowForMenu = (cell: CellPosition) => {
@@ -161,7 +143,6 @@ export function usePointerSelection<TRow>({
     const { selection } = core.selection;
     if (selection?.kind === "rows" && selection.ids.includes(id)) return;
     core.selection.select("rows", id, "replace");
-    core.selection.end();
   };
 
   const onContextMenu = (event: MouseEvent<HTMLDivElement>) => {

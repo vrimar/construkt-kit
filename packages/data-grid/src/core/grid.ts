@@ -5,7 +5,6 @@ import type {
   CellContext,
   CellRenderContext,
   CellSpec,
-  CellTone,
   ColumnDef,
   ColumnPinning,
   HeaderContext,
@@ -17,10 +16,16 @@ import type {
 } from "./columns/types";
 import type { BuiltInCommand } from "./commands/keymap";
 import { type CommandHandler, CommandRegistry } from "./commands/registry";
-import { DND_CHANNELS, type DndOptions, GridDnd, type RowGeometry } from "./dnd/controller";
-import { EDITING_CHANNEL, type EditingOptions, GridEditing } from "./editing/controller";
+import { DND_CHANNELS, DND_OPTION_KEYS, type DndOptions, GridDnd } from "./dnd/controller";
+import {
+  EDITING_CHANNEL,
+  EDITING_OPTION_KEYS,
+  type EditingOptions,
+  GridEditing,
+} from "./editing/controller";
+import type { Flash, FlashTargets } from "./flash";
 import { AxisWindow } from "./layout/axisWindow";
-import type { CoreHit, HitBox, HitRegion } from "./layout/hit";
+import type { CoreHit, HitBox, HitRegion, RowGeometry } from "./layout/hit";
 import { OffsetIndex } from "./layout/offsetIndex";
 import { type ScrollMapping, createScrollMapping } from "./layout/scrollMapping";
 import { type StickyRow, stickyParents } from "./layout/sticky";
@@ -28,7 +33,12 @@ import type { MenuAnchorEvent, MenuEntry } from "./menu";
 import { ClientRowModel, type RowModel } from "./rows/rowModel";
 import type { RowId, RowNode } from "./rows/rowNode";
 import { SourceStore } from "./rows/sourceStore";
-import { GridSelection, SELECTION_CHANNELS, type SelectionOptions } from "./selection/controller";
+import {
+  GridSelection,
+  SELECTION_CHANNELS,
+  SELECTION_OPTION_KEYS,
+  type SelectionOptions,
+} from "./selection/controller";
 import {
   type CellPosition,
   EXTEND_COMMANDS,
@@ -36,13 +46,14 @@ import {
   type NavigationCommand,
   navigate,
 } from "./selection/navigation";
-import { type IndexRect, rectContains } from "./selection/ranges";
-import type { CellAddress, FlashTargets, GridTarget } from "./selection/types";
+import type { IndexRect } from "./selection/ranges";
+import type { CellAddress, GridTarget } from "./selection/types";
 import { SpanIndex } from "./spans/spanIndex";
 import {
   type DataGridState,
   STATE_CALLBACKS,
   STATE_KEYS,
+  STATE_OPTION_KEYS,
   type StateKey,
   type StateOptions,
   type StateSlices,
@@ -95,38 +106,10 @@ export const GRID_OPTION_KEYS: Readonly<Record<keyof GridOptions<unknown, unknow
   pinnedTopRows: true,
   pinnedBottomRows: true,
   defaultExpandedRowIds: true,
-  selection: true,
-  defaultSelection: true,
-  onSelectionChange: true,
-  isRowSelectable: true,
-  selectionMode: true,
-  cellSelection: true,
-  onCellSelectionChange: true,
-  onSelectionEnd: true,
-  checkboxSelection: true,
-  onRowsDrop: true,
-  onColumnsDrop: true,
-  canDropOnto: true,
-  canDropBetween: true,
-  canDropAcross: true,
-  onDropAcross: true,
-  isRowReorderable: true,
-  indicator: true,
-  dragHandles: true,
-  onKeyboardMove: true,
-  onCellsChange: true,
-  onHeaderRename: true,
-  columnSizing: true,
-  onColumnSizingChange: true,
-  columnPinning: true,
-  onColumnPinningChange: true,
-  columnVisibility: true,
-  onColumnVisibilityChange: true,
-  expandedRowIds: true,
-  onExpandedRowIdsChange: true,
-  rowSizing: true,
-  onRowSizingChange: true,
-  onStateChange: true,
+  ...SELECTION_OPTION_KEYS,
+  ...DND_OPTION_KEYS,
+  ...EDITING_OPTION_KEYS,
+  ...STATE_OPTION_KEYS,
 };
 
 export interface Insets {
@@ -148,14 +131,6 @@ export interface MenuRequest<TNode> {
   point: { x: number; y: number } | null;
   entries: readonly MenuEntry<TNode>[];
   fromKeyboard: boolean;
-}
-
-export interface Flash {
-  id: number;
-  rows: readonly RowId[];
-  columns: readonly string[];
-  cells: readonly CellAddress[];
-  kind: CellTone;
 }
 
 export interface VisibleRange {
@@ -279,15 +254,9 @@ export class GridCore<TRow, TNode = unknown> {
     const previous = this.options;
     this.options = options;
     for (const key of STATE_KEYS) this.control(key, options);
-    if (
-      options.dragHandles !== previous.dragHandles ||
-      (options.onColumnsDrop === undefined) !== (previous.onColumnsDrop === undefined)
-    ) {
-      this.headerContexts.clear();
-    }
     this.channels.batch(() => {
       this.selection.sync(options, previous);
-      this.dnd.sync(options, previous);
+      if (this.dnd.sync(options, previous).columns) this.headerContexts.clear();
       this.refreshColumns();
       if (
         options.headerHeight !== previous.headerHeight ||
@@ -682,7 +651,7 @@ export class GridCore<TRow, TNode = unknown> {
   ): boolean {
     const address = this.addressOf(position);
     if (!address) return false;
-    const inRange = this.selection.rangeRects().some((rect) => rectContains(rect, position));
+    const inRange = this.selection.inRange(position);
     this.channels.batch(() => {
       if (!inRange) this.selection.collapseRanges();
       this.setActiveCell(position, { reveal: false });
@@ -765,7 +734,7 @@ export class GridCore<TRow, TNode = unknown> {
     if (y < header) {
       const letters = this.lettersHeight;
       if (y < letters) return hit("header", -1, null, 0, letters, columnId);
-      const cell = leaf && this.headerCellAt(index, y);
+      const cell = leaf && this.headerCellUnder(index, y);
       if (!cell) return hit("header", -1, null, letters, header - letters);
       const box = this.headerBox(cell);
       return hit("header", -1, null, box.top, box.height, cell.id, {
@@ -812,6 +781,11 @@ export class GridCore<TRow, TNode = unknown> {
     if (!hit || hit.rowIndex < 0 || hit.columnId === null) return null;
     const column = this.columns.indexOf(hit.columnId);
     return column >= 0 ? { row: hit.rowIndex, column } : null;
+  }
+
+  bodyContentY(y: number): number {
+    const { bodyTop, bodyBottom } = this.rowGeometry();
+    return clamp(y, bodyTop, bodyBottom - 1) - bodyTop + this.contentTop;
   }
 
   rowGeometry(): RowGeometry {
@@ -864,14 +838,12 @@ export class GridCore<TRow, TNode = unknown> {
     return Math.min(this.viewportWidth || canvasWidth, canvasWidth);
   }
 
-  private headerCellAt(column: number, y: number) {
+  private headerCellUnder(column: number, y: number) {
     const levels = this.headerLevels;
     const below = levels.findIndex(({ top, height }) => y < top + height);
     const level = below < 0 ? levels.length - 1 : below;
     for (let candidate = level; candidate >= 0; candidate--) {
-      const cell = this.columns.headerRows[candidate]?.find(
-        (header) => column >= header.first && column <= header.last,
-      );
+      const cell = this.columns.headerCellAt(candidate, column);
       if (cell && cell.level + cell.rowSpan > level) return cell;
     }
     return undefined;

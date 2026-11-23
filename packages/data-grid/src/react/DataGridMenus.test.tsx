@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { expect, test, vi } from "vitest";
 
+import { headerOf } from "../../test/dom";
 import { DataGrid } from "./DataGrid";
 import type { ColumnDef, DataGridApi, HeaderMenuContext } from "./types";
 
@@ -28,10 +29,9 @@ test("a header menu on a selected column gets the whole selection; on another co
       aria-label="Menus"
     />,
   );
-  const header = (id: string) => container.querySelector(`[data-header-id="${id}"]`) as Element;
 
-  fireEvent.contextMenu(header("b"));
-  fireEvent.contextMenu(header("c"));
+  fireEvent.contextMenu(headerOf(container, "b"));
+  fireEvent.contextMenu(headerOf(container, "c"));
 
   expect(seen).toEqual([["a", "b"], ["c"]]);
 });
@@ -49,12 +49,11 @@ test("right-clicking a header selects its column, but one already in the selecti
       aria-label="Menus"
     />,
   );
-  const header = (id: string) => container.querySelector(`[data-header-id="${id}"]`) as Element;
 
-  fireEvent.contextMenu(header("b"));
+  fireEvent.contextMenu(headerOf(container, "b"));
   expect(onSelectionChange).not.toHaveBeenCalled();
 
-  fireEvent.contextMenu(header("c"));
+  fireEvent.contextMenu(headerOf(container, "c"));
   expect(onSelectionChange).toHaveBeenCalledWith({ kind: "columns", ids: ["c"] });
 });
 

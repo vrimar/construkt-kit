@@ -1,11 +1,9 @@
-import { usePointerDrag } from "@construkt-kit/ui";
 import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
   memo,
   useId,
-  useRef,
   useState,
 } from "react";
 
@@ -15,6 +13,7 @@ import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { AnyGridCore } from "./useGridCore";
+import { useResizeDrag } from "./useResizeDrag";
 
 interface HeaderShared {
   core: AnyGridCore;
@@ -207,22 +206,20 @@ const HeaderCellView = memo(function HeaderCellView({
 }: HeaderCellViewProps) {
   const headerId = useId();
   const resizeLabelId = useId();
-  const start = useRef(core.columns);
   const [keyboardResizing, setKeyboardResizing] = useState(false);
 
-  const { onPointerDown } = usePointerDrag<HTMLSpanElement>({
-    claimPress: true,
-    activeAttribute: "data-resizing",
-    onPress: () => {
-      start.current = core.columns;
+  const onPointerDown = useResizeDrag({
+    axis: "x",
+    begin: () => core.columns,
+    resize: (start, delta) => {
+      const widths = start.resizedWidths(id, delta);
+      const unchanged = start
+        .visibleLeavesUnder(id)
+        .every((leaf) => widths[leaf.id] === leaf.width);
+      return unchanged ? null : widths;
     },
-    onMove: ({ deltaX }) => {
-      core.previewColumnWidths(start.current.resizedWidths(id, deltaX));
-    },
-    onEnd: ({ deltaX }, { cancelled }) => {
-      if (cancelled) core.previewColumnWidths(null);
-      else core.setColumnWidths(start.current.resizedWidths(id, deltaX));
-    },
+    preview: (widths) => core.previewColumnWidths(widths),
+    commit: (widths) => core.setColumnWidths(widths),
   });
 
   const onResizeKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {

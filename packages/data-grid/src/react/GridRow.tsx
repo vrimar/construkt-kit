@@ -1,23 +1,17 @@
-import { usePointerDrag } from "@construkt-kit/ui";
-import {
-  type CSSProperties,
-  type ReactNode,
-  type RefObject,
-  memo,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { type CSSProperties, type ReactNode, type RefObject, memo, useLayoutEffect } from "react";
 
 import { headerText } from "../core/columns/columnModel";
 import type { ColumnDef } from "../core/columns/types";
 import { GRID_CHANNELS } from "../core/grid";
 import type { RowNode } from "../core/rows/rowNode";
 import type { RowSelectionState } from "../core/selection/controller";
+import { RowDropMarker } from "./DropIndicators";
 import { REGIONS, columnGeometry, regionProps, spanGeometry } from "./geometry";
 import { InlineEditor } from "./InlineEditor";
 import type { DataGridClasses } from "./recipe";
 import type { FullWidthRowContext } from "./types";
 import { type AnyGridCore, useChannels } from "./useGridCore";
+import { useResizeDrag } from "./useResizeDrag";
 
 export type RowVariant = "body" | "pinned" | "sticky";
 
@@ -457,6 +451,11 @@ export function StickyParents({
           />
         );
       })}
+      <RowDropMarker
+        core={core}
+        classes={shared.classes}
+        stuck
+      />
     </div>
   );
 }
@@ -470,26 +469,12 @@ function RowResizeHandle({
   classes: DataGridClasses;
   node: RowNode<any>;
 }) {
-  const start = useRef(0);
-  const height = useRef(0);
-  const { onPointerDown } = usePointerDrag<HTMLSpanElement>({
-    claimPress: true,
-    activeAttribute: "data-resizing",
-    onPress: () => {
-      start.current = core.heightFor(node);
-      height.current = start.current;
-    },
-    onMove: ({ deltaY }) => {
-      height.current = start.current + deltaY;
-      core.previewRowHeight(node.id, height.current);
-    },
-    onEnd: (_, { cancelled }) => {
-      if (cancelled || Math.round(height.current) === start.current) {
-        core.previewRowHeight(node.id, undefined);
-      } else {
-        core.setRowHeight(node.id, height.current);
-      }
-    },
+  const onPointerDown = useResizeDrag({
+    axis: "y",
+    begin: () => core.heightFor(node),
+    resize: (start, delta) => (Math.round(start + delta) === start ? null : start + delta),
+    preview: (height) => core.previewRowHeight(node.id, height ?? undefined),
+    commit: (height) => core.setRowHeight(node.id, height),
   });
   return (
     <span

@@ -1,24 +1,21 @@
-import { render } from "@testing-library/react";
 import { createPortal } from "react-dom";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { cellOf, rowHeight, rowOf, scrollerOf } from "../../test/dom";
+import { cellOf, mountGrid, rowHeight, rowOf } from "../../test/dom";
 import { createFixture } from "../../test/fixture";
 import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
 
 test("scrolling to row 50,000 mounts it at its offset and keeps the row count bounded", async () => {
   const fixture = createFixture(100_000, 200);
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       aria-label="Large"
       style={{ width: 800, height: 600 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
 
   scroller.scrollTop = 50_000 * rowHeight(container);
   await settle();
@@ -34,7 +31,7 @@ test("scrolling to row 50,000 mounts it at its offset and keeps the row count bo
 
 test("under compact density rows measure 28px and row N sits at 28N", async () => {
   const fixture = createFixture(200, 5);
-  const { container } = render(
+  const { container } = await mountGrid(
     <div data-density="compact">
       <DataGrid
         {...fixture}
@@ -43,7 +40,6 @@ test("under compact density rows measure 28px and row N sits at 28N", async () =
       />
     </div>,
   );
-  await settle();
 
   const first = rowOf(container, 0)?.getBoundingClientRect();
   const tenth = rowOf(container, 10)?.getBoundingClientRect();
@@ -53,7 +49,7 @@ test("under compact density rows measure 28px and row N sits at 28N", async () =
 
 test("content taller than 15M px still reaches and positions the last row", async () => {
   const fixture = createFixture(100_000, 3);
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       getRowHeight={() => 200}
@@ -61,8 +57,6 @@ test("content taller than 15M px still reaches and positions the last row", asyn
       style={{ width: 800, height: 600 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
 
   scroller.scrollTop = scroller.scrollHeight;
   await settle();
@@ -75,14 +69,13 @@ test("content taller than 15M px still reaches and positions the last row", asyn
 });
 
 test("a clicked cell shows the active-cell ring, not only a keyboard-focused one", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(5, 3)}
       aria-label="Active cell"
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   const cell = cellOf(container, 1, 1);
 
   await userEvent.click(cell);
@@ -91,14 +84,13 @@ test("a clicked cell shows the active-cell ring, not only a keyboard-focused one
 });
 
 test("a clicked cell isn't :focus-visible, and the cell an arrow key moves to is", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(5, 3)}
       aria-label="Focus visible"
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   const cell = cellOf(container, 1, 1);
 
   await userEvent.click(cell);
@@ -108,8 +100,30 @@ test("a clicked cell isn't :focus-visible, and the cell an arrow key moves to is
   expect(cellOf(container, 1, 2).matches(":focus-visible")).toBe(true);
 });
 
+test("Tab in the editor of the last cell commits and leaves the grid", async () => {
+  const onCellsChange = vi.fn();
+  const { container } = await mountGrid(
+    <>
+      <DataGrid
+        {...createFixture(2, 2)}
+        defaultCell={{ editable: true }}
+        onCellsChange={onCellsChange}
+        aria-label="Editing"
+        style={{ width: 600, height: 300 }}
+      />
+      <button>after</button>
+    </>,
+  );
+  await userEvent.click(cellOf(container, 1, 1));
+
+  await userEvent.keyboard("{F2}B{Tab}");
+
+  expect(document.activeElement).toHaveProperty("textContent", "after");
+  expect(onCellsChange.mock.calls.map(([[change]]) => change.value)).toEqual(["B"]);
+});
+
 test("pressing a pinned row keeps keyboard focus on the active cell", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(20, 3)}
       pinnedBottomRows={[{ id: 99 }]}
@@ -117,7 +131,6 @@ test("pressing a pinned row keeps keyboard focus on the active cell", async () =
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   const cell = cellOf(container, 1, 1);
   await userEvent.click(cell);
 
@@ -130,7 +143,7 @@ test("pressing a pinned row keeps keyboard focus on the active cell", async () =
 
 test("an input portalled out of a header takes focus when clicked", async () => {
   const fixture = createFixture(5, 3);
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={[
@@ -144,7 +157,6 @@ test("an input portalled out of a header takes focus when clicked", async () => 
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   await userEvent.click(cellOf(container, 1, 1));
   const input = document.querySelector<HTMLInputElement>(
     "input[aria-label=Find]",
@@ -156,7 +168,7 @@ test("an input portalled out of a header takes focus when clicked", async () => 
 });
 
 test("the loading overlay leaves the toolbar uncovered", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(5, 3)}
       loading
@@ -165,7 +177,6 @@ test("the loading overlay leaves the toolbar uncovered", async () => {
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   const toolbar = container.querySelector("button")?.getBoundingClientRect() as DOMRect;
 
   expect(document.elementFromPoint(toolbar.left + 4, toolbar.top + 4)?.textContent).toBe("Cancel");

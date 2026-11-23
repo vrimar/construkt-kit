@@ -9,19 +9,17 @@ import {
 } from "@construkt-kit/ui";
 import {
   type CSSProperties,
-  type ReactNode,
   type UIEvent,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 
-import { GRID_CHANNELS } from "../core/grid";
+import { GRID_CHANNELS, type GridOptions } from "../core/grid";
 import { useCellTooltip } from "./CellTooltip";
-import { GridCoreContext, RowStateVersionContext } from "./context";
+import { GridContexts } from "./context";
 import { ColumnDropLayer, DragGhost, RowDropMarker } from "./DropIndicators";
 import { ariaRows, geometryVars } from "./geometry";
 import { GridHeader } from "./GridHeader";
@@ -32,19 +30,19 @@ import { dataGrid } from "./recipe";
 import { selectionColumn } from "./selectionColumn";
 import { SharedMenu } from "./SharedMenu";
 import { StatusBar } from "./StatusBar";
-import type { DataGridLabels, DataGridProps } from "./types";
+import type { DataGridLabels, DataGridOwnProps, DataGridProps } from "./types";
 import { useCopyHandler } from "./useClipboard";
 import { useExternalDrop, useGripDrop } from "./useDragDrop";
 import { useGridApi } from "./useGridApi";
 import {
-  type AnyGridCore,
   splitGridOptions,
   useGridCore,
   useGridMeasurements,
+  useGridOptions,
   useGridScroll,
 } from "./useGridCore";
 import { useGridFocus } from "./useGridFocus";
-import { useGridKeyboard } from "./useGridKeyboard";
+import { useGridKeyboard, useMoveAnnouncer } from "./useGridKeyboard";
 import { usePointerSelection } from "./usePointerSelection";
 
 const DEFAULT_LABELS: DataGridLabels = {
@@ -81,6 +79,37 @@ const withDefaults = <T extends object>(defaults: T, overrides: Partial<T> | und
   ...Object.fromEntries(Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined)),
 });
 
+type OwnKey = Exclude<keyof DataGridOwnProps<unknown>, keyof GridOptions<unknown, unknown>>;
+
+const DATA_GRID_OWN_KEYS: Readonly<Record<OwnKey, true>> = {
+  size: true,
+  variant: true,
+  striped: true,
+  gridLines: true,
+  loading: true,
+  emptyState: true,
+  toolbar: true,
+  statusBar: true,
+  labels: true,
+  apiRef: true,
+  rowNumbers: true,
+  resizableRows: true,
+  renderFullWidthRow: true,
+  outlines: true,
+  onVisibleRangeChange: true,
+  onCellClick: true,
+  onHeaderClick: true,
+  pointerSelection: true,
+  keymap: true,
+  keyboardSelection: true,
+  commands: true,
+  onDragMove: true,
+  dragLabel: true,
+  onExternalDragOver: true,
+  onExternalDrop: true,
+  onExternalDragLeave: true,
+};
+
 /**
  * Virtualized, Excel-like grid over row records. Columns are layout; one `CellSpec` at grid
  * (`defaultCell`), column (`column.cell`) and cell (`getCell`) scope says how each cell looks.
@@ -89,33 +118,8 @@ const withDefaults = <T extends object>(defaults: T, overrides: Partial<T> | und
 export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   const [
     gridOptions,
+    own,
     {
-      loading = false,
-      emptyState,
-      toolbar,
-      statusBar,
-      labels: labelOverrides,
-      apiRef,
-      rowNumbers = false,
-      resizableRows = true,
-      renderFullWidthRow,
-      outlines,
-      onVisibleRangeChange,
-      onCellClick,
-      onHeaderClick,
-      pointerSelection,
-      onDragMove,
-      dragLabel,
-      keymap,
-      keyboardSelection,
-      commands,
-      onExternalDragOver,
-      onExternalDrop,
-      onExternalDragLeave,
-      size,
-      variant,
-      striped,
-      gridLines,
       className,
       style,
       ref,
@@ -124,16 +128,25 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
       "aria-describedby": ariaDescribedBy,
       ...rootProps
     },
-  ] = splitGridOptions(props);
+  ] = splitGridOptions(props, DATA_GRID_OWN_KEYS);
   const {
-    rows,
-    columnDefs,
-    checkboxSelection,
-    onRowsDrop,
-    onColumnsDrop,
-    canDropAcross,
-    onDropAcross,
-  } = gridOptions;
+    loading = false,
+    emptyState,
+    toolbar,
+    statusBar,
+    labels: labelOverrides,
+    rowNumbers = false,
+    resizableRows = true,
+    renderFullWidthRow,
+    outlines,
+    onVisibleRangeChange,
+    size,
+    variant,
+    striped,
+    gridLines,
+  } = own;
+  const { onRowsDrop, onColumnsDrop, canDropAcross, onDropAcross, ...coreProps } = gridOptions;
+  const { rows, columnDefs, checkboxSelection } = coreProps;
   const labels = withDefaults(DEFAULT_LABELS, labelOverrides);
   const latestLabels = useLatestRef(labels);
   const classes = useMemo(
@@ -149,7 +162,6 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
     [checkboxSelection, columnDefs, selectRow, selectAllRows],
   );
   const { announce, liveRegion } = useAnnouncer();
-  const coreRef = useRef<AnyGridCore | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const composedRootRef = useComposedRefs(ref, rootRef);
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
@@ -160,59 +172,39 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   const startGuard = useRef<HTMLSpanElement>(null);
   const endGuard = useRef<HTMLSpanElement>(null);
 
-  const grip = useGripDrop({
-    coreRef,
+  const coreOptions = { ...coreProps, columnDefs: allColumnDefs };
+  const core = useGridCore<TRow>(coreOptions);
+  const grip = useGripDrop(core, {
+    ...own,
+    onRowsDrop,
+    onColumnsDrop,
+    canDropAcross,
+    onDropAcross,
     scroller,
     handleClassName: classes.handle,
     labels: latestLabels,
-    announce,
+  });
+  const onKeyboardMove = useMoveAnnouncer(core, {
     rows,
     columnDefs,
-    onRowsDrop,
-    onColumnsDrop,
-    onDragMove,
-    canDropAcross,
-    onDropAcross,
-    dragLabel,
+    announce,
+    labels: latestLabels,
   });
-  const core = useGridCore<TRow>({ ...gridOptions, columnDefs: allColumnDefs, ...grip.options });
-  useLayoutEffect(() => {
-    coreRef.current = core;
-  });
+  useGridOptions(core, { ...coreOptions, ...grip.options, onKeyboardMove });
 
   const tooltip = useCellTooltip(core);
-  const onCopyRefused = useCallback(
-    () => announce(latestLabels.current.copyRefused),
-    [announce, latestLabels],
-  );
-  const onCopied = useCallback(
-    () => announce(latestLabels.current.copied),
-    [announce, latestLabels],
-  );
-  useCopyHandler(core, scroller, onCopyRefused, onCopied);
-  const pointer = usePointerSelection({
-    core,
-    scroller,
-    onCellClick,
-    onHeaderClick,
-    pointerSelection,
-  });
-  const externalDrop = useExternalDrop(core, scroller, {
-    onExternalDragOver,
-    onExternalDrop,
-    onExternalDragLeave,
-  });
+  useCopyHandler(core, scroller, { announce, labels: latestLabels });
+  const pointer = usePointerSelection({ ...own, core, scroller });
+  const externalDrop = useExternalDrop(core, scroller, own);
   useGridMeasurements(core, scroller, rowProbe, headerProbe, gutterProbe);
   useGridScroll(core, scroller, bandRef, onVisibleRangeChange);
-  const focus = useGridFocus(core, scroller, rootRef);
-  const { runNamed, autosize } = useGridApi(core, { scroller, rootRef, commands, apiRef });
+  const focus = useGridFocus(core, scroller);
+  const autosize = useGridApi(core, { ...own, scroller, rootRef });
   const onAutosize = useCallback((columnId: string) => autosize([columnId]), [autosize]);
   const keyboard = useGridKeyboard(core, {
-    keymap,
-    keyboardSelection,
+    ...own,
     startGuard,
     endGuard,
-    runNamed,
     focusActiveCell: focus.focusActiveCell,
     announce,
     labels: latestLabels,
@@ -265,7 +257,13 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
   const guardIndex = core.activePosition() ? 0 : -1;
 
   return (
-    <GridContexts core={core}>
+    <GridContexts
+      core={core}
+      onEditorTab={(event) => {
+        focus.onKeyDown();
+        keyboard.onEditorTab(event);
+      }}
+    >
       <Box
         {...rootProps}
         ref={composedRootRef}
@@ -474,15 +472,5 @@ export function DataGrid<TRow>(props: DataGridProps<TRow>) {
         />
       </Box>
     </GridContexts>
-  );
-}
-
-function GridContexts({ core, children }: { core: AnyGridCore; children: ReactNode }) {
-  return (
-    <GridCoreContext value={core}>
-      <RowStateVersionContext value={core.selection.rowStateVersion}>
-        {children}
-      </RowStateVersionContext>
-    </GridCoreContext>
   );
 }

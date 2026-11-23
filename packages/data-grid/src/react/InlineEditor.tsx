@@ -1,6 +1,7 @@
 import { isComposingEvent } from "@construkt-kit/ui";
 import { type KeyboardEvent, useLayoutEffect, useRef } from "react";
 
+import { useEditorTab } from "./context";
 import type { AnyGridCore } from "./useGridCore";
 
 interface InlineEditorProps {
@@ -11,6 +12,7 @@ interface InlineEditorProps {
 
 export function InlineEditor({ core, className, label }: InlineEditorProps) {
   const ref = useRef<HTMLInputElement>(null);
+  const onTab = useEditorTab();
   const text = core.editing.state?.text ?? "";
 
   useLayoutEffect(() => {
@@ -34,9 +36,8 @@ export function InlineEditor({ core, className, label }: InlineEditorProps) {
       event.preventDefault();
       finish(false);
     } else if (event.key === "Tab") {
-      event.preventDefault();
       finish(true);
-      core.runCommand(event.shiftKey ? "movePrevious" : "moveNext");
+      onTab(event);
     }
   };
 

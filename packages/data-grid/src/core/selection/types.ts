@@ -1,4 +1,3 @@
-import type { CellTone } from "../columns/types";
 import type { RowId } from "../rows/rowNode";
 
 export interface CellAddress {
@@ -40,14 +39,4 @@ export interface RangeStats {
   average: number | null;
   min: number | null;
   max: number | null;
-}
-
-export const FLASH_MS = 900;
-
-export interface FlashTargets {
-  rows?: readonly RowId[];
-  columns?: readonly string[];
-  cells?: readonly CellAddress[];
-  /** Colour of the flash. Defaults to `"brand"`. */
-  kind?: CellTone;
 }

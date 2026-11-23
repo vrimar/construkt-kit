@@ -41,6 +41,30 @@ test("F2 edits a label with its text selected; Enter commits once, Escape commit
   ]);
 });
 
+test("Tab in the editor commits, then runs the keymap's Tab binding", async () => {
+  const user = userEvent.setup();
+  const onCellsChange = vi.fn();
+  render(
+    <DataGrid
+      rows={rows}
+      getRowId={(row) => row.id}
+      columnDefs={[
+        { id: "label", field: "label", rowHeader: true, cell: { editable: true } },
+        { id: "note", header: "Note" },
+      ]}
+      keymap={{ Tab: "moveDown" }}
+      onCellsChange={onCellsChange}
+      aria-label="Labels"
+    />,
+  );
+
+  await user.click(screen.getByRole("rowheader", { name: "Gender" }));
+  await user.keyboard("{F2}Sex{Tab}");
+
+  expect(onCellsChange).toHaveBeenCalledTimes(1);
+  expect(document.activeElement).toBe(screen.getByRole("rowheader", { name: "Region" }));
+});
+
 test("double-clicking a header renames it and leaves the selection as it was", async () => {
   const user = userEvent.setup();
   const onHeaderRename = vi.fn();

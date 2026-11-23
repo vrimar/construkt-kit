@@ -183,6 +183,10 @@ export class ColumnModel<TRow, TNode> implements AxisMetrics {
     return this.cellsById.get(id);
   }
 
+  headerCellAt(level: number, index: number): HeaderCell<TRow, TNode> | undefined {
+    return this.headerRows[level]?.find((cell) => index >= cell.first && index <= cell.last);
+  }
+
   siblingsOf(id: string): HeaderCell<TRow, TNode>[] {
     const cell = this.cellsById.get(id);
     if (!cell) return [];

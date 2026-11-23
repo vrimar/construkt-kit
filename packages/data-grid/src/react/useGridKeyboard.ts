@@ -1,5 +1,12 @@
-import { useHotkeyHandler } from "@construkt-kit/ui";
-import { type KeyboardEvent, type RefObject, useLayoutEffect, useMemo, useRef } from "react";
+import { getTabbables, isComposingEvent, matchesShortcut, useLatestRef } from "@construkt-kit/ui";
+import {
+  type KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 
 import {
   SELECTING_COMMANDS,
@@ -7,21 +14,23 @@ import {
   commandsFor,
   resolveKeymap,
 } from "../core/commands/keymap";
+import type { DragSource } from "../core/dnd/types";
 import type { CellRange, EntitySelection } from "../core/selection/types";
-import { cellAt, tabStopsIn } from "./dom";
+import { cellAt } from "./dom";
+import { ariaRows } from "./geometry";
 import type { DataGridLabels, DataGridOwnProps } from "./types";
 import type { AnyGridCore } from "./useGridCore";
 
-interface GridKeyboardOptions extends Pick<
-  DataGridOwnProps<unknown>,
-  "keymap" | "keyboardSelection"
-> {
-  startGuard: RefObject<HTMLElement | null>;
-  endGuard: RefObject<HTMLElement | null>;
-  runNamed: (name: string) => boolean;
-  focusActiveCell: () => void;
+interface Announcing {
   announce: (message: string) => void;
   labels: Readonly<RefObject<DataGridLabels>>;
+}
+
+interface GridKeyboardOptions
+  extends Pick<DataGridOwnProps<unknown>, "keymap" | "keyboardSelection">, Announcing {
+  startGuard: RefObject<HTMLElement | null>;
+  endGuard: RefObject<HTMLElement | null>;
+  focusActiveCell: () => void;
 }
 
 interface SelectionBefore {
@@ -36,7 +45,6 @@ export function useGridKeyboard(
     keyboardSelection = true,
     startGuard,
     endGuard,
-    runNamed,
     focusActiveCell,
     announce,
     labels,
@@ -54,29 +62,24 @@ export function useGridKeyboard(
 
   const keymap = useMemo(() => resolveKeymap(overrides), [overrides]);
   const shortcuts = useMemo(() => [...keymap.keys()], [keymap]);
-  const onCellKeyDown = useHotkeyHandler<HTMLDivElement>(
-    shortcuts,
-    (event, shortcut) => {
-      const cell = cellAt(event.target);
-      if (!cell) return;
-      const bound = commandsFor(keymap, shortcut);
-      const names = keyboardSelection
-        ? bound
-        : bound.filter((name) => !SELECTING_COMMANDS.has(name));
-      const before = { selection: core.selection.selection, ranges: core.selection.ranges };
-      if (names.some((name) => runNamed(name))) {
-        event.preventDefault();
-        if (names.some((name) => SELECTION_COMMANDS.has(name))) selectionBefore.current = before;
-      } else if (names.length < bound.length) {
-        event.preventDefault();
-      } else if (event.key === "Tab") {
-        passOut(event.shiftKey ? startGuard.current : endGuard.current);
-      } else if (event.key === " ") {
-        event.preventDefault();
-      }
-    },
-    { preventDefault: false },
-  );
+
+  const runKeymap = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.defaultPrevented || isComposingEvent(event)) return;
+    const shortcut = shortcuts.find((item) => matchesShortcut(event.nativeEvent, item));
+    const bound = shortcut === undefined ? [] : commandsFor(keymap, shortcut);
+    const names = keyboardSelection ? bound : bound.filter((name) => !SELECTING_COMMANDS.has(name));
+    const before = { selection: core.selection.selection, ranges: core.selection.ranges };
+    if (names.some((name) => core.runCommand(name))) {
+      event.preventDefault();
+      if (names.some((name) => SELECTION_COMMANDS.has(name))) selectionBefore.current = before;
+    } else if (names.length < bound.length) {
+      event.preventDefault();
+    } else if (event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      passOut(event.shiftKey ? startGuard.current : endGuard.current);
+    } else if (bound.length > 0 && event.key === " ") {
+      event.preventDefault();
+    }
+  };
 
   useLayoutEffect(() => {
     const before = selectionBefore.current;
@@ -98,7 +101,7 @@ export function useGridKeyboard(
     if (event.target === cell.element) {
       if (event.key === "F2" && core.editing.canEditCell(cell)) return false;
       const enters = plain && (event.key === "Enter" || event.key === "F2");
-      const [first] = enters ? tabStopsIn(cell.element) : [];
+      const [first] = enters ? getTabbables(cell.element) : [];
       if (!first) return false;
       event.preventDefault();
       first.focus();
@@ -108,7 +111,7 @@ export function useGridKeyboard(
       event.preventDefault();
       cell.element.focus({ preventScroll: true });
     } else if (plain && event.key === "Tab") {
-      const stops = tabStopsIn(cell.element);
+      const stops = getTabbables(cell.element);
       const index = stops.indexOf(event.target as HTMLElement);
       event.preventDefault();
       stops[(index + (event.shiftKey ? -1 : 1) + stops.length) % stops.length]?.focus();
@@ -117,7 +120,7 @@ export function useGridKeyboard(
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!onWidgetKeyDown(event)) onCellKeyDown(event);
+    if (!onWidgetKeyDown(event) && cellAt(event.target)) runKeymap(event);
   };
 
   const onGuardFocus = () => {
@@ -128,5 +131,55 @@ export function useGridKeyboard(
     focusActiveCell();
   };
 
-  return { onKeyDown, onGuardFocus };
+  return { onKeyDown, onEditorTab: runKeymap, onGuardFocus };
+}
+
+interface MoveAnnouncerOptions<TRow>
+  extends Pick<DataGridOwnProps<TRow>, "rows" | "columnDefs">, Announcing {}
+
+interface PendingMove {
+  source: DragSource;
+  from: number;
+  input: unknown;
+}
+
+function movedIndex(core: AnyGridCore, source: DragSource): number {
+  const [id] = source.ids;
+  if (source.kind === "rows") return core.rowModel.indexOf(id);
+  return core.columns.headerCell(String(id))?.first ?? -1;
+}
+
+export function useMoveAnnouncer<TRow>(
+  core: AnyGridCore,
+  { rows, columnDefs, announce, labels }: MoveAnnouncerOptions<TRow>,
+): (source: DragSource) => void {
+  const pendingMove = useRef<PendingMove | null>(null);
+  const latest = useLatestRef({ rows, columnDefs });
+
+  useLayoutEffect(() => {
+    const move = pendingMove.current;
+    if (!move || move.input === (move.source.kind === "rows" ? rows : columnDefs)) return;
+    pendingMove.current = null;
+    const index = movedIndex(core, move.source);
+    if (index < 0 || index === move.from) return;
+    const aria = ariaRows(core);
+    announce(
+      move.source.kind === "rows"
+        ? labels.current.rowMoved(aria.body + index, aria.count)
+        : labels.current.columnMoved(index + 1, core.columns.leaves.length),
+    );
+    const active = core.activePosition();
+    if (active) core.scrollToCell(active);
+  });
+
+  return useCallback(
+    (source: DragSource) => {
+      pendingMove.current = {
+        source,
+        from: movedIndex(core, source),
+        input: source.kind === "rows" ? latest.current.rows : latest.current.columnDefs,
+      };
+    },
+    [core, latest],
+  );
 }

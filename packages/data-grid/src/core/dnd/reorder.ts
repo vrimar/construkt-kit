@@ -55,14 +55,15 @@ export function settleGap<Id>(
   return null;
 }
 
+export const neighbour = <Id>(axis: SiblingAxis<Id>, id: Id, step: -1 | 1): Id | undefined =>
+  step < 0 ? axis.prev(id) : axis.next(id);
+
 export function rowAxis<TRow>(model: RowModel<TRow>): SiblingAxis<number> {
   return {
     prev: (index) => {
-      const parent = model.parentOf(index);
-      let candidate = index - 1;
-      if (candidate < 0 || candidate === parent) return undefined;
-      while (model.parentOf(candidate) !== parent) candidate = model.parentOf(candidate);
-      return candidate;
+      const candidate = index - 1;
+      if (candidate < 0 || candidate === model.parentOf(index)) return undefined;
+      return model.ancestorAt(candidate, model.depthOf(index));
     },
     next: (index) => {
       const end = model.subtreeEnd(index);
@@ -74,11 +75,8 @@ export function rowAxis<TRow>(model: RowModel<TRow>): SiblingAxis<number> {
 }
 
 export function lastChild<TRow>(model: RowModel<TRow>, parent: number): number {
-  let candidate = (parent < 0 ? model.rowCount : model.subtreeEnd(parent)) - 1;
-  while (candidate >= 0 && model.parentOf(candidate) !== parent) {
-    candidate = model.parentOf(candidate);
-  }
-  return candidate;
+  const end = parent < 0 ? model.rowCount : model.subtreeEnd(parent);
+  return model.ancestorAt(end - 1, parent < 0 ? 0 : model.depthOf(parent) + 1);
 }
 
 export function listAxis<Id>(ids: readonly Id[]): SiblingAxis<Id> {

@@ -34,6 +34,27 @@ test("Tab into the grid lands on the active cell, and Tab at the last cell leave
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "after" }));
 });
 
+test("with Tab unbound, Tab from a cell leaves the grid", async () => {
+  const user = userEvent.setup();
+  render(
+    <>
+      <button>before</button>
+      <DataGrid
+        {...createFixture(3, 3)}
+        keymap={{ Tab: null }}
+        aria-label="Grid"
+      />
+      <button>after</button>
+    </>,
+  );
+
+  screen.getByRole("button", { name: "before" }).focus();
+  await user.tab();
+  expect(document.activeElement).toHaveProperty("textContent", "R1C1");
+  await user.tab();
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "after" }));
+});
+
 test("keys inside a cell's controls stay there, and Tab past the last cell skips them", async () => {
   const user = userEvent.setup();
   const apiRef = createRef<DataGridApi>();
@@ -136,7 +157,7 @@ test("Shift+Arrow announces what the range now covers", async () => {
   await user.click(screen.getByRole("gridcell", { name: "R1C1" }));
   await user.keyboard("{Shift>}{ArrowRight}{/Shift}");
 
-  expect(announced(container)).toBe("2 cells");
+  await vi.waitFor(() => expect(announced(container)).toBe("2 cells"));
 });
 
 test("keyboardSelection false swallows Shift+Arrow without a range, and Escape still clears", async () => {
@@ -193,7 +214,9 @@ test("a keyboard move announces the row number screen readers give the moved row
 
   const row = screen.getByRole("gridcell", { name: "R1C1" }).closest("[role=row]");
   const count = screen.getByRole("grid").getAttribute("aria-rowcount");
-  expect(announced(container)).toBe(`${row?.getAttribute("aria-rowindex")}/${count}`);
+  await vi.waitFor(() =>
+    expect(announced(container)).toBe(`${row?.getAttribute("aria-rowindex")}/${count}`),
+  );
 });
 
 test("a row moved straight after tabbing in keeps the active cell, so arrows go on from it", async () => {

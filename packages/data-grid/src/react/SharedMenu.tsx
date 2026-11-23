@@ -1,4 +1,4 @@
-import { Menu, type MenuRootProps, useLatestRef } from "@construkt-kit/ui";
+import { Menu, type MenuRootProps, isFocusable, useLatestRef } from "@construkt-kit/ui";
 import {
   type ReactNode,
   type RefCallback,
@@ -11,7 +11,7 @@ import {
 
 import { GRID_CHANNELS, type MenuRequest } from "../core/grid";
 import type { MenuEntry } from "../core/menu";
-import { FOCUSABLE, cellSelector } from "./dom";
+import { cellElement, headerSelector } from "./dom";
 import { type AnyGridCore, useChannels } from "./useGridCore";
 
 const MENU_CHANNELS = [GRID_CHANNELS.menu];
@@ -56,16 +56,10 @@ export function SharedMenu({ core, scroller }: SharedMenuProps) {
     if (current.anchor instanceof HTMLElement && current.anchor.isConnected) return current.anchor;
     const { target } = current;
     if (target.kind === "header") {
-      return (
-        scroller?.querySelector<HTMLElement>(`[data-header-id="${CSS.escape(target.columnId)}"]`) ??
-        null
-      );
+      return scroller?.querySelector<HTMLElement>(headerSelector(target.columnId)) ?? null;
     }
     const position = core.positionOf(target);
-    if (!position) return null;
-    return (
-      scroller?.querySelector<HTMLElement>(cellSelector(position.row, position.column)) ?? null
-    );
+    return position && cellElement(scroller, position);
   };
 
   const returnTarget = (current: MenuRequest<ReactNode>): HTMLElement | null => {
@@ -76,9 +70,7 @@ export function SharedMenu({ core, scroller }: SharedMenuProps) {
       }
     }
     const active = core.activePosition();
-    return active
-      ? (scroller?.querySelector<HTMLElement>(cellSelector(active.row, active.column)) ?? null)
-      : null;
+    return active && cellElement(scroller, active);
   };
 
   const lastRect = useRef<DOMRect | null>(null);
@@ -125,9 +117,6 @@ export function SharedMenu({ core, scroller }: SharedMenuProps) {
     </Menu.Root>
   );
 }
-
-const isFocusable = (element: HTMLElement) =>
-  element.matches(FOCUSABLE) && !element.closest("[inert], [hidden]");
 
 const firstItemId = (entries: readonly MenuEntry<ReactNode>[]): string | null => {
   const first = entries.find((entry) => entry.type !== "separator" && !entry.disabled);

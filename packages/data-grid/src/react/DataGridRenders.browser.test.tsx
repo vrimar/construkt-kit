@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { scrollerOf } from "../../test/dom";
+import { mountGrid } from "../../test/dom";
 import { type FixtureRow, createFixture } from "../../test/fixture";
 import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
@@ -33,7 +33,7 @@ test("scrolling sideways renders only the cells and headers that come into view"
   const header = vi.fn((ctx: { columnId: string }) => ctx.columnId);
   const columnDefs: ColumnDef<FixtureRow>[] = fixture.columnDefs.map((def) => ({ ...def, header }));
   const getCell = vi.fn(() => undefined);
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={columnDefs}
@@ -42,13 +42,12 @@ test("scrolling sideways renders only the cells and headers that come into view"
       style={{ width: 800, height: 600 }}
     />,
   );
-  await settle();
   const cells = mountedCells(container);
   const headers = mountedHeaders(container);
   getCell.mockClear();
   header.mockClear();
 
-  scrollerOf(container).scrollLeft = 600;
+  scroller.scrollLeft = 600;
   await settle();
 
   const enteringCells = entering(cells, mountedCells(container));
@@ -61,7 +60,7 @@ test("scrolling down renders only the rows that come into view", async () => {
   const fixture = createFixture(300, 4);
   const renderFullWidthRow = vi.fn(({ rowId }: { rowId: unknown }) => String(rowId));
   const header = vi.fn(() => "Column");
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={fixture.columnDefs.map((def) => ({ ...def, header }))}
@@ -71,7 +70,6 @@ test("scrolling down renders only the rows that come into view", async () => {
       style={{ width: 800, height: 400 }}
     />,
   );
-  await settle();
   const rows = () =>
     new Set(
       Array.from(container.querySelectorAll("[data-full-width]"), (cell) => cell.textContent),
@@ -80,7 +78,7 @@ test("scrolling down renders only the rows that come into view", async () => {
   renderFullWidthRow.mockClear();
   header.mockClear();
 
-  scrollerOf(container).scrollTop = 300;
+  scroller.scrollTop = 300;
   await settle();
 
   const enteringRows = entering(before, rows());
@@ -91,7 +89,7 @@ test("scrolling down renders only the rows that come into view", async () => {
 
 test("hovering cells opens their tooltip without rendering the grid", async () => {
   const statusBar = vi.fn(() => "Status");
-  render(
+  await mountGrid(
     <DataGrid
       {...createFixture(3, 2)}
       defaultCell={{ tooltip: ({ formattedValue }) => `About ${formattedValue}` }}
@@ -100,7 +98,6 @@ test("hovering cells opens their tooltip without rendering the grid", async () =
       style={{ width: 800, height: 400 }}
     />,
   );
-  await settle();
   statusBar.mockClear();
 
   await userEvent.hover(screen.getByRole("gridcell", { name: "R1C1" }));

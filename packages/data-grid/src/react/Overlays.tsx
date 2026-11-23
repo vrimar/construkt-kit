@@ -3,10 +3,10 @@ import { type PointerEventHandler, useEffect, useRef } from "react";
 
 import type { Region } from "../core/columns/columnModel";
 import type { CellTone } from "../core/columns/types";
-import { type Flash, GRID_CHANNELS } from "../core/grid";
+import { FLASH_MS, type Flash } from "../core/flash";
+import { GRID_CHANNELS } from "../core/grid";
 import type { CellPosition } from "../core/selection/navigation";
-import type { IndexRect } from "../core/selection/ranges";
-import { FLASH_MS } from "../core/selection/types";
+import { type IndexRect, rectBetween } from "../core/selection/ranges";
 import { cellUnder } from "./dom";
 import { REGIONS, regionProps, spanGeometry } from "./geometry";
 import type { DataGridClasses } from "./recipe";
@@ -113,15 +113,8 @@ function useRangeHandleDrag(core: AnyGridCore) {
 
 const handleRectOf = (core: AnyGridCore): IndexRect | null => {
   const active = core.activePosition();
-  return core.selection.rangeRects().at(-1) ?? (active && rectOf(active));
+  return core.selection.rangeRects().at(-1) ?? (active && rectBetween(active, active));
 };
-
-const rectOf = ({ row, column }: CellPosition): IndexRect => ({
-  top: row,
-  bottom: row,
-  left: column,
-  right: column,
-});
 
 function flashRects(core: AnyGridCore, flash: Flash): IndexRect[] {
   const lastColumn = core.columns.leaves.length - 1;
@@ -138,7 +131,7 @@ function flashRects(core: AnyGridCore, flash: Flash): IndexRect[] {
   }
   for (const cell of flash.cells) {
     const position = core.positionOf(cell);
-    if (position) rects.push(rectOf(position));
+    if (position) rects.push(rectBetween(position, position));
   }
   return rects;
 }

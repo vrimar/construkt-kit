@@ -34,6 +34,20 @@ export interface StateOptions extends Partial<StateSlices> {
   onStateChange?: (state: DataGridState) => void;
 }
 
+export const STATE_OPTION_KEYS = {
+  columnSizing: true,
+  onColumnSizingChange: true,
+  columnPinning: true,
+  onColumnPinningChange: true,
+  columnVisibility: true,
+  onColumnVisibilityChange: true,
+  expandedRowIds: true,
+  onExpandedRowIdsChange: true,
+  rowSizing: true,
+  onRowSizingChange: true,
+  onStateChange: true,
+} as const satisfies Record<keyof StateOptions, true>;
+
 export const STATE_CALLBACKS: {
   [K in StateKey]: (options: StateOptions) => ((value: StateSlices[K]) => void) | undefined;
 } = {

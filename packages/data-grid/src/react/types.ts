@@ -17,6 +17,7 @@ import type {
   DropPosition,
   RowsDrop as CoreRowsDrop,
 } from "../core/dnd/types";
+import type { FlashTargets } from "../core/flash";
 import type { GridOptions, VisibleRange } from "../core/grid";
 import type { HitRegion } from "../core/layout/hit";
 import type { MenuEntry as CoreMenuEntry, MenuItem as CoreMenuItem } from "../core/menu";
@@ -25,7 +26,6 @@ import type {
   CellAddress,
   CellRange,
   EntityKind,
-  FlashTargets,
   RangeStats,
   SelectionDetails,
 } from "../core/selection/types";
@@ -58,6 +58,7 @@ export type {
   DropPosition,
 } from "../core/dnd/types";
 export type { CellChange, HeaderRename } from "../core/editing/controller";
+export type { FlashTargets } from "../core/flash";
 export type { VisibleRange } from "../core/grid";
 export type { HitRegion } from "../core/layout/hit";
 export type { MenuAnchorEvent, MenuSeparator } from "../core/menu";
@@ -68,7 +69,6 @@ export type {
   CellRange,
   EntityKind,
   EntitySelection,
-  FlashTargets,
   RangeStats,
   SelectionDetails,
 } from "../core/selection/types";

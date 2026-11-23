@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 
 import type { Region } from "../core/columns/columnModel";
-import { REGIONS, regionProps, spanGeometry } from "./geometry";
+import { ColumnLayer } from "./DropIndicators";
+import { spanGeometry } from "./geometry";
 import type { DataGridClasses } from "./recipe";
 import type { GridOutline } from "./types";
 import type { AnyGridCore } from "./useGridCore";
@@ -61,28 +62,20 @@ export function ColumnOutlines({ core, classes, outlines }: OutlinesProps) {
   });
   if (boxes.length === 0) return null;
   return (
-    <div
-      className={classes.dropLayer}
-      aria-hidden="true"
-    >
-      {REGIONS.map((region) => (
-        <div
-          key={region}
-          {...regionProps(classes, region)}
-        >
-          {boxes.map(
-            (box, key) =>
-              box.region === region && (
-                <div
-                  key={key}
-                  className={classes.outline}
-                  data-axis="columns"
-                  style={box.style}
-                />
-              ),
-          )}
-        </div>
-      ))}
-    </div>
+    <ColumnLayer classes={classes}>
+      {(region) =>
+        boxes.map(
+          (box, key) =>
+            box.region === region && (
+              <div
+                key={key}
+                className={classes.outline}
+                data-axis="columns"
+                style={box.style}
+              />
+            ),
+        )
+      }
+    </ColumnLayer>
   );
 }

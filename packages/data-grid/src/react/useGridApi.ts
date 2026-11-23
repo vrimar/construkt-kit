@@ -8,10 +8,16 @@ import {
   useRef,
 } from "react";
 
-import { cellSelector, clientRect, naturalWidths } from "./dom";
-import type { CommandContext, DataGridApi, DataGridOwnProps } from "./types";
+import {
+  cellElement,
+  clientRect,
+  headerSelector,
+  hitAt,
+  naturalWidths,
+  resizeHandleSelector,
+} from "./dom";
+import type { DataGridApi, DataGridOwnProps } from "./types";
 import { writeClipboard } from "./useClipboard";
-import { hitAt } from "./useDragDrop";
 import type { AnyGridCore } from "./useGridCore";
 
 interface GridApiOptions extends Pick<DataGridOwnProps<unknown>, "commands" | "apiRef"> {
@@ -26,19 +32,16 @@ export function useGridApi(
   const apiHolder = useRef<DataGridApi | null>(null);
   const latestCommands = useLatestRef(commands);
 
-  const runNamed = useCallback(
-    (name: string) => {
-      const handler = latestCommands.current?.[name];
-      if (handler && apiHolder.current) {
-        const ctx: CommandContext = {
-          api: apiHolder.current,
-          activeCell: core.activeAddress(),
-          ...core.selection.details,
-        };
-        if (handler(ctx) !== false) return true;
-      }
-      return core.runCommand(name);
-    },
+  useLayoutEffect(
+    () =>
+      core.commands.intercept((name) => {
+        const handler = latestCommands.current?.[name];
+        const api = apiHolder.current;
+        if (!handler || !api) return false;
+        return (
+          handler({ api, activeCell: core.activeAddress(), ...core.selection.details }) !== false
+        );
+      }),
     [core, latestCommands],
   );
 
@@ -54,7 +57,7 @@ export function useGridApi(
         const index = core.columns.indexOf(id);
         if (index < 0) continue;
         const cells = root.querySelectorAll<HTMLElement>(
-          `[data-header-id="${CSS.escape(id)}"], [data-col-index="${index}"]:not([data-full-width], [aria-colspan])`,
+          `${headerSelector(id)}, [data-col-index="${index}"]:not([data-full-width], [aria-colspan])`,
         );
         const natural = Math.max(0, ...naturalWidths(Array.from(cells)));
         if (natural > 0) widths[id] = natural;
@@ -72,11 +75,9 @@ export function useGridApi(
       },
       getCellRect: (cell) => {
         const position = core.positionOf(cell);
-        const element =
-          position && scroller?.querySelector(cellSelector(position.row, position.column));
-        return element?.getBoundingClientRect() ?? null;
+        return (position && cellElement(scroller, position)?.getBoundingClientRect()) ?? null;
       },
-      runCommand: runNamed,
+      runCommand: (name) => core.runCommand(name),
       getState: () => core.getState(),
       restoreState: (state) => core.restoreState(state),
       autosizeColumns: (columnIds) => autosize(columnIds),
@@ -97,7 +98,7 @@ export function useGridApi(
         core.scrollToCell({ row: core.activePosition()?.row ?? -1, column: last.index });
         requestAnimationFrame(() =>
           scroller
-            .querySelector<HTMLElement>(`[data-resize-handle="${CSS.escape(columnId)}"]`)
+            .querySelector<HTMLElement>(resizeHandleSelector(columnId))
             ?.focus({ preventScroll: true }),
         );
       },
@@ -108,7 +109,7 @@ export function useGridApi(
       },
       renameHeader: (columnId) => core.editing.startHeader(columnId),
     }),
-    [core, scroller, autosize, runNamed],
+    [core, scroller, autosize],
   );
   useLayoutEffect(() => {
     apiHolder.current = api;
@@ -123,5 +124,5 @@ export function useGridApi(
   }, [core, api]);
   useImperativeHandle(apiRef, () => api, [api]);
 
-  return { runNamed, autosize };
+  return autosize;
 }

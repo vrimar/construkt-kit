@@ -1,29 +1,34 @@
-import { act, render } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { createRef } from "react";
 import { expect, test, vi } from "vitest";
 import { commands, userEvent } from "vitest/browser";
 
-import { cellOf, rowHeight, rowOf, scrollerOf } from "../../test/dom";
+import { cellOf, headerOf, mountGrid, rowHeight, rowOf } from "../../test/dom";
 import { type FixtureRow, createFixture } from "../../test/fixture";
 import { frames, nextFrame, settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
-import type { DataGridApi, DataGridProps, ExternalDragEvent, RowId } from "./types";
+import { headerSelector, resizeHandleSelector } from "./dom";
+import type { ColumnDef, DataGridApi, DataGridProps, ExternalDragEvent, RowId } from "./types";
+
+const withGrip = (def: ColumnDef<FixtureRow>): ColumnDef<FixtureRow> => ({
+  ...def,
+  header: (ctx) => (
+    <>
+      {ctx.dragHandleProps && <span {...ctx.dragHandleProps}>⠿</span>}
+      {String(def.header)}
+    </>
+  ),
+});
 
 async function renderColumnGrips(props: Partial<DataGridProps<FixtureRow>> = {}) {
   const fixture = createFixture(20, 4);
   const onColumnsDrop = vi.fn();
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={fixture.columnDefs.map((def) => ({
-        ...def,
+        ...withGrip(def),
         rowHeader: def.id === "c2",
-        header: (ctx) => (
-          <>
-            {ctx.dragHandleProps && <span {...ctx.dragHandleProps}>⠿</span>}
-            {String(def.header)}
-          </>
-        ),
       }))}
       onColumnsDrop={onColumnsDrop}
       aria-label="Column grips"
@@ -31,12 +36,11 @@ async function renderColumnGrips(props: Partial<DataGridProps<FixtureRow>> = {})
       {...props}
     />,
   );
-  await settle();
   return { container, onColumnsDrop };
 }
 
 async function pressGripAndMoveTo(container: HTMLElement, columnId: string, target: Element) {
-  const selector = `[data-header-id="${columnId}"] [data-drag-handle]`;
+  const selector = `${headerSelector(columnId)} [data-drag-handle]`;
   const grip = (container.querySelector(selector) as HTMLElement).getBoundingClientRect();
   const to = target.getBoundingClientRect();
   await commands.pressOn(selector);
@@ -47,13 +51,10 @@ async function pressGripAndMoveTo(container: HTMLElement, columnId: string, targ
   await nextFrame();
 }
 
-const headerOf = (container: HTMLElement, id: string) =>
-  container.querySelector(`[data-header-id="${id}"]`) as HTMLElement;
-
 test("dragging a row's grip into the lower third of another row drops it after that row", async () => {
   const fixture = createFixture(20, 3);
   const onRowsDrop = vi.fn();
-  const { container } = render(
+  const { container } = await mountGrid(
     <div style={{ paddingTop: 150, paddingLeft: 40 }}>
       <DataGrid
         {...fixture}
@@ -78,7 +79,6 @@ test("dragging a row's grip into the lower third of another row drops it after t
       />
     </div>,
   );
-  await settle();
 
   await commands.pressOn('[data-row-index="1"] [data-drag-handle]');
   await commands.moveBy(0, rowHeight(container) * 2.4);
@@ -87,6 +87,58 @@ test("dragging a row's grip into the lower third of another row drops it after t
 
   expect(onRowsDrop).toHaveBeenCalledTimes(1);
   expect(onRowsDrop.mock.calls[0][0]).toMatchObject({ ids: [1], targetId: 3, position: "after" });
+});
+
+test("a row dragged onto a stuck parent is boxed where the parent shows, in the sticky band", async () => {
+  const rows = [
+    { id: "A", parent: undefined as string | undefined, label: "A" },
+    ...Array.from({ length: 8 }, (_, i) => ({ id: `a${i}`, parent: "A", label: `a${i}` })),
+    ...Array.from({ length: 10 }, (_, i) => ({ id: `B${i}`, parent: undefined, label: `B${i}` })),
+  ];
+  const { container, scroller } = await mountGrid(
+    <DataGrid
+      rows={rows}
+      getRowId={(row) => row.id}
+      getParentId={(row) => row.parent}
+      defaultExpandedRowIds={["A"]}
+      columnDefs={[
+        {
+          id: "label",
+          field: "label",
+          rowHeader: true,
+          width: 200,
+          cell: {
+            render: (ctx) => (
+              <>
+                {ctx.dragHandleProps && <span {...ctx.dragHandleProps}>⠿</span>}
+                {ctx.formattedValue}
+              </>
+            ),
+          },
+        },
+      ]}
+      onRowsDrop={() => {}}
+      canDropOnto={() => true}
+      aria-label="Tree"
+      style={{ width: 600, height: 400 }}
+    />,
+  );
+  scroller.scrollTop = 3 * rowHeight(container);
+  await settle();
+  const stuck = (
+    container.querySelector('[data-sticky-index="0"]') as HTMLElement
+  ).getBoundingClientRect();
+  const gripSelector = '[data-row-index="9"] [data-drag-handle]';
+  const grip = (container.querySelector(gripSelector) as HTMLElement).getBoundingClientRect();
+
+  await commands.pressOn(gripSelector);
+  await commands.moveBy(0, stuck.top + stuck.height / 2 - (grip.top + grip.height / 2));
+  await nextFrame();
+
+  const marker = container.querySelector('[data-axis="rows"][data-position="onto"]');
+  expect(marker?.closest("[data-sticky]")).not.toBeNull();
+  expect(marker?.getBoundingClientRect().top).toBeCloseTo(stuck.top, 0);
+  await commands.release();
 });
 
 test("onDragMove reports the placement within the axis, then across over a row header, then null on release", async () => {
@@ -202,13 +254,64 @@ test("without canDropAcross, a column dragged over the body still reorders by it
   });
 });
 
+test("a second pointer pressing another grip mid-press leaves the first grip's drag as it was", async () => {
+  const { container, onColumnsDrop } = await renderColumnGrips();
+  const grip = (columnId: string) =>
+    container.querySelector(`${headerSelector(columnId)} [data-drag-handle]`) as HTMLElement;
+  const from = grip("c0").getBoundingClientRect();
+  const to = headerOf(container, "c3").getBoundingClientRect();
+
+  await commands.pressOn(`${headerSelector("c0")} [data-drag-handle]`);
+  grip("c1").dispatchEvent(
+    new PointerEvent("pointerdown", {
+      bubbles: true,
+      pointerId: 7,
+      pointerType: "touch",
+      isPrimary: false,
+    }),
+  );
+  await commands.moveBy(to.left + to.width * 0.75 - (from.left + from.width / 2), 0);
+  await commands.release();
+
+  expect(onColumnsDrop).toHaveBeenCalledTimes(1);
+  expect(onColumnsDrop.mock.calls[0][0]).toMatchObject({ ids: ["c0"], targetId: "c3" });
+});
+
+test("a column dropped onto another group's column is boxed from that column's own header", async () => {
+  const fixture = createFixture(6, 4);
+  const [a, b, c, d] = fixture.columnDefs.map(withGrip);
+  const { container } = await mountGrid(
+    <DataGrid
+      {...fixture}
+      columnDefs={[
+        { id: "g1", header: "Group 1", children: [a, b] },
+        { id: "g2", header: "Group 2", children: [c, d] },
+      ]}
+      canDropOnto={(source) => source.kind === "columns"}
+      onColumnsDrop={() => {}}
+      aria-label="Column groups"
+      style={{ width: 800, height: 400 }}
+    />,
+  );
+  const target = headerOf(container, "c3").getBoundingClientRect();
+
+  await pressGripAndMoveTo(container, "c0", headerOf(container, "c3"));
+  const box = container
+    .querySelector('[data-axis="columns"][data-position="onto"]')
+    ?.getBoundingClientRect();
+  await commands.release();
+
+  expect(box?.left).toBeCloseTo(target.left, 0);
+  expect(box?.top).toBeCloseTo(target.top, 0);
+});
+
 test("an external drag held at the bottom edge scrolls, and the target follows the scroll", async () => {
   const seen: (RowId | null)[] = [];
   const onExternalDragOver = ({ hit }: ExternalDragEvent) => {
     seen.push(hit?.rowId ?? null);
     return true;
   };
-  const { container } = render(
+  const { scroller } = await mountGrid(
     <DataGrid
       {...createFixture(500, 3)}
       onExternalDragOver={onExternalDragOver}
@@ -216,8 +319,6 @@ test("an external drag held at the bottom edge scrolls, and the target follows t
       style={{ width: 800, height: 400 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
   const box = scroller.getBoundingClientRect();
   const x = box.left + 100;
   const y = box.bottom - 10;
@@ -238,7 +339,7 @@ test("an external drag held at the bottom edge scrolls, and the target follows t
 });
 
 test("an indicator after a column runs through header and body and follows a live resize", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(20, 4)}
       indicator={{ kind: "columns", id: "c1", position: "after" }}
@@ -246,19 +347,17 @@ test("an indicator after a column runs through header and body and follows a liv
       style={{ width: 900, height: 400 }}
     />,
   );
-  await settle();
   const marker = () =>
     container.querySelector('[data-axis="columns"]')?.getBoundingClientRect() as DOMRect;
-  const edge = () =>
-    container.querySelector('[data-header-id="c1"]')?.getBoundingClientRect().right ?? 0;
+  const edge = () => headerOf(container, "c1").getBoundingClientRect().right;
   const firstRow = rowOf(container, 0)?.getBoundingClientRect();
-  const header = container.querySelector('[data-header-id="c1"]')?.getBoundingClientRect();
+  const header = headerOf(container, "c1").getBoundingClientRect();
 
   expect(marker().left + marker().width / 2).toBeCloseTo(edge(), 0);
-  expect(marker().top).toBeLessThanOrEqual(header?.top ?? 0);
+  expect(marker().top).toBeLessThanOrEqual(header.top);
   expect(marker().bottom).toBeGreaterThan(firstRow?.bottom ?? Infinity);
 
-  await commands.pressOn('[data-resize-handle="c0"]');
+  await commands.pressOn(resizeHandleSelector("c0"));
   await commands.moveBy(60, 0);
   await nextFrame();
 
@@ -267,7 +366,7 @@ test("an indicator after a column runs through header and body and follows a liv
 });
 
 test("outlines frame their rows across the grid, and their columns from header to the last row", async () => {
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(3, 4)}
       outlines={[
@@ -278,11 +377,9 @@ test("outlines frame their rows across the grid, and their columns from header t
       style={{ width: 900, height: 400 }}
     />,
   );
-  await settle();
   const box = (axis: string) =>
     container.querySelector(`[data-axis="${axis}"]`)?.getBoundingClientRect() as DOMRect;
-  const header = (id: string) =>
-    container.querySelector(`[data-header-id="${id}"]`)?.getBoundingClientRect() as DOMRect;
+  const header = (id: string) => headerOf(container, id).getBoundingClientRect();
   const second = rowOf(container, 1)?.getBoundingClientRect() as DOMRect;
   const last = rowOf(container, 2)?.getBoundingClientRect() as DOMRect;
 
@@ -297,7 +394,7 @@ test("outlines frame their rows across the grid, and their columns from header t
 test("typing keeps going after the editing row scrolls out of view, and Enter commits it", async () => {
   const apiRef = createRef<DataGridApi>();
   const onCellsChange = vi.fn();
-  const { container } = render(
+  const { scroller } = await mountGrid(
     <DataGrid
       {...createFixture(500, 3)}
       defaultCell={{ editable: true }}
@@ -307,14 +404,13 @@ test("typing keeps going after the editing row scrolls out of view, and Enter co
       style={{ width: 800, height: 400 }}
     />,
   );
-  await settle();
 
   act(() => {
     apiRef.current?.editCell({ rowId: 0, columnId: "c0" });
   });
   await settle();
   await userEvent.keyboard("ab");
-  scrollerOf(container).scrollTop = 10_000;
+  scroller.scrollTop = 10_000;
   await settle();
   await userEvent.keyboard("c{Enter}");
 

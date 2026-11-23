@@ -1,25 +1,34 @@
-import type { CSSProperties, RefObject } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
 
+import type { Region } from "../core/columns/columnModel";
 import { GRID_CHANNELS } from "../core/grid";
 import { REGIONS, columnEdgeX, regionProps, spanGeometry } from "./geometry";
 import type { DataGridClasses } from "./recipe";
 import { type AnyGridCore, useChannels } from "./useGridCore";
 
 const INDICATOR_CHANNELS = [GRID_CHANNELS.indicator];
+const ROW_INDICATOR_CHANNELS = [GRID_CHANNELS.indicator, GRID_CHANNELS.sticky];
 
 interface IndicatorProps {
   core: AnyGridCore;
   classes: DataGridClasses;
 }
 
-export function RowDropMarker({ core, classes }: IndicatorProps) {
-  useChannels(core, INDICATOR_CHANNELS);
+export function RowDropMarker({
+  core,
+  classes,
+  stuck = false,
+}: IndicatorProps & { stuck?: boolean }) {
+  useChannels(core, ROW_INDICATOR_CHANNELS);
   const indicator = core.dnd.indicator;
   if (indicator?.kind !== "rows") return null;
   const index = core.rowModel.indexOf(indicator.id);
   if (index < 0) return null;
-  const top = core.rowTop(index);
   const { position } = indicator;
+  const stuckRow =
+    position === "after" ? undefined : core.stickyRows.find((row) => row.index === index);
+  if (stuck !== (stuckRow !== undefined)) return null;
+  const top = stuckRow?.top ?? core.rowTop(index);
   const end = core.rowModel.subtreeEnd(index);
   const style: CSSProperties =
     position === "onto"
@@ -54,6 +63,29 @@ export function ColumnDropLayer({ core, classes }: IndicatorProps) {
               : columnEdgeX(cell.last, "end"),
         };
   return (
+    <ColumnLayer classes={classes}>
+      {(region) =>
+        region === cell.region && (
+          <div
+            className={classes.dropIndicator}
+            data-axis="columns"
+            data-position={position}
+            style={{ ...style, top, height: core.viewport.height - top }}
+          />
+        )
+      }
+    </ColumnLayer>
+  );
+}
+
+export function ColumnLayer({
+  classes,
+  children,
+}: {
+  classes: DataGridClasses;
+  children: (region: Region) => ReactNode;
+}) {
+  return (
     <div
       className={classes.dropLayer}
       aria-hidden="true"
@@ -63,14 +95,7 @@ export function ColumnDropLayer({ core, classes }: IndicatorProps) {
           key={region}
           {...regionProps(classes, region)}
         >
-          {region === cell.region && (
-            <div
-              className={classes.dropIndicator}
-              data-axis="columns"
-              data-position={position}
-              style={{ ...style, top, height: core.viewport.height - top }}
-            />
-          )}
+          {children(region)}
         </div>
       ))}
     </div>

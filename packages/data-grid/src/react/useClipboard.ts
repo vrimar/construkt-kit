@@ -1,13 +1,18 @@
 import { isEditableTarget } from "@construkt-kit/ui";
-import { useEffect } from "react";
+import { type RefObject, useEffect } from "react";
 
+import type { DataGridLabels } from "./types";
 import type { AnyGridCore } from "./useGridCore";
+
+interface CopyHandlerOptions {
+  announce: (message: string) => void;
+  labels: Readonly<RefObject<DataGridLabels>>;
+}
 
 export function useCopyHandler(
   core: AnyGridCore,
   scroller: HTMLElement | null,
-  onRefused: () => void,
-  onCopied: () => void,
+  { announce, labels }: CopyHandlerOptions,
 ): void {
   useEffect(() => {
     if (!scroller) return;
@@ -19,16 +24,16 @@ export function useCopyHandler(
       event.preventDefault();
       const payload = core.copyPayload();
       if (!payload) {
-        onRefused();
+        announce(labels.current.copyRefused);
         return;
       }
       event.clipboardData?.setData("text/plain", payload.text);
       event.clipboardData?.setData("text/html", payload.html);
-      onCopied();
+      announce(labels.current.copied);
     };
     document.addEventListener("copy", onCopy);
     return () => document.removeEventListener("copy", onCopy);
-  }, [core, scroller, onRefused, onCopied]);
+  }, [core, scroller, announce, labels]);
 }
 
 export async function writeClipboard(core: AnyGridCore): Promise<boolean> {

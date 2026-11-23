@@ -1,8 +1,8 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import { createRef } from "react";
 import { expect, test } from "vitest";
 
-import { rowHeight, scrollerOf } from "../../test/dom";
+import { mountGrid, rowHeight } from "../../test/dom";
 import { createFixture } from "../../test/fixture";
 import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
@@ -27,7 +27,7 @@ const items: Item[] = Array.from({ length: PARENTS }, (_, p) => [
 
 test("collapsing a parent above the viewport keeps the first visible row in place", async () => {
   const apiRef = createRef<DataGridApi>();
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       rows={items}
       getRowId={(row) => row.id}
@@ -39,8 +39,6 @@ test("collapsing a parent above the viewport keeps the first visible row in plac
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
   scroller.scrollTop = (5 * (CHILDREN + 1) + 1 + 10) * rowHeight(container) - 100;
   await settle();
   const tracked = () =>
@@ -58,7 +56,7 @@ test("collapsing a parent above the viewport keeps the first visible row in plac
 });
 
 test("full-width row content stays in view after scrolling sideways", async () => {
-  const { container } = render(
+  const { scroller } = await mountGrid(
     <DataGrid
       {...createFixture(10, 30)}
       isFullWidthRow={(row) => row.id === 2}
@@ -67,8 +65,6 @@ test("full-width row content stays in view after scrolling sideways", async () =
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
 
   scroller.scrollLeft = 1200;
   await settle();
@@ -81,7 +77,7 @@ test("full-width row content stays in view after scrolling sideways", async () =
 
 test("a merged cell keeps its label in view after its start scrolls out of sight", async () => {
   const fixture = createFixture(200, 6, { width: 300 });
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={[
@@ -99,8 +95,6 @@ test("a merged cell keeps its label in view after its start scrolls out of sight
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
 
   scroller.scrollLeft = 500;
   scroller.scrollTop = 40 * rowHeight(container);

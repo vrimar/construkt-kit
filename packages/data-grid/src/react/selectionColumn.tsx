@@ -48,7 +48,6 @@ function SelectAllCheckbox({ label }: { label: string }) {
       onClick={(event: MouseEvent) => {
         event.preventDefault();
         core.selection.selectAllRows(state !== true);
-        core.selection.end();
       }}
     />
   );
@@ -68,7 +67,6 @@ function RowCheckbox({ rowId, label }: { rowId: RowId; label: string }) {
       onClick={(event: MouseEvent) => {
         event.preventDefault();
         core.selection.select("rows", rowId, event.shiftKey ? "range" : "toggle");
-        core.selection.end();
       }}
     />
   );

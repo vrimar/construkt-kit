@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { commands, userEvent } from "vitest/browser";
 
-import { cellOf, rowHeight, scrollerOf } from "../../test/dom";
+import { cellOf, headerOf, mountGrid, rowHeight } from "../../test/dom";
 import { createFixture } from "../../test/fixture";
 import { frames, settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
@@ -10,7 +10,7 @@ import { cellSelector } from "./dom";
 import type { CellRange, EntitySelection } from "./types";
 
 test("Mod+C on a focused cell writes its text to the clipboard as TSV", async () => {
-  render(
+  await mountGrid(
     <>
       <button>before</button>
       <DataGrid
@@ -20,7 +20,6 @@ test("Mod+C on a focused cell writes its text to the clipboard as TSV", async ()
       />
     </>,
   );
-  await settle();
   screen.getByRole("button", { name: "before" }).focus();
   await userEvent.tab();
   let copied: string | undefined;
@@ -35,7 +34,7 @@ test("Mod+C on a focused cell writes its text to the clipboard as TSV", async ()
 
 test("a range across pinned and centre columns keeps each overlay part on its cells after scrolling sideways", async () => {
   const fixture = createFixture(50, 10);
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={[{ id: "pinned", pinned: "left", width: 120 }, ...fixture.columnDefs]}
@@ -43,7 +42,6 @@ test("a range across pinned and centre columns keeps each overlay part on its ce
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
   const rect = (selector: string) =>
     (container.querySelector(selector) as HTMLElement).getBoundingClientRect();
   const from = rect(cellSelector(1, 0));
@@ -51,7 +49,6 @@ test("a range across pinned and centre columns keeps each overlay part on its ce
   await commands.pressOn(cellSelector(1, 0));
   await commands.moveBy(to.left + to.width / 2 - (from.left + from.width / 2), to.top - from.top);
   await commands.release();
-  const scroller = scrollerOf(container);
 
   scroller.scrollLeft = 60;
   await settle();
@@ -77,7 +74,7 @@ test("a range across pinned and centre columns keeps each overlay part on its ce
 
 test("Shift-clicks extend the range from the active cell, which keeps focus", async () => {
   const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(20, 4)}
       onCellSelectionChange={onCellSelectionChange}
@@ -85,7 +82,6 @@ test("Shift-clicks extend the range from the active cell, which keeps focus", as
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
   await userEvent.click(cellOf(container, 1, 0));
 
   await userEvent.click(cellOf(container, 5, 2), { modifiers: ["Shift"] });
@@ -101,7 +97,7 @@ test("Shift-clicking a selectsRow cell extends the row selection without a cell 
   const fixture = createFixture(20, 3);
   const onSelectionChange = vi.fn<(selection: EntitySelection | null) => void>();
   const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={[{ ...fixture.columnDefs[0], selectsRow: true }, ...fixture.columnDefs.slice(1)]}
@@ -111,7 +107,6 @@ test("Shift-clicking a selectsRow cell extends the row selection without a cell 
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
   await userEvent.click(cellOf(container, 1, 0));
 
   await userEvent.click(cellOf(container, 4, 0), { modifiers: ["Shift"] });
@@ -124,7 +119,7 @@ test("Shift-clicking a selectsRow cell extends the row selection without a cell 
 
 test('pointerSelection="add" adds headers and gutter rows on a plain click, starting over on another kind', async () => {
   const onSelectionChange = vi.fn<(selection: EntitySelection | null) => void>();
-  const { container } = render(
+  const { container } = await mountGrid(
     <DataGrid
       {...createFixture(20, 3)}
       rowNumbers
@@ -134,14 +129,11 @@ test('pointerSelection="add" adds headers and gutter rows on a plain click, star
       style={{ width: 600, height: 400 }}
     />,
   );
-  await settle();
-  const header = (id: string) =>
-    container.querySelector<HTMLElement>(`[data-header-id="${id}"]`) as HTMLElement;
   const gutter = (row: number) =>
     container.querySelector<HTMLElement>(`[data-row-index="${row}"] [data-gutter]`) as HTMLElement;
 
-  await userEvent.click(header("c0"));
-  await userEvent.click(header("c1"));
+  await userEvent.click(headerOf(container, "c0"));
+  await userEvent.click(headerOf(container, "c1"));
   expect(onSelectionChange).toHaveBeenLastCalledWith({ kind: "columns", ids: ["c0", "c1"] });
 
   await userEvent.click(gutter(1));
@@ -149,9 +141,32 @@ test('pointerSelection="add" adds headers and gutter rows on a plain click, star
   expect(onSelectionChange).toHaveBeenLastCalledWith({ kind: "rows", ids: [1, 3] });
 });
 
+test("a drag from a focusable widget inside a cell selects no range", async () => {
+  const fixture = createFixture(20, 3);
+  const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
+  await mountGrid(
+    <DataGrid
+      {...fixture}
+      columnDefs={[
+        { ...fixture.columnDefs[0], cell: { render: () => <span tabIndex={0}>Widget</span> } },
+        ...fixture.columnDefs.slice(1),
+      ]}
+      onCellSelectionChange={onCellSelectionChange}
+      aria-label="Widget"
+      style={{ width: 600, height: 400 }}
+    />,
+  );
+
+  await commands.pressOn(`${cellSelector(1, 0)} [tabindex="0"]`);
+  await commands.moveBy(200, 80);
+  await commands.release();
+
+  expect(onCellSelectionChange).not.toHaveBeenCalled();
+});
+
 test("a drag-select held below the grid keeps extending the range as the grid scrolls", async () => {
   const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
-  const { container } = render(
+  const { container, scroller } = await mountGrid(
     <DataGrid
       {...createFixture(500, 3)}
       onCellSelectionChange={onCellSelectionChange}
@@ -159,8 +174,6 @@ test("a drag-select held below the grid keeps extending the range as the grid sc
       style={{ width: 600, height: 300 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
   const lastShown = Math.ceil(scroller.clientHeight / rowHeight(container));
   const start = cellOf(container, 1, 1).getBoundingClientRect();
 

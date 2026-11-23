@@ -1,8 +1,7 @@
-import { render } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { commands } from "vitest/browser";
 
-import { scrollerOf } from "../../test/dom";
+import { mountGrid } from "../../test/dom";
 import { createFixture } from "../../test/fixture";
 import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
@@ -11,7 +10,7 @@ import type { CellRange } from "./types";
 
 test("a vertical swipe starting on a cell scrolls, and dragging the range handle extends the range", async () => {
   const onCellSelectionChange = vi.fn<(ranges: readonly CellRange[]) => void>();
-  const { container } = render(
+  const { scroller } = await mountGrid(
     <DataGrid
       {...createFixture(200, 4, { width: 90 })}
       onCellSelectionChange={onCellSelectionChange}
@@ -19,8 +18,6 @@ test("a vertical swipe starting on a cell scrolls, and dragging the range handle
       style={{ width: 360, height: 500 }}
     />,
   );
-  await settle();
-  const scroller = scrollerOf(container);
 
   await commands.touchDrag(cellSelector(6, 1), 0, -250);
   await vi.waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(100));

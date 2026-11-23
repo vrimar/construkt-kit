@@ -24,29 +24,45 @@ const grid = (options: Partial<GridOptions<Row, unknown>> = {}) => {
 
 const rowY = (index: number, fraction: number) => ROW + ROW * index + ROW * fraction;
 
+const groupedColumns: ColumnDef<Row>[] = [
+  {
+    id: "g1",
+    children: [
+      { id: "a", width: 100 },
+      { id: "b", width: 100 },
+    ],
+  },
+  {
+    id: "g2",
+    children: [
+      { id: "c", width: 100 },
+      { id: "d", width: 100 },
+    ],
+  },
+];
+
 test("a leaf dragged past its column group's edge is clamped to that edge", () => {
-  const columnDefs: ColumnDef<Row>[] = [
-    {
-      id: "g1",
-      children: [
-        { id: "a", width: 100 },
-        { id: "b", width: 100 },
-      ],
-    },
-    {
-      id: "g2",
-      children: [
-        { id: "c", width: 100 },
-        { id: "d", width: 100 },
-      ],
-    },
-  ];
-  const core = grid({ columnDefs, onColumnsDrop: () => {} });
+  const core = grid({ columnDefs: groupedColumns, onColumnsDrop: () => {} });
 
   core.dnd.begin({ kind: "columns", id: "a" });
   core.dnd.hover(350, 10);
 
   expect(core.dnd.indicator).toEqual({ kind: "columns", id: "b", position: "after" });
+});
+
+test("where canDropOnto allows, a leaf dragged over another group's column drops onto it", () => {
+  const onColumnsDrop = vi.fn();
+  const core = grid({
+    columnDefs: groupedColumns,
+    onColumnsDrop,
+    canDropOnto: (source) => source.kind === "columns",
+  });
+
+  core.dnd.begin({ kind: "columns", id: "a" });
+  core.dnd.hover(350, 10);
+  core.dnd.end(false);
+
+  expect(onColumnsDrop).toHaveBeenCalledWith({ ids: ["a"], targetId: "d", position: "onto" });
 });
 
 test("dropping a row in the gap right after itself reports no drop", () => {
@@ -101,6 +117,26 @@ test("a hit test over a pinned top row reports the top region, not body row 0", 
   const core = grid({ pinnedTopRows: [{ id: "total" }] });
 
   expect(core.hitTest(10, ROW + 10)).toMatchObject({ region: "top", rowId: "total" });
+});
+
+test("a row dragged over a stuck parent's band targets that parent, not the row scrolled under it", () => {
+  const core = grid({
+    rows: [
+      { id: "A" },
+      ...Array.from({ length: 12 }, (_, i) => ({ id: `a${i}`, parent: "A" })),
+      { id: "B" },
+    ],
+    getParentId: (row) => row.parent,
+    defaultExpandedRowIds: ["A"],
+    onRowsDrop: () => {},
+    canDropOnto: () => true,
+  });
+  core.setScroll(ROW * 5, 0);
+
+  core.dnd.begin({ kind: "rows", id: "B" });
+  core.dnd.hover(10, rowY(0, 0.5));
+
+  expect(core.dnd.indicator).toEqual({ kind: "rows", id: "A", position: "onto" });
 });
 
 test("moving an expanded parent down lands it after its next sibling, not among its children", () => {

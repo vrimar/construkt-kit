@@ -12,6 +12,8 @@ export interface RowModel<TRow> {
   hasChildren(index: number): boolean;
   isExpanded(index: number): boolean;
   parentOf(index: number): number;
+  /** The row itself when it is no deeper than `depth`, else its ancestor at `depth`. */
+  ancestorAt(index: number, depth: number): number;
   /** Display index just past the row's shown descendants. */
   subtreeEnd(index: number): number;
   positionInSet(index: number): { position: number; size: number };
@@ -82,6 +84,12 @@ export class ClientRowModel<TRow> implements RowModel<TRow> {
 
   parentOf(index: number): number {
     return this.parents[index] ?? -1;
+  }
+
+  ancestorAt(index: number, depth: number): number {
+    let row = index;
+    while (row >= 0 && this.depthOf(row) > depth) row = this.parentOf(row);
+    return row;
   }
 
   subtreeEnd(index: number): number {

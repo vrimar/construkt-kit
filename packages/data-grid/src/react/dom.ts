@@ -1,4 +1,7 @@
-import type { HitBox } from "../core/layout/hit";
+import type { CoreHit, HitBox } from "../core/layout/hit";
+import type { CellPosition } from "../core/selection/navigation";
+import type { GridHit } from "./types";
+import type { AnyGridCore } from "./useGridCore";
 
 export interface CellTarget {
   element: HTMLElement;
@@ -34,13 +37,31 @@ export const cellUnder = (clientX: number, clientY: number) => {
 export const cellSelector = (row: number, column: number) =>
   `[data-row-index="${row}"] [data-col-index="${column}"]`;
 
-export const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [contenteditable=""], [contenteditable="true"], [tabindex]';
+export const headerSelector = (columnId: string) => `[data-header-id="${CSS.escape(columnId)}"]`;
 
-export const tabStopsIn = (element: HTMLElement): HTMLElement[] =>
-  Array.from(element.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (candidate) => candidate.tabIndex >= 0,
-  );
+export const resizeHandleSelector = (columnId: string) =>
+  `[data-resize-handle="${CSS.escape(columnId)}"]`;
+
+export const cellElement = (
+  root: ParentNode | null,
+  { row, column }: CellPosition,
+): HTMLElement | null =>
+  root?.querySelector<HTMLElement>(cellSelector(row, column)) ??
+  root?.querySelector<HTMLElement>(`[data-row-index="${row}"] [data-full-width]`) ??
+  null;
+
+const CONTROL =
+  "button, a[href], input, select, textarea, label, [role=button], [contenteditable], [tabindex]";
+
+export function controlAt(target: EventTarget | null, boundary: Element): Element | null {
+  const control = target instanceof Element ? target.closest(CONTROL) : null;
+  return control &&
+    control !== boundary &&
+    boundary.contains(control) &&
+    !control.hasAttribute("data-col-index")
+    ? control
+    : null;
+}
 
 /** Whether something drawn above the grid, such as a popover, takes the pointer inside `scroller`'s box. */
 export const coveredAt = (scroller: HTMLElement, clientX: number, clientY: number) => {
@@ -60,6 +81,16 @@ export const localPoint = (scroller: HTMLElement, clientX: number, clientY: numb
   };
 };
 
+export function gridPoint(
+  core: AnyGridCore,
+  scroller: HTMLElement,
+  clientX: number,
+  clientY: number,
+): { x: number; y: number } {
+  core.setScroll(scroller.scrollTop, scroller.scrollLeft);
+  return localPoint(scroller, clientX, clientY);
+}
+
 export function clientRect(scroller: HTMLElement, box: HitBox): DOMRect {
   const origin = scroller.getBoundingClientRect();
   return new DOMRect(
@@ -68,6 +99,31 @@ export function clientRect(scroller: HTMLElement, box: HitBox): DOMRect {
     box.width,
     box.height,
   );
+}
+
+export function gridHit(scroller: HTMLElement, hit: CoreHit): GridHit {
+  const { region, rowId, columnId, headerId, fractionX, fractionY, box } = hit;
+  return {
+    region,
+    rowId,
+    columnId,
+    headerId,
+    fractionX,
+    fractionY,
+    rect: clientRect(scroller, box),
+  };
+}
+
+export function hitAt(
+  core: AnyGridCore,
+  scroller: HTMLElement | null,
+  clientX: number,
+  clientY: number,
+): GridHit | null {
+  if (!scroller) return null;
+  const { x, y } = gridPoint(core, scroller, clientX, clientY);
+  const hit = core.hitTest(x, y);
+  return hit && gridHit(scroller, hit);
 }
 
 export function naturalWidths(cells: readonly HTMLElement[]): number[] {
