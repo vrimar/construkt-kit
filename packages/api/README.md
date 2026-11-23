@@ -250,6 +250,13 @@ export default createKubbConfig();
 The spec is fetched from `{baseUrl}/openapi/v1.json`, saved to the config's `input` path, passed to
 Kubb, then deleted. Generation problems are printed and exit the process with code 1.
 
+### Operation table
+
+Each run also writes `operations.ts` into the output folder: every operation's method, path template, `operationId`
+and whether it reads. GET, HEAD and OPTIONS read; any other method writes, unless the spec marks the operation
+`"x-read-only": true`, as an API should for a POST that only queries. `@construkt-kit/testing`'s `recordRequests` takes
+this table to tell a flow's reads from its writes.
+
 `http` and `https` base URLs both work, and redirects are followed. HTTPS certificates are verified:
 for a dev certificate the OS trusts (`dotnet dev-certs https --trust`), run with
 `NODE_OPTIONS=--use-system-ca`; otherwise use the API's `http` URL or set `NODE_EXTRA_CA_CERTS`.

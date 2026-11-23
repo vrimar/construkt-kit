@@ -82,6 +82,7 @@ try {
   } finally {
     kubb.dispose();
   }
+  if (result.success) writeOperations(inputPath, resolvedConfig);
 } finally {
   if (!inputArg) fs.rmSync(inputPath, { force: true });
 }
@@ -97,6 +98,37 @@ if (!result.success) process.exit(1);
 console.log("API generation complete.");
 
 // ---------------------------------------------------------------------------
+
+function writeOperations(specPath, config) {
+  const readMethods = new Set(["get", "head", "options"]);
+  const httpMethods = new Set([
+    "get",
+    "put",
+    "post",
+    "delete",
+    "options",
+    "head",
+    "patch",
+    "trace",
+  ]);
+  const spec = JSON.parse(fs.readFileSync(specPath, "utf8"));
+  const operations = Object.entries(spec.paths ?? {}).flatMap(([route, item]) =>
+    Object.entries(item)
+      .filter(([method]) => httpMethods.has(method))
+      .map(([method, operation]) => ({
+        method: method.toUpperCase(),
+        path: route,
+        ...(operation.operationId ? { operationId: operation.operationId } : {}),
+        read: readMethods.has(method) || operation["x-read-only"] === true,
+      })),
+  );
+  const outputDir = path.resolve(process.cwd(), config.root ?? ".", config.output.path);
+  const lines = operations.map((operation) => `  ${JSON.stringify(operation)},`);
+  fs.writeFileSync(
+    path.join(outputDir, "operations.ts"),
+    `export const operations = [\n${lines.join("\n")}\n] as const;\n`,
+  );
+}
 
 async function fetchSpec(url, outputPath) {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });

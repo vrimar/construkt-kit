@@ -64,6 +64,28 @@
         }
       }
     },
+    "/api/projects/search": {
+      "post": {
+        "operationId": "postApiProjectsSearch",
+        "x-read-only": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ProjectRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matching projects",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Project" } }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{id}": {
       "get": {
         "operationId": "getApiProjectsId",
