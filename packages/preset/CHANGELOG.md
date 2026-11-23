@@ -1,5 +1,27 @@
 # @construkt-kit/preset
 
+## 0.12.0 — 2026-11-23
+
+### Breaking
+
+- Leave body scrolling to the app (`19f00610`)
+- Load official Inter and style components on kit primitives (`ad0c3ff5`)
+
+### Features
+
+- Draw tree indent guides in the muted border color (`f3e21501`)
+
+### Other
+
+- Share dropdown, choice-control and option-row styles (`6c925b41`)
+
+### Package
+
+- Drop dependency @ark-ui/react
+- Drop peer dependency @fontsource-variable/inter
+- Add peer dependency inter-ui ^4.1.1
+- Change `peerDependenciesMeta` in package.json
+
 ## 0.11.1 — 2026-11-18
 
 ### Fixes

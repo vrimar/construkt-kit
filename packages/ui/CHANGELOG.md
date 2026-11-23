@@ -1,5 +1,41 @@
 # @construkt-kit/ui
 
+## 0.15.0 — 2026-11-23
+
+### Breaking
+
+- Run every component on the kit's own primitives (`d183f893`)
+
+### Features
+
+- Add a /testing subpath of Playwright helpers for the kit's components (`74f432c1`)
+- Check a TreeSelectList leaf when its row is clicked (`42bb6126`)
+- Split TreeSelectList into useTreeSelectList and its parts (`34e93749`)
+
+### Fixes
+
+- Take a file with no path on disk, such as one dragged out of a page, in FileUpload (`120cf536`)
+
+### Other
+
+- Share popup, list and form-field layers across components (`374830c9`)
+- Share codemod helpers (`cfc64906`)
+
+### Package
+
+- Drop dependency @ark-ui/react
+- Add dependency @floating-ui/react-dom ^2.1.9
+- Add dependency @internationalized/date ^3.12.4
+- Add dependency @internationalized/number ^3.6.9
+- Drop peer dependency @fontsource-variable/inter
+- Add peer dependency @playwright/test ^1.62.1
+- Add peer dependency inter-ui ^4.1.1
+- Peer react ^19.0.0 → ^19.3.0
+- Peer react-dom ^19.0.0 → ^19.3.0
+- Change `peerDependenciesMeta` in package.json
+- Change `exports` in package.json
+- Change `files` in package.json
+
 ## 0.14.0 — 2026-11-18
 
 ### Breaking

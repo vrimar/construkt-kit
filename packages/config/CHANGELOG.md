@@ -1,5 +1,16 @@
 # @construkt-kit/config
 
+## 0.8.0 — 2026-11-23
+
+### Breaking
+
+- Ship the construkt lint plugin and jsdom overlay polyfills (`454f16d1`)
+
+### Package
+
+- Change `exports` in package.json
+- Change `files` in package.json
+
 ## 0.7.0 — 2026-11-18
 
 ### Breaking
