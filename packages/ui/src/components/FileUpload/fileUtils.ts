@@ -169,7 +169,11 @@ export async function getFileEntries(
       .filter((item) => item.kind === "file")
       .map((item): Promise<File[]> => {
         const entry = getItemEntry(item);
-        if (!entry) return Promise.resolve([]);
+        // Chromium gives no entry for a file with no path on disk, such as one dragged out of a page.
+        if (!entry) {
+          const file = item.getAsFile();
+          return Promise.resolve(file ? [withRelativePath(file, "")] : []);
+        }
         if (isDirectoryEntry(entry) && directory) {
           return getDirectoryFiles(entry.createReader(), entry.name);
         }
