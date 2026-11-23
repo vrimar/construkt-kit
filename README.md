@@ -14,6 +14,7 @@ client and shared tool configs.
 | [`@construkt-kit/api`](packages/api/README.md)             | Kubb client setup, typed errors and query helpers                           |
 | [`@construkt-kit/utils`](packages/utils/README.md)         | Framework-free helpers: dates, numbers, query strings, Zod schemas          |
 | [`@construkt-kit/config`](packages/config/README.md)       | TypeScript, Vite, Vitest, oxlint, oxfmt, Playwright and Kubb configs        |
+| [`@construkt-kit/testing`](packages/testing/README.md)     | Playwright helpers: gestures, API request recording, coverage reporter      |
 
 ## Quick start
 

@@ -45,6 +45,7 @@
         "@construkt-kit/ui#build",
         "@construkt-kit/pages#build",
         "@construkt-kit/api#build",
+        "@construkt-kit/testing#build",
         "@construkt-kit/data-grid#codegen"
       ],
       // Subtract only file types neither oxlint nor the type checker reads; a directory list misses new ones.

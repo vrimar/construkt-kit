@@ -7,9 +7,6 @@
     "story-kit": "./src/bin/story-kit.ts"
   },
   "type": "module",
-  "imports": {
-    "#touch": "./src/touch.ts"
-  },
   "exports": {
     "./gallery-protocol": "./src/gallery-protocol.ts",
     "./paths": "./src/paths.ts",
@@ -24,6 +21,7 @@
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@construkt-kit/config": "workspace:*",
+    "@construkt-kit/testing": "workspace:*",
     "@pandacss/dev": "^2.5.0",
     "@playwright/test": "catalog:",
     "@storybook/addon-a11y": "catalog:",

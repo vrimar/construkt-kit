@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
+import { touchDrag } from "@construkt-kit/testing";
 import {
   type Browser,
   type BrowserContext,
@@ -17,7 +18,6 @@ import { DEVICE_ONLY, type Device } from "./devices";
 import { isPixelRun } from "./env";
 import { type StoryTheme, storyUrl } from "./gallery-protocol";
 import { type StoryEntry, type StoryId, stories } from "./story-ids.gen";
-import { touchDrag } from "./touch";
 
 export { DEVICE_ONLY };
 export type { Device, Locator, Page, StoryEntry, StoryId, StoryTheme };

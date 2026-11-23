@@ -6,7 +6,7 @@ import type { TestProjectInlineConfiguration } from "vitest/config";
 import type { BrowserCommand, BrowserConfigOptions } from "vitest/node";
 
 // Node loads this file untranspiled and packages type-check it without .ts imports, so no relative import works.
-import { touchDrag as dragTouch } from "#touch";
+import { touchDrag as dragTouch } from "@construkt-kit/testing";
 
 /** Server-side browser commands, typed as test files call them through `commands` from `vitest/browser`. */
 export type ClientCommands<T> = {
@@ -42,8 +42,11 @@ const browserSetup = fileURLToPath(new URL("./setup.browser.ts", import.meta.url
 
 type Commands = NonNullable<BrowserConfigOptions["commands"]>;
 
+type Engine = "chromium" | "firefox" | "webkit";
+
 function browserProject(
   name: "browser" | "touch",
+  engines: readonly Engine[],
   viewport: { width: number; height: number },
   commands: Commands,
   contextOptions?: PlaywrightProviderOptions["contextOptions"],
@@ -58,7 +61,7 @@ function browserProject(
         enabled: true,
         headless: true,
         provider: playwright({ contextOptions }),
-        instances: [{ browser: "chromium" }],
+        instances: engines.map((browser) => ({ browser })),
         commands: { ...kitCommands, ...commands },
         viewport,
       },
@@ -67,15 +70,15 @@ function browserProject(
 }
 
 /**
- * The `browser` (Chromium, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled by the package's
+ * The `browser` (Chromium, Firefox and WebKit, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled by the package's
  * `panda.config.ts`. Every project gets `touchDrag`; `commands` adds the package's own.
  */
 export function browserProjects({
   commands = {},
 }: { commands?: Commands } = {}): TestProjectInlineConfiguration[] {
   return [
-    browserProject("browser", { width: 1280, height: 800 }, commands),
-    browserProject("touch", { width: 390, height: 844 }, commands, {
+    browserProject("browser", ["chromium", "firefox", "webkit"], { width: 1280, height: 800 }, commands),
+    browserProject("touch", ["chromium"], { width: 390, height: 844 }, commands, {
       hasTouch: true,
       isMobile: true,
     }),

@@ -1,0 +1,46 @@
+{
+  "name": "@construkt-kit/testing",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Playwright helpers for Construkt Kit apps: gestures, API request recording, failure injection, platform emulation, sign-in and requirement coverage",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vrimar/construkt-kit.git",
+    "directory": "packages/testing"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./reporter": {
+      "types": "./dist/reporter.d.mts",
+      "default": "./dist/reporter.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json",
+    "test": "vitest run",
+    "check:exports": "publint --strict && node ../../scripts/check-attw.mjs"
+  },
+  "devDependencies": {
+    "@construkt-kit/config": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/node": "^26.6.6",
+    "tsdown": "^0.23.7",
+    "vitest": "^5.1.0"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

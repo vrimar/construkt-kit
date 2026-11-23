@@ -116,6 +116,18 @@ const SPEC_ACTIONS = new Set([
   "selectOption",
   "dragTo",
   "resizeTo",
+  "startDrag",
+  "touchDrag",
+  "signIn",
+  "openPopup",
+  "pickMenuItem",
+  "openSelect",
+  "pickOption",
+  "selectSegment",
+  "dismissToast",
+  "hoverTooltip",
+  "dropFiles",
+  "setChecked",
 ]);
 
 function calleeName(callee) {

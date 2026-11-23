@@ -395,6 +395,9 @@ importers:
       '@construkt-kit/story-kit':
         specifier: workspace:*
         version: link:../story-kit
+      '@construkt-kit/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@construkt-kit/ui':
         specifier: workspace:*
         version: link:../ui
@@ -404,6 +407,9 @@ importers:
       '@pandacss/types':
         specifier: ^2.5.0
         version: 2.5.0
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.1
       '@testing-library/react':
         specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -465,6 +471,9 @@ importers:
       '@pandacss/dev':
         specifier: ^2.5.0
         version: 2.5.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(postcss@8.5.32)
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.1
       '@testing-library/react':
         specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -520,6 +529,9 @@ importers:
       '@construkt-kit/config':
         specifier: workspace:*
         version: link:../config
+      '@construkt-kit/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@pandacss/dev':
         specifier: ^2.5.0
         version: 2.5.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(postcss@8.5.32)
@@ -579,6 +591,24 @@ importers:
         specifier: ^8.3.8
         version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/testing:
+    devDependencies:
+      '@construkt-kit/config':
+        specifier: workspace:*
+        version: link:../config
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.1
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      tsdown:
+        specifier: ^0.23.7
+        version: 0.23.7(@arethetypeswrong/core@0.18.5)(oxc-resolver@11.21.2)(publint@0.3.25)(tsx@4.23.15)(typescript@7.0.2)
+      vitest:
+        specifier: ^5.1.0
+        version: 5.1.0(@types/node@26.6.6)(@vitest/browser-playwright@5.1.0)(@vitest/ui@5.1.0)(jsdom@31.0.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   packages/ui:
     dependencies:
       '@construkt-kit/utils':
@@ -624,6 +654,9 @@ importers:
       '@construkt-kit/story-kit':
         specifier: workspace:*
         version: link:../story-kit
+      '@construkt-kit/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@pandacss/dev':
         specifier: ^2.5.0
         version: 2.5.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(postcss@8.5.32)
@@ -633,6 +666,9 @@ importers:
       '@pandacss/preset-base':
         specifier: ^2.5.0
         version: 2.5.0
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.1
       '@testing-library/react':
         specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)

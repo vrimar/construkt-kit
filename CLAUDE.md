@@ -12,6 +12,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid. Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
 - **`@construkt-kit/config`** — Shared tool configs: `@construkt-kit/config/typescript`, `/vite`, `/vitest`, `/tsdown`, `/oxlint`, `/oxfmt`, `/playwright`, `/kubb`.
+- **`@construkt-kit/testing`** — Playwright helpers for apps' end-to-end tests: gestures, API request recording and failure injection, overlay waits, platform emulation, sign-in, per-worker servers, the requirement coverage reporter. Component helpers live beside their components as each package's `/testing` subpath.
 - **`@construkt-kit/story-kit`** — Private. The Storybook preview every story imports, the typed story-id list, and the Playwright story-test harness. See `packages/story-kit/README.md`.
 
 ## Build & Dev Commands
@@ -82,6 +83,7 @@ specs (`packages/*/src/**/*.spec.ts`) drive stories with real keyboard, mouse an
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
 @construkt-kit/data-grid      ← consuming apps  (depends on @construkt-kit/utils, peer-depends on @construkt-kit/ui; preset opt-in)
 @construkt-kit/api            ← consuming apps  (configures the generated Kubb fetch client)
+@construkt-kit/testing        ← story-kit, consuming apps' e2e suites  (peer-depends on @playwright/test)
 ```
 
 ## Design Principles
