@@ -19,7 +19,8 @@ test("a vertical swipe starting on a cell scrolls, and dragging the range handle
     />,
   );
 
-  await commands.touchDrag(cellSelector(6, 1), 0, -250);
+  // Held before lifting, so no fling keeps scrolling the grid under the range handle's drag.
+  await commands.touchDrag(cellSelector(6, 1), 0, -250, 150);
   await vi.waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(100));
 
   scroller.scrollTop = 0;
