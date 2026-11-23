@@ -2,14 +2,12 @@ import type {
   API,
   ASTPath,
   ArrowFunctionExpression,
-  FileInfo,
   FunctionExpression,
   Identifier,
-  JSXAttribute,
   JSXOpeningElement,
 } from "jscodeshift";
 
-import { kitElementName } from "./kit-element-name";
+import { attributeName, kitTransform } from "./jsx";
 
 export const parser = "tsx";
 
@@ -153,42 +151,33 @@ const renamedProp = (element: string, prop: string): string =>
 /**
  * Rewrites `onOpenChange={({ open }) => …}` and `onOpenChange={(e) => … e.open …}` on the kit's
  * migrated overlays to `onOpenChange={(open) => …}`, and the value callbacks of Menu, Listbox,
- * Combobox, the drawers' snap points, the trees, the color picker and the form controls the same way. Where the callback takes a
- * `details` argument, the other keys move to it: `({ inputValue, reason }) =>` becomes
- * `(inputValue, { reason }) =>`. Props and callbacks that changed their name, such as Pagination's
- * `page` and `onPageChange`, take the new one. Where the handler or the code around it already
-uses the key's name for something else, the value is named `next` (or `nextOpen`, …) instead,
-so the rewrite reads the same variables. A handler passed by reference, one that uses its
- * argument any other way, or a rename onto a prop the element would then have twice, is left as it
+ * Combobox, the drawers' snap points, the trees, the color picker and the form controls the same
+ * way. Where the callback takes a `details` argument, the other keys move to it:
+ * `({ inputValue, reason }) =>` becomes `(inputValue, { reason }) =>`. Props and callbacks that
+ * changed their name, such as Pagination's `page` and `onPageChange`, take the new one. Where the
+ * handler or the code around it already uses the key's name for something else, the value is named
+ * `next` (or `nextOpen`, …) instead, so the rewrite reads the same variables. A handler passed by
+ * reference, one that uses its argument any other way, or a rename onto a prop the element would then have twice, is left as it
  * is and reported with its file and line. Only elements imported from `@construkt-kit/ui`, under
  * any name, are rewritten.
  */
-export default function openChangeArgs(file: FileInfo, api: API): string {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-  const kitName = kitElementName(j, root);
-
+export default kitTransform(({ j, root, kitName, report }) => {
   let changed = false;
-  const report = (path: ASTPath<JSXAttribute>, why: string) =>
-    api.report(`line ${path.node.loc?.start.line ?? "?"}: ${why}; rewrite it by hand`);
 
   root.find(j.JSXAttribute).forEach((path) => {
     const opening: JSXOpeningElement = path.parent.node;
     if (opening.type !== "JSXOpeningElement" || path.node.name.type !== "JSXIdentifier") return;
     const name = kitName(opening.name);
     if (name === null) return;
-    const attributeName = path.node.name;
-    const prop = attributeName.name;
+    const propName = path.node.name;
+    const prop = propName.name;
     const callback = MIGRATED[name]?.[prop];
     const target = renamedProp(name, prop);
     if (callback === undefined && target === prop) return;
-    const collides = opening.attributes?.some(
-      (attribute) =>
-        attribute !== path.node &&
-        attribute.type === "JSXAttribute" &&
-        attribute.name.type === "JSXIdentifier" &&
-        renamedProp(name, attribute.name.name) === target,
-    );
+    const collides = opening.attributes?.some((attribute) => {
+      const other = attributeName(attribute);
+      return attribute !== path.node && other !== undefined && renamedProp(name, other) === target;
+    });
     if (target !== prop && collides) {
       report(path, `${prop} would become a second \`${target}\``);
       return;
@@ -206,12 +195,12 @@ export default function openChangeArgs(file: FileInfo, api: API): string {
         return;
       }
     }
-    attributeName.name = target;
+    propName.name = target;
     changed = true;
   });
 
-  return changed ? root.toSource() : file.source;
-}
+  return changed;
+});
 
 interface Scope {
   lookup: (name: string) => unknown;

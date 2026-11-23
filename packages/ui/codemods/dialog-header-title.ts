@@ -1,7 +1,6 @@
-import type { API, ASTPath, FileInfo, JSXAttribute, JSXElement, JSXText } from "jscodeshift";
+import type { JSXAttribute, JSXElement, JSXText } from "jscodeshift";
 
-import { isLayoutWhitespace } from "./jsx-whitespace";
-import { kitElementName } from "./kit-element-name";
+import { attributeName, isLayoutWhitespace, type JSXChild, kitTransform, selfClose } from "./jsx";
 
 export const parser = "tsx";
 
@@ -12,8 +11,6 @@ const SHEET_HEADER_PROPS: Record<string, string> = {
   endElement: "headerEnd",
 };
 
-type Child = NonNullable<JSXElement["children"]>[number];
-
 /**
  * Moves a plain modal header to its root: `<Dialog.Root><Dialog.Content><Dialog.Header>` holding
  * only a `Dialog.Title` and an optional `Dialog.Description` becomes `<Dialog.Root title=…
@@ -23,16 +20,11 @@ type Child = NonNullable<JSXElement["children"]>[number];
  * and reported with its line. Only elements imported from `@construkt-kit/ui`, under any name, are
  * rewritten.
  */
-export default function dialogHeaderTitle(file: FileInfo, api: API): string {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-  const kitName = kitElementName(j, root);
+export default kitTransform(({ j, root, kitName, report }) => {
   const elementName = (element: JSXElement) => kitName(element.openingElement.name);
 
   let changed = false;
   const moved = new Set<JSXElement>();
-  const report = (path: ASTPath<JSXElement>, why: string) =>
-    api.report(`line ${path.node.loc?.start.line ?? "?"}: ${why}; rewrite it by hand`);
 
   root.find(j.JSXElement).forEach((path) => {
     const modal = MODALS.find((name) => elementName(path.node) === `${name}.Root`);
@@ -71,11 +63,7 @@ export default function dialogHeaderTitle(file: FileInfo, api: API): string {
       ];
     }
     contentElement.children = withoutChild(contentElement.children ?? [], header);
-    if (!contentElement.children.some(isMeaningful)) {
-      contentElement.children = [];
-      contentElement.openingElement.selfClosing = true;
-      contentElement.closingElement = null;
-    }
+    if (!contentElement.children.some(isMeaningful)) selfClose(contentElement);
     moved.add(header);
     changed = true;
   });
@@ -91,7 +79,7 @@ export default function dialogHeaderTitle(file: FileInfo, api: API): string {
     }
   });
 
-  return changed ? root.toSource() : file.source;
+  return changed;
 
   function plainHeader(header: JSXElement, modal: string) {
     const headerAttributes = header.openingElement.attributes ?? [];
@@ -127,14 +115,14 @@ export default function dialogHeaderTitle(file: FileInfo, api: API): string {
     );
   }
 
-  function isBare(child: Child | undefined, name: string): boolean {
+  function isBare(child: JSXChild | undefined, name: string): boolean {
     return (
       child?.type === "JSXElement" &&
       elementName(child) === name &&
       (child.openingElement.attributes ?? []).length === 0
     );
   }
-}
+});
 
 const rawText = (text: JSXText) =>
   (text as JSXText & { extra?: { raw?: string } }).extra?.raw ?? text.value;
@@ -142,9 +130,9 @@ const rawText = (text: JSXText) =>
 const fitsAttributeString = (text: JSXText) =>
   rawText(text) === text.value && !/[&"{}<>\\]/.test(text.value);
 
-const isMeaningful = (child: Child) => !isLayoutWhitespace(child);
+const isMeaningful = (child: JSXChild) => !isLayoutWhitespace(child);
 
-function withoutChild(children: Child[], removed: JSXElement): Child[] {
+function withoutChild(children: JSXChild[], removed: JSXElement): JSXChild[] {
   const index = children.indexOf(removed);
   const next = children[index + 1];
   const drop = next && isLayoutWhitespace(next) ? 2 : 1;
@@ -155,10 +143,4 @@ function elementChildren(element: JSXElement): JSXElement[] {
   return (element.children ?? []).filter(
     (child): child is JSXElement => child.type === "JSXElement",
   );
-}
-
-function attributeName(attribute: NonNullable<JSXElement["openingElement"]["attributes"]>[number]) {
-  return attribute.type === "JSXAttribute" && typeof attribute.name.name === "string"
-    ? attribute.name.name
-    : undefined;
 }

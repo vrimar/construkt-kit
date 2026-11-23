@@ -1,22 +1,10 @@
-import jscodeshift from "jscodeshift";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 
 import asChildToRender from "./as-child-to-render";
+import { runCodemod } from "./run-codemod";
 
-const j = jscodeshift.withParser("tsx");
 const KIT = 'import { Button, Menu, Popover, Tooltip } from "@construkt-kit/ui";';
-const run = (source: string, imports = KIT) =>
-  asChildToRender(
-    { path: "app.tsx", source: `${imports}\n${source}` },
-    {
-      j,
-      jscodeshift: j,
-      stats: vi.fn(),
-      report: vi.fn(),
-    },
-  )
-    .slice(imports.length + 1)
-    .replace(/\s+/g, " ");
+const run = (source: string, imports = KIT) => runCodemod(asChildToRender, source, imports).output;
 
 it("rewrites nested asChild parts from the inside out", () => {
   expect(

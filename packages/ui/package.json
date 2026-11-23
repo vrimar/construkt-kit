@@ -16,6 +16,7 @@
     "styled-system",
     "codemods",
     "!codemods/*.test.ts",
+    "!codemods/run-codemod.ts",
     "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",

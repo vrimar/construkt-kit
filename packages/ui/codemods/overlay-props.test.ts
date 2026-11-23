@@ -1,21 +1,11 @@
-import jscodeshift from "jscodeshift";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 
 import overlayProps from "./overlay-props";
+import { runCodemod } from "./run-codemod";
 
-const j = jscodeshift.withParser("tsx");
 const KIT =
   'import { ActionBar, Collapsible, Dialog, Menu, Popover, Tabs } from "@construkt-kit/ui";';
-const run = (source: string, imports = KIT) => {
-  const report = vi.fn();
-  const output = overlayProps(
-    { path: "app.tsx", source: `${imports}\n${source}` },
-    { j, jscodeshift: j, stats: vi.fn(), report },
-  )
-    .slice(imports.length + 1)
-    .replace(/\s+/g, " ");
-  return { output, reported: report.mock.calls.length };
-};
+const run = (source: string, imports = KIT) => runCodemod(overlayProps, source, imports);
 
 it("drops the removed overlay props and moves positioning to placement and anchor", () => {
   expect(

@@ -1,19 +1,13 @@
-import jscodeshift from "jscodeshift";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 
 import openChangeArgs from "./open-change-args";
+import { runCodemod } from "./run-codemod";
 
-const j = jscodeshift.withParser("tsx");
 const KIT =
   'import { Combobox, Dialog, FileUpload, Menu, Pagination, Popover, Switch, Tooltip, Wizard } from "@construkt-kit/ui";';
 const run = (source: string, imports = KIT) =>
-  openChangeArgs(
-    { path: "app.tsx", source: `${imports}\n${source}` },
-    { j, jscodeshift: j, stats: vi.fn(), report: vi.fn() },
-  )
-    .slice(imports.length + 1)
-    .replace(/\s+/g, " ")
-    .replace(/\( /g, "(")
+  runCodemod(openChangeArgs, source, imports)
+    .output.replace(/\( /g, "(")
     .replace(/ \)/g, ")")
     .replace(/\((\w+)\) =>/g, "$1 =>");
 

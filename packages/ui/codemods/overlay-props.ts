@@ -1,13 +1,6 @@
-import type {
-  API,
-  ASTPath,
-  FileInfo,
-  JSXAttribute,
-  JSXOpeningElement,
-  JSXSpreadAttribute,
-} from "jscodeshift";
+import type { JSXAttribute } from "jscodeshift";
 
-import { kitElementName } from "./kit-element-name";
+import { type Attribute, findAttribute, kitTransform, literalBoolean } from "./jsx";
 
 export const parser = "tsx";
 
@@ -75,8 +68,6 @@ const ANCHORED = new Set([
   "Tooltip",
 ]);
 
-type Attribute = JSXAttribute | JSXSpreadAttribute;
-
 /**
  * Drops the overlay props the kit removed with Ark and rewrites the ones it replaced:
  * `lazyMount` and `unmountOnExit` go from overlays and from the disclosure roots where the kit's
@@ -86,14 +77,8 @@ type Attribute = JSXAttribute | JSXSpreadAttribute;
  * `positioning` key, is left as it is and reported with its line. Only elements imported from
  * `@construkt-kit/ui`, under any name, are rewritten.
  */
-export default function overlayProps(file: FileInfo, api: API): string {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-  const kitName = kitElementName(j, root);
-
+export default kitTransform(({ j, root, kitName, report }) => {
   let changed = false;
-  const report = (path: ASTPath<JSXOpeningElement>, why: string) =>
-    api.report(`line ${path.node.loc?.start.line ?? "?"}: ${why}; rewrite it by hand`);
 
   root.find(j.JSXOpeningElement).forEach((path) => {
     const name = kitName(path.node.name);
@@ -101,11 +86,7 @@ export default function overlayProps(file: FileInfo, api: API): string {
     const attributes = path.node.attributes ?? [];
     const remove = new Set<Attribute>();
     const add: JSXAttribute[] = [];
-    const find = (prop: string) =>
-      attributes.find(
-        (attribute): attribute is JSXAttribute =>
-          attribute.type === "JSXAttribute" && attribute.name.name === prop,
-      );
+    const find = (prop: string) => findAttribute(attributes, prop);
 
     const mount = ["lazyMount", "unmountOnExit"].map((prop) => {
       const attribute = find(prop);
@@ -214,16 +195,8 @@ export default function overlayProps(file: FileInfo, api: API): string {
     changed = true;
   });
 
-  return changed ? root.toSource() : file.source;
-}
+  return changed;
+});
 
 const rewrittenProp = (key: "placement" | "getAnchorRect") =>
   key === "placement" ? "placement" : "anchor";
-
-function literalBoolean(attribute: JSXAttribute): boolean | undefined {
-  const { value } = attribute;
-  if (value == null) return true;
-  return value.type === "JSXExpressionContainer" && value.expression.type === "BooleanLiteral"
-    ? value.expression.value
-    : undefined;
-}

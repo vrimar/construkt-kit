@@ -1,14 +1,6 @@
-import type {
-  API,
-  ASTPath,
-  FileInfo,
-  JSXAttribute,
-  JSXElement,
-  JSXExpressionContainer,
-} from "jscodeshift";
+import type { JSXExpressionContainer } from "jscodeshift";
 
-import { isLayoutWhitespace } from "./jsx-whitespace";
-import { kitElementName } from "./kit-element-name";
+import { findAttribute, isLayoutWhitespace, kitTransform, literalBoolean, selfClose } from "./jsx";
 
 export const parser = "tsx";
 
@@ -20,30 +12,17 @@ export const parser = "tsx";
  * `asChild`. A dynamic `asChild={…}`, or any other child, is left as it is and reported with its
  * file and line.
  */
-export default function asChildToRender(file: FileInfo, api: API): string {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-  const kitName = kitElementName(j, root);
-
+export default kitTransform(({ j, root, kitName, report }) => {
   let changed = false;
-  const report = (path: ASTPath<JSXElement>, why: string) =>
-    api.report(`line ${path.node.loc?.start.line ?? "?"}: ${why}; rewrite it by hand`);
 
   for (const path of root.find(j.JSXElement).paths().reverse()) {
     const opening = path.node.openingElement;
     const attributes = opening.attributes ?? [];
-    const index = attributes.findIndex(
-      (attribute) => attribute.type === "JSXAttribute" && attribute.name.name === "asChild",
-    );
-    if (index === -1 || kitName(opening.name) === null) continue;
+    const asChild = findAttribute(attributes, "asChild");
+    if (!asChild || kitName(opening.name) === null) continue;
+    const index = attributes.indexOf(asChild);
 
-    const value = (attributes[index] as JSXAttribute).value;
-    const literal =
-      value == null
-        ? true
-        : value.type === "JSXExpressionContainer" && value.expression.type === "BooleanLiteral"
-          ? value.expression.value
-          : undefined;
+    const literal = literalBoolean(asChild);
     if (literal === undefined) {
       report(path, "asChild has a dynamic value");
       continue;
@@ -67,9 +46,7 @@ export default function asChildToRender(file: FileInfo, api: API): string {
         1,
         j.jsxAttribute(j.jsxIdentifier("render"), j.jsxExpressionContainer(expression)),
       );
-      path.node.children = [];
-      opening.selfClosing = true;
-      path.node.closingElement = null;
+      selfClose(path.node);
       changed = true;
       continue;
     }
@@ -85,29 +62,20 @@ export default function asChildToRender(file: FileInfo, api: API): string {
       meaningful[0]?.type === "JSXExpressionContainer" &&
       (meaningful[0].expression.type === "ArrowFunctionExpression" ||
         meaningful[0].expression.type === "FunctionExpression");
-    if (!renderFunction) {
-      child.children = [];
-      child.openingElement.selfClosing = true;
-      child.closingElement = null;
-    }
+    if (!renderFunction) selfClose(child);
     attributes.splice(
       index,
       1,
       j.jsxAttribute(j.jsxIdentifier("render"), j.jsxExpressionContainer(child)),
     );
 
-    if (meaningful.length && !renderFunction) {
-      path.node.children = content;
-    } else {
-      path.node.children = [];
-      opening.selfClosing = true;
-      path.node.closingElement = null;
-    }
+    if (meaningful.length && !renderFunction) path.node.children = content;
+    else selfClose(path.node);
     changed = true;
   }
 
-  return changed ? root.toSource() : file.source;
-}
+  return changed;
+});
 
 function isElementExpression(expression: JSXExpressionContainer["expression"]): boolean {
   if (expression.type === "Identifier" || expression.type === "MemberExpression") return true;

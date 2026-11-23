@@ -1,20 +1,10 @@
-import jscodeshift from "jscodeshift";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 
 import dialogHeaderTitle from "./dialog-header-title";
+import { runCodemod } from "./run-codemod";
 
-const j = jscodeshift.withParser("tsx");
 const KIT = 'import { Dialog, Sheet } from "@construkt-kit/ui";';
-const run = (source: string, imports = KIT) => {
-  const report = vi.fn();
-  const output = dialogHeaderTitle(
-    { path: "app.tsx", source: `${imports}\n${source}` },
-    { j, jscodeshift: j, stats: vi.fn(), report },
-  )
-    .slice(imports.length + 1)
-    .replace(/\s+/g, " ");
-  return { output, reported: report.mock.calls.length };
-};
+const run = (source: string, imports = KIT) => runCodemod(dialogHeaderTitle, source, imports);
 
 it("moves a plain header's title and description to the root, and a sheet header's ends to its content", () => {
   expect(
