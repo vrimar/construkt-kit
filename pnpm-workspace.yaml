@@ -12,3 +12,14 @@ allowBuilds:
 
 # pnpm 11 enables a supply-chain delay by default; disabled to allow latest releases
 minimumReleaseAge: 0
+
+catalog:
+  "@playwright/test": 1.65.1
+  "@storybook/addon-a11y": 11.0.0-beta.3
+  "@storybook/addon-mcp": 11.0.0-beta.3
+  "@storybook/addon-themes": 11.0.0-beta.3
+  "@storybook/react-vite": 11.0.0-beta.3
+  "@vitest/browser-playwright": 5.1.0
+  playwright: 1.65.1
+  storybook: 11.0.0-beta.3
+  vitest: 5.1.0

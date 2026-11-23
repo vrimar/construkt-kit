@@ -13,7 +13,7 @@ Shared tool configuration for Construkt Kit frontend projects.
 | `@construkt-kit/config/playwright` | `createPlaywrightConfig(overrides?)` factory                                  |
 | `@construkt-kit/config/kubb`       | `createKubbConfig(options)` factory for OpenAPI codegen                       |
 | `@construkt-kit/config/tsdown`     | `createTsdownConfig(options?)` factory; a given `entry` replaces the default  |
-| `@construkt-kit/config/vitest`     | `installDomPolyfills()` for jsdom Vitest setup files                          |
+| `@construkt-kit/config/vitest`     | `installDomPolyfills()` and `createMatchMedia()` for jsdom Vitest setup files |
 
 ## Oxlint Config
 
@@ -67,6 +67,17 @@ import { afterEach } from "vitest";
 
 installDomPolyfills();
 afterEach(cleanup);
+```
+
+`createMatchMedia(initial)` returns a `matchMedia` for jsdom, which has none. `initial` answers every query, or each
+query through a `MediaMatcher` function; `setMatches(next)` changes the answer and notifies every `change` listener:
+
+```ts
+import { createMatchMedia } from "@construkt-kit/config/vitest";
+
+const media = createMatchMedia((query) => query === "(max-width: 767px)");
+window.matchMedia = media.matchMedia;
+media.setMatches(false);
 ```
 
 ## Kubb Config (OpenAPI Codegen)

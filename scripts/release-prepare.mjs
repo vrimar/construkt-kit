@@ -3,7 +3,10 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import { isReleaseChange } from "./release-files.mjs";
+import semver from "semver";
+
+import { git, gitOk, repoRoot as root } from "./lib.mjs";
+import { isReleaseChange, packageTag, releasablePackages } from "./release-files.mjs";
 
 const planOnly = process.argv.includes("--plan");
 const unknown = process.argv.slice(2).filter((arg) => arg !== "--plan");
@@ -12,81 +15,10 @@ if (unknown.length > 0) {
   process.exit(2);
 }
 
-const root = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
-const run = (cmd, args, options = {}) =>
-  execFileSync(cmd, args, { cwd: root, encoding: "utf8", ...options }).trim();
-const git = (...args) => run("git", args, { stdio: ["ignore", "pipe", "pipe"] });
-const gitOk = (...args) => spawnSync("git", args, { cwd: root, stdio: "ignore" }).status === 0;
-
 const problems = [];
 const warnings = [];
 
-function parseVersion(text) {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(text);
-  if (!match) throw new Error(`Unsupported version ${text}`);
-  return match.slice(1).map(Number);
-}
-
-function compareVersions(a, b) {
-  const [x, y] = [parseVersion(a), parseVersion(b)];
-  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i];
-  return 0;
-}
-
-function bump(version, level) {
-  const [major, minor, patch] = parseVersion(version);
-  if (level === "major") return `${major + 1}.0.0`;
-  if (level === "minor") return `${major}.${minor + 1}.0`;
-  if (level === "patch") return `${major}.${minor}.${patch + 1}`;
-  return version;
-}
-
-const versionValue = (text) => {
-  const [a = 0, b = 0, c = 0] = text.split(".").map(Number);
-  return a * 1e6 + b * 1e3 + c;
-};
-
-function comparators(range) {
-  return range
-    .trim()
-    .split(/\s+/)
-    .map((comparator) => {
-      const match = /^(>=|<=|>|<|=|\^|~)?(\d+(?:\.\d+){0,2})$/.exec(comparator);
-      if (!match) throw new Error(`Unsupported range ${range}`);
-      const [, op = "=", base] = match;
-      return { op, base };
-    });
-}
-
-function satisfies(version, range) {
-  const [major, minor, patch] = parseVersion(version);
-  const value = major * 1e6 + minor * 1e3 + patch;
-  return comparators(range).every(({ op, base }) => {
-    const [a = 0, b = 0, c = 0] = base.split(".").map(Number);
-    const low = versionValue(base);
-    if (op === ">=") return value >= low;
-    if (op === ">") return value > low;
-    if (op === "<=") return value <= low;
-    if (op === "<") return value < low;
-    if (op === "=") return value === low;
-    if (op === "~") return value >= low && value < versionValue(`${a}.${b + 1}.0`);
-    const high =
-      a > 0
-        ? versionValue(`${a + 1}.0.0`)
-        : b > 0
-          ? versionValue(`0.${b + 1}.0`)
-          : versionValue(`0.0.${c + 1}`);
-    return value >= low && value < high;
-  });
-}
-
-function floorOf(range) {
-  const lows = comparators(range).filter(({ op }) => op !== "<" && op !== "<=");
-  return lows.reduce(
-    (floor, { base }) => (versionValue(base) > versionValue(floor) ? base : floor),
-    "0",
-  );
-}
+const bump = (version, level) => (level === "none" ? version : semver.inc(version, level));
 
 function raisedPeerFloors(before, after) {
   return Object.entries(after.peerDependencies ?? {})
@@ -96,7 +28,7 @@ function raisedPeerFloors(before, after) {
     .map(([name, range]) => ({ name, from: before.peerDependencies?.[name], to: range }))
     .filter(
       ({ from, to }) =>
-        from === undefined || versionValue(floorOf(to)) > versionValue(floorOf(from)),
+        from === undefined || semver.gt(semver.minVersion(to), semver.minVersion(from)),
     );
 }
 
@@ -182,34 +114,32 @@ function commitsSince(base, paths) {
 }
 
 function levelFor(commits, version) {
-  const major = parseVersion(version)[0];
-  if (commits.some((commit) => commit.breaking)) return major === 0 ? "minor" : "major";
+  if (commits.some((commit) => commit.breaking)) {
+    return semver.major(version) === 0 ? "minor" : "major";
+  }
   if (commits.some((commit) => commit.section === "feat")) return "minor";
   return commits.some((commit) => commit.section) ? "patch" : "none";
 }
 
-function latestTag(name) {
-  const tags = git("tag", "-l", `${name}@*`)
+function latestRelease(name) {
+  const prefix = packageTag(name, "");
+  const tags = git("tag", "-l", packageTag(name, "*"))
     .split("\n")
     .filter(Boolean)
-    .filter((tag) => /^\d+\.\d+\.\d+$/.test(tag.slice(name.length + 1)))
+    .filter((tag) => /^\d+\.\d+\.\d+$/.test(tag.slice(prefix.length)))
     .filter((tag) => gitOk("merge-base", "--is-ancestor", tag, "HEAD"));
-  tags.sort((a, b) => compareVersions(a.slice(name.length + 1), b.slice(name.length + 1)));
-  return tags.at(-1) ?? null;
+  tags.sort((a, b) => semver.compare(a.slice(prefix.length), b.slice(prefix.length)));
+  const tag = tags.at(-1);
+  return tag ? { tag, version: tag.slice(prefix.length) } : null;
 }
 
-const projects = JSON.parse(run("pnpm", ["ls", "--recursive", "--depth", "-1", "--json"]))
-  .filter((project) => project.path.startsWith(path.join(root, "packages") + path.sep))
-  .map((project) => {
-    const dir = path.relative(root, project.path);
-    const manifest = JSON.parse(fs.readFileSync(path.join(project.path, "package.json"), "utf8"));
-    return { name: project.name, dir, manifest, version: manifest.version };
-  });
+const projects = releasablePackages();
 
 const releases = [];
-for (const project of projects.filter((p) => !p.manifest.private)) {
-  const tag = latestTag(project.name);
-  const base = tag ? tag.slice(project.name.length + 1) : null;
+for (const project of projects) {
+  const latest = latestRelease(project.name);
+  const tag = latest?.tag ?? null;
+  const base = latest?.version ?? null;
   const commits = commitsSince(tag, shippedPaths(project.dir, project.manifest));
   let level = levelFor(commits, base ?? project.version);
   const released = tag ? JSON.parse(git("show", `${tag}:${project.dir}/package.json`)) : null;
@@ -220,11 +150,11 @@ for (const project of projects.filter((p) => !p.manifest.private)) {
   if (!base) {
     next = project.version;
     warnings.push(`${project.name} has no release tag yet; its first release is ${next}.`);
-  } else if (compareVersions(project.version, base) < 0) {
+  } else if (semver.lt(project.version, base)) {
     problems.push(`${project.name} is at ${project.version}, below its last release ${base}.`);
-  } else if (compareVersions(project.version, base) > 0) {
+  } else if (semver.gt(project.version, base)) {
     const needed = bump(base, level);
-    if (compareVersions(project.version, needed) < 0) {
+    if (semver.lt(project.version, needed)) {
       problems.push(
         `${project.name} is at ${project.version}, but its changes since ${base} need ${needed}.`,
       );
@@ -251,7 +181,7 @@ for (const release of releases) {
   for (const [dep, range] of Object.entries(ranges)) {
     if (!dep.startsWith("@construkt-kit/") || range.startsWith("workspace:")) continue;
     const version = versionOf(dep);
-    if (version && !satisfies(version, range)) {
+    if (version && !semver.satisfies(version, range)) {
       problems.push(`${release.name} needs ${dep} ${range}, which excludes ${dep} ${version}.`);
     }
   }
@@ -265,7 +195,7 @@ for (const release of releases) {
       `${release.name} raises its peer floor (${raised}) without a breaking commit: mark the commit that raises it breaking ("!" after its type, or a "BREAKING CHANGE:" footer).`,
     );
   }
-  const [major, minor] = parseVersion(release.base);
+  const { major, minor } = semver.parse(release.base);
   const from = major === 0 ? `${major}.${minor}` : `${major}`;
   const readme = path.join(root, release.dir, "README.md");
   const notes = new RegExp(`^#{2,6} Upgrading from ${from.replace(".", "\\.")}\\s*$`, "m");
@@ -381,19 +311,19 @@ for (const release of planned) {
 if (planned.length > 0) console.log("\nWrote versions and changelogs.");
 
 const GATES = [
+  { label: "Verify", args: ["verify"] },
   {
-    label: "Lint, typecheck, unit and browser tests",
-    args: ["turbo", "run", "//#lint", "typecheck", "test", "test:browser"],
+    label: "Story tests with pixels",
+    args: ["test:stories"],
+    env: { STORIES_PIXELS: "required" },
+    summarize: storySummary,
   },
-  { label: "Story coverage", args: ["check:stories"] },
-  { label: "Build and package checks", args: ["release:check"] },
-  { label: "Story tests with pixels", args: ["test:stories"], env: { STORIES_PIXELS: "required" } },
 ];
 const logDir = path.join(root, "node_modules/.cache/release-prepare");
 fs.mkdirSync(logDir, { recursive: true });
 
 console.log("\nGates");
-for (const { label, args, env } of GATES) {
+for (const { label, args, env, summarize } of GATES) {
   const log = path.join(logDir, `${label.toLowerCase().replaceAll(/[^a-z]+/g, "-")}.log`);
   const started = Date.now();
   if (process.stdout.isTTY) process.stdout.write(`  … ${label}`);
@@ -409,22 +339,19 @@ for (const { label, args, env } of GATES) {
   const line = `  ${ok ? "✓" : "✗"} ${label} (${seconds}s)\n`;
   process.stdout.write(process.stdout.isTTY ? `\r\x1b[2K${line}` : line);
   if (ok) continue;
-  if (label.startsWith("Story tests")) problems.push(storyProblem(log, started));
-  else problems.push(`${label} failed: see ${path.relative(root, log)}.`);
+  const where = path.relative(root, log);
+  problems.push(summarize ? summarize(started, where) : `${label} failed: see ${where}.`);
 }
 
-function storyProblem(log, started) {
-  const file = path.join(root, "apps/storybook/.stories-report/report.json");
-  const stories = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : null;
-  if (!stories || Date.parse(stories.finishedAt) < started) {
-    return `Story tests failed before reporting: see ${path.relative(root, log)}.`;
-  }
-  const kinds = new Map();
-  for (const failure of stories.failures) {
-    for (const kind of failure.kinds) kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
-  }
-  const summary = [...kinds].map(([kind, count]) => `${count} ${kind}`).join(", ");
-  return `${stories.failed} story failures (${summary}): review apps/storybook/.stories-report/report.html, accept the intended ones and fix the rest.`;
+function storySummary(started, log) {
+  const summary = spawnSync(
+    "pnpm",
+    ["exec", "story-kit", "summary", "--since", new Date(started).toISOString()],
+    { cwd: root, encoding: "utf8" },
+  );
+  return summary.status === 0
+    ? summary.stdout.trim()
+    : `Story tests failed before reporting: see ${log}.`;
 }
 
 report();

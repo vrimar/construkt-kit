@@ -3,9 +3,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { ACCEPTABLE } from "../report-html.ts";
-import type { StoryFailure, StoryReport } from "../reporter.ts";
-import { BASELINE_DIR_RELATIVE, PROJECTS, baselineDir, reportDir, repoRoot } from "./paths.ts";
+import { PROJECTS } from "../devices.ts";
+import { BASELINE_DIR_RELATIVE, baselineFile, reportDir, repoRoot } from "../paths.ts";
+import { ACCEPTABLE, type StoryFailure, type StoryReport, readReport } from "../report.ts";
 import { runStories } from "./run.ts";
 
 interface Target {
@@ -37,10 +37,6 @@ function parseArgs(argv: string[]): AcceptArgs {
   return args;
 }
 
-function baselineFile(target: Target) {
-  return path.join(baselineDir, target.project, `${target.storyId}.png`);
-}
-
 function downloadCiReport(runId: string): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "story-kit-ci-"));
   const result = spawnSync(
@@ -56,18 +52,20 @@ function downloadCiReport(runId: string): string {
   return dir;
 }
 
-function readReport(dir: string): StoryReport {
-  const file = path.join(dir, "report.json");
-  if (!fs.existsSync(file))
-    throw new Error(`No story report at ${file}. Run \`pnpm test:stories\` first.`);
-  return JSON.parse(fs.readFileSync(file, "utf8")) as StoryReport;
+function requireReport(dir: string): StoryReport {
+  const report = readReport(dir);
+  if (!report)
+    throw new Error(
+      `No story report at ${path.join(dir, "report.json")}. Run \`pnpm test:stories\` first.`,
+    );
+  return report;
 }
 
 function readShardReports(dir: string): StoryReport {
-  const shards = fs
-    .readdirSync(dir)
-    .filter((name) => fs.existsSync(path.join(dir, name, "report.json")))
-    .map((name) => ({ name, report: readReport(path.join(dir, name)) }));
+  const shards = fs.readdirSync(dir).flatMap((name) => {
+    const report = readReport(path.join(dir, name));
+    return report ? [{ name, report }] : [];
+  });
   if (shards.length === 0) throw new Error("The CI run uploaded no story report.");
   const reports = shards.map(({ report }) => report);
   const within = (name: string, file: string | null) => file && path.join(name, file);
@@ -136,7 +134,9 @@ function selectTargets(report: StoryReport, args: AcceptArgs, sourceDir: string)
 }
 
 function commit(targets: Target[], reason: string) {
-  const paths = targets.map((target) => path.relative(repoRoot, baselineFile(target)));
+  const paths = targets.map((target) =>
+    path.relative(repoRoot, baselineFile(target.project, target.storyId)),
+  );
   const add = spawnSync("git", ["add", "--", ...paths], { cwd: repoRoot, stdio: "inherit" });
   if (add.status !== 0) throw new Error("git add failed.");
   const stories = targets.map((target) => `${target.storyId} (${target.project})`).join(", ");
@@ -157,7 +157,7 @@ export async function accept(argv: string[]): Promise<number> {
     throw new Error("Name the stories to accept, or pass --all-missing.");
 
   const sourceDir = args.fromCi ? downloadCiReport(args.fromCi) : reportDir;
-  const report = args.fromCi ? readShardReports(sourceDir) : readReport(sourceDir);
+  const report = args.fromCi ? readShardReports(sourceDir) : requireReport(sourceDir);
   const targets = selectTargets(report, args, sourceDir);
   if (targets.length === 0) {
     process.stdout.write("Nothing to accept.\n");
@@ -171,11 +171,13 @@ export async function accept(argv: string[]): Promise<number> {
           `The CI report has no actual screenshot for ${target.storyId} (${target.project}).`,
         );
       }
-      fs.mkdirSync(path.dirname(baselineFile(target)), { recursive: true });
-      fs.copyFileSync(target.actual, baselineFile(target));
+      const baseline = baselineFile(target.project, target.storyId);
+      fs.mkdirSync(path.dirname(baseline), { recursive: true });
+      fs.copyFileSync(target.actual, baseline);
     }
   } else {
-    for (const target of targets) fs.rmSync(baselineFile(target), { force: true });
+    for (const target of targets)
+      fs.rmSync(baselineFile(target.project, target.storyId), { force: true });
     const ids = [...new Set(targets.map((target) => target.storyId))];
     const projectArgs = [...new Set(targets.map((target) => target.project))].flatMap((project) => [
       "--project",

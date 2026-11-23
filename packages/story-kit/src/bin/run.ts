@@ -3,10 +3,11 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 
+import { UPDATE_FLAGS, UPDATE_REFUSED } from "../env.ts";
+import { playwrightConfigFile, reportDir, repoRoot, storyKitDir, storybookDir } from "../paths.ts";
 import { DockerUnavailableError, freePort, startBrowser } from "./browser.ts";
 import { affectedStories } from "./changed.ts";
-import { writeStoryIds } from "./ids.ts";
-import { reportDir, repoRoot, storyKitDir, storybookDir } from "./paths.ts";
+import { STALE_IDS_MESSAGE, writeStoryIds } from "./ids.ts";
 
 export interface RunOptions {
   playwrightArgs: string[];
@@ -19,8 +20,6 @@ export interface RunOptions {
 function playwrightCli(): string {
   return createRequire(path.join(storyKitDir, "package.json")).resolve("@playwright/test/cli");
 }
-
-const UPDATE_FLAGS = /^(-u|--update-snapshots)(=.*)?$/;
 
 function buildGallery(): void {
   const result = spawnSync(
@@ -44,19 +43,13 @@ function writeOnlyFile(ids: string[]): string {
 
 export async function runStories(options: RunOptions): Promise<number> {
   if (options.playwrightArgs.some((arg) => UPDATE_FLAGS.test(arg))) {
-    process.stderr.write(
-      "Snapshot updates are refused. Fix the code, or, for an intended change:\n" +
-        "  screenshots: report the story ids to the owner; once they say accept, `pnpm stories:accept`\n" +
-        "  accessibility snapshots: `pnpm stories:aria <story ids>`\n",
-    );
+    process.stderr.write(`${UPDATE_REFUSED}\n`);
     return 2;
   }
 
   const ci = Boolean(process.env.CI);
   if (!(await writeStoryIds({ check: ci }))) {
-    process.stderr.write(
-      "packages/story-kit/src/story-ids.gen.ts is stale. Run `pnpm stories:ids` and commit it.\n",
-    );
+    process.stderr.write(`${STALE_IDS_MESSAGE}\n`);
     return 2;
   }
 
@@ -94,13 +87,7 @@ export async function runStories(options: RunOptions): Promise<number> {
 
   const result = spawnSync(
     process.execPath,
-    [
-      playwrightCli(),
-      "test",
-      "--config",
-      path.join(storybookDir, "playwright.config.ts"),
-      ...options.playwrightArgs,
-    ],
+    [playwrightCli(), "test", "--config", playwrightConfigFile, ...options.playwrightArgs],
     { cwd: repoRoot, stdio: "inherit", env: { ...process.env, ...env } },
   );
   return result.status ?? 1;

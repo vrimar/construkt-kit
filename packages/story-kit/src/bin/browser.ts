@@ -5,14 +5,8 @@ import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
 
-import { browserImageFile, cacheDir, repoRoot, storyKitDir } from "./paths.ts";
-
-export interface BrowserImage {
-  image: string;
-  digest: string;
-  platform: string;
-  playwright: string;
-}
+import { readBrowserImage } from "../browser-image.ts";
+import { cacheDir, repoRoot, storyKitDir } from "../paths.ts";
 
 interface BrowserState {
   name: string;
@@ -23,10 +17,6 @@ export class DockerUnavailableError extends Error {}
 
 const stateFile = path.join(cacheDir, "browser.json");
 const containerName = `story-kit-${crypto.createHash("sha1").update(repoRoot).digest("hex").slice(0, 10)}`;
-
-export function readBrowserImage(): BrowserImage {
-  return JSON.parse(fs.readFileSync(browserImageFile, "utf8")) as BrowserImage;
-}
 
 function resolvePackageDir(name: string, from: string): string {
   return path.dirname(createRequire(from).resolve(`${name}/package.json`));

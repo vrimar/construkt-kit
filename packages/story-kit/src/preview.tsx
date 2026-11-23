@@ -3,27 +3,11 @@ import "./storybook.css";
 import addonA11y from "@storybook/addon-a11y";
 import addonThemes, { withThemeByClassName } from "@storybook/addon-themes";
 import { definePreview } from "@storybook/react-vite";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactElement } from "react";
 import { INITIAL_VIEWPORTS } from "storybook/viewport";
-
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-}
 
 const preview = definePreview({
   addons: [addonA11y(), addonThemes()],
   decorators: [
-    (Story: () => ReactElement) => (
-      <QueryClientProvider client={createTestQueryClient()}>
-        <Story />
-      </QueryClientProvider>
-    ),
     // Toolbar toggle adds the `dark` class to the preview <html> (matches the preset's `.dark &` condition).
     withThemeByClassName({
       themes: { light: "", dark: "dark" },

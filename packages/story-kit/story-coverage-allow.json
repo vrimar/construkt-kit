@@ -1,5 +1,6 @@
 {
   "ui": {
+    "ClearButton": "The button InputGroupClearButton renders, shown in the SearchInput and NumberFilter stories.",
     "InputGroupClearButton": "Rendered inside the SearchInput and NumberFilter stories, which show its states.",
     "Portal": "Moves its children elsewhere in the document and has no output of its own.",
     "TreeDragPreview": "An alias of DragPreview, which has its own stories."

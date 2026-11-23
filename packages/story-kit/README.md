@@ -1,7 +1,8 @@
 # @construkt-kit/story-kit
 
-Private workspace package. It holds the Storybook preview every story imports, the typed story-id list, and the
-Playwright harness that tests every story at a desktop and a phone viewport.
+Private workspace package. It holds the Storybook preview every story imports, the typed story-id list, the
+Playwright harness that tests every story at a desktop and a phone viewport, and the Vitest browser harness the
+packages' `*.browser.test.tsx` and `*.touch.test.tsx` files run in.
 
 ## What a run checks
 
@@ -13,7 +14,8 @@ renders one story per URL through the same preview Storybook uses. For every sto
   `<dialog>` is open, the tree is the topmost one's, since `showModal()` leaves the rest of the page inert
 - compares a full-page screenshot with `apps/storybook/__baselines__/<project>/<story id>.png`
 
-It also runs every behaviour spec (`packages/*/src/**/*.spec.ts`).
+It also runs every behaviour spec (`packages/*/src/**/*.spec.ts`). The Playwright config is `playwright.config.ts`
+here; `src/devices.ts` lists the devices and `src/paths.ts` where stories, baselines and reports live.
 
 | Project        | Viewport       | Input | Checks                                          |
 | -------------- | -------------- | ----- | ----------------------------------------------- |
@@ -50,8 +52,9 @@ so. CI sets `STORIES_PIXELS=required`, which fails the run instead.
 | `pnpm check:stories`                           | Every export has a story; every sheet overlay is covered              |
 
 `test:stories:changed` follows each story's imports. A change to the preset, the preview, the gallery, this package
-or a manifest runs everything; a change to `packages/ui/src` reruns every pages and data-grid story, because those
-import ui as a package.
+or a manifest runs everything. A change to a package reruns every story that imports it or a package that depends on
+it at runtime, so a utils change reaches ui, pages and data-grid stories, and a ui change every pages and data-grid
+story. A spec whose imports reach a changed file reruns the stories it names.
 
 ## Failures
 
@@ -104,37 +107,75 @@ when you change focus, keyboard, dismissal or open/close logic the kit owns, and
 catches that nothing else does.
 
 ```ts
-import { expect, selectStories, storyTags, test } from "@construkt-kit/story-kit/test";
+import { expect, storyTest } from "@construkt-kit/story-kit/test";
 
-for (const id of selectStories(["components-numberfilter--default"])) {
-  test(
-    `${id} switching to between keeps focus on the operator`,
-    { tag: storyTags(id) },
-    async ({ gallery, page }) => {
-      await gallery.open(id);
-      await gallery.press(page.getByRole("button", { name: "Equals" }));
-      await gallery.press(page.getByRole("menuitemradio", { name: /Between/ }));
-      await expect(page.getByRole("button", { name: "Between" })).toBeFocused();
-    },
-  );
-}
+storyTest(
+  ["components-numberfilter--default"],
+  "switching to between keeps focus on the operator",
+  async ({ gallery, page }) => {
+    await gallery.press(page.getByRole("button", { name: "Equals" }));
+    await gallery.press(page.getByRole("menuitemradio", { name: /Between/ }));
+    await expect(page.getByRole("button", { name: "Between" })).toBeFocused();
+  },
+);
 ```
+
+`storyTest` runs the body once for each story the run selects, after opening it, titled with the story id. Pass
+`{ only: "desktop" }` or `{ only: "phone" }` as the last argument when the test applies to one device. A test that needs
+more than the story open first uses `test` with `selectStories`, `storyTags(id, only)` and `gallery.open(id)`.
 
 - `gallery.press` taps on the phone project and clicks on desktop
 - `gallery.swipe(target, dx, dy)` drags a real touch from the middle of `target` and holds it still before lifting,
-  so the release goes by where it let go; it needs touch, so tag the test `@phone-only`. Pass `whileHeld` to act
+  so the release goes by where it let go; it needs touch, so keep the test to the phone. Pass `whileHeld` to act
   before the finger lifts
 - Query overlay content through `page`; it renders outside the story root
 - A phone sheet hides the page from the accessibility tree: locate a trigger by its id before opening
 - `gallery.calls("onChange")` returns the calls recorded on a `fn()` story arg
 - `gallery.resizeTo(locator, width)` resizes an element for layout that follows its own width
+- `gallery.settle()` waits two animation frames, for work the page schedules on the next frame
+- `expect(locator).toBeFocusVisible()` asserts focus and `:focus-visible` together, retrying like `toBeFocused`
+- A wait on a component timer imports the component's own delay constant and adds `TIMER_SLACK_MS`, so it follows
+  the component when the delay changes
 - `gallery.expectScreenshot(name)` is the only way to compare a screenshot from a spec
-- Tag a test `@phone-only` or `@desktop-only` when it only applies to one device
 
-Lint requires every spec test to act on the page and then assert.
+Lint requires every `test` and `storyTest` body to act on the page and then assert.
 
 Shared behaviour is registered once and runs against every component that shares it:
 `packages/ui/src/components/sheetFrame.cases.ts` lists each overlay that opens as a phone sheet, and
 `sheetFrame.spec.ts` checks Escape right after opening, focus returning on close, and tapping outside the sheet for
-all of them. `check:stories` fails when a component starts importing `overlayPresentation` or `pickerPopup`
-without a case there.
+all of them. `check:stories` fails when a component starts importing the popup root (`primitives/popup` or
+`components/popup`) without a case there.
+
+## Vitest browser tests
+
+`@construkt-kit/story-kit/vitest` is the one harness for the packages' Vitest runs:
+
+```ts
+import { BROWSER_TESTS, browserProjects, jsdomSetup } from "@construkt-kit/story-kit/vitest";
+import { configDefaults, defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    projects: [
+      {
+        test: {
+          name: "unit",
+          environment: "jsdom",
+          include: ["src/**/*.test.{ts,tsx}"],
+          exclude: [...configDefaults.exclude, BROWSER_TESTS],
+          setupFiles: [jsdomSetup],
+        },
+      },
+      ...browserProjects(),
+    ],
+  },
+});
+```
+
+- `browserProjects({ commands })` returns `browser` (Chromium, 1280×800) and `touch` (Chromium with touch, 390×844),
+  which run `src/**/*.browser.test.{ts,tsx}` and `src/**/*.touch.test.{ts,tsx}` styled by the package's
+  `panda.config.ts`, with Testing Library's `cleanup` after each test. `commands` adds the package's own browser
+  commands; type them with `ClientCommands<typeof commands>` in a `vitest/browser` `BrowserCommands` augmentation
+- Every project gets `commands.touchDrag(selector, dx, dy, holdMs?)`, the same real touch drag as `gallery.swipe`
+- `jsdomSetup` installs `@construkt-kit/config/vitest`'s DOM polyfills and a `matchMedia` that matches nothing, and
+  registers `cleanup`

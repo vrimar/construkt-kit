@@ -48,6 +48,7 @@ own `styled-system/`, never from the kit. Details: [using ui in an app](packages
 | ---------------------- | ------------------------------------------------------------------ |
 | `pnpm install`         | Install the workspace                                              |
 | `pnpm storybook`       | Browse every component                                             |
+| `pnpm verify`          | Format, lint, typecheck, test, build and package checks            |
 | `pnpm test:stories`    | Test every story: axe, accessibility tree and screenshots (Docker) |
 | `pnpm release:prepare` | Bump versions, write changelogs and run every release gate         |
 

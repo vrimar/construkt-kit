@@ -1,6 +1,6 @@
 import { defineConfig } from "oxfmt";
 
-import { deepMerge } from "../internal/merge";
+import { deepMerge } from "../internal/merge.ts";
 
 type OxfmtConfig = ReturnType<typeof defineConfig>;
 

@@ -124,6 +124,8 @@ function calleeName(callee) {
   return null;
 }
 
+const TEST_FUNCTIONS = new Set(["test", "storyTest"]);
+
 function rootIdentifier(node) {
   let current = node;
   while (current.type === "MemberExpression" || current.type === "CallExpression") {
@@ -144,10 +146,9 @@ const specAsserts = {
     const tests = [];
     return {
       CallExpression(node) {
-        if (node.callee.type === "Identifier" && node.callee.name === "test") {
-          const body = node.arguments.at(-1);
-          if (body && FUNCTIONS.has(body.type))
-            tests.push({ node, body, actions: [], expects: [] });
+        if (node.callee.type === "Identifier" && TEST_FUNCTIONS.has(node.callee.name)) {
+          const body = node.arguments.findLast((argument) => FUNCTIONS.has(argument.type));
+          if (body) tests.push({ node, body, actions: [], expects: [] });
           return;
         }
         const owner = tests.findLast(

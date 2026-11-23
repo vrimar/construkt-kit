@@ -38,7 +38,7 @@
     "typecheck": {
       "dependsOn": ["^build", "codegen", "gen:fixture"]
     },
-    "//#lint": {
+    "//#lint:oxlint": {
       // Type-aware rules read each package's built types and data-grid's generated
       // recipe; these pull in every other package's build transitively.
       "dependsOn": [

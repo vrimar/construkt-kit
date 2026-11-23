@@ -1,5 +1,7 @@
 {
   "extends": "@construkt-kit/config/typescript",
-  "include": ["src"],
-  "exclude": ["src/**/*.stories.tsx", "src/**/*.stories.ts", "src/**/*.spec.ts"]
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src"]
 }

@@ -4,7 +4,9 @@ import path from "node:path";
 
 import { buildIndex } from "storybook/internal/core-server";
 
-import { repoRoot, storybookConfigDir, storybookDir, storyIdsFile } from "./paths.ts";
+import { repoRoot, storybookConfigDir, storybookDir, storyIdsFile } from "../paths.ts";
+
+export const STALE_IDS_MESSAGE = `${path.relative(repoRoot, storyIdsFile)} is stale. Run \`pnpm stories:ids\` and commit it.`;
 
 const STORYBOOK_TAGS = new Set([
   "dev",

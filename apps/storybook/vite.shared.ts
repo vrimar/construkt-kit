@@ -26,12 +26,6 @@ export function kitResolution(): {
       { find: /^react$/, replacement: path.join(reactDir, "index.js") },
     ],
     dedupe: ["react", "react-dom"],
-    optimizeDepsInclude: [
-      "@tanstack/react-query",
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-    ],
+    optimizeDepsInclude: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   };
 }

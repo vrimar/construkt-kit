@@ -1,9 +1,10 @@
+import { jsdomSetup } from "@construkt-kit/story-kit/vitest";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    setupFiles: ["./vitest.setup.ts"],
+    setupFiles: [jsdomSetup],
   },
 });

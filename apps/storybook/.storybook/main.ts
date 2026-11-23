@@ -1,7 +1,7 @@
-import { dirname } from "node:path";
+import { dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// This file has been automatically migrated to valid ESM format by Storybook.
+import { STORY_GLOBS, repoRoot, storybookConfigDir } from "@construkt-kit/story-kit/paths";
 import type { StorybookConfig } from "@storybook/react-vite";
 import { defineMain } from "@storybook/react-vite/node";
 
@@ -11,12 +11,7 @@ import { settleWorkspaceBuilds } from "./settleWorkspaceBuilds.ts";
 const storybookBasePath = normalizeBasePath(process.env.CONSTRUKT_KIT_STORYBOOK_BASE_PATH);
 
 export default defineMain({
-  stories: [
-    "../stories/**/*.stories.@(ts|tsx)",
-    "../../../packages/ui/src/**/*.stories.@(ts|tsx)",
-    "../../../packages/pages/src/**/*.stories.@(ts|tsx)",
-    "../../../packages/data-grid/src/**/*.stories.@(ts|tsx)",
-  ],
+  stories: STORY_GLOBS.map((glob) => `${relative(storybookConfigDir, repoRoot)}/${glob}`),
 
   addons: [
     getAbsolutePath("@storybook/addon-a11y"),

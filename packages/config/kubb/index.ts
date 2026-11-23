@@ -5,7 +5,7 @@ import { pluginTs } from "@kubb/plugin-ts";
 import type { UserConfig } from "kubb";
 import { defineConfig } from "kubb/config";
 
-import { deepMerge } from "../internal/merge";
+import { deepMerge } from "../internal/merge.ts";
 
 export interface KubbConfigOptions {
   inputPath?: string;

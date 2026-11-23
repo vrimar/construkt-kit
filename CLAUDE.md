@@ -7,7 +7,7 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 ## Packages
 
 - **`@construkt-kit/ui`** — 60+ UI components built on Panda CSS and the kit's own React primitives (`packages/ui/src/primitives/`). Always import components from `@construkt-kit/ui`.
-- **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`, `fetchTransport`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
+- **`@construkt-kit/api`** — Kubb client configuration (`configureApiClient`), typed error classes (`ApiError`, `ValidationError`, `NotFoundError`, `UnauthorizedError`), data-table types.
 - **`@construkt-kit/utils`** — Stateless utilities: arrays, dates, enums, numbers, objects, query strings, validation schemas (Zod).
 - **`@construkt-kit/pages`** — Shared auth pages (`LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`) with adapter-based auth.
 - **`@construkt-kit/data-grid`** — Virtualized, Excel-like grid. Ships its `dataGrid` recipe as an opt-in Panda preset (`import { dataGridPreset } from "@construkt-kit/data-grid/preset"`, then `presets: [dataGridPreset]`); not a Panda design system.
@@ -27,15 +27,17 @@ Monorepo providing `@construkt-kit/*` packages. Uses **pnpm workspaces**, **Turb
 | `pnpm test:stories:changed` | Only what a change since `origin/main` affects        |
 | `pnpm check:stories`        | Every export has a story; overlays covered            |
 | `pnpm typecheck`            | Type-check all packages                               |
-| `pnpm lint`                 | Lint the repo in one type-aware pass                  |
+| `pnpm lint`                 | Build what lint reads, then lint in one pass          |
 | `pnpm format`               | Format the repo in one pass (oxfmt)                   |
+| `pnpm verify`               | Format, lint, typecheck, test, build and checks       |
 | `pnpm storybook`            | Start Storybook dev server                            |
 | `pnpm release:prepare`      | Bump, changelog and gate a release; lists what's left |
 | `pnpm release`              | Build, gate exports, publish to npm                   |
 
 Build/dev/test/typecheck go through Turbo per package (`turbo run <task>` via root scripts).
-Lint is a single root-level pass over the whole repo — `turbo run //#lint` — because oxlint
-honours `options.typeAware` only in the config it loads as its root.
+Lint is a single root-level pass over the whole repo — the root task `//#lint:oxlint`, which
+`pnpm lint` runs once the builds its type-aware rules read are done — because oxlint honours
+`options.typeAware` only in the config it loads as its root.
 
 ## Conventions
 

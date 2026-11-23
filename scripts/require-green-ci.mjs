@@ -1,15 +1,13 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { git, gitOk, run } from "./lib.mjs";
 import { isReleaseChange } from "./release-files.mjs";
 
 const POLL_MS = 30_000;
 const START_GRACE_MS = 5 * 60_000;
 const TIMEOUT_MS = 50 * 60_000;
 
-const run = (cmd, args) => execFileSync(cmd, args, { encoding: "utf8" }).trim();
-const git = (...args) => run("git", args);
 const short = (sha) => sha.slice(0, 7);
 
 const sha = process.env.GITHUB_SHA || git("rev-parse", "HEAD");
@@ -21,10 +19,8 @@ function fail(message) {
 }
 
 function releaseParent() {
-  const parent = spawnSync("git", ["rev-parse", "--verify", "--quiet", `${sha}^`], {
-    encoding: "utf8",
-  }).stdout.trim();
-  if (!parent) return null;
+  if (!gitOk("rev-parse", "--verify", "--quiet", `${sha}^`)) return null;
+  const parent = git("rev-parse", `${sha}^`);
   const files = git("diff", "--no-renames", "--name-only", parent, sha).split("\n").filter(Boolean);
   const releaseOnly = files.every((file) =>
     isReleaseChange(file, git("diff", "-U0", parent, sha, "--", file)),

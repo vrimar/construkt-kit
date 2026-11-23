@@ -2,37 +2,46 @@
   "name": "@construkt-kit/story-kit",
   "version": "0.1.0",
   "private": true,
-  "description": "Storybook preview, story gallery and Playwright story-test harness for Construkt Kit",
+  "description": "Storybook preview, story gallery, Playwright story-test harness and Vitest browser harness for Construkt Kit",
   "bin": {
     "story-kit": "./src/bin/story-kit.ts"
   },
   "type": "module",
+  "imports": {
+    "#touch": "./src/touch.ts"
+  },
   "exports": {
+    "./gallery-protocol": "./src/gallery-protocol.ts",
+    "./paths": "./src/paths.ts",
     "./preview": "./src/preview.tsx",
+    "./story-ids": "./src/story-ids.gen.ts",
     "./test": "./src/test.ts",
-    "./reporter": "./src/reporter.ts",
-    "./story-ids": "./src/story-ids.gen.ts"
+    "./vitest": "./src/vitest/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@playwright/test": "1.65.1",
-    "@storybook/addon-a11y": "11.0.0-beta.3",
-    "@storybook/addon-themes": "11.0.0-beta.3",
-    "@storybook/react-vite": "11.0.0-beta.3",
-    "@tanstack/react-query": "^5.107.1",
+    "@construkt-kit/config": "workspace:*",
+    "@pandacss/dev": "^2.5.0",
+    "@playwright/test": "catalog:",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-themes": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "@testing-library/react": "^16.3.3",
+    "@vitest/browser-playwright": "catalog:",
     "inter-ui": "^4.1.1",
     "pngjs": "^7.0.0",
-    "storybook": "11.0.0-beta.3"
+    "storybook": "catalog:",
+    "vitest": "catalog:"
   },
   "devDependencies": {
-    "@construkt-kit/config": "workspace:*",
     "@types/node": "^26.6.6",
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "playwright": "catalog:",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "vite": "^8.3.8"

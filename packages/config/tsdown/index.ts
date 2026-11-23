@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { type UserConfig, defineConfig } from "tsdown";
 
-import { deepMerge } from "../internal/merge";
+import { deepMerge } from "../internal/merge.ts";
 
 export interface TsdownConfigOptions extends UserConfig {
   /** Packages tsdown must import rather than inline into the bundle. */

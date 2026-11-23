@@ -1,4 +1,5 @@
 {
   "extends": "./typescript/base.json",
+  "compilerOptions": { "noEmit": true, "allowImportingTsExtensions": true },
   "include": ["vite", "playwright", "kubb", "oxlint", "oxfmt", "tsdown", "vitest", "internal"]
 }

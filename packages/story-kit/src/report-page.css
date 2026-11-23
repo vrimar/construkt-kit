@@ -413,44 +413,31 @@ details pre {
 
 .k-visual,
 .k-dimension {
-  background: var(--warn);
+  --kind: var(--warn);
 }
 
 .k-missing-baseline {
-  background: var(--info);
+  --kind: var(--info);
 }
 
 .k-unstable {
-  background: var(--violet);
+  --kind: var(--violet);
 }
 
 .k-a11y,
 .k-aria,
 .k-spec {
-  background: var(--bad);
+  --kind: var(--bad);
+}
+
+.device,
+.badge {
+  background: var(--kind);
 }
 
 .chip[class*="k-"] {
   background: none;
-}
-
-.chip.k-visual,
-.chip.k-dimension {
-  color: var(--warn);
-}
-
-.chip.k-missing-baseline {
-  color: var(--info);
-}
-
-.chip.k-unstable {
-  color: var(--violet);
-}
-
-.chip.k-a11y,
-.chip.k-aria,
-.chip.k-spec {
-  color: var(--bad);
+  color: var(--kind);
 }
 
 .chip[class*="k-"][aria-pressed="true"] {

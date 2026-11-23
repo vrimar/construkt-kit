@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import { repoRoot } from "./paths.ts";
+import { BEHAVIOUR_SPECS, STORY_PACKAGES, repoRoot } from "../paths.ts";
 
 export interface AffectedStories {
   ids: string[] | "all";
@@ -11,7 +11,7 @@ export interface AffectedStories {
 
 const RUN_EVERYTHING = [
   /^packages\/preset\//,
-  /^packages\/story-kit\/(src\/(preview\.tsx|storybook\.css|test\.ts)|browser-image\.json|package\.json)$/,
+  /^packages\/story-kit\/(?!src\/(bin|vitest)\/|src\/report|src\/story-ids\.gen\.ts$|[^/]+\.md$|story-coverage-allow\.json$|oxlint-stories\.mjs$|tsconfig\.json$)/,
   /^apps\/storybook\/(?!__baselines__\/|\.stories-report\/)/,
   /^packages\/[^/]+\/(panda\.config\.ts|package\.json|postcss\.config\.\w+)$/,
   /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$/,
@@ -21,7 +21,12 @@ const SOURCE_EXTENSIONS = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
 const IMPORT_SPECIFIER =
   /(?<!["'\w])(?:import|export)\b[\s\S]{0,400}?\bfrom[ \t]*["']([^"'\n]+)["']|(?<!["'\w])import[ \t]*\(?[ \t]*["']([^"'\n]+)["']/g;
 const STORY_ID_LITERAL = /["']([a-z0-9-]+--[a-z0-9-]+)["']/g;
-const WORKSPACE_IMPORT = /^@construkt-kit\/(ui|pages|data-grid)(\/|$)/;
+const WORKSPACE_SCOPE = "@construkt-kit/";
+const WORKSPACE_IMPORT = /^@construkt-kit\/([^/]+)/;
+const PACKAGE_SOURCE = /^packages\/([^/]+)\/src\/(.+)$/;
+const RUNTIME_DEPENDENCIES = ["dependencies", "peerDependencies", "optionalDependencies"] as const;
+
+type Manifest = Partial<Record<(typeof RUNTIME_DEPENDENCIES)[number], Record<string, string>>>;
 
 function git(args: string[]): string[] {
   const result = spawnSync("git", args, { cwd: repoRoot, encoding: "utf8" });
@@ -81,9 +86,46 @@ function reachFrom(entry: string, cache: Map<string, Reach>): Reach {
 }
 
 function isPackageSource(file: string): string | null {
-  const match = /^packages\/(ui|pages|data-grid)\/src\/(.+)$/.exec(file);
+  const match = PACKAGE_SOURCE.exec(file);
   if (!match || /\.(stories|test|spec)\.tsx?$/.test(match[2])) return null;
   return match[1];
+}
+
+function workspaceDependencies(name: string): string[] {
+  const file = path.join(repoRoot, "packages", name, "package.json");
+  if (!fs.existsSync(file)) return [];
+  const manifest = JSON.parse(fs.readFileSync(file, "utf8")) as Manifest;
+  return RUNTIME_DEPENDENCIES.flatMap((field) => Object.keys(manifest[field] ?? {}))
+    .filter((dependency) => dependency.startsWith(WORKSPACE_SCOPE))
+    .map((dependency) => dependency.slice(WORKSPACE_SCOPE.length));
+}
+
+function runtimeDependents(): Map<string, Set<string>> {
+  const dependents = new Map<string, Set<string>>();
+  const queue: string[] = [...STORY_PACKAGES];
+  for (let name = queue.pop(); name !== undefined; name = queue.pop()) {
+    if (dependents.has(name)) continue;
+    dependents.set(name, new Set());
+    queue.push(...workspaceDependencies(name));
+  }
+  for (const name of dependents.keys()) {
+    for (const dependency of workspaceDependencies(name)) dependents.get(dependency)?.add(name);
+  }
+  return dependents;
+}
+
+function changedPackages(changed: string[]): Set<string> {
+  const dependents = runtimeDependents();
+  const affected = new Set<string>();
+  const queue = changed
+    .map(isPackageSource)
+    .filter((name): name is string => name !== null && dependents.has(name));
+  for (let name = queue.pop(); name !== undefined; name = queue.pop()) {
+    if (affected.has(name)) continue;
+    affected.add(name);
+    queue.push(...(dependents.get(name) ?? []));
+  }
+  return affected;
 }
 
 async function storyFiles(): Promise<Map<string, string[]>> {
@@ -120,17 +162,20 @@ export async function affectedBy(changed: string[], since: string): Promise<Affe
   const byFile = await storyFiles();
   const affected = new Set<string>();
   const existing = changed.filter((file) => fs.existsSync(path.join(repoRoot, file)));
-  const changedPackages = new Set(existing.map(isPackageSource).filter((name) => name != null));
+  const packages = changedPackages(existing);
+  const reachesChange = (entry: string) => {
+    const reach = reachFrom(entry, cache);
+    return (
+      existing.some((changedFile) => reach.files.has(changedFile)) ||
+      [...reach.packages].some((name) => packages.has(name))
+    );
+  };
 
   for (const [file, ids] of byFile) {
-    const reach = reachFrom(file, cache);
-    const hit =
-      existing.some((changedFile) => reach.files.has(changedFile)) ||
-      [...reach.packages].some((name) => changedPackages.has(name));
-    if (hit) for (const id of ids) affected.add(id);
+    if (reachesChange(file)) for (const id of ids) affected.add(id);
   }
-  for (const spec of existing.filter((file) => /\.spec\.ts$/.test(file))) {
-    for (const id of storyIdsNamedIn(spec, cache)) affected.add(id);
+  for (const spec of fs.globSync(BEHAVIOUR_SPECS, { cwd: repoRoot })) {
+    if (reachesChange(spec)) for (const id of storyIdsNamedIn(spec, cache)) affected.add(id);
   }
 
   const known = new Set([...byFile.values()].flat());

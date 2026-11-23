@@ -9,20 +9,52 @@ import {
   type Page,
   type TestInfo,
   test as base,
-  expect,
+  expect as baseExpect,
 } from "@playwright/test";
 
+import { readBrowserImage } from "./browser-image";
+import { DEVICE_ONLY, type Device } from "./devices";
+import { isPixelRun } from "./env";
+import { type StoryTheme, storyUrl } from "./gallery-protocol";
 import { type StoryEntry, type StoryId, stories } from "./story-ids.gen";
+import { touchDrag } from "./touch";
 
-export { expect };
-export type { Locator, Page, StoryEntry, StoryId };
+export { DEVICE_ONLY };
+export type { Device, Locator, Page, StoryEntry, StoryId, StoryTheme };
 
 /** The date every story renders on; Calendar "today" and relative dates resolve against it. */
 export const FIXED_NOW = new Date("2026-03-11T09:00:00Z");
 
+/** How far a spec waits past a component's timer before asserting whether it fired. */
+export const TIMER_SLACK_MS = 500;
+
 const AXE_DISABLED_BY_DEFAULT = ["region"];
-const SWIPE_STEPS = 10;
 const SWIPE_HOLD_MS = 120;
+
+export const expect = baseExpect.extend({
+  /** The element is focused and matches `:focus-visible`, so the browser draws its focus ring. */
+  async toBeFocusVisible(locator: Locator, options?: { timeout?: number }) {
+    const focusVisible = locator.and(locator.page().locator(":focus-visible"));
+    let pass: boolean;
+    try {
+      await (this.isNot ? baseExpect(focusVisible).not : baseExpect(focusVisible)).toBeAttached(
+        options,
+      );
+      pass = !this.isNot;
+    } catch {
+      pass = this.isNot;
+    }
+    return {
+      pass,
+      name: "toBeFocusVisible",
+      expected: !this.isNot,
+      message: () =>
+        `${this.utils.matcherHint("toBeFocusVisible", "locator", "", { isNot: this.isNot })}\n\n` +
+        `Locator: ${locator.toString()}\n` +
+        `Expected: ${this.isNot ? "not focused, or focused without" : "focused, with"} :focus-visible`,
+    };
+  },
+});
 
 export interface SelectedStory extends StoryEntry {
   id: StoryId;
@@ -48,21 +80,19 @@ export function selectStories<T extends StoryId>(ids: readonly T[]): T[] {
   return ids.filter((id) => only == null || only.has(id));
 }
 
-/** Playwright test tags for a story, so projects can skip `phone-only` or `desktop-only` stories. */
-export function storyTags(id: StoryId): string[] {
-  return stories[id].tags.map((tag) => `@${tag}`);
-}
-
-export type StoryTheme = "light" | "dark";
-
-interface GalleryState {
-  error?: string;
-  a11yRules?: string[];
+/**
+ * Playwright test tags for a story, so projects skip `phone-only` and `desktop-only` stories. `only` keeps a test to
+ * one device on a story that renders on both.
+ */
+export function storyTags(id: StoryId, only?: Device): string[] {
+  const tags = new Set<string>(stories[id].tags);
+  if (only) tags.add(DEVICE_ONLY[only]);
+  return [...tags].map((tag) => `@${tag}`);
 }
 
 export interface Gallery {
   /** `phone` on touch projects, `desktop` otherwise. */
-  readonly device: "desktop" | "phone";
+  readonly device: Device;
   /** Renders the story alone on the page and waits until it is ready. */
   open(id: StoryId): Promise<void>;
   /** Taps on touch projects and clicks elsewhere. */
@@ -82,6 +112,8 @@ export interface Gallery {
   calls(arg: string): Promise<unknown[][]>;
   /** Resizes an element by setting its inline width, for stories that size themselves with CSS `resize`. */
   resizeTo(target: Locator, width: number): Promise<void>;
+  /** Waits two animation frames, for work the page schedules on the next frame to land. */
+  settle(): Promise<void>;
   /** Compares the accessibility tree of the page, or of its topmost open modal, with its committed snapshot. */
   expectAriaTree(name: string): Promise<void>;
   /** Fails the test with every axe violation on the page. */
@@ -100,17 +132,11 @@ interface WorkerFixtures {
   workerContext: BrowserContext;
 }
 
-function storyUrl(id: StoryId, theme: StoryTheme) {
-  const params = new URLSearchParams({ id });
-  if (theme === "dark") params.set("theme", "dark");
-  return `/?${params}`;
-}
-
-async function readGalleryState(page: Page): Promise<GalleryState> {
-  return page.evaluate(() => {
-    const state = (window as unknown as { __gallery?: GalleryState }).__gallery;
-    return { error: state?.error, a11yRules: state?.a11yRules };
-  });
+async function readGalleryState(page: Page) {
+  return page.evaluate(() => ({
+    error: window.__gallery?.error,
+    a11yRules: window.__gallery?.a11yRules,
+  }));
 }
 
 function formatViolations(violations: Awaited<ReturnType<AxeBuilder["analyze"]>>["violations"]) {
@@ -150,12 +176,7 @@ async function expectEnvironment(page: Page, testInfo: TestInfo) {
 }
 
 async function expectPinnedBrowser(browser: Browser) {
-  const image = JSON.parse(
-    fs.readFileSync(new URL("../browser-image.json", import.meta.url), "utf8"),
-  ) as {
-    chromium: string;
-    userAgentPlatform: string;
-  };
+  const image = readBrowserImage();
   const page = await browser.newPage();
   try {
     const userAgent = await page.evaluate(() => navigator.userAgent);
@@ -176,6 +197,13 @@ function createGallery(
 ): Gallery {
   let a11yRules: string[] = [];
   const isTouch = Boolean(testInfo.project.use.hasTouch);
+  const settle = () =>
+    page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
 
   return {
     device: isTouch ? "phone" : "desktop",
@@ -195,47 +223,22 @@ function createGallery(
     },
     async swipe(target, dx, dy, { whileHeld } = {}) {
       if (!isTouch)
-        throw new Error("gallery.swipe needs a touch project; tag the test @phone-only.");
-      const box = await target.boundingBox();
-      if (!box) throw new Error("gallery.swipe: the target has no box.");
-      const x = box.x + box.width / 2;
-      const y = box.y + box.height / 2;
-      const cdp = await page.context().newCDPSession(page);
-      const touch = (type: "touchStart" | "touchMove" | "touchEnd", step: number) =>
-        cdp.send("Input.dispatchTouchEvent", {
-          type,
-          touchPoints:
-            type === "touchEnd"
-              ? []
-              : [{ x: x + (dx * step) / SWIPE_STEPS, y: y + (dy * step) / SWIPE_STEPS }],
-        });
-      try {
-        await touch("touchStart", 0);
-        for (let step = 1; step <= SWIPE_STEPS; step++) await touch("touchMove", step);
-        await page.waitForTimeout(SWIPE_HOLD_MS);
-        await whileHeld?.();
-        await touch("touchEnd", SWIPE_STEPS);
-      } finally {
-        await cdp.detach();
-      }
+        throw new Error("gallery.swipe needs a touch project; keep the test to the phone.");
+      await touchDrag(page, target, dx, dy, { holdMs: SWIPE_HOLD_MS, whileHeld });
     },
     async calls(arg) {
-      return page.evaluate(
-        (name) =>
-          (
-            window as unknown as { __gallery: { calls(name: string): unknown[][] } }
-          ).__gallery.calls(name),
-        arg,
-      );
+      return page.evaluate((name) => {
+        if (!window.__gallery) throw new Error("The gallery has not rendered a story.");
+        return window.__gallery.calls(name);
+      }, arg);
     },
     async resizeTo(target, width) {
       await target.evaluate((element, next) => {
         (element as HTMLElement).style.width = `${next}px`;
       }, width);
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-      );
+      await settle();
     },
+    settle,
     async expectAriaTree(name) {
       // showModal() leaves everything outside the dialog inert, which Playwright's snapshot ignores.
       const modal = page.locator("dialog:modal").last();
@@ -292,7 +295,7 @@ function createGallery(
 export const test = base.extend<Fixtures, WorkerFixtures>({
   pixels: [
     async ({ browser, browserName }, provide) => {
-      const pixels = Boolean(process.env.STORIES_BROWSER_WS) && browserName === "chromium";
+      const pixels = isPixelRun() && browserName === "chromium";
       if (pixels) await expectPinnedBrowser(browser);
       await provide(pixels);
     },
@@ -338,3 +341,21 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
     expect(pageErrors, `Uncaught errors on the page:\n${pageErrors.join("\n\n")}`).toEqual([]);
   },
 });
+
+/**
+ * One test per selected story among `ids`, titled `<id> <title>` and tagged with the story's tags: it opens the story,
+ * then runs `body`. `only` keeps it to one device.
+ */
+export function storyTest<const Id extends StoryId>(
+  ids: readonly Id[],
+  title: string,
+  body: (args: { gallery: Gallery; page: Page; id: Id }) => Promise<void>,
+  { only }: { only?: Device } = {},
+): void {
+  for (const id of selectStories(ids)) {
+    test(`${id} ${title}`, { tag: storyTags(id, only) }, async ({ gallery, page }) => {
+      await gallery.open(id);
+      await body({ gallery, page, id });
+    });
+  }
+}

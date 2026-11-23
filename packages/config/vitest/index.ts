@@ -80,3 +80,43 @@ export function installDomPolyfills(): void {
 }
 
 const POPOVER_OPEN = "data-jsdom-popover-open";
+
+/** Answers whether a media query matches. */
+export type MediaMatcher = (query: string) => boolean;
+
+const toMatcher = (matches: MediaMatcher | boolean): MediaMatcher =>
+  typeof matches === "boolean" ? () => matches : matches;
+
+/**
+ * A `matchMedia` for jsdom, which has none. `initial` answers every query, or each one by the query string.
+ * `setMatches(next)` changes the answer and calls every `change` listener added through it.
+ */
+export function createMatchMedia(initial: MediaMatcher | boolean): {
+  matchMedia: (query: string) => MediaQueryList;
+  setMatches(next: MediaMatcher | boolean): void;
+} {
+  let matcher = toMatcher(initial);
+  const listeners = new Set<() => void>();
+
+  const matchMedia = (query: string) =>
+    ({
+      get matches() {
+        return matcher(query);
+      },
+      media: query,
+      onchange: null,
+      addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+      removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList;
+
+  return {
+    matchMedia,
+    setMatches(next) {
+      matcher = toMatcher(next);
+      for (const listener of listeners) listener();
+    },
+  };
+}

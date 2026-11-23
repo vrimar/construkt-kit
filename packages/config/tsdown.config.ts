@@ -1,6 +1,6 @@
-import { defineConfig } from "tsdown";
+import { createTsdownConfig } from "./tsdown/index.ts";
 
-export default defineConfig({
+export default createTsdownConfig({
   entry: {
     "vite/index": "vite/index.ts",
     "playwright/index": "playwright/index.ts",
@@ -10,8 +10,4 @@ export default defineConfig({
     "tsdown/index": "tsdown/index.ts",
     "vitest/index": "vitest/index.ts",
   },
-  format: ["esm"],
-  dts: true,
-  sourcemap: true,
-  clean: true,
 });

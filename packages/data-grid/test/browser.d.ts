@@ -1,10 +1,6 @@
-import type { commands } from "./commands";
+import type { ClientCommands } from "@construkt-kit/story-kit/vitest";
 
-type ClientCommands<T> = {
-  [K in keyof T]: T[K] extends (context: never, ...args: infer A) => infer R
-    ? (...args: A) => Promise<Awaited<R>>
-    : never;
-};
+import type { commands } from "./commands";
 
 declare module "vitest/browser" {
   interface BrowserCommands extends ClientCommands<typeof commands> {}

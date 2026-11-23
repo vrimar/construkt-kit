@@ -1,50 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import type { FullResult, Reporter, TestCase, TestResult } from "@playwright/test/reporter";
 import { PNG } from "pngjs";
 
-import { renderHtml } from "./report-html";
-import { stories } from "./story-ids.gen";
+import { isPixelRun } from "./env.ts";
+import { reportDir, repoRoot } from "./paths.ts";
+import { renderHtml } from "./report-html.ts";
+import { type FailureKind, KIND_ADVICE, type StoryFailure, type StoryReport } from "./report.ts";
+import { stories } from "./story-ids.gen.ts";
 
-export type FailureKind =
-  | "visual"
-  | "dimension"
-  | "missing-baseline"
-  | "unstable"
-  | "a11y"
-  | "aria"
-  | "spec";
-
-export interface StoryFailure {
-  storyId: string | null;
-  test: string;
-  file: string;
-  exportName: string | null;
-  project: string;
-  kinds: FailureKind[];
-  messages: string[];
-  pixels: number | null;
-  bbox: [number, number, number, number] | null;
-  image: string | null;
-  actual: string | null;
-  rerun: string;
-}
-
-export interface StoryReport {
-  mode: "pixels" | "functional";
-  finishedAt: string;
-  status: FullResult["status"];
-  passed: number;
-  failed: number;
-  skipped: number;
-  failures: StoryFailure[];
-}
-
-const repoRoot = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
-const reportDir = path.join(repoRoot, "apps/storybook/.stories-report");
-const baselineDir = path.join(repoRoot, "apps/storybook/__baselines__");
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 const SEPARATOR = 6;
 const PADDING = 24;
@@ -208,7 +173,7 @@ export default class StoryReporter implements Reporter {
 
   onEnd(result: FullResult) {
     const report: StoryReport = {
-      mode: process.env.STORIES_BROWSER_WS ? "pixels" : "functional",
+      mode: isPixelRun() ? "pixels" : "functional",
       finishedAt: new Date().toISOString(),
       status: result.status,
       passed: this.passed,
@@ -219,10 +184,7 @@ export default class StoryReporter implements Reporter {
     fs.mkdirSync(reportDir, { recursive: true });
     fs.writeFileSync(path.join(reportDir, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
     fs.writeFileSync(path.join(reportDir, "report.md"), renderMarkdown(report));
-    fs.writeFileSync(
-      path.join(reportDir, "report.html"),
-      renderHtml(report, { advice: KIND_ADVICE, reportDir, baselineDir }),
-    );
+    fs.writeFileSync(path.join(reportDir, "report.html"), renderHtml(report));
     if (this.failures.length > 0) {
       process.stdout.write(
         `\nStory report: ${relative(path.join(reportDir, "report.md"))}, or report.html beside it to review in a browser\n`,
@@ -234,19 +196,6 @@ export default class StoryReporter implements Reporter {
     return false;
   }
 }
-
-const KIND_ADVICE: Record<FailureKind, string> = {
-  visual:
-    "Pixels changed. Open the image (reference | actual | diff). Fix the code, or if the change is intended, give the owner the story id and reason to accept.",
-  dimension:
-    "The page changed size. Compare the reference and actual screenshots; fix the layout or hand the change to the owner.",
-  "missing-baseline": "No baseline yet. New stories need the owner to accept a first baseline.",
-  unstable:
-    "Two consecutive screenshots differed. Make the story deterministic (animation, timer, random data); never accept.",
-  a11y: "axe found violations. Fix the markup; disable a rule on the story only for a confirmed false positive, with the rule id.",
-  aria: "The accessibility tree changed. Fix the code, or if intended run `pnpm stories:aria <story id>` and commit the snapshot.",
-  spec: "A behaviour spec failed. Read the assertion; the spec names the wrong change it catches.",
-};
 
 function renderMarkdown(report: StoryReport): string {
   const lines = [
@@ -266,7 +215,7 @@ function renderMarkdown(report: StoryReport): string {
       const [x0, y0, x1, y1] = failure.bbox;
       lines.push(`- Changed pixels: ${failure.pixels}, region x ${x0}–${x1}, y ${y0}–${y1}`);
     }
-    if (failure.image) lines.push(`- Image: apps/storybook/.stories-report/${failure.image}`);
+    if (failure.image) lines.push(`- Image: ${relative(path.join(reportDir, failure.image))}`);
     lines.push(`- Rerun: \`${failure.rerun}\``);
     for (const kind of failure.kinds) lines.push(`- ${KIND_ADVICE[kind]}`);
     lines.push(

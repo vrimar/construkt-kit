@@ -5,11 +5,12 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
 import knownCssProperties from "known-css-properties";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+import { repoRoot, reportProblems } from "./lib.mjs";
+
 const pandaCwd = path.join(repoRoot, "packages/ui");
 const dataGridPreset = path.join(repoRoot, "packages/data-grid/src/preset/index.ts");
 
@@ -44,12 +45,15 @@ try {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }
 
-const failures = [];
+const requireFromUi = createRequire(path.join(pandaCwd, "package.json"));
+const importFromUi = (specifier) => import(pathToFileURL(requireFromUi.resolve(specifier)).href);
+const { construktKitPreset } = await importFromUi("@construkt-kit/preset");
+const { preset: pandaBasePreset } = await importFromUi("@pandacss/preset-base");
 
 // Unresolved tokens emit verbatim with escaped dots; resolved ones keep them only in var(--sizes-4\.5).
-const declarationValue = /^\s*[^\s:{}]+:\s*(.+);/;
 const customProperty = /--[\w\\.-]+/g;
 const escapedDot = /[\w-]\\\./;
+const TIMING_PROPERTY = /^(animation|transition)-timing-function$/;
 const TIMING_KEYWORDS = new Set([
   "linear",
   "ease",
@@ -63,36 +67,14 @@ const TIMING_KEYWORDS = new Set([
   "unset",
   "revert",
 ]);
-const timingFn = /^\s*(animation|transition)-timing-function:\s*(.+);/;
-
-css.split("\n").forEach((line, i) => {
-  const declared = line.match(declarationValue)?.[1].replace(customProperty, "");
-  if (declared && escapedDot.test(declared)) {
-    failures.push({ line: i + 1, text: line.trim(), why: "unresolved token" });
-    return;
-  }
-  const timing = line.match(timingFn);
-  if (timing) {
-    const value = timing[2].trim();
-    const ok =
-      value.startsWith("var(") ||
-      /^(cubic-bezier|steps|linear)\(/.test(value) ||
-      value.split(",").every((v) => TIMING_KEYWORDS.has(v.trim()));
-    if (!ok) failures.push({ line: i + 1, text: line.trim(), why: "unknown timing function" });
-  }
-});
+const isTimingFunction = (value) =>
+  value.startsWith("var(") ||
+  /^(cubic-bezier|steps|linear)\(/.test(value) ||
+  value.split(",").every((v) => TIMING_KEYWORDS.has(v.trim()));
 
 // Only a control whose hidden input takes focus sets data-focus-visible, so _focusVisible must also match :focus-visible.
 const NARROWED_FOCUS_VISIBLE = /(?<!:focus-visible,\s*)\[data-focus-visible\]/;
-const TABS_FOCUS_VISIBLE =
-  /^\s*\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)\s*\{/m;
-const focusRings = css
-  .split("\n")
-  .filter((line) => NARROWED_FOCUS_VISIBLE.test(line))
-  .map((line) => line.trim());
-if (!TABS_FOCUS_VISIBLE.test(css)) {
-  focusRings.push(".tabs__trigger has no :is(:focus-visible, [data-focus-visible]) rule");
-}
+const TABS_FOCUS_VISIBLE = /^\.tabs__trigger:is\(:focus-visible,\s*\[data-focus-visible\]\)$/;
 
 const KNOWN_PROPERTIES = new Set(knownCssProperties.all);
 // An outline/border shorthand without a line style resets the style to none and draws nothing.
@@ -112,31 +94,35 @@ const LINE_STYLES = new Set([
   "auto",
 ]);
 const NO_STROKE = new Set(["0", "inherit", "initial", "unset", "revert", "revert-layer"]);
-const invalidDeclarations = [];
 
 // A responsive variant's media rule beats any plain variant rule, so two variant keys must never set one property.
 const VARIANT_RULE =
   /^\.([a-z0-9]+(?:-[a-z0-9]+)*)(?:__([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*))?--([a-zA-Z0-9]+)_[^\s:.[>~+,]+(.*)$/;
-const variantValues = new Map();
 
 // Panda 2.3 and 2.4+ order equal-specificity state rules differently, so states held at once need a compound rule.
-const ENABLED = ":where(:not(:disabled, [data-disabled]))";
-const STATES = {
-  open: ':is([open], [data-open], [data-state="open"], :popover-open)',
-  on: ":is([data-state=on])",
-  active: `${ENABLED}:is(:active, [data-active])`,
-  hover: `${ENABLED}:where(:hover, [data-hover])`,
-  disabled: ":is(:disabled, [disabled], [data-disabled], [aria-disabled=true])",
-  loading: ":is([data-loading], [aria-busy=true])",
-  readonly: "[data-readonly]",
-};
 const CO_OCCURRING = [
   ["open", "active"],
   ["on", "active"],
   ["disabled", "loading"],
-  ["disabled", "readonly"],
+  ["disabled", "readOnly"],
 ];
-const stateValues = new Map();
+const conditions = [pandaBasePreset, construktKitPreset].reduce((merged, preset) => {
+  const { extend, ...replaced } = preset.conditions ?? {};
+  return { ...merged, ...replaced, ...extend };
+}, {});
+const slotSelector = (condition) =>
+  typeof condition === "string"
+    ? condition
+    : Object.entries(condition)
+        .map(([key, value]) => (value === "@slot" ? key : slotSelector(value)))
+        .find(Boolean);
+const STATES = Object.fromEntries(
+  [...new Set(CO_OCCURRING.flat())].map((name) => [
+    name,
+    slotSelector(conditions[name]).replace(/^&/, ""),
+  ]),
+);
+
 const splitSelectors = (head) => {
   const out = [];
   let depth = 0;
@@ -165,14 +151,18 @@ const parseStates = (selector) => {
   }
   return states.length ? { base, combo: states.sort().join("+") } : null;
 };
+const parseDeclarations = (body) =>
+  body
+    .split(";")
+    .map((declaration) => {
+      const [property, ...rest] = declaration.split(":");
+      return { property: property.trim(), value: rest.join(":").trim() };
+    })
+    .filter(({ value }) => value);
 
 const RAW_ZAG_SELECTOR = /\[data-(scope|part|state)\b/;
 const VAR_READ = /var\(\s*(--[\w\\.-]+)/g;
 
-const { construktKitPreset } = await import(
-  pathToFileURL(createRequire(path.join(pandaCwd, "package.json")).resolve("@construkt-kit/preset"))
-    .href
-);
 const kitRecipes = Object.values({
   ...construktKitPreset.theme.recipes,
   ...construktKitPreset.theme.slotRecipes,
@@ -199,6 +189,81 @@ const recipeContract = new Map(
   ]),
 );
 
+const unresolved = [];
+const invalidDeclarations = [];
+const focusRings = [];
+let tabsFocusVisible = false;
+const variantValues = new Map();
+const stateValues = new Map();
+
+function inspectRule(head, ancestors, declarations) {
+  for (const { property, value } of declarations) {
+    const where = `${head} { ${property}: ${value} }`;
+    if (escapedDot.test(value.replace(customProperty, ""))) {
+      unresolved.push(`unresolved token\n    ${where}`);
+    } else if (TIMING_PROPERTY.test(property) && !isTimingFunction(value)) {
+      unresolved.push(`unknown timing function\n    ${where}`);
+    }
+  }
+  if (head.startsWith("@property ")) sharedVars.add(head.split(/\s+/)[1]);
+  if (head.startsWith("@")) return;
+
+  for (const { property, value } of declarations) {
+    const where = `${head} { ${property}: ${value} }`;
+    if (!property.startsWith("--") && !KNOWN_PROPERTIES.has(property)) {
+      invalidDeclarations.push(`unknown property\n    ${where}`);
+    } else if (
+      STROKE_SHORTHAND.test(property) &&
+      !value.includes("var(") &&
+      !NO_STROKE.has(value) &&
+      !value.split(/\s+/).some((v) => LINE_STYLES.has(v))
+    ) {
+      invalidDeclarations.push(`shorthand without a line style\n    ${where}`);
+    }
+  }
+
+  const layer = ancestors[0];
+  if (layer === "@layer tokens" || layer === "@layer base") {
+    for (const { property } of declarations) {
+      if (property.startsWith("--")) sharedVars.add(property);
+    }
+  } else if (layer?.startsWith("@layer recipes")) {
+    const recipe = recipeContract.get(head.match(RECIPE_CLASS)?.[1]);
+    for (const { property } of recipe ? declarations : []) {
+      if (property.startsWith("--")) recipe.declared.add(property);
+    }
+  }
+
+  const atRules = ancestors.filter((b) => b.startsWith("@"));
+  const context = atRules.filter((b) => !b.startsWith("@layer")).join(" ");
+  for (const selector of splitSelectors(head)) {
+    if (NARROWED_FOCUS_VISIBLE.test(selector)) focusRings.push(selector);
+    if (TABS_FOCUS_VISIBLE.test(selector)) tabsFocusVisible = true;
+
+    const variant = selector.match(VARIANT_RULE);
+    if (variant) {
+      const [, recipe, slot, key, suffix] = variant;
+      for (const { property, value } of declarations) {
+        if (value.includes("!important")) continue;
+        const id = `${recipe}${slot ? `__${slot}` : ""}${suffix.trim()} ${context}[${property}]`;
+        const byKey = variantValues.get(id) ?? new Map();
+        byKey.set(key, (byKey.get(key) ?? new Set()).add(value));
+        variantValues.set(id, byKey);
+      }
+    }
+
+    const parsed = parseStates(selector);
+    if (parsed) {
+      for (const { property, value } of declarations) {
+        const id = `${parsed.base} ${atRules.join(" ")}[${property}]`;
+        const byCombo = stateValues.get(id) ?? new Map();
+        byCombo.set(parsed.combo, (byCombo.get(parsed.combo) ?? new Set()).add(value));
+        stateValues.set(id, byCombo);
+      }
+    }
+  }
+}
+
 const blocks = [];
 let buffer = "";
 for (const ch of css) {
@@ -207,64 +272,7 @@ for (const ch of css) {
     buffer = "";
   } else if (ch === "}") {
     const head = blocks.pop() ?? "";
-    if (head.startsWith("@property ")) sharedVars.add(head.split(/\s+/)[1]);
-    if (!head.startsWith("@")) {
-      const declarations = buffer
-        .split(";")
-        .map((declaration) => {
-          const [property, ...rest] = declaration.split(":");
-          return { property: property.trim(), value: rest.join(":").trim() };
-        })
-        .filter(({ value }) => value);
-      for (const { property, value } of declarations) {
-        const where = `${head} { ${property}: ${value} }`;
-        if (!property.startsWith("--") && !KNOWN_PROPERTIES.has(property)) {
-          invalidDeclarations.push(`unknown property\n    ${where}`);
-        } else if (
-          STROKE_SHORTHAND.test(property) &&
-          !value.includes("var(") &&
-          !NO_STROKE.has(value) &&
-          !value.split(/\s+/).some((v) => LINE_STYLES.has(v))
-        ) {
-          invalidDeclarations.push(`shorthand without a line style\n    ${where}`);
-        }
-      }
-      const layer = blocks[0];
-      if (layer === "@layer tokens" || layer === "@layer base") {
-        for (const { property } of declarations) {
-          if (property.startsWith("--")) sharedVars.add(property);
-        }
-      } else if (layer?.startsWith("@layer recipes")) {
-        const recipe = recipeContract.get(head.match(RECIPE_CLASS)?.[1]);
-        for (const { property } of recipe ? declarations : []) {
-          if (property.startsWith("--")) recipe.declared.add(property);
-        }
-      }
-      const context = blocks.filter((b) => b.startsWith("@") && !b.startsWith("@layer")).join(" ");
-      for (const selector of head.split(",")) {
-        const match = selector.trim().match(VARIANT_RULE);
-        if (!match) continue;
-        const [, recipe, slot, key, suffix] = match;
-        for (const { property, value } of declarations) {
-          if (value.includes("!important")) continue;
-          const id = `${recipe}${slot ? `__${slot}` : ""}${suffix.trim()} ${context}[${property}]`;
-          const byKey = variantValues.get(id) ?? new Map();
-          byKey.set(key, (byKey.get(key) ?? new Set()).add(value));
-          variantValues.set(id, byKey);
-        }
-      }
-      const layers = blocks.filter((b) => b.startsWith("@")).join(" ");
-      for (const selector of splitSelectors(head)) {
-        const parsed = parseStates(selector);
-        if (!parsed) continue;
-        for (const { property, value } of declarations) {
-          const id = `${parsed.base} ${layers}[${property}]`;
-          const byCombo = stateValues.get(id) ?? new Map();
-          byCombo.set(parsed.combo, (byCombo.get(parsed.combo) ?? new Set()).add(value));
-          stateValues.set(id, byCombo);
-        }
-      }
-    }
+    inspectRule(head, blocks, parseDeclarations(buffer));
     buffer = "";
   } else if (ch === ";" && blocks.length === 0) {
     buffer = "";
@@ -272,6 +280,11 @@ for (const ch of css) {
     buffer += ch;
   }
 }
+
+if (!tabsFocusVisible) {
+  focusRings.push(".tabs__trigger has no :is(:focus-visible, [data-focus-visible]) rule");
+}
+
 const overlaps = [...variantValues]
   .filter(
     ([, byKey]) => byKey.size > 1 && new Set([...byKey.values()].flatMap((v) => [...v])).size > 1,
@@ -298,60 +311,45 @@ const contractBreaks = [...recipeContract].flatMap(
     ].map((why) => `${className}: ${why}`),
 );
 
-if (
-  failures.length ||
-  invalidDeclarations.length ||
-  overlaps.length ||
-  focusRings.length ||
-  stateConflicts.length ||
-  contractBreaks.length
-) {
-  if (failures.length) {
-    console.error(`\n${failures.length} unresolved value(s) in the generated CSS:\n`);
-    for (const f of failures) console.error(`  ${f.why}\n    ${f.text}`);
-    console.error("\nCheck the token exists in packages/preset/src/theme/tokens/.\n");
-  }
-  if (invalidDeclarations.length) {
-    console.error(
-      `\n${invalidDeclarations.length} declaration(s) the browser drops or draws nothing for:\n`,
-    );
-    for (const d of invalidDeclarations) console.error(`  ${d}`);
-    console.error(
-      "\nUse Panda's real utilities (e.g. focusVisibleRing, not Tailwind ring*) and give strokes a style.\n",
-    );
-  }
-  if (overlaps.length) {
-    console.error(`\n${overlaps.length} property set by more than one variant key:\n`);
-    for (const o of overlaps) console.error(`  ${o}`);
-    console.error(
-      "\nSet a CSS variable in each variant and resolve the property once in the base.\n",
-    );
-  }
-  if (focusRings.length) {
-    console.error(
-      `\n${focusRings.length} focus-visible selector(s) narrower than Panda's focusVisible:\n`,
-    );
-    for (const r of focusRings) console.error(`  ${r}`);
-    console.error("\nDon't override focusVisible; add a separately named condition instead.\n");
-  }
-  if (stateConflicts.length) {
-    console.error(
-      `\n${stateConflicts.length} state pair(s) whose winner depends on Panda's rule order:\n`,
-    );
-    for (const c of stateConflicts) console.error(`  ${c}`);
-    console.error(
-      "\nNest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.\n",
-    );
-  }
-  if (contractBreaks.length) {
-    console.error(`\n${contractBreaks.length} Panda contract break(s) in recipes:\n`);
-    for (const c of contractBreaks) console.error(`  ${c}`);
-    console.error(
-      "\nMatch state with Panda conditions (_open, _checked, …) and parts with data-slot, and register every variable a recipe reads but doesn't set in globalVars.\n",
-    );
-  }
-  process.exit(1);
-}
+const CHECKS = [
+  {
+    what: "unresolved value(s) in the generated CSS",
+    found: unresolved,
+    advice: "Check the token exists in packages/preset/src/theme/tokens/.",
+  },
+  {
+    what: "declaration(s) the browser drops or draws nothing for",
+    found: invalidDeclarations,
+    advice:
+      "Use Panda's real utilities (e.g. focusVisibleRing, not Tailwind ring*) and give strokes a style.",
+  },
+  {
+    what: "property set by more than one variant key",
+    found: overlaps,
+    advice: "Set a CSS variable in each variant and resolve the property once in the base.",
+  },
+  {
+    what: "focus-visible selector(s) narrower than Panda's focusVisible",
+    found: focusRings,
+    advice: "Don't override focusVisible; add a separately named condition instead.",
+  },
+  {
+    what: "state pair(s) whose winner depends on Panda's rule order",
+    found: stateConflicts,
+    advice:
+      "Nest one state inside the other (e.g. _open: { _active: {...} }) so the winner is explicit.",
+  },
+  {
+    what: "Panda contract break(s) in recipes",
+    found: contractBreaks,
+    advice:
+      "Match state with Panda conditions (_open, _checked, …) and parts with data-slot, and register every variable a recipe reads but doesn't set in globalVars.",
+  },
+];
+let failed = false;
+for (const { what, found, advice } of CHECKS)
+  failed = reportProblems(what, found, advice) || failed;
+if (failed) process.exit(1);
 
 console.log(
   `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps, narrowed focus rings, order-dependent state pairs or Panda contract breaks.`,

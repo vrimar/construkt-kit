@@ -1,5 +1,11 @@
+import { workspaces } from "./lib.mjs";
+
 const RELEASE_FILE = /^packages\/[^/]+\/(package\.json|CHANGELOG\.md)$/;
 const VERSION_LINE = /^[+-]\s*"version": /;
+
+export const releasablePackages = () => workspaces().filter(({ manifest }) => !manifest.private);
+
+export const packageTag = (name, version) => `${name}@${version}`;
 
 export function isReleaseChange(file, diff) {
   if (!RELEASE_FILE.test(file)) return false;

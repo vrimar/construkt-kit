@@ -1,27 +1,36 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { StoryTheme } from "@construkt-kit/story-kit/test";
 import { defineConfig } from "@playwright/test";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, "../..");
+import { DEVICE_ONLY, DEVICES, type Device, PROJECTS } from "./src/devices.ts";
+import { UPDATE_FLAGS, UPDATE_REFUSED, browserEndpoint, isPixelRun } from "./src/env.ts";
+import type { StoryTheme } from "./src/gallery-protocol.ts";
+import {
+  BASELINE_DIR_RELATIVE,
+  BEHAVIOUR_SPECS,
+  SWEEP_SPEC,
+  repoRoot,
+  storybookDir,
+} from "./src/paths.ts";
+
 const port = Number(process.env.STORIES_GALLERY_PORT ?? 6107);
-const wsEndpoint = process.env.STORIES_BROWSER_WS;
+const wsEndpoint = browserEndpoint();
 const update = process.env.STORIES_UPDATE;
 
-if (process.argv.some((arg) => /^(-u|--update-snapshots)(=.*)?$/.test(arg))) {
-  throw new Error(
-    "Snapshot updates are refused. Screenshots: `pnpm stories:accept`, once the owner says accept. Accessibility snapshots: `pnpm stories:aria <story ids>`.",
-  );
-}
-if (process.env.STORIES_PIXELS === "required" && !wsEndpoint) {
+if (process.argv.some((arg) => UPDATE_FLAGS.test(arg))) throw new Error(UPDATE_REFUSED);
+if (process.env.STORIES_PIXELS === "required" && !isPixelRun()) {
   throw new Error(
     "STORIES_PIXELS=required but no pinned browser is connected. Run through `pnpm test:stories`.",
   );
 }
 
-const BEHAVIOUR_SPECS = "packages/*/src/**/*.spec.ts";
+const keptToOtherDevices = (device: Device) =>
+  new RegExp(
+    PROJECTS.filter((other) => other !== device)
+      .map((other) => `@${DEVICE_ONLY[other]}`)
+      .join("|"),
+  );
 
 const gallery = (command: "dev" | "preview") =>
   `pnpm exec vite ${command === "preview" ? "preview " : ""}--config gallery/vite.config.ts --host 127.0.0.1 --port ${port} --strictPort`;
@@ -30,13 +39,16 @@ export default defineConfig<{ storyTheme: StoryTheme }>({
   testDir: repoRoot,
   testMatch: ["apps/storybook/tests/**/*.spec.ts", BEHAVIOUR_SPECS],
   testIgnore: ["**/node_modules/**", "**/dist/**"],
-  snapshotPathTemplate: "{testDir}/apps/storybook/__baselines__/{projectName}/{arg}{ext}",
-  outputDir: path.join(here, "test-results"),
+  snapshotPathTemplate: `{testDir}/${BASELINE_DIR_RELATIVE}/{projectName}/{arg}{ext}`,
+  outputDir: path.join(storybookDir, "test-results"),
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
   updateSnapshots: update === "missing" ? "missing" : update === "aria" ? "changed" : "none",
-  reporter: [[process.env.CI ? "github" : "list"], ["@construkt-kit/story-kit/reporter"]],
+  reporter: [
+    [process.env.CI ? "github" : "list"],
+    [fileURLToPath(new URL("./src/reporter.ts", import.meta.url))],
+  ],
   expect: {
     timeout: 10_000,
     toHaveScreenshot: { maxDiffPixels: 0, animations: "disabled", caret: "hide", scale: "css" },
@@ -51,32 +63,27 @@ export default defineConfig<{ storyTheme: StoryTheme }>({
     connectOptions: wsEndpoint ? { wsEndpoint, exposeNetwork: "<loopback>" } : undefined,
   },
   projects: [
-    {
-      name: "desktop",
-      use: { viewport: { width: 1280, height: 900 } },
-      grepInvert: /@phone-only/,
-    },
-    {
-      name: "phone",
-      use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
-      grepInvert: /@desktop-only/,
-    },
+    ...PROJECTS.map((device) => ({
+      name: device,
+      use: DEVICES[device],
+      grepInvert: keptToOtherDevices(device),
+    })),
     {
       name: "desktop-dark",
-      use: { viewport: { width: 1280, height: 900 }, colorScheme: "dark", storyTheme: "dark" },
-      grepInvert: /@phone-only/,
-      testMatch: ["apps/storybook/tests/sweep.spec.ts"],
+      use: { ...DEVICES.desktop, colorScheme: "dark", storyTheme: "dark" },
+      grepInvert: keptToOtherDevices("desktop"),
+      testMatch: [SWEEP_SPEC],
     },
-    ...(wsEndpoint ? (["webkit", "firefox"] as const) : []).map((browserName) => ({
+    ...(isPixelRun() ? (["webkit", "firefox"] as const) : []).map((browserName) => ({
       name: browserName,
-      use: { browserName, viewport: { width: 1280, height: 900 } },
-      grepInvert: /@phone-only/,
+      use: { ...DEVICES.desktop, browserName },
+      grepInvert: keptToOtherDevices("desktop"),
       testMatch: [BEHAVIOUR_SPECS],
     })),
   ],
   webServer: {
-    command: gallery(wsEndpoint ? "preview" : "dev"),
-    cwd: here,
+    command: gallery(isPixelRun() ? "preview" : "dev"),
+    cwd: storybookDir,
     url: `http://127.0.0.1:${port}/`,
     reuseExistingServer: false,
     timeout: 120_000,

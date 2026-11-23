@@ -4,12 +4,15 @@
 // every package version that lacks one so `git push --follow-tags` ships them.
 // Idempotent: re-running skips anything already on npm and only adds missing tags.
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 
-const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: "utf8", ...opts });
+import { git, gitOk } from "./lib.mjs";
+import { packageTag, releasablePackages } from "./release-files.mjs";
 
-const otpArgs = process.argv.slice(2).filter((arg) => arg.startsWith("--otp"));
+const args = process.argv.slice(2);
+const otpArgs = args.filter((arg) => arg.startsWith("--otp"));
+const pushTags = args.includes("--push-tags");
 
 // Provenance can only be attested from a supported CI environment.
 const provenanceArgs = process.env.GITHUB_ACTIONS ? ["--provenance"] : [];
@@ -35,37 +38,16 @@ if (publish.status !== 0) {
 const tagged = [];
 const untagged = [];
 
-function tagExists(tag) {
-  try {
-    run("git", ["rev-parse", "--quiet", "--verify", `refs/tags/${tag}`], { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Tags the version-bump commit, since HEAD may have moved on since that version was published.
 function releaseCommit(dir, version) {
   const manifest = join(dir, "package.json");
-  return (
-    run("git", [
-      "log",
-      "-1",
-      "--format=%H",
-      "-S",
-      `"version": "${version}"`,
-      "--",
-      manifest,
-    ]).trim() || "HEAD"
-  );
+  return git("log", "-1", "--format=%H", "-S", `"version": "${version}"`, "--", manifest) || "HEAD";
 }
 
 function tagRelease(tag, commit) {
-  if (tagExists(tag)) return;
+  if (gitOk("rev-parse", "--quiet", "--verify", `refs/tags/${tag}`)) return;
   try {
-    run("git", ["-c", "tag.gpgsign=false", "tag", "-a", tag, "-m", tag, commit], {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    git("-c", "tag.gpgsign=false", "tag", "-a", tag, "-m", tag, commit);
     console.log(`tag    ${tag}`);
     tagged.push(tag);
   } catch (error) {
@@ -74,17 +56,16 @@ function tagRelease(tag, commit) {
   }
 }
 
-const projects = JSON.parse(
-  run("pnpm", ["ls", "--recursive", "--depth", "-1", "--json"], {
-    stdio: ["ignore", "pipe", "inherit"],
-  }),
-);
-for (const { name, version, path, private: isPrivate } of projects) {
-  if (isPrivate || !name || !version) continue;
-  tagRelease(`${name}@${version}`, releaseCommit(path, version));
+for (const { name, version, path } of releasablePackages()) {
+  tagRelease(packageTag(name, version), releaseCommit(path, version));
 }
 
-if (tagged.length > 0) console.log("\nNext: git push --follow-tags");
+if (pushTags && tagged.length > 0) {
+  git("push", "origin", ...tagged.map((tag) => `refs/tags/${tag}`));
+  console.log(`\nPushed ${tagged.join(", ")}.`);
+} else if (tagged.length > 0) {
+  console.log("\nNext: git push --follow-tags");
+}
 if (untagged.length > 0) {
   console.error(`\nCould not tag ${untagged.join(", ")}; re-run to retry.`);
   process.exitCode = 1;

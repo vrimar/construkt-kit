@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import type { FailureKind, StoryFailure, StoryReport } from "./reporter";
-
-/** The failure kinds `stories:accept` may replace a baseline for. */
-export const ACCEPTABLE: ReadonlySet<FailureKind> = new Set([
-  "visual",
-  "dimension",
-  "missing-baseline",
-]);
+import { baselineFile, reportDir } from "./paths.ts";
+import {
+  ACCEPTABLE,
+  type FailureKind,
+  KIND_ADVICE,
+  type StoryFailure,
+  type StoryReport,
+} from "./report.ts";
 
 interface PageEntry {
   project: string;
@@ -30,12 +30,6 @@ interface PageStory {
   file: string;
   exportName: string | null;
   entries: PageEntry[];
-}
-
-interface HtmlOptions {
-  advice: Record<FailureKind, string>;
-  reportDir: string;
-  baselineDir: string;
 }
 
 function asset(name: string) {
@@ -65,13 +59,11 @@ function storyOf(failure: StoryFailure): Omit<PageStory, "entries"> {
 }
 
 /** A self-contained page for reviewing a run's failures in a browser, one story at a time. */
-export function renderHtml(report: StoryReport, { advice, reportDir, baselineDir }: HtmlOptions) {
+export function renderHtml(report: StoryReport) {
   const stories = new Map<string, PageStory>();
   for (const failure of report.failures) {
     const story = storyOf(failure);
-    const baseline = failure.storyId
-      ? path.join(baselineDir, failure.project, `${failure.storyId}.png`)
-      : null;
+    const baseline = failure.storyId ? baselineFile(failure.project, failure.storyId) : null;
     const entry: PageEntry = {
       project: failure.project,
       kinds: failure.kinds,
@@ -94,7 +86,7 @@ export function renderHtml(report: StoryReport, { advice, reportDir, baselineDir
     failed: report.failed,
     skipped: report.skipped,
     acceptableKinds: [...ACCEPTABLE],
-    advice,
+    advice: KIND_ADVICE,
     stories: [...stories.values()]
       .map((story) => ({
         ...story,

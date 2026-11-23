@@ -2,9 +2,9 @@
 // knip would cover this, but it caps its typescript peer at <7 and this repo is on 7.
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+import { reportProblems, workspaces } from "./lib.mjs";
+
 const SKIP_DIRS = new Set([
   "node_modules",
   "dist",
@@ -61,19 +61,10 @@ function packageNameOf(specifier) {
   return PACKAGE_NAME.test(name) ? name : null;
 }
 
-const workspaceDirs = ["packages", "apps"]
-  .flatMap((root) =>
-    fs.existsSync(path.join(repoRoot, root))
-      ? fs.readdirSync(path.join(repoRoot, root)).map((d) => path.join(root, d))
-      : [],
-  )
-  .filter((d) => fs.existsSync(path.join(repoRoot, d, "package.json")));
-
+const packages = workspaces();
 const problems = [];
 
-for (const dir of workspaceDirs) {
-  const abs = path.join(repoRoot, dir);
-  const pkg = JSON.parse(fs.readFileSync(path.join(abs, "package.json"), "utf8"));
+for (const { dir, path: abs, manifest: pkg } of packages) {
   const declared = new Set([
     ...Object.keys(pkg.dependencies ?? {}),
     ...Object.keys(pkg.devDependencies ?? {}),
@@ -127,11 +118,6 @@ for (const dir of workspaceDirs) {
   }
 }
 
-if (problems.length) {
-  console.error(`\n${problems.length} dependency problem(s):\n`);
-  for (const p of problems) console.error(`  ${p}`);
-  console.error("");
-  process.exit(1);
-}
+if (reportProblems("dependency problem(s)", problems)) process.exit(1);
 
-console.log(`dependencies clean across ${workspaceDirs.length} workspaces.`);
+console.log(`dependencies clean across ${packages.length} workspaces.`);

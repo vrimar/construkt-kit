@@ -1,4 +1,6 @@
+import { parseStoryUrl } from "@construkt-kit/story-kit/gallery-protocol";
 import { type StoryId, stories } from "@construkt-kit/story-kit/story-ids";
+import { storyModules } from "virtual:story-modules";
 
 interface ComposedStory {
   parameters: {
@@ -13,24 +15,6 @@ interface FactoryStory {
   composed: ComposedStory;
   run(context?: Record<string, unknown>): Promise<void>;
 }
-
-interface GalleryApi {
-  id?: string;
-  error?: string;
-  a11yRules?: string[];
-  calls(arg: string): unknown[][];
-}
-
-declare global {
-  interface Window {
-    __gallery?: GalleryApi;
-  }
-}
-
-const modules = import.meta.glob<Record<string, FactoryStory | undefined>>([
-  "../../../packages/{ui,pages,data-grid}/src/**/*.stories.tsx",
-  "../stories/**/*.stories.tsx",
-]);
 
 function toJson(value: unknown, seen = new WeakSet<object>()): unknown {
   if (typeof value === "function") return "[function]";
@@ -63,28 +47,23 @@ function recordedCalls(args: Record<string, unknown>, name: string): unknown[][]
 }
 
 async function render(root: HTMLElement) {
-  const params = new URLSearchParams(location.search);
-  const id = params.get("id");
+  const { id, theme } = parseStoryUrl(location.search);
   if (id == null || !(id in stories)) throw new Error(`Unknown story id "${id}".`);
 
   const entry = stories[id as StoryId];
-  const modulePath = entry.file.startsWith("apps/storybook/")
-    ? `../${entry.file.slice("apps/storybook/".length)}`
-    : `../../../${entry.file}`;
-  const load = modules[modulePath];
+  const load = storyModules[entry.file];
   if (!load) throw new Error(`The gallery cannot load ${entry.file}.`);
-  const story = (await load())[entry.exportName];
+  const story = (await load())[entry.exportName] as FactoryStory | undefined;
   if (!story?.composed) throw new Error(`${entry.file} has no story export ${entry.exportName}.`);
 
   const { parameters, args, globals } = story.composed;
   document.body.classList.add(`sb-main-${parameters.layout ?? "padded"}`);
   await document.fonts.load('16px "Inter Variable"');
-  const theme = params.get("theme");
   await story.run({
     canvasElement: root,
     globals: {
       ...globals,
-      ...(theme ? { theme } : {}),
+      ...(theme === "dark" ? { theme } : {}),
       // The harness runs axe itself; the addon's own scan would double it.
       a11y: { ...globals.a11y, manual: true },
     },
