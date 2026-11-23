@@ -1,12 +1,11 @@
 import { fileURLToPath } from "node:url";
 
+// Node loads this file untranspiled and packages type-check it without .ts imports, so no relative import works.
+import { touchDrag as dragTouch } from "@construkt-kit/testing";
 import pandacss from "@pandacss/dev/postcss";
 import { type PlaywrightProviderOptions, playwright } from "@vitest/browser-playwright";
 import type { TestProjectInlineConfiguration } from "vitest/config";
 import type { BrowserCommand, BrowserConfigOptions } from "vitest/node";
-
-// Node loads this file untranspiled and packages type-check it without .ts imports, so no relative import works.
-import { touchDrag as dragTouch } from "@construkt-kit/testing";
 
 /** Server-side browser commands, typed as test files call them through `commands` from `vitest/browser`. */
 export type ClientCommands<T> = {
@@ -77,7 +76,12 @@ export function browserProjects({
   commands = {},
 }: { commands?: Commands } = {}): TestProjectInlineConfiguration[] {
   return [
-    browserProject("browser", ["chromium", "firefox", "webkit"], { width: 1280, height: 800 }, commands),
+    browserProject(
+      "browser",
+      ["chromium", "firefox", "webkit"],
+      { width: 1280, height: 800 },
+      commands,
+    ),
     browserProject("touch", ["chromium"], { width: 390, height: 844 }, commands, {
       hasTouch: true,
       isMobile: true,

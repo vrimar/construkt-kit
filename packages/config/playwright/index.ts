@@ -28,9 +28,16 @@ export const PRESET_PROJECTS = {
 
 export type PresetProject = keyof typeof PRESET_PROJECTS;
 
-export const DESKTOP_ENGINES = ["chromium", "firefox", "webkit"] as const satisfies readonly PresetProject[];
+export const DESKTOP_ENGINES = [
+  "chromium",
+  "firefox",
+  "webkit",
+] as const satisfies readonly PresetProject[];
 
-export interface PlaywrightPresetOptions extends Omit<PlaywrightTestConfig, "projects" | "reporter"> {
+export interface PlaywrightPresetOptions extends Omit<
+  PlaywrightTestConfig,
+  "projects" | "reporter"
+> {
   /** The preset projects to run; the three desktop engines by default. */
   projects?: readonly PresetProject[];
   /** Reporters run after the console one, such as `@construkt-kit/testing/reporter`. */

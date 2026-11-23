@@ -54,12 +54,12 @@ The shared `@construkt-kit/config/oxfmt` base enables Oxc import sorting via `so
 `firefox` and `webkit` on desktop, `mac` (Chromium reporting macOS), `phone-ios` (WebKit), `phone-android` (Chromium)
 and `tablet` (WebKit). `options.projects` picks them; the three desktop engines run by default. Tags route tests:
 
-| Tag                                        | Runs on                                    |
-| ------------------------------------------ | ------------------------------------------ |
-| none                                       | the desktop engines                        |
-| `@mac`, `@phone`, `@tablet`                | also `mac`, the phones, `tablet`           |
-| `@mac-only`, `@phone-only`, `@tablet-only` | only there                                 |
-| `@chromium-only`                           | desktop Chromium, not Firefox or WebKit    |
+| Tag                                        | Runs on                                 |
+| ------------------------------------------ | --------------------------------------- |
+| none                                       | the desktop engines                     |
+| `@mac`, `@phone`, `@tablet`                | also `mac`, the phones, `tablet`        |
+| `@mac-only`, `@phone-only`, `@tablet-only` | only there                              |
+| `@chromium-only`                           | desktop Chromium, not Firefox or WebKit |
 
 `mac`, `phone-ios` and `tablet` set the `platform` option, which `@construkt-kit/testing`'s `test` turns into
 `navigator.platform` and `userAgentData`; a device preset alone leaves them at the host's. Traces are kept on failure
