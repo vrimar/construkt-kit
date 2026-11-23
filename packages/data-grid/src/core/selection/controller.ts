@@ -1,3 +1,5 @@
+import { sameItems } from "@construkt-kit/utils";
+
 import type { ColumnModel } from "../columns/columnModel";
 import type { CellRenderContext, ColumnDef } from "../columns/types";
 import type { RowModel } from "../rows/rowModel";
@@ -699,11 +701,7 @@ const sameAddress = (a: CellAddress, b: CellAddress) =>
   a.rowId === b.rowId && a.columnId === b.columnId;
 
 const sameRanges = (a: readonly CellRange[], b: readonly CellRange[]) =>
-  a.length === b.length &&
-  a.every(
-    (range, index) =>
-      sameAddress(range.start, b[index].start) && sameAddress(range.end, b[index].end),
-  );
+  sameItems(a, b, (x, y) => sameAddress(x.start, y.start) && sameAddress(x.end, y.end));
 
 const sameRect = (a: IndexRect, b: IndexRect) =>
   a.top === b.top && a.left === b.left && a.bottom === b.bottom && a.right === b.right;

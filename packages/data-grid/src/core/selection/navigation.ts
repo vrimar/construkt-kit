@@ -1,3 +1,5 @@
+import { clampValue } from "@construkt-kit/utils";
+
 export interface CellPosition {
   row: number;
   column: number;
@@ -47,8 +49,6 @@ export type ExtendCommand = keyof typeof EXTEND_MOVES;
 
 export const EXTEND_COMMANDS = Object.keys(EXTEND_MOVES) as readonly ExtendCommand[];
 
-const clamp = (value: number, max: number) => Math.max(0, Math.min(value, max));
-
 export function navigate(
   command: NavigationCommand,
   { row, column }: CellPosition,
@@ -57,7 +57,10 @@ export function navigate(
   if (rowCount === 0 || columnCount === 0) return null;
   const lastRow = rowCount - 1;
   const lastColumn = columnCount - 1;
-  const at = (r: number, c: number) => ({ row: clamp(r, lastRow), column: clamp(c, lastColumn) });
+  const at = (r: number, c: number) => ({
+    row: clampValue(r, 0, lastRow),
+    column: clampValue(c, 0, lastColumn),
+  });
 
   switch (command) {
     case "moveUp":

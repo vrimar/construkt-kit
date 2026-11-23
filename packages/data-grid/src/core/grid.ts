@@ -1,3 +1,5 @@
+import { clampValue, sameItems } from "@construkt-kit/utils";
+
 import { encodeHtml, encodeTsv } from "./clipboard/encode";
 import { formatCellValue, mergeCellSpecs } from "./columns/cellSpec";
 import { type ColumnState, ColumnModel, type HeaderCell, type Region } from "./columns/columnModel";
@@ -777,7 +779,10 @@ export class GridCore<TRow, TNode = unknown> {
     const { bodyTop, bodyBottom } = this.rowGeometry();
     const right = this.visibleCanvasWidth() - 1;
     if (bodyBottom <= bodyTop || right < this.gutterWidth) return null;
-    const hit = this.hitTest(clamp(x, this.gutterWidth, right), clamp(y, bodyTop, bodyBottom - 1));
+    const hit = this.hitTest(
+      clampValue(x, this.gutterWidth, right),
+      clampValue(y, bodyTop, bodyBottom - 1),
+    );
     if (!hit || hit.rowIndex < 0 || hit.columnId === null) return null;
     const column = this.columns.indexOf(hit.columnId);
     return column >= 0 ? { row: hit.rowIndex, column } : null;
@@ -785,7 +790,7 @@ export class GridCore<TRow, TNode = unknown> {
 
   bodyContentY(y: number): number {
     const { bodyTop, bodyBottom } = this.rowGeometry();
-    return clamp(y, bodyTop, bodyBottom - 1) - bodyTop + this.contentTop;
+    return clampValue(y, bodyTop, Math.max(bodyTop, bodyBottom - 1)) - bodyTop + this.contentTop;
   }
 
   rowGeometry(): RowGeometry {
@@ -1154,11 +1159,10 @@ export class GridCore<TRow, TNode = unknown> {
     this.channels.notify(GRID_CHANNELS.geometry);
     const sameLeaves =
       previous.defs === defs &&
-      previous.leaves.length === this.columns.leaves.length &&
-      previous.leaves.every(
-        (leaf, index) =>
-          leaf.id === this.columns.leaves[index].id &&
-          leaf.region === this.columns.leaves[index].region,
+      sameItems(
+        previous.leaves,
+        this.columns.leaves,
+        (a, b) => a.id === b.id && a.region === b.region,
       );
     if (!sameLeaves) {
       this.spanIndex = null;
@@ -1353,8 +1357,6 @@ const handlersFor = <C extends string>(names: readonly C[], run: (name: C) => bo
 
 const clampIndex = (index: number, count: number) =>
   count === 0 ? -1 : Math.max(0, Math.min(index, count - 1));
-
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
 function withExtra(start: number, end: number, extra: number | undefined): number[] {
   const indices: number[] = [];

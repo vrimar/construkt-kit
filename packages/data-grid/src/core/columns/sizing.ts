@@ -1,9 +1,9 @@
+import { clampValue } from "@construkt-kit/utils";
+
 export interface SizeLimits {
   min: number;
   max: number;
 }
-
-const clamp = (value: number, { min, max }: SizeLimits) => Math.min(max, Math.max(min, value));
 
 export function distribute(
   total: number,
@@ -19,7 +19,7 @@ export function distribute(
     const share = (index: number) => (remaining * items[index].weight) / weight;
     let violation = 0;
     for (const index of free) {
-      sizes[index] = clamp(share(index), items[index]);
+      sizes[index] = clampValue(share(index), items[index].min, items[index].max);
       violation += sizes[index] - share(index);
     }
     if (violation === 0) break;

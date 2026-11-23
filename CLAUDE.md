@@ -77,10 +77,10 @@ specs (`packages/*/src/**/*.spec.ts`) drive stories with real keyboard, mouse an
 
 ```
 @construkt-kit/config         ← all packages (tool configs)
-@construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, consuming apps
+@construkt-kit/utils          ← @construkt-kit/api, @construkt-kit/ui, @construkt-kit/pages, @construkt-kit/data-grid, consuming apps
 @construkt-kit/ui             ← @construkt-kit/pages, @construkt-kit/data-grid, consuming apps  (depends on @construkt-kit/utils)
 @construkt-kit/pages          ← consuming apps  (defines AuthProvider interface, depends on @construkt-kit/ui)
-@construkt-kit/data-grid      ← consuming apps  (peer-depends on @construkt-kit/ui; preset opt-in)
+@construkt-kit/data-grid      ← consuming apps  (depends on @construkt-kit/utils, peer-depends on @construkt-kit/ui; preset opt-in)
 @construkt-kit/api            ← consuming apps  (configures the generated Kubb fetch client)
 ```
 
