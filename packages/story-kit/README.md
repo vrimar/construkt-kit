@@ -172,7 +172,7 @@ export default defineConfig({
 });
 ```
 
-- `browserProjects({ commands })` returns `browser` (Chromium, Firefox and WebKit, 1280×800) and `touch` (Chromium with touch, 390×844),
+- `browserProjects({ commands })` returns `browser` (Chromium, Firefox and WebKit, WebKit not in CI, 1280×800) and `touch` (Chromium with touch, 390×844),
   which run `src/**/*.browser.test.{ts,tsx}` and `src/**/*.touch.test.{ts,tsx}` styled by the package's
   `panda.config.ts`, with Testing Library's `cleanup` after each test. `commands` adds the package's own browser
   commands; type them with `ClientCommands<typeof commands>` in a `vitest/browser` `BrowserCommands` augmentation

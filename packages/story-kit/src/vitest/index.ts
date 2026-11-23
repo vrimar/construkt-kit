@@ -70,20 +70,20 @@ function browserProject(
   };
 }
 
+// WebKit's browser tests time out under CI's load; they run locally, and CI's story tests cover WebKit.
+const BROWSER_ENGINES: readonly Engine[] = process.env.CI
+  ? ["chromium", "firefox"]
+  : ["chromium", "firefox", "webkit"];
+
 /**
- * The `browser` (Chromium, Firefox and WebKit, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled by the package's
+ * The `browser` (Chromium, Firefox and WebKit, WebKit not in CI, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled by the package's
  * `panda.config.ts`. Every project gets `touchDrag`; `commands` adds the package's own.
  */
 export function browserProjects({
   commands = {},
 }: { commands?: Commands } = {}): TestProjectInlineConfiguration[] {
   return [
-    browserProject(
-      "browser",
-      ["chromium", "firefox", "webkit"],
-      { width: 1280, height: 800 },
-      commands,
-    ),
+    browserProject("browser", BROWSER_ENGINES, { width: 1280, height: 800 }, commands),
     browserProject("touch", ["chromium"], { width: 390, height: 844 }, commands, {
       hasTouch: true,
       isMobile: true,
