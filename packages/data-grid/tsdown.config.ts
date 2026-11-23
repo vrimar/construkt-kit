@@ -6,10 +6,11 @@ const external = [
   "@construkt-kit/ui",
   "@construkt-kit/utils",
   "@pandacss/dev",
+  "@playwright/test",
 ];
 
 export default createTsdownConfig({
-  entry: { index: "src/index.ts", preset: "src/preset/index.ts" },
+  entry: { index: "src/index.ts", preset: "src/preset/index.ts", testing: "src/testing/index.ts" },
   platform: "neutral",
   fixedExtension: true,
   neverBundle: external.map((name) => new RegExp(`^${name}(/|$)`)),

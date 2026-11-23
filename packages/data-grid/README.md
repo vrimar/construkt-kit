@@ -257,6 +257,35 @@ colour), `--data-grid-header-bg`, `--data-grid-header-fg` and `--data-grid-inden
 The recipe's class-name function comes from the grid's own `panda codegen` and is bundled into `dist`; it runs on ui's
 recipe runtime (`@construkt-kit/ui/recipes/runtime`), so no `styled-system/` is published.
 
+## Testing helpers
+
+`@construkt-kit/data-grid/testing` finds the grid's parts in Playwright end-to-end tests, so a test needn't know the
+grid's markup; it needs `@playwright/test`. Every helper takes the grid from `gridByName`, or any element the grid
+sits in. Drags come from `@construkt-kit/testing`'s `startDrag(page, grip, { kind: "pointer" })`.
+
+| Export                                                                  | Locates or reads                                                                     |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `gridByName(scope, name)`                                               | The grid by its accessible name, as a `grid` or, with tree rows, a `treegrid`        |
+| `gridHeader(grid, columnId)`                                            | The header cell of a column or column group                                          |
+| `gridRow(grid, index)`                                                  | A rendered body row by its display index from 0                                      |
+| `gridCell(grid, row, column)`                                           | A cell by display row and column index from 0; the checkbox column counts            |
+| `gridRowHeader(grid, index)`                                            | A row's cell in the `rowHeader` column                                               |
+| `gridGrip(target)`                                                      | The grip in a header or row, to start a drag from                                    |
+| `selectedHeaders(grid)`, `selectedRows(grid)`, `selectedCells(grid)`    | What the grid marks selected                                                         |
+| `dropIndicator(grid, { axis?, position? })`                             | The drop line or box during a grip drag or while `indicator` is set                  |
+| `dropPlacement(grid)`                                                   | `{ axis, position, row }` or `{ axis, position, columnId }`: where a drop would land |
+| `gridOutlines(grid, axis?)`                                             | The boxes drawn from `outlines`                                                      |
+| `HEADER_ID`, `ROW_INDEX`, `COLUMN_INDEX`, `DRAG_HANDLE`, `DROP_REFUSED` | The marker attributes they read                                                      |
+
+```ts
+const grid = gridByName(page, "Answers");
+const drag = await startDrag(page, gridGrip(gridRow(grid, 0)), { kind: "pointer" });
+await drag.moveTo(gridRowHeader(grid, 3), { until: dropIndicator(grid, { position: "onto" }) });
+await expect.poll(() => dropPlacement(grid)).toEqual({ axis: "rows", position: "onto", row: 3 });
+```
+
+`src/testing/index.spec.ts` drives them against the stories, so a markup change that breaks one fails there.
+
 ## Upgrading from 0.2
 
 - Apps need `@construkt-kit/ui` 0.15 or later and React 19.3 or later; follow ui's "Upgrading from 0.14"
