@@ -1,8 +1,6 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
-import { controlH, controlIcon } from "./control-size";
-
 export const carouselGlobalVars: GlobalVarsDefinition = {
   "--carousel-slides-per-page": { syntax: "*", inherits: false },
   "--carousel-spacing": { syntax: "*", inherits: false },
@@ -12,37 +10,6 @@ export const carouselGlobalVars: GlobalVarsDefinition = {
 
 const itemSize =
   "calc(100% / var(--carousel-slides-per-page) - var(--carousel-spacing) * (var(--carousel-slides-per-page) - 1) / var(--carousel-slides-per-page))";
-
-const trigger = {
-  alignItems: "center",
-  appearance: "none",
-  borderRadius: "md",
-  color: "fg.muted",
-  cursor: "pointer",
-  display: "inline-flex",
-  flexShrink: "0",
-  focusVisibleRing: "outside",
-  justifyContent: "center",
-  outline: "0",
-  transition: "colors",
-  userSelect: "none",
-  _hover: {
-    bg: "neutral.plain.bg.hover",
-    color: "fg",
-  },
-  _disabled: {
-    layerStyle: "disabled",
-  },
-  _icon: {
-    flexShrink: "0",
-  },
-} as const;
-
-const triggerSize = {
-  h: controlH("lg"),
-  w: controlH("lg"),
-  _icon: { boxSize: controlIcon("lg") },
-};
 
 export const carousel = defineSlotRecipe({
   className: "carousel",
@@ -79,8 +46,9 @@ export const carousel = defineSlotRecipe({
     itemGroup: {
       flex: "1",
       display: "grid",
+      "--carousel-spacing": "{spacing.4}",
       gap: "var(--carousel-spacing)",
-      scrollbarWidth: "none",
+      scrollbar: "hidden",
       overscrollBehaviorX: "contain",
       "--carousel-snap-strictness": "mandatory",
       _horizontal: {
@@ -123,9 +91,6 @@ export const carousel = defineSlotRecipe({
       },
       focusVisibleRing: "outside",
     },
-    prevTrigger: trigger,
-    nextTrigger: trigger,
-    autoplayTrigger: trigger,
   },
   defaultVariants: {
     size: "md",
@@ -168,9 +133,6 @@ export const carousel = defineSlotRecipe({
         indicator: {
           boxSize: "2.5",
         },
-        prevTrigger: triggerSize,
-        nextTrigger: triggerSize,
-        autoplayTrigger: triggerSize,
       },
     },
   },

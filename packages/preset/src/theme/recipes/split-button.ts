@@ -17,7 +17,6 @@ const divided = {
 
 export const splitButton = defineRecipe({
   className: "split-button",
-  jsx: ["SplitButton.Root"],
   base: {
     minW: "0",
     maxW: "full",

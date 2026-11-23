@@ -101,7 +101,18 @@ function overlayRoles(
   return out;
 }
 
-function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, PaletteKey>) {
+type StatusName = keyof typeof STATUS;
+
+const STATUS_NAMES = Object.keys(STATUS) as StatusName[];
+
+const isStatus = (name: string): name is StatusName => name in STATUS;
+
+function themeColors(
+  theme: Theme,
+  neutralKey: PaletteKey,
+  keys: Record<string, PaletteKey>,
+  paletteNames: readonly string[],
+) {
   const bg = canvas(neutralKey, theme);
   const neutral = generateNeutral(neutralKey, theme);
   const generated = Object.fromEntries(
@@ -110,22 +121,17 @@ function themeColors(theme: Theme, neutralKey: PaletteKey, keys: Record<string, 
   const n = neutral.steps;
   const text = generateText(neutralKey, theme);
   const control = theme === "light" ? bg : n[3];
-  const status = (name: keyof typeof STATUS) => generated[STATUS[name]];
+  const status = (name: StatusName) => generated[STATUS[name]];
   const light = theme === "light";
 
-  const palettes: [name: string, palette: GeneratedPalette][] = [
-    ["neutral", neutral],
-    ...Object.entries(generated),
-    ...(Object.keys(STATUS) as (keyof typeof STATUS)[]).map((name): [string, GeneratedPalette] => [
-      name,
-      status(name),
-    ]),
-  ];
+  const palettes = paletteNames.map((name): [name: string, palette: GeneratedPalette] => [
+    name,
+    name === "neutral" ? neutral : isStatus(name) ? status(name) : generated[name],
+  ]);
   const colors: Record<string, string> = {};
   for (const [name, palette] of palettes)
     Object.assign(colors, roles(name, palette, name === "neutral", bg, theme));
-  for (const name of Object.keys(STATUS) as (keyof typeof STATUS)[])
-    colors[name] = status(name).steps[8];
+  for (const name of STATUS_NAMES) colors[name] = status(name).steps[8];
 
   Object.assign(colors, {
     bg,
@@ -173,13 +179,16 @@ function nest(colors: Record<Theme, Record<string, string>>) {
   return tree;
 }
 
+export interface SemanticColors {
+  colors: SemanticTokens["colors"];
+  paletteNames: string[];
+}
+
 export function createSemanticColors({
   palettes,
   neutral = NEUTRAL,
-}: ColorOptions = {}): SemanticTokens["colors"] {
-  const reserved = ["neutral", ...Object.keys(STATUS)].filter(
-    (name) => palettes && name in palettes,
-  );
+}: ColorOptions = {}): SemanticColors {
+  const reserved = ["neutral", ...STATUS_NAMES].filter((name) => palettes && name in palettes);
   if (reserved.length > 0) {
     throw new Error(
       `${reserved.join(", ")} cannot be set through palettes: use the neutral option, or replace the palette a status maps to (${Object.entries(
@@ -190,17 +199,14 @@ export function createSemanticColors({
     );
   }
   const keys = { ...PALETTES, ...palettes };
+  const paletteNames = ["neutral", ...Object.keys(keys), ...STATUS_NAMES];
   const colors = {
-    light: themeColors("light", neutral, keys),
-    dark: themeColors("dark", neutral, keys),
+    light: themeColors("light", neutral, keys, paletteNames),
+    dark: themeColors("dark", neutral, keys, paletteNames),
   };
-  const failures = contrastFailures(colors, [
-    "neutral",
-    ...Object.keys(keys),
-    ...Object.keys(STATUS),
-  ]);
+  const failures = contrastFailures(colors, paletteNames);
   if (failures.length > 0) {
     throw new Error(`Colour palettes fail WCAG AA contrast:\n${failures.join("\n")}`);
   }
-  return nest(colors) as SemanticTokens["colors"];
+  return { colors: nest(colors) as SemanticTokens["colors"], paletteNames };
 }

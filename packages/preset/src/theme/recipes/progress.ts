@@ -10,6 +10,14 @@ export const progressGlobalVars: GlobalVarsDefinition = {
   "--progress-circumference": { syntax: "*", inherits: false },
 };
 
+const circleGeometry = {
+  "--progress-radius": "calc(var(--size) / 2 - var(--thickness) / 2)",
+  cx: "calc(var(--size) / 2)",
+  cy: "calc(var(--size) / 2)",
+  r: "var(--progress-radius)",
+  strokeWidth: "var(--thickness)",
+} as const;
+
 export const progress = defineSlotRecipe({
   className: "progress",
   slots: [
@@ -33,19 +41,29 @@ export const progress = defineSlotRecipe({
     circle: {
       display: "block",
       flexShrink: 0,
+      width: "var(--size)",
+      height: "var(--size)",
       color: "colorPalette.solid.bg",
-      "--size": visual("2.5rem"),
-      "--thickness": "2px",
     },
     circleTrack: {
+      ...circleGeometry,
       fill: "transparent",
-      stroke: "neutral.subtle.bg",
     },
     circleRange: {
+      ...circleGeometry,
+      "--progress-circumference": "calc(2 * 3.14159 * var(--progress-radius))",
+      strokeDasharray: "var(--progress-circumference)",
+      strokeDashoffset:
+        "calc(var(--progress-circumference) * ((100 - var(--progress-percent)) / 100))",
+      transformOrigin: "center",
+      transform: "rotate(-90deg)",
       fill: "transparent",
       stroke: "currentColor",
       transitionProperty: "stroke-dashoffset",
       transitionDuration: "slow",
+      _indeterminate: {
+        strokeDasharray: "none",
+      },
     },
     track: {
       overflow: "hidden",
@@ -58,8 +76,13 @@ export const progress = defineSlotRecipe({
       transitionProperty: "width, height",
       transitionDuration: "slow",
       height: "100%",
+      color: "colorPalette.solid.fg",
       "--track-color": "colors.colorPalette.solid.bg",
       bgColor: "var(--track-color)",
+      "&:not([data-indeterminate])": {
+        _horizontal: { width: "calc(var(--progress-percent) * 1%)" },
+        _vertical: { height: "calc(var(--progress-percent) * 1%)" },
+      },
       _indeterminate: {
         "--animate-from-x": "-40%",
         "--animate-to-x": "100%",
@@ -116,9 +139,6 @@ export const progress = defineSlotRecipe({
         segment: {
           "--progress-segment-bg": "colors.neutral.subtle.bg",
         },
-        range: {
-          color: "colorPalette.solid.fg",
-        },
       },
       subtle: {
         track: {
@@ -129,9 +149,6 @@ export const progress = defineSlotRecipe({
         },
         segment: {
           "--progress-segment-bg": "colors.colorPalette.subtle.bg",
-        },
-        range: {
-          color: "colorPalette.solid.fg",
         },
       },
       outline: {
@@ -149,9 +166,6 @@ export const progress = defineSlotRecipe({
           _filled: {
             borderColor: "colorPalette.solid.bg",
           },
-        },
-        range: {
-          color: "colorPalette.solid.fg",
         },
       },
     },

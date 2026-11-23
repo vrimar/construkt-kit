@@ -31,9 +31,7 @@ export const list = defineSlotRecipe({
       _hover: {
         bg: "bg.hover",
       },
-      _focusVisible: {
-        focusVisibleRing: "inside",
-      },
+      focusVisibleRing: "inside",
       _disabled: {
         layerStyle: "disabled",
       },

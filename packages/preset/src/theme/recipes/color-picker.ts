@@ -1,8 +1,10 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
-import { controlH, controlInputFont, controlPx } from "./control-size";
-import { floatingPositioner } from "./floating";
+import { controlH } from "./control-size";
+import { fieldLabel } from "./field";
+import { pickerParts } from "./floating";
+import { input } from "./input";
 
 const perElement = { syntax: "*", inherits: false } as const;
 
@@ -16,6 +18,19 @@ export const colorPickerGlobalVars: GlobalVarsDefinition = {
   "--color-picker-track-bg": perElement,
   "--color-picker-grid-size": perElement,
 };
+
+const thumb = {
+  position: "absolute",
+  borderRadius: "full",
+  height: { base: "2.5", _pointerCoarse: "5" },
+  width: { base: "2.5", _pointerCoarse: "5" },
+  boxShadow: "{colors.white} 0px 0px 0px 2px, {colors.black} 0px 0px 2px 1px",
+  transform: "translate(-50%, -50%)",
+  forcedColorAdjust: "none",
+  background: "var(--color-picker-color)",
+  outline: "none",
+  focusVisibleRing: "outside",
+} as const;
 
 export const colorPicker = defineSlotRecipe({
   className: "color-picker",
@@ -48,21 +63,9 @@ export const colorPicker = defineSlotRecipe({
     "valueSwatch",
   ],
   base: {
-    root: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "1.5",
-    },
-    label: {
-      color: "fg",
-      fontWeight: "medium",
-      textStyle: "sm",
-    },
-    control: {
-      display: "flex",
-      flexDirection: "row",
-      gap: "2",
-    },
+    root: pickerParts.root,
+    label: fieldLabel,
+    control: pickerParts.control,
     trigger: {
       position: "relative",
       display: "grid",
@@ -79,21 +82,15 @@ export const colorPicker = defineSlotRecipe({
       overflow: "hidden",
       flexShrink: "0",
       outline: "none",
-      _focusVisible: {
-        focusVisibleRing: "inside",
-      },
+      focusVisibleRing: "inside",
       _disabled: {
         layerStyle: "disabled",
       },
     },
-    positioner: floatingPositioner,
+    positioner: pickerParts.positioner,
     content: {
-      layerStyle: "floating.surface",
-      display: "flex",
-      flexDirection: "column",
-      gap: "3",
+      ...pickerParts.content,
       maxWidth: "sm",
-      p: "4",
       outline: "0",
       _dragging: {
         userSelect: "none",
@@ -109,17 +106,8 @@ export const colorPicker = defineSlotRecipe({
       background: "var(--color-picker-area-bg, none)",
     },
     areaThumb: {
-      position: "absolute",
-      borderRadius: "full",
-      height: { base: "2.5", _pointerCoarse: "5" },
-      width: { base: "2.5", _pointerCoarse: "5" },
-      boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
-      transform: "translate(-50%, -50%)",
+      ...thumb,
       touchAction: "none",
-      forcedColorAdjust: "none",
-      background: "var(--color-picker-color)",
-      outline: "none",
-      focusVisibleRing: "outside",
     },
     areaBackground: {
       position: "relative",
@@ -130,25 +118,11 @@ export const colorPicker = defineSlotRecipe({
       maskImage: "var(--color-picker-area-mask, none)",
     },
     channelInput: {
-      appearance: "none",
+      ...input.base,
+      ...input.variants.variant.outline,
+      ...input.variants.size.md,
       MozAppearance: "textfield",
-      width: "full",
-      minWidth: "0",
-      height: controlH("md"),
-      px: controlPx("md"),
-      fontSize: controlInputFont("md"),
-      borderWidth: "1px",
-      borderColor: "border.control",
-      borderRadius: "md",
-      bg: "bg",
-      color: "fg",
-      outline: "0",
-      _focusVisible: {
-        focusVisibleRing: "inside",
-      },
-      _disabled: {
-        layerStyle: "disabled",
-      },
+      minW: "0",
     },
     channelSlider: {
       position: "relative",
@@ -187,20 +161,9 @@ export const colorPicker = defineSlotRecipe({
       width: "6",
       borderRadius: "md",
       background: "var(--color-picker-color)",
-      boxShadow: "0 0 0 1px var(--colors-border-emphasized), 0 0 0 2px var(--colors-bg) inset",
+      boxShadow: "0 0 0 1px {colors.border.emphasized}, 0 0 0 2px {colors.bg} inset",
     },
-    channelSliderThumb: {
-      position: "absolute",
-      borderRadius: "full",
-      height: { base: "2.5", _pointerCoarse: "5" },
-      width: { base: "2.5", _pointerCoarse: "5" },
-      boxShadow: "white 0px 0px 0px 2px, black 0px 0px 2px 1px",
-      transform: "translate(-50%, -50%)",
-      forcedColorAdjust: "none",
-      background: "var(--color-picker-color)",
-      outline: "none",
-      focusVisibleRing: "outside",
-    },
+    channelSliderThumb: thumb,
     transparencyGrid: {
       position: "absolute",
       inset: "0",

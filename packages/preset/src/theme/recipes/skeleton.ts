@@ -2,12 +2,12 @@ import { defineRecipe } from "@pandacss/dev";
 
 export const skeleton = defineRecipe({
   className: "skeleton",
-  jsx: ["Skeleton", "SkeletonCircle", "SkeletonText"],
   base: {
     borderRadius: "var(--skeleton-circle-radius, var(--skeleton-radius))",
     bgColor: "var(--skeleton-loaded-bg, var(--skeleton-bg))",
     backgroundImage: "var(--skeleton-loaded-bg-image, var(--skeleton-bg-image))",
     animation: "var(--skeleton-loaded-animation, var(--skeleton-animation))",
+    _motionReduce: { animationName: "none" },
     "--skeleton-radius": "initial",
     "--skeleton-circle-radius": "initial",
     "--skeleton-bg": "initial",
@@ -58,7 +58,7 @@ export const skeleton = defineRecipe({
     animation: {
       pulse: {
         "--skeleton-bg": "{colors.neutral.subtle.bg.active}",
-        "--skeleton-animation": "pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "--skeleton-animation": "{animations.pulse}",
       },
       shine: {
         "--animate-from": "200%",

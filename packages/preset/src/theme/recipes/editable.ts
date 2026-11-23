@@ -1,6 +1,17 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlInputText, controlPx, controlText, inputFont } from "./control-size";
+import {
+  type ControlSize,
+  controlInputText,
+  controlPx,
+  controlText,
+  inputFont,
+} from "./control-size";
+
+const tier = (size: ControlSize, py: string) => ({
+  preview: { ...controlText(size), px: controlPx(size), py },
+  input: { ...controlInputText(size), px: controlPx(size), py },
+});
 
 export const editable = defineSlotRecipe({
   className: "editable",
@@ -76,26 +87,11 @@ export const editable = defineSlotRecipe({
       },
     },
     size: {
-      "2xs": {
-        preview: { ...controlText("2xs"), px: controlPx("2xs"), py: "0.5" },
-        input: { ...controlInputText("2xs"), px: controlPx("2xs"), py: "0.5" },
-      },
-      xs: {
-        preview: { ...controlText("xs"), px: controlPx("xs"), py: "1.5" },
-        input: { ...controlInputText("xs"), px: controlPx("xs"), py: "1.5" },
-      },
-      sm: {
-        preview: { ...controlText("sm"), px: controlPx("sm"), py: "2" },
-        input: { ...controlInputText("sm"), px: controlPx("sm"), py: "2" },
-      },
-      md: {
-        preview: { ...controlText("md"), px: controlPx("md"), py: "2.5" },
-        input: { ...controlInputText("md"), px: controlPx("md"), py: "2.5" },
-      },
-      lg: {
-        preview: { ...controlText("lg"), px: controlPx("lg"), py: "2.5" },
-        input: { ...controlInputText("lg"), px: controlPx("lg"), py: "2.5" },
-      },
+      "2xs": tier("2xs", "0.5"),
+      xs: tier("xs", "1.5"),
+      sm: tier("sm", "2"),
+      md: tier("md", "2.5"),
+      lg: tier("lg", "2.5"),
       inherit: {
         preview: {
           font: "inherit",

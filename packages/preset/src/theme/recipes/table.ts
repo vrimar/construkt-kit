@@ -1,11 +1,32 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
+import { onSurface } from "../layer-styles";
 import { controlGap, controlPx, controlText } from "./control-size";
 
 /** How far below the top of its scroller a `stickyHeader` table's head sticks; set on the table or an ancestor. */
 export const tableGlobalVars: GlobalVarsDefinition = {
   "--table-sticky-offset": { syntax: "*", inherits: true },
+};
+
+const rowBg = onSurface("--table-row-bg");
+
+const pinnedShadow = {
+  _pinnedLeft: {
+    "[data-overflow-x]:not([data-at-left]) &": {
+      _after: {
+        content: '""',
+        position: "absolute",
+        pointerEvents: "none",
+        top: "0",
+        bottom: "-1px",
+        insetInlineEnd: "0",
+        width: "32px",
+        translate: "100% 0",
+        boxShadow: "inset",
+      },
+    },
+  },
 };
 
 export const table = defineSlotRecipe({
@@ -23,22 +44,21 @@ export const table = defineSlotRecipe({
       alignItems: "center",
       color: "fg.muted",
       textAlign: "start",
-      textOverflow: "ellipsis",
       ...controlText("sm"),
-      whiteSpace: "nowrap",
-      overflow: "hidden",
+      truncate: true,
       px: "var(--table-cell-px)",
       py: "var(--table-cell-py)",
       boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
       shadowColor: "border",
       _pinned: {
-        bg: "var(--table-row-bg, {colors.bg})",
+        bg: rowBg,
         boxShadow: "inset 0 -1px 0 0 var(--shadow-color)",
         overflow: "unset",
         position: "sticky",
         shadowColor: "border",
         zIndex: "1",
       },
+      ...pinnedShadow,
     },
     row: {
       bg: "var(--table-row-bg)",
@@ -51,9 +71,10 @@ export const table = defineSlotRecipe({
       shadowColor: "border",
       _pinned: {
         position: "sticky",
-        bg: "var(--table-row-bg, {colors.bg})",
+        bg: rowBg,
         zIndex: "2",
       },
+      ...pinnedShadow,
     },
     head: {
       color: "fg.muted",
@@ -114,7 +135,7 @@ export const table = defineSlotRecipe({
           top: "var(--table-sticky-offset, 0)",
           position: "sticky",
           zIndex: "2",
-          bg: "var(--table-row-bg, {colors.bg})",
+          bg: rowBg,
         },
       },
     },

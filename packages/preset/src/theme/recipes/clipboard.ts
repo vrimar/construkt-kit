@@ -1,6 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { surface } from "./control-size";
+import { fieldLabel } from "./field";
 
 export const clipboard = defineSlotRecipe({
   className: "clipboard",
@@ -13,11 +14,9 @@ export const clipboard = defineSlotRecipe({
       gap: surface("0.375rem"),
     },
     label: {
+      ...fieldLabel,
       display: "inline-flex",
       alignItems: "center",
-      fontWeight: "medium",
-      textStyle: "sm",
-      color: "fg",
       gap: surface("0.125rem"),
     },
   },

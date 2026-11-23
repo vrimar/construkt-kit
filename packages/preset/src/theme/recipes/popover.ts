@@ -1,7 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { anchoredHitArea, controlPxCompact, controlText, surface } from "./control-size";
-import { floatingArrow, floatingPositioner } from "./floating";
+import { floatingArrow, floatingContent, floatingPositioner } from "./floating";
 
 export const popover = defineSlotRecipe({
   className: "popover",
@@ -23,16 +23,9 @@ export const popover = defineSlotRecipe({
   base: {
     positioner: floatingPositioner,
     content: {
+      ...floatingContent,
       "--popover-padding": surface("1rem"),
-
-      layerStyle: "floating.surface",
-      display: "flex",
-      flexDirection: "column",
       maxHeight: "var(--available-height)",
-      outline: "0",
-      position: "relative",
-      ...controlText("sm"),
-      transformOrigin: "var(--transform-origin)",
       width: "xs",
       maxWidth: "calc(100vw - {spacing.4})",
     },

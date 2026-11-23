@@ -1,8 +1,11 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
-import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
+import { onSurface } from "../layer-styles";
+import { checkboxControlBase } from "./checkbox-control";
+import { solidCheckedFill } from "./choice-control";
 import { controlText } from "./control-size";
+import { dropIndicator, dropLine, dropOnto } from "./drop-indicator";
 
 /** Variables the tree sets on its rows and drop line, and the sticky offset an app may set. */
 export const treeViewGlobalVars: GlobalVarsDefinition = {
@@ -22,11 +25,41 @@ const clampedText = {
   overflowWrap: "anywhere",
 };
 
-// Rows have no border, so a ring at offset 0 falls outside them and a scrolling list clips it.
-const rowFocusRing = {
+const row = {
+  display: "flex",
+  alignItems: "center",
+  gap: "1",
+  width: "full",
+  minWidth: "0",
+  position: "relative",
+  rounded: "sm",
+  cursor: "pointer",
+  userSelect: "none",
+  ps: "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)))",
+  bg: "var(--tree-row-bg)",
+  _hover: {
+    "--tree-row-bg": "colors.bg.hover",
+  },
+  _selected: {
+    "--tree-row-bg": "colors.bg.emphasized",
+  },
+  // Rows have no border, so a ring at offset 0 falls outside them and a scrolling list clips it.
   focusVisibleRing: "inside",
   _focusVisible: { outlineOffset: "-1px" },
+  _disabled: {
+    layerStyle: "disabled",
+  },
+  _dragging: {
+    opacity: "0.4",
+  },
 } as const;
+
+const rowPadding = (py: string, pe: string) => ({
+  branchControl: { py, pe },
+  item: { py, pe },
+});
+
+const rowBg = onSurface("--tree-row-bg");
 
 export const treeView = defineSlotRecipe({
   className: "tree-view",
@@ -77,35 +110,17 @@ export const treeView = defineSlotRecipe({
       position: "relative",
     },
     branchControl: {
-      display: "flex",
-      alignItems: "center",
-      gap: "1",
-      width: "full",
-      minWidth: "0",
-      position: "relative",
-      rounded: "sm",
-      cursor: "pointer",
-      userSelect: "none",
-      ps: "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)))",
-      bg: "var(--tree-row-bg)",
-      _hover: {
-        "--tree-row-bg": "colors.bg.hover",
-      },
-      _selected: {
-        "--tree-row-bg": "colors.bg.emphasized",
-      },
-      ...rowFocusRing,
-      _disabled: {
-        layerStyle: "disabled",
-      },
-      _dragging: {
-        opacity: "0.4",
-      },
+      ...row,
       _loading: {
         cursor: "progress",
         _disabled: {
           cursor: "not-allowed",
         },
+      },
+      _pinned: {
+        "--tree-row-bg": onSurface(),
+        borderBottomWidth: "1px",
+        borderColor: "border",
       },
     },
     branchIndicator: {
@@ -162,32 +177,7 @@ export const treeView = defineSlotRecipe({
       bg: "border.muted",
       pointerEvents: "none",
     },
-    item: {
-      display: "flex",
-      alignItems: "center",
-      gap: "1",
-      width: "full",
-      minWidth: "0",
-      position: "relative",
-      rounded: "sm",
-      cursor: "pointer",
-      userSelect: "none",
-      ps: "calc(var(--tree-padding-inline) + ((var(--tree-depth) - 1) * var(--tree-indent)))",
-      bg: "var(--tree-row-bg)",
-      _hover: {
-        "--tree-row-bg": "colors.bg.hover",
-      },
-      _selected: {
-        "--tree-row-bg": "colors.bg.emphasized",
-      },
-      ...rowFocusRing,
-      _disabled: {
-        layerStyle: "disabled",
-      },
-      _dragging: {
-        opacity: "0.4",
-      },
-    },
+    item: row,
     itemIndicator: {
       display: "inline-flex",
       alignItems: "center",
@@ -213,20 +203,16 @@ export const treeView = defineSlotRecipe({
       borderColor: "border.control",
       borderRadius: "xs",
       transition: "backgrounds, border-color, colors",
-      _checked: checkboxControlCheckedState,
-      _indeterminate: checkboxControlCheckedState,
+      _checked: solidCheckedFill,
+      _indeterminate: solidCheckedFill,
     },
     dropIndicator: {
-      colorPalette: "blue",
-      position: "absolute",
+      ...dropIndicator,
+      ...dropLine,
       insetInlineStart:
         "calc(var(--tree-padding-inline) + (var(--tree-drop-level, 0) * var(--tree-indent)))",
       insetInlineEnd: "0",
       height: "2px",
-      bg: "colorPalette.solid.bg",
-      borderRadius: "full",
-      pointerEvents: "none",
-      zIndex: "1",
       // leading dot at the indented start of the line
       _before: {
         content: '""',
@@ -252,12 +238,11 @@ export const treeView = defineSlotRecipe({
       },
       // make-child: outline the whole row instead of a line
       "&[data-instruction='make-child']": {
+        ...dropOnto,
         insetInlineStart: "0",
         insetBlock: "0",
         height: "auto",
         bg: "transparent",
-        borderWidth: "2px",
-        borderColor: "colorPalette.solid.bg",
         borderRadius: "sm",
         _before: { display: "none" },
       },
@@ -308,7 +293,7 @@ export const treeView = defineSlotRecipe({
           alignItems: "center",
           paddingInlineEnd: "inherit",
           borderRadius: "inherit",
-          bg: "var(--tree-row-bg, var(--surface-bg, {colors.bg}))",
+          bg: rowBg,
           transitionProperty: "opacity",
           transitionDuration: "fast",
           transitionTimingFunction: "default",
@@ -318,14 +303,12 @@ export const treeView = defineSlotRecipe({
             insetBlock: "0",
             insetInlineEnd: "100%",
             width: "4",
-            backgroundImage:
-              "linear-gradient(to right, transparent, var(--tree-row-bg, var(--surface-bg, {colors.bg})))",
+            backgroundImage: `linear-gradient(to right, transparent, ${rowBg})`,
             pointerEvents: "none",
           },
           _rtl: {
             _before: {
-              backgroundImage:
-                "linear-gradient(to left, transparent, var(--tree-row-bg, var(--surface-bg, {colors.bg})))",
+              backgroundImage: `linear-gradient(to left, transparent, ${rowBg})`,
             },
           },
           _unrevealed: {
@@ -340,7 +323,7 @@ export const treeView = defineSlotRecipe({
           position: "sticky",
           top: "var(--tree-sticky-offset, 0)",
           zIndex: "calc(var(--tree-depth) + 1)",
-          bg: "var(--tree-row-bg, var(--surface-bg, {colors.bg}))",
+          bg: rowBg,
         },
       },
     },
@@ -362,14 +345,7 @@ export const treeView = defineSlotRecipe({
           "--tree-indent": "spacing.4",
           ...controlText("xs"),
         },
-        branchControl: {
-          py: "0.5",
-          pe: "1.5",
-        },
-        item: {
-          py: "0.5",
-          pe: "1.5",
-        },
+        ...rowPadding("0.5", "1.5"),
         nodeCheckbox: {
           "--tree-checkbox-size": "sizes.3",
           boxSize: "var(--tree-checkbox-size)",
@@ -381,14 +357,7 @@ export const treeView = defineSlotRecipe({
           "--tree-icon-size": "sizes.3.5",
           ...controlText("sm"),
         },
-        branchControl: {
-          py: "1",
-          pe: "2",
-        },
-        item: {
-          py: "1",
-          pe: "2",
-        },
+        ...rowPadding("1", "2"),
         nodeCheckbox: {
           "--tree-checkbox-size": "sizes.4",
           boxSize: "var(--tree-checkbox-size)",

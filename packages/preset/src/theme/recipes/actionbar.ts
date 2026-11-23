@@ -42,9 +42,7 @@ export const actionbar = defineSlotRecipe({
       ...controlText("sm"),
       flex: "0 1 auto",
       minW: "14",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
+      truncate: true,
       fontWeight: "semibold",
     },
     scope: {

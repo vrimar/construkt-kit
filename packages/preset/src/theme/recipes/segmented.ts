@@ -1,6 +1,6 @@
 import { type ControlSize, controlH, controlPx, controlIcon, controlText } from "./control-size";
 
-export const itemTier = (size: ControlSize) => ({
+const itemTier = (size: ControlSize) => ({
   item: {
     h: controlH(size),
     minW: controlH(size),
@@ -9,6 +9,36 @@ export const itemTier = (size: ControlSize) => ({
     _icon: { boxSize: controlIcon(size) },
   },
 });
+
+export const segmentedRoot = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  isolation: "isolate",
+  position: "relative",
+  maxWidth: "100%",
+  overflowX: "auto",
+  scrollbar: "hidden",
+  _vertical: {
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+} as const;
+
+export const segmentedSizes = {
+  xs: itemTier("xs"),
+  sm: itemTier("sm"),
+  md: itemTier("md"),
+  lg: itemTier("lg"),
+  xl: itemTier("xl"),
+};
+
+export const fittedVariant = {
+  true: {
+    root: { display: "flex" },
+    item: { flex: "1" },
+  },
+};
 
 export const enclosedTrack = {
   bg: "neutral.subtle.bg",

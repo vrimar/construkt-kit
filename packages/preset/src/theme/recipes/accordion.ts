@@ -1,6 +1,15 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlGap, controlPx, controlText } from "./control-size";
+import { collapsiblePanel } from "./collapsible";
+import { type ControlSize, controlGap, controlText } from "./control-size";
+
+const tier = (size: ControlSize, text: ControlSize) => ({
+  root: { "--accordion-padding-y": controlGap(size) },
+  itemTrigger: {
+    ...controlText(text),
+    py: "var(--accordion-padding-y)",
+  },
+});
 
 export const accordion = defineSlotRecipe({
   className: "accordion",
@@ -23,7 +32,7 @@ export const accordion = defineSlotRecipe({
       gap: "3",
       justifyContent: "space-between",
       textAlign: "start",
-      ...controlText("2xl"),
+      ...controlText("lg"),
       width: "full",
       focusVisibleRing: "outside",
       _disabled: {
@@ -47,17 +56,8 @@ export const accordion = defineSlotRecipe({
       color: "fg.muted",
     },
     itemContent: {
-      overflow: "hidden",
+      ...collapsiblePanel,
       borderRadius: "var(--accordion-radius)",
-      _open: {
-        animationName: "expand-height, fade-in",
-        animationDuration: "normal",
-      },
-      _closed: {
-        animationName: "collapse-height, fade-out",
-        animationDuration: "normal",
-        animationFillMode: "forwards",
-      },
     },
   },
   defaultVariants: {
@@ -74,36 +74,9 @@ export const accordion = defineSlotRecipe({
       plain: {},
     },
     size: {
-      sm: {
-        root: {
-          "--accordion-padding-x": controlPx("md"),
-          "--accordion-padding-y": controlGap("md"),
-        },
-        itemTrigger: {
-          ...controlText("sm"),
-          py: "var(--accordion-padding-y)",
-        },
-      },
-      md: {
-        root: {
-          "--accordion-padding-x": controlPx("xl"),
-          "--accordion-padding-y": controlGap("xl"),
-        },
-        itemTrigger: {
-          ...controlText("lg"),
-          py: "var(--accordion-padding-y)",
-        },
-      },
-      lg: {
-        root: {
-          "--accordion-padding-x": controlPx("2xl"),
-          "--accordion-padding-y": controlGap("2xl"),
-        },
-        itemTrigger: {
-          ...controlText("2xl"),
-          py: "var(--accordion-padding-y)",
-        },
-      },
+      sm: tier("md", "sm"),
+      md: tier("xl", "lg"),
+      lg: tier("2xl", "2xl"),
     },
   },
 });

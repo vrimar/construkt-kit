@@ -1,6 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { visual } from "./control-size";
+import { fieldLabel } from "./field";
 
 export const slider = defineSlotRecipe({
   className: "slider",
@@ -34,9 +35,7 @@ export const slider = defineSlotRecipe({
       },
     },
     label: {
-      fontWeight: "medium",
-      textStyle: "sm",
-      userSelect: "none",
+      ...fieldLabel,
       WebkitUserSelect: "none",
     },
     control: {
@@ -184,7 +183,7 @@ export const slider = defineSlotRecipe({
           flexDirection: "column",
           height: "100%",
           minWidth: "var(--slider-thumb-size)",
-          "&:has(.slider__markerLabel)": {
+          "&:has([data-slot=markerLabel])": {
             marginEnd: "4",
           },
         },
@@ -208,7 +207,7 @@ export const slider = defineSlotRecipe({
           flexDirection: "row",
           width: "100%",
           minHeight: "var(--slider-thumb-size)",
-          "&:has(.slider__markerLabel)": {
+          "&:has([data-slot=markerLabel])": {
             marginBottom: "4",
           },
         },

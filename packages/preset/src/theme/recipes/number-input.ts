@@ -1,7 +1,18 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH } from "./control-size";
-import { input } from "./input";
+import { fieldLabel } from "./field";
+import { input, inputSlotVariants } from "./input";
+
+type NumberInputSize = "sm" | "md" | "lg" | "xl";
+
+const tier = (size: NumberInputSize, stepperWidth: string) => ({
+  root: {
+    "--number-input-height": controlH(size),
+    "--stepper-width": stepperWidth,
+  },
+  input: input.variants.size[size],
+});
 
 const trigger = {
   alignItems: "center",
@@ -21,6 +32,9 @@ const trigger = {
   },
   _active: {
     bg: "neutral.surface.bg.active",
+  },
+  _disabled: {
+    cursor: "not-allowed",
   },
 };
 
@@ -54,11 +68,12 @@ export const numberInput = defineSlotRecipe({
       ...input.base,
       verticalAlign: "top",
       pe: "calc(var(--stepper-width) + 0.5rem)",
+      // The root dims the whole control; dimming the input too would compound.
+      _disabled: {
+        cursor: "not-allowed",
+      },
     },
-    label: {
-      color: "fg",
-      fontWeight: "medium",
-    },
+    label: fieldLabel,
     incrementTrigger: {
       ...trigger,
       borderStartEndRadius: "md",
@@ -78,42 +93,11 @@ export const numberInput = defineSlotRecipe({
   },
   variants: {
     size: {
-      sm: {
-        root: {
-          "--number-input-height": controlH("sm"),
-          "--stepper-width": "sizes.4",
-        },
-        input: input.variants.size.sm,
-      },
-      md: {
-        root: {
-          "--number-input-height": controlH("md"),
-          "--stepper-width": "sizes.4.5",
-        },
-        input: input.variants.size.md,
-      },
-      lg: {
-        root: {
-          "--number-input-height": controlH("lg"),
-          "--stepper-width": "sizes.5",
-        },
-        input: input.variants.size.lg,
-      },
-      xl: {
-        root: {
-          "--number-input-height": controlH("xl"),
-          "--stepper-width": "sizes.5.5",
-        },
-        input: input.variants.size.xl,
-      },
+      sm: tier("sm", "sizes.4"),
+      md: tier("md", "sizes.4.5"),
+      lg: tier("lg", "sizes.5"),
+      xl: tier("xl", "sizes.5.5"),
     },
-    variant: {
-      outline: {
-        input: input.variants.variant.outline,
-      },
-      surface: {
-        input: input.variants.variant.surface,
-      },
-    },
+    variant: inputSlotVariants("input", ["outline", "surface"]),
   },
 });

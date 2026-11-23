@@ -37,6 +37,7 @@ import { kbd } from "./kbd";
 import { link } from "./link";
 import { list } from "./list";
 import { listbox } from "./listbox";
+import { loadingOverlay } from "./loading-overlay";
 import { menu } from "./menu";
 import { navRail } from "./nav-rail";
 import { numberInput } from "./number-input";
@@ -117,6 +118,7 @@ export const slotRecipes = {
   inputGroup,
   list,
   listbox,
+  loadingOverlay,
   menu,
   navRail,
   numberInput,

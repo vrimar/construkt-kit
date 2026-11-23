@@ -13,8 +13,7 @@ export const breadcrumb = defineSlotRecipe({
       wordBreak: "break-word",
       minWidth: "0",
       overflowX: "auto",
-      scrollbarWidth: "none",
-      "&::-webkit-scrollbar": { display: "none" },
+      scrollbar: "hidden",
     },
     link: {
       alignItems: "center",

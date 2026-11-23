@@ -94,16 +94,16 @@ export const alert = defineSlotRecipe({
     },
     status: {
       info: {
-        root: { colorPalette: "blue" },
+        root: { colorPalette: "info" },
       },
       warning: {
-        root: { colorPalette: "orange" },
+        root: { colorPalette: "warning" },
       },
       success: {
-        root: { colorPalette: "green" },
+        root: { colorPalette: "success" },
       },
       error: {
-        root: { colorPalette: "red" },
+        root: { colorPalette: "danger" },
       },
       neutral: {
         root: { colorPalette: "neutral" },

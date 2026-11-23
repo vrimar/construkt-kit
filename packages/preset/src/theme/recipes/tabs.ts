@@ -1,6 +1,16 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlGap, controlH, controlPx, controlText } from "./control-size";
+import { type ControlSize, controlGap, controlH, controlPx, controlText } from "./control-size";
+import { slidingIndicator } from "./indicator";
+
+const tier = (height: ControlSize, text: ControlSize, inset: ControlSize) => ({
+  trigger: {
+    h: controlH(height),
+    "--tabs-trigger-min-w": controlH(height),
+    ...controlText(text),
+    px: controlPx(inset),
+  },
+});
 
 export const tabs = defineSlotRecipe({
   className: "tabs",
@@ -21,14 +31,14 @@ export const tabs = defineSlotRecipe({
     },
     list: {
       display: "flex",
+      gap: "1",
       position: "relative",
       isolation: "isolate",
       _horizontal: {
         flexDirection: "row",
         overflowX: "auto",
-        scrollbarWidth: "none",
+        scrollbar: "hidden",
         scrollSnapType: "x proximity",
-        "&::-webkit-scrollbar": { display: "none" },
       },
       _vertical: {
         flexDirection: "column",
@@ -40,11 +50,12 @@ export const tabs = defineSlotRecipe({
       cursor: "pointer",
       display: "flex",
       fontWeight: "medium",
+      gap: controlGap("md"),
       outline: "0",
       position: "relative",
+      focusVisibleRing: "inside",
       _focusVisible: {
         zIndex: 1,
-        focusVisibleRing: "inside",
       },
       _disabled: {
         layerStyle: "disabled",
@@ -69,18 +80,8 @@ export const tabs = defineSlotRecipe({
       },
     },
     indicator: {
-      position: "absolute",
-      width: "var(--indicator-width)",
-      height: "var(--indicator-height)",
+      ...slidingIndicator,
       zIndex: -1,
-      transitionProperty: "left, top, width, height",
-      transitionDuration: "fast",
-      _horizontal: {
-        left: "var(--indicator-left)",
-      },
-      _vertical: {
-        top: "var(--indicator-top)",
-      },
     },
   },
   defaultVariants: {
@@ -89,46 +90,10 @@ export const tabs = defineSlotRecipe({
   },
   variants: {
     size: {
-      xs: {
-        list: { gap: "1" },
-        trigger: {
-          h: controlH("sm"),
-          "--tabs-trigger-min-w": controlH("sm"),
-          ...controlText("xs"),
-          px: controlPx("md"),
-          gap: controlGap("md"),
-        },
-      },
-      sm: {
-        list: { gap: "1" },
-        trigger: {
-          h: controlH("md"),
-          "--tabs-trigger-min-w": controlH("md"),
-          ...controlText("sm"),
-          px: controlPx("lg"),
-          gap: controlGap("md"),
-        },
-      },
-      md: {
-        list: { gap: "1" },
-        trigger: {
-          h: controlH("lg"),
-          "--tabs-trigger-min-w": controlH("lg"),
-          ...controlText("sm"),
-          px: controlPx("xl"),
-          gap: controlGap("md"),
-        },
-      },
-      lg: {
-        list: { gap: "1" },
-        trigger: {
-          h: controlH("xl"),
-          "--tabs-trigger-min-w": controlH("xl"),
-          ...controlText("lg"),
-          px: controlPx("2xl"),
-          gap: controlGap("md"),
-        },
-      },
+      xs: tier("sm", "xs", "md"),
+      sm: tier("md", "sm", "lg"),
+      md: tier("lg", "sm", "xl"),
+      lg: tier("xl", "lg", "2xl"),
     },
     variant: {
       line: {

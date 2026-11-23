@@ -1,3 +1,5 @@
+import { controlKnobDefaults } from "./recipes/control-size";
+
 // No font or row-height knobs here: text never scales, and coarse pointers keep their 44px rows.
 const density = {
   compact: {
@@ -8,10 +10,10 @@ const density = {
     "--surface-scale": "0.75",
   },
   default: {
-    "--control-base-h": "sizes.9",
-    "--control-base-px": "spacing.3",
-    "--control-base-gap": "spacing.2",
-    "--control-base-py": "0.4375rem",
+    "--control-base-h": controlKnobDefaults["--control-base-h"],
+    "--control-base-px": controlKnobDefaults["--control-base-px"],
+    "--control-base-gap": controlKnobDefaults["--control-base-gap"],
+    "--control-base-py": controlKnobDefaults["--control-base-py"],
     "--surface-scale": "1",
   },
   relaxed: {
@@ -35,12 +37,8 @@ export const globalCss = {
     width: "100%",
     // Control-size knobs. Override on :root or any container to rescale the control surface at
     // runtime; must stay on :root/html (not "*") so scoped overrides cascade to descendants.
+    ...controlKnobDefaults,
     ...density.default,
-    "--control-step": "sizes.1",
-    "--control-base-icon": "sizes.4",
-    "--control-base-box": "sizes.4.5",
-    "--control-base-font": "fontSizes.sm",
-    "--control-input-font-min": "0px",
     "--visual-scale": "1",
     "--font-body-features": '"cv05", "cv08"',
     "@media (pointer: coarse)": {

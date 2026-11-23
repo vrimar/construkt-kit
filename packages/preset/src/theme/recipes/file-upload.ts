@@ -1,6 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlGap, controlIcon, controlPx, controlText, surface } from "./control-size";
+import { fieldLabel } from "./field";
 
 export const fileUpload = defineSlotRecipe({
   className: "file-upload",
@@ -24,12 +25,10 @@ export const fileUpload = defineSlotRecipe({
       alignItems: "flex-start",
       display: "flex",
       flexDirection: "column",
-      gap: "1.5",
+      gap: "4",
       width: "full",
     },
-    label: {
-      textStyle: "label",
-    },
+    label: fieldLabel,
     dropzone: {
       alignItems: "center",
       background: "neutral.surface.bg",

@@ -6,6 +6,11 @@ export const surfaceGlobalVars: GlobalVarsDefinition = {
   "--surface-bg": { syntax: "*", inherits: true },
 };
 
+export const onSurface = (own?: string): string => {
+  const surface = "var(--surface-bg, {colors.bg})";
+  return own ? `var(${own}, ${surface})` : surface;
+};
+
 const floatingSurface = {
   "--surface-bg": "colors.neutral.surface.bg",
   background: "neutral.surface.bg",
@@ -19,6 +24,12 @@ export const layerStyles = defineLayerStyles({
       cursor: "not-allowed",
       opacity: "0.67",
       filter: "grayscale(100%)",
+    },
+  },
+  enabled: {
+    value: {
+      opacity: "1",
+      filter: "none",
     },
   },
   "dropdown.surface": {

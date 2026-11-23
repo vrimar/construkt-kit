@@ -1,11 +1,30 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { cardAddon, cardBody, cardContent, cardDescription } from "./card-body";
-import { controlBox, controlGap, controlPx, controlText } from "./control-size";
+import {
+  type CardSize,
+  cardAddon,
+  cardBody,
+  cardContent,
+  cardDescription,
+  cardTier,
+} from "./card-body";
+import { choiceControlBase, solidCheckedFill } from "./choice-control";
+import { controlBox, controlGap } from "./control-size";
+import { fieldLabel } from "./field";
+import { slidingIndicator } from "./indicator";
+
+const tier = (size: CardSize) => {
+  const card = cardTier(size);
+  return {
+    itemBody: { gap: controlGap(size), ...card.body },
+    itemText: card.text,
+    itemDescription: card.text,
+    itemAddon: card.addon,
+  };
+};
 
 export const radioCardGroup = defineSlotRecipe({
   className: "radio-card-group",
-  jsx: ["RadioCard", /RadioCard\..+/],
   slots: [
     "root",
     "label",
@@ -47,26 +66,19 @@ export const radioCardGroup = defineSlotRecipe({
     },
     itemBody: cardBody,
     label: {
-      textStyle: "label",
+      ...fieldLabel,
       _horizontal: {
         width: "full",
       },
     },
     itemControl: {
+      ...choiceControlBase,
       alignItems: "center",
       borderRadius: "full",
-      display: "inline-flex",
-      flexShrink: "0",
       justifyContent: "center",
       verticalAlign: "top",
-      _focusVisible: {
-        focusVisibleRing: "outside",
-      },
-      _invalid: {
-        outline: "2px solid",
-        outlineColor: "border.error",
-        outlineOffset: "2px",
-      },
+      borderWidth: "1px",
+      borderColor: "border.control",
     },
     itemIndicator: {
       bg: "currentColor",
@@ -79,19 +91,14 @@ export const radioCardGroup = defineSlotRecipe({
     itemDescription: cardDescription,
     itemAddon: cardAddon,
     indicator: {
+      ...slidingIndicator,
       borderWidth: "1px",
       borderColor: "colorPalette.solid.bg",
       borderRadius: "md",
       boxShadow: "0 0 0 1px var(--shadow-color)",
       boxShadowColor: "colorPalette.solid.bg",
-      height: "var(--indicator-height)",
       pointerEvents: "none",
-      pos: "absolute",
-      width: "var(--indicator-width)",
       top: "var(--indicator-top)",
-      transitionProperty: "left, top, width, height",
-      transitionDuration: "fast",
-      _horizontal: { left: "var(--indicator-left)" },
     },
   },
   defaultVariants: {
@@ -110,8 +117,6 @@ export const radioCardGroup = defineSlotRecipe({
           },
         },
         itemControl: {
-          borderWidth: "1px",
-          borderColor: "border.control",
           _checked: {
             borderColor: "colorPalette.solid.bg",
             color: "colorPalette.solid.bg",
@@ -129,13 +134,7 @@ export const radioCardGroup = defineSlotRecipe({
           },
         },
         itemControl: {
-          borderWidth: "1px",
-          borderColor: "border.control",
-          _checked: {
-            bg: "colorPalette.solid.bg",
-            borderColor: "colorPalette.solid.bg",
-            color: "colorPalette.solid.fg",
-          },
+          _checked: solidCheckedFill,
         },
       },
       surface: {
@@ -151,13 +150,7 @@ export const radioCardGroup = defineSlotRecipe({
           },
         },
         itemControl: {
-          borderWidth: "1px",
-          borderColor: "border.control",
-          _checked: {
-            background: "colorPalette.solid.bg",
-            borderColor: "colorPalette.solid.bg",
-            color: "colorPalette.solid.fg",
-          },
+          _checked: solidCheckedFill,
         },
       },
       solid: {
@@ -170,8 +163,6 @@ export const radioCardGroup = defineSlotRecipe({
           },
         },
         itemControl: {
-          borderWidth: "1px",
-          borderColor: "border.control",
           _checked: {
             background: "colorPalette.solid.fg",
             borderColor: "colorPalette.solid.fg",
@@ -182,12 +173,9 @@ export const radioCardGroup = defineSlotRecipe({
     },
     size: {
       md: {
-        itemBody: { gap: controlGap("md"), p: controlPx("xl") },
+        ...tier("md"),
         itemControl: { boxSize: controlBox("lg"), _icon: { boxSize: "3.5" } },
         itemIndicator: { boxSize: "2" },
-        itemText: { ...controlText("sm") },
-        itemDescription: { ...controlText("sm") },
-        itemAddon: { px: controlPx("xl"), py: controlGap("2xl") },
       },
     },
   },

@@ -1,5 +1,7 @@
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
+import { controlText } from "./control-size";
+
 const measured = { syntax: "*", inherits: true } as const;
 
 /** Variables a popup's positioner writes for its content to read. */
@@ -34,22 +36,58 @@ export const bodyText = {
 } as const;
 
 /**
- * Positioner of a popup rendered in place in the top layer: clears the `[popover]` box the browser
- * draws and the text styles it would otherwise inherit from wherever its trigger sits.
+ * An element rendered in place in the top layer: clears the box the browser draws for `[popover]` or
+ * `<dialog>` and the styles it would otherwise inherit from wherever it is declared.
  */
-export const floatingPositioner = {
-  inset: "auto",
+export const topLayerReset = {
   margin: "0",
-  padding: "0",
   border: "0",
   background: "transparent",
-  overflow: "visible",
   colorPalette: "brand",
   color: "fg",
   ...bodyText,
   cursor: "auto",
   pointerEvents: "auto",
   visibility: "visible",
+} as const;
+
+/** Positioner of a popup rendered in place in the top layer. */
+export const floatingPositioner = {
+  ...topLayerReset,
+  inset: "auto",
+  padding: "0",
+  overflow: "visible",
+} as const;
+
+export const floatingContent = {
+  layerStyle: "floating.surface",
+  display: "flex",
+  flexDirection: "column",
+  outline: "0",
+  position: "relative",
+  ...controlText("sm"),
+  transformOrigin: "var(--transform-origin)",
+} as const;
+
+export const pickerParts = {
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5",
+  },
+  control: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "2",
+  },
+  positioner: floatingPositioner,
+  content: {
+    layerStyle: "floating.surface",
+    display: "flex",
+    flexDirection: "column",
+    gap: "3",
+    p: "4",
+  },
 } as const;
 
 /** Arrow + tip slots shared by the floating surfaces (popover, hover card, tooltip). */

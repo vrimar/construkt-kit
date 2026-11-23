@@ -3,6 +3,7 @@ import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { anchoredHitArea, controlText, surface } from "./control-size";
 import { floatingPositioner } from "./floating";
+import { initialValues } from "./initial-values";
 
 const perToast = { syntax: "<length>", inherits: false, initialValue: "0px" } as const;
 
@@ -17,7 +18,6 @@ export const toastGlobalVars: GlobalVarsDefinition = {
 
 export const toast = defineSlotRecipe({
   className: "toast",
-  jsx: ["Toaster"],
   slots: ["group", "root", "indicator", "title", "description", "actionTrigger", "closeTrigger"],
   base: {
     group: {
@@ -38,12 +38,13 @@ export const toast = defineSlotRecipe({
       },
     },
     root: {
-      // Panda drops an @property registration the stylesheet never writes; the toaster writes these.
-      "--toast-index": "0",
-      "--toast-offset-y": "0px",
-      "--toast-height": "0px",
-      "--toast-swipe-movement-x": "0px",
-      "--toast-swipe-movement-y": "0px",
+      ...initialValues(toastGlobalVars, [
+        "--toast-index",
+        "--toast-offset-y",
+        "--toast-height",
+        "--toast-swipe-movement-x",
+        "--toast-swipe-movement-y",
+      ]),
       "--toast-x": "0px",
       "--toast-rest-y": "0px",
       "--toast-exit-y": "calc(var(--toast-rest-y) - 100%)",

@@ -1,5 +1,6 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { choiceControlBase } from "./choice-control";
 import { type ControlSize, controlGap, controlBox, controlText, touchRow } from "./control-size";
 
 const tier = (size: ControlSize) => ({
@@ -23,25 +24,17 @@ export const radioGroup = defineSlotRecipe({
       },
     },
     itemControl: {
+      ...choiceControlBase,
       alignItems: "center",
       borderRadius: "full",
-      display: "inline-flex",
-      flexShrink: 0,
       justifyContent: "center",
       verticalAlign: "top",
+      boxShadow: "inset 0 0 0 1px var(--shadow-color)",
       _after: {
         content: '""',
         display: "block",
         borderRadius: "full",
         boxSize: "40%",
-      },
-      _focusVisible: {
-        focusVisibleRing: "outside",
-      },
-      _invalid: {
-        outline: "2px solid",
-        outlineColor: "border.error",
-        outlineOffset: "2px",
       },
     },
     item: {
@@ -66,7 +59,6 @@ export const radioGroup = defineSlotRecipe({
     variant: {
       solid: {
         itemControl: {
-          boxShadow: "inset 0 0 0 1px var(--shadow-color)",
           boxShadowColor: "border.control",
           _checked: {
             bg: "colorPalette.solid.bg",
@@ -80,7 +72,6 @@ export const radioGroup = defineSlotRecipe({
       },
       outline: {
         itemControl: {
-          boxShadow: "inset 0 0 0 1px var(--shadow-color)",
           boxShadowColor: "colorPalette.control",
           _checked: {
             color: "colorPalette.outline.fg",
@@ -93,7 +84,6 @@ export const radioGroup = defineSlotRecipe({
       subtle: {
         itemControl: {
           bg: "colorPalette.subtle.bg",
-          boxShadow: "inset 0 0 0 1px var(--shadow-color)",
           boxShadowColor: "colorPalette.control",
           _checked: {
             color: "colorPalette.subtle.fg",

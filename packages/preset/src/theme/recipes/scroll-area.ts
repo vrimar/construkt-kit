@@ -1,7 +1,9 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
+import { onSurface } from "../layer-styles";
 import { visual } from "./control-size";
+import { initialValues } from "./initial-values";
 
 const lengthVar = { syntax: "<length>", inherits: false, initialValue: "0px" } as const;
 
@@ -43,47 +45,13 @@ export const scrollArea = defineSlotRecipe({
       width: "full",
       overflow: "auto",
       WebkitOverflowScrolling: "touch",
-      scrollbarWidth: "none",
-      // Panda drops an @property registration the stylesheet never writes; the viewport writes these from JS.
-      "--scroll-area-overflow-x-start": "0px",
-      "--scroll-area-overflow-x-end": "0px",
-      "--scroll-area-overflow-y-start": "0px",
-      "--scroll-area-overflow-y-end": "0px",
-      _scrollbar: {
-        display: "none",
-      },
-      _overflowX: {
-        "& *": {
-          _pinned: {
-            _after: {
-              content: '""',
-              position: "absolute",
-              pointerEvents: "none",
-              top: "0",
-              bottom: "-1px",
-              width: "32px",
-            },
-          },
-          _pinnedLeft: {
-            _after: {
-              insetInlineEnd: "0",
-              translate: "100% 0",
-              boxShadow: "inset",
-            },
-          },
-        },
-        _atLeft: {
-          "& *": {
-            _pinnedLeft: {
-              _after: {
-                insetInlineEnd: "auto",
-                translate: "none",
-                boxShadow: "none",
-              },
-            },
-          },
-        },
-      },
+      scrollbar: "hidden",
+      ...initialValues(scrollAreaGlobalVars, [
+        "--scroll-area-overflow-x-start",
+        "--scroll-area-overflow-x-end",
+        "--scroll-area-overflow-y-start",
+        "--scroll-area-overflow-y-end",
+      ]),
     },
     scrollbar: {
       alignItems: "center",
@@ -153,7 +121,7 @@ export const scrollArea = defineSlotRecipe({
     fadeEdges: {
       true: {
         root: {
-          "--scroll-area-fade-color": "{colors.bg}",
+          "--scroll-area-fade-color": onSurface(),
           "--scroll-area-fade-size": "sizes.8",
           _before: {
             content: '""',

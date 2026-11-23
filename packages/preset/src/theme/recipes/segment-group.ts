@@ -1,33 +1,22 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
+import { slidingIndicator } from "./indicator";
 import {
   enclosedItem,
   enclosedThumb,
   enclosedTrack,
-  itemTier,
+  fittedVariant,
   outlineThumb,
   outlineTrack,
+  segmentedRoot,
+  segmentedSizes,
 } from "./segmented";
 
 export const segmentGroup = defineSlotRecipe({
   className: "segment-group",
   slots: ["root", "label", "item", "itemText", "itemControl", "indicator"],
   base: {
-    root: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      isolation: "isolate",
-      pos: "relative",
-      maxWidth: "100%",
-      overflowX: "auto",
-      scrollbarWidth: "none",
-      "&::-webkit-scrollbar": { display: "none" },
-      _vertical: {
-        flexDirection: "column",
-        alignItems: "stretch",
-      },
-    },
+    root: segmentedRoot,
     item: {
       alignItems: "center",
       borderRadius: "lg",
@@ -48,16 +37,10 @@ export const segmentGroup = defineSlotRecipe({
     },
 
     indicator: {
+      ...slidingIndicator,
       borderWidth: "1px",
       borderRadius: "lg",
-      height: "var(--indicator-height)",
-      pos: "absolute",
-      width: "var(--indicator-width)",
       zIndex: -1,
-      transitionProperty: "left, top, width, height",
-      transitionDuration: "fast",
-      _horizontal: { left: "var(--indicator-left)" },
-      _vertical: { top: "var(--indicator-top)" },
     },
   },
 
@@ -89,22 +72,7 @@ export const segmentGroup = defineSlotRecipe({
         indicator: outlineThumb,
       },
     },
-    size: {
-      xs: itemTier("xs"),
-      sm: itemTier("sm"),
-      md: itemTier("md"),
-      lg: itemTier("lg"),
-      xl: itemTier("xl"),
-    },
-    fitted: {
-      true: {
-        root: {
-          display: "flex",
-        },
-        item: {
-          flex: "1",
-        },
-      },
-    },
+    size: segmentedSizes,
+    fitted: fittedVariant,
   },
 });

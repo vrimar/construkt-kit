@@ -130,6 +130,20 @@ export function canvas(neutral: PaletteKey, theme: Theme): string {
   return colourAt(huePath(neutral), l, SCALE[1].chroma);
 }
 
+function solveAgainst(
+  path: HuePath,
+  against: string,
+  theme: Theme,
+  ratio: number,
+  weight: number,
+): string {
+  const darker = theme === "light";
+  return solveLuminance(path, luminanceFor(ratio, luminance(against), darker), weight, {
+    ok: (hex) => contrast(hex, against) >= ratio,
+    dir: darker ? -1 : 1,
+  });
+}
+
 export function solveContrast(
   key: PaletteKey,
   against: string,
@@ -137,11 +151,7 @@ export function solveContrast(
   ratio: number,
   weight: number,
 ): string {
-  const darker = theme === "light";
-  return solveLuminance(huePath(key), luminanceFor(ratio, luminance(against), darker), weight, {
-    ok: (hex) => contrast(hex, against) >= ratio,
-    dir: darker ? -1 : 1,
-  });
+  return solveAgainst(huePath(key), against, theme, ratio, weight);
 }
 
 function solidLabelKind(key: PaletteKey): "white" | "ink" {
@@ -244,8 +254,6 @@ export function generateNeutral(neutral: PaletteKey, theme: Theme): GeneratedPal
 
 function ramp(key: PaletteKey, neutral: PaletteKey, theme: Theme, hue: boolean): GeneratedPalette {
   const bg = canvas(neutral, theme);
-  const bgY = luminance(bg);
-  const darker = theme === "light";
   const path = huePath(key);
   const weightAt = (step: Step) => {
     const { chroma, darkHueChroma } = SCALE[step];
@@ -254,11 +262,7 @@ function ramp(key: PaletteKey, neutral: PaletteKey, theme: Theme, hue: boolean):
   };
   const steps = {} as Record<Step, string>;
   for (const step of STEPS) {
-    const ratio = SCALE[step].ratio[theme];
-    steps[step] = solveLuminance(path, luminanceFor(ratio, bgY, darker), weightAt(step), {
-      ok: (hex) => contrast(hex, bg) >= ratio,
-      dir: darker ? -1 : 1,
-    });
+    steps[step] = solveAgainst(path, bg, theme, SCALE[step].ratio[theme], weightAt(step));
   }
   const ink = solveLuminance(path, SOLID.inkY, 0.3);
   const solid = solveSolid(key, path, bg, theme, ink, steps[SOLID.track]);
@@ -267,7 +271,7 @@ function ramp(key: PaletteKey, neutral: PaletteKey, theme: Theme, hue: boolean):
     solid: solid.rest,
     solidHover: solid.hover,
     solidFg: solid.fg,
-    tint: (rest, ratio) => solveContrast(key, rest, theme, ratio, weightAt(STATE_TINT_STEP)),
+    tint: (rest, ratio) => solveAgainst(path, rest, theme, ratio, weightAt(STATE_TINT_STEP)),
     overlay: (ratio) => solveOverlay(steps[OVERLAY_INK_STEP], bg, ratio),
   };
 }
@@ -275,12 +279,7 @@ function ramp(key: PaletteKey, neutral: PaletteKey, theme: Theme, hue: boolean):
 export function generateText(neutral: PaletteKey, theme: Theme): Record<TextRole, string> {
   const bg = canvas(neutral, theme);
   const path = huePath(neutral);
-  const darker = theme === "light";
-  const solve = (ratio: number) =>
-    solveLuminance(path, luminanceFor(ratio, luminance(bg), darker), TEXT_CHROMA, {
-      ok: (hex) => contrast(hex, bg) >= ratio,
-      dir: darker ? -1 : 1,
-    });
+  const solve = (ratio: number) => solveAgainst(path, bg, theme, ratio, TEXT_CHROMA);
   const text = TEXT[theme];
   return { DEFAULT: solve(text.DEFAULT), muted: solve(text.muted), subtle: solve(text.subtle) };
 }

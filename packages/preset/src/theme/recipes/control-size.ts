@@ -14,21 +14,36 @@ import type { GlobalVarsDefinition } from "@pandacss/types";
 
 export type ControlSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
-const BASE_H = "var(--control-base-h, 2.25rem)";
-const STEP = "var(--control-step, 0.25rem)";
-const BASE_PX = "var(--control-base-px, 0.75rem)";
+export const controlKnobDefaults = {
+  "--control-base-h": "{sizes.9}",
+  "--control-step": "{sizes.1}",
+  "--control-base-px": "{spacing.3}",
+  "--control-base-gap": "{spacing.2}",
+  "--control-base-py": "0.4375rem",
+  "--control-base-icon": "{sizes.4}",
+  "--control-base-box": "{sizes.4.5}",
+  "--control-base-font": "{fontSizes.sm}",
+  "--control-input-font-min": "0px",
+} as const;
+
+const knob = (name: keyof typeof controlKnobDefaults): string =>
+  `var(${name}, ${controlKnobDefaults[name]})`;
+
+const BASE_H = knob("--control-base-h");
+const STEP = knob("--control-step");
+const BASE_PX = knob("--control-base-px");
 // Compact item padding tracks --control-base-px 0.25rem tighter, so the px knob still rescales
 // dropdown/menu/listbox rows; override --control-base-px-compact to tune item inset alone.
 const BASE_PX_COMPACT = `var(--control-base-px-compact, calc(${BASE_PX} - 0.25rem))`;
 // Compact row height tracks --control-base-h one step tighter, so item rows sit denser than the
 // button/input control height; override --control-base-row-h to tune row height alone.
 const BASE_ROW_H = `var(--control-base-row-h, calc(${BASE_H} - ${STEP}))`;
-const BASE_GAP = "var(--control-base-gap, 0.5rem)";
-const BASE_PY = "var(--control-base-py, 0.4375rem)";
-const BASE_ICON = "var(--control-base-icon, 1rem)";
-const BASE_BOX = "var(--control-base-box, 1.125rem)";
-const BASE_FONT = "var(--control-base-font, 0.875rem)";
-const INPUT_FONT_MIN = "var(--control-input-font-min, 0px)";
+const BASE_GAP = knob("--control-base-gap");
+const BASE_PY = knob("--control-base-py");
+const BASE_ICON = knob("--control-base-icon");
+const BASE_BOX = knob("--control-base-box");
+const BASE_FONT = knob("--control-base-font");
+const INPUT_FONT_MIN = knob("--control-input-font-min");
 
 /** Add a per-size rem offset to a knob var; `0` returns the bare var (no redundant calc). */
 const off = (v: string, rem: number): string =>
@@ -228,10 +243,23 @@ export const surface = (rem: string): string => `calc(${rem} * var(--surface-sca
 /** Graphical element size — proportional multiplier knob. Pass a rem literal (e.g. "1.25rem"). */
 export const visual = (rem: string): string => `calc(${rem} * var(--visual-scale, 1))`;
 
+export const inlineChipHeight = {
+  xs: "4",
+  sm: "4.5",
+  md: "5",
+  lg: "5.5",
+  xl: "6",
+} as const;
+
+const inlineCodeBox = (size: keyof typeof inlineChipHeight) => ({
+  height: inlineChipHeight[size],
+  minWidth: inlineChipHeight[size],
+});
+
 export const inlineCodeSize = {
-  xs: { fontSize: "2xs", height: "4", minWidth: "4", px: "0.5" },
-  sm: { ...controlText("xs"), height: "4.5", minWidth: "4.5", px: "1" },
-  md: { ...controlText("sm"), height: "5", minWidth: "5", px: "1" },
-  lg: { ...controlText("sm"), height: "5.5", minWidth: "5.5", px: "1" },
-  xl: { ...controlText("lg"), height: "6", minWidth: "6", px: "1" },
+  xs: { fontSize: "2xs", ...inlineCodeBox("xs"), px: "0.5" },
+  sm: { ...controlText("xs"), ...inlineCodeBox("sm"), px: "1" },
+  md: { ...controlText("sm"), ...inlineCodeBox("md"), px: "1" },
+  lg: { ...controlText("sm"), ...inlineCodeBox("lg"), px: "1" },
+  xl: { ...controlText("lg"), ...inlineCodeBox("xl"), px: "1" },
 };

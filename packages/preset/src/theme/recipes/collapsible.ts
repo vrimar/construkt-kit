@@ -7,21 +7,23 @@ export const collapsibleGlobalVars: GlobalVarsDefinition = {
   "--collapsible-width": { syntax: "*", inherits: false },
 };
 
+export const collapsiblePanel = {
+  overflow: "hidden",
+  _open: {
+    animationName: "expand-height, fade-in",
+    animationDuration: "normal",
+  },
+  _closed: {
+    animationName: "collapse-height, fade-out",
+    animationDuration: "normal",
+    animationFillMode: "forwards",
+  },
+} as const;
+
 export const collapsible = defineSlotRecipe({
   className: "collapsible",
   slots: ["root", "trigger", "content", "indicator"],
   base: {
-    content: {
-      overflow: "hidden",
-      _open: {
-        animationName: "expand-height, fade-in",
-        animationDuration: "slow",
-      },
-      _closed: {
-        animationName: "collapse-height, fade-out",
-        animationDuration: "normal",
-        animationFillMode: "forwards",
-      },
-    },
+    content: collapsiblePanel,
   },
 });

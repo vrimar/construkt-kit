@@ -2,6 +2,7 @@ import { defineSlotRecipe } from "@pandacss/dev";
 import type { GlobalVarsDefinition } from "@pandacss/types";
 
 import { touchHitArea } from "./control-size";
+import { dropIndicator, dropLine, dropOnto } from "./drop-indicator";
 
 const LINE = '&:is([data-instruction="before"], [data-instruction="after"])';
 const BEFORE = '&[data-instruction="before"]';
@@ -21,7 +22,7 @@ export const sortable = defineSlotRecipe({
     },
     item: {
       position: "relative",
-      "&[data-dragging]": {
+      _dragging: {
         opacity: "0.4",
       },
     },
@@ -54,18 +55,11 @@ export const sortable = defineSlotRecipe({
       ...touchHitArea(),
     },
     indicator: {
-      colorPalette: "blue",
-      position: "absolute",
-      pointerEvents: "none",
-      zIndex: "1",
-      [LINE]: {
-        bg: "colorPalette.solid.bg",
-        borderRadius: "full",
-      },
+      ...dropIndicator,
+      [LINE]: dropLine,
       '&[data-instruction="onto"]': {
+        ...dropOnto,
         inset: "0",
-        borderWidth: "2px",
-        borderColor: "colorPalette.solid.bg",
         borderRadius: "inherit",
       },
     },

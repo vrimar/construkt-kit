@@ -10,6 +10,11 @@ export const fieldGlobalVars: GlobalVarsDefinition = {
 
 const labelColumn = "var(--field-label-width, {sizes.44})";
 
+export const fieldLabel = {
+  textStyle: "label",
+  userSelect: "none",
+} as const;
+
 export const field = defineSlotRecipe({
   className: "field",
   slots: ["root", "errorText", "helperText", "label", "requiredIndicator", "labelAction"],
@@ -18,23 +23,22 @@ export const field = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       gap: surface("0.375rem"),
-      "&:has(> .field__labelAction)": {
+      "&:has(> [data-slot=labelAction])": {
         display: "grid",
         gridTemplateColumns: "minmax(0, 1fr) auto",
         columnGap: "3",
         alignItems: "baseline",
         "& > *": { gridColumn: "1 / -1" },
-        "& > .field__label": { gridColumn: "1", gridRow: "1" },
-        "& > .field__labelAction": { gridColumn: "2", gridRow: "1" },
+        "& > [data-slot=label]": { gridColumn: "1", gridRow: "1" },
+        "& > [data-slot=labelAction]": { gridColumn: "2", gridRow: "1" },
       },
     },
     label: {
+      ...fieldLabel,
       alignItems: "center",
       display: "flex",
       gap: surface("0.125rem"),
       textAlign: "start",
-      userSelect: "none",
-      textStyle: "label",
       _disabled: {
         layerStyle: "disabled",
       },
@@ -69,11 +73,11 @@ export const field = defineSlotRecipe({
             columnGap: surface("0.75rem"),
             alignItems: "center",
             "& > *": { gridColumn: "2" },
-            "& > .field__label": { gridColumn: "1", gridRow: "1" },
-            "&:has(> .field__labelAction)": {
+            "& > [data-slot=label]": { gridColumn: "1", gridRow: "1" },
+            "&:has(> [data-slot=labelAction])": {
               gridTemplateColumns: `${labelColumn} minmax(0, 1fr) auto`,
             },
-            "& > .field__labelAction": { gridColumn: "3", gridRow: "1" },
+            "& > [data-slot=labelAction]": { gridColumn: "3", gridRow: "1" },
           },
         },
       },

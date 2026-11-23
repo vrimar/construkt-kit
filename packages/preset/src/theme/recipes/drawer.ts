@@ -1,7 +1,14 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { anchoredHitArea, surface } from "./control-size";
-import { modalPositioner } from "./modal";
+import { surface } from "./control-size";
+import {
+  modalBackdrop,
+  modalCloseTrigger,
+  modalDescription,
+  modalFooter,
+  modalInset,
+  modalPositioner,
+} from "./modal";
 import { overlayMotion } from "./overlay-motion";
 
 const contentMaxH = "var(--drawer-full-max-h, var(--drawer-placement-max-h, 100dvh))";
@@ -27,29 +34,13 @@ export const drawer = defineSlotRecipe({
   base: {
     positioner: {
       ...modalPositioner,
+      ...modalBackdrop(
+        { enter: "slow", exit: "normal", exitName: "swipe-fade-out" },
+        { opacity: "calc(1 - var(--drawer-swipe-progress, 0))" },
+      ),
       width: "100vw",
-      height: "100dvh",
-      position: "fixed",
       insetInlineStart: "0",
-      top: "0",
       overflow: "visible",
-      overscrollBehaviorY: "none",
-      _open: { display: "flex" },
-      _backdrop: {
-        background: "black.a7",
-        opacity: "calc(1 - var(--drawer-swipe-progress, 0))",
-        animationName: "fade-in",
-        animationTimingFunction: "emphasized-in",
-        animationDuration: "slow",
-      },
-      _closed: {
-        _backdrop: {
-          animationName: "swipe-fade-out",
-          animationTimingFunction: "emphasized-out",
-          animationDuration: "normal",
-        },
-      },
-      "&[data-no-backdrop]": { _backdrop: { background: "transparent", animation: "none" } },
     },
     content: {
       layerStyle: "modal.surface",
@@ -64,7 +55,7 @@ export const drawer = defineSlotRecipe({
       pb: contentPb,
       ps: "var(--drawer-full-ps, var(--drawer-placement-ps, 0px))",
       pe: contentPe,
-      "&[data-swiping]": { transitionDuration: "0s", willChange: "transform" },
+      _swiping: { transitionDuration: "0s", willChange: "transform" },
       _startingStyle: { transitionDuration: "0s" },
       "--drawer-safe-start": {
         base: "env(safe-area-inset-left)",
@@ -123,9 +114,9 @@ export const drawer = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       gap: surface("0.25rem"),
-      pt: { base: surface("1rem"), md: surface("1.5rem") },
+      pt: modalInset,
       pb: surface("1rem"),
-      px: { base: surface("1rem"), md: surface("1.5rem") },
+      px: modalInset,
       flex: "0",
     },
     body: {
@@ -134,33 +125,22 @@ export const drawer = defineSlotRecipe({
       alignItems: "flex-start",
       flex: "1",
       overflow: "auto",
-      p: { base: surface("1rem"), md: surface("1.5rem") },
+      p: modalInset,
     },
     footer: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      flex: "0",
-      gap: surface("0.75rem"),
+      ...modalFooter,
       py: surface("1rem"),
-      px: { base: surface("1rem"), md: surface("1.5rem") },
     },
     title: {
       color: "fg",
       fontWeight: "semibold",
       textStyle: "xl",
     },
-    description: {
-      color: "fg.muted",
-      textStyle: "sm",
-    },
-    closeTrigger: {
-      pos: "absolute",
-      top: `calc({spacing.3} + ${contentPt})`,
-      insetEnd: `calc({spacing.3} + ${contentPe})`,
-      ...anchoredHitArea,
-      "[data-slot=header] > &": { pos: "relative", top: "auto", insetEnd: "auto", flexShrink: "0" },
-    },
+    description: modalDescription,
+    closeTrigger: modalCloseTrigger(
+      `calc({spacing.3} + ${contentPt})`,
+      `calc({spacing.3} + ${contentPe})`,
+    ),
     grabber: {
       display: "flex",
       alignItems: "center",
@@ -257,6 +237,7 @@ export const drawer = defineSlotRecipe({
           "--drawer-placement-pb": "env(safe-area-inset-bottom)",
           "--drawer-placement-ps": "var(--drawer-safe-start)",
           "--drawer-placement-pe": "var(--drawer-safe-end)",
+          "&[data-full-height]": { height: "var(--drawer-placement-max-h)" },
           "&[data-nested-dialog-open]": {
             scale: "calc(1 - var(--nested-dialogs) * 0.04)",
             transformOrigin: "top",

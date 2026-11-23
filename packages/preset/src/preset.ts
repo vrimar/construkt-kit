@@ -38,10 +38,7 @@ export type ConstruktKitPresetOptions = ColorOptions;
  * Use with `@pandacss/preset-base` for CSS utility mappings and patterns.
  */
 export function createConstruktKitPreset(options: ConstruktKitPresetOptions = {}): Preset {
-  const semanticTokens = createSemanticTokens(options);
-  const colorPaletteValues = Object.entries(semanticTokens.colors ?? {})
-    .filter(([, value]) => typeof value === "object" && value !== null && "solid" in value)
-    .map(([name]) => name);
+  const { semanticTokens, paletteNames } = createSemanticTokens(options);
 
   return definePreset({
     name: "construkt-kit-preset",
@@ -83,7 +80,7 @@ export function createConstruktKitPreset(options: ConstruktKitPresetOptions = {}
       css: [
         {
           properties: {
-            colorPalette: colorPaletteValues,
+            colorPalette: paletteNames,
           },
         },
       ],

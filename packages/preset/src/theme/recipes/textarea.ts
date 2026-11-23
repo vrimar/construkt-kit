@@ -1,11 +1,17 @@
 import { defineRecipe } from "@pandacss/dev";
 
-import { controlInputText, controlPx, controlPy } from "./control-size";
+import { type ControlSize, controlInputText, controlPx, controlPy } from "./control-size";
 import { input } from "./input";
+
+const tier = (size: ControlSize) => ({
+  ...controlInputText(size),
+  "--input-px": controlPx(size),
+  py: controlPy(size),
+  scrollPaddingBottom: controlPy(size),
+});
 
 export const textarea = defineRecipe({
   className: "textarea",
-  jsx: ["Textarea", "Field.Textarea"],
   base: {
     appearance: "none",
     borderRadius: "md",
@@ -34,36 +40,11 @@ export const textarea = defineRecipe({
       plain: input.variants.variant.plain,
     },
     size: {
-      xs: {
-        ...controlInputText("xs"),
-        "--input-px": controlPx("xs"),
-        py: controlPy("xs"),
-        scrollPaddingBottom: controlPy("xs"),
-      },
-      sm: {
-        ...controlInputText("sm"),
-        "--input-px": controlPx("sm"),
-        py: controlPy("sm"),
-        scrollPaddingBottom: controlPy("sm"),
-      },
-      md: {
-        ...controlInputText("md"),
-        "--input-px": controlPx("md"),
-        py: controlPy("md"),
-        scrollPaddingBottom: controlPy("md"),
-      },
-      lg: {
-        ...controlInputText("lg"),
-        "--input-px": controlPx("lg"),
-        py: controlPy("lg"),
-        scrollPaddingBottom: controlPy("lg"),
-      },
-      xl: {
-        ...controlInputText("xl"),
-        "--input-px": controlPx("xl"),
-        py: controlPy("xl"),
-        scrollPaddingBottom: controlPy("xl"),
-      },
+      xs: tier("xs"),
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
+      xl: tier("xl"),
     },
   },
 });

@@ -213,16 +213,16 @@ export const chat = defineSlotRecipe({
         layerStyle: "disabled",
         // The box dims once for everything in it.
         "& :is(:disabled, [data-disabled], [aria-disabled=true])": {
-          opacity: "1",
-          filter: "none",
+          layerStyle: "enabled",
         },
       },
       ...spacedTouchTargets(),
     },
     composerMic: {
-      "&[aria-pressed=true]": {
-        animation: "blink 0.8s ease-in-out infinite",
-        _motionReduce: { animation: "none" },
+      _pressed: {
+        animationStyle: "blink",
+        animationDuration: "0.8s",
+        animationTimingFunction: "ease-in-out",
       },
     },
   },

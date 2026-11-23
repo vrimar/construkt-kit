@@ -1,7 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlH } from "./control-size";
-import { floatingPositioner } from "./floating";
+import { pickerParts } from "./floating";
 
 export const datePicker = defineSlotRecipe({
   className: "date-picker",
@@ -27,24 +27,7 @@ export const datePicker = defineSlotRecipe({
     "viewTrigger",
   ],
   base: {
-    root: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "1.5",
-    },
-    positioner: floatingPositioner,
-    content: {
-      layerStyle: "floating.surface",
-      display: "flex",
-      flexDirection: "column",
-      gap: "3",
-      p: "4",
-    },
-    control: {
-      display: "flex",
-      flexDirection: "row",
-      gap: "2",
-    },
+    ...pickerParts,
     tableHeader: {
       color: "fg.muted",
       fontWeight: "semibold",

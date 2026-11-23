@@ -1,12 +1,7 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import { controlInputText, controlPxCompact, controlText, dropdownItem } from "./control-size";
-
-const truncate = {
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-} as const;
+import { dropdownGroupLabelText, dropdownItemBase, dropdownItemIndicator } from "./dropdown";
 
 export const commandPalette = defineSlotRecipe({
   className: "command-palette",
@@ -52,7 +47,7 @@ export const commandPalette = defineSlotRecipe({
       "& > svg": { boxSize: "4.5", flexShrink: "0" },
     },
     token: {
-      ...truncate,
+      truncate: true,
       flex: "0 1 auto",
       minW: "0",
       maxW: "56",
@@ -97,13 +92,10 @@ export const commandPalette = defineSlotRecipe({
       px: controlPxCompact("md"),
       pt: "2.5",
       pb: "1",
-      color: "fg.subtle",
-      fontWeight: "semibold",
-      letterSpacing: "wider",
-      textTransform: "uppercase",
+      ...dropdownGroupLabelText,
       userSelect: "none",
       ...controlText("xs"),
-      ".command-palette__itemGroup:first-child > &": { pt: "1" },
+      "[data-slot=itemGroup]:first-child > &": { pt: "1" },
     },
     itemGroupCount: {
       ms: "auto",
@@ -113,17 +105,10 @@ export const commandPalette = defineSlotRecipe({
       fontVariantNumeric: "tabular-nums",
     },
     item: {
+      ...dropdownItemBase,
       ...dropdownItem("md"),
-      display: "flex",
-      alignItems: "center",
       py: "1.5",
-      borderRadius: "sm",
       color: "fg",
-      cursor: "pointer",
-      outline: "0",
-      userSelect: "none",
-      _highlighted: { bg: "bg.hover" },
-      _disabled: { layerStyle: "disabled" },
     },
     itemIcon: {
       display: "flex",
@@ -137,26 +122,21 @@ export const commandPalette = defineSlotRecipe({
       flex: "1",
       minW: "0",
     },
-    itemText: truncate,
+    itemText: { truncate: true },
     itemDescription: {
-      ...truncate,
+      truncate: true,
       color: "fg.muted",
       ...controlText("xs"),
     },
     itemMeta: {
-      ...truncate,
+      truncate: true,
       flexShrink: "0",
       maxW: "48",
       color: "fg.muted",
       fontVariantNumeric: "tabular-nums",
       ...controlText("xs"),
     },
-    itemIndicator: {
-      display: "flex",
-      flexShrink: "0",
-      color: "colorPalette.plain.fg",
-      _unchecked: { visibility: "hidden" },
-    },
+    itemIndicator: dropdownItemIndicator,
     empty: {
       px: controlPxCompact("md"),
       py: "3",

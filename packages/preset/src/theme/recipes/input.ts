@@ -1,24 +1,36 @@
 import type { RecipeConfig } from "@pandacss/types";
 
-import { controlH, controlInputText, controlPx } from "./control-size";
+import { type ControlSize, controlH, controlInputText, controlPx } from "./control-size";
 
-const invalidRing = {
+export const invalidRing = {
   focusRingColor: "border.error",
   borderColor: "border.error",
 } as const;
 
-const insetRing = {
+const insetRingStyle = {
+  borderColor: "var(--focus-ring-color)",
+  boxShadow: "inset 0 0 0 1px var(--focus-ring-color)",
+} as const;
+
+export const insetRing = {
   // "none" still defines --focus-ring-color, which focusRingColor feeds.
   focusVisibleRing: "none",
-  _focusVisible: {
-    borderColor: "var(--focus-ring-color)",
-    boxShadow: "inset 0 0 0 1px var(--focus-ring-color)",
-  },
+  _focusVisible: insetRingStyle,
 } as const;
+
+export const insetRingWithin = {
+  focusVisibleRing: "none",
+  _focusWithin: insetRingStyle,
+} as const;
+
+const tier = (size: ControlSize) => ({
+  ...controlInputText(size),
+  "--input-px": controlPx(size),
+  "--input-height": controlH(size),
+});
 
 export const input = {
   className: "input",
-  jsx: ["Input", "Field.Input", "SearchInput", "PasswordInput"],
   base: {
     appearance: "none",
     borderRadius: "md",
@@ -97,41 +109,36 @@ export const input = {
       },
     },
     size: {
-      "2xs": {
-        ...controlInputText("2xs"),
-        "--input-px": controlPx("2xs"),
-        "--input-height": controlH("2xs"),
-      },
-      xs: {
-        ...controlInputText("xs"),
-        "--input-px": controlPx("xs"),
-        "--input-height": controlH("xs"),
-      },
-      sm: {
-        ...controlInputText("sm"),
-        "--input-px": controlPx("sm"),
-        "--input-height": controlH("sm"),
-      },
-      md: {
-        ...controlInputText("md"),
-        "--input-px": controlPx("md"),
-        "--input-height": controlH("md"),
-      },
-      lg: {
-        ...controlInputText("lg"),
-        "--input-px": controlPx("lg"),
-        "--input-height": controlH("lg"),
-      },
-      xl: {
-        ...controlInputText("xl"),
-        "--input-px": controlPx("xl"),
-        "--input-height": controlH("xl"),
-      },
-      "2xl": {
-        ...controlInputText("2xl"),
-        "--input-px": controlPx("2xl"),
-        "--input-height": controlH("2xl"),
-      },
+      "2xs": tier("2xs"),
+      xs: tier("xs"),
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
+      xl: tier("xl"),
+      "2xl": tier("2xl"),
     },
   },
 } satisfies RecipeConfig;
+
+type InputStyles = typeof input.variants;
+
+const each = <K extends string, V>(keys: readonly K[], value: (key: K) => V) =>
+  Object.fromEntries(keys.map((key) => [key, value(key)])) as Record<K, V>;
+
+export const inputSlotVariants = <S extends string, N extends keyof InputStyles["variant"]>(
+  slot: S,
+  names: readonly N[],
+) =>
+  each(
+    names,
+    (name) => ({ [slot]: input.variants.variant[name] }) as Record<S, InputStyles["variant"][N]>,
+  );
+
+export const inputSlotSizes = <S extends string, N extends keyof InputStyles["size"]>(
+  slot: S,
+  names: readonly N[],
+) =>
+  each(
+    names,
+    (name) => ({ [slot]: input.variants.size[name] }) as Record<S, InputStyles["size"][N]>,
+  );

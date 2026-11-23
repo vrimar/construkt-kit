@@ -13,7 +13,6 @@ const tier = (size: ControlSize) => ({
 export const inputGroup = defineSlotRecipe({
   className: "input-group",
   slots: ["root", "element"],
-  jsx: ["InputGroup", "SearchInput", "PasswordInput", "FormFileUpload"],
   base: {
     root: {
       position: "relative",
@@ -27,6 +26,10 @@ export const inputGroup = defineSlotRecipe({
       justifyContent: "center",
       position: "absolute",
       zIndex: "2",
+      pointerEvents: "none",
+      "& :is(a, button, input, select, textarea, [tabindex])": {
+        pointerEvents: "auto",
+      },
       _icon: {
         color: "fg.subtle",
       },

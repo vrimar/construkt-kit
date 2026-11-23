@@ -9,11 +9,7 @@ import {
   controlText,
   touchHitArea,
 } from "./control-size";
-
-const fieldInvalid = {
-  borderColor: "border.error",
-  focusRingColor: "border.error",
-} as const;
+import { invalidRing } from "./input";
 
 const tier = (size: ControlSize) => ({
   h: controlH(size),
@@ -26,15 +22,6 @@ const tier = (size: ControlSize) => ({
 
 export const button = defineRecipe({
   className: "button",
-  jsx: [
-    "Button",
-    "IconButton",
-    "CloseButton",
-    "DeleteButton",
-    "EditButton",
-    "SelectButton",
-    "TooltipIconButton",
-  ],
   base: {
     alignItems: "center",
     appearance: "none",
@@ -57,8 +44,7 @@ export const button = defineRecipe({
     _disabled: {
       layerStyle: "disabled",
       "&[data-loading]": {
-        filter: "none",
-        opacity: "1",
+        layerStyle: "enabled",
       },
     },
     focusVisibleRing: "outside",
@@ -89,7 +75,7 @@ export const button = defineRecipe({
         _hover: {
           borderColor: "colorPalette.surface.border.hover",
         },
-        _invalid: fieldInvalid,
+        _invalid: invalidRing,
         _active: {
           bg: "colorPalette.surface.bg.active",
         },
@@ -129,7 +115,7 @@ export const button = defineRecipe({
         borderWidth: "1px",
         borderColor: "colorPalette.outline.border",
         color: "colorPalette.outline.fg",
-        _invalid: fieldInvalid,
+        _invalid: invalidRing,
         _hover: {
           bg: "colorPalette.outline.bg.hover",
         },

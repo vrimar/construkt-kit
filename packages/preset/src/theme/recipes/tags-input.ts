@@ -1,15 +1,34 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { controlH, controlInputFont, controlText } from "./control-size";
+import { type ControlSize, controlH, controlInputFont, controlText } from "./control-size";
+import { fieldLabel } from "./field";
+import { insetRingWithin, invalidRing } from "./input";
 
-const controlFocusRing = {
-  borderColor: "var(--focus-color)",
-  boxShadow: "inset 0 0 0 1px var(--focus-color)",
-  _invalid: {
-    borderColor: "var(--error-color)",
-    boxShadow: "inset 0 0 0 1px var(--error-color)",
-  },
+const controlRings = {
+  ...insetRingWithin,
+  _invalid: invalidRing,
 };
+
+interface TagsInputTier {
+  item: { height: string; px: string };
+  icon: string;
+  gap: string;
+  deleteTrigger: { boxSize: string; me: string };
+}
+
+const tier = (size: ControlSize, { item, icon, gap, deleteTrigger }: TagsInputTier) => ({
+  root: {
+    "--tags-input-height": controlH(size),
+    "--tags-input-item-height": item.height,
+    "--tags-input-item-px": item.px,
+    _icon: { boxSize: icon },
+    ...controlText(size),
+  },
+  input: { fontSize: controlInputFont(size) },
+  itemInput: { fontSize: controlInputFont(size) },
+  control: { gap },
+  itemDeleteTrigger: deleteTrigger,
+});
 
 export const tagsInput = defineSlotRecipe({
   className: "tags-input",
@@ -27,17 +46,14 @@ export const tagsInput = defineSlotRecipe({
   ],
   base: {
     root: {
+      "--tags-input-px": "spacing.1.5",
       display: "flex",
       flexDirection: "column",
       gap: "1.5",
       width: "full",
     },
-    label: {
-      textStyle: "label",
-    },
+    label: fieldLabel,
     control: {
-      "--focus-color": "colors.colorPalette.solid.bg",
-      "--error-color": "colors.border.error",
       "--input-height": "var(--tags-input-height)",
 
       minH: "var(--tags-input-height)",
@@ -53,9 +69,6 @@ export const tagsInput = defineSlotRecipe({
 
       _disabled: {
         opacity: "0.5",
-      },
-      _invalid: {
-        borderColor: "var(--error-color)",
       },
     },
     clearTrigger: {
@@ -92,12 +105,18 @@ export const tagsInput = defineSlotRecipe({
       outline: "none",
       verticalAlign: "middle",
     },
+    item: {
+      // A disabled control already dims its tags; dimming them again would compound.
+      "&[data-disabled]:not([data-disabled] *)": {
+        layerStyle: "disabled",
+      },
+    },
     itemDeleteTrigger: {
       display: "flex",
       borderRadius: "sm",
       alignItems: "center",
       justifyContent: "center",
-      cursor: "pointer",
+      cursor: { base: "pointer", _disabled: "inherit" },
       _hover: {
         bg: "colorPalette.plain.bg.hover",
       },
@@ -105,6 +124,7 @@ export const tagsInput = defineSlotRecipe({
     itemPreview: {
       height: "var(--tags-input-item-height)",
       px: "var(--tags-input-item-px)",
+      gap: "1",
 
       alignItems: "center",
       borderRadius: "sm",
@@ -125,7 +145,7 @@ export const tagsInput = defineSlotRecipe({
         control: {
           borderWidth: "1px",
           borderColor: "border.control",
-          _focusWithin: controlFocusRing,
+          ...controlRings,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",
@@ -141,7 +161,7 @@ export const tagsInput = defineSlotRecipe({
           color: "neutral.subtle.fg",
           borderWidth: "1px",
           borderColor: "transparent",
-          _focusWithin: controlFocusRing,
+          ...controlRings,
         },
         itemPreview: {
           bg: "neutral.surface.bg",
@@ -157,7 +177,7 @@ export const tagsInput = defineSlotRecipe({
           bg: "neutral.surface.bg",
           borderWidth: "1px",
           borderColor: "border.control",
-          _focusWithin: controlFocusRing,
+          ...controlRings,
         },
         itemPreview: {
           bg: "colorPalette.subtle.bg",
@@ -169,66 +189,30 @@ export const tagsInput = defineSlotRecipe({
       },
     },
     size: {
-      xs: {
-        root: {
-          "--tags-input-height": controlH("xs"),
-          "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.4.5",
-          "--tags-input-item-px": "spacing.1",
-          _icon: { boxSize: "3" },
-          ...controlText("xs"),
-        },
-        input: { fontSize: controlInputFont("xs") },
-        itemInput: { fontSize: controlInputFont("xs") },
-        control: { gap: "1" },
-        itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "3.5", me: "-1px" },
-      },
-      sm: {
-        root: {
-          "--tags-input-height": controlH("sm"),
-          "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.5",
-          "--tags-input-item-px": "spacing.1.5",
-          _icon: { boxSize: "3.5" },
-          ...controlText("sm"),
-        },
-        input: { fontSize: controlInputFont("sm") },
-        itemInput: { fontSize: controlInputFont("sm") },
-        control: { gap: "1" },
-        itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "4", me: "-0.5" },
-      },
-      md: {
-        root: {
-          "--tags-input-height": controlH("md"),
-          "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.6",
-          "--tags-input-item-px": "spacing.2",
-          _icon: { boxSize: "3.5" },
-          ...controlText("md"),
-        },
-        input: { fontSize: controlInputFont("md") },
-        itemInput: { fontSize: controlInputFont("md") },
-        control: { gap: "1.5" },
-        itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "4.5", me: "-1" },
-      },
-      lg: {
-        root: {
-          "--tags-input-height": controlH("lg"),
-          "--tags-input-px": "spacing.1.5",
-          "--tags-input-item-height": "sizes.7",
-          "--tags-input-item-px": "spacing.2.5",
-          _icon: { boxSize: "4" },
-          ...controlText("lg"),
-        },
-        input: { fontSize: controlInputFont("lg") },
-        itemInput: { fontSize: controlInputFont("lg") },
-        control: { gap: "1.5" },
-        itemPreview: { gap: "1" },
-        itemDeleteTrigger: { boxSize: "5", me: "-1.5" },
-      },
+      xs: tier("xs", {
+        item: { height: "sizes.4.5", px: "spacing.1" },
+        icon: "3",
+        gap: "1",
+        deleteTrigger: { boxSize: "3.5", me: "-1px" },
+      }),
+      sm: tier("sm", {
+        item: { height: "sizes.5", px: "spacing.1.5" },
+        icon: "3.5",
+        gap: "1",
+        deleteTrigger: { boxSize: "4", me: "-0.5" },
+      }),
+      md: tier("md", {
+        item: { height: "sizes.6", px: "spacing.2" },
+        icon: "3.5",
+        gap: "1.5",
+        deleteTrigger: { boxSize: "4.5", me: "-1" },
+      }),
+      lg: tier("lg", {
+        item: { height: "sizes.7", px: "spacing.2.5" },
+        icon: "4",
+        gap: "1.5",
+        deleteTrigger: { boxSize: "5", me: "-1.5" },
+      }),
     },
   },
 });

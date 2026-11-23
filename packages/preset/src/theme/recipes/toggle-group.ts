@@ -4,31 +4,20 @@ import {
   enclosedItem,
   enclosedThumb,
   enclosedTrack,
-  itemTier,
+  fittedVariant,
   outlineThumb,
   outlineTrack,
+  segmentedRoot,
+  segmentedSizes,
 } from "./segmented";
 
 export const toggleGroup = defineSlotRecipe({
   className: "toggle-group",
-  jsx: ["ToggleGroup", /ToggleGroup\..+/],
   slots: ["root", "item"],
   base: {
     root: {
+      ...segmentedRoot,
       colorPalette: "neutral",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      isolation: "isolate",
-      position: "relative",
-      maxWidth: "100%",
-      overflowX: "auto",
-      scrollbarWidth: "none",
-      "&::-webkit-scrollbar": { display: "none" },
-      _vertical: {
-        flexDirection: "column",
-        alignItems: "stretch",
-      },
     },
     item: {
       alignItems: "center",
@@ -138,22 +127,7 @@ export const toggleGroup = defineSlotRecipe({
         },
       },
     },
-    size: {
-      xs: itemTier("xs"),
-      sm: itemTier("sm"),
-      md: itemTier("md"),
-      lg: itemTier("lg"),
-      xl: itemTier("xl"),
-    },
-    fitted: {
-      true: {
-        root: {
-          display: "flex",
-        },
-        item: {
-          flex: "1",
-        },
-      },
-    },
+    size: segmentedSizes,
+    fitted: fittedVariant,
   },
 });

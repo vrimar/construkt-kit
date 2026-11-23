@@ -1,17 +1,28 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
 import {
+  type ControlSize,
   controlHCompact,
   controlPx,
   controlPxCompact,
   controlIcon,
   controlText,
-  dropdownItem,
   dropdownItemGroupLabel,
-  dropdownItemGroupSpacing,
 } from "./control-size";
+import { dropdownTier, optionListSlots } from "./dropdown";
+import { fieldLabel } from "./field";
 import { floatingPositioner } from "./floating";
-import { input } from "./input";
+import { input, inputSlotVariants } from "./input";
+
+type ComboboxSize = "xs" | "sm" | "md" | "lg" | "xl";
+
+const tier = (size: ComboboxSize, { pe, caption }: { pe: string; caption: ControlSize }) => ({
+  ...dropdownTier(size),
+  input: { ...input.variants.size[size], pe },
+  itemGroupLabel: { ...dropdownItemGroupLabel(size), ...controlText(caption) },
+  indicatorGroup: { px: controlPx(size), _icon: { boxSize: controlIcon(size) } },
+  empty: { px: controlPxCompact(size), minH: controlHCompact(size) },
+});
 
 export const combobox = defineSlotRecipe({
   className: "combobox",
@@ -34,20 +45,17 @@ export const combobox = defineSlotRecipe({
     "indicatorGroup",
   ],
   base: {
+    ...optionListSlots,
     root: {
       display: "flex",
       flexDirection: "column",
       gap: "1.5",
       width: "full",
     },
-    label: {
-      textStyle: "label",
-    },
+    label: fieldLabel,
     input: {
       ...input.base,
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
+      truncate: true,
     },
     control: {
       position: "relative",
@@ -62,53 +70,8 @@ export const combobox = defineSlotRecipe({
       outline: "0",
       overflowY: "auto",
       _empty: {
-        "&:not(:has(.combobox__empty))": { opacity: 0 },
+        "&:not(:has([data-slot=empty]))": { opacity: 0 },
       },
-    },
-    item: {
-      alignItems: "center",
-      borderRadius: "sm",
-      cursor: "pointer",
-      display: "flex",
-      justifyContent: "space-between",
-      _hover: {
-        background: "bg.hover",
-      },
-      _highlighted: {
-        background: "bg.hover",
-      },
-      _selected: {},
-      _disabled: {
-        layerStyle: "disabled",
-      },
-    },
-    itemGroup: {
-      display: "flex",
-      flexDirection: "column",
-      ...dropdownItemGroupSpacing,
-    },
-    itemGroupLabel: {
-      alignItems: "flex-start",
-      color: "fg.subtle",
-      display: "flex",
-      flexDirection: "column",
-      fontWeight: "medium",
-      gap: "1px",
-      justifyContent: "center",
-      _after: {
-        content: '""',
-        width: "100%",
-        height: "1px",
-        bg: "border",
-      },
-    },
-    itemIndicator: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: "0",
-      color: "colorPalette.plain.fg",
-      _unchecked: { visibility: "hidden" },
     },
     indicatorGroup: {
       display: "flex",
@@ -137,78 +100,13 @@ export const combobox = defineSlotRecipe({
     variant: "outline",
   },
   variants: {
-    variant: {
-      outline: {
-        input: input.variants.variant.outline,
-      },
-      surface: {
-        input: input.variants.variant.surface,
-      },
-      subtle: {
-        input: input.variants.variant.subtle,
-      },
-    },
+    variant: inputSlotVariants("input", ["outline", "surface", "subtle"]),
     size: {
-      xs: {
-        input: {
-          ...input.variants.size.xs,
-          pe: "12",
-        },
-        content: { p: "1", gap: "0.5", ...controlText("xs") },
-        item: dropdownItem("xs"),
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("xs"),
-        indicatorGroup: { px: controlPx("xs"), _icon: { boxSize: controlIcon("xs") } },
-        empty: { px: controlPxCompact("xs"), minH: controlHCompact("xs") },
-      },
-      sm: {
-        input: {
-          ...input.variants.size.sm,
-          pe: "14",
-        },
-        content: { p: "1", gap: "0.5", ...controlText("sm") },
-        item: dropdownItem("sm"),
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("sm"),
-        indicatorGroup: { px: controlPx("sm"), _icon: { boxSize: controlIcon("sm") } },
-        empty: { px: controlPxCompact("sm"), minH: controlHCompact("sm") },
-      },
-      md: {
-        input: {
-          ...input.variants.size.md,
-          pe: "14",
-        },
-        content: { p: "1", gap: "0.5", ...controlText("md") },
-        indicatorGroup: { px: controlPx("md"), _icon: { boxSize: controlIcon("md") } },
-        item: dropdownItem("md"),
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("md"),
-        empty: { px: controlPxCompact("md"), minH: controlHCompact("md") },
-      },
-      lg: {
-        input: {
-          ...input.variants.size.lg,
-          pe: "16",
-        },
-        content: { p: "1", gap: "0.5", ...controlText("lg") },
-        item: dropdownItem("lg"),
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: dropdownItemGroupLabel("lg"),
-        indicatorGroup: { px: controlPx("lg"), _icon: { boxSize: controlIcon("lg") } },
-        empty: { px: controlPxCompact("lg"), minH: controlHCompact("lg") },
-      },
-      xl: {
-        input: {
-          ...input.variants.size.xl,
-          pe: "16",
-        },
-        content: { p: "1", gap: "1", ...controlText("xl") },
-        item: dropdownItem("xl"),
-        itemGroup: { gap: "1" },
-        itemGroupLabel: dropdownItemGroupLabel("xl"),
-        indicatorGroup: { px: controlPx("xl"), _icon: { boxSize: controlIcon("xl") } },
-        empty: { px: controlPxCompact("xl"), minH: controlHCompact("xl") },
-      },
+      xs: tier("xs", { pe: "12", caption: "2xs" }),
+      sm: tier("sm", { pe: "14", caption: "xs" }),
+      md: tier("md", { pe: "14", caption: "xs" }),
+      lg: tier("lg", { pe: "16", caption: "sm" }),
+      xl: tier("xl", { pe: "16", caption: "sm" }),
     },
   },
 });

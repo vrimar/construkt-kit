@@ -7,3 +7,13 @@ export const indicatorGlobalVars: GlobalVarsDefinition = {
   "--indicator-width": { syntax: "*", inherits: false },
   "--indicator-height": { syntax: "*", inherits: false },
 };
+
+export const slidingIndicator = {
+  position: "absolute",
+  width: "var(--indicator-width)",
+  height: "var(--indicator-height)",
+  transitionProperty: "left, top, width, height",
+  transitionDuration: "fast",
+  _horizontal: { left: "var(--indicator-left)" },
+  _vertical: { top: "var(--indicator-top)" },
+} as const;

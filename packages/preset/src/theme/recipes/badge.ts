@@ -1,6 +1,6 @@
 import { defineRecipe } from "@pandacss/dev";
 
-import { controlFont, controlIcon, controlPx } from "./control-size";
+import { controlFont, controlIcon, controlPx, inlineChipHeight } from "./control-size";
 import { paletteVariant } from "./palette";
 
 export const badge = defineRecipe({
@@ -33,35 +33,35 @@ export const badge = defineRecipe({
       xs: {
         fontSize: "2xs",
         "--badge-px": "{spacing.1}",
-        h: "4",
+        h: inlineChipHeight.xs,
         gap: "0.5",
         _icon: { boxSize: "2" },
       },
       sm: {
         fontSize: controlFont("xs"),
         "--badge-px": "{spacing.1}",
-        h: "4.5",
+        h: inlineChipHeight.sm,
         gap: "0.5",
         _icon: { boxSize: "2.5" },
       },
       md: {
         fontSize: controlFont("xs"),
         "--badge-px": controlPx("xs"),
-        h: "5",
+        h: inlineChipHeight.md,
         gap: "1",
         _icon: { boxSize: "3" },
       },
       lg: {
         fontSize: controlFont("xs"),
         "--badge-px": controlPx("sm"),
-        h: "5.5",
+        h: inlineChipHeight.lg,
         gap: "1",
         _icon: { boxSize: controlIcon("2xs") },
       },
       xl: {
         fontSize: controlFont("sm"),
         "--badge-px": controlPx("sm"),
-        h: "6",
+        h: inlineChipHeight.xl,
         gap: "1.5",
         _icon: { boxSize: controlIcon("md") },
       },

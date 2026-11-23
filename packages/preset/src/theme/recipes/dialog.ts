@@ -1,7 +1,14 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { anchoredHitArea, surface } from "./control-size";
-import { modalPositioner } from "./modal";
+import { surface } from "./control-size";
+import {
+  modalBackdrop,
+  modalCloseTrigger,
+  modalDescription,
+  modalFooter,
+  modalInset,
+  modalPositioner,
+} from "./modal";
 import { overlayMotion } from "./overlay-motion";
 
 const phoneFullScreen = {
@@ -45,46 +52,19 @@ export const dialog = defineSlotRecipe({
   base: {
     positioner: {
       ...modalPositioner,
-      height: "100dvh",
+      ...modalBackdrop({ enter: "normal", exit: "fast", exitName: "fade-out" }),
       justifyContent: "center",
       left: 0,
-      overscrollBehaviorY: "none",
-      position: "fixed",
-      top: 0,
       width: "100dvw",
       px: { base: "4", sm: "0" },
-      _open: { display: "flex" },
-      _backdrop: {
-        background: "black.a7",
-        animationName: "fade-in",
-        animationTimingFunction: "emphasized-in",
-        animationDuration: "normal",
-      },
-      _closed: {
-        _backdrop: {
-          animationName: "fade-out",
-          animationTimingFunction: "emphasized-out",
-          animationDuration: "fast",
-        },
-      },
-      "&[data-no-backdrop]": { _backdrop: { background: "transparent", animation: "none" } },
     },
 
     title: {
       fontWeight: "semibold",
       textStyle: "lg",
     },
-    description: {
-      color: "fg.muted",
-      textStyle: "sm",
-    },
-    closeTrigger: {
-      pos: "absolute",
-      top: "3",
-      insetEnd: "3",
-      ...anchoredHitArea,
-      "[data-slot=header] > &": { pos: "relative", top: "auto", insetEnd: "auto", flexShrink: "0" },
-    },
+    description: modalDescription,
+    closeTrigger: modalCloseTrigger("3", "3"),
     content: {
       layerStyle: "modal.surface",
       borderRadius: "lg",
@@ -98,8 +78,8 @@ export const dialog = defineSlotRecipe({
       maxH: "var(--dialog-full-max-h, var(--dialog-scroll-max-h, none))",
       "--dialog-full-max-h": "initial",
       "--dialog-scroll-max-h": "initial",
-      py: { base: surface("1rem"), md: surface("1.5rem") },
-      gap: { base: surface("1rem"), md: surface("1.5rem") },
+      py: modalInset,
+      gap: modalInset,
       _open: {
         animationDuration: "fast",
       },
@@ -111,7 +91,7 @@ export const dialog = defineSlotRecipe({
       display: "flex",
       flexDirection: "column",
       gap: surface("0.125rem"),
-      px: { base: surface("1rem"), md: surface("1.5rem") },
+      px: modalInset,
       flex: "0",
     },
     body: {
@@ -119,16 +99,9 @@ export const dialog = defineSlotRecipe({
       flex: "1",
       flexDirection: "column",
       alignItems: "stretch",
-      px: { base: surface("1rem"), md: surface("1.5rem") },
+      px: modalInset,
     },
-    footer: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      flex: "0",
-      gap: surface("0.75rem"),
-      px: { base: surface("1rem"), md: surface("1.5rem") },
-    },
+    footer: modalFooter,
   },
   defaultVariants: {
     size: "md",

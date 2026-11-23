@@ -34,9 +34,7 @@ export const hotkeyInput = defineSlotRecipe({
       _hover: {
         borderColor: "border.emphasized",
       },
-      _focusVisible: {
-        focusVisibleRing: "outside",
-      },
+      focusVisibleRing: "outside",
       _disabled: {
         layerStyle: "disabled",
       },

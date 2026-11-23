@@ -1,3 +1,6 @@
+import { choiceControlBase } from "./choice-control";
+import { type ControlSize, controlBox } from "./control-size";
+
 export const checkboxControlBase = {
   display: "inline-flex",
   alignItems: "center",
@@ -5,10 +8,19 @@ export const checkboxControlBase = {
   flexShrink: "0",
   borderWidth: "1px",
   cursor: "pointer",
-};
+} as const;
 
-export const checkboxControlCheckedState = {
-  bg: "colorPalette.solid.bg",
-  borderColor: "colorPalette.solid.bg",
-  color: "colorPalette.solid.fg",
-};
+export const checkboxControl = {
+  ...checkboxControlBase,
+  ...choiceControlBase,
+  cursor: "inherit",
+  borderRadius: "sm",
+  _icon: {
+    boxSize: "full",
+  },
+} as const;
+
+export const checkboxControlSize = (size: ControlSize) => ({
+  boxSize: controlBox(size),
+  _icon: { boxSize: `calc(${controlBox(size)} - 0.375rem)` },
+});

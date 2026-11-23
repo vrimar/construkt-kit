@@ -1,8 +1,15 @@
 import { defineSlotRecipe } from "@pandacss/dev";
 
-import { checkboxControlBase, checkboxControlCheckedState } from "./checkbox-control";
-import { controlGap, controlBox, controlText, touchRow } from "./control-size";
+import { checkboxControl, checkboxControlSize } from "./checkbox-control";
+import { solidCheckedFill } from "./choice-control";
+import { type ControlSize, controlGap, controlText, touchRow } from "./control-size";
 import { paletteVariant } from "./palette";
+
+const tier = (size: ControlSize) => ({
+  root: { gap: controlGap(size) },
+  label: controlText(size),
+  control: checkboxControlSize(size),
+});
 
 export const checkbox = defineSlotRecipe({
   className: "checkbox",
@@ -10,7 +17,7 @@ export const checkbox = defineSlotRecipe({
   base: {
     root: {
       display: "inline-flex",
-      gap: "2",
+      gap: controlGap("md"),
       alignItems: "center",
       verticalAlign: "top",
       position: "relative",
@@ -21,20 +28,8 @@ export const checkbox = defineSlotRecipe({
       ...touchRow(),
     },
     control: {
-      ...checkboxControlBase,
-      cursor: "inherit",
+      ...checkboxControl,
       borderColor: "transparent",
-      borderRadius: "sm",
-      _invalid: {
-        outline: "2px solid",
-        outlineColor: "border.error",
-        outlineOffset: "2px",
-      },
-      focusVisibleRing: "outside",
-
-      _icon: {
-        boxSize: "full",
-      },
     },
     label: {
       fontWeight: "medium",
@@ -54,29 +49,17 @@ export const checkbox = defineSlotRecipe({
 
   variants: {
     size: {
-      sm: {
-        root: { gap: controlGap("sm") },
-        label: controlText("sm"),
-        control: { boxSize: controlBox("sm"), _icon: { boxSize: "2.5" } },
-      },
-      md: {
-        root: { gap: controlGap("md") },
-        label: controlText("md"),
-        control: { boxSize: controlBox("md"), _icon: { boxSize: "3" } },
-      },
-      lg: {
-        root: { gap: controlGap("lg") },
-        label: controlText("lg"),
-        control: { boxSize: controlBox("lg"), _icon: { boxSize: "3.5" } },
-      },
+      sm: tier("sm"),
+      md: tier("md"),
+      lg: tier("lg"),
     },
 
     variant: {
       solid: {
         control: {
           borderColor: "border.control",
-          _checked: checkboxControlCheckedState,
-          _indeterminate: checkboxControlCheckedState,
+          _checked: solidCheckedFill,
+          _indeterminate: solidCheckedFill,
         },
       },
       surface: { control: { ...paletteVariant.surface, borderColor: "colorPalette.control" } },

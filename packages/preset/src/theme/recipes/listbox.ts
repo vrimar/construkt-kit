@@ -6,19 +6,26 @@ import {
   controlGap,
   controlPxCompact,
   controlText,
-  dropdownItem,
   dropdownItemGroupLabel,
-  dropdownItemGroupSpacing,
 } from "./control-size";
+import { DROPDOWN_CONTENT_P, dropdownTier, optionListSlots, tintedRow } from "./dropdown";
+import { fieldLabel } from "./field";
 
 /** A popover body reads the inset to pull a listbox flush with its edges. */
 export const listboxGlobalVars: GlobalVarsDefinition = {
   "--listbox-text-inset": { syntax: "*", inherits: true },
 };
 
-// Must equal content `p` plus item `px`.
-const textInset = (size: ControlSize) => ({
-  "--listbox-text-inset": `calc({spacing.1} + ${controlPxCompact(size)})`,
+const tier = (
+  size: ControlSize,
+  { text, caption, hint }: Record<"text" | "caption" | "hint", ControlSize>,
+) => ({
+  ...dropdownTier(size, text),
+  root: {
+    "--listbox-text-inset": `calc({spacing.${DROPDOWN_CONTENT_P}} + ${controlPxCompact(size)})`,
+  },
+  itemHint: { ...controlText(hint), ps: controlGap(size) },
+  itemGroupLabel: { ...dropdownItemGroupLabel(size), ...controlText(caption) },
 });
 
 export const listbox = defineSlotRecipe({
@@ -39,17 +46,14 @@ export const listbox = defineSlotRecipe({
     "itemActions",
   ],
   base: {
+    ...optionListSlots,
     root: {
       display: "flex",
       flexDirection: "column",
       gap: "1.5",
       width: "full",
     },
-    label: {
-      fontWeight: "medium",
-      userSelect: "none",
-      textStyle: "sm",
-    },
+    label: fieldLabel,
     content: {
       background: "neutral.surface.bg",
       display: "flex",
@@ -57,36 +61,6 @@ export const listbox = defineSlotRecipe({
       maxH: "96",
       minH: "0",
       outline: 0,
-    },
-    item: {
-      alignItems: "center",
-      borderRadius: "sm",
-      cursor: "pointer",
-      display: "flex",
-      minWidth: "0",
-      justifyContent: "space-between",
-      userSelect: "none",
-      outline: "0",
-      _hover: {
-        background: "bg.hover",
-      },
-      _highlighted: {
-        background: "bg.hover",
-      },
-      _selected: {
-        color: "colorPalette.plain.fg",
-      },
-      _disabled: {
-        layerStyle: "disabled",
-      },
-    },
-    itemText: {
-      flex: "1",
-      minWidth: "0",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-      fontWeight: "medium",
     },
     itemHint: {
       color: "fg.subtle",
@@ -101,37 +75,6 @@ export const listbox = defineSlotRecipe({
       gap: "1",
       flexShrink: "0",
       transition: "opacity 0.12s ease-out",
-    },
-    itemIndicator: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "colorPalette.plain.fg",
-      flexShrink: "0",
-      _unchecked: { visibility: "hidden" },
-    },
-    itemGroup: {
-      display: "flex",
-      flexDirection: "column",
-      minWidth: "0",
-      ...dropdownItemGroupSpacing,
-    },
-    itemGroupLabel: {
-      alignItems: "flex-start",
-      color: "fg.subtle",
-      display: "flex",
-      flexDirection: "column",
-      fontWeight: "semibold",
-      gap: "1px",
-      justifyContent: "center",
-      textTransform: "uppercase",
-      letterSpacing: "wider",
-      _after: {
-        content: '""',
-        width: "100%",
-        height: "1px",
-        bg: "border.muted",
-      },
     },
     valueText: {
       fontWeight: "normal",
@@ -149,13 +92,7 @@ export const listbox = defineSlotRecipe({
     selection: {
       check: {},
       tint: {
-        item: {
-          _selected: {
-            bg: "colorPalette.subtle.bg",
-            _hover: { bg: "colorPalette.subtle.bg.hover" },
-            _highlighted: { bg: "colorPalette.subtle.bg.hover" },
-          },
-        },
+        item: { _selected: tintedRow },
         itemIndicator: { display: "none" },
       },
     },
@@ -201,42 +138,10 @@ export const listbox = defineSlotRecipe({
       },
     },
     size: {
-      xs: {
-        root: textInset("xs"),
-        content: { p: "1", gap: "0.5", ...controlText("2xs") },
-        item: dropdownItem("xs"),
-        itemHint: { ...controlText("2xs"), ps: controlGap("xs") },
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: { ...dropdownItemGroupLabel("xs"), ...controlText("2xs") },
-        label: controlText("xs"),
-      },
-      sm: {
-        root: textInset("sm"),
-        content: { p: "1", gap: "0.5", ...controlText("xs") },
-        item: dropdownItem("sm"),
-        itemHint: { ...controlText("2xs"), ps: controlGap("sm") },
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: { ...dropdownItemGroupLabel("sm"), ...controlText("xs") },
-        label: controlText("sm"),
-      },
-      md: {
-        root: textInset("md"),
-        content: { p: "1", gap: "0.5", ...controlText("sm") },
-        item: dropdownItem("md"),
-        itemHint: { ...controlText("xs"), ps: controlGap("md") },
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: { ...dropdownItemGroupLabel("md"), ...controlText("xs") },
-        label: controlText("sm"),
-      },
-      lg: {
-        root: textInset("lg"),
-        content: { p: "1", gap: "0.5", ...controlText("md") },
-        item: dropdownItem("lg"),
-        itemHint: { ...controlText("xs"), ps: controlGap("lg") },
-        itemGroup: { gap: "0.5" },
-        itemGroupLabel: { ...dropdownItemGroupLabel("lg"), ...controlText("sm") },
-        label: controlText("md"),
-      },
+      xs: tier("xs", { text: "2xs", caption: "2xs", hint: "2xs" }),
+      sm: tier("sm", { text: "xs", caption: "xs", hint: "2xs" }),
+      md: tier("md", { text: "sm", caption: "xs", hint: "xs" }),
+      lg: tier("lg", { text: "md", caption: "sm", hint: "xs" }),
     },
   },
 });
