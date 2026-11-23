@@ -1,3 +1,4 @@
+import { createMatchMedia } from "@construkt-kit/config/vitest";
 import { breakpointDownQuery, breakpoints } from "@construkt-kit/ui";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -12,6 +13,23 @@ describe("ResetPasswordPage", () => {
     expect(document.body.querySelector("button input, button button")).toBeNull();
     expect(screen.getByLabelText("New password").tagName).toBe("INPUT");
     expect(screen.getByLabelText("Confirm password").tagName).toBe("INPUT");
+  });
+
+  it("flags and focuses the first invalid field on submit instead of disabling Reset password", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<ResetPasswordPage onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("New password"), "Abcdefg1!");
+    await user.type(screen.getByLabelText("Confirm password"), "Abcdefg1?");
+    await user.click(screen.getByRole("button", { name: "Reset password" }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const confirm = screen.getByLabelText("Confirm password");
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(confirm);
+    expect(confirm.getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getAllByText("Passwords do not match.")).toHaveLength(1);
   });
 
   it("closes the password rules without pulling focus back", async () => {
@@ -29,12 +47,10 @@ describe("ResetPasswordPage", () => {
   });
 
   it("keeps the password field focused while the rules show on a phone", async () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: breakpoints.some((bp) => query === breakpointDownQuery(bp)),
-      media: query,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }));
+    const phone = createMatchMedia((query) =>
+      breakpoints.some((bp) => query === breakpointDownQuery(bp)),
+    );
+    vi.stubGlobal("matchMedia", phone.matchMedia);
     onTestFinished(() => {
       vi.unstubAllGlobals();
     });

@@ -4,14 +4,15 @@ Shared auth page components for Construkt Kit apps. Pages own layout — consumi
 
 ## Exports
 
-| Export               | Props                                                            |
-| -------------------- | ---------------------------------------------------------------- |
-| `LoginPage`          | `onSubmit`, `isLoading?`, `error?`, `logo?`, `onForgotPassword?` |
-| `ForgotPasswordPage` | `ForgotPasswordPageProps`                                        |
-| `ResetPasswordPage`  | `ResetPasswordPageProps`                                         |
+| Export               | Props                                                                             |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `LoginPage`          | `onSubmit`, `isLoading?`, `error?`, `logo?`, `onForgotPassword?`, `beforeSubmit?` |
+| `ForgotPasswordPage` | `ForgotPasswordPageProps`                                                         |
+| `ResetPasswordPage`  | `ResetPasswordPageProps`                                                          |
 
 Every page takes `error`: a failed submit, such as a rejected sign-in, shown in an error `Alert` above the fields
-with `role="alert"`, so screen readers announce it.
+with `role="alert"`, so screen readers announce it. `LoginPage` and `ForgotPasswordPage` take `beforeSubmit`, rendered
+just above the submit button, for a captcha or a terms notice.
 
 **Types:** `AuthProvider`, `User`, `LoginOptions`, `LoginPageProps`, `ForgotPasswordPageProps`, `ResetPasswordPageProps`
 
@@ -62,6 +63,8 @@ design system, those apps generate a full local `styled-system/` instead of re-e
 
 - Apps need `@construkt-kit/ui` 0.15 or later: the forgot-password link renders through Link's `render` and the
   password rules popover sits beside its field through Popover's `placement`; follow ui's "Upgrading from 0.14"
+- `ForgotPasswordPage` and `ResetPasswordPage` keep their submit button enabled and, on submit, flag and focus the
+  first invalid field, as `LoginPage` does; tests that expected a disabled submit button need updating
 
 ## Upgrading from 0.8
 

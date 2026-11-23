@@ -1,7 +1,7 @@
-import { Field, Input, useAutoFocus } from "@construkt-kit/ui";
-import { useState } from "react";
+import { useAutoFocus } from "@construkt-kit/ui";
+import { type ReactNode, useState } from "react";
 
-import { AuthForm, AuthLinkButton, AuthSuccess, getEmailError } from "../AuthForm";
+import { AuthEmailField, AuthForm, AuthSuccess, BackToSignIn, getEmailError } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import type { AuthPageProps } from "../types";
 
@@ -9,6 +9,8 @@ export interface ForgotPasswordPageProps extends AuthPageProps {
   onSubmit: (email: string) => void;
   onBack?: () => void;
   isSuccess?: boolean;
+  /** Rendered between the email field and the submit button, such as a captcha. */
+  beforeSubmit?: ReactNode;
 }
 
 export function ForgotPasswordPage({
@@ -18,17 +20,15 @@ export function ForgotPasswordPage({
   logo,
   onBack,
   isSuccess,
+  beforeSubmit,
   title = "Reset password",
   description = "Enter your email and we will send you a reset link.",
 }: ForgotPasswordPageProps) {
   const emailInput = useAutoFocus();
   const [email, setEmail] = useState("");
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-  const emailError = getEmailError(email);
 
   const handleSubmit = () => {
-    setSubmitAttempted(true);
-    if (emailError) emailInput.current?.focus();
+    if (getEmailError(email)) emailInput.current?.focus();
     else onSubmit(email);
   };
 
@@ -50,22 +50,15 @@ export function ForgotPasswordPage({
           submitLabel="Send reset link"
           loading={isLoading}
           error={error}
-          submitDisabled={!email}
-          footer={onBack && <AuthLinkButton onClick={onBack}>Back to sign in</AuthLinkButton>}
+          beforeSubmit={beforeSubmit}
+          footer={onBack && <BackToSignIn onBack={onBack} />}
         >
-          <Field
-            label="Email"
-            invalid={submitAttempted && emailError !== undefined}
-            errorText={emailError}
-          >
-            <Input
-              ref={emailInput}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-            />
-          </Field>
+          <AuthEmailField
+            ref={emailInput}
+            value={email}
+            onValueChange={setEmail}
+            autoComplete="email"
+          />
         </AuthForm>
       )}
     </AuthLayout>

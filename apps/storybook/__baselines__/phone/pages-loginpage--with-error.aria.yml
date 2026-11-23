@@ -2,11 +2,9 @@
 - paragraph: Sign in to continue to App.
 - alert:
   - heading "Incorrect email or password." [level=3]
-- group:
-  - text: Email
-  - textbox "Email"
-- group:
-  - text: Password
-  - textbox "Password"
-  - button "Forgot password?"
+- text: Email
+- textbox "Email"
+- text: Password
+- textbox "Password"
+- button "Forgot password?"
 - button "Sign in"

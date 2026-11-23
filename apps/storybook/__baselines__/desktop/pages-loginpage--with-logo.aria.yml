@@ -1,11 +1,9 @@
 - text: Construkt Kit Portal
 - paragraph: Welcome back
 - paragraph: Sign in to continue to App.
-- group:
-  - text: Email
-  - textbox "Email"
-- group:
-  - text: Password
-  - textbox "Password"
-  - button "Forgot password?"
+- text: Email
+- textbox "Email"
+- text: Password
+- textbox "Password"
+- button "Forgot password?"
 - button "Sign in"

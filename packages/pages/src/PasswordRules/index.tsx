@@ -1,15 +1,11 @@
-import { HStack, Popover, type PopoverRootProps, Stack, Text } from "@construkt-kit/ui";
-import { passwordRules, passwordSchema } from "@construkt-kit/utils";
+import { HStack, Stack, Text } from "@construkt-kit/ui";
+import { getFailedPasswordRules, passwordRules } from "@construkt-kit/utils";
 import { CheckIcon, XIcon } from "lucide-react";
 import { type ReactElement, useMemo } from "react";
 
-export const isPasswordValid = (password: string) => passwordSchema.safeParse(password).success;
+import { FieldHintPopover } from "../FieldHintPopover";
 
-export const besideFieldPlacement = [
-  "right",
-  "top",
-  "bottom",
-] as const satisfies PopoverRootProps["placement"];
+export const isPasswordValid = (password: string) => getFailedPasswordRules(password).length === 0;
 
 export interface PasswordRulesPopoverProps {
   open: boolean;
@@ -19,18 +15,14 @@ export interface PasswordRulesPopoverProps {
 
 export const PasswordRulesPopover = ({ open, password, children }: PasswordRulesPopoverProps) => {
   const failedRules = useMemo(
-    () => new Set(passwordRules.filter((rule) => !rule.test(password)).map((rule) => rule.id)),
+    () => new Set(getFailedPasswordRules(password).map((rule) => rule.id)),
     [password],
   );
 
   return (
-    <Popover.Root
-      autoFocus={false}
+    <FieldHintPopover
       open={open}
-      placement={besideFieldPlacement}
-    >
-      <Popover.Anchor>{children}</Popover.Anchor>
-      <Popover.Content p="4">
+      hint={
         <Stack gap="4">
           <Text>Password Rules</Text>
           <Stack>
@@ -49,7 +41,9 @@ export const PasswordRulesPopover = ({ open, password, children }: PasswordRules
             })}
           </Stack>
         </Stack>
-      </Popover.Content>
-    </Popover.Root>
+      }
+    >
+      {children}
+    </FieldHintPopover>
   );
 };

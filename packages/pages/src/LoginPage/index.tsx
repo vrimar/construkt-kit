@@ -1,13 +1,15 @@
-import { Field, Input, Link, useAutoFocus } from "@construkt-kit/ui";
-import { useRef, useState } from "react";
+import { Input, Link, useAutoFocus } from "@construkt-kit/ui";
+import { type ReactNode, useRef, useState } from "react";
 
-import { AuthForm, getEmailError } from "../AuthForm";
+import { AuthEmailField, AuthField, AuthForm, getEmailError } from "../AuthForm";
 import { AuthLayout } from "../AuthLayout";
 import type { AuthPageProps } from "../types";
 
 export interface LoginPageProps extends AuthPageProps {
   onSubmit: (email: string, password: string) => void;
   onForgotPassword?: () => void;
+  /** Rendered between the fields and the submit button, such as a captcha. */
+  beforeSubmit?: ReactNode;
 }
 
 export function LoginPage({
@@ -16,6 +18,7 @@ export function LoginPage({
   error,
   logo,
   onForgotPassword,
+  beforeSubmit,
   title = "Welcome back",
   description = "Sign in to continue to App.",
 }: LoginPageProps) {
@@ -23,13 +26,11 @@ export function LoginPage({
   const passwordInput = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-  const emailError = getEmailError(email);
+  const passwordError = password ? undefined : "Password is required.";
 
   const handleSubmit = () => {
-    setSubmitAttempted(true);
-    if (emailError) emailInput.current?.focus();
-    else if (!password) passwordInput.current?.focus();
+    if (getEmailError(email)) emailInput.current?.focus();
+    else if (passwordError) passwordInput.current?.focus();
     else onSubmit(email, password);
   };
 
@@ -45,25 +46,18 @@ export function LoginPage({
         submitLabel="Sign in"
         loading={isLoading}
         error={error}
+        beforeSubmit={beforeSubmit}
       >
-        <Field
-          label="Email"
-          invalid={submitAttempted && emailError !== undefined}
-          errorText={emailError}
-        >
-          <Input
-            ref={emailInput}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            autoComplete="username"
-          />
-        </Field>
+        <AuthEmailField
+          ref={emailInput}
+          value={email}
+          onValueChange={setEmail}
+          autoComplete="username"
+        />
 
-        <Field
+        <AuthField
           label="Password"
-          invalid={submitAttempted && !password}
-          errorText="Password is required."
+          error={passwordError}
           labelAction={
             onForgotPassword && (
               <Link
@@ -89,7 +83,7 @@ export function LoginPage({
             type="password"
             autoComplete="current-password"
           />
-        </Field>
+        </AuthField>
       </AuthForm>
     </AuthLayout>
   );
