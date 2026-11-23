@@ -14,6 +14,7 @@
     "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "exports": {
@@ -36,6 +37,6 @@
   "devDependencies": {
     "@construkt-kit/config": "workspace:*",
     "tsdown": "^0.23.7",
-    "vitest": "^5.1.0"
+    "vitest": "catalog:"
   }
 }

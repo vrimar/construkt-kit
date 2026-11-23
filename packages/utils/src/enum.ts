@@ -42,7 +42,7 @@ export function fromEnum<T extends object, C>(
 ) {
   let entries = enumToEntries(enumSrc);
 
-  if (skip) entries = entries.filter(skip);
+  if (skip) entries = entries.filter((entry, index, array) => !skip(entry, index, array));
 
   return entries.map(projection);
 }

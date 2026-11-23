@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { enumToEntries, isEnumKey, toListItems, toNumericListItems } from "./enum";
+import { enumToEntries, fromEnum, isEnumKey, toListItems, toNumericListItems } from "./enum";
 
 enum Status {
   Active = 1,
@@ -45,6 +45,18 @@ describe("enumToEntries", () => {
       ["Red", "red"],
       ["Blue", "blue"],
     ]);
+  });
+});
+
+describe("fromEnum", () => {
+  it("drops the entries skip names", () => {
+    expect(
+      fromEnum(
+        Status,
+        ([key]) => key,
+        ([, value]) => value === Status.Archived,
+      ),
+    ).toEqual(["Active"]);
   });
 });
 

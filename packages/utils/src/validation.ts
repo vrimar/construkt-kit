@@ -33,9 +33,13 @@ export const passwordRules: PasswordRule[] = [
   })),
 ];
 
-export const passwordSchema = PASSWORD_PATTERNS.reduce(
-  (schema, { label, pattern }) => schema.regex(pattern, label),
-  z.string().min(PASSWORD_MIN_LENGTH, `At least ${PASSWORD_MIN_LENGTH} characters in length`),
+/** The rules `password` breaks, in `passwordRules` order. */
+export const getFailedPasswordRules = (password: string): PasswordRule[] =>
+  passwordRules.filter((rule) => !rule.test(password));
+
+export const passwordSchema = passwordRules.reduce(
+  (schema, { label, test }) => schema.refine(test, label),
+  z.string(),
 );
 
 /** Compose base schemas in each app's form schemas. */

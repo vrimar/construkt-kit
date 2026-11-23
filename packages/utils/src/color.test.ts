@@ -4,6 +4,7 @@ import {
   type Color,
   convertColor,
   formatColor,
+  getColorAxes,
   getColorChannelPercentValue,
   incrementColorChannel,
   parseColor,
@@ -79,5 +80,16 @@ describe("channels", () => {
     expect(
       incrementColorChannel(setColorChannelValue(red, "alpha", 0.7), "alpha", 0.1),
     ).toMatchObject({ alpha: 0.8 });
+  });
+});
+
+describe("getColorAxes", () => {
+  it("moves the missing axis off a channel the given axis took", () => {
+    const hsb = convertColor(parseColor("#6699CC"), "hsba");
+    expect(getColorAxes(hsb, { xChannel: "brightness" })).toEqual({
+      xChannel: "brightness",
+      yChannel: "saturation",
+      zChannel: "hue",
+    });
   });
 });

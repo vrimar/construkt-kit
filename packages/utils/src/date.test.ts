@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { formatDateDefault, formatDateValue } from "./date";
+import { formatDateDefault, formatDateValue, formatIsoDate, parseDate, toIsoDay } from "./date";
 
 beforeEach(() => {
   vi.stubEnv("TZ", "America/Los_Angeles");
@@ -41,5 +41,23 @@ describe("formatDateValue", () => {
 
   it("returns undefined for a value that isn't a date", () => {
     expect(formatDateValue("not a date")).toBeUndefined();
+  });
+});
+
+describe("parseDate", () => {
+  it("reads an offset-less timestamp as UTC", () => {
+    expect(parseDate("2024-01-15T10:00:00").getTime()).toBe(Date.parse("2024-01-15T10:00:00Z"));
+  });
+});
+
+describe("formatIsoDate", () => {
+  it("formats calendar dates as zero-padded ISO dates", () => {
+    expect(formatIsoDate({ year: 2024, month: 3, day: 7 })).toBe("2024-03-07");
+  });
+});
+
+describe("toIsoDay", () => {
+  it("puts an offset-less timestamp on the local day of its UTC instant", () => {
+    expect(toIsoDay("2024-01-15T03:00:00")).toBe("2024-01-14");
   });
 });

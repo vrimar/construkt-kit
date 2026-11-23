@@ -20,6 +20,15 @@ export function addOrRemoveByKey<T, K>(arr: T[], value: T, key: (item: T) => K) 
   return exists ? arr.filter((v) => key(v) !== k) : [...arr, value];
 }
 
+/** Whether `a` and `b` hold equal items in the same order; `eq` compares two items, `===` by default. */
+export function sameItems<T>(
+  a: readonly T[],
+  b: readonly T[],
+  eq: (x: T, y: T) => boolean = (x, y) => x === y,
+): boolean {
+  return a.length === b.length && a.every((item, index) => eq(item, b[index]));
+}
+
 export function getFirstItemId<T extends { id: number }>(arr?: T[]) {
   return arr?.[0]?.id ?? 0;
 }

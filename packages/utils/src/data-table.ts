@@ -1,3 +1,4 @@
+import { isIsoDate } from "./date";
 import { isValidNumber } from "./number";
 
 export type DataTableFilters = Record<string, string[] | undefined>;
@@ -52,16 +53,6 @@ export function parseNumberFilter(raw: string): NumberFilterValue | undefined {
   if (!isComparisonOperator(operator) || !isValidNumber(operand)) return undefined;
   return { operator, value: Number(operand) };
 }
-
-/** Formats a calendar date as ISO `YYYY-MM-DD`, the date form carried by {@link DataTableFilters}. */
-export function formatIsoDate({ year, month, day }: { year: number; month: number; day: number }) {
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-const isIsoDate = (value: string) => {
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-};
 
 /** Encodes an inclusive ISO date range into one filter string, e.g. `"2024-01-01<>2024-01-31"`. */
 export function serializeDateRangeFilter(start: string, end: string): string {

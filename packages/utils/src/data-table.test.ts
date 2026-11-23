@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   type NumberFilterValue,
-  formatIsoDate,
   matchesNumberFilter,
   parseDateRangeFilter,
   parseNumberFilter,
@@ -91,10 +90,6 @@ describe("matchesNumberFilter", () => {
 });
 
 describe("date range filter", () => {
-  it("formats calendar dates as zero-padded ISO dates", () => {
-    expect(formatIsoDate({ year: 2024, month: 3, day: 7 })).toBe("2024-03-07");
-  });
-
   it("round-trips a range through serialize and parse", () => {
     const raw = serializeDateRangeFilter("2024-01-01", "2024-01-31");
     expect(raw).toBe("2024-01-01<>2024-01-31");

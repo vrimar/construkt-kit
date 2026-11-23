@@ -7,9 +7,9 @@ release and commit the code was ported from, the files it went into, and that pr
 
 - Source: https://github.com/chakra-ui/zag, release `1.47.0`, commit `7a415c9d670fd1e3beb653bab242cda7ff9c7304`
 - Ported from `packages/utilities/color-utils/src/color.ts`, `rgb-color.ts`, `hsl-color.ts`, `hsb-color.ts`,
-  `native-color.ts`, `parse-color.ts` and `types.ts`, and the step and range helpers of
-  `packages/utilities/core/src/number.ts`, as functions over plain color objects
-- Into `src/color.ts`
+  `native-color.ts`, `parse-color.ts` and `types.ts`, as functions over plain color objects, and the
+  step, range and decimal arithmetic helpers of `packages/utilities/core/src/number.ts`
+- Into `src/color.ts` and `src/number.ts`
 
 ```
 MIT License
