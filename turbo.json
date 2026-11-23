@@ -24,7 +24,8 @@
       "dependsOn": ["build", "gen:fixture"]
     },
     "test:browser": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
     "test:stories": {
       "dependsOn": ["^build"],
