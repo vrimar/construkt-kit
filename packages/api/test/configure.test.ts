@@ -95,6 +95,19 @@ describe("configureApiClient", () => {
     expect(lastRequest().headers.get("Authorization")).toBe("Bearer tok");
   });
 
+  it("waits for a token callback that returns a promise", async () => {
+    const scoped = client.createClient();
+    const disposeScoped = configureApiClient(scoped, {
+      baseURL: "https://api.test",
+      getToken: async () => "async-tok",
+    });
+
+    await getApiProjectsId({ path: { id: 7 }, client: scoped });
+    disposeScoped();
+
+    expect(lastRequest().headers.get("Authorization")).toBe("Bearer async-tok");
+  });
+
   it("omits the header when there is no token", async () => {
     token = null;
     await getApiProjectsId({ path: { id: 7 } });

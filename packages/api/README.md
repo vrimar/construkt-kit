@@ -75,19 +75,17 @@ const project = await getApiProjectsId({ path: { id } }).unwrap();
 
 ### Token callback
 
-`getToken` is a **synchronous** callback (`() => string | null | undefined`) read on every request,
-so token refresh needs no reconfiguration. The resulting `Authorization: Bearer` header replaces one
-set through `client.setConfig({ headers })` whatever its casing, and when the callback returns
-nothing the header is removed — so a logout stops sending the old token.
+`getToken` is read on every request, so token refresh needs no reconfiguration. It may return the
+token or a promise of it, so an auth SDK's async getter, such as `AuthProvider.getToken` from
+`@construkt-kit/pages`, can be passed as it is:
 
-> **Sync/async gap:** `AuthProvider.getToken` from `@construkt-kit/pages` returns
-> `Promise<string | null>`. Cache the token in the app and hand over the cached value:
->
-> ```ts
-> let cachedToken: string | null = null;
-> // Update cachedToken when auth state changes
-> configureApiClient(client, { baseURL, getToken: () => cachedToken });
-> ```
+```ts
+configureApiClient(client, { baseURL, getToken: () => auth.getToken() });
+```
+
+The resulting `Authorization: Bearer` header replaces one set through `client.setConfig({ headers })`
+whatever its casing, and when the callback returns nothing the header is removed — so a logout stops
+sending the old token.
 
 ### Query parameters
 
@@ -255,6 +253,10 @@ Kubb, then deleted. Generation problems are printed and exit the process with co
 `http` and `https` base URLs both work, and redirects are followed. HTTPS certificates are verified:
 for a dev certificate the OS trusts (`dotnet dev-certs https --trust`), run with
 `NODE_OPTIONS=--use-system-ca`; otherwise use the API's `http` URL or set `NODE_EXTRA_CA_CERTS`.
+
+## Upgrading from 0.6
+
+- `getToken` may return a promise, so an async token getter no longer needs a cached copy
 
 ## Upgrading from 0.5
 

@@ -39,7 +39,8 @@ export interface ApiClient<TRequest extends ClientRequest = ClientRequest, TStyl
 
 export interface ConfigureApiClientOptions {
   baseURL: string;
-  getToken: () => string | null | undefined;
+  /** Read on every request; an auth SDK's async `getToken` can be passed as it is. */
+  getToken: () => string | null | undefined | Promise<string | null | undefined>;
 }
 
 function isResponseError(error: Error): error is ResponseErrorShape {
@@ -109,8 +110,8 @@ export function configureApiClient<TRequest extends ClientRequest, TStyle>(
     serializer: { query: bracketUnstyledObjects(query) },
   });
 
-  const requestInterceptor = client.interceptors.request.use((request) => {
-    const token = getToken();
+  const requestInterceptor = client.interceptors.request.use(async (request) => {
+    const token = await getToken();
     for (const key of Object.keys(request.headers)) {
       if (key.toLowerCase() === AUTHORIZATION_HEADER.toLowerCase()) delete request.headers[key];
     }
