@@ -46,6 +46,9 @@ jobs:
           turbo-cache: save
 
       - name: Verify
+        # Firefox refuses to run as root under a HOME another user owns, as the image's /github/home is.
+        env:
+          HOME: /root
         run: pnpm verify
 
       - name: Check baseline commits
