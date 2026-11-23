@@ -52,6 +52,19 @@ import { LoginPage } from "@construkt-kit/pages";
 />;
 ```
 
+## Testing helpers
+
+`@construkt-kit/pages/testing` drives the auth pages in Playwright end-to-end tests; it needs `@playwright/test`.
+Each helper takes a `Page`, or a `Locator` the auth page sits in.
+
+| Export                                  | Does or locates                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------ |
+| `signIn(scope, { username, password })` | Fills `LoginPage`'s Email and Password fields and presses Sign in              |
+| `authFormError(scope)`                  | The error alert above an auth form's fields after a failed submit              |
+| `authFieldError(scope, label)`          | The error under the field labelled `label`, shown once a submit has been tried |
+
+`src/testing/index.spec.ts` drives them against the stories, so a markup change that breaks one fails there.
+
 ## Panda CSS
 
 pages is a Panda design system that extends `@construkt-kit/ui`. `panda lib` ships the styles these pages
