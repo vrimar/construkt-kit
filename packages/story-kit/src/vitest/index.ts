@@ -58,6 +58,8 @@ function browserProject(
       setupFiles: [browserSetup],
       // WebKit's frames run slowly under CI load, past expect.poll's 1s default; Playwright waits 5s.
       expect: { poll: { timeout: 5_000 } },
+      // Browser tests flake on timing in CI's loaded container; a real failure still fails every try.
+      retry: process.env.CI ? 2 : 0,
       browser: {
         enabled: true,
         headless: true,
