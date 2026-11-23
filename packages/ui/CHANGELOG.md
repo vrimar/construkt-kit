@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Take a FileUpload drop that comes before React renders its dragover (`0d129d12`)
 - Take a file with no path on disk, such as one dragged out of a page, in FileUpload (`120cf536`)
 
 ### Other
