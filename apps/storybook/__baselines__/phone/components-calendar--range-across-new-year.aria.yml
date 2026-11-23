@@ -1,0 +1,97 @@
+- application "calendar":
+  - button "Switch to previous month"
+  - button /December \d+/
+  - button "Switch to next month"
+  - grid /December \d+ - December \d+/:
+    - rowgroup:
+      - row /Choose Monday, November \d+, \d+ Choose Tuesday, November \d+, \d+ Choose Wednesday, November \d+, \d+ Choose Thursday, November \d+, \d+ Choose Friday, November \d+, \d+ Choose Saturday, December 1, \d+ Choose Sunday, December 2, \d+/:
+        - gridcell /Choose Monday, November \d+, \d+/ [disabled]:
+          - button /Choose Monday, November \d+, \d+/ [disabled]
+        - gridcell /Choose Tuesday, November \d+, \d+/ [disabled]:
+          - button /Choose Tuesday, November \d+, \d+/ [disabled]
+        - gridcell /Choose Wednesday, November \d+, \d+/ [disabled]:
+          - button /Choose Wednesday, November \d+, \d+/ [disabled]
+        - gridcell /Choose Thursday, November \d+, \d+/ [disabled]:
+          - button /Choose Thursday, November \d+, \d+/ [disabled]
+        - gridcell /Choose Friday, November \d+, \d+/ [disabled]:
+          - button /Choose Friday, November \d+, \d+/ [disabled]
+        - gridcell /Choose Saturday, December 1, \d+/:
+          - button /Choose Saturday, December 1, \d+/
+        - gridcell /Choose Sunday, December 2, \d+/:
+          - button /Choose Sunday, December 2, \d+/
+      - row /Choose Monday, December 3, \d+ Choose Tuesday, December 4, \d+ Choose Wednesday, December 5, \d+ Choose Thursday, December 6, \d+ Choose Friday, December 7, \d+ Choose Saturday, December 8, \d+ Choose Sunday, December 9, \d+/:
+        - gridcell /Choose Monday, December 3, \d+/:
+          - button /Choose Monday, December 3, \d+/
+        - gridcell /Choose Tuesday, December 4, \d+/:
+          - button /Choose Tuesday, December 4, \d+/
+        - gridcell /Choose Wednesday, December 5, \d+/:
+          - button /Choose Wednesday, December 5, \d+/
+        - gridcell /Choose Thursday, December 6, \d+/:
+          - button /Choose Thursday, December 6, \d+/
+        - gridcell /Choose Friday, December 7, \d+/:
+          - button /Choose Friday, December 7, \d+/
+        - gridcell /Choose Saturday, December 8, \d+/:
+          - button /Choose Saturday, December 8, \d+/
+        - gridcell /Choose Sunday, December 9, \d+/:
+          - button /Choose Sunday, December 9, \d+/
+      - row /Starting range from Monday, December \d+, \d+ In range\. Tuesday, December \d+, \d+ Range ending at Wednesday, December \d+, \d+ Choose Thursday, December \d+, \d+ Choose Friday, December \d+, \d+ Choose Saturday, December \d+, \d+ Choose Sunday, December \d+, \d+/:
+        - gridcell /Starting range from Monday, December \d+, \d+/ [selected]:
+          - button /Starting range from Monday, December \d+, \d+/
+        - gridcell /In range\. Tuesday, December \d+, \d+/ [selected]:
+          - button /In range\. Tuesday, December \d+, \d+/
+        - gridcell /Range ending at Wednesday, December \d+, \d+/ [selected]:
+          - button /Range ending at Wednesday, December \d+, \d+/
+        - gridcell /Choose Thursday, December \d+, \d+/:
+          - button /Choose Thursday, December \d+, \d+/
+        - gridcell /Choose Friday, December \d+, \d+/:
+          - button /Choose Friday, December \d+, \d+/
+        - gridcell /Choose Saturday, December \d+, \d+/:
+          - button /Choose Saturday, December \d+, \d+/
+        - gridcell /Choose Sunday, December \d+, \d+/:
+          - button /Choose Sunday, December \d+, \d+/
+      - row /Choose Monday, December \d+, \d+ Choose Tuesday, December \d+, \d+ Choose Wednesday, December \d+, \d+ Choose Thursday, December \d+, \d+ Choose Friday, December \d+, \d+ Choose Saturday, December \d+, \d+ Choose Sunday, December \d+, \d+/:
+        - gridcell /Choose Monday, December \d+, \d+/:
+          - button /Choose Monday, December \d+, \d+/
+        - gridcell /Choose Tuesday, December \d+, \d+/:
+          - button /Choose Tuesday, December \d+, \d+/
+        - gridcell /Choose Wednesday, December \d+, \d+/:
+          - button /Choose Wednesday, December \d+, \d+/
+        - gridcell /Choose Thursday, December \d+, \d+/:
+          - button /Choose Thursday, December \d+, \d+/
+        - gridcell /Choose Friday, December \d+, \d+/:
+          - button /Choose Friday, December \d+, \d+/
+        - gridcell /Choose Saturday, December \d+, \d+/:
+          - button /Choose Saturday, December \d+, \d+/
+        - gridcell /Choose Sunday, December \d+, \d+/:
+          - button /Choose Sunday, December \d+, \d+/
+      - row /Choose Monday, December \d+, \d+ Choose Tuesday, December \d+, \d+ Choose Wednesday, December \d+, \d+ Choose Thursday, December \d+, \d+ Choose Friday, December \d+, \d+ Choose Saturday, December \d+, \d+ Choose Sunday, December \d+, \d+/:
+        - gridcell /Choose Monday, December \d+, \d+/:
+          - button /Choose Monday, December \d+, \d+/
+        - gridcell /Choose Tuesday, December \d+, \d+/:
+          - button /Choose Tuesday, December \d+, \d+/
+        - gridcell /Choose Wednesday, December \d+, \d+/:
+          - button /Choose Wednesday, December \d+, \d+/
+        - gridcell /Choose Thursday, December \d+, \d+/:
+          - button /Choose Thursday, December \d+, \d+/
+        - gridcell /Choose Friday, December \d+, \d+/:
+          - button /Choose Friday, December \d+, \d+/
+        - gridcell /Choose Saturday, December \d+, \d+/:
+          - button /Choose Saturday, December \d+, \d+/
+        - gridcell /Choose Sunday, December \d+, \d+/:
+          - button /Choose Sunday, December \d+, \d+/
+      - row /Choose Monday, December \d+, \d+ Choose Tuesday, January 1, \d+ Choose Wednesday, January 2, \d+ Choose Thursday, January 3, \d+ Choose Friday, January 4, \d+ Choose Saturday, January 5, \d+ Choose Sunday, January 6, \d+/:
+        - gridcell /Choose Monday, December \d+, \d+/:
+          - button /Choose Monday, December \d+, \d+/
+        - gridcell /Choose Tuesday, January 1, \d+/ [disabled]:
+          - button /Choose Tuesday, January 1, \d+/ [disabled]
+        - gridcell /Choose Wednesday, January 2, \d+/ [disabled]:
+          - button /Choose Wednesday, January 2, \d+/ [disabled]
+        - gridcell /Choose Thursday, January 3, \d+/ [disabled]:
+          - button /Choose Thursday, January 3, \d+/ [disabled]
+        - gridcell /Choose Friday, January 4, \d+/ [disabled]:
+          - button /Choose Friday, January 4, \d+/ [disabled]
+        - gridcell /Choose Saturday, January 5, \d+/ [disabled]:
+          - button /Choose Saturday, January 5, \d+/ [disabled]
+        - gridcell /Choose Sunday, January 6, \d+/ [disabled]:
+          - button /Choose Sunday, January 6, \d+/ [disabled]
+- alert

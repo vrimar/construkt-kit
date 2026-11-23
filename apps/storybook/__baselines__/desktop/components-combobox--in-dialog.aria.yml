@@ -1,0 +1,6 @@
+- dialog "Edit project":
+  - heading "Edit project" [level=2]
+  - text: Framework
+  - combobox "Framework"
+  - button "Toggle suggestions"
+  - button "Close"

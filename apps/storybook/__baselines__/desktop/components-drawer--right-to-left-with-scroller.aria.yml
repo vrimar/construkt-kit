@@ -1,0 +1,4 @@
+- dialog "Filters":
+  - heading "Filters" [level=2]
+  - paragraph: Status
+  - group "Status": Open In review Blocked Done Archived Mine Unassigned Urgent

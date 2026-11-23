@@ -1,0 +1,32 @@
+- grid "Cell tooltips":
+  - rowgroup:
+    - row "Column 1 Column 2 Column 3":
+      - columnheader "Column 1"
+      - columnheader "Column 2"
+      - columnheader "Column 3"
+  - rowgroup:
+    - row "R1C1 R1C2 R1C3":
+      - gridcell "R1C1"
+      - gridcell "R1C2"
+      - gridcell "R1C3"
+    - row "R2C1 R2C2 R2C3":
+      - gridcell "R2C1"
+      - gridcell "R2C2"
+      - gridcell "R2C3"
+    - row "R3C1 R3C2 R3C3":
+      - gridcell "R3C1"
+      - gridcell "R3C2"
+      - gridcell "R3C3"
+    - row "R4C1 R4C2 R4C3":
+      - gridcell "R4C1"
+      - gridcell "R4C2"
+      - gridcell "R4C3"
+    - row "R5C1 R5C2 R5C3":
+      - gridcell "R5C1"
+      - gridcell "R5C2"
+      - gridcell "R5C3"
+    - row "R6C1 R6C2 R6C3":
+      - gridcell "R6C1"
+      - gridcell "R6C2"
+      - gridcell "R6C3"
+- status

@@ -1,0 +1,4 @@
+- dialog /Invoice INV-\d+/:
+  - heading /Invoice INV-\d+/ [level=2]
+  - paragraph: /Due \d+ September · \d+,\d+\.\d+ EUR/
+  - button "View payment"

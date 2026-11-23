@@ -1,0 +1,10 @@
+- dialog "Edit post":
+  - heading "Edit post" [level=2]
+  - text: Tags React
+  - button "Delete tag React"
+  - text: Vue
+  - button "Delete tag Vue"
+  - textbox "Tags":
+    - /placeholder: Add tag...
+  - alert
+  - button "Close"

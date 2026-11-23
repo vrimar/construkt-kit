@@ -1,0 +1,34 @@
+- application "calendar":
+  - button "Switch to previous year"
+  - button /\d+/
+  - button "Switch to next year"
+  - grid /\d+/:
+    - rowgroup:
+      - row /Jan \d+ Feb \d+ Mar \d+ Apr \d+/:
+        - gridcell /Jan \d+/:
+          - button /Jan \d+/
+        - gridcell /Feb \d+/:
+          - button /Feb \d+/
+        - gridcell /Mar \d+/ [selected]:
+          - button /Mar \d+/
+        - gridcell /Apr \d+/:
+          - button /Apr \d+/
+      - row /May \d+ Jun \d+ Jul \d+ Aug \d+/:
+        - gridcell /May \d+/:
+          - button /May \d+/
+        - gridcell /Jun \d+/:
+          - button /Jun \d+/
+        - gridcell /Jul \d+/:
+          - button /Jul \d+/
+        - gridcell /Aug \d+/:
+          - button /Aug \d+/
+      - row /Sep \d+ Oct \d+ Nov \d+ Dec \d+/:
+        - gridcell /Sep \d+/:
+          - button /Sep \d+/
+        - gridcell /Oct \d+/:
+          - button /Oct \d+/
+        - gridcell /Nov \d+/:
+          - button /Nov \d+/
+        - gridcell /Dec \d+/:
+          - button /Dec \d+/
+- alert

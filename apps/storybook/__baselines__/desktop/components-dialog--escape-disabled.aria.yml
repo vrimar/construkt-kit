@@ -1,0 +1,5 @@
+- dialog "Rename board":
+  - heading "Rename board" [level=2]
+  - text: Name
+  - textbox "Name": Q3 planning
+  - button "Save"

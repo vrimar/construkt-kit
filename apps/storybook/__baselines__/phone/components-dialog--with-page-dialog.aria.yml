@@ -1,0 +1,4 @@
+- dialog "Keyboard shortcuts":
+  - heading "Keyboard shortcuts" [level=2]
+  - paragraph: Press ? anywhere to list every shortcut.
+  - button "Show help"
