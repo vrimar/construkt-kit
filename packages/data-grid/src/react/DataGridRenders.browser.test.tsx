@@ -6,7 +6,7 @@ import { mountGrid } from "../../test/dom";
 import { type FixtureRow, createFixture } from "../../test/fixture";
 import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
-import type { ColumnDef } from "./types";
+import type { CellRenderContext, ColumnDef } from "./types";
 
 const mountedCells = (container: HTMLElement) =>
   new Set(
@@ -28,32 +28,52 @@ const mountedHeaders = (container: HTMLElement) =>
 const entering = <T,>(before: ReadonlySet<T>, after: ReadonlySet<T>) =>
   [...after].filter((key) => !before.has(key)).length;
 
+const expectRenderedOnce = <T,>(
+  rendered: readonly T[],
+  before: ReadonlySet<T>,
+  after: ReadonlySet<T>,
+) => {
+  const entered = [...after].filter((key) => !before.has(key));
+  expect(entered.length).toBeGreaterThan(0);
+  expect(rendered.filter((key) => before.has(key))).toEqual([]);
+  expect(new Set(rendered).size).toBe(rendered.length);
+};
+
 test("scrolling sideways renders only the cells and headers that come into view", async () => {
   const fixture = createFixture(12, 444);
   const header = vi.fn((ctx: { columnId: string }) => ctx.columnId);
-  const columnDefs: ColumnDef<FixtureRow>[] = fixture.columnDefs.map((def) => ({ ...def, header }));
-  const getCell = vi.fn(() => undefined);
+  const render = vi.fn((ctx: CellRenderContext<FixtureRow>) => ctx.formattedValue);
+  const columnDefs: ColumnDef<FixtureRow>[] = fixture.columnDefs.map((def) => ({
+    ...def,
+    header,
+    cell: { ...def.cell, render },
+  }));
   const { container, scroller } = await mountGrid(
     <DataGrid
       {...fixture}
       columnDefs={columnDefs}
-      getCell={getCell}
       aria-label="Wide"
       style={{ width: 800, height: 600 }}
     />,
   );
   const cells = mountedCells(container);
   const headers = mountedHeaders(container);
-  getCell.mockClear();
+  render.mockClear();
   header.mockClear();
 
   scroller.scrollLeft = 600;
   await settle();
 
-  const enteringCells = entering(cells, mountedCells(container));
-  expect(enteringCells).toBeGreaterThan(0);
-  expect(getCell).toHaveBeenCalledTimes(enteringCells);
-  expect(header).toHaveBeenCalledTimes(entering(headers, mountedHeaders(container)));
+  expectRenderedOnce(
+    render.mock.calls.map(([ctx]) => `${ctx.rowIndex}:${ctx.columnIndex}`),
+    cells,
+    mountedCells(container),
+  );
+  expectRenderedOnce(
+    header.mock.calls.map(([ctx]) => ctx.columnId),
+    headers,
+    mountedHeaders(container),
+  );
 });
 
 test("scrolling down renders only the rows that come into view", async () => {
