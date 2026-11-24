@@ -1,7 +1,7 @@
 import preview from "@construkt-kit/story-kit/preview";
 import { type ReactElement, useEffect } from "react";
 
-import { Toaster, toaster } from ".";
+import { type ToastPlacement, Toaster, toaster } from ".";
 import { Button } from "../Buttons";
 import { Wrap } from "../Layout";
 
@@ -9,9 +9,12 @@ const meta = preview.meta({
   title: "Components/Toast",
   tags: ["autodocs"],
   decorators: [
-    (Story: () => ReactElement) => (
+    (
+      Story: () => ReactElement,
+      { parameters }: { parameters: { toasterPlacement?: ToastPlacement } },
+    ) => (
       <>
-        <Toaster />
+        <Toaster placement={parameters.toasterPlacement} />
         <Story />
       </>
     ),
@@ -106,6 +109,12 @@ export const Stacked = meta.story({
 export const Expanded = meta.story({
   tags: ["open-state"],
   render: () => <StackedToasts expanded />,
+});
+
+export const StackedAtBottom = meta.story({
+  tags: ["open-state"],
+  parameters: { toasterPlacement: "bottom-end" },
+  render: () => <StackedToasts expanded={false} />,
 });
 
 export const ReplacedById = meta.story({

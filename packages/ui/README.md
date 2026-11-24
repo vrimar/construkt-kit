@@ -14,7 +14,7 @@
 
 **Data Display:** `DataTable`, `DataTableColumnPicker`, `DataList`, `Badge`, `Tag`, `Avatar`, `Image`, `List`, `Table`, `Stat`, `EmptyState`, `Card`, `Carousel`, `Code`, `DisplayValue`, `Kbd`
 
-**Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster`, `Progress`, `Skeleton`, `Spinner` (`variant="dots"` for a typing indicator)
+**Feedback:** `Alert`, `LoadingOverlay`, `Toaster` / `toaster` (`placement="bottom-end"` keeps toasts off controls along the top), `Progress`, `Skeleton`, `Spinner` (`variant="dots"` for a typing indicator)
 
 **Overlay / Dialog:** `Dialog`, `SubmitDialog`, `DeleteDialog`, `CommandPalette`, `Drawer`, `Sheet`, `Popover`, `ConfirmPopover`, `PromptPopover`, `Tooltip`, `ToggleTip`, `InfoTip`, `HoverCard`
 
@@ -514,6 +514,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `useLatestRef` holds the new value before layout effects and their cleanups run, not once they have
 - A closing dialog is `aria-hidden` as well as inert while it animates out, so role queries no longer find it or what
   it holds
+- `toastRegion(page)` finds the region at either `Toaster` placement; its name ends in the placement, `top-end` or
+  `bottom-end`
 
 #### Upgrading from 0.14
 

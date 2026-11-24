@@ -2225,6 +2225,12 @@ export const stories = {
     title: "Components/Toast",
     tags: ["open-state"],
   },
+  "components-toast--stacked-at-bottom": {
+    file: "packages/ui/src/components/Toast/Toast.stories.tsx",
+    exportName: "StackedAtBottom",
+    title: "Components/Toast",
+    tags: ["open-state"],
+  },
   "components-togglegroup--default": {
     file: "packages/ui/src/components/ToggleGroup/ToggleGroup.stories.tsx",
     exportName: "Default",

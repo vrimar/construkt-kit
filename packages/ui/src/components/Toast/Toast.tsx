@@ -33,7 +33,7 @@ import { Icon } from "../Icon";
 import { Portal } from "../Portal";
 import { Spinner } from "../Spinner";
 import { statusIcons } from "../statusIcons";
-import { TOAST_REGION_LABEL } from "./toastRegion";
+import { type ToastPlacement, toastRegionLabel } from "./toastRegion";
 import { type ToastEntry, type ToastStore, createToastStore, getToastDuration } from "./toastStore";
 
 const { withProvider, withContext } = createSlotRecipeContext(toastRecipe);
@@ -86,11 +86,19 @@ function findOpenToast(roots: Element[], from: number, step: number) {
   return null;
 }
 
+export interface ToasterProps {
+  /**
+   * Where the toasts stack: `bottom-end` keeps them off controls along the top of the page.
+   * @default "top-end"
+   */
+  placement?: ToastPlacement | undefined;
+}
+
 /**
- * Renders the toasts `toaster` shows, stacked at the top end of the viewport, or in the topmost
+ * Renders the toasts `toaster` shows, stacked at `placement` in the viewport, or in the topmost
  * open modal so they stay interactive while it is.
  */
-export function Toaster() {
+export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
   const { toasts, expanded } = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
@@ -270,7 +278,10 @@ export function Toaster() {
     if (!isPageHidden()) store.resume();
   }, [api, count]);
 
-  const swipeDirections: readonly SwipeDirection[] = ["up", dir === "rtl" ? "left" : "right"];
+  const swipeDirections: readonly SwipeDirection[] = [
+    placement === "bottom-end" ? "down" : "up",
+    dir === "rtl" ? "left" : "right",
+  ];
   const frontmostHeight = toasts.length > 0 ? heights.get(toasts[0].instance) : undefined;
   const offsets = toasts.map((_, index) =>
     toasts.slice(0, index).reduce((sum, above) => sum + (heights.get(above.instance) ?? 0), 0),
@@ -280,9 +291,10 @@ export function Toaster() {
     <Portal>
       <Group
         ref={groupRefs}
+        placement={placement}
         popover="manual"
         role="region"
-        aria-label={TOAST_REGION_LABEL}
+        aria-label={toastRegionLabel(placement)}
         aria-live="polite"
         aria-relevant="additions text"
         aria-atomic="false"
@@ -307,6 +319,7 @@ export function Toaster() {
             offsetY={offsets[index]}
             measuredHeight={heights.get(toast.instance)}
             expanded={expanded}
+            placement={placement}
             swipeDirections={swipeDirections}
             group={api.group}
           />
@@ -322,6 +335,7 @@ interface ToastItemProps {
   offsetY: number;
   measuredHeight: number | undefined;
   expanded: boolean;
+  placement: ToastPlacement;
   swipeDirections: readonly SwipeDirection[];
   group: ToasterGroup;
 }
@@ -332,6 +346,7 @@ function ToastItem({
   offsetY,
   measuredHeight,
   expanded,
+  placement,
   swipeDirections,
   group,
 }: ToastItemProps) {
@@ -380,6 +395,7 @@ function ToastItem({
     <Root
       ref={rootRef}
       status={toast.type}
+      placement={placement}
       role="status"
       aria-atomic="true"
       aria-labelledby={toast.title ? titleId : undefined}

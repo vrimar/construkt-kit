@@ -1,10 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
 
-import { TOAST_REGION_LABEL } from "../components/Toast/toastRegion";
+import { TOAST_REGION_NAME } from "../components/Toast/toastRegion";
 
-/** The region `<Toaster />` shows its toasts in; Alt+T focuses it. */
+/** The region `<Toaster />` shows its toasts in, at either placement; Alt+T focuses it. */
 export function toastRegion(page: Page): Locator {
-  return page.getByRole("region", { name: TOAST_REGION_LABEL, exact: true });
+  return page.getByRole("region", { name: TOAST_REGION_NAME });
 }
 
 /** A toast in the toaster by its title, which names it; a string title matches exactly. */

@@ -69,6 +69,32 @@ storyTest(
 );
 
 storyTest(
+  ["components-toast--stacked-at-bottom"],
+  "at the bottom end the stack spreads upward on hover, and a swipe down dismisses a toast",
+  async ({ page }) => {
+    const front = page.getByRole("status", { name: "Upload failed" });
+    const next = page.getByRole("status", { name: "Changes saved" });
+    const gapAboveFront = async () => {
+      const [below, above] = await Promise.all([front.boundingBox(), next.boundingBox()]);
+      if (!above || !below) throw new Error("A toast has no box.");
+      return Math.round(below.y - (above.y + above.height));
+    };
+    const description = page.getByText("report.pdf is larger than 10 MB.");
+
+    await description.hover({ position: { x: 8, y: 8 } });
+    await expect.poll(gapAboveFront).toBe(16);
+
+    const text = await description.boundingBox();
+    if (!text) throw new Error("The toast's description has no box.");
+    await page.mouse.down();
+    await page.mouse.move(text.x + 8, text.y + 128, { steps: 8 });
+    await page.mouse.up();
+    await expect(front).toBeHidden();
+  },
+  { only: "desktop" },
+);
+
+storyTest(
   ["components-dialog--with-pickers"],
   "a press, focus and Escape in the toaster leave the menu under it open",
   async ({ page }) => {

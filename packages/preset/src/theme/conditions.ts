@@ -40,6 +40,7 @@ export const conditions = {
     swiping: "&:is([data-swiping])",
     startingStyle: "&:is([data-starting-style])",
     swipeUp: "&[data-swipe-direction=up]",
+    swipeDown: "&[data-swipe-direction=down]",
     swipeRight: "&[data-swipe-direction=right]",
     swipeLeft: "&[data-swipe-direction=left]",
     sideTop: "&[data-side=top]",

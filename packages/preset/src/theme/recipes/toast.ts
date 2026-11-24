@@ -74,7 +74,7 @@ export const toast = defineSlotRecipe({
       _icon: {
         flexShrink: "0",
       },
-      // Keeps the pointer over the stack across the gap above a toast and while one leaves.
+      // Keeps the pointer over the stack across the gap between toasts and while one leaves.
       _before: {
         content: '""',
         position: "absolute",
@@ -155,8 +155,45 @@ export const toast = defineSlotRecipe({
   },
   defaultVariants: {
     status: "info",
+    placement: "top-end",
   },
   variants: {
+    placement: {
+      "top-end": {},
+      "bottom-end": {
+        group: {
+          top: "auto",
+          bottom: {
+            base: "calc(env(safe-area-inset-bottom, 0px) + {spacing.10})",
+            mdDown: "calc(env(safe-area-inset-bottom, 0px) + {spacing.4})",
+          },
+        },
+        root: {
+          "--toast-exit-y": "calc(var(--toast-rest-y) + 100%)",
+          top: "auto",
+          bottom: "0",
+          _after: { bottom: "auto", top: "100%" },
+          _closed: {
+            _first: {
+              _before: { top: "auto" },
+            },
+          },
+          _expanded: {
+            "--toast-rest-y":
+              "calc((var(--toast-offset-y) + var(--toast-index) * var(--toast-gap)) * -1)",
+          },
+          _collapsed: {
+            _notFirst: {
+              "--toast-rest-y": "calc(var(--toast-index) * var(--toast-gap) * -1)",
+              "--toast-exit-y": "40%",
+            },
+          },
+          _swipeDown: {
+            "--toast-y": "calc(var(--toast-rest-y) + 100%)",
+          },
+        },
+      },
+    },
     status: {
       info: { indicator: { color: "info" } },
       success: { indicator: { color: "success" } },

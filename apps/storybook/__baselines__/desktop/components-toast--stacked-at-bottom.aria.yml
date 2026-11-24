@@ -1,0 +1,7 @@
+- region "Notifications, bottom-end (alt+T)":
+  - status "Upload failed":
+    - text: /Upload failed report\.pdf is larger than \d+ MB\./
+    - button "Retry"
+    - button "Close"
+  - status "Changes saved"
+  - status "Importing contacts": /Importing contacts \d+,\d+ of \d+,\d+ rows\./
