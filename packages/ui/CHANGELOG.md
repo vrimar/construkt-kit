@@ -1,5 +1,24 @@
 # @construkt-kit/ui
 
+## 0.16.0 — 2026-11-24
+
+### Breaking
+
+- Free the page and hand focus on as an overlay starts closing, replacing whenOverlaysSettle (`9431dccf`)
+
+### Features
+
+- Add Toaster placement, with bottom-end stacking toasts up from the bottom of the viewport (`08ba4cd9`)
+- Add scrollTree and revealTreeItem testing helpers for VirtualTree (`01d743ab`)
+
+### Fixes
+
+- Leave the caret alone when a combobox refocuses an input that already has focus (`90d031ac`)
+- Let a press through a leaving toast, and keep a hovered stack spread while one leaves (`9573cf71`)
+- Hide a closing dialog from the accessibility tree while it animates out (`51b38ec4`)
+- Focus TagSelect's trigger on a press, not the tag list inside it (`913099ea`)
+- Update useLatestRef before layout effect cleanups, so a close reads the props it closed with (`9d6443ea`)
+
 ## 0.15.0 — 2026-11-23
 
 ### Breaking

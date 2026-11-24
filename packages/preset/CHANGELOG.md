@@ -1,5 +1,19 @@
 # @construkt-kit/preset
 
+## 0.13.0 — 2026-11-24
+
+### Breaking
+
+- Free the page and hand focus on as an overlay starts closing, replacing whenOverlaysSettle (`9431dccf`)
+
+### Features
+
+- Add Toaster placement, with bottom-end stacking toasts up from the bottom of the viewport (`08ba4cd9`)
+
+### Fixes
+
+- Let a press through a leaving toast, and keep a hovered stack spread while one leaves (`9573cf71`)
+
 ## 0.12.0 — 2026-11-23
 
 ### Breaking
