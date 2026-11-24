@@ -133,11 +133,10 @@ test("a row dragged onto a stuck parent is boxed where the parent shows, in the 
 
   await commands.pressOn(gripSelector);
   await commands.moveBy(0, stuck.top + stuck.height / 2 - (grip.top + grip.height / 2));
-  await nextFrame();
 
-  const marker = container.querySelector('[data-axis="rows"][data-position="onto"]');
-  expect(marker?.closest("[data-sticky]")).not.toBeNull();
-  expect(marker?.getBoundingClientRect().top).toBeCloseTo(stuck.top, 0);
+  const marker = () => container.querySelector('[data-axis="rows"][data-position="onto"]');
+  await expect.poll(() => marker()?.closest("[data-sticky]") ?? null).not.toBeNull();
+  expect(marker()?.getBoundingClientRect().top).toBeCloseTo(stuck.top, 0);
   await commands.release();
 });
 
@@ -147,25 +146,28 @@ test("onDragMove reports the placement within the axis, then across over a row h
   const source = { kind: "columns", ids: ["c0"] };
 
   await pressGripAndMoveTo(container, "c0", headerOf(container, "c2"));
-  expect(onDragMove).toHaveBeenLastCalledWith(source, {
-    hit: expect.objectContaining({ region: "header", headerId: "c2" }),
-    placement: { targetId: "c2", position: "after" },
-    point: expect.any(Object),
-    across: false,
-    acrossAllowed: false,
-  });
+  await expect
+    .poll(() => onDragMove)
+    .toHaveBeenLastCalledWith(source, {
+      hit: expect.objectContaining({ region: "header", headerId: "c2" }),
+      placement: { targetId: "c2", position: "after" },
+      point: expect.any(Object),
+      across: false,
+      acrossAllowed: false,
+    });
 
   const header = headerOf(container, "c2").getBoundingClientRect();
   const cell = cellOf(container, 2, 2).getBoundingClientRect();
   await commands.moveBy(0, cell.top + cell.height / 2 - (header.top + header.height / 2));
-  await nextFrame();
-  expect(onDragMove).toHaveBeenLastCalledWith(source, {
-    hit: expect.objectContaining({ region: "body", rowId: 2, columnId: "c2" }),
-    placement: null,
-    point: expect.any(Object),
-    across: true,
-    acrossAllowed: true,
-  });
+  await expect
+    .poll(() => onDragMove)
+    .toHaveBeenLastCalledWith(source, {
+      hit: expect.objectContaining({ region: "body", rowId: 2, columnId: "c2" }),
+      placement: null,
+      point: expect.any(Object),
+      across: true,
+      acrossAllowed: true,
+    });
 
   await commands.release();
   expect(onDragMove).toHaveBeenLastCalledWith(source, null);
@@ -296,13 +298,11 @@ test("a column dropped onto another group's column is boxed from that column's o
   const target = headerOf(container, "c3").getBoundingClientRect();
 
   await pressGripAndMoveTo(container, "c0", headerOf(container, "c3"));
-  const box = container
-    .querySelector('[data-axis="columns"][data-position="onto"]')
-    ?.getBoundingClientRect();
+  const box = () =>
+    container.querySelector('[data-axis="columns"][data-position="onto"]')?.getBoundingClientRect();
+  await expect.poll(() => box()?.left).toBeCloseTo(target.left, 0);
+  expect(box()?.top).toBeCloseTo(target.top, 0);
   await commands.release();
-
-  expect(box?.left).toBeCloseTo(target.left, 0);
-  expect(box?.top).toBeCloseTo(target.top, 0);
 });
 
 test("an external drag held at the bottom edge scrolls, and the target follows the scroll", async () => {
@@ -356,12 +356,13 @@ test("an indicator after a column runs through header and body and follows a liv
   expect(marker().left + marker().width / 2).toBeCloseTo(edge(), 0);
   expect(marker().top).toBeLessThanOrEqual(header.top);
   expect(marker().bottom).toBeGreaterThan(firstRow?.bottom ?? Infinity);
+  const edgeBefore = edge();
 
   await commands.pressOn(resizeHandleSelector("c0"));
   await commands.moveBy(60, 0);
-  await nextFrame();
+  await expect.poll(() => edge() - edgeBefore).toBeCloseTo(60, -1);
 
-  expect(marker().left + marker().width / 2).toBeCloseTo(edge(), 0);
+  await expect.poll(() => marker().left + marker().width / 2).toBeCloseTo(edge(), 0);
   await commands.release();
 });
 

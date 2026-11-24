@@ -5,7 +5,7 @@ import { commands } from "vitest/browser";
 
 import { cellOf, headerOf, mountGrid } from "../../test/dom";
 import { createFixture } from "../../test/fixture";
-import { nextFrame, settle } from "../../test/frames";
+import { settle } from "../../test/frames";
 import { DataGrid } from "./DataGrid";
 import { resizeHandleSelector } from "./dom";
 import type { DataGridApi } from "./types";
@@ -91,10 +91,9 @@ test("a resize drag moves later header and body cells live and commits once on r
 
   await commands.pressOn(resizeHandleSelector("c1"));
   await commands.moveBy(60, 0);
-  await nextFrame();
+  await expect.poll(() => laterHeader() - headerBefore).toBeCloseTo(60, -1);
 
   const moved = laterHeader() - headerBefore;
-  expect(moved).toBeGreaterThan(30);
   expect(laterCell() - cellBefore).toBeCloseTo(moved, 0);
   expect(onColumnSizingChange).not.toHaveBeenCalled();
 
@@ -136,15 +135,21 @@ test("a shrinking resize drag renders the columns it pulls into view", async () 
     />,
   );
   const box = scroller.getBoundingClientRect();
+  const firstAfterGroup = () => cellOf(container, 0, 6).getBoundingClientRect();
+  const leftBefore = firstAfterGroup().left;
 
   await commands.pressOn(resizeHandleSelector("group"));
   await commands.moveBy(-480, 0);
-  await nextFrame();
-  const row = cellOf(container, 0, 6).getBoundingClientRect();
-  const hit = document.elementFromPoint(box.right - 40, row.top + row.height / 2);
+  await expect.poll(() => leftBefore - firstAfterGroup().left).toBeCloseTo(480, -1);
+  const row = firstAfterGroup();
+  await expect
+    .poll(() =>
+      document
+        .elementFromPoint(box.right - 40, row.top + row.height / 2)
+        ?.closest("[data-col-index]"),
+    )
+    .toBeTruthy();
   await commands.release();
-
-  expect(hit?.closest("[data-col-index]")).not.toBeNull();
 });
 
 test("a group's label stays in view while its columns are scrolled partly out", async () => {
