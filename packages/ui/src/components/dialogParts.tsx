@@ -500,6 +500,7 @@ export function createDialogParts(
         aria-describedby={context.labels.describedBy ?? context.ariaDescribedBy}
         tabIndex={-1}
         inert={!open}
+        aria-hidden={!open || undefined}
         data-no-backdrop={dataAttr(!backdrop)}
         {...openStateAttributes(open)}
         onKeyDown={focus.onKeyDown}

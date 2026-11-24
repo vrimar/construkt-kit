@@ -510,6 +510,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - A modal returns focus as it starts to close, not once it has animated out. With `restoreFocus={false}` it leaves
   focus alone, where the browser used to put it back on the element focused before it opened
 - `useLatestRef` holds the new value before layout effects and their cleanups run, not once they have
+- A closing dialog is `aria-hidden` as well as inert while it animates out, so role queries no longer find it or what
+  it holds
 
 #### Upgrading from 0.14
 

@@ -182,3 +182,22 @@ it("shows again as a modal with its initial focus when it reopens while animatin
   await expect.poll(() => document.querySelector("dialog")).toBeNull();
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "Open" }));
 });
+
+it("leaves the accessibility tree as it starts animating out", async () => {
+  render(
+    <Dialog.Root aria-label="Settings">
+      <Dialog.Trigger>Open</Dialog.Trigger>
+      <Dialog.Content>
+        <button type="button">Save</button>
+      </Dialog.Content>
+    </Dialog.Root>,
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Open" }));
+  await screen.findByRole("button", { name: "Save" });
+  await userEvent.keyboard("{Escape}");
+
+  expect(document.querySelector("dialog")).not.toBeNull();
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+});
