@@ -188,6 +188,28 @@ describe("Combobox", () => {
     expect(input.selectionStart).toBe(2);
   });
 
+  it("leaves the text selected in the focused input as a pick closes the list", async () => {
+    const user = userEvent.setup();
+    render(
+      <Combobox.Root {...letterProps}>
+        <Combobox.Control>
+          <Combobox.Input aria-label="Letter" />
+        </Combobox.Control>
+        <Combobox.Content>
+          <Combobox.List>{letterItems}</Combobox.List>
+        </Combobox.Content>
+      </Combobox.Root>,
+    );
+    const input = screen.getByRole<HTMLInputElement>("combobox");
+
+    await user.click(input);
+    await user.keyboard("a{ArrowDown}{Enter}");
+    input.setSelectionRange(0, input.value.length);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    expect(input.selectionStart).toBe(0);
+  });
+
   it("leaves a link option to the browser when a new-tab click opens it", async () => {
     const user = userEvent.setup();
     const onValueChange = vi.fn();

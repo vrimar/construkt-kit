@@ -259,8 +259,8 @@ const [ComboboxContext, useComboboxContext] = createPartContext<ComboboxContextV
 );
 
 const focusField = (element: HTMLElement | null) => {
-  if (!element) return;
-  if (element.ownerDocument.activeElement !== element) element.focus({ preventScroll: true });
+  if (!element || element.ownerDocument.activeElement === element) return;
+  element.focus({ preventScroll: true });
   if (element instanceof HTMLInputElement) {
     element.setSelectionRange(element.value.length, element.value.length);
   }
