@@ -8,3 +8,4 @@ export { openPopup, popupFor } from "./popup";
 export { selectSegment } from "./segmentGroup";
 export { dismissToast, toast, toastRegion } from "./toast";
 export { hoverTooltip } from "./tooltip";
+export { revealTreeItem, scrollTree } from "./virtualTree";

@@ -128,6 +128,8 @@ const SPEC_ACTIONS = new Set([
   "hoverTooltip",
   "dropFiles",
   "setChecked",
+  "scrollTree",
+  "revealTreeItem",
 ]);
 
 function calleeName(callee) {

@@ -111,6 +111,8 @@ needs `@playwright/test` (an optional peer); `src/testing/*.spec.ts` keeps each 
 | `dismissToast(toast)`                      | Dismisses a toast with Escape and waits for it to leave                                            |
 | `hoverTooltip(trigger)`                    | Hovers a trigger and returns the tooltip that describes it, past any open delay                    |
 | `dropFiles(target, files)`                 | Drops files on a FileUpload dropzone through a synthetic `DataTransfer`                            |
+| `revealTreeItem(tree, item)`               | Scrolls a VirtualTree until `item` renders, and returns it                                         |
+| `scrollTree(tree, visit)`                  | Scrolls a VirtualTree top to end, calling `visit` at each position until it returns `true`         |
 
 Tabs need no helper: `getByRole("tab", { name })` presses one and `getByRole("tab", { selected: true })` finds the
 selected one.
