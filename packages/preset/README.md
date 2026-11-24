@@ -45,6 +45,14 @@ export const preset = createConstruktKitPreset({
 
 Tracks (slider, progress) sit on `subtle.bg`, the step every solid fill is guaranteed 3:1 against.
 
+## Upgrading from 0.12
+
+- Pair it with ui 0.16, which relies on both changes below
+- The `modal` recipe also lays out a dialog shown as a popover, which is how ui 0.16 keeps a closing modal on screen
+  while it animates out without blocking the page
+- The `toast` recipe gains a `placement` variant (`top-end`, `bottom-end`) and a `swipeDown` condition. A leaving toast
+  no longer catches the pointer, and the gap between toasts catches it only while the stack is spread
+
 ## Upgrading from 0.11
 
 - Inter loads from `inter-ui`, the official build, instead of `@fontsource-variable/inter`: swap the package. An app

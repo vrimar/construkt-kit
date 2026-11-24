@@ -91,3 +91,8 @@ reporter fails the run when a test names no requirement, a cell that ran didn't 
 `test.fixme` with a reason), a test runs on a project its requirement doesn't list, or, with `requireEveryCell`, a
 cell has no test. Leave `requireEveryCell` off for a run of a few files or a grep. `outputFile` writes every cell's
 outcome as JSON.
+
+## Upgrading from 0.2
+
+- `overlaysSettled` no longer waits on `whenOverlaysSettle` callbacks, which ui 0.16 removes. From ui 0.16 an overlay
+  frees the page and hands focus on as it starts to close, so a test can act straight after closing one
