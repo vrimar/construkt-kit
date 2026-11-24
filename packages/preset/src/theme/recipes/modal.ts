@@ -24,6 +24,7 @@ export const modalPositioner = {
   height: "100dvh",
   overscrollBehaviorY: "none",
   _open: { display: "flex" },
+  "&:popover-open": { display: "flex" },
   "&[data-no-backdrop]": { _backdrop: { background: "transparent", animation: "none" } },
 } as const;
 

@@ -14,8 +14,7 @@ import {
   scrollIntoViewIfNeeded,
 } from "../../primitives/composite";
 import {
-  KEEP_FOCUS,
-  RESTORE_FOCUS,
+  QUIET_RETURN,
   type ReturnFocusIntent,
   closeFocusIntent,
   getTabbables,
@@ -218,11 +217,7 @@ export class MenuNode extends HighlightList {
     this.parent?.suggestHighlight(this.triggerItemValue);
   }
 
-  close(
-    reason: OpenChangeReason,
-    event?: Event,
-    focus: ReturnFocusIntent = RESTORE_FOCUS,
-  ): boolean {
+  close(reason: OpenChangeReason, event?: Event, focus: ReturnFocusIntent = QUIET_RETURN): boolean {
     if (!this.request(false, reason, event)) return false;
     this.config.setReturnFocus(focus);
     return true;
@@ -288,7 +283,7 @@ export class MenuNode extends HighlightList {
     for (const child of this.children) {
       if (child.triggerItemValue === value || !child.config.open) continue;
       if (child.grace && isPointInPolygon(child.grace, point)) continue;
-      child.close("pointer-leave", undefined, KEEP_FOCUS);
+      child.close("pointer-leave", undefined, QUIET_RETURN);
       this.content?.focus({ preventScroll: true });
     }
   }

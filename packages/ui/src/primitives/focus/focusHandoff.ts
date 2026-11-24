@@ -1,5 +1,11 @@
 const handoffs = new WeakMap<Element, HTMLElement>();
 
+/** Whether focus is nowhere, or still inside `overlay`, so that it should go back as `overlay` closes. */
+export function isFocusLost(overlay: Element | null): boolean {
+  const active = (overlay?.ownerDocument ?? document).activeElement;
+  return !active || active === active.ownerDocument.body || (overlay?.contains(active) ?? false);
+}
+
 export function recordFocusHandoff(overlay: Element | null, target: HTMLElement | null): void {
   if (overlay && target) handoffs.set(overlay, target);
 }

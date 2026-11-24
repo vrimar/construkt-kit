@@ -30,7 +30,7 @@ import {
   selectIsHighlighted,
   useCompositeListItem,
 } from "../../primitives/composite";
-import { KEEP_FOCUS, dismissFocusIntent } from "../../primitives/focus";
+import { QUIET_RETURN, dismissFocusIntent } from "../../primitives/focus";
 import {
   type DismissReason,
   LayerContext,
@@ -580,11 +580,11 @@ function AnchoredContent({
 
   const dismiss = (reason: DismissReason, event: Event) => {
     if (reason === "focus-out" && node.inContextTrigger(event.target)) return false;
-    if (!node.parent) return node.close(reason, event, dismissFocusIntent(reason, event.target));
+    if (!node.parent) return node.close(reason, event, dismissFocusIntent(reason));
     if (reason === "escape-key") {
-      return node.closeTree(reason, event, { restore: true, focusVisible: true });
+      return node.closeTree(reason, event, { focusVisible: true });
     }
-    const closed = node.close(reason, event, KEEP_FOCUS);
+    const closed = node.close(reason, event, QUIET_RETURN);
     // Only the innermost menu gets an outside press, so pass it up while it is outside the parent too.
     const { target } = event;
     if (reason === "outside-press" && parentLayer && target instanceof Node) {

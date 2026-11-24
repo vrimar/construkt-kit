@@ -6,11 +6,18 @@ export {
   isFocusable,
   isWithinFocusable,
 } from "./tabbable";
+export { isFocusLost } from "./focusHandoff";
 export { useHasTabbable } from "./useHasTabbable";
-export { type ModalFocus, type UseModalFocusOptions, useModalFocus } from "./useModalFocus";
 export {
-  KEEP_FOCUS,
-  RESTORE_FOCUS,
+  type ModalFocus,
+  type ModalReturnFocus,
+  type UseModalFocusOptions,
+  type UseModalReturnFocusOptions,
+  useModalFocus,
+  useModalReturnFocus,
+} from "./useModalFocus";
+export {
+  QUIET_RETURN,
   closeFocusIntent,
   dismissFocusIntent,
   type OverlayFocus,

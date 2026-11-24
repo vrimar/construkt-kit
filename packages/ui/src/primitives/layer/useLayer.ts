@@ -14,7 +14,6 @@ import {
   type Layer,
   countNestedModals,
   hasOpenOverlay,
-  holdOverlayClose,
   pushLayer,
   registerEscapeFallback,
   registerLayerBranch,
@@ -84,35 +83,25 @@ export function useEscapeFallback(
 }
 
 /**
- * Counts an overlay as closing, for `whenOverlaysSettle`, from when `open` turns false until
- * `exited`, once it has left the page and handed focus back; then calls `onExitComplete`.
- * Opening again first cancels both.
+ * Calls `onExitComplete` once `exited`, after `open` turned false: once the overlay has left the
+ * page and handed focus back. Opening again first cancels it.
  */
 export function useOverlayExit(open: boolean, exited: boolean, onExitComplete?: () => void): void {
   const onExitCompleteRef = useLatestRef(onExitComplete);
-  const releaseRef = useRef<(() => void) | null>(null);
+  const closingRef = useRef(false);
   const wasOpenRef = useRef(open);
 
   useLayoutEffect(() => {
-    const closed = wasOpenRef.current && !open;
+    if (wasOpenRef.current && !open) closingRef.current = true;
+    else if (open) closingRef.current = false;
     wasOpenRef.current = open;
-    if (closed) {
-      releaseRef.current = holdOverlayClose();
-    } else if (open) {
-      releaseRef.current?.();
-      releaseRef.current = null;
-    }
   }, [open]);
 
   useEffect(() => {
-    const release = releaseRef.current;
-    if (open || !exited || !release) return;
-    releaseRef.current = null;
+    if (open || !exited || !closingRef.current) return;
+    closingRef.current = false;
     onExitCompleteRef.current?.();
-    release();
   }, [open, exited, onExitCompleteRef]);
-
-  useEffect(() => () => releaseRef.current?.(), []);
 }
 
 const noOverlay = () => false;

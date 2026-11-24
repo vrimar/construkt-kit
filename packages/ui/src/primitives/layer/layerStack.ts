@@ -24,12 +24,9 @@ const escapeFallbacks: EscapeFallback[] = [];
 const branches = new Set<Element>();
 const pressStartedOutside = new Set<Layer>();
 const closedByPress = new Set<Layer>();
-// Kept past a layer's close, so a kit <dialog> still animating out never reads as the page's own.
 const kitModals = new WeakSet<Element>();
 const stackListeners = new Set<() => void>();
-const settleListeners = new Set<() => void>();
 let topmostModal: HTMLElement | null = null;
-let closingOverlays = 0;
 
 const descendsFrom = (layer: Layer, ancestor: Layer) => {
   for (let parent = layer.parent; parent; parent = parent.parent) {
@@ -90,47 +87,24 @@ export const hasOpenOverlay = (except?: Element | null): boolean =>
     return !except || !element || !(except.contains(element) || element.contains(except));
   });
 
-/** Counts an overlay as closing until the returned function runs. */
-export function holdOverlayClose(): () => void {
-  closingOverlays += 1;
-  let held = true;
-  return () => {
-    if (!held) return;
-    held = false;
-    closingOverlays -= 1;
-    if (closingOverlays === 0) for (const listener of [...settleListeners]) listener();
-  };
-}
-
-/**
- * Runs `fn` once the overlays closing by the next frame, such as the menu whose item called it,
- * have left the page and handed focus back. Returns a function that cancels it.
- */
-export function whenOverlaysSettle(fn: () => void): () => void {
-  let pending = true;
-  const run = () => {
-    if (!pending) return;
-    pending = false;
-    settleListeners.delete(run);
-    fn();
-  };
-  const frame = requestAnimationFrame(() => {
-    if (closingOverlays === 0) run();
-    else settleListeners.add(run);
-  });
-  return () => {
-    pending = false;
-    cancelAnimationFrame(frame);
-    settleListeners.delete(run);
-  };
-}
-
 /** Calls `listener` whenever a layer opens or closes; returns the unsubscribe function. */
 export function subscribeLayers(listener: () => void): () => void {
   stackListeners.add(listener);
   return () => {
     stackListeners.delete(listener);
   };
+}
+
+/**
+ * Puts the popovers `element` holds, and the overlays that raise themselves as layers change, such
+ * as toasts, back above it once it has entered the top layer again.
+ */
+export function raiseOverlaysAbove(element: Element): void {
+  for (const shown of element.querySelectorAll<HTMLElement>(":popover-open")) {
+    shown.hidePopover();
+    shown.showPopover();
+  }
+  notify();
 }
 
 function notify() {

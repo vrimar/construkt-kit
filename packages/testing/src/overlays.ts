@@ -3,8 +3,7 @@ import type { Page } from "@playwright/test";
 const TRANSITIONING = "[data-starting-style], [data-ending-style]";
 
 /**
- * Waits until no kit overlay is still opening or closing, then two frames, so focus has moved back
- * and work deferred through `whenOverlaysSettle` has run.
+ * Waits until no kit overlay is still opening or closing, then two frames, so focus has moved back.
  */
 export async function overlaysSettled(page: Page): Promise<void> {
   await page.locator(TRANSITIONING).first().waitFor({ state: "detached" });

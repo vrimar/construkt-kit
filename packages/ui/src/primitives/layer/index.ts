@@ -4,8 +4,8 @@ export {
   hasOpenOverlay,
   isTopmostLayer,
   isWithinLayer,
+  raiseOverlaysAbove,
   subscribeLayers,
-  whenOverlaysSettle,
 } from "./layerStack";
 export { type OpenChangeDetails, type OpenChangeReason, allowsDismiss } from "./openChange";
 export {

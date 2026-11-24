@@ -117,7 +117,7 @@ export function usePopup({
     (reason: PopupDismissReason, event?: Event) => {
       if (!allowsDismiss(reason, { closeOnEscape, closeOnInteractOutside })) return false;
       if (!requestOpenChange(false, reason, event)) return false;
-      setReturnFocus(dismissFocusIntent(reason, event?.target ?? null));
+      setReturnFocus(dismissFocusIntent(reason));
       return true;
     },
     [closeOnEscape, closeOnInteractOutside, requestOpenChange, setReturnFocus],

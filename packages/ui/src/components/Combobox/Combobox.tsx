@@ -42,7 +42,6 @@ import {
   type OpenChangeReason,
   type UseOpenStateOptions,
   useOpenState,
-  useOverlayExit,
 } from "../../primitives/layer";
 import {
   Announcer,
@@ -1141,7 +1140,6 @@ function AnchoredContent({ ref, ...props }: ComboboxContentProps) {
     dismiss: context.dismiss,
   });
   const elementRef = useComposedRefs(ref, popup.setElement);
-  useOverlayExit(open, !popup.mounted);
 
   if (!popup.mounted) return null;
 

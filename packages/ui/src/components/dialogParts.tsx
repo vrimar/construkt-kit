@@ -24,7 +24,8 @@ import type { dialog } from "#styled-system/recipes";
 
 import { useDocumentScheme } from "../color-mode/useDocumentScheme";
 import { useComposedRefs } from "../hooks/useComposedRefs";
-import { useModalFocus } from "../primitives/focus";
+import { useLatestRef } from "../hooks/useLatestRef";
+import { isFocusLost, useModalFocus, useModalReturnFocus } from "../primitives/focus";
 import {
   type DismissReason,
   LayerContext,
@@ -33,6 +34,7 @@ import {
   PortalContainer,
   allowsDismiss,
   isTopmostLayer,
+  raiseOverlaysAbove,
   useLayer,
   useNestedModalCount,
   useOpenState,
@@ -355,26 +357,50 @@ export function createDialogParts(
     const scheme = useDocumentScheme(dialogEl);
     useScrollLock(open);
 
-    const focus = useModalFocus({
-      open,
+    const { captureReturnFocus, returnFocus } = useModalReturnFocus({
       dialog: dialogEl,
-      content: contentEl,
-      initialFocus: context.initialFocusEl,
       restoreFocus: context.restoreFocus,
       returnFocusTo: () => context.returnFocusTo?.() ?? context.triggerEl,
     });
-    const { captureReturnFocus, returnFocus } = focus;
-    // Suspense hiding the dialog closes it here; that `close` event dispatches later, often after it reopens.
+    const openRef = useLatestRef(open);
+    // Its own closes; each `close` event dispatches later, often after it reopens.
     const ownCloses = useRef(0);
     // Kept as the event, since a listener after this one may still cancel the submit or command.
     const explicitClose = useRef<Event | null>(null);
+
+    const showModal = useCallback(
+      (node: HTMLDialogElement) => {
+        if (node.open) return;
+        node.removeAttribute("popover");
+        captureReturnFocus();
+        node.showModal();
+      },
+      [captureReturnFocus],
+    );
+
+    const closeModal = useCallback(
+      (node: HTMLDialogElement) => {
+        const focusLost = isFocusLost(node);
+        if (node.open) {
+          ownCloses.current += 1;
+          node.close();
+        }
+        // Unmounting or Suspense hiding it leaves `open` as it was, and nothing to animate out.
+        if (!openRef.current) {
+          node.setAttribute("popover", "manual");
+          node.showPopover();
+          raiseOverlaysAbove(node);
+        }
+        returnFocus(focusLost);
+      },
+      [openRef, returnFocus],
+    );
 
     const showRef = useCallback(
       (node: HTMLDialogElement | null) => {
         if (!node) return;
         dialogRef.current = node;
-        captureReturnFocus();
-        if (!node.open) node.showModal();
+        showModal(node);
         setDialogEl(node);
         setDialogMounted(true);
         const onCommand = (event: Event) => {
@@ -388,11 +414,24 @@ export function createDialogParts(
             node.close();
           }
           setDialogMounted(false);
-          returnFocus();
         };
       },
-      [captureReturnFocus, returnFocus, setDialogMounted],
+      [showModal, setDialogMounted],
     );
+
+    useLayoutEffect(() => {
+      if (!open || !dialogEl) return;
+      showModal(dialogEl);
+      // A cleanup runs before any overlay opening in the same commit shows, so that one stays on top.
+      return () => closeModal(dialogEl);
+    }, [open, dialogEl, showModal, closeModal]);
+
+    const focus = useModalFocus({
+      open,
+      dialog: dialogEl,
+      content: contentEl,
+      initialFocus: context.initialFocusEl,
+    });
 
     // Counted so a native close the owner of `open` ignores still commits, and the dialog shows again.
     const [nativeCloses, setNativeCloses] = useState(0);

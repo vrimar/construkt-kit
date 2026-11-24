@@ -59,13 +59,13 @@ cards moved across lists; `getExternalData` also hands native data to `dataTrans
 | `useBreakpointUp` / `useBreakpointDown` | Whether the viewport is at/above or below a breakpoint                                             |
 | `useIsMobile`                           | Whether the viewport is below the `md` breakpoint                                                  |
 | `useHasOpenOverlay` / `hasOpenOverlay`  | Whether a popup, menu or dialog is open; tooltips don't count                                      |
-| `whenOverlaysSettle`                    | Run once closing overlays have gone and handed focus back                                          |
 | `useTooltipDelegate`                    | One tooltip for elements found at run time, such as grid cells; `show`, `showAfterDelay`, `hide`   |
 | `getTabbables` / `isFocusable`          | The elements in a container that Tab reaches; whether an element takes focus                       |
 
 `hasOpenOverlay(except)` leaves out an overlay inside `except` or holding it, such as one opened from a side pane.
-`whenOverlaysSettle(fn)` waits for the overlays closing by the next frame, so a menu's `onSelect` can call it to run
-`fn` once the menu has gone and its trigger has focus again; it returns a cancel.
+A closing popup, menu or dialog hands focus back only while focus is still inside it or nowhere, and not once an overlay
+that takes focus has opened, so a menu's `onSelect` or a palette command can move focus, or open a confirm or a dialog,
+straight away. A closing modal frees the page as it starts to close; it animates out inert, under anything opened since.
 
 ### Panda CSS Utilities
 
@@ -503,6 +503,12 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 
 #### Upgrading from 0.15
 
+- `whenOverlaysSettle` is gone: call what it wrapped directly. A closing modal no longer keeps the page inert while it
+  animates out, and a closing popup, menu or dialog no longer takes focus back from where code moved it
+- A `Popover`, `Menu`, `DatePicker` or `ColorPicker` that mounts open moves focus in, as a modal already did. Pass a
+  `Popover` `autoFocus={false}` to leave focus where it is
+- A modal returns focus as it starts to close, not once it has animated out. With `restoreFocus={false}` it leaves
+  focus alone, where the browser used to put it back on the element focused before it opened
 - `useLatestRef` holds the new value before layout effects and their cleanups run, not once they have
 
 #### Upgrading from 0.14

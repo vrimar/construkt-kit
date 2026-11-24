@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
 import type { OpenChangeReason } from "../layer";
-import { recordFocusHandoff, resolveReturnTarget } from "./focusHandoff";
-import { getInitialFocus, isWithinFocusable } from "./tabbable";
+import { isFocusClaimedSince, lastFocusClaim, useFocusClaim } from "./focusClaims";
+import { isFocusLost, recordFocusHandoff, resolveReturnTarget } from "./focusHandoff";
+import { getInitialFocus } from "./tabbable";
 
 export interface UseOverlayFocusOptions {
   open: boolean;
@@ -18,32 +19,21 @@ export interface UseOverlayFocusOptions {
 }
 
 export interface ReturnFocusIntent {
-  /** Returns focus even once it has moved on; without it, focus returns only if it would be lost. */
-  restore: boolean;
+  /** Shows the focus ring on the element focus returns to. */
   focusVisible: boolean;
 }
 
-export const KEEP_FOCUS: ReturnFocusIntent = { restore: false, focusVisible: false };
-export const RESTORE_FOCUS: ReturnFocusIntent = { restore: true, focusVisible: false };
+export const QUIET_RETURN: ReturnFocusIntent = { focusVisible: false };
 
-/**
- * How focus returns once a popup closes for `reason`: visibly after Escape, and only if it would
- * be lost when focus left it or the press that closed it landed on something that takes focus.
- */
-export function dismissFocusIntent(
-  reason: OpenChangeReason,
-  target: EventTarget | null,
-): ReturnFocusIntent {
-  if (reason === "escape-key") return { restore: true, focusVisible: true };
-  if (reason === "focus-out" || isWithinFocusable(target)) return KEEP_FOCUS;
-  return RESTORE_FOCUS;
-}
+/** How focus returns once a popup closes for `reason`: visibly after Escape. */
+export const dismissFocusIntent = (reason: OpenChangeReason): ReturnFocusIntent =>
+  reason === "escape-key" ? { focusVisible: true } : QUIET_RETURN;
 
 /** How focus returns once a popup closes other than by dismissal: visibly when a key closed it. */
 export function closeFocusIntent(event: Event | undefined): ReturnFocusIntent {
   const keyboard =
     event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0);
-  return { restore: true, focusVisible: keyboard };
+  return { focusVisible: keyboard };
 }
 
 export interface OverlayFocus {
@@ -53,51 +43,48 @@ export interface OverlayFocus {
   returningFocus: boolean;
 }
 
-function isFocusLost(popup: HTMLElement | null) {
-  const active = (popup?.ownerDocument ?? document).activeElement;
-  return !active || active === active.ownerDocument.body || (popup?.contains(active) ?? false);
-}
-
 /**
- * Focuses into a non-modal popup when it opens, unless it mounted open, and back to its trigger
- * a frame after it closes.
+ * Focuses into a non-modal popup when it opens, mounted open or not, and back to its trigger a
+ * frame after it closes, only if focus is still inside it or nowhere and no overlay that takes
+ * focus has opened since.
  */
 export function useOverlayFocus(options: UseOverlayFocusOptions): OverlayFocus {
   const { open, popup, autoFocus } = options;
   const latest = useLatestRef(options);
-  const intentRef = useRef(RESTORE_FOCUS);
+  const intentRef = useRef(QUIET_RETURN);
   const wasOpenRef = useRef(open);
-
-  const [closedOnce, setClosedOnce] = useState(!open);
-  if (!open && !closedOnce) setClosedOnce(true);
+  useFocusClaim(open && autoFocus);
 
   const [prevOpen, setPrevOpen] = useState(open);
   const [returningFocus, setReturningFocus] = useState(false);
+  // Read as it closes: an overlay opening in the same commit claims focus after this, and counts.
+  const [closedAt, setClosedAt] = useState(0);
   if (open !== prevOpen) {
     setPrevOpen(open);
     setReturningFocus(!open);
+    if (!open) setClosedAt(lastFocusClaim());
   }
 
   useEffect(() => {
-    if (!open || !popup || !autoFocus || !closedOnce) return;
+    if (!open || !popup || !autoFocus) return;
     const frame = requestAnimationFrame(() => {
       if (popup.contains(popup.ownerDocument.activeElement)) return;
       const target = latest.current.initialFocus?.(popup) ?? getInitialFocus(popup);
       if (target) target.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
-  }, [open, popup, autoFocus, closedOnce, latest]);
+  }, [open, popup, autoFocus, latest]);
 
   useEffect(() => {
     const closed = wasOpenRef.current && !open;
     wasOpenRef.current = open;
     const intent = intentRef.current;
-    intentRef.current = RESTORE_FOCUS;
+    intentRef.current = QUIET_RETURN;
     if (!closed) return;
     const { popup: closing, restoreFocus, returnFocusTo } = latest.current;
     recordFocusHandoff(closing, returnFocusTo());
     const frame = requestAnimationFrame(() => {
-      if (restoreFocus && (intent.restore || isFocusLost(closing))) {
+      if (restoreFocus && !isFocusClaimedSince(closedAt) && isFocusLost(closing)) {
         resolveReturnTarget(latest.current.returnFocusTo())?.focus({
           preventScroll: true,
           focusVisible: intent.focusVisible,
@@ -106,7 +93,7 @@ export function useOverlayFocus(options: UseOverlayFocusOptions): OverlayFocus {
       setReturningFocus(false);
     });
     return () => cancelAnimationFrame(frame);
-  }, [open, latest]);
+  }, [open, closedAt, latest]);
 
   const setReturnFocus = useCallback((intent: ReturnFocusIntent) => {
     intentRef.current = intent;

@@ -1,6 +1,7 @@
 import { type KeyboardEvent, useCallback, useLayoutEffect, useRef } from "react";
 
 import { useLatestRef } from "../../hooks/useLatestRef";
+import { useFocusClaim } from "./focusClaims";
 import { recordFocusHandoff, resolveReturnTarget } from "./focusHandoff";
 import { findInitialFocus, getTabbables } from "./tabbable";
 
@@ -15,29 +16,18 @@ export interface UseModalFocusOptions {
    * and `false` leaves focus to the content itself.
    */
   initialFocus?: ((dialog: HTMLElement) => HTMLElement | null | false) | undefined;
-  /** Moves focus back when the dialog closes. */
-  restoreFocus: boolean;
-  /** The element focus returns to; the one focused before the dialog opened when it gives none. */
-  returnFocusTo: () => HTMLElement | null;
 }
 
 export interface ModalFocus {
-  /** Call right before `showModal()`, while focus is still where it was. */
-  captureReturnFocus: () => void;
-  /** Call once the dialog has closed, when nothing outside it is inert any more. */
-  returnFocus: () => void;
   /** Keeps Tab and Shift+Tab cycling through the dialog. */
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
 }
 
-/**
- * Focuses into a modal dialog whenever it opens, mounted open or not, keeps Tab inside it, and
- * returns focus once it has closed.
- */
+/** Focuses into a modal dialog whenever it opens, mounted open or not, and keeps Tab inside it. */
 export function useModalFocus(options: UseModalFocusOptions): ModalFocus {
   const { open, dialog, content } = options;
   const latest = useLatestRef(options);
-  const previousRef = useRef<HTMLElement | null>(null);
+  useFocusClaim(open);
 
   useLayoutEffect(() => {
     if (!open || !dialog || !content) return;
@@ -46,18 +36,6 @@ export function useModalFocus(options: UseModalFocusOptions): ModalFocus {
     if (!chosen && content.contains(content.ownerDocument.activeElement)) return;
     (chosen ?? findInitialFocus(content) ?? dialog).focus({ preventScroll: true });
   }, [open, dialog, content, latest]);
-
-  const captureReturnFocus = useCallback(() => {
-    const active = document.activeElement;
-    previousRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
-  }, []);
-
-  const returnFocus = useCallback(() => {
-    const target = resolveReturnTarget(latest.current.returnFocusTo() ?? previousRef.current);
-    previousRef.current = null;
-    recordFocusHandoff(latest.current.dialog, target);
-    if (latest.current.restoreFocus) target?.focus({ preventScroll: true });
-  }, [latest]);
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey) return;
@@ -77,5 +55,47 @@ export function useModalFocus(options: UseModalFocusOptions): ModalFocus {
     }
   }, []);
 
-  return { captureReturnFocus, returnFocus, onKeyDown };
+  return { onKeyDown };
+}
+
+export interface UseModalReturnFocusOptions {
+  dialog: HTMLElement | null;
+  /** Moves focus back when the dialog closes. */
+  restoreFocus: boolean;
+  /** The element focus returns to; the one focused before the dialog opened when it gives none. */
+  returnFocusTo: () => HTMLElement | null;
+}
+
+export interface ModalReturnFocus {
+  /**
+   * Call right before `showModal()`, while focus is still where it was. Blurs it, so the browser
+   * has nothing to restore on close and `returnFocus` alone moves it back.
+   */
+  captureReturnFocus: () => void;
+  /** Call as the dialog closes, with whether focus was inside it or nowhere just before. */
+  returnFocus: (focusLost: boolean) => void;
+}
+
+/** Remembers where focus was as a modal dialog opens and returns it there as it closes. */
+export function useModalReturnFocus(options: UseModalReturnFocusOptions): ModalReturnFocus {
+  const latest = useLatestRef(options);
+  const previousRef = useRef<HTMLElement | null>(null);
+
+  const captureReturnFocus = useCallback(() => {
+    const active = document.activeElement;
+    previousRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    previousRef.current?.blur();
+  }, []);
+
+  const returnFocus = useCallback(
+    (focusLost: boolean) => {
+      const target = resolveReturnTarget(latest.current.returnFocusTo() ?? previousRef.current);
+      previousRef.current = null;
+      recordFocusHandoff(latest.current.dialog, target);
+      if (focusLost && latest.current.restoreFocus) target?.focus({ preventScroll: true });
+    },
+    [latest],
+  );
+
+  return { captureReturnFocus, returnFocus };
 }

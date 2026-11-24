@@ -121,3 +121,18 @@ it("returns focus to returnFocusTo from its phone sheet", async () => {
     .poll(() => document.activeElement)
     .toBe(screen.getByRole("button", { name: "Other" }));
 });
+
+it("moves focus in when it mounts open", async () => {
+  render(
+    <Popover.Root defaultOpen>
+      <Popover.Trigger>Ranges</Popover.Trigger>
+      <Popover.Content>
+        <input aria-label="From" />
+      </Popover.Content>
+    </Popover.Root>,
+  );
+
+  await expect
+    .poll(() => document.activeElement)
+    .toBe(screen.getByRole("textbox", { name: "From" }));
+});

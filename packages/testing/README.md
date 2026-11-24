@@ -67,7 +67,7 @@ matching request with an error in the shape `@construkt-kit/api` parses, without
 ## Overlays
 
 `overlaysSettled(page)` waits until no kit overlay is opening or closing (`data-starting-style`,
-`data-ending-style`), then two frames, so focus has returned and `whenOverlaysSettle` callbacks have run.
+`data-ending-style`), then two frames, so focus has returned.
 `pressEscape(page, times)` presses Escape and settles after each press, so each closes one layer.
 
 ## Sign-in and servers
