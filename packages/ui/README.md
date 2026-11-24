@@ -501,6 +501,10 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 `viewport-fit=cover` lets sheets and `ActionBar` pad for the home indicator. Leave out `maximum-scale` and
 `user-scalable=no`: they block pinch zoom, and 16px inputs no longer need them.
 
+#### Upgrading from 0.15
+
+- `useLatestRef` holds the new value before layout effects and their cleanups run, not once they have
+
 #### Upgrading from 0.14
 
 - Every component and part that took `asChild` takes `render` in its place; Panda's layout components (`Box`, `Flex`,
