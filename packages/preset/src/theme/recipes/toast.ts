@@ -74,14 +74,7 @@ export const toast = defineSlotRecipe({
       _icon: {
         flexShrink: "0",
       },
-      // Keeps the pointer over the stack across the gap between toasts and while one leaves.
-      _before: {
-        content: '""',
-        position: "absolute",
-        inset: "0",
-        scale: "1 2",
-        pointerEvents: "none",
-      },
+      // Keeps the pointer over a spread stack across the gap between toasts.
       _after: {
         content: '""',
         position: "absolute",
@@ -89,6 +82,7 @@ export const toast = defineSlotRecipe({
         bottom: "100%",
         width: "100%",
         height: "calc(var(--toast-gap) + 2px)",
+        pointerEvents: "none",
       },
       _open: {
         "--toast-y": "var(--toast-rest-y)",
@@ -96,15 +90,14 @@ export const toast = defineSlotRecipe({
         pointerEvents: "auto",
         _startingStyle: { "--toast-y": "var(--toast-exit-y)", opacity: "0" },
       },
-      _closed: {
-        _before: { pointerEvents: "auto" },
-        _first: {
-          _before: { height: "calc(var(--toast-height) + 80%)" },
-        },
-      },
       _expanded: {
         "--toast-rest-y": "calc(var(--toast-offset-y) + var(--toast-index) * var(--toast-gap))",
         height: "var(--toast-height)",
+        _open: {
+          _notFirst: {
+            _after: { pointerEvents: "auto" },
+          },
+        },
       },
       _collapsed: {
         _notFirst: {
@@ -173,11 +166,6 @@ export const toast = defineSlotRecipe({
           top: "auto",
           bottom: "0",
           _after: { bottom: "auto", top: "100%" },
-          _closed: {
-            _first: {
-              _before: { top: "auto" },
-            },
-          },
           _expanded: {
             "--toast-rest-y":
               "calc((var(--toast-offset-y) + var(--toast-index) * var(--toast-gap)) * -1)",

@@ -117,6 +117,7 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
     focusWithin: false,
     pointerWithin: false,
     ignoreMouseFrame: 0,
+    leaving: false,
   });
 
   const api = useMemo(() => {
@@ -187,8 +188,9 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
       group: toasterGroup,
       onMouseEnter: pointerEnter,
       onMouseMove: pointerEnter,
+      // A leaving toast moves out from under the pointer; its removal settles the pointer on the next move.
       onMouseLeave: () => {
-        if (!state.ignoreMouseFrame) pointerLeave();
+        if (!state.ignoreMouseFrame && !state.leaving) pointerLeave();
       },
       onFocus: (event: FocusEvent<HTMLDivElement>) => {
         if (!state.focusWithin) {
@@ -233,6 +235,10 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
       }),
     [],
   );
+
+  useLayoutEffect(() => {
+    interaction.current.leaving = toasts.some((toast) => toast.closing);
+  }, [toasts]);
 
   useEffect(() => {
     const shown = new Set(toasts.map((toast) => toast.instance));

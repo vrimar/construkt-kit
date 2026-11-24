@@ -50,3 +50,20 @@ it("mounts a new toast in its starting style, then lets it enter", async () => {
   await expect.poll(() => toast.hasAttribute("data-starting-style")).toBe(false);
   act(() => toaster.remove());
 });
+
+it("lets a press through to what a leaving toast covered", async () => {
+  render(<Toaster />);
+  act(() => {
+    toaster.create({ id: "saved", title: "Saved", duration: Infinity });
+  });
+  const toast = screen.getByRole("status");
+  await expect.poll(() => toast.hasAttribute("data-starting-style")).toBe(false);
+  const box = toast.getBoundingClientRect();
+
+  act(() => toaster.dismiss("saved"));
+  await expect.poll(() => toast.hasAttribute("data-closed")).toBe(true);
+
+  expect(toast.isConnected).toBe(true);
+  const under = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+  expect(toast.contains(under)).toBe(false);
+});

@@ -44,6 +44,36 @@ storyTest(
 
 storyTest(
   ["components-toast--stacked"],
+  "a pointer moving as a hovered toast leaves keeps the rest spread until it leaves the stack",
+  async ({ page }) => {
+    const front = page.getByRole("status", { name: "Upload failed" });
+    const next = page.getByRole("status", { name: "Changes saved" });
+    const close = front.getByRole("button", { name: "Close" });
+    await front.hover();
+    await expect(next).toHaveAttribute("data-expanded", "");
+    const box = await close.boundingBox();
+    if (!box) throw new Error("The close button has no box.");
+    const collapses = await next.evaluateHandle((toast) => {
+      const seen = { count: 0 };
+      new MutationObserver(() => {
+        if (toast.hasAttribute("data-collapsed")) seen.count += 1;
+      }).observe(toast, { attributeFilter: ["data-collapsed"] });
+      return seen;
+    });
+
+    await close.click();
+    await page.mouse.move(box.x + box.width / 2 + 4, box.y + box.height / 2 + 4, { steps: 4 });
+    await expect(front).toBeHidden();
+    expect(await collapses.evaluate((seen) => seen.count)).toBe(0);
+
+    await page.mouse.move(4, 4);
+    await expect(next).toHaveAttribute("data-collapsed", "");
+  },
+  { only: "desktop" },
+);
+
+storyTest(
+  ["components-toast--stacked"],
   "a swipe past the threshold dismisses a toast and a short one doesn't",
   async ({ page }) => {
     const toast = page.getByRole("status", { name: "Upload failed" });

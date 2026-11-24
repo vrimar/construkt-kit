@@ -514,6 +514,8 @@ Give the app `<meta name="viewport" content="width=device-width, initial-scale=1
 - `useLatestRef` holds the new value before layout effects and their cleanups run, not once they have
 - A closing dialog is `aria-hidden` as well as inert while it animates out, so role queries no longer find it or what
   it holds
+- A toast that is leaving no longer catches presses on what lies under it, and the gap between toasts catches the
+  pointer only while the stack is spread
 - `toastRegion(page)` finds the region at either `Toaster` placement; its name ends in the placement, `top-end` or
   `bottom-end`
 
