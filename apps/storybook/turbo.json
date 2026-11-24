@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    // Storybook has neither script; their inherited `build` dependency would build Storybook during every test run.
+    "test": { "dependsOn": [] },
+    "test:browser": { "dependsOn": [] }
+  }
+}

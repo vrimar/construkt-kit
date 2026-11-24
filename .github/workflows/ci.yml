@@ -31,9 +31,7 @@ jobs:
         run: echo "ref=$(jq -r '.image + "@" + .digest' packages/story-kit/browser-image.json)" >> "$GITHUB_OUTPUT"
 
   verify:
-    needs: browser-image
     runs-on: ubuntu-latest
-    container: ${{ needs.browser-image.outputs.ref }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -46,19 +44,7 @@ jobs:
           turbo-cache: save
 
       - name: Verify
-        # Firefox refuses to run as root under a HOME another user owns, as the image's /github/home is.
-        env:
-          HOME: /root
-        run: pnpm verify
-
-      - name: Upload browser test failures
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: browser-test-failures
-          path: packages/*/.vitest/attachments/
-          include-hidden-files: true
-          if-no-files-found: ignore
+        run: pnpm verify:node
 
       - name: Check baseline commits
         env:
@@ -73,6 +59,41 @@ jobs:
 
       - name: Prune Turbo cache entries older than a week
         run: find .turbo/cache -type f -mtime +7 -delete
+
+  browser:
+    name: browser (${{ matrix.package }}, ${{ matrix.engine }})
+    needs: browser-image
+    runs-on: ubuntu-latest
+    container: ${{ needs.browser-image.outputs.ref }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [ui, data-grid]
+        engine: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up the workspace
+        uses: ./.github/actions/setup
+        with:
+          turbo-cache: restore
+
+      - name: Browser tests
+        # Firefox refuses to run as root under a HOME another user owns, as the image's /github/home is.
+        env:
+          HOME: /root
+          CONSTRUKT_KIT_BROWSER_ENGINES: ${{ matrix.engine }}
+        run: pnpm test:browser --filter=@construkt-kit/${{ matrix.package }}
+
+      - name: Upload browser test failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-failures-${{ matrix.package }}-${{ matrix.engine }}
+          path: packages/${{ matrix.package }}/.vitest/attachments/
+          include-hidden-files: true
+          if-no-files-found: ignore
 
   stories:
     name: stories (${{ matrix.shard }}/${{ strategy.job-total }})

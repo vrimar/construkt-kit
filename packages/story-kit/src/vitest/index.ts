@@ -72,23 +72,40 @@ function browserProject(
   };
 }
 
-// WebKit's browser tests time out under CI's load; they run locally, and CI's story tests cover WebKit.
-const BROWSER_ENGINES: readonly Engine[] = process.env.CI
-  ? ["chromium", "firefox"]
-  : ["chromium", "firefox", "webkit"];
+const ENGINES: readonly Engine[] = ["chromium", "firefox", "webkit"];
+
+function selectedEngines(): readonly Engine[] {
+  const names = process.env.CONSTRUKT_KIT_BROWSER_ENGINES?.split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (!names?.length) return ENGINES;
+  const unknown = names.filter((name) => !ENGINES.includes(name as Engine));
+  if (unknown.length > 0) {
+    throw new Error(
+      `CONSTRUKT_KIT_BROWSER_ENGINES lists ${unknown.join(", ")}; it takes ${ENGINES.join(", ")}.`,
+    );
+  }
+  return names as Engine[];
+}
 
 /**
- * The `browser` (Chromium, Firefox and WebKit, WebKit not in CI, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled by the package's
- * `panda.config.ts`. Every project gets `touchDrag`; `commands` adds the package's own.
+ * The `browser` (Chromium, Firefox and WebKit, 1280×800) and `touch` (Chromium with touch, 390×844) projects, styled
+ * by the package's `panda.config.ts`. `CONSTRUKT_KIT_BROWSER_ENGINES`, comma-separated, narrows `browser` to the
+ * engines it lists and leaves `touch` out unless it lists `chromium`. Every project gets `touchDrag`; `commands` adds
+ * the package's own.
  */
 export function browserProjects({
   commands = {},
 }: { commands?: Commands } = {}): TestProjectInlineConfiguration[] {
-  return [
-    browserProject("browser", BROWSER_ENGINES, { width: 1280, height: 800 }, commands),
-    browserProject("touch", ["chromium"], { width: 390, height: 844 }, commands, {
-      hasTouch: true,
-      isMobile: true,
-    }),
-  ];
+  const engines = selectedEngines();
+  const projects = [browserProject("browser", engines, { width: 1280, height: 800 }, commands)];
+  if (engines.includes("chromium")) {
+    projects.push(
+      browserProject("touch", ["chromium"], { width: 390, height: 844 }, commands, {
+        hasTouch: true,
+        isMobile: true,
+      }),
+    );
+  }
+  return projects;
 }
