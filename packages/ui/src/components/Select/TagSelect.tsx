@@ -1,10 +1,11 @@
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { Box, type BoxProps } from "#styled-system/jsx";
+import { Box, type BoxProps, createSlotRecipeContext } from "#styled-system/jsx";
+import { tagsInput } from "#styled-system/recipes";
 
+import { renderable } from "../../primitives/render";
 import type { Unstyled } from "../../types";
 import { type SelectionValue, encodeSelectionValue } from "../selection";
-import { TagsInput } from "../TagsInput";
 import { Text } from "../Text";
 import { Select } from "./Select";
 import { useSelectContext } from "./Select.context";
@@ -19,6 +20,14 @@ export interface TagSelectProps<T, V extends SelectionValue = SelectionValue>
   renderTag?: (item: T) => ReactNode;
   triggerProps?: Unstyled<Omit<SelectTriggerProps, "buttonProps" | "children">>;
 }
+
+const { withProvider, withContext } = createSlotRecipeContext(tagsInput);
+
+const TagList = withProvider(renderable.div, "root");
+const TagListControl = withContext(renderable.div, "control");
+const Tag = withContext(renderable.div, "item");
+const TagPreview = withContext(renderable.div, "itemPreview");
+const TagText = withContext(renderable.span, "itemText");
 
 interface TagSelectTriggerProps<T> extends BoxProps {
   renderTag?: (item: T) => ReactNode;
@@ -47,30 +56,20 @@ function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTrigge
       role="button"
       tabIndex={0}
       borderRadius="md"
+      cursor="pointer"
       focusVisibleRing="outside"
       {...props}
       onKeyDown={handleKeyDown}
     >
-      <TagsInput.Root
-        cursor="pointer"
-        readOnly
-        value={tags.map((tag) => tag.value)}
-      >
-        <TagsInput.Control
-          outline="none"
-          tabIndex={-1}
-        >
-          {tags.map(({ item, value }, index) => (
-            <TagsInput.Item
-              key={value}
-              index={index}
-              value={value}
-            >
-              <TagsInput.ItemPreview>
+      <TagList>
+        <TagListControl>
+          {tags.map(({ item, value }) => (
+            <Tag key={value}>
+              <TagPreview>
                 {renderTag?.(item)}
-                <TagsInput.ItemText>{getItemLabel(item)}</TagsInput.ItemText>
-              </TagsInput.ItemPreview>
-            </TagsInput.Item>
+                <TagText>{getItemLabel(item)}</TagText>
+              </TagPreview>
+            </Tag>
           ))}
           {tags.length === 0 && (
             <Text
@@ -80,8 +79,8 @@ function TagSelectTrigger<T>({ renderTag, onKeyDown, ...props }: TagSelectTrigge
               {triggerValue}
             </Text>
           )}
-        </TagsInput.Control>
-      </TagsInput.Root>
+        </TagListControl>
+      </TagList>
     </Box>
   );
 }
