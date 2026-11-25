@@ -125,6 +125,11 @@ Key behaviors:
 The peer Kubb packages (`kubb`, `@kubb/adapter-oas`, `@kubb/plugin-ts`, `@kubb/plugin-fetch`,
 `@kubb/plugin-react-query`) are optional — install them in apps that run codegen.
 
+## Upgrading from 0.8.0
+
+- `createViteConfig` no longer opens a browser tab on start, so `vite preview` runs in tests and CI stay headless. Pass
+  `--open` where you want one, such as an editor's dev task, or set `server.open` in the overrides
+
 ## Upgrading from 0.7
 
 - The base oxlint config loads the `construkt` JS plugin and reports `construkt/no-style-prop-name` as an error. Rename

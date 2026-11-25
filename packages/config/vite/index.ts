@@ -17,7 +17,6 @@ const baseConfig = defineConfig({
     tsconfigPaths: true,
   },
   server: {
-    open: true,
     cors: true,
   },
 });
