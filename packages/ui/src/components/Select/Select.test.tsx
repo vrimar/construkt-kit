@@ -4,7 +4,7 @@ import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { mockMatchMedia, viewportWidth } from "../../_shared/matchMedia";
-import { sheetOf } from "../../_shared/sheet";
+import { mountedSheet, sheetOf } from "../../_shared/sheet";
 import { Field } from "../Form";
 import { Listbox, type SingleSelectionProps } from "../Listbox";
 import { encodeSelectionValue } from "../selection";
@@ -491,7 +491,8 @@ describe("Select", () => {
       expect(sheetOf(screen.getByRole("listbox"))).not.toBeNull();
 
       await userEvent.keyboard("{Escape}");
-      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      // A press while the sheet still animates out reopens that same sheet.
+      await waitFor(() => expect(mountedSheet()).toBeNull());
       act(() => media.setMatches(viewportWidth(1024)));
 
       await userEvent.click(trigger);
