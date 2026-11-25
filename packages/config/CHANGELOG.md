@@ -1,5 +1,11 @@
 # @construkt-kit/config
 
+## 0.8.1 — 2026-11-25
+
+### Fixes
+
+- Stop createViteConfig opening a browser tab on start (`4f47ed40`)
+
 ## 0.8.0 — 2026-11-23
 
 ### Breaking
