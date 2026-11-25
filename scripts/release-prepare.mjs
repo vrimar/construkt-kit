@@ -80,11 +80,12 @@ function publishedChanges(before, after) {
   return changes;
 }
 
-function shippedPaths(dir, manifest) {
-  const include = ["src", "package.json", ...(manifest.files ?? []).filter((f) => f !== "dist")];
+// The whole package, not just src: config builds dist from top-level folders such as vite/.
+function shippedPaths(dir) {
   const exclude = ["*.test.*", "*.spec.*", "*.stories.*", "*.cases.*"];
   return [
-    ...include.map((entry) => `${dir}/${entry}`),
+    dir,
+    `:(exclude)${dir}/test`,
     ...exclude.map((glob) => `:(exclude,glob)${dir}/**/${glob}`),
   ];
 }
@@ -140,7 +141,7 @@ for (const project of projects) {
   const latest = latestRelease(project.name);
   const tag = latest?.tag ?? null;
   const base = latest?.version ?? null;
-  const commits = commitsSince(tag, shippedPaths(project.dir, project.manifest));
+  const commits = commitsSince(tag, shippedPaths(project.dir));
   let level = levelFor(commits, base ?? project.version);
   const released = tag ? JSON.parse(git("show", `${tag}:${project.dir}/package.json`)) : null;
   const manifestChanges = released ? publishedChanges(released, project.manifest) : [];
