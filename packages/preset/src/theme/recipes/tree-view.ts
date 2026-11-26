@@ -6,6 +6,7 @@ import { checkboxControlBase } from "./checkbox-control";
 import { solidCheckedFill } from "./choice-control";
 import { controlText } from "./control-size";
 import { dropIndicator, dropLine, dropOnto } from "./drop-indicator";
+import { tintedRow } from "./dropdown";
 
 /** Variables the tree sets on its rows and drop line, and the sticky offset an app may set. */
 export const treeViewGlobalVars: GlobalVarsDefinition = {
@@ -61,6 +62,14 @@ const rowPadding = (py: string, pe: string) => ({
 
 const rowBg = onSurface("--tree-row-bg");
 
+const tintedTreeRow = {
+  _selected: {
+    "--tree-row-bg": `colors.${tintedRow.bg}`,
+    color: tintedRow.color,
+    _hover: { "--tree-row-bg": `colors.${tintedRow._hover.bg}` },
+  },
+} as const;
+
 export const treeView = defineSlotRecipe({
   className: "tree-view",
   slots: [
@@ -87,7 +96,6 @@ export const treeView = defineSlotRecipe({
   staticCss: [{ size: ["sm", "md"] }],
   base: {
     root: {
-      colorPalette: "neutral",
       width: "full",
       display: "flex",
       flexDirection: "column",
@@ -280,8 +288,20 @@ export const treeView = defineSlotRecipe({
   defaultVariants: {
     size: "md",
     actionsVisibility: "always",
+    selection: "neutral",
   },
   variants: {
+    selection: {
+      neutral: {
+        root: { colorPalette: "neutral" },
+      },
+      tint: {
+        branchControl: tintedTreeRow,
+        item: tintedTreeRow,
+        branchIndicator: { _selected: { color: tintedRow.color } },
+        itemIndicator: { display: "none" },
+      },
+    },
     actionsVisibility: {
       always: {},
       hover: {

@@ -32,7 +32,7 @@ export const preset = createConstruktKitPreset({
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `bg`, `bg.subtle`, `bg.muted`                         | Page and container backgrounds                                                     |
 | `bg.hover`                                            | Hovered or highlighted rows: list, tree, table, menu and listbox items             |
-| `bg.emphasized`                                       | Selected rows                                                                      |
+| `bg.emphasized`                                       | Selected rows; with `selection="tint"`, `colorPalette.subtle.bg` and `plain.fg`    |
 | `fg`, `fg.muted`                                      | Body text, secondary text — pass on every surface                                  |
 | `fg.subtle`                                           | Placeholders, hints, captions — never on `bg.emphasized` or a pressed/checked tint |
 | `border`                                              | Dividers and card edges                                                            |

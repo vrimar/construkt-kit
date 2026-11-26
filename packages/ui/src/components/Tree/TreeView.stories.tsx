@@ -162,6 +162,26 @@ export const WithCustomRender = meta.story({
   ),
 });
 
+export const TintedSelection = meta.story({
+  render: () => (
+    <Box
+      maxW="320px"
+      border="1px solid"
+      borderColor="border"
+      rounded="md"
+      p="2"
+    >
+      <FileTree
+        nodes={nodes}
+        selection="tint"
+        defaultExpandedValue={["src", "components"]}
+        defaultSelectedValue={["input"]}
+        renderNode={renderWithIcons}
+      />
+    </Box>
+  ),
+});
+
 export const WithCheckboxes = meta.story({
   render: () => (
     <Box

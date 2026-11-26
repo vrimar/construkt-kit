@@ -1,0 +1,17 @@
+- tree "Tree View":
+  - treeitem "src" [expanded] [level=1]:
+    - button "src"
+    - group:
+      - treeitem "components" [expanded] [level=2]:
+        - button "components"
+        - group:
+          - treeitem "Button.tsx" [level=3]
+          - treeitem "Input.tsx" [level=3] [selected]
+          - treeitem "Dialog.tsx" [level=3]
+      - treeitem "utils" [level=2]:
+        - button "utils"
+      - treeitem "index.ts" [level=2]
+  - treeitem "docs" [level=1]:
+    - button "docs"
+  - treeitem "config" [level=1]:
+    - button "config"

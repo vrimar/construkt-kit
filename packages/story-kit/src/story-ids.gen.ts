@@ -2447,6 +2447,12 @@ export const stories = {
     title: "Components/TreeView",
     tags: [],
   },
+  "components-treeview--tinted-selection": {
+    file: "packages/ui/src/components/Tree/TreeView.stories.tsx",
+    exportName: "TintedSelection",
+    title: "Components/TreeView",
+    tags: [],
+  },
   "components-treeview--with-checkboxes": {
     file: "packages/ui/src/components/Tree/TreeView.stories.tsx",
     exportName: "WithCheckboxes",
