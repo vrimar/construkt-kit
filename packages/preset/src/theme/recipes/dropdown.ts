@@ -23,6 +23,7 @@ export const dropdownItemBase = {
 
 export const tintedRow = {
   bg: "colorPalette.subtle.bg",
+  color: "colorPalette.plain.fg",
   _hover: { bg: "colorPalette.subtle.bg.hover" },
   _highlighted: { bg: "colorPalette.subtle.bg.hover" },
 } as const;
