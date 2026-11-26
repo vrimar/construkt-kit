@@ -90,6 +90,8 @@ function shippedPaths(dir) {
   ];
 }
 
+const BUNDLES = { "@construkt-kit/ui": ["@construkt-kit/preset"] };
+
 function commitsSince(base, paths) {
   const range = base ? `${base}..HEAD` : "HEAD";
   const log = git("log", "--format=%h%x1f%s%x1f%b%x1e", range, "--", ...paths);
@@ -141,7 +143,10 @@ for (const project of projects) {
   const latest = latestRelease(project.name);
   const tag = latest?.tag ?? null;
   const base = latest?.version ?? null;
-  const commits = commitsSince(tag, shippedPaths(project.dir));
+  const bundled = (BUNDLES[project.name] ?? []).map(
+    (name) => projects.find((other) => other.name === name).dir,
+  );
+  const commits = commitsSince(tag, [project.dir, ...bundled].flatMap(shippedPaths));
   let level = levelFor(commits, base ?? project.version);
   const released = tag ? JSON.parse(git("show", `${tag}:${project.dir}/package.json`)) : null;
   const manifestChanges = released ? publishedChanges(released, project.manifest) : [];
