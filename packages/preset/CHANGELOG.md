@@ -1,5 +1,12 @@
 # @construkt-kit/preset
 
+## 0.13.1 — 2026-11-26
+
+### Fixes
+
+- Let a tree mark its selection with the menus' blue tint through selection="tint" (`79b43e10`)
+- Give a checked tint row blue text on its blue tint, so a picked menu row reads as picked (`ca4814f2`)
+
 ## 0.13.0 — 2026-11-24
 
 ### Breaking
