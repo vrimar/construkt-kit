@@ -16,7 +16,7 @@ const PANDA_RUNTIME_IMPORTS = {
     "@construkt-kit/ui/patterns/*",
   ],
   message:
-    "No Panda build extracts data-grid's source, so css(), styled and patterns ship classes with no CSS. Use the dataGrid recipe, inline geometry or CSS variables.",
+    "No Panda build extracts this package's source, so css(), styled and patterns ship classes with no CSS. Use the package's recipes, inline geometry or CSS variables.",
 };
 
 const ARK_IMPORTS = {
@@ -37,7 +37,12 @@ export default createOxlintConfig({
       rules: { "no-console": "off" },
     },
     {
-      files: ["packages/ui/src/**", "packages/pages/src/**", "packages/data-grid/src/**"],
+      files: [
+        "packages/ui/src/**",
+        "packages/pages/src/**",
+        "packages/data-grid/src/**",
+        "packages/docs/src/**",
+      ],
       jsPlugins: ["./packages/ui/oxlint-panda.mjs"],
       rules: {
         "@pandacss/no-debug": "error",
@@ -48,7 +53,7 @@ export default createOxlintConfig({
       },
     },
     {
-      files: ["packages/data-grid/src/**"],
+      files: ["packages/data-grid/src/**", "packages/docs/src/**"],
       rules: {
         "construkt/no-literal-style-props": "error",
         "no-restricted-imports": ["error", { patterns: [PANDA_RUNTIME_IMPORTS, ARK_IMPORTS] }],
@@ -72,6 +77,34 @@ export default createOxlintConfig({
                   "**/styled-system/**",
                 ],
                 message: "The grid core is framework-free: no React, ui or Panda imports.",
+              },
+              ARK_IMPORTS,
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ["packages/docs/src/core/**"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: [
+                  "react",
+                  "react/*",
+                  "react-dom",
+                  "react-dom/*",
+                  "lucide-react",
+                  "minisearch",
+                  "@construkt-kit/ui",
+                  "@construkt-kit/ui/*",
+                  "**/styled-system/**",
+                ],
+                message:
+                  "The docs core runs in Node at build time: no React, ui, Panda or browser-side imports.",
               },
               ARK_IMPORTS,
             ],

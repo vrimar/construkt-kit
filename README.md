@@ -10,6 +10,7 @@ client and shared tool configs.
 | [`@construkt-kit/ui`](packages/ui/README.md)               | Components, hooks and the Panda design system apps build on                 |
 | [`@construkt-kit/pages`](packages/pages/README.md)         | Login, forgot-password and reset-password pages; extends ui's design system |
 | [`@construkt-kit/data-grid`](packages/data-grid/README.md) | Virtualized, Excel-like grid with an opt-in Panda preset                    |
+| [`@construkt-kit/docs`](packages/docs/README.md)           | MDX docs: a checked build step, search, `llms.txt` and the docs layout      |
 | [`@construkt-kit/preset`](packages/preset/README.md)       | Tokens, contrast-checked palettes and recipes                               |
 | [`@construkt-kit/api`](packages/api/README.md)             | Kubb client setup, typed errors and query helpers                           |
 | [`@construkt-kit/utils`](packages/utils/README.md)         | Framework-free helpers: dates, numbers, query strings, Zod schemas          |

@@ -19,7 +19,7 @@ export const SWEEP_SPEC = "apps/storybook/tests/sweep.spec.ts";
 export const BEHAVIOUR_SPECS = "packages/*/src/**/*.spec.ts";
 
 /** The packages whose `src` holds stories; the Storybook app's own `stories/` holds the rest. */
-export const STORY_PACKAGES = ["ui", "pages", "data-grid"] as const;
+export const STORY_PACKAGES = ["ui", "pages", "data-grid", "docs"] as const;
 
 /** Every story file, relative to the repo root. */
 export const STORY_GLOBS = [

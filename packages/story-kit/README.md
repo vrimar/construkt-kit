@@ -53,8 +53,8 @@ so. CI sets `STORIES_PIXELS=required`, which fails the run instead.
 
 `test:stories:changed` follows each story's imports. A change to the preset, the preview, the gallery, this package
 or a manifest runs everything. A change to a package reruns every story that imports it or a package that depends on
-it at runtime, so a utils change reaches ui, pages and data-grid stories, and a ui change every pages and data-grid
-story. A spec whose imports reach a changed file reruns the stories it names.
+it at runtime, so a utils change reaches ui, pages, data-grid and docs stories, and a ui change every pages,
+data-grid and docs story. A spec whose imports reach a changed file reruns the stories it names.
 
 ## Failures
 

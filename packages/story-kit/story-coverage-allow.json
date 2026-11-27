@@ -12,5 +12,6 @@
     "AuthSuccess": "Building block of the ForgotPasswordPage and ResetPasswordPage success stories.",
     "PasswordRulesPopover": "Building block of the ResetPasswordPage stories."
   },
-  "data-grid": {}
+  "data-grid": {},
+  "docs": {}
 }

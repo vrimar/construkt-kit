@@ -1,0 +1,101 @@
+- link "Skip to content":
+  - /url: "#docs-content"
+- complementary "Documentation":
+  - button "Search the docs…"
+  - navigation "Documentation":
+    - list:
+      - listitem:
+        - link "Overview":
+          - /url: /docs/
+      - listitem:
+        - link "Get started":
+          - /url: /docs/get-started/
+      - listitem:
+        - button "Projects"
+      - listitem:
+        - button "Sharing" [expanded]
+        - list:
+          - listitem:
+            - link "Invite people":
+              - /url: /docs/sharing/invite/
+          - listitem:
+            - link "Roles and permissions":
+              - /url: /docs/sharing/roles/
+          - listitem:
+            - text: More
+            - list:
+              - listitem:
+                - link "Transfer ownership":
+                  - /url: /docs/sharing/transfer/
+              - listitem:
+                - link "What is single sign-on?":
+                  - /url: /what-is-single-sign-on/
+- main:
+  - article:
+    - text: How-to
+    - heading "Roles and permissions" [level=1]
+    - paragraph: A role is a set of permissions, and everyone in a project has one.
+    - paragraph: Every project starts with an Owner role. Add roles beside it to give people less access.
+    - paragraph: Tip
+    - paragraph: A person's role applies to every page in the project.
+    - heading "Add a role" [level=2]:
+      - text: ""
+      - link "Copy link to this section":
+        - /url: "#add-a-role"
+        - text: "#"
+    - list:
+      - listitem: Open the project menu.
+      - listitem:
+        - text: Choose
+        - strong: Add role
+        - text: .
+    - heading "From a template" [level=3]:
+      - text: ""
+      - link "Copy link to this section":
+        - /url: "#from-a-template"
+        - text: "#"
+    - paragraph: Pick a template from the list. Each permission becomes a switch; press Esc to cancel.
+    - heading "Reorder roles" [level=2]:
+      - text: ""
+      - link "Copy link to this section":
+        - /url: "#reorder-roles"
+        - text: "#"
+    - paragraph:
+      - text: Drag a role by its handle.
+      - code: Owner
+      - text: always stays first.
+    - heading "Limits" [level=2]:
+      - text: ""
+      - link "Copy link to this section":
+        - /url: "#limits"
+        - text: "#"
+    - table:
+      - rowgroup:
+        - row "What Limit":
+          - columnheader "What"
+          - columnheader "Limit"
+      - rowgroup:
+        - row /Roles per project \d+/:
+          - cell "Roles per project"
+          - cell /\d+/
+    - time: /Updated 2 Mar \d+/
+    - navigation "Previous and next page":
+      - link "Previous Invite people":
+        - /url: /docs/sharing/invite/
+      - link "Next Transfer ownership":
+        - /url: /docs/sharing/transfer/
+- navigation "On this page":
+  - text: ""
+  - list:
+    - listitem:
+      - link "Add a role":
+        - /url: "#add-a-role"
+    - listitem:
+      - link "From a template":
+        - /url: "#from-a-template"
+    - listitem:
+      - link "Reorder roles":
+        - /url: "#reorder-roles"
+    - listitem:
+      - link "Limits":
+        - /url: "#limits"

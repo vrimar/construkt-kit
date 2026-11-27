@@ -1,0 +1,7 @@
+- dialog "Search the docs":
+  - text: ""
+  - combobox "Search the docs"
+  - button "Close"
+  - text: Search titles, headings and text.
+  - alert
+  - status

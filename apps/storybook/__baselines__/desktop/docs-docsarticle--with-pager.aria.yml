@@ -1,0 +1,10 @@
+- article:
+  - text: Concept
+  - heading "Project settings" [level=1]
+  - paragraph: Names, colours and the defaults new pages start with.
+  - paragraph: Each setting shows its default beside its name.
+  - navigation "Previous and next page":
+    - link "Previous Create a project":
+      - /url: /docs/projects/create/
+    - link "Next Archive, restore, delete":
+      - /url: /docs/projects/archive/

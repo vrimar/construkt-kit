@@ -2597,6 +2597,48 @@ export const stories = {
     title: "Demos/Kitchen Sink",
     tags: [],
   },
+  "docs-docsarticle--title-only": {
+    file: "packages/docs/src/react/DocsArticle.stories.tsx",
+    exportName: "TitleOnly",
+    title: "Docs/DocsArticle",
+    tags: [],
+  },
+  "docs-docsarticle--with-pager": {
+    file: "packages/docs/src/react/DocsArticle.stories.tsx",
+    exportName: "WithPager",
+    title: "Docs/DocsArticle",
+    tags: [],
+  },
+  "docs-docssearch--open": {
+    file: "packages/docs/src/react/DocsSearch.stories.tsx",
+    exportName: "Open",
+    title: "Docs/DocsSearch",
+    tags: ["open-state"],
+  },
+  "docs-docssearch--results": {
+    file: "packages/docs/src/react/DocsSearch.stories.tsx",
+    exportName: "Results",
+    title: "Docs/DocsSearch",
+    tags: ["open-state"],
+  },
+  "docs-docsshell--page": {
+    file: "packages/docs/src/react/DocsShell.stories.tsx",
+    exportName: "Page",
+    title: "Docs/DocsShell",
+    tags: [],
+  },
+  "docs-navtree--in-section": {
+    file: "packages/docs/src/react/NavTree.stories.tsx",
+    exportName: "InSection",
+    title: "Docs/NavTree",
+    tags: [],
+  },
+  "docs-navtree--on-top-level-page": {
+    file: "packages/docs/src/react/NavTree.stories.tsx",
+    exportName: "OnTopLevelPage",
+    title: "Docs/NavTree",
+    tags: [],
+  },
   "foundations-color-scheme--nested-scopes": {
     file: "packages/ui/src/foundations/ColorScheme.stories.tsx",
     exportName: "NestedScopes",

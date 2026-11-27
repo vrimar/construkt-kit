@@ -1,0 +1,12 @@
+- navigation "Documentation":
+  - list:
+    - listitem:
+      - link "Overview":
+        - /url: /docs/
+    - listitem:
+      - link "Get started":
+        - /url: /docs/get-started/
+    - listitem:
+      - button "Projects"
+    - listitem:
+      - button "Sharing"

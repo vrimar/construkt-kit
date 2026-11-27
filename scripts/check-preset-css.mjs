@@ -14,6 +14,7 @@ import { repoRoot, reportProblems } from "./lib.mjs";
 
 const pandaCwd = path.join(repoRoot, "packages/ui");
 const dataGridPreset = path.join(repoRoot, "packages/data-grid/src/preset/index.ts");
+const docsPreset = path.join(repoRoot, "packages/docs/src/preset/index.ts");
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "preset-css-"));
 const configPath = path.join(pandaCwd, "panda.check.ts");
@@ -24,10 +25,11 @@ fs.writeFileSync(
   `import { construktKitPreset } from "@construkt-kit/preset";
 import { defineConfig } from "@pandacss/dev";
 import { dataGridPreset } from ${JSON.stringify(dataGridPreset)};
+import { docsPreset } from ${JSON.stringify(docsPreset)};
 
 export default defineConfig({
   preflight: false,
-  presets: ["@pandacss/preset-base", construktKitPreset, dataGridPreset],
+  presets: ["@pandacss/preset-base", construktKitPreset, dataGridPreset, docsPreset],
   outdir: ${JSON.stringify(path.join(tmpDir, "styled-system"))},
   staticCss: { recipes: "*" },
 });

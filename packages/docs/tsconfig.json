@@ -1,0 +1,7 @@
+{
+  "extends": "@construkt-kit/config/typescript",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src", "test"]
+}

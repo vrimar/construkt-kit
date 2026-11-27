@@ -1,0 +1,24 @@
+- dialog "Search the docs":
+  - text: ""
+  - combobox "Search the docs" [expanded]: role
+  - listbox "Search the docs":
+    - group "Roles and permissions":
+      - option "Roles and permissions":
+        - mark: Roles
+        - text: ""
+      - option "Add a role":
+        - text: ""
+        - mark: role
+      - option "From a template"
+      - option "Reorder roles":
+        - text: ""
+        - mark: roles
+      - option "Limits"
+    - group "Invite people":
+      - option "Invite people"
+      - option "Choose a role":
+        - text: ""
+        - mark: role
+  - text: 7 results
+  - alert
+  - status: 7 results

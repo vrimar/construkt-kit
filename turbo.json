@@ -41,14 +41,15 @@
       "dependsOn": ["^build", "codegen", "gen:fixture"]
     },
     "//#lint:oxlint": {
-      // Type-aware rules read each package's built types and data-grid's generated
-      // recipe; these pull in every other package's build transitively.
+      // Type-aware rules read each package's built types and data-grid's and docs'
+      // generated recipes; these pull in every other package's build transitively.
       "dependsOn": [
         "@construkt-kit/ui#build",
         "@construkt-kit/pages#build",
         "@construkt-kit/api#build",
         "@construkt-kit/testing#build",
-        "@construkt-kit/data-grid#codegen"
+        "@construkt-kit/data-grid#codegen",
+        "@construkt-kit/docs#codegen"
       ],
       // Subtract only file types neither oxlint nor the type checker reads; a directory list misses new ones.
       "inputs": ["$TURBO_DEFAULT$", "!**/*.{md,png,svg,css,html,yml}"]

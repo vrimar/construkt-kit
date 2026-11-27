@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@construkt-kit/data-grid": "workspace:*",
+    "@construkt-kit/docs": "workspace:*",
     "@construkt-kit/pages": "workspace:*",
     "@construkt-kit/ui": "workspace:*"
   },
