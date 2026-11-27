@@ -479,6 +479,8 @@ export interface CommandPaletteItemProps extends Omit<
   value: string;
   /** The row's text. The query's words are highlighted in it. */
   label: string;
+  /** Words to highlight in `label` in place of the query's, each only as a whole word. */
+  highlight?: string;
   icon?: ReactNode;
   /** Second line under the label. */
   description?: ReactNode;
@@ -504,6 +506,7 @@ function Item({
   ref,
   value,
   label,
+  highlight,
   icon,
   description,
   disabled = false,
@@ -560,7 +563,8 @@ function Item({
         <parts.ItemText id={textId}>
           <SearchHighlight
             text={label}
-            query={query}
+            query={highlight ?? query}
+            wholeWords={highlight !== undefined}
           />
         </parts.ItemText>
         {slots.descriptionId && (

@@ -122,6 +122,27 @@ describe("CommandPalette", () => {
     ).not.toBeNull();
   });
 
+  it("marks an item's highlight words as whole words in place of the query", () => {
+    render(
+      <CommandPalette.Root
+        open
+        defaultQuery="permision"
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          <CommandPalette.Item
+            value="roles"
+            label="Role permissions for a roleplay"
+            highlight="role permissions"
+          />
+        </CommandPalette.List>
+      </CommandPalette.Root>,
+    );
+
+    const marks = Array.from(document.querySelectorAll("mark"), (mark) => mark.textContent);
+    expect(marks).toEqual(["Role", "permissions"]);
+  });
+
   it("reports the search field's close button as a close press, not an item pick", async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
