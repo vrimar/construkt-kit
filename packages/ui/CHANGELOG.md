@@ -1,5 +1,18 @@
 # @construkt-kit/ui
 
+## 0.17.0 — 2026-11-27
+
+### Features
+
+- Export useLayerBranch, so an app's own floating element counts as part of the layer that opened it (`775a937e`)
+- Let a CommandPalette item name its own highlight words, matched as whole words (`a026a9ad`)
+
+### Fixes
+
+- Stack toasts again when the pointer leaves as one closes, without waiting for another move (`11828131`)
+- Give ThemeToggle a tooltip naming the switch (`9db4337d`)
+- Treat "_" as a word boundary when highlighting whole words (`84781f18`)
+
 ## 0.16.1 — 2026-11-26
 
 ### Fixes
