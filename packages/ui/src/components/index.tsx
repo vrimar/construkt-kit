@@ -88,5 +88,5 @@ export * from "./Toolbar";
 export * from "./Tooltip";
 export * from "./Tree";
 export type { MobileLayout, MobileLayoutProps } from "../primitives/popup";
-export { hasOpenOverlay, useHasOpenOverlay } from "../primitives/layer";
+export { hasOpenOverlay, useHasOpenOverlay, useLayerBranch } from "../primitives/layer";
 export { getTabbables, isFocusable } from "../primitives/focus";
