@@ -27,7 +27,7 @@ const escapeRegex = (term: string): string =>
   term.replace(/[|\\{}()[\]^$+*?.]/g, (char) => `\\${char}`).replace(/-/g, "\\x2d");
 
 // `\b` only knows ASCII word characters.
-const WORD_CHAR = "[\\p{L}\\p{M}\\p{N}_]";
+const WORD_CHAR = "[\\p{L}\\p{M}\\p{N}]";
 
 const wholeWord = (pattern: string): string => `(?<!${WORD_CHAR})(${pattern})(?!${WORD_CHAR})`;
 
