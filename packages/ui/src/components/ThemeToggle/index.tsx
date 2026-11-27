@@ -1,20 +1,20 @@
 import { MoonIcon, SunIcon } from "lucide-react";
 
 import { useColorMode } from "../../color-mode";
-import { IconButton, type IconButtonProps } from "../Buttons";
+import { TooltipIconButton, type TooltipIconButtonProps } from "../Buttons";
 
-export type ThemeToggleProps = Omit<IconButtonProps, "icon">;
+export type ThemeToggleProps = Omit<TooltipIconButtonProps, "icon" | "label">;
 
-/** Icon button that toggles light/dark. Requires a `ColorModeProvider` ancestor. */
+/** Icon button that toggles light/dark, with a tooltip naming the switch. Requires a `ColorModeProvider` ancestor. */
 export const ThemeToggle = ({ ref, variant = "plain", onClick, ...props }: ThemeToggleProps) => {
   const { resolvedMode, toggle } = useColorMode();
   const isDark = resolvedMode === "dark";
 
   return (
-    <IconButton
+    <TooltipIconButton
       ref={ref}
       variant={variant}
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       icon={isDark ? <SunIcon /> : <MoonIcon />}
       {...props}
       onClick={(event) => {
