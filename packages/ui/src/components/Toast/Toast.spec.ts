@@ -64,9 +64,27 @@ storyTest(
     await close.click();
     await page.mouse.move(box.x + box.width / 2 + 4, box.y + box.height / 2 + 4, { steps: 4 });
     await expect(front).toBeHidden();
+    await expect.poll(() => next.evaluate((toast) => toast.getAnimations().length)).toBe(0);
     expect(await collapses.evaluate((seen) => seen.count)).toBe(0);
 
     await page.mouse.move(4, 4);
+    await expect(next).toHaveAttribute("data-collapsed", "");
+  },
+  { only: "desktop" },
+);
+
+storyTest(
+  ["components-toast--stacked"],
+  "a pointer leaving the stack as a toast closes stacks it again without moving on",
+  async ({ page }) => {
+    const front = page.getByRole("status", { name: "Upload failed" });
+    const next = page.getByRole("status", { name: "Changes saved" });
+    await front.hover();
+    await expect(next).toHaveAttribute("data-expanded", "");
+
+    await front.getByRole("button", { name: "Close" }).click();
+    await page.mouse.move(4, 4);
+    await expect(front).toBeHidden();
     await expect(next).toHaveAttribute("data-collapsed", "");
   },
   { only: "desktop" },

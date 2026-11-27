@@ -2,6 +2,7 @@ import {
   type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
   useCallback,
   useEffect,
   useId,
@@ -116,12 +117,31 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
     lastFocused: null as HTMLElement | null,
     focusWithin: false,
     pointerWithin: false,
+    pointerX: 0,
+    pointerY: 0,
     ignoreMouseFrame: 0,
+    settling: 0,
+    unsettled: false,
     leaving: false,
   });
 
   const api = useMemo(() => {
     const state = interaction.current;
+    const trackPointer = (event: Pick<MouseEvent, "clientX" | "clientY">) => {
+      state.pointerX = event.clientX;
+      state.pointerY = event.clientY;
+    };
+    const unsettled = () => Boolean(state.ignoreMouseFrame) || state.leaving || state.unsettled;
+    // The stack can slide under a resting pointer without the browser moving its hover there.
+    const watchPointer = (event: PointerEvent) => {
+      trackPointer(event);
+      if (unsettled() || groupRef.current?.contains(event.target as Node)) return;
+      pointerLeave();
+    };
+    const releasePointer = () => {
+      state.pointerWithin = false;
+      document.removeEventListener("pointermove", watchPointer, true);
+    };
     const restoreFocus = () => {
       state.lastFocused?.focus({ preventScroll: true });
       state.lastFocused = null;
@@ -130,31 +150,37 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
       if (isPageHidden() || state.pointerWithin || state.focusWithin) return;
       store.resume();
     };
-    const pointerEnter = () => {
+    const pointerEnter = (event: MouseEvent) => {
+      trackPointer(event);
       if (state.ignoreMouseFrame) return;
+      if (!state.pointerWithin) {
+        document.addEventListener("pointermove", watchPointer, { capture: true, passive: true });
+      }
       state.pointerWithin = true;
       store.expand();
       store.pause();
     };
     const pointerLeave = () => {
-      state.pointerWithin = false;
+      releasePointer();
       store.collapse();
       resumeIfIdle();
       if (!state.focusWithin) restoreFocus();
     };
-    const ignoreMouseUntilMove = () => {
+    const settleAfterRemoval = () => {
       cancelAnimationFrame(state.ignoreMouseFrame);
+      const settling = ++state.settling;
+      state.unsettled = true;
       state.ignoreMouseFrame = requestAnimationFrame(() => {
         state.ignoreMouseFrame = 0;
-        document.addEventListener(
-          "pointermove",
-          (event) => {
-            const node = groupRef.current;
-            if (!state.pointerWithin || node?.contains(event.target as Node)) return;
-            pointerLeave();
-          },
-          { once: true },
-        );
+        const node = groupRef.current;
+        const moving = node ? [...node.children].flatMap((root) => root.getAnimations()) : [];
+        void Promise.allSettled(moving.map((animation) => animation.finished)).then(() => {
+          if (settling !== state.settling) return;
+          state.unsettled = false;
+          if (!node || state.leaving || !state.pointerWithin) return;
+          const under = document.elementFromPoint(state.pointerX, state.pointerY);
+          if (!node.contains(under)) pointerLeave();
+        });
       });
     };
 
@@ -167,7 +193,7 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
         ),
       remove: (id) => {
         store.remove(id);
-        ignoreMouseUntilMove();
+        settleAfterRemoval();
       },
       moveFocusFrom: (root, focusVisible) => {
         const roots = [...(groupRef.current?.children ?? [])];
@@ -188,9 +214,10 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
       group: toasterGroup,
       onMouseEnter: pointerEnter,
       onMouseMove: pointerEnter,
-      // A leaving toast moves out from under the pointer; its removal settles the pointer on the next move.
-      onMouseLeave: () => {
-        if (!state.ignoreMouseFrame && !state.leaving) pointerLeave();
+      // A leaving toast moves out from under the pointer, so where it went is decided once the stack settles.
+      onMouseLeave: (event: MouseEvent) => {
+        trackPointer(event);
+        if (!unsettled()) pointerLeave();
       },
       onFocus: (event: FocusEvent<HTMLDivElement>) => {
         if (!state.focusWithin) {
@@ -215,10 +242,15 @@ export function Toaster({ placement = "top-end" }: ToasterProps = {}) {
       },
       reset: () => {
         state.focusWithin = false;
-        state.pointerWithin = false;
+        releasePointer();
         state.lastFocused = null;
       },
-      dispose: () => cancelAnimationFrame(state.ignoreMouseFrame),
+      dispose: () => {
+        cancelAnimationFrame(state.ignoreMouseFrame);
+        state.settling += 1;
+        state.unsettled = false;
+        releasePointer();
+      },
     };
   }, []);
 
