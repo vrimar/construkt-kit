@@ -8,6 +8,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import knownCssProperties from "known-css-properties";
+import { transform } from "lightningcss";
 
 import { repoRoot, reportProblems } from "./lib.mjs";
 
@@ -49,6 +50,14 @@ const requireFromUi = createRequire(path.join(pandaCwd, "package.json"));
 const importFromUi = (specifier) => import(pathToFileURL(requireFromUi.resolve(specifier)).href);
 const { construktKitPreset } = await importFromUi("@construkt-kit/preset");
 const { preset: pandaBasePreset } = await importFromUi("@pandacss/preset-base");
+
+const unparsable = transform({
+  filename: "preset.css",
+  code: Buffer.from(css),
+  errorRecovery: true,
+}).warnings.map(
+  (w) => `${w.message} (line ${w.loc.line})\n    ${css.split("\n")[w.loc.line - 1]?.trim() ?? ""}`,
+);
 
 // Unresolved tokens emit verbatim with escaped dots; resolved ones keep them only in var(--sizes-4\.5).
 const customProperty = /--[\w\\.-]+/g;
@@ -313,6 +322,11 @@ const contractBreaks = [...recipeContract].flatMap(
 
 const CHECKS = [
   {
+    what: "rule(s) a CSS parser rejects, which a minifier drops or fails on",
+    found: unparsable,
+    advice: "Quote attribute values that aren't identifiers, e.g. [data-depth='3'].",
+  },
+  {
     what: "unresolved value(s) in the generated CSS",
     found: unresolved,
     advice: "Check the token exists in packages/preset/src/theme/tokens/.",
@@ -352,5 +366,5 @@ for (const { what, found, advice } of CHECKS)
 if (failed) process.exit(1);
 
 console.log(
-  `preset CSS clean — ${css.split("\n").length} lines, no unresolved values, invalid declarations, variant overlaps, narrowed focus rings, order-dependent state pairs or Panda contract breaks.`,
+  `preset CSS clean — ${css.split("\n").length} lines, no unparsable rules, unresolved values, invalid declarations, variant overlaps, narrowed focus rings, order-dependent state pairs or Panda contract breaks.`,
 );

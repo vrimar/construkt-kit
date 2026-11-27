@@ -208,6 +208,9 @@ importers:
       known-css-properties:
         specifier: ^0.37.0
         version: 0.37.0
+      lightningcss:
+        specifier: ^1.33.0
+        version: 1.33.0
       oxfmt:
         specifier: ^0.78.0
         version: 0.78.0
