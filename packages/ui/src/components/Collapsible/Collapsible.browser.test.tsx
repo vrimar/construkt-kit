@@ -40,11 +40,18 @@ it("reports its trigger collapsed as soon as it closes, while the content animat
     </Collapsible.Root>,
   );
   const trigger = screen.getByRole("button", { name: "Details" });
+  const contentWhenCollapsed = new Promise<HTMLElement | null>((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (trigger.getAttribute("aria-expanded") !== "false") return;
+      observer.disconnect();
+      resolve(content());
+    });
+    observer.observe(trigger, { attributeFilter: ["aria-expanded"] });
+  });
 
   await userEvent.click(trigger);
 
-  expect(content()).not.toBeNull();
-  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(await contentWhenCollapsed).not.toBeNull();
 });
 
 it("animates only when it opens or closes, not when it mounts open or an ancestor shows it again", async () => {
